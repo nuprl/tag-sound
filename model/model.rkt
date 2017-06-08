@@ -40,8 +40,8 @@
 ;; TODO what about type annotations?
 
 (define-language RST
-  (e ::= x v (λ (x) e) (unbox e) (set-box! e e) (+ e e) (e e) (box e) (if e e e) (let ((L x e)) e) (letrec ((L x e)) e) (:: e τ))
-  (v ::= c integer (box v))
+  (e ::= x integer (λ (x) e) (unbox e) (set-box! e e) (+ e e) (e e) (box e) (if e e e) (let ((L x e)) e) (letrec ((L x e)) e) (:: e τ))
+  (v ::= integer (λ (x) e) (box v))
   (c ::= (CLOSURE e γ))
   (σ ::= (∀ (α) σ) τ)
   (τ ::= (U k τ) (μ (α) τ) α k)
@@ -77,16 +77,30 @@
 )
 
 ;; -----------------------------------------------------------------------------
+;; --- grammar
+;; - top-level is R terms
+;;
+;; - R terms unannotated (or just ignore)
+;; - S terms fully-annotated
+;; - T terms fully-annotated
+;;
+;; type have discriminative unions
 
 ;; -----------------------------------------------------------------------------
+;; --- utils
 
 
 ;; -----------------------------------------------------------------------------
+;; --- type checking
+
 
 ;; -----------------------------------------------------------------------------
+;; --- evaluation
 
 
 ;; -----------------------------------------------------------------------------
+;; --- (colorblind) compiler
+;; - translate R S T terms all to R
+;; - but the S T terms have proper checks,
+;; - via contracts and type-directed defense
 
-;; The colored interpreter needs to keep types at runtime. For what?
-;; - ???
