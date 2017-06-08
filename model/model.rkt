@@ -1,6 +1,16 @@
 #lang mf-apply racket/base
 
-;; CMON WORK FASTER
+;; The point of this model is to study contract insertion & boundaries.
+;; I think the cross-boundary soudnenss is going to work fine,
+;;  with R < S < T
+;;  and interesting types
+;; but the model is here to find out, before diving into the weeds of:
+;; - TR contract generation
+;; - TR type-driven rewriting
+;; - actual boundaries
+;; (keep a TODO list of Racket things!)
+
+;; ---
 
 ;; - evaluate with context-aware CEK machine
 ;; - prove "soundness" for closed programs
@@ -42,6 +52,7 @@
   (σ ::= (∀ (α) σ) τ)
   (τ ::= (U k τ) (μ (α) τ) α k)
   (k ::= Integer (→ τ τ) (Box τ))
+  (P ::= (L e))
   (L ::= R S T)
   (γ ::= ((L x v) ...))
   (Γ ::= ((L x τ) ...))
@@ -189,6 +200,46 @@
 ;; -----------------------------------------------------------------------------
 ;; --- type checking
 
+(define-judgment-form RST
+  #:mode (well-typed I O)
+  #:contract (well-typed P τ)
+  [
+   (R-typed () e τ)
+   ---
+   (well-typed (R e) τ)]
+  [
+   (T-typed () e τ)
+   ---
+   (well-typed (S e) τ)]
+  [
+   (T-typed () e τ)
+   ---
+   (well-typed (T e) τ)])
+
+(define-judgment-form RST
+  #:mode (R-typed I I O)
+  #:contract (R-typed Γ e τ)
+  [
+   --- TODO
+   (R-typed Γ e Integer)]
+)
+
+(define-judgment-form RST
+  #:mode (T-typed I I O)
+  #:contract (T-typed Γ e τ)
+  [
+   --- TODO
+   (T-typed Γ e Integer)]
+)
+
+
+
+;; uhm what abouy environemnts?
+(define-metafunction RST
+  typecheck : P -> τ
+  [(typecheck P)
+   τ
+   (judgment-holds (well-typed P τ))])
 
 ;; -----------------------------------------------------------------------------
 ;; --- evaluation
