@@ -1,9 +1,7 @@
 #lang mf-apply racket/base
 
-;; - 3 languages
-;; - 3/3 terms
-;; - 2/3 types
-;; - type context remembers source language
+;; CMON WORK FASTER
+
 ;; - evaluate with context-aware CEK machine
 ;; - prove "soundness" for closed programs
 ;; - prove absence of certain errors in certain contexts
@@ -37,10 +35,8 @@
 
 ;; =============================================================================
 
-;; TODO what about type annotations?
-
 (define-language RST
-  (e ::= x integer (λ (x) e) (unbox e) (set-box! e e) (+ e e) (e e) (box e) (if e e e) (let ((L x e)) e) (letrec ((L x e)) e) (:: e τ))
+  (e ::= x integer (λ (x) e) (unbox e) (set-box! e e) (+ e e) (e e) (box e) (if e e e) (let ((L x e)) e) (letrec ((L x e)) e) (:: e σ))
   (v ::= integer (λ (x) e) (box v))
   (c ::= (CLOSURE e γ))
   (σ ::= (∀ (α) σ) τ)
@@ -49,8 +45,12 @@
   (L ::= R S T)
   (γ ::= ((L x v) ...))
   (Γ ::= ((L x τ) ...))
+  (x* ::= (x ...))
+  (α* ::= (α ...))
   (x α ::= variable-not-otherwise-mentioned)
   #:binding-forms
+  (∀ (α) σ #:refers-to α)
+  (μ (α) τ #:refers-to α)
   (λ (x) e #:refers-to x)
   (let ((x e_0)) e #:refers-to x)
   (letrec ((x e_0 #:refers-to x)) e #:refers-to x)
@@ -78,13 +78,109 @@
 
 ;; -----------------------------------------------------------------------------
 ;; --- grammar
-;; - top-level is R terms
-;;
-;; - R terms unannotated (or just ignore)
-;; - S terms fully-annotated
-;; - T terms fully-annotated
-;;
-;; type have discriminative unions
+;; TODO
+;; - type have discriminative unions
+;; - check σ in the right places?
+;; - well-formed type variables
+;; - closed
+
+(define-judgment-form RST
+  #:mode (well-formed I I)
+  #:contract (well-formed L e)
+  [
+   (closed e)
+   ---
+   (well-formed R e)]
+  [
+   (closed e)
+   (well-formed-T e)
+   ---
+   (well-formed S e)]
+  [
+   (closed e)
+   (well-formed-T e)
+   ---
+   (well-formed T e)])
+
+(define-judgment-form RST
+  #:mode (well-formed-T I)
+  #:contract (well-formed-T e)
+  [
+   --- Var
+   (well-formed-T x)]
+  [
+   --- Integer
+   (well-formed-T integer)]
+  [
+   (well-formed-T e)
+   (well-formed-type τ)
+   --- Lambda
+   (well-formed-T (:: (λ (x) e) τ))]
+  [
+   (well-formed-T e)
+   --- Unbox
+   (well-formed-T (unbox e))]
+  [
+   (well-formed-T e_0)
+   (well-formed-T e_1)
+   --- Set
+   (well-formed-T (set-box! e_0 e_1))]
+  [
+   (well-formed-T e_0)
+   (well-formed-T e_1)
+   --- +
+   (well-formed-T (+ e_0 e_1))]
+  [
+   (well-formed-T e_0)
+   (well-formed-T e_1)
+   --- App
+   (well-formed-T (e_0 e_1))]
+  [
+   (well-formed-T e)
+   (well-formed-type τ)
+   --- Box
+   (well-formed-T (:: (box e) τ))]
+  [
+   (well-formed-T e_0)
+   (well-formed-T e_1)
+   (well-formed-T e_2)
+   --- If
+   (well-formed-T (if e_0 e_1 e_2))]
+  [
+   (well-formed L e_0)
+   (well-formed-T e_1)
+   --- Let
+   (well-formed-T (let ((L x e_0)) e_1))]
+  [
+   (well-formed L e_0)
+   (well-formed-T e_1)
+   --- Letrec
+   (well-formed-T (letrec ((L x e_0)) e_1))])
+
+(define-judgment-form RST
+  #:mode (well-formed-type I)
+  #:contract (well-formed-type σ)
+  [
+   ;; TODO
+   ;; - no f
+   ---
+   (well-formed-type σ)])
+
+(define-judgment-form RST
+  #:mode (closed I)
+  #:contract (closed any)
+  [
+   (free-variables any ())
+   ---
+   (closed any)])
+
+(define-judgment-form RST
+  #:mode (free-variables I O)
+  #:contract (free-variables any x*)
+  [
+   ;; TODO
+   ---
+   (free-variables any ())])
 
 ;; -----------------------------------------------------------------------------
 ;; --- utils
