@@ -231,8 +231,13 @@
 ;; -----------------------------------------------------------------------------
 ;; --- utils
 
+;; TODO
+;; - remove unused α
 (define-metafunction RST
   type-normalize : τ -> τ
+  [(type-normalize (U k τ))
+   #{union-add k τ_+}
+   (where τ_+ #{type-normalize τ})]
   [(type-normalize τ)
    ;; placeholder implementation
    τ])
@@ -339,10 +344,23 @@
 
 (module+ test
   (test-case "τ=?"
-
+    (check-mf-apply*
+     [(τ=? Integer Integer)
+      #true]
+     [(τ=? Integer (Boxof Integer))
+      #false]
+     [(τ=? (→ Integer Integer) (→ Integer Integer))
+      #true]
+     [(τ=? (U Integer (Boxof Integer)) (U (Boxof Integer) Integer))
+      #true]
+    )
   )
 
   (test-case "normalize"
+    (check-mf-apply*
+     [(type-normalize Integer)
+      Integer]
+    )
   )
 
   (test-case "unionize"
