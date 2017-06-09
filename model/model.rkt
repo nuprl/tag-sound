@@ -16,6 +16,9 @@
 
 ;; Questions
 ;; - need "the racket type" ?
+;; - how to polymorphic functions? should not be hard but please get right
+;;   also application thereof
+;; - why are let rules so similar?
 
 ;; ---
 
@@ -86,6 +89,9 @@
   (let ((x e_0)) e #:refers-to x)
   (letrec ((x e_0 #:refers-to x)) e #:refers-to x)
 )
+
+(define (α=? e0 e1)
+  (alpha-equivalent? RST e0 e1))
 
 (module+ test
   (define-syntax (define-predicate* stx)
@@ -224,6 +230,33 @@
 ;; -----------------------------------------------------------------------------
 ;; --- utils
 
+(define-metafunction RST
+  type-normalize : τ -> τ
+  [(type-normalize τ)
+   ;; placeholder implementation
+   τ])
+
+(define-metafunction RST
+  τ=? : τ τ -> boolean
+  [(τ=? τ_0 τ_1)
+   ,(α=? (term τ_0+) (term τ_1+))
+   (where τ_0+ (type-normalize τ_0))
+   (where τ_1+ (type-normalize τ_1))])
+
+;; (type-equal? τ τ)
+(define-judgment-form RST
+  #:mode (type-equal? I I)
+  #:contract (type-equal? τ τ)
+  [
+   (side-condition (τ=? τ_0 τ_1))
+   ---
+   (type-equal? τ_0 τ_1)])
+
+(define-metafunction RST
+  unionize : τ τ -> τ
+  [(unionize τ_0 τ_1)
+   τ_0])
+
 ;; (type-env-set Γ L x e)
 ;; If term `e` from language `L` is type-annotated with τ, bind `(x τ)` in `Γ`
 ;; else return `Γ`
@@ -242,6 +275,17 @@
       (caddr lxσ))])
 
 (module+ test
+  ;; TODO
+  (test-case "τ=?"
+
+  )
+
+  (test-case "normalize"
+  )
+
+  (test-case "unionize"
+  )
+
   (test-case "type-env-set"
     (check-mf-apply*
      [(type-env-set () T x (:: 4 Integer))
@@ -357,6 +401,66 @@
    (where σ #{type-env-ref Γ x})
    --- Var
    (T-typed Γ x σ)]
+  [
+   --- Integer
+   (T-typed Γ integer Integer)]
+  [
+   (where Γ_x #{type-env-set Γ T x τ_0}) ;; TODO sometimes use S ?
+   (T-typed Γ_x e τ_2)
+   (type-equal? τ_1 τ_2)
+   --- Lambda
+   (T-typed Γ (:: (λ (x) e) (→ τ_0 τ_1)) (→ τ_0 τ_1))]
+  [
+   (side-condition ,(raise-user-error 'T-typed "found un-annotated function, please wrap all (λ (x) e) as (:: (λ (x) e) τ) in ~a" (term (λ (x) e))))
+   --- LambdaError
+   (T-typed Γ (λ (x) e) Integer)]
+  [
+   (T-typed Γ e (Boxof τ))
+   --- Unbox
+   (T-typed Γ (unbox e) τ)]
+  [
+   (T-typed Γ e_0 (Boxof τ_0))
+   (T-typed Γ e_1 τ_1)
+   (type-equal? τ_0 τ_1)
+   --- SetBox
+   (T-typed Γ (set-box! e_0 e_1) (Boxof τ_0))]
+  [
+   (T-typed Γ e_0 τ_0)
+   (T-typed Γ e_1 τ_1)
+   (type-equal? τ_0 Integer)
+   (type-equal? τ_1 Integer)
+   --- +
+   (T-typed Γ (+ e_0 e_1) Integer)]
+  [
+   (T-typed Γ e_0 (→ τ_dom τ_cod))
+   (T-typed Γ e_1 τ_1)
+   (type-equal? τ_1 τ_dom)
+   --- App
+   (T-typed Γ (e_0 e_1) τ_cod)]
+  [
+   (T-typed Γ e_0 τ_0)
+   (T-typed Γ e_1 τ_1)
+   (T-typed Γ e_2 τ_2)
+   (where τ #{unionize τ_1 τ_2})
+   --- If
+   (T-typed Γ (if e_0 e_1 e_2) τ)]
+  [
+   (well-typed Γ (L e_0))
+   (where Γ_x #{type-env-set Γ L x e_0})
+   (T-typed Γ_x e_1 τ_1)
+   --- Let
+   (T-typed Γ (let ((L x e_0)) e_1) τ_1)]
+  [
+   (where Γ_x #{type-env-set Γ L x e_0})
+   (well-typed Γ_x (L e_0))
+   (T-typed Γ_x e_1 τ_1)
+   --- Letrec
+   (T-typed Γ (letrec ((L x e_0)) e_1) τ_1)]
+  [
+   (T-typed Γ e τ_e)
+   (type-equal? τ_e τ)
+   --- Ann
+   (T-typed Γ (:: e τ) τ)]
 )
 
 ;; uhm what abouy environemnts?
