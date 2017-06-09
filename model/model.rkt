@@ -56,8 +56,8 @@
     (apply printf msg arg*)))
 
 (module+ test
-  (require rackunit-abbrevs rackunit syntax/macro-testing
-           (for-syntax racket/base racket/syntax syntax/parse syntax/srcloc))
+  (require rackunit-abbrevs rackunit syntax/macro-testing redex-abbrevs
+           (for-syntax racket/base racket/syntax syntax/parse))
 )
 
 ;; =============================================================================
@@ -74,6 +74,7 @@
   (L ::= R S T)
   (γ ::= ((L x v) ...))
   (Γ ::= ((L x σ) ...))
+  (Σ ::= ???)
   (k* ::= (k ...))
   (x* ::= (x ...))
   (α* ::= (α ...))
@@ -90,18 +91,7 @@
   (alpha-equivalent? RST e0 e1))
 
 (module+ test
-
-  (define-syntax (check-mf-apply* stx)
-    (syntax-parse stx
-     [(_ (~optional (~seq #:is-equal? ?eq:expr) #:defaults ([?eq #'#f])) [?e0 ?e1] ...)
-      (quasisyntax/loc stx
-        (let ([eq (or ?eq α=?)])
-          #,@(for/list ([kv (in-list (syntax-e #'((?e0 ?e1) ...)))])
-               (define e0 (car (syntax-e kv)))
-               (define e1 (cadr (syntax-e kv)))
-               (quasisyntax/loc e0
-                 (with-check-info* (list (make-check-location '#,(build-source-location-list e0)))
-                   (λ () (check eq (term #,e0) (term #,e1))))))))]))
+  (*term-equal?* α=?)
 
   (define-syntax (define-predicate* stx)
     (syntax-parse stx
@@ -109,7 +99,7 @@
       #:with (x?* ...) (for/list ([x (in-list (syntax-e #'(x* ...)))]) (format-id stx "~a?" (syntax-e x)))
       (syntax/loc stx (begin (define x?* (redex-match? RST x*)) ...))]))
 
-  (define-predicate* [e v c σ τ k L γ Γ])
+  (define-predicate* [e v c σ τ k L γ Γ Σ])
 
   (test-case "e"
     (check-pred e? (term x))
@@ -834,6 +824,42 @@
 ;; -----------------------------------------------------------------------------
 ;; --- evaluation
 
+
+;; lets see, basic idea hopes and dreams is...
+;; - take a term e
+;; - start evaluating it
+;; - able to track language context and switch
+;; - basically every line of code has a color
+
+;(define -->RST
+;  (reduction-relation RST
+;    #:domain Σ
+;    [-->
+;      Σ
+;      Σ
+;      (judgment-holds (final? Σ))]
+;    [-->
+;
+;(define -->RST*
+;  (make--->* -->RST))
+;
+;(define-metafunction RST
+;  eval : P -> v
+;  [(eval P)
+;   (-->RST* #{init P})])
+;
+;
+;(define-metafunction RST
+;  init : P -> Σ
+;  [(init P)
+;   ???])
+;
+;(define-judgment-form RST
+;  #:mode (final? I)
+;  #:contract (final? Σ)
+;  [
+;   ---
+;   (final? ???)])
 
 ;; -----------------------------------------------------------------------------
 ;; --- (colorblind) compiler
