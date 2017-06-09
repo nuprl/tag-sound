@@ -58,18 +58,6 @@
 (module+ test
   (require rackunit-abbrevs rackunit syntax/macro-testing
            (for-syntax racket/base racket/syntax syntax/parse syntax/srcloc))
-
-  (define-syntax (check-mf-apply* stx)
-    (syntax-parse stx
-     [(_ (~optional (~seq #:is-equal? ?eq:expr) #:defaults ([?eq #'#f])) [?e0 ?e1] ...)
-      (quasisyntax/loc stx
-        (let ([eq (or ?eq equal?)])
-          #,@(for/list ([kv (in-list (syntax-e #'((?e0 ?e1) ...)))])
-               (define e0 (car (syntax-e kv)))
-               (define e1 (cadr (syntax-e kv)))
-               (quasisyntax/loc e0
-                 (with-check-info* (list (make-check-location '#,(build-source-location-list e0)))
-                   (λ () (check eq (term #,e0) (term #,e1))))))))]))
 )
 
 ;; =============================================================================
@@ -81,7 +69,7 @@
   (σ ::= (∀ (α) σ) τ)
   (τ ::= (U k τ) (μ (α) τ) α k)
   (k ::= Integer (→ τ τ) (Boxof τ))
-  (aop ::= + =)
+  (aop ::= + = - *)
   (P ::= (L e))
   (L ::= R S T)
   (γ ::= ((L x v) ...))
@@ -102,6 +90,19 @@
   (alpha-equivalent? RST e0 e1))
 
 (module+ test
+
+  (define-syntax (check-mf-apply* stx)
+    (syntax-parse stx
+     [(_ (~optional (~seq #:is-equal? ?eq:expr) #:defaults ([?eq #'#f])) [?e0 ?e1] ...)
+      (quasisyntax/loc stx
+        (let ([eq (or ?eq α=?)])
+          #,@(for/list ([kv (in-list (syntax-e #'((?e0 ?e1) ...)))])
+               (define e0 (car (syntax-e kv)))
+               (define e1 (cadr (syntax-e kv)))
+               (quasisyntax/loc e0
+                 (with-check-info* (list (make-check-location '#,(build-source-location-list e0)))
+                   (λ () (check eq (term #,e0) (term #,e1))))))))]))
+
   (define-syntax (define-predicate* stx)
     (syntax-parse stx
      [(_ [x*:id ...])
@@ -254,9 +255,46 @@
 (define-metafunction RST
   τ=? : τ τ -> boolean
   [(τ=? τ_0 τ_1)
-   ,(α=? (term τ_0+) (term τ_1+))
-   (where τ_0+ (type-normalize τ_0))
-   (where τ_1+ (type-normalize τ_1))])
+   (τ=?-aux (type-normalize τ_0) (type-normalize τ_1))])
+
+;; Decide if normalized types are equal
+(define-metafunction RST
+  τ=?-aux : τ τ -> boolean
+  [(τ=?-aux (μ (α) τ_0) τ_1)
+   (τ=?-aux #{unfold-rec (μ (α) τ_0)} τ_1)
+   (judgment-holds (tag-equal? τ_0 τ_1))]
+  [(τ=?-aux τ_0 (μ (α) τ_1))
+   (τ=?-aux τ_0 #{unfold-rec (μ (α) τ_1)})
+   (judgment-holds (tag-equal? τ_0 τ_1))]
+  [(τ=?-aux τ_0 τ_1)
+   ,(α=? (term τ_0) (term τ_1))])
+
+(define-metafunction RST
+  unfold-rec : (μ (α) τ) -> τ
+  [(unfold-rec (μ (α) τ))
+   (substitute τ α (μ (α) τ))])
+
+(define-judgment-form RST
+  #:mode (tag-equal? I I)
+  #:contract (tag-equal? τ τ)
+  [
+   ---
+   (tag-equal? Integer Integer)]
+  [
+   ---
+   (tag-equal? (Boxof τ_0) (Boxof τ_1))]
+  [
+   ---
+   (tag-equal? (→ τ_0 τ_1) (→ τ_2 τ_3))]
+  [
+   (tag-equal? k_0 k_1)
+   (tag-equal? τ_0 τ_1)
+   ---
+   (tag-equal? (U k_0 τ_0) (U k_1 τ_1))]
+  [
+   (tag-equal? τ_0 τ_1)
+   ---
+   (tag-equal? (μ (α_0) τ_0) (μ (α_1) τ_1))])
 
 ;; (type-equal? τ τ)
 (define-judgment-form RST
@@ -284,6 +322,10 @@
    (where (α_pre α_post) (sort-α (α_0 α_1)))]
   [(unionize (U k_0 τ_0) τ_1)
    (unionize τ_0 #{union-add k_0 τ_1})]
+  [(unionize k (μ (α) τ))
+   (μ (α) #{unionize k τ})] ;; TODO freshen? I think binding-forms takes care of it
+  [(unionize (μ (α) τ) k)
+   (μ (α) #{unionize k τ})]
   [(unionize τ k)
    (U k τ)]
   [(unionize k τ)
@@ -369,6 +411,9 @@
      [(τ=? (→ Integer Integer) (→ Integer Integer))
       #true]
      [(τ=? (U Integer (Boxof Integer)) (U (Boxof Integer) Integer))
+      #true]
+     [(τ=? (U (Boxof (μ (α1) (U (Boxof α1) Integer))) Integer)
+           (μ (α0) (U (Boxof α0) Integer)))
       #true]
     )
   )
@@ -519,7 +564,7 @@
   [
    (where Γ_x #{type-env-set Γ T x (:: x τ_0)}) ;; TODO sometimes use S ?
    (T-typed Γ_x e τ_2)
-   (type-equal? τ_1 τ_2)
+   (subtype? τ_2 τ_1)
    --- Lambda
    (T-typed Γ (:: (λ (x) e) (→ τ_0 τ_1)) (→ τ_0 τ_1))]
   [
@@ -589,7 +634,9 @@
   T-typecheck : e -> σ
   [(T-typecheck e)
    τ
-   (judgment-holds (T-typed () e τ))])
+   (judgment-holds (T-typed () e τ))]
+  [(T-typecheck e)
+   ,(raise-user-error 'T-typecheck "failed to type ~a" (term e))])
 
 (define-metafunction RST
   typecheck : P -> boolean
@@ -713,8 +760,31 @@
     (check-mf-apply*
      [(typecheck (T (:: (λ (x) x) (→ (U (Boxof Integer) Integer) (U (Boxof Integer) Integer)))))
       #true]
+     [(typecheck (T (:: (λ (x) (if (= x 0) x (:: (box x) (Boxof Integer)))) (→ Integer (U (Boxof Integer) Integer)))))
+      #true]
+     [(typecheck (T (:: (λ (x) (+ x 1)) (→ (U (Boxof Integer) Integer) Integer))))
+      #false]
+     [(typecheck (T (letrec ((T fact (:: (λ (n) (if (= n 1) 1 (* n (fact (- n 1))))) (→ Integer Integer)))) (fact 4))))
+      #true]
+     [(typecheck (T (letrec ((T fact (:: (λ (n) (if (= n 1) (:: (box 1) (Boxof Integer)) (* n (fact (- n 1))))) (→ Integer Integer)))) (fact 4))))
+      #false]
+     [(typecheck (T
+       (letrec ((T deep (:: (λ (x) (if (= 0 x) x (:: (box (deep (- x 1)))
+                                                     (Boxof (μ (α1) (U (Boxof α1) Integer))))))
+                            (→ Integer (μ (α0) (U (Boxof α0) Integer))))))
+         (deep 3))))
+      #true]
     )
   )
+
+  (test-case "T-typecheck"
+    (check-mf-apply*
+     [(T-typecheck
+       (letrec ((T deep (:: (λ (x) (if (= 0 x) x (:: (box (deep (- x 1)))
+                                                     (Boxof (μ (α1) (U (Boxof α1) Integer))))))
+                            (→ Integer (μ (α0) (U (Boxof α0) Integer))))))
+         (deep 3)))
+      (μ (α2) (U (Boxof α2) Integer))]))
 )
 
 ;; -----------------------------------------------------------------------------
