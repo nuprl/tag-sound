@@ -49,8 +49,14 @@
   racket/set
   redex/reduction-semantics)
 
+(define *debug* (make-parameter #f))
+
+(define (debug msg . arg*)
+  (when (*debug*)
+    (apply printf msg arg*)))
+
 (module+ test
-  (require rackunit-abbrevs rackunit
+  (require rackunit-abbrevs rackunit syntax/macro-testing
            (for-syntax racket/base racket/syntax syntax/parse syntax/srcloc))
 
   (define-syntax (check-mf-apply* stx)
@@ -108,10 +114,12 @@
     (check-pred e? (term 4))
     (check-pred e? (term (:: 4 Integer)))
     (check-pred e? (term (:: 4 (Boxof Integer))))
-    (check-pred e? (term (let ((R x 4)) (+ x 1)))))
+    (check-pred e? (term (let ((R x 4)) (+ x 1))))
+    (check-pred e? (term (:: (λ (x) 3) (→ (→ Integer Integer) Integer)))))
 
   (test-case "τ"
-    (check-pred τ? (term Integer)))
+    (check-pred τ? (term Integer))
+    (check-pred τ? (term (→ (→ Integer Integer) Integer))))
 
   (test-case "σ"
     (check-pred σ? (term Integer)))
@@ -257,6 +265,14 @@
    (side-condition (τ=? τ_0 τ_1))
    ---
    (type-equal? τ_0 τ_1)])
+
+(define-judgment-form RST
+  #:mode (subtype? I I)
+  #:contract (subtype? τ τ)
+  [
+   (type-equal? τ_0 τ_1)
+   --- Id
+   (subtype? τ_0 τ_1)])
 
 (define-metafunction RST
   unionize : τ τ -> τ
@@ -495,13 +511,13 @@
    --- Integer
    (T-typed Γ integer Integer)]
   [
-   (where Γ_x #{type-env-set Γ T x τ_0}) ;; TODO sometimes use S ?
+   (where Γ_x #{type-env-set Γ T x (:: x τ_0)}) ;; TODO sometimes use S ?
    (T-typed Γ_x e τ_2)
    (type-equal? τ_1 τ_2)
    --- Lambda
    (T-typed Γ (:: (λ (x) e) (→ τ_0 τ_1)) (→ τ_0 τ_1))]
   [
-   (side-condition ,(raise-user-error 'T-typed "found un-annotated function, please wrap all (λ (x) e) as (:: (λ (x) e) τ) in ~a" (term (λ (x) e))))
+   (side-condition ,(raise-user-error 'T-typed "found un-annotated function in ~a" (term (λ (x) e))))
    --- LambdaError
    (T-typed Γ (λ (x) e) Integer)]
   [
@@ -529,6 +545,15 @@
    (T-typed Γ (e_0 e_1) τ_cod)]
   [
    (T-typed Γ e_0 τ_0)
+   (subtype? τ_0 τ)
+   --- Box
+   (T-typed Γ (:: (box e_0) (Boxof τ)) (Boxof τ))]
+  [
+   (side-condition ,(raise-user-error 'T-typed "un-annotated box in ~a" (term (box e))))
+   --- BoxError
+   (T-typed Γ (box e) Integer)]
+  [
+   (T-typed Γ e_0 τ_0)
    (T-typed Γ e_1 τ_1)
    (T-typed Γ e_2 τ_2)
    (where τ #{unionize τ_1 τ_2})
@@ -547,6 +572,7 @@
    --- Letrec
    (T-typed Γ (letrec ((L x e_0)) e_1) τ_1)]
   [
+   (side-condition ,(not (and (pair? (term e)) (memq (car (term e)) '(box λ)))))
    (T-typed Γ e τ_e)
    (type-equal? τ_e τ)
    --- Ann
@@ -568,7 +594,7 @@
    #false])
 
 (module+ test
-  (test-case "R-only"
+  (test-case "typecheck R-only"
     (check-mf-apply*
      [(typecheck (R 4))
       #true]
@@ -581,6 +607,48 @@
      [(typecheck (R (if 1 2 3)))
       #true]
      [(typecheck (R (box (λ (x) (+ 2 2)))))
+      #true]
+    )
+  )
+
+  (test-case "typecheck S-only"
+    (check-mf-apply*
+     [(typecheck (S 4))
+      #true]
+     [(typecheck (S (:: (λ (x) 3) (→ (→ Integer Integer) Integer))))
+      #true]
+     [(typecheck (S (+ 1 2)))
+      #true]
+     [(typecheck (S (+ 1 (:: (box 3) (Boxof Integer)))))
+      #false]
+     [(typecheck (S (if 1 2 3)))
+      #true]
+     [(typecheck (S (:: (box (:: (λ (x) (+ 2 2)) (→ Integer Integer))) (Boxof (→ Integer Integer)))))
+      #true]
+    )
+  )
+
+  (test-case "missing-annotation"
+    (check-exn #rx"un-annotated"
+      (λ () (convert-compile-time-error (term (typecheck (S (box 3)))))))
+
+    (check-exn #rx"un-annotated"
+      (λ () (convert-compile-time-error (term (typecheck (S (λ (x) 3)))))))
+  )
+
+  (test-case "typecheck T-only"
+    (check-mf-apply*
+     [(typecheck (T 4))
+      #true]
+     [(typecheck (T (:: (λ (x) 3) (→ Integer Integer))))
+      #true]
+     [(typecheck (T (+ 1 2)))
+      #true]
+     [(typecheck (T (+ 1 (:: (box 3) (Boxof Integer)))))
+      #false]
+     [(typecheck (T (if 1 2 3)))
+      #true]
+     [(typecheck (T (:: (box (:: (λ (x) (+ 2 2)) (→ Integer Integer))) (Boxof (→ Integer Integer)))))
       #true]
     )
   )
