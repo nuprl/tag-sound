@@ -18,6 +18,7 @@
 ;; - need "the racket type" ?
 ;; - how to polymorphic functions? should not be hard but please get right
 ;;   also application thereof
+;; - arity of primops
 
 ;; ---
 
@@ -74,12 +75,13 @@
 ;; =============================================================================
 
 (define-language RST
-  (e ::= x integer (λ (x) e) (unbox e) (set-box! e e) (+ e e) (e e) (box e) (if e e e) (let ((L x e)) e) (letrec ((L x e)) e) (:: e σ))
+  (e ::= x integer (λ (x) e) (unbox e) (set-box! e e) (box e) (aop e e) (e e) (if e e e) (let ((L x e)) e) (letrec ((L x e)) e) (:: e σ))
   (v ::= integer (λ (x) e) (box v))
   (c ::= (CLOSURE e γ))
   (σ ::= (∀ (α) σ) τ)
   (τ ::= (U k τ) (μ (α) τ) α k)
   (k ::= Integer (→ τ τ) (Boxof τ))
+  (aop ::= + =)
   (P ::= (L e))
   (L ::= R S T)
   (γ ::= ((L x v) ...))
@@ -181,8 +183,8 @@
   [
    (well-formed-T e_0)
    (well-formed-T e_1)
-   --- +
-   (well-formed-T (+ e_0 e_1))]
+   --- aop
+   (well-formed-T (aop e_0 e_1))]
   [
    (well-formed-T e_0)
    (well-formed-T e_1)
@@ -464,8 +466,8 @@
   [
    (R-typed Γ e_0)
    (R-typed Γ e_1)
-   --- +
-   (R-typed Γ (+ e_0 e_1))]
+   --- aop
+   (R-typed Γ (aop e_0 e_1))]
   [
    (R-typed Γ e_0)
    (R-typed Γ e_1)
@@ -539,8 +541,8 @@
    (T-typed Γ e_1 τ_1)
    (type-equal? τ_0 Integer)
    (type-equal? τ_1 Integer)
-   --- +
-   (T-typed Γ (+ e_0 e_1) Integer)]
+   --- aop
+   (T-typed Γ (aop e_0 e_1) Integer)]
   [
    (T-typed Γ e_0 (→ τ_dom τ_cod))
    (T-typed Γ e_1 τ_1)
@@ -707,7 +709,11 @@
       (λ () (convert-compile-time-error (term (typecheck (S (λ (x) 3)))))))
   )
 
-  (test-case "T-typed"
+  (test-case "typecheck T"
+    (check-mf-apply*
+     [(typecheck (T (:: (λ (x) x) (→ (U (Boxof Integer) Integer) (U (Boxof Integer) Integer)))))
+      #true]
+    )
   )
 )
 
