@@ -554,12 +554,35 @@
 )
 
 (define-metafunction RST
+  T-typecheck : e -> σ
+  [(T-typecheck e)
+   τ
+   (judgment-holds (T-typed () e τ))])
+
+(define-metafunction RST
   typecheck : P -> boolean
   [(typecheck P)
-   (judgment-holds (well-typed () P))])
+   #true
+   (judgment-holds (well-typed () P))]
+  [(typecheck P)
+   #false])
 
 (module+ test
-  (test-case "R-typed"
+  (test-case "R-only"
+    (check-mf-apply*
+     [(typecheck (R 4))
+      #true]
+     [(typecheck (R (λ (x) 3)))
+      #true]
+     [(typecheck (R (+ 1 2)))
+      #true]
+     [(typecheck (R (+ 1 (box 3))))
+      #true]
+     [(typecheck (R (if 1 2 3)))
+      #true]
+     [(typecheck (R (box (λ (x) (+ 2 2)))))
+      #true]
+    )
   )
 
   (test-case "T-typed"
