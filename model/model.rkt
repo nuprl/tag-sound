@@ -384,6 +384,21 @@
   [(constructor-of (Boxof τ))
    Boxof])
 
+(define-judgment-form RST
+  #:mode (un-annotated I)
+  #:contract (un-annotated e)
+  [
+   (side-condition ,(not (judgment-holds (annotated e))))
+   ---
+   (un-annotated e)])
+
+(define-judgment-form RST
+  #:mode (annotated I)
+  #:contract (annotated e)
+  [
+   ---
+   (annotated (:: e τ))])
+
 ;; (type-env-set Γ L x e)
 ;; If term `e` from language `L` is type-annotated with τ, bind `(x τ)` in `Γ`
 ;; else return `Γ`
@@ -617,11 +632,21 @@
    --- Let
    (T-typed Γ (let ((L x (:: e_0 τ_0))) e_1) τ_1)]
   [
+   (un-annotated e_0)
+   (side-condition ,(raise-user-error 'T-typed "un-annotated let expression ~a" (term (let ((L x e_0)) e_1))))
+   --- LetError
+   (T-typed Γ (let ((L x e_0)) e_1) Integer)]
+  [
    (where Γ_x #{type-env-set Γ L x (:: e_0 τ_0)})
    (well-typed Γ_x (L (:: e_0 τ_0)))
    (T-typed Γ_x e_1 τ_1)
    --- Letrec
    (T-typed Γ (letrec ((L x (:: e_0 τ_0))) e_1) τ_1)]
+  [
+   (un-annotated e_0)
+   (side-condition ,(raise-user-error 'T-typed "un-annotated letrec expression ~a" (term (letrec ((L x e_0)) e_1))))
+   --- LetRecError
+   (T-typed Γ (letrec ((L x e_0)) e_1) Integer)]
   [
    (side-condition ,(not (and (pair? (term e)) (memq (car (term e)) '(box λ)))))
    (T-typed Γ e τ_e)
@@ -754,6 +779,9 @@
 
     (check-exn #rx"un-annotated"
       (λ () (convert-compile-time-error (term (typecheck (S (λ (x) 3)))))))
+
+    (check-exn #rx"un-annotated"
+      (λ () (convert-compile-time-error (term (typecheck (T (let ((R f (λ (x) (+ x 1)))) f)))))))
   )
 
   (test-case "typecheck T"
@@ -785,6 +813,22 @@
                             (→ Integer (μ (α0) (U (Boxof α0) Integer))))))
          (deep 3)))
       (μ (α2) (U (Boxof α2) Integer))]))
+
+  (test-case "mixed-lang I"
+
+    (check-mf-apply*
+     [(typecheck (T (let ((R f (:: (λ (x) (+ x 1)) (→ Integer Integer)))) (f 1))))
+      #true]
+     [(typecheck (T (let ((R f (:: (λ (x) (+ x 1)) (→ (Boxof Integer) (Boxof Integer))))) (f (:: (box 1) (Boxof Integer))))))
+      #true]
+     [(typecheck (S (let ((R f (:: (λ (x) (+ x 1)) (→ (Boxof Integer) (Boxof Integer))))) (f (:: (box 1) (Boxof Integer))))))
+      #true]
+     [(typecheck (R (let ((S f (:: (λ (x) (+ x 1)) (→ Integer Integer)))) (f 55))))
+      #true]
+     [(typecheck (R (let ((T f (:: (λ (x) (+ x 1)) (→ Integer Integer)))) (f (box 4)))))
+      #true]
+    )
+  )
 )
 
 ;; -----------------------------------------------------------------------------
