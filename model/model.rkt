@@ -79,6 +79,7 @@
   (L ::= R S T)
   (γ ::= ((L x v) ...))
   (Γ ::= ((L x σ) ...))
+  (k* ::= (k ...))
   (x* ::= (x ...))
   (α* ::= (α ...))
   (x α ::= variable-not-otherwise-mentioned)
@@ -254,8 +255,70 @@
 
 (define-metafunction RST
   unionize : τ τ -> τ
-  [(unionize τ_0 τ_1)
-   τ_0])
+  [(unionize k_0 k_1)
+   (unionize-k k_0 k_1)]
+  [(unionize α_0 α_1)
+   (U α_pre α_post)
+   (where (α_pre α_post) (sort-α (α_0 α_1)))]
+  [(unionize (U k_0 τ_0) τ_1)
+   (unionize τ_0 #{union-add k_0 τ_1})]
+  [(unionize τ k)
+   (U k τ)]
+  [(unionize k τ)
+   (U k τ)])
+
+(define-metafunction RST
+  union-add : k τ -> τ
+  [(union-add k_0 (U k_0 τ_1))
+   (U k_0 τ_1)]
+  [(union-add k_0 (U k_1 τ_1))
+   (U k_0 (U k_1 τ_1))
+   (side-condition (term (k<=? k_0 k_1)))]
+  [(union-add k_0 (U k_1 τ_1))
+   (U k_1 #{union-add k_0 τ_1})]
+  [(union-add k_0 k_1)
+   (unionize-k k_0 k_1)]
+  [(union-add k_0 τ)
+   (U k_0 τ)])
+
+(define-metafunction RST
+  unionize-k : k k -> τ
+  [(unionize-k Integer Integer)
+   Integer]
+  [(unionize-k (→ τ_0 τ_1) (→ τ_2 τ_3))
+   ,(raise-user-error 'unionize "cannot union arrow types ~a" (term ((→ τ_0 τ_1) (→ τ_2 τ_3))))]
+  [(unionize-k (Boxof τ_0) (Boxof τ_1))
+   ,(raise-user-error 'unionize "cannot union box types ~a" (term ((Boxof τ_0) (Boxof τ_1))))]
+  [(unionize-k k_0 k_1)
+   (U k_pre k_post)
+   (where (k_pre k_post) (sort-k (k_0 k_1)))])
+
+(define-metafunction RST
+  sort-α : α* -> α*
+  [(sort-α α*)
+   ,(sort (term α*) symbol<?)])
+
+(define-metafunction RST
+  sort-k : (k k) -> (k k)
+  [(sort-k (k_0 k_1))
+   (k_0 k_1)
+   (side-condition (term (k<=? k_0 k_1)))]
+  [(sort-k (k_0 k_1))
+   (k_1 k_0)])
+
+(define-metafunction RST
+  k<=? : k k -> boolean
+  [(k<=? k_0 k_1)
+   ,(symbol<? (term #{constructor-of k_0}) (term #{constructor-of k_1}))])
+
+(define-metafunction RST
+  constructor-of : k -> any
+  [(constructor-of Integer)
+   Integer]
+  [(constructor-of (→ τ_0 τ_1))
+   →]
+  [(constructor-of (Boxof τ))
+   Boxof])
 
 ;; (type-env-set Γ L x e)
 ;; If term `e` from language `L` is type-annotated with τ, bind `(x τ)` in `Γ`
@@ -275,7 +338,6 @@
       (caddr lxσ))])
 
 (module+ test
-  ;; TODO
   (test-case "τ=?"
 
   )
@@ -284,6 +346,16 @@
   )
 
   (test-case "unionize"
+    (check-mf-apply*
+     [(unionize Integer Integer)
+      Integer]
+     [(unionize (Boxof Integer) Integer)
+      (U (Boxof Integer) Integer)]
+     [(unionize Integer (Boxof Integer))
+      (U (Boxof Integer) Integer)]
+     [(unionize (U Integer (→ Integer Integer)) (U (Boxof Integer) Integer))
+      (U (→ Integer Integer) (U (Boxof Integer) Integer))]
+    )
   )
 
   (test-case "type-env-set"
@@ -463,11 +535,18 @@
    (T-typed Γ (:: e τ) τ)]
 )
 
-;; uhm what abouy environemnts?
 (define-metafunction RST
   typecheck : P -> boolean
   [(typecheck P)
    (judgment-holds (well-typed () P))])
+
+(module+ test
+  (test-case "R-typed"
+  )
+
+  (test-case "T-typed"
+  )
+)
 
 ;; -----------------------------------------------------------------------------
 ;; --- evaluation
