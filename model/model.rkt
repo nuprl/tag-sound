@@ -10,6 +10,13 @@
 ;; - actual boundaries
 ;; (keep a TODO list of Racket things!)
 
+;; Key points:
+;; - S, T use same type checker
+;;   - cool to see how, despite same typechecker, S is less trustworthy
+
+;; Questions
+;; - need "the racket type" ?
+
 ;; ---
 
 ;; - evaluate with context-aware CEK machine
@@ -41,7 +48,20 @@
 
 (module+ test
   (require rackunit-abbrevs rackunit
-           (for-syntax racket/base racket/syntax syntax/parse)))
+           (for-syntax racket/base racket/syntax syntax/parse syntax/srcloc))
+
+  (define-syntax (check-mf-apply* stx)
+    (syntax-parse stx
+     [(_ (~optional (~seq #:is-equal? ?eq:expr) #:defaults ([?eq #'#f])) [?e0 ?e1] ...)
+      (quasisyntax/loc stx
+        (let ([eq (or ?eq equal?)])
+          #,@(for/list ([kv (in-list (syntax-e #'((?e0 ?e1) ...)))])
+               (define e0 (car (syntax-e kv)))
+               (define e1 (cadr (syntax-e kv)))
+               (quasisyntax/loc e0
+                 (with-check-info* (list (make-check-location '#,(build-source-location-list e0)))
+                   (λ () (check eq (term #,e0) (term #,e1))))))))]))
+)
 
 ;; =============================================================================
 
@@ -51,11 +71,11 @@
   (c ::= (CLOSURE e γ))
   (σ ::= (∀ (α) σ) τ)
   (τ ::= (U k τ) (μ (α) τ) α k)
-  (k ::= Integer (→ τ τ) (Box τ))
+  (k ::= Integer (→ τ τ) (Boxof τ))
   (P ::= (L e))
   (L ::= R S T)
   (γ ::= ((L x v) ...))
-  (Γ ::= ((L x τ) ...))
+  (Γ ::= ((L x σ) ...))
   (x* ::= (x ...))
   (α* ::= (α ...))
   (x α ::= variable-not-otherwise-mentioned)
@@ -80,11 +100,19 @@
     (check-pred e? (term x))
     (check-pred e? (term 4))
     (check-pred e? (term (:: 4 Integer)))
-    (check-pred e? (term (:: 4 (Box Integer))))
+    (check-pred e? (term (:: 4 (Boxof Integer))))
     (check-pred e? (term (let ((R x 4)) (+ x 1)))))
 
   (test-case "τ"
     (check-pred τ? (term Integer)))
+
+  (test-case "σ"
+    (check-pred σ? (term Integer)))
+
+  (test-case "Γ"
+    (check-pred Γ? (term ((T x Integer))))
+    (check-pred Γ? (term ((S x Integer))))
+    (check-pred Γ? (term ((R x Integer)))))
 )
 
 ;; -----------------------------------------------------------------------------
@@ -196,50 +224,146 @@
 ;; -----------------------------------------------------------------------------
 ;; --- utils
 
+;; (type-env-set Γ L x e)
+;; If term `e` from language `L` is type-annotated with τ, bind `(x τ)` in `Γ`
+;; else return `Γ`
+(define-metafunction RST
+  type-env-set : Γ L x e -> Γ
+  [(type-env-set Γ L x (:: e σ))
+   ,(cons (term (L x σ)) (term Γ))]
+  [(type-env-set Γ L x e)
+   Γ])
+
+(define-metafunction RST
+  type-env-ref : Γ x -> any
+  [(type-env-ref Γ x)
+   ,(for/first ([lxσ (in-list (term Γ))]
+                #:when (eq? (term x) (cadr lxσ)))
+      (caddr lxσ))])
+
+(module+ test
+  (test-case "type-env-set"
+    (check-mf-apply*
+     [(type-env-set () T x (:: 4 Integer))
+      ((T x Integer))]
+     [(type-env-set () R x (:: 4 Integer))
+      ((R x Integer))]
+     [(type-env-set () R x (:: 4 (Boxof Integer)))
+      ((R x (Boxof Integer)))]
+    )
+  )
+
+  (test-case "type-env-ref"
+    (check-mf-apply*
+     [(type-env-ref () x)
+      #f]
+     [(type-env-ref ((R x Integer)) x)
+      Integer]
+     [(type-env-ref ((R x (Boxof Integer))) x)
+      (Boxof Integer)]
+     [(type-env-ref ((S x Integer)) x)
+      Integer]
+     [(type-env-ref ((R x Integer) (R y Integer)) y)
+      Integer]
+    )
+  )
+)
 
 ;; -----------------------------------------------------------------------------
 ;; --- type checking
 
 (define-judgment-form RST
-  #:mode (well-typed I O)
-  #:contract (well-typed P τ)
+  #:mode (well-typed I I)
+  #:contract (well-typed Γ P)
   [
-   (R-typed () e τ)
+   (R-typed Γ e)
    ---
-   (well-typed (R e) τ)]
+   (well-typed Γ (R e))]
   [
-   (T-typed () e τ)
+   (T-typed Γ e σ)
    ---
-   (well-typed (S e) τ)]
+   (well-typed Γ (S e))]
   [
-   (T-typed () e τ)
+   (T-typed Γ e σ)
    ---
-   (well-typed (T e) τ)])
+   (well-typed Γ (T e))])
 
+;; (R-typed Γ e)
+;; recur through `e` and ensure that all typed components are well-typed
 (define-judgment-form RST
-  #:mode (R-typed I I O)
-  #:contract (R-typed Γ e τ)
+  #:mode (R-typed I I)
+  #:contract (R-typed Γ e)
   [
-   --- TODO
-   (R-typed Γ e Integer)]
+   --- Var
+   (R-typed Γ x)]
+  [
+   --- Integer
+   (R-typed Γ integer)]
+  [
+   (R-typed Γ e)
+   --- Lambda
+   (R-typed Γ (λ (x) e))]
+  [
+   (R-typed Γ e)
+   --- Unbox
+   (R-typed Γ (unbox e))]
+  [
+   (R-typed Γ e_0)
+   (R-typed Γ e_1)
+   --- Set-Box
+   (R-typed Γ (set-box! e_0 e_1))]
+  [
+   (R-typed Γ e_0)
+   (R-typed Γ e_1)
+   --- +
+   (R-typed Γ (+ e_0 e_1))]
+  [
+   (R-typed Γ e_0)
+   (R-typed Γ e_1)
+   --- App
+   (R-typed Γ (e_0 e_1))]
+  [
+   (R-typed Γ e_0)
+   --- Box
+   (R-typed Γ (box e_0))]
+  [
+   (R-typed Γ e_0)
+   (R-typed Γ e_1)
+   (R-typed Γ e_2)
+   --- If
+   (R-typed Γ (if e_0 e_1 e_2))]
+  [
+   (well-typed Γ (L e_0))
+   (where Γ_x #{type-env-set Γ L x e_0})
+   (R-typed Γ_x e_1)
+   --- Let
+   (R-typed Γ (let ((L x e_0)) e_1))]
+  [
+   (where Γ_x #{type-env-set Γ L x e_0})
+   (well-typed Γ_x (L e_0))
+   (R-typed Γ_x e_1)
+   --- Letrec
+   (R-typed Γ (letrec ((L x e_0)) e_1))]
+  [
+   (R-typed Γ e)
+   --- Ann
+   (R-typed Γ (:: e σ))]
 )
 
 (define-judgment-form RST
   #:mode (T-typed I I O)
-  #:contract (T-typed Γ e τ)
+  #:contract (T-typed Γ e σ)
   [
-   --- TODO
-   (T-typed Γ e Integer)]
+   (where σ #{type-env-ref Γ x})
+   --- Var
+   (T-typed Γ x σ)]
 )
-
-
 
 ;; uhm what abouy environemnts?
 (define-metafunction RST
-  typecheck : P -> τ
+  typecheck : P -> boolean
   [(typecheck P)
-   τ
-   (judgment-holds (well-typed P τ))])
+   (judgment-holds (well-typed () P))])
 
 ;; -----------------------------------------------------------------------------
 ;; --- evaluation
