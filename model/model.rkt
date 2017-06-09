@@ -18,7 +18,6 @@
 ;; - need "the racket type" ?
 ;; - how to polymorphic functions? should not be hard but please get right
 ;;   also application thereof
-;; - why are let rules so similar?
 
 ;; ---
 
@@ -508,6 +507,11 @@
    --- Var
    (T-typed Γ x σ)]
   [
+   (where #f #{type-env-ref Γ x})
+   (side-condition ,(raise-user-error 'T-typed "unbound variable ~a in type environment ~a (may need to annotate a let/letrec)" (term x) (term Γ)))
+   --- VarError
+   (T-typed Γ x Integer)]
+  [
    --- Integer
    (T-typed Γ integer Integer)]
   [
@@ -560,17 +564,17 @@
    --- If
    (T-typed Γ (if e_0 e_1 e_2) τ)]
   [
-   (well-typed Γ (L e_0))
-   (where Γ_x #{type-env-set Γ L x e_0})
+   (well-typed Γ (L (:: e_0 τ_0)))
+   (where Γ_x #{type-env-set Γ L x (:: e_0 τ_0)})
    (T-typed Γ_x e_1 τ_1)
    --- Let
-   (T-typed Γ (let ((L x e_0)) e_1) τ_1)]
+   (T-typed Γ (let ((L x (:: e_0 τ_0))) e_1) τ_1)]
   [
-   (where Γ_x #{type-env-set Γ L x e_0})
-   (well-typed Γ_x (L e_0))
+   (where Γ_x #{type-env-set Γ L x (:: e_0 τ_0)})
+   (well-typed Γ_x (L (:: e_0 τ_0)))
    (T-typed Γ_x e_1 τ_1)
    --- Letrec
-   (T-typed Γ (letrec ((L x e_0)) e_1) τ_1)]
+   (T-typed Γ (letrec ((L x (:: e_0 τ_0))) e_1) τ_1)]
   [
    (side-condition ,(not (and (pair? (term e)) (memq (car (term e)) '(box λ)))))
    (T-typed Γ e τ_e)
@@ -608,6 +612,20 @@
       #true]
      [(typecheck (R (box (λ (x) (+ 2 2)))))
       #true]
+     [(typecheck (R (set-box! (box 2) (+ 1 1))))
+      #true]
+     [(typecheck (R ((λ (x) (set-box! x 0)) (box 42))))
+      #true]
+     [(typecheck (R ((λ (x) (set-box! 0 x)) (box 42))))
+      #true]
+     [(typecheck (R (let ((R x 4)) x)))
+      #true]
+     [(typecheck (R (let ((R x 4)) (x x))))
+      #true]
+     [(typecheck (R (letrec ((R x 4)) x)))
+      #true]
+     [(typecheck (R (letrec ((R x (box 3))) (+ x x))))
+      #true]
     )
   )
 
@@ -625,15 +643,25 @@
       #true]
      [(typecheck (S (:: (box (:: (λ (x) (+ 2 2)) (→ Integer Integer))) (Boxof (→ Integer Integer)))))
       #true]
+     [(typecheck (S (set-box! (:: (box 2) (Boxof Integer)) (+ 1 1))))
+      #true]
+     [(typecheck (S (set-box! (:: (box 2) (Boxof Integer)) (:: (box 1) (Boxof Integer)))))
+      #false]
+     [(typecheck (S ((:: (λ (x) (set-box! x 0)) (→ (Boxof Integer) (Boxof Integer))) (:: (box 42) (Boxof Integer)))))
+      #true]
+     [(typecheck (S ((:: (λ (x) (set-box! 0 x)) (→ (Boxof Integer) (Boxof Integer))) (:: (box 42) (Boxof Integer)))))
+      #false]
+     [(typecheck (S (let ((S x (:: 4 Integer))) x)))
+      #true]
+     [(typecheck (S (let ((S x (:: 4 Integer))) (x x))))
+      #false]
+     [(typecheck (S (letrec ((S x (:: 4 Integer))) x)))
+      #true]
+     [(typecheck (S (letrec ((S x (:: (box 3) (Boxof Integer)))) x)))
+      #true]
+     [(typecheck (S (letrec ((S x (:: (box 3) (Boxof Integer)))) (+ x x))))
+      #false]
     )
-  )
-
-  (test-case "missing-annotation"
-    (check-exn #rx"un-annotated"
-      (λ () (convert-compile-time-error (term (typecheck (S (box 3)))))))
-
-    (check-exn #rx"un-annotated"
-      (λ () (convert-compile-time-error (term (typecheck (S (λ (x) 3)))))))
   )
 
   (test-case "typecheck T-only"
@@ -650,7 +678,33 @@
       #true]
      [(typecheck (T (:: (box (:: (λ (x) (+ 2 2)) (→ Integer Integer))) (Boxof (→ Integer Integer)))))
       #true]
+     [(typecheck (T (:: (box 2) Integer)))
+      #false]
+     [(typecheck (T (set-box! (:: (box 2) (Boxof Integer)) (+ 1 1))))
+      #true]
+     [(typecheck (T ((:: (λ (x) (set-box! x 0)) (→ (Boxof Integer) (Boxof Integer))) (:: (box 42) (Boxof Integer)))))
+      #true]
+     [(typecheck (T ((:: (λ (x) (set-box! 0 x)) (→ (Boxof Integer) (Boxof Integer))) (:: (box 42) (Boxof Integer)))))
+      #false]
+     [(typecheck (T (let ((T x (:: 4 Integer))) x)))
+      #true]
+     [(typecheck (T (let ((T x (:: 4 Integer))) (x x))))
+      #false]
+     [(typecheck (T (letrec ((T x (:: 4 Integer))) x)))
+      #true]
+     [(typecheck (T (letrec ((T x (:: (box 3) (Boxof Integer)))) x)))
+      #true]
+     [(typecheck (T (letrec ((T x (:: (box 3) (Boxof Integer)))) (+ x x))))
+      #false]
     )
+  )
+
+  (test-case "missing-annotation"
+    (check-exn #rx"un-annotated"
+      (λ () (convert-compile-time-error (term (typecheck (S (box 3)))))))
+
+    (check-exn #rx"un-annotated"
+      (λ () (convert-compile-time-error (term (typecheck (S (λ (x) 3)))))))
   )
 
   (test-case "T-typed"
