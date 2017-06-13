@@ -15,7 +15,6 @@
 ;;   - cool to see how, despite same typechecker, S is less trustworthy
 
 ;; Questions
-;; - need "the racket type" ?
 ;; - how to polymorphic functions? should not be hard but please get right
 ;;   also application thereof
 ;; - arity of primops
@@ -67,7 +66,7 @@
 (define-language RST
 ;; terms, programs, languages, typing
   (e ::= x integer (λ (x) e) (unbox e) (set-box! e e) (box e) (aop e e) (e e) (if e e e) (let ((x L e)) e) (letrec ((x L e)) e) (:: e σ))
-  (op ::= set-box! box aop)
+  (op ::= unbox set-box! box aop)
   (aop ::= + = - *)
   (L ::= R S T)
   (L\T ::= R S)
@@ -908,6 +907,7 @@
       Σ
       RST-Final
       (judgment-holds (final? Σ))]
+;; --- kont-adding
     [-->
       (STATE R (λ (x) e) Γ ρ Store Kont)
       (STATE R addr Γ ρ Store_λ Kont)
@@ -929,11 +929,6 @@
       (fresh addr)
       (where Store_int #{store-set Store L addr integer Integer})]
     [-->
-      (STATE L (e_0 e_1) Γ ρ Store Kont)
-      (STATE L e_0 Γ ρ Store Kont_app)
-      RST-App
-      (where Kont_app #{kont-add Kont (APP () (e_1))})]
-    [-->
       (STATE L (if e_0 e_1 e_2) Γ ρ Store Kont)
       (STATE L e_0 Γ ρ Store Kont_if)
       RST-If
@@ -953,9 +948,48 @@
       (where ?τ #{type-annotation L_ctx e_0})
       (where Store_addr #{store-set Store addr UNDEF ?τ})
       (where Kont_letrec #{kont-add Kont (LETREC L_ctx x ?τ e_1)})]
-
-;; TODO other "control flow"
-;; TODO values, use kont
+    [-->
+      (STATE L (:: e τ) Γ ρ Store Kont)
+      (STATE L e Γ ρ Store Kont)
+      RST-Ann]
+    [-->
+      (STATE L (e_0 e_1) Γ ρ Store Kont)
+      (STATE L e_0 Γ ρ Store Kont_app)
+      RST-App
+      (where Kont_app #{kont-add Kont (APP () (e_1))})]
+    [-->
+      (STATE L (box e) Γ ρ Store Kont)
+      (STATE L e Γ ρ Store Kont_b)
+      RST-box
+      (where Kont_b #{kont-add Kont (OP box () ())})]
+    [-->
+      (STATE L (unbox e) Γ ρ Store Kont)
+      (STATE L e Γ ρ Store Kont_u)
+      RST-unbox
+      (where Kont_u #{kont-add Kont (OP unbox () ())})]
+    [-->
+      (STATE L (set-box! e_0 e_1) Γ ρ Store Kont)
+      (STATE L e_0 Γ ρ Store Kont_s)
+      RST-set-box!
+      (where Kont_s #{kont-add Kont (OP set-box! () (e_1))})]
+    [-->
+      (STATE L (aop e_0 e_1) Γ ρ Store Kont)
+      (STATE L e_0 Γ ρ Store Kont_a)
+      RST-aop
+      (where Kont_a #{kont-add Kont (OP aop () (e_1))})]
+;; --- kont-removing
+    [-->
+      (STATE L x Γ ρ Store Kont)
+      (STATE L addr Γ ρ Store Kont)
+      RST-var
+      (judgment-holds (variable? x (STATE L x Γ ρ Store Kont)))
+      (where addr #{runtime-env-ref ρ x})]
+    #;[-->
+      (STATE L addr Γ ρ Store Kont)
+      ???
+      RST-???
+      (judgment-holds (address? addr (STATE L addr Γ ρ Store Kont)))
+      ???]
 ))
 
 (define -->RST*
