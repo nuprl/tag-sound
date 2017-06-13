@@ -80,11 +80,13 @@
   (P ::= (L e))
 ;; values, machine states
   (v ::= integer c (box v))
+  (?v ::= v UNDEF) ;; for letrec
   (c ::= (CLOSURE e Γ ρ)) ;; WARNING Γ and ρ must have same domain
   (Σ ::= (STATE L e Γ ρ Store Kont)) ;; WARNING Γ and ρ have same domain
+  ;; TODO am currently not touching Γ, see what happens
   (ρ ::= ((x addr) ...)) ;; runtime environment
   (Store ::= ((addr L v ?τ) ...))
-  (K ::= HALT (IF e e) (LET L x e)
+  (K ::= HALT (IF e e) (LET L x ?τ e) (LETREC L x ?τ e)
          (APP (addr ...) (e ...)) (OP op (addr ...) (e ...))
          (CHECK τ) (TAG τ))
   (Kont ::= (K ...))
@@ -425,6 +427,11 @@
   [(runtime-env-ref ρ x)
    ,(let ([kv (assoc (term x) (term ρ))])
       (and kv (cadr kv)))])
+
+(define-metafunction RST
+  runtime-env-set : ρ x addr -> ρ
+  [(runtime-env-set ρ x addr)
+   ,(cons (term (x addr)) (term ρ))])
 
 (define-metafunction RST
   store-ref : Store addr -> any
@@ -899,21 +906,54 @@
     [-->
       Σ
       Σ
+      RST-Final
       (judgment-holds (final? Σ))]
     [-->
       (STATE R (λ (x) e) Γ ρ Store Kont)
-      (STATE R addr Γ ρ #{store-set Store L addr c TST} Kont)
+      (STATE R addr Γ ρ Store_λ Kont)
+      R-Lambda
       (fresh addr)
-      (where c (CLOSURE (λ (x) e) Γ ρ))]
+      (where c (CLOSURE (λ (x) e) Γ ρ))
+      (where Store_λ #{store-set Store L addr c TST})]
     [-->
       (STATE L\R (:: (λ (x) e) τ) Γ ρ Store Kont)
-      (STATE L\R addr Γ ρ #{store-set Store L\R addr c τ} Kont)
+      (STATE L\R addr Γ ρ Store_λ Kont)
+      ST-Lambda
       (fresh addr)
-      (where c (CLOSURE (λ (x) e) Γ ρ))]
-;; TODO other "atomics"
+      (where c (CLOSURE (λ (x) e) Γ ρ))
+      (where Store_λ #{store-set Store L\R addr c τ})]
+    [-->
+      (STATE L integer Γ ρ Store Kont)
+      (STATE L addr Γ ρ Store_int Kont)
+      RST-Int
+      (fresh addr)
+      (where Store_int #{store-set Store L addr integer Integer})]
     [-->
       (STATE L (e_0 e_1) Γ ρ Store Kont)
-      (STATE L e_0 Γ ρ Store #{kont-add Kont (APP () (e_1))})]
+      (STATE L e_0 Γ ρ Store Kont_app)
+      RST-App
+      (where Kont_app #{kont-add Kont (APP () (e_1))})]
+    [-->
+      (STATE L (if e_0 e_1 e_2) Γ ρ Store Kont)
+      (STATE L e_0 Γ ρ Store Kont_if)
+      RST-If
+      (where Kont_if #{kont-add Kont (IF e_1 e_2)})]
+    [-->
+      (STATE L_ctx (let ((x L_0 e_0)) e_1) Γ ρ Store Kont)
+      (STATE L_0 e_0 Γ ρ Store Kont_let)
+      RST-Let
+      (where ?τ #{type-annotation L_ctx e_0})
+      (where Kont_let #{kont-add Kont (LET L_ctx x ?τ e_1)})]
+    [-->
+      (STATE L_ctx (letrec ((x L_0 e_0)) e_1) Γ ρ Store Kont)
+      (STATE L_0 e_0 Γ ρ_x Store_addr Kont_letrec)
+      RST-LetRec
+      (fresh addr)
+      (where ρ_x #{runtime-env-set ρ x addr})
+      (where ?τ #{type-annotation L_ctx e_0})
+      (where Store_addr #{store-set Store addr UNDEF ?τ})
+      (where Kont_letrec #{kont-add Kont (LETREC L_ctx x ?τ e_1)})]
+
 ;; TODO other "control flow"
 ;; TODO values, use kont
 ))
@@ -992,6 +1032,15 @@
   state->kont : Σ -> Kont
   [(state->kont (STATE L e Γ ρ Store Kont))
    Kont])
+
+(define-metafunction RST
+  type-annotation : L e -> ?τ
+  [(type-annotation R e)
+   TST]
+  [(type-annotation L\R (:: e τ))
+   τ]
+  [(type-annotation L\R e)
+   ,(raise-user-error 'type-annotation "missing type annotation (type soundness bug?) on term ~a" (term e))])
 
 ;; -----------------------------------------------------------------------------
 ;; --- (colorblind) compiler
