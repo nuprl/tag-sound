@@ -22,14 +22,15 @@
 
 ;; ---
 
-;; - evaluate with context-aware CEK machine
+;; - evaluate with context-aware CESK machine
 ;; - prove "soundness" for closed programs
 ;; - prove absence of certain errors in certain contexts
 
-;; After CEK machine is good,
+;; After CESK machine is good,
 ;;  note that its not practical do implement this way,
 ;;  you really have a "colorbind" CEK machine
 ;;  that you compile the other languages to.
+;; - IN OTHER WORDS no types at runtime
 ;; No problemo, define translations and show machine equivalence.
 ;; Should be easy right ha ha ha.
 
@@ -47,7 +48,8 @@
 
 (require
   racket/set
-  redex/reduction-semantics)
+  redex/reduction-semantics
+  redex-abbrevs)
 
 (define *debug* (make-parameter #f))
 
@@ -56,30 +58,37 @@
     (apply printf msg arg*)))
 
 (module+ test
-  (require rackunit-abbrevs rackunit syntax/macro-testing redex-abbrevs
+  (require rackunit-abbrevs rackunit syntax/macro-testing
            (for-syntax racket/base racket/syntax syntax/parse))
 )
 
 ;; =============================================================================
 
 (define-language RST
-  (e ::= x integer (λ (x) e) (unbox e) (set-box! e e) (box e) (aop e e) (e e) (if e e e) (let ((L x e)) e) (letrec ((L x e)) e) (:: e σ))
-  (v ::= integer (λ (x) e) (box v))
-  (c ::= (CLOSURE e γ))
+  (e ::= x Atomic (unbox e) (set-box! e e) (box e) (aop e e) (e e) (if e e e) (let ((L x e)) e) (letrec ((L x e)) e) (:: e σ))
+  (Atomic ::= integer (λ (x) e) (box v))
+  (v ::= integer c (box v))
+  (op ::= set-box! box aop)
+  (c ::= (CLOSURE e Γ ρ)) ;; WARNING Γ and ρ must have same domain
   (σ ::= (∀ (α) σ) τ)
   (τ ::= (U k τ) (μ (α) τ) α k)
   (k ::= Integer (→ τ τ) (Boxof τ))
   (aop ::= + = - *)
   (P ::= (L e))
   (L ::= R S T)
-  (γ ::= ((L x v) ...))
+  (ρ ::= ((x addr) ...)) ;; runtime environment
   (Γ ::= ((L x σ) ...))
-  (Σ ::= ???)
+  (Σ ::= (STATE any Γ ρ Store Kont)) ;; WARNING Γ and ρ have same domain
+  (Store ::= ((L addr v) ...)) ;; WARNING assuming `addr` has type information somewhere else (in Σ)
+  (K ::= HALT (CHECK τ) (TAG τ) (FN v ...) (ARG e) (IF e e) (LET L x e) (OP op e ...))
+  ;; TODO can simplify further??
+  (Kont ::= (K ...))
+  (Σ* ::= (Σ ...))
   (k* ::= (k ...))
   (x* ::= (x ...))
   (α* ::= (α ...))
-  (x α ::= variable-not-otherwise-mentioned)
-  #:binding-forms
+  (x α addr ::= variable-not-otherwise-mentioned)
+#:binding-forms
   (∀ (α) σ #:refers-to α)
   (μ (α) τ #:refers-to α)
   (λ (x) e #:refers-to x)
@@ -99,7 +108,7 @@
       #:with (x?* ...) (for/list ([x (in-list (syntax-e #'(x* ...)))]) (format-id stx "~a?" (syntax-e x)))
       (syntax/loc stx (begin (define x?* (redex-match? RST x*)) ...))]))
 
-  (define-predicate* [e v c σ τ k L γ Γ Σ])
+  (define-predicate* [e v c σ τ k L ρ Γ Σ])
 
   (test-case "e"
     (check-pred e? (term x))
@@ -406,6 +415,12 @@
                 #:when (eq? (term x) (cadr lxσ)))
       (caddr lxσ))])
 
+(define-metafunction RST
+  runtime-env-ref : ρ x -> any
+  [(runtime-env-ref ρ x)
+   ,(let ([kv (assoc (term x) (term ρ))])
+      (and kv (cadr kv)))])
+
 (module+ test
   (test-case "τ=?"
     (check-mf-apply*
@@ -466,6 +481,15 @@
       Integer]
      [(type-env-ref ((R x Integer) (R y Integer)) y)
       Integer]
+    )
+  )
+
+  (test-case "runtime-env-ref"
+    (check-mf-apply*
+     [(runtime-env-ref () x)
+      #false]
+     [(runtime-env-ref ((x y)) x)
+      y]
     )
   )
 )
@@ -824,13 +848,6 @@
 ;; -----------------------------------------------------------------------------
 ;; --- evaluation
 
-
-;; lets see, basic idea hopes and dreams is...
-;; - take a term e
-;; - start evaluating it
-;; - able to track language context and switch
-;; - basically every line of code has a color
-
 ;(define -->RST
 ;  (reduction-relation RST
 ;    #:domain Σ
@@ -839,6 +856,29 @@
 ;      Σ
 ;      (judgment-holds (final? Σ))]
 ;    [-->
+;      (STATE (R e) Γ ρ Store Kont)
+;      ,(step/deterministic -->R (term (STATE e Γ ρ Store Kont)))]
+;    [-->
+;      (STATE (S e) Γ ρ Store Kont)
+;      ,(step/deterministic -->S (term (STATE e Γ ρ Store Kont)))]
+;    [-->
+;      (STATE (T e) Γ ρ Store Kont)
+;      ,(step/deterministic -->T (term (STATE e Γ ρ Store Kont)))]))
+;
+;(define -->R
+;  (reduction-relation RST
+;    #:domain Σ
+;    []))
+;
+;(define -->S
+;  (reduction-relation RST
+;    #:domain Σ
+;    []))
+;
+;(define -->T
+;  (reduction-relation RST
+;    #:domain Σ
+;    []))
 ;
 ;(define -->RST*
 ;  (make--->* -->RST))
@@ -846,13 +886,16 @@
 ;(define-metafunction RST
 ;  eval : P -> v
 ;  [(eval P)
-;   (-->RST* #{init P})])
-;
+;   (-->RST* #{init P})
+;   (side-condition
+;     (if (term #{typecheck P})
+;       #true
+;       (raise-user-error 'eval "typechecking failed" (term P))))])
 ;
 ;(define-metafunction RST
 ;  init : P -> Σ
-;  [(init P)
-;   ???])
+;  [(init (L e))
+;   (STATE (L e) () () () (HALT))])
 ;
 ;(define-judgment-form RST
 ;  #:mode (final? I)
@@ -860,10 +903,10 @@
 ;  [
 ;   ---
 ;   (final? ???)])
-
-;; -----------------------------------------------------------------------------
-;; --- (colorblind) compiler
-;; - translate R S T terms all to R
-;; - but the S T terms have proper checks,
-;; - via contracts and type-directed defense
-
+;
+;;; -----------------------------------------------------------------------------
+;;; --- (colorblind) compiler
+;;; - translate R S T terms all to R
+;;; - but the S T terms have proper checks,
+;;; - via contracts and type-directed defense
+;
