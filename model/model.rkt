@@ -66,7 +66,7 @@
 
 (define-language RST
 ;; terms, programs, languages, typing
-  (e ::= x integer (λ (x) e) (unbox e) (set-box! e e) (box e) (aop e e) (e e) (if e e e) (let ((L x e)) e) (letrec ((L x e)) e) (:: e σ))
+  (e ::= x integer (λ (x) e) (unbox e) (set-box! e e) (box e) (aop e e) (e e) (if e e e) (let ((x L e)) e) (letrec ((x L e)) e) (:: e σ))
   (op ::= set-box! box aop)
   (aop ::= + = - *)
   (L ::= R S T)
@@ -98,8 +98,8 @@
   (∀ (α) σ #:refers-to α)
   (μ (α) τ #:refers-to α)
   (λ (x) e #:refers-to x)
-  (let ((x e_0)) e #:refers-to x)
-  (letrec ((x e_0 #:refers-to x)) e #:refers-to x)
+  (let ((x L e_0)) e #:refers-to x)
+  (letrec ((x L e_0 #:refers-to x)) e #:refers-to x)
 )
 
 (define (α=? e0 e1)
@@ -121,7 +121,7 @@
     (check-pred e? (term 4))
     (check-pred e? (term (:: 4 Integer)))
     (check-pred e? (term (:: 4 (Boxof Integer))))
-    (check-pred e? (term (let ((R x 4)) (+ x 1))))
+    (check-pred e? (term (let ((x R 4)) (+ x 1))))
     (check-pred e? (term (:: (λ (x) 3) (→ (→ Integer Integer) Integer)))))
 
   (test-case "τ"
@@ -211,12 +211,12 @@
    (well-formed L e_0)
    (well-formed-T e_1)
    --- Let
-   (well-formed-T (let ((L x e_0)) e_1))]
+   (well-formed-T (let ((x L e_0)) e_1))]
   [
    (well-formed L e_0)
    (well-formed-T e_1)
    --- Letrec
-   (well-formed-T (letrec ((L x e_0)) e_1))])
+   (well-formed-T (letrec ((x L e_0)) e_1))])
 
 (define-judgment-form RST
   #:mode (well-formed-type I)
@@ -583,13 +583,13 @@
    (where Γ_x #{type-env-set Γ L x e_0})
    (R-typed Γ_x e_1)
    --- Let
-   (R-typed Γ (let ((L x e_0)) e_1))]
+   (R-typed Γ (let ((x L e_0)) e_1))]
   [
    (where Γ_x #{type-env-set Γ L x e_0})
    (well-typed Γ_x (L e_0))
    (R-typed Γ_x e_1)
    --- Letrec
-   (R-typed Γ (letrec ((L x e_0)) e_1))]
+   (R-typed Γ (letrec ((x L e_0)) e_1))]
   [
    (R-typed Γ e)
    --- Ann
@@ -665,23 +665,23 @@
    (where Γ_x #{type-env-set Γ L x (:: e_0 τ_0)})
    (T-typed Γ_x e_1 τ_1)
    --- Let
-   (T-typed Γ (let ((L x (:: e_0 τ_0))) e_1) τ_1)]
+   (T-typed Γ (let ((x L (:: e_0 τ_0))) e_1) τ_1)]
   [
    (un-annotated e_0)
    (side-condition ,(raise-user-error 'T-typed "un-annotated let expression ~a" (term (let ((L x e_0)) e_1))))
    --- LetError
-   (T-typed Γ (let ((L x e_0)) e_1) Integer)]
+   (T-typed Γ (let ((x L e_0)) e_1) Integer)]
   [
    (where Γ_x #{type-env-set Γ L x (:: e_0 τ_0)})
    (well-typed Γ_x (L (:: e_0 τ_0)))
    (T-typed Γ_x e_1 τ_1)
    --- Letrec
-   (T-typed Γ (letrec ((L x (:: e_0 τ_0))) e_1) τ_1)]
+   (T-typed Γ (letrec ((x L (:: e_0 τ_0))) e_1) τ_1)]
   [
    (un-annotated e_0)
    (side-condition ,(raise-user-error 'T-typed "un-annotated letrec expression ~a" (term (letrec ((L x e_0)) e_1))))
    --- LetRecError
-   (T-typed Γ (letrec ((L x e_0)) e_1) Integer)]
+   (T-typed Γ (letrec ((x L e_0)) e_1) Integer)]
   [
    (side-condition ,(not (and (pair? (term e)) (memq (car (term e)) '(box λ)))))
    (T-typed Γ e τ_e)
@@ -727,13 +727,13 @@
       #true]
      [(typecheck (R ((λ (x) (set-box! 0 x)) (box 42))))
       #true]
-     [(typecheck (R (let ((R x 4)) x)))
+     [(typecheck (R (let ((x R 4)) x)))
       #true]
-     [(typecheck (R (let ((R x 4)) (x x))))
+     [(typecheck (R (let ((x R 4)) (x x))))
       #true]
-     [(typecheck (R (letrec ((R x 4)) x)))
+     [(typecheck (R (letrec ((x R 4)) x)))
       #true]
-     [(typecheck (R (letrec ((R x (box 3))) (+ x x))))
+     [(typecheck (R (letrec ((x R (box 3))) (+ x x))))
       #true]
     )
   )
@@ -760,15 +760,15 @@
       #true]
      [(typecheck (S ((:: (λ (x) (set-box! 0 x)) (→ (Boxof Integer) (Boxof Integer))) (:: (box 42) (Boxof Integer)))))
       #false]
-     [(typecheck (S (let ((S x (:: 4 Integer))) x)))
+     [(typecheck (S (let ((x S (:: 4 Integer))) x)))
       #true]
-     [(typecheck (S (let ((S x (:: 4 Integer))) (x x))))
+     [(typecheck (S (let ((x S (:: 4 Integer))) (x x))))
       #false]
-     [(typecheck (S (letrec ((S x (:: 4 Integer))) x)))
+     [(typecheck (S (letrec ((x S (:: 4 Integer))) x)))
       #true]
-     [(typecheck (S (letrec ((S x (:: (box 3) (Boxof Integer)))) x)))
+     [(typecheck (S (letrec ((x S (:: (box 3) (Boxof Integer)))) x)))
       #true]
-     [(typecheck (S (letrec ((S x (:: (box 3) (Boxof Integer)))) (+ x x))))
+     [(typecheck (S (letrec ((x S (:: (box 3) (Boxof Integer)))) (+ x x))))
       #false]
     )
   )
@@ -795,15 +795,15 @@
       #true]
      [(typecheck (T ((:: (λ (x) (set-box! 0 x)) (→ (Boxof Integer) (Boxof Integer))) (:: (box 42) (Boxof Integer)))))
       #false]
-     [(typecheck (T (let ((T x (:: 4 Integer))) x)))
+     [(typecheck (T (let ((xT  (:: 4 Integer))) x)))
       #true]
-     [(typecheck (T (let ((T x (:: 4 Integer))) (x x))))
+     [(typecheck (T (let ((xT  (:: 4 Integer))) (x x))))
       #false]
-     [(typecheck (T (letrec ((T x (:: 4 Integer))) x)))
+     [(typecheck (T (letrec ((x T (:: 4 Integer))) x)))
       #true]
-     [(typecheck (T (letrec ((T x (:: (box 3) (Boxof Integer)))) x)))
+     [(typecheck (T (letrec ((x T (:: (box 3) (Boxof Integer)))) x)))
       #true]
-     [(typecheck (T (letrec ((T x (:: (box 3) (Boxof Integer)))) (+ x x))))
+     [(typecheck (T (letrec ((x T (:: (box 3) (Boxof Integer)))) (+ x x))))
       #false]
     )
   )
@@ -816,7 +816,7 @@
       (λ () (convert-compile-time-error (term (typecheck (S (λ (x) 3)))))))
 
     (check-exn #rx"un-annotated"
-      (λ () (convert-compile-time-error (term (typecheck (T (let ((R f (λ (x) (+ x 1)))) f)))))))
+      (λ () (convert-compile-time-error (term (typecheck (T (let ((f R (λ (x) (+ x 1)))) f)))))))
   )
 
   (test-case "typecheck T"
@@ -827,12 +827,12 @@
       #true]
      [(typecheck (T (:: (λ (x) (+ x 1)) (→ (U (Boxof Integer) Integer) Integer))))
       #false]
-     [(typecheck (T (letrec ((T fact (:: (λ (n) (if (= n 1) 1 (* n (fact (- n 1))))) (→ Integer Integer)))) (fact 4))))
+     [(typecheck (T (letrec ((fact T (:: (λ (n) (if (= n 1) 1 (* n (fact (- n 1))))) (→ Integer Integer)))) (fact 4))))
       #true]
-     [(typecheck (T (letrec ((T fact (:: (λ (n) (if (= n 1) (:: (box 1) (Boxof Integer)) (* n (fact (- n 1))))) (→ Integer Integer)))) (fact 4))))
+     [(typecheck (T (letrec ((fact T (:: (λ (n) (if (= n 1) (:: (box 1) (Boxof Integer)) (* n (fact (- n 1))))) (→ Integer Integer)))) (fact 4))))
       #false]
      [(typecheck (T
-       (letrec ((T deep (:: (λ (x) (if (= 0 x) x (:: (box (deep (- x 1)))
+       (letrec ((deep T (:: (λ (x) (if (= 0 x) x (:: (box (deep (- x 1)))
                                                      (Boxof (μ (α1) (U (Boxof α1) Integer))))))
                             (→ Integer (μ (α0) (U (Boxof α0) Integer))))))
          (deep 3))))
@@ -843,7 +843,7 @@
   (test-case "T-typecheck"
     (check-mf-apply*
      [(T-typecheck
-       (letrec ((T deep (:: (λ (x) (if (= 0 x) x (:: (box (deep (- x 1)))
+       (letrec ((deep T (:: (λ (x) (if (= 0 x) x (:: (box (deep (- x 1)))
                                                      (Boxof (μ (α1) (U (Boxof α1) Integer))))))
                             (→ Integer (μ (α0) (U (Boxof α0) Integer))))))
          (deep 3)))
@@ -852,15 +852,15 @@
   (test-case "mixed-lang I"
 
     (check-mf-apply*
-     [(typecheck (T (let ((R f (:: (λ (x) (+ x 1)) (→ Integer Integer)))) (f 1))))
+     [(typecheck (T (let ((f R (:: (λ (x) (+ x 1)) (→ Integer Integer)))) (f 1))))
       #true]
-     [(typecheck (T (let ((R f (:: (λ (x) (+ x 1)) (→ (Boxof Integer) (Boxof Integer))))) (f (:: (box 1) (Boxof Integer))))))
+     [(typecheck (T (let ((f R (:: (λ (x) (+ x 1)) (→ (Boxof Integer) (Boxof Integer))))) (f (:: (box 1) (Boxof Integer))))))
       #true]
-     [(typecheck (S (let ((R f (:: (λ (x) (+ x 1)) (→ (Boxof Integer) (Boxof Integer))))) (f (:: (box 1) (Boxof Integer))))))
+     [(typecheck (S (let ((f R (:: (λ (x) (+ x 1)) (→ (Boxof Integer) (Boxof Integer))))) (f (:: (box 1) (Boxof Integer))))))
       #true]
-     [(typecheck (R (let ((S f (:: (λ (x) (+ x 1)) (→ Integer Integer)))) (f 55))))
+     [(typecheck (R (let ((f S (:: (λ (x) (+ x 1)) (→ Integer Integer)))) (f 55))))
       #true]
-     [(typecheck (R (let ((T f (:: (λ (x) (+ x 1)) (→ Integer Integer)))) (f (box 4)))))
+     [(typecheck (R (let ((f T (:: (λ (x) (+ x 1)) (→ Integer Integer)))) (f (box 4)))))
       #true]
     )
   )
@@ -868,6 +868,30 @@
 
 ;; -----------------------------------------------------------------------------
 ;; --- (discriminating,colorful,eidetic) evaluation
+
+;; Need to check:
+;; - R/S flowing into T context
+;; -- (let ((x R/S e)) T)
+;;                 ^
+;; -- (T R/S)
+;;       ^^^
+;; -- (R/S T)
+;;    ^^^^^^^
+;; -- (set-box T R/S)
+;;               ^^^
+;; -- (set! T R/S)
+;;            ^^^
+;; - R flowing into S
+;; -- (let ((x R e)) S)
+;;               ^
+;; -- (S R)
+;;       ^
+;; -- (R S)
+;;    ^^^^^
+;; -- (set-box! S R)
+;;                ^
+;; -- (set! S R)
+;;            ^
 
 (define -->RST
   (reduction-relation RST
