@@ -70,6 +70,9 @@
   (op ::= set-box! box aop)
   (aop ::= + = - *)
   (L ::= R S T)
+  (L\T ::= R S)
+  (L\R ::= S T)
+  (?τ ::= τ TST)
   (σ ::= (∀ (α) σ) τ)
   (τ ::= (U k τ) (μ (α) τ) α k)
   (k ::= Integer (→ τ τ) (Boxof τ))
@@ -78,9 +81,9 @@
 ;; values, machine states
   (v ::= integer c (box v))
   (c ::= (CLOSURE e Γ ρ)) ;; WARNING Γ and ρ must have same domain
-  (Σ ::= (STATE P Γ ρ Store Kont)) ;; WARNING Γ and ρ have same domain
+  (Σ ::= (STATE L e Γ ρ Store Kont)) ;; WARNING Γ and ρ have same domain
   (ρ ::= ((x addr) ...)) ;; runtime environment
-  (Store ::= ((addr L v τ) ...))
+  (Store ::= ((addr L v ?τ) ...))
   (K ::= HALT (IF e e) (LET L x e)
          (APP (addr ...) (e ...)) (OP op (addr ...) (e ...))
          (CHECK τ) (TAG τ))
@@ -428,6 +431,16 @@
   [(store-ref Store addr)
    ,(let ([kv (assoc (term x) (term ρ))])
       (and kv (cdr kv)))])
+
+(define-metafunction RST
+  store-set : Store L addr v ?τ -> Store
+  [(store-set Store L addr v ?τ -> Store)
+   ,(cons (term (addr L v ?τ)) (term Store))])
+
+(define-metafunction RST
+  kont-add : Kont K -> Kont
+  [(kont-add Kont K)
+   ,(cons (term K) (term Kont))])
 
 (module+ test
   (test-case "τ=?"
@@ -863,9 +876,26 @@
       Σ
       Σ
       (judgment-holds (final? Σ))]
+    [-->
+      (STATE R (λ (x) e) Γ ρ Store Kont)
+      (STATE R addr Γ ρ #{store-set Store L addr c TST} Kont)
+      (fresh addr)
+      (where c (CLOSURE (λ (x) e) Γ ρ))]
+    [-->
+      (STATE L\R (:: (λ (x) e) τ) Γ ρ Store Kont)
+      (STATE L\R addr Γ ρ #{store-set Store L\R addr c τ} Kont)
+      (fresh addr)
+      (where c (CLOSURE (λ (x) e) Γ ρ))]
+;; TODO other "atomics"
+    [-->
+      (STATE L (e_0 e_1) Γ ρ Store Kont)
+      (STATE L e_0 Γ ρ Store #{kont-add Kont (APP () (e_1))})]
+;; TODO other "control flow"
+;; TODO values, use kont
 ))
 
 (define -->RST*
+  ;; TODO need to check fixpoint
   (make--->* -->RST))
 
 (define-metafunction RST
@@ -910,49 +940,34 @@
    (address? addr Σ)])
 
 (define-metafunction RST
-  state->program : Σ -> P
-  [(state->program (STATE P Γ ρ Store Kont))
-   P])
+  state->language : Σ -> P
+  [(state->language (STATE L e Γ ρ Store Kont))
+   L])
 
 (define-metafunction RST
-  state->language : Σ -> L
-  [(state->language (STATE P Γ ρ Store Kont))
-   #{program->language P}])
-
-(define-metafunction RST
-  state->expression : Σ -> e
-  [(state->expression (STATE P Γ ρ Store Kont))
-   #{program->expression P}])
+  state->expression : Σ -> P
+  [(state->expression (STATE L e Γ ρ Store Kont))
+   e])
 
 (define-metafunction RST
   state->type-env : Σ -> Γ
-  [(state->type-env (STATE P Γ ρ Store Kont))
+  [(state->type-env (STATE L e Γ ρ Store Kont))
    Γ])
 
 (define-metafunction RST
   state->runtime-env : Σ -> ρ
-  [(state->runtime-env (STATE P Γ ρ Store Kont))
+  [(state->runtime-env (STATE L e Γ ρ Store Kont))
    ρ])
 
 (define-metafunction RST
   state->store : Σ -> Store
-  [(state->store (STATE P Γ ρ Store Kont))
+  [(state->store (STATE L e Γ ρ Store Kont))
    Store])
 
 (define-metafunction RST
   state->kont : Σ -> Kont
-  [(state->kont (STATE P Γ ρ Store Kont))
+  [(state->kont (STATE L e Γ ρ Store Kont))
    Kont])
-
-(define-metafunction RST
-  program->language : P -> L
-  [(program->language (L e))
-   L])
-
-(define-metafunction RST
-  program->expression : P -> e
-  [(program->expression (L e))
-   e])
 
 ;; -----------------------------------------------------------------------------
 ;; --- (colorblind) compiler
