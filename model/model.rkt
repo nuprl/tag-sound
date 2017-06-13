@@ -65,24 +65,26 @@
 ;; =============================================================================
 
 (define-language RST
-  (e ::= x Atomic (unbox e) (set-box! e e) (box e) (aop e e) (e e) (if e e e) (let ((L x e)) e) (letrec ((L x e)) e) (:: e σ))
-  (Atomic ::= integer (λ (x) e) (box v))
-  (v ::= integer c (box v))
+;; terms, programs, languages, typing
+  (e ::= x integer (λ (x) e) (unbox e) (set-box! e e) (box e) (aop e e) (e e) (if e e e) (let ((L x e)) e) (letrec ((L x e)) e) (:: e σ))
   (op ::= set-box! box aop)
-  (c ::= (CLOSURE e Γ ρ)) ;; WARNING Γ and ρ must have same domain
+  (aop ::= + = - *)
+  (L ::= R S T)
   (σ ::= (∀ (α) σ) τ)
   (τ ::= (U k τ) (μ (α) τ) α k)
   (k ::= Integer (→ τ τ) (Boxof τ))
-  (aop ::= + = - *)
+  (Γ ::= ((x L σ) ...))
   (P ::= (L e))
-  (L ::= R S T)
-  (ρ ::= ((x addr) ...)) ;; runtime environment
-  (Γ ::= ((L x σ) ...))
+;; values, machine states
+  (v ::= integer c (box v))
+  (c ::= (CLOSURE e Γ ρ)) ;; WARNING Γ and ρ must have same domain
   (Σ ::= (STATE any Γ ρ Store Kont)) ;; WARNING Γ and ρ have same domain
+  (ρ ::= ((x addr) ...)) ;; runtime environment
   (Store ::= ((L addr v) ...)) ;; WARNING assuming `addr` has type information somewhere else (in Σ)
   (K ::= HALT (CHECK τ) (TAG τ) (FN v ...) (ARG e) (IF e e) (LET L x e) (OP op e ...))
   ;; TODO can simplify further??
   (Kont ::= (K ...))
+;; sequences, variables, misc
   (Σ* ::= (Σ ...))
   (k* ::= (k ...))
   (x* ::= (x ...))
@@ -126,9 +128,9 @@
     (check-pred σ? (term Integer)))
 
   (test-case "Γ"
-    (check-pred Γ? (term ((T x Integer))))
-    (check-pred Γ? (term ((S x Integer))))
-    (check-pred Γ? (term ((R x Integer)))))
+    (check-pred Γ? (term ((x T Integer))))
+    (check-pred Γ? (term ((x S Integer))))
+    (check-pred Γ? (term ((x R Integer)))))
 )
 
 ;; -----------------------------------------------------------------------------
@@ -404,16 +406,15 @@
 (define-metafunction RST
   type-env-set : Γ L x e -> Γ
   [(type-env-set Γ L x (:: e σ))
-   ,(cons (term (L x σ)) (term Γ))]
+   ,(cons (term (x L σ)) (term Γ))]
   [(type-env-set Γ L x e)
    Γ])
 
 (define-metafunction RST
   type-env-ref : Γ x -> any
   [(type-env-ref Γ x)
-   ,(for/first ([lxσ (in-list (term Γ))]
-                #:when (eq? (term x) (cadr lxσ)))
-      (caddr lxσ))])
+   ,(let ([xlσ (assoc (term x) (term Γ))])
+      (and xlσ (caddr xlσ)))])
 
 (define-metafunction RST
   runtime-env-ref : ρ x -> any
@@ -461,11 +462,11 @@
   (test-case "type-env-set"
     (check-mf-apply*
      [(type-env-set () T x (:: 4 Integer))
-      ((T x Integer))]
+      ((x T Integer))]
      [(type-env-set () R x (:: 4 Integer))
-      ((R x Integer))]
+      ((x R Integer))]
      [(type-env-set () R x (:: 4 (Boxof Integer)))
-      ((R x (Boxof Integer)))]
+      ((x R (Boxof Integer)))]
     )
   )
 
@@ -473,13 +474,13 @@
     (check-mf-apply*
      [(type-env-ref () x)
       #f]
-     [(type-env-ref ((R x Integer)) x)
+     [(type-env-ref ((x R Integer)) x)
       Integer]
-     [(type-env-ref ((R x (Boxof Integer))) x)
+     [(type-env-ref ((x R (Boxof Integer))) x)
       (Boxof Integer)]
-     [(type-env-ref ((S x Integer)) x)
+     [(type-env-ref ((x S Integer)) x)
       Integer]
-     [(type-env-ref ((R x Integer) (R y Integer)) y)
+     [(type-env-ref ((x R Integer) (y R Integer)) y)
       Integer]
     )
   )
