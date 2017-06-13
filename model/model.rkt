@@ -81,7 +81,9 @@
   (Σ ::= (STATE P Γ ρ Store Kont)) ;; WARNING Γ and ρ have same domain
   (ρ ::= ((x addr) ...)) ;; runtime environment
   (Store ::= ((addr L v τ) ...))
-  (K ::= HALT (CHECK τ) (TAG τ) (FN v ...) (ARG e) (IF e e) (LET L x e) (OP op e ...))
+  (K ::= HALT (IF e e) (LET L x e)
+         (APP (addr ...) (e ...)) (OP op (addr ...) (e ...))
+         (CHECK τ) (TAG τ))
   (Kont ::= (K ...))
 ;; sequences, variables, misc
   (Σ* ::= (Σ ...))
