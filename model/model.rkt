@@ -75,7 +75,7 @@
   (?τ ::= τ TST)
   (σ ::= (∀ (α) σ) τ)
   (τ ::= (U k τ) (μ (α) τ) α k)
-  (k ::= Integer (→ τ τ) (Boxof τ))
+  (k ::= Boolean Integer (→ τ τ) (Boxof τ))
   (Γ ::= ((x L σ) ...))
   (P ::= (L e))
 ;; values, machine states
@@ -944,7 +944,50 @@
   #:contract (well-tagged v τ)
   [
    ---
-   (well-tagged v τ)])
+   (well-tagged boolean Boolean)]
+  [
+   ---
+   (well-tagged integer Integer)]
+  [
+   ---
+   (well-tagged c (→ τ_0 τ_1))]
+  [
+   ---
+   (well-tagged (box any) (Boxof τ))])
+
+(define-metafunction RST
+  well-tagged? : v τ -> boolean
+  [(well-tagged? v τ)
+   #true
+   (judgment-holds (well-tagged v τ))]
+  [(well-tagged? v τ)
+   #false])
+
+(module+ test
+  (check-mf-apply*
+   [(well-tagged? 4 Integer)
+    #true]
+   [(well-tagged? #true Boolean)
+    #true]
+   [(well-tagged? #false Boolean)
+    #true]
+   [(well-tagged? (box 3) (Boxof Integer))
+    #true]
+   [(well-tagged? (box 4) (Boxof Boolean))
+    #true]
+   [(well-tagged? (CLOSURE 1 () ()) (→ Integer Boolean))
+    #true]
+   ;;
+   [(well-tagged? 3 Boolean)
+    #false]
+   [(well-tagged? 3 (Boxof Integer))
+    #false]
+   [(well-tagged? #false (Boxof Integer))
+    #false]
+   [(well-tagged? (CLOSURE 1 () ()) Integer)
+    #false]
+  )
+)
 
 ;; -----------------------------------------------------------------------------
 ;; --- (discriminating,colorful,eidetic) evaluation
