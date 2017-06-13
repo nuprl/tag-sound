@@ -78,11 +78,10 @@
 ;; values, machine states
   (v ::= integer c (box v))
   (c ::= (CLOSURE e Γ ρ)) ;; WARNING Γ and ρ must have same domain
-  (Σ ::= (STATE any Γ ρ Store Kont)) ;; WARNING Γ and ρ have same domain
+  (Σ ::= (STATE P Γ ρ Store Kont)) ;; WARNING Γ and ρ have same domain
   (ρ ::= ((x addr) ...)) ;; runtime environment
-  (Store ::= ((L addr v) ...)) ;; WARNING assuming `addr` has type information somewhere else (in Σ)
+  (Store ::= ((addr L v τ) ...))
   (K ::= HALT (CHECK τ) (TAG τ) (FN v ...) (ARG e) (IF e e) (LET L x e) (OP op e ...))
-  ;; TODO can simplify further??
   (Kont ::= (K ...))
 ;; sequences, variables, misc
   (Σ* ::= (Σ ...))
@@ -421,6 +420,12 @@
   [(runtime-env-ref ρ x)
    ,(let ([kv (assoc (term x) (term ρ))])
       (and kv (cadr kv)))])
+
+(define-metafunction RST
+  store-ref : Store addr -> any
+  [(store-ref Store addr)
+   ,(let ([kv (assoc (term x) (term ρ))])
+      (and kv (cdr kv)))])
 
 (module+ test
   (test-case "τ=?"
@@ -847,67 +852,109 @@
 )
 
 ;; -----------------------------------------------------------------------------
-;; --- evaluation
+;; --- (discriminating,colorful,eidetic) evaluation
 
-;(define -->RST
-;  (reduction-relation RST
-;    #:domain Σ
-;    [-->
-;      Σ
-;      Σ
-;      (judgment-holds (final? Σ))]
-;    [-->
-;      (STATE (R e) Γ ρ Store Kont)
-;      ,(step/deterministic -->R (term (STATE e Γ ρ Store Kont)))]
-;    [-->
-;      (STATE (S e) Γ ρ Store Kont)
-;      ,(step/deterministic -->S (term (STATE e Γ ρ Store Kont)))]
-;    [-->
-;      (STATE (T e) Γ ρ Store Kont)
-;      ,(step/deterministic -->T (term (STATE e Γ ρ Store Kont)))]))
-;
-;(define -->R
-;  (reduction-relation RST
-;    #:domain Σ
-;    []))
-;
-;(define -->S
-;  (reduction-relation RST
-;    #:domain Σ
-;    []))
-;
-;(define -->T
-;  (reduction-relation RST
-;    #:domain Σ
-;    []))
-;
-;(define -->RST*
-;  (make--->* -->RST))
-;
-;(define-metafunction RST
-;  eval : P -> v
-;  [(eval P)
-;   (-->RST* #{init P})
-;   (side-condition
-;     (if (term #{typecheck P})
-;       #true
-;       (raise-user-error 'eval "typechecking failed" (term P))))])
-;
-;(define-metafunction RST
-;  init : P -> Σ
-;  [(init (L e))
-;   (STATE (L e) () () () (HALT))])
-;
-;(define-judgment-form RST
-;  #:mode (final? I)
-;  #:contract (final? Σ)
-;  [
-;   ---
-;   (final? ???)])
-;
-;;; -----------------------------------------------------------------------------
-;;; --- (colorblind) compiler
-;;; - translate R S T terms all to R
-;;; - but the S T terms have proper checks,
-;;; - via contracts and type-directed defense
-;
+(define -->RST
+  (reduction-relation RST
+    #:domain Σ
+    [-->
+      Σ
+      Σ
+      (judgment-holds (final? Σ))]
+))
+
+(define -->RST*
+  (make--->* -->RST))
+
+(define-metafunction RST
+  eval : P -> v
+  [(eval P)
+   (-->RST* #{init P})
+   (side-condition
+     (if (term #{typecheck P})
+       #true
+       (raise-user-error 'eval "typechecking failed" (term P))))])
+
+(define-metafunction RST
+  init : P -> Σ
+  [(init (L e))
+   (STATE (L e) () () () (HALT))])
+
+(define-judgment-form RST
+  #:mode (final? I)
+  #:contract (final? Σ)
+  [
+   (address? #{state->expression Σ} Σ)
+   (where HALT #{state->kont Σ})
+   ---
+   (final? Σ)])
+
+(define-judgment-form RST
+  #:mode (variable? I I)
+  #:contract (variable? e Σ)
+  [
+   (where ρ #{state->runtime-env Σ})
+   (side-condition ,(and (term #{runtime-env-ref ρ x}) #true))
+   ---
+   (variable? x Σ)])
+
+(define-judgment-form RST
+  #:mode (address? I I)
+  #:contract (address? e Σ)
+  [
+   (where Store #{state->store Σ})
+   (side-condition ,(and (term #{store-ref Store addr}) #true))
+   ---
+   (address? addr Σ)])
+
+(define-metafunction RST
+  state->program : Σ -> P
+  [(state->program (STATE P Γ ρ Store Kont))
+   P])
+
+(define-metafunction RST
+  state->language : Σ -> L
+  [(state->language (STATE P Γ ρ Store Kont))
+   #{program->language P}])
+
+(define-metafunction RST
+  state->expression : Σ -> e
+  [(state->expression (STATE P Γ ρ Store Kont))
+   #{program->expression P}])
+
+(define-metafunction RST
+  state->type-env : Σ -> Γ
+  [(state->type-env (STATE P Γ ρ Store Kont))
+   Γ])
+
+(define-metafunction RST
+  state->runtime-env : Σ -> ρ
+  [(state->runtime-env (STATE P Γ ρ Store Kont))
+   ρ])
+
+(define-metafunction RST
+  state->store : Σ -> Store
+  [(state->store (STATE P Γ ρ Store Kont))
+   Store])
+
+(define-metafunction RST
+  state->kont : Σ -> Kont
+  [(state->kont (STATE P Γ ρ Store Kont))
+   Kont])
+
+(define-metafunction RST
+  program->language : P -> L
+  [(program->language (L e))
+   L])
+
+(define-metafunction RST
+  program->expression : P -> e
+  [(program->expression (L e))
+   e])
+
+;; -----------------------------------------------------------------------------
+;; --- (colorblind) compiler
+;; - translate R S T terms all to R
+;; - but the S T terms have proper checks,
+;; - via contracts and type-directed defense
+
