@@ -18,7 +18,16 @@
 ;; - how to polymorphic functions? should not be hard but please get right
 ;;   also application thereof
 ;; - arity of primops
-;; TODO add booleans
+
+;; TODO
+;; - more careful about UNDEF
+;; - TST
+;; - type have discriminative unions
+;; - check σ in the right places?
+;; - well-formed type variables
+;; - closed
+;; - remove unused α in `type-normalize`
+;; - tautology-checking function
 
 ;; ---
 
@@ -122,6 +131,10 @@
   (test-case "e"
     (check-pred e? (term x))
     (check-pred e? (term 4))
+    (check-pred e? (term 0))
+    (check-pred e? (term -61))
+    (check-pred e? (term #true))
+    (check-pred e? (term #false))
     (check-pred e? (term (:: 4 Integer)))
     (check-pred e? (term (:: 4 (Boxof Integer))))
     (check-pred e? (term (let ((x R 4)) (+ x 1))))
@@ -129,6 +142,9 @@
 
   (test-case "τ"
     (check-pred τ? (term Integer))
+    (check-pred τ? (term Boolean))
+    (check-pred τ? (term (Boxof Boolean)))
+    (check-pred τ? (term (Boxof (→ Integer Integer))))
     (check-pred τ? (term (→ (→ Integer Integer) Integer))))
 
   (test-case "σ"
@@ -142,11 +158,6 @@
 
 ;; -----------------------------------------------------------------------------
 ;; --- grammar
-;; TODO
-;; - type have discriminative unions
-;; - check σ in the right places?
-;; - well-formed type variables
-;; - closed
 
 (define-judgment-form RST
   #:mode (well-formed I I)
@@ -172,6 +183,9 @@
   [
    --- Var
    (well-formed-T x)]
+  [
+   --- Boolean
+   (well-formed-T boolean)]
   [
    --- Integer
    (well-formed-T integer)]
@@ -225,8 +239,6 @@
   #:mode (well-formed-type I)
   #:contract (well-formed-type σ)
   [
-   ;; TODO
-   ;; - no f
    ---
    (well-formed-type σ)])
 
@@ -249,8 +261,6 @@
 ;; -----------------------------------------------------------------------------
 ;; --- utils
 
-;; TODO
-;; - remove unused α
 (define-metafunction RST
   type-normalize : τ -> τ
   [(type-normalize (U k τ))
@@ -285,6 +295,9 @@
 (define-judgment-form RST
   #:mode (tag-equal? I I)
   #:contract (tag-equal? τ τ)
+  [
+   ---
+   (tag-equal? Boolean Boolean)]
   [
    ---
    (tag-equal? Integer Integer)]
@@ -355,6 +368,8 @@
 
 (define-metafunction RST
   unionize-k : k k -> τ
+  [(unionize-k Boolean Boolean)
+   Boolean]
   [(unionize-k Integer Integer)
    Integer]
   [(unionize-k (→ τ_0 τ_1) (→ τ_2 τ_3))
@@ -383,8 +398,11 @@
   [(k<=? k_0 k_1)
    ,(symbol<? (term #{constructor-of k_0}) (term #{constructor-of k_1}))])
 
+;; aka, the "floor" relation in vss-popl-2017
 (define-metafunction RST
   constructor-of : k -> any
+  [(constructor-of Boolean)
+   Boolean]
   [(constructor-of Integer)
    Integer]
   [(constructor-of (→ τ_0 τ_1))
@@ -515,6 +533,10 @@
 (module+ test
   (test-case "τ=?"
     (check-mf-apply*
+     [(τ=? Boolean Boolean)
+      #true]
+     [(τ=? Boolean (Boxof Boolean))
+      #false]
      [(τ=? Integer Integer)
       #true]
      [(τ=? Integer (Boxof Integer))
@@ -531,6 +553,8 @@
 
   (test-case "normalize"
     (check-mf-apply*
+     [(type-normalize Boolean)
+      Boolean]
      [(type-normalize Integer)
       Integer]
     )
@@ -538,6 +562,8 @@
 
   (test-case "unionize"
     (check-mf-apply*
+     [(unionize Boolean Boolean)
+      Boolean]
      [(unionize Integer Integer)
       Integer]
      [(unionize (Boxof Integer) Integer)
@@ -613,6 +639,9 @@
    --- Var
    (R-typed Γ x)]
   [
+   --- Boolean
+   (R-typed Γ boolean)]
+  [
    --- Integer
    (R-typed Γ integer)]
   [
@@ -678,6 +707,9 @@
    (side-condition ,(raise-user-error 'T-typed "unbound variable ~a in type environment ~a (may need to annotate a let/letrec)" (term x) (term Γ)))
    --- VarError
    (T-typed Γ x Integer)]
+  [
+   --- Boolean
+   (T-typed Γ boolean Boolean)]
   [
    --- Integer
    (T-typed Γ integer Integer)]
@@ -779,6 +811,8 @@
 (module+ test
   (test-case "typecheck R-only"
     (check-mf-apply*
+     [(typecheck (R #false))
+      #true]
      [(typecheck (R 4))
       #true]
      [(typecheck (R (λ (x) 3)))
@@ -810,6 +844,8 @@
 
   (test-case "typecheck S-only"
     (check-mf-apply*
+     [(typecheck (S #true))
+      #true]
      [(typecheck (S 4))
       #true]
      [(typecheck (S (:: (λ (x) 3) (→ (→ Integer Integer) Integer))))
@@ -845,6 +881,8 @@
 
   (test-case "typecheck T-only"
     (check-mf-apply*
+     [(typecheck (T #true))
+      #true]
      [(typecheck (T 4))
       #true]
      [(typecheck (T (:: (λ (x) 3) (→ Integer Integer))))
@@ -920,7 +958,6 @@
       (μ (α2) (U (Boxof α2) Integer))]))
 
   (test-case "mixed-lang I"
-
     (check-mf-apply*
      [(typecheck (T (let ((f R (:: (λ (x) (+ x 1)) (→ Integer Integer)))) (f 1))))
       #true]
@@ -1019,11 +1056,6 @@
 (define -->RST
   (reduction-relation RST
     #:domain Σ
-    [-->
-      Σ
-      Σ
-      RST-Final
-      (judgment-holds (final? Σ))]
 ;; --- kont-adding
     [-->
       (STATE R (λ (x) e) Γ ρ Store Kont)
@@ -1039,6 +1071,12 @@
       (fresh addr)
       (where c (CLOSURE (λ (x) e) Γ ρ))
       (where Store_λ #{store-set Store L\R addr c τ})]
+    [-->
+      (STATE L boolean Γ ρ Store Kont)
+      (STATE L addr Γ ρ Store_bool Kont)
+      RST-Bool+
+      (fresh addr)
+      (where Store_bool #{store-set Store L addr boolean Boolean})]
     [-->
       (STATE L integer Γ ρ Store Kont)
       (STATE L addr Γ ρ Store_int Kont)
