@@ -125,7 +125,7 @@
       #:with (x?* ...) (for/list ([x (in-list (syntax-e #'(x* ...)))]) (format-id stx "~a?" (syntax-e x)))
       (syntax/loc stx (begin (define x?* (redex-match? RST x*)) ...))]))
 
-  (define-predicate* [e v c σ τ k L ρ Γ Σ])
+  (define-predicate* [e v c σ τ k L ρ Γ Σ Store Kont K])
 
   (test-case "e"
     (check-pred e? (term x))
@@ -457,7 +457,7 @@
 (define-metafunction RST
   store-ref : Store addr -> any
   [(store-ref Store addr)
-   ,(let ([kv (assoc (term x) (term ρ))])
+   ,(let ([kv (assoc (term addr) (term Store))])
       (and kv (cdr kv)))])
 
 (define-metafunction RST
@@ -469,7 +469,7 @@
 (define-metafunction RST
   store-ref-value : Store addr -> v
   [(store-ref-value Store addr)
-   v
+   ?v
    (where (L ?v ?τ) #{store-ref Store addr})])
 
 (define-metafunction RST
@@ -488,7 +488,7 @@
 
 (define-metafunction RST
   store-set : Store L addr v ?τ -> Store
-  [(store-set Store L addr v ?τ -> Store)
+  [(store-set Store L addr v ?τ)
    ,(cons (term (addr L v ?τ)) (term Store))])
 
 (define-metafunction RST
@@ -1223,16 +1223,19 @@
 (define-metafunction RST
   eval : P -> v
   [(eval P)
-   (-->RST* #{init P})
+   v
    (side-condition
      (if (term #{typecheck P})
        #true
-       (raise-user-error 'eval "typechecking failed" (term P))))])
+       (raise-user-error 'eval "typechecking failed" (term P))))
+   (where Σ_0 #{init P})
+   (where Σ_1 ,(-->RST* (term Σ_0)))
+   (where v #{store-ref-value #{state->store Σ_1} #{state->expression Σ_1}})])
 
 (define-metafunction RST
   init : P -> Σ
   [(init (L e))
-   (STATE (L e) () () () (HALT))])
+   (STATE L e () () () (HALT))])
 
 (define-judgment-form RST
   #:mode (final? I)
@@ -1262,12 +1265,12 @@
    (address? addr Σ)])
 
 (define-metafunction RST
-  state->language : Σ -> P
+  state->language : Σ -> L
   [(state->language (STATE L e Γ ρ Store Kont))
    L])
 
 (define-metafunction RST
-  state->expression : Σ -> P
+  state->expression : Σ -> e
   [(state->expression (STATE L e Γ ρ Store Kont))
    e])
 
@@ -1362,7 +1365,39 @@
     (f acc n2)))
 
 (module+ test
+  (test-case "init"
+    (check-pred Σ? (term #{init (R 4)}))
+  )
+
+  (test-case "store-set"
+    (check-mf-apply*
+     [(store-set () R a1 4 Integer)
+      ((a1 R 4 Integer))]
+    )
+  )
+
+  (test-case "store-ref"
+    (check-mf-apply*
+     [(store-ref ((a1 R 4 Integer)) a1)
+      (R 4 Integer)]
+    )
+  )
+
+  (test-case "store-ref-value"
+    (check-mf-apply*
+     [(store-ref-value ((a1 R 4 Integer)) a1)
+      4]
+    )
+  )
+
   (test-case "do-aop" ;; (->  aop-sym int* (or/c int bool))
+  )
+
+  (test-case "eval"
+    (check-mf-apply*
+     [(eval (R 4))
+      4]
+    )
   )
 )
 
