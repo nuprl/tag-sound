@@ -21,7 +21,6 @@
 
 ;; TODO
 ;; - more careful about UNDEF
-;; - TST
 ;; - type have discriminative unions
 ;; - check σ in the right places?
 ;; - well-formed type variables
@@ -81,11 +80,11 @@
   (L ::= R S T)
   (L\T ::= R S)
   (L\R ::= S T)
-  (?τ ::= τ TST)
+  (?τ ::= σ TST)
   (σ ::= (∀ (α) σ) τ)
   (τ ::= (U k τ) (μ (α) τ) α k)
   (k ::= Boolean Integer (→ τ τ) (Boxof τ))
-  (Γ ::= ((x L σ) ...))
+  (Γ ::= ((x L ?τ) ...))
   (P ::= (L e))
 ;; values, machine states
   (v ::= boolean integer c (box v))
@@ -153,7 +152,8 @@
   (test-case "Γ"
     (check-pred Γ? (term ((x T Integer))))
     (check-pred Γ? (term ((x S Integer))))
-    (check-pred Γ? (term ((x R Integer)))))
+    (check-pred Γ? (term ((x R Integer))))
+    (check-pred Γ? (term ((x R TST)))))
 )
 
 ;; -----------------------------------------------------------------------------
@@ -429,11 +429,13 @@
 ;; If term `e` from language `L` is type-annotated with τ, bind `(x τ)` in `Γ`
 ;; else return `Γ`
 (define-metafunction RST
-  type-env-set : Γ L x e -> Γ
+  type-env-set : Γ L x any -> Γ
   [(type-env-set Γ L x (:: e σ))
    ,(cons (term (x L σ)) (term Γ))]
-  [(type-env-set Γ L x e)
-   Γ])
+  [(type-env-set Γ L x ?τ)
+   ,(cons (term (x L ?τ)) (term Γ))]
+  [(type-env-set Γ R x e)
+   ,(cons (term (x R TST)) (term Γ))])
 
 (define-metafunction RST
   type-env-ref : Γ x -> any
@@ -579,7 +581,9 @@
     (check-mf-apply*
      [(type-env-set () T x (:: 4 Integer))
       ((x T Integer))]
-     [(type-env-set () R x (:: 4 Integer))
+     [(type-env-set () R x TST)
+      ((x R TST))]
+     [(type-env-set () R x Integer)
       ((x R Integer))]
      [(type-env-set () R x (:: 4 (Boxof Integer)))
       ((x R (Boxof Integer)))]
@@ -615,84 +619,86 @@
 ;; --- type checking
 
 (define-judgment-form RST
-  #:mode (well-typed I I)
-  #:contract (well-typed Γ P)
+  #:mode (well-typed I I O)
+  #:contract (well-typed Γ P ?τ)
   [
-   (R-typed Γ e)
+   (R-typed Γ e TST)
    ---
-   (well-typed Γ (R e))]
-  [
-   (T-typed Γ e σ)
-   ---
-   (well-typed Γ (S e))]
+   (well-typed Γ (R e) TST)]
   [
    (T-typed Γ e σ)
    ---
-   (well-typed Γ (T e))])
+   (well-typed Γ (S e) σ)]
+  [
+   (T-typed Γ e σ)
+   ---
+   (well-typed Γ (T e) σ)])
 
 ;; (R-typed Γ e)
 ;; recur through `e` and ensure that all typed components are well-typed
 (define-judgment-form RST
-  #:mode (R-typed I I)
-  #:contract (R-typed Γ e)
+  #:mode (R-typed I I O)
+  #:contract (R-typed Γ e TST)
   [
+   (where ?τ #{type-env-ref Γ x})
    --- Var
-   (R-typed Γ x)]
+   (R-typed Γ x TST)]
   [
    --- Boolean
-   (R-typed Γ boolean)]
+   (R-typed Γ boolean TST)]
   [
    --- Integer
-   (R-typed Γ integer)]
+   (R-typed Γ integer TST)]
   [
-   (R-typed Γ e)
+   (where Γ_x #{type-env-set Γ R x TST})
+   (R-typed Γ_x e TST)
    --- Lambda
-   (R-typed Γ (λ (x) e))]
+   (R-typed Γ (λ (x) e) TST)]
   [
-   (R-typed Γ e)
+   (R-typed Γ e TST)
    --- Unbox
-   (R-typed Γ (unbox e))]
+   (R-typed Γ (unbox e) TST)]
   [
-   (R-typed Γ e_0)
-   (R-typed Γ e_1)
+   (R-typed Γ e_0 TST)
+   (R-typed Γ e_1 TST)
    --- Set-Box
-   (R-typed Γ (set-box! e_0 e_1))]
+   (R-typed Γ (set-box! e_0 e_1) TST)]
   [
-   (R-typed Γ e_0)
-   (R-typed Γ e_1)
+   (R-typed Γ e_0 TST)
+   (R-typed Γ e_1 TST)
    --- aop
-   (R-typed Γ (aop e_0 e_1))]
+   (R-typed Γ (aop e_0 e_1) TST)]
   [
-   (R-typed Γ e_0)
-   (R-typed Γ e_1)
+   (R-typed Γ e_0 TST)
+   (R-typed Γ e_1 TST)
    --- App
-   (R-typed Γ (e_0 e_1))]
+   (R-typed Γ (e_0 e_1) TST)]
   [
-   (R-typed Γ e_0)
+   (R-typed Γ e_0 TST)
    --- Box
-   (R-typed Γ (box e_0))]
+   (R-typed Γ (box e_0) TST)]
   [
-   (R-typed Γ e_0)
-   (R-typed Γ e_1)
-   (R-typed Γ e_2)
+   (R-typed Γ e_0 TST)
+   (R-typed Γ e_1 TST)
+   (R-typed Γ e_2 TST)
    --- If
-   (R-typed Γ (if e_0 e_1 e_2))]
+   (R-typed Γ (if e_0 e_1 e_2) TST)]
   [
-   (well-typed Γ (L e_0))
+   (well-typed Γ (L e_0) ?τ)
    (where Γ_x #{type-env-set Γ L x e_0})
-   (R-typed Γ_x e_1)
+   (R-typed Γ_x e_1 TST)
    --- Let
-   (R-typed Γ (let ((x L e_0)) e_1))]
+   (R-typed Γ (let ((x L e_0)) e_1) TST)]
   [
    (where Γ_x #{type-env-set Γ L x e_0})
-   (well-typed Γ_x (L e_0))
-   (R-typed Γ_x e_1)
+   (well-typed Γ_x (L e_0) ?τ)
+   (R-typed Γ_x e_1 TST)
    --- Letrec
-   (R-typed Γ (letrec ((x L e_0)) e_1))]
+   (R-typed Γ (letrec ((x L e_0)) e_1) TST)]
   [
-   (R-typed Γ e)
+   (R-typed Γ e TST)
    --- Ann
-   (R-typed Γ (:: e σ))]
+   (R-typed Γ (:: e σ) TST)]
 )
 
 (define-judgment-form RST
@@ -714,7 +720,7 @@
    --- Integer
    (T-typed Γ integer Integer)]
   [
-   (where Γ_x #{type-env-set Γ T x (:: x τ_0)}) ;; TODO sometimes use S ?
+   (where Γ_x #{type-env-set Γ T x τ_0}) ;; TODO sometimes use S ?
    (T-typed Γ_x e τ_2)
    (subtype? τ_2 τ_1)
    --- Lambda
@@ -763,8 +769,8 @@
    --- If
    (T-typed Γ (if e_0 e_1 e_2) τ)]
   [
-   (well-typed Γ (L (:: e_0 τ_0)))
-   (where Γ_x #{type-env-set Γ L x (:: e_0 τ_0)})
+   (well-typed Γ (L (:: e_0 τ_0)) ?τ_dontcare) ;; ?τ_dontcare might be TST, only τ_0 matters
+   (where Γ_x #{type-env-set Γ L x τ_0})
    (T-typed Γ_x e_1 τ_1)
    --- Let
    (T-typed Γ (let ((x L (:: e_0 τ_0))) e_1) τ_1)]
@@ -774,8 +780,8 @@
    --- LetError
    (T-typed Γ (let ((x L e_0)) e_1) Integer)]
   [
-   (where Γ_x #{type-env-set Γ L x (:: e_0 τ_0)})
-   (well-typed Γ_x (L (:: e_0 τ_0)))
+   (where Γ_x #{type-env-set Γ L x τ_0})
+   (well-typed Γ_x (L (:: e_0 τ_0)) τ_dontcare)
    (T-typed Γ_x e_1 τ_1)
    --- Letrec
    (T-typed Γ (letrec ((x L (:: e_0 τ_0))) e_1) τ_1)]
@@ -793,18 +799,10 @@
 )
 
 (define-metafunction RST
-  T-typecheck : e -> σ
-  [(T-typecheck e)
-   τ
-   (judgment-holds (T-typed () e τ))]
-  [(T-typecheck e)
-   ,(raise-user-error 'T-typecheck "failed to type ~a" (term e))])
-
-(define-metafunction RST
-  typecheck : P -> boolean
+  typecheck : P -> any
   [(typecheck P)
-   #true
-   (judgment-holds (well-typed () P))]
+   ?τ
+   (judgment-holds (well-typed () P ?τ))]
   [(typecheck P)
    #false])
 
@@ -812,68 +810,68 @@
   (test-case "typecheck R-only"
     (check-mf-apply*
      [(typecheck (R #false))
-      #true]
+      TST]
      [(typecheck (R 4))
-      #true]
+      TST]
      [(typecheck (R (λ (x) 3)))
-      #true]
+      TST]
      [(typecheck (R (+ 1 2)))
-      #true]
+      TST]
      [(typecheck (R (+ 1 (box 3))))
-      #true]
+      TST]
      [(typecheck (R (if 1 2 3)))
-      #true]
+      TST]
      [(typecheck (R (box (λ (x) (+ 2 2)))))
-      #true]
+      TST]
      [(typecheck (R (set-box! (box 2) (+ 1 1))))
-      #true]
+      TST]
      [(typecheck (R ((λ (x) (set-box! x 0)) (box 42))))
-      #true]
+      TST]
      [(typecheck (R ((λ (x) (set-box! 0 x)) (box 42))))
-      #true]
+      TST]
      [(typecheck (R (let ((x R 4)) x)))
-      #true]
+      TST]
      [(typecheck (R (let ((x R 4)) (x x))))
-      #true]
+      TST]
      [(typecheck (R (letrec ((x R 4)) x)))
-      #true]
+      TST]
      [(typecheck (R (letrec ((x R (box 3))) (+ x x))))
-      #true]
+      TST]
     )
   )
 
   (test-case "typecheck S-only"
     (check-mf-apply*
      [(typecheck (S #true))
-      #true]
+      Boolean]
      [(typecheck (S 4))
-      #true]
+      Integer]
      [(typecheck (S (:: (λ (x) 3) (→ (→ Integer Integer) Integer))))
-      #true]
+      (→ (→ Integer Integer) Integer)]
      [(typecheck (S (+ 1 2)))
-      #true]
+      Integer]
      [(typecheck (S (+ 1 (:: (box 3) (Boxof Integer)))))
       #false]
      [(typecheck (S (if 1 2 3)))
-      #true]
+      Integer]
      [(typecheck (S (:: (box (:: (λ (x) (+ 2 2)) (→ Integer Integer))) (Boxof (→ Integer Integer)))))
-      #true]
+      (Boxof (→ Integer Integer))]
      [(typecheck (S (set-box! (:: (box 2) (Boxof Integer)) (+ 1 1))))
-      #true]
+      (Boxof Integer)]
      [(typecheck (S (set-box! (:: (box 2) (Boxof Integer)) (:: (box 1) (Boxof Integer)))))
       #false]
      [(typecheck (S ((:: (λ (x) (set-box! x 0)) (→ (Boxof Integer) (Boxof Integer))) (:: (box 42) (Boxof Integer)))))
-      #true]
+      (Boxof Integer)]
      [(typecheck (S ((:: (λ (x) (set-box! 0 x)) (→ (Boxof Integer) (Boxof Integer))) (:: (box 42) (Boxof Integer)))))
       #false]
      [(typecheck (S (let ((x S (:: 4 Integer))) x)))
-      #true]
+      Integer]
      [(typecheck (S (let ((x S (:: 4 Integer))) (x x))))
       #false]
      [(typecheck (S (letrec ((x S (:: 4 Integer))) x)))
-      #true]
+      Integer]
      [(typecheck (S (letrec ((x S (:: (box 3) (Boxof Integer)))) x)))
-      #true]
+      (Boxof Integer)]
      [(typecheck (S (letrec ((x S (:: (box 3) (Boxof Integer)))) (+ x x))))
       #false]
     )
@@ -882,35 +880,35 @@
   (test-case "typecheck T-only"
     (check-mf-apply*
      [(typecheck (T #true))
-      #true]
+      Boolean]
      [(typecheck (T 4))
-      #true]
+      Integer]
      [(typecheck (T (:: (λ (x) 3) (→ Integer Integer))))
-      #true]
+      (→ Integer Integer)]
      [(typecheck (T (+ 1 2)))
-      #true]
+      Integer]
      [(typecheck (T (+ 1 (:: (box 3) (Boxof Integer)))))
       #false]
      [(typecheck (T (if 1 2 3)))
-      #true]
+      Integer]
      [(typecheck (T (:: (box (:: (λ (x) (+ 2 2)) (→ Integer Integer))) (Boxof (→ Integer Integer)))))
-      #true]
+      (Boxof (→ Integer Integer))]
      [(typecheck (T (:: (box 2) Integer)))
       #false]
      [(typecheck (T (set-box! (:: (box 2) (Boxof Integer)) (+ 1 1))))
-      #true]
+      (Boxof Integer)]
      [(typecheck (T ((:: (λ (x) (set-box! x 0)) (→ (Boxof Integer) (Boxof Integer))) (:: (box 42) (Boxof Integer)))))
-      #true]
+      (Boxof Integer)]
      [(typecheck (T ((:: (λ (x) (set-box! 0 x)) (→ (Boxof Integer) (Boxof Integer))) (:: (box 42) (Boxof Integer)))))
       #false]
      [(typecheck (T (let ((x T (:: 4 Integer))) x)))
-      #true]
+      Integer]
      [(typecheck (T (let ((x T (:: 4 Integer))) (x x))))
       #false]
      [(typecheck (T (letrec ((x T (:: 4 Integer))) x)))
-      #true]
+      Integer]
      [(typecheck (T (letrec ((x T (:: (box 3) (Boxof Integer)))) x)))
-      #true]
+      (Boxof Integer)]
      [(typecheck (T (letrec ((x T (:: (box 3) (Boxof Integer)))) (+ x x))))
       #false]
     )
@@ -930,13 +928,13 @@
   (test-case "typecheck T"
     (check-mf-apply*
      [(typecheck (T (:: (λ (x) x) (→ (U (Boxof Integer) Integer) (U (Boxof Integer) Integer)))))
-      #true]
+      (→ (U (Boxof Integer) Integer) (U (Boxof Integer) Integer))]
      [(typecheck (T (:: (λ (x) (if (= x 0) x (:: (box x) (Boxof Integer)))) (→ Integer (U (Boxof Integer) Integer)))))
-      #true]
+      (→ Integer (U (Boxof Integer) Integer))]
      [(typecheck (T (:: (λ (x) (+ x 1)) (→ (U (Boxof Integer) Integer) Integer))))
       #false]
      [(typecheck (T (letrec ((fact T (:: (λ (n) (if (= n 1) 1 (* n (fact (- n 1))))) (→ Integer Integer)))) (fact 4))))
-      #true]
+      Integer]
      [(typecheck (T (letrec ((fact T (:: (λ (n) (if (= n 1) (:: (box 1) (Boxof Integer)) (* n (fact (- n 1))))) (→ Integer Integer)))) (fact 4))))
       #false]
      [(typecheck (T
@@ -944,31 +942,22 @@
                                                      (Boxof (μ (α1) (U (Boxof α1) Integer))))))
                             (→ Integer (μ (α0) (U (Boxof α0) Integer))))))
          (deep 3))))
-      #true]
+      (μ (α2) (U (Boxof α2) Integer))]
     )
   )
-
-  (test-case "T-typecheck"
-    (check-mf-apply*
-     [(T-typecheck
-       (letrec ((deep T (:: (λ (x) (if (= 0 x) x (:: (box (deep (- x 1)))
-                                                     (Boxof (μ (α1) (U (Boxof α1) Integer))))))
-                            (→ Integer (μ (α0) (U (Boxof α0) Integer))))))
-         (deep 3)))
-      (μ (α2) (U (Boxof α2) Integer))]))
 
   (test-case "mixed-lang I"
     (check-mf-apply*
      [(typecheck (T (let ((f R (:: (λ (x) (+ x 1)) (→ Integer Integer)))) (f 1))))
-      #true]
+      Integer]
      [(typecheck (T (let ((f R (:: (λ (x) (+ x 1)) (→ (Boxof Integer) (Boxof Integer))))) (f (:: (box 1) (Boxof Integer))))))
-      #true]
+      (Boxof Integer)]
      [(typecheck (S (let ((f R (:: (λ (x) (+ x 1)) (→ (Boxof Integer) (Boxof Integer))))) (f (:: (box 1) (Boxof Integer))))))
-      #true]
+      (Boxof Integer)]
      [(typecheck (R (let ((f S (:: (λ (x) (+ x 1)) (→ Integer Integer)))) (f 55))))
-      #true]
+      TST]
      [(typecheck (R (let ((f T (:: (λ (x) (+ x 1)) (→ Integer Integer)))) (f (box 4)))))
-      #true]
+      TST]
     )
   )
 )
