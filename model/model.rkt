@@ -76,7 +76,7 @@
 (define-language RST
 ;; terms, programs, languages, typing
   (e ::= x boolean integer (λ (x) e) (unbox e) (set-box! e e) (box e) (aop e e) (e e) (if e e e) (let ((x L e)) e) (letrec ((x L e)) e) (:: e σ))
-  (op ::= unbox set-box! box aop)
+  (op ::= unbox set-box! aop)
   (aop ::= + = - *)
   (L ::= R S T)
   (L\T ::= R S)
@@ -96,7 +96,7 @@
   (ρ ::= ((x addr) ...)) ;; runtime environment
   (Store ::= ((addr L ?v ?τ) ...))
   (K ::= HALT (IF e e) (LET L x ?τ e) (LETREC L x ?τ e)
-         (APP addr* (e ...)) (OP op (addr ...) (e ...))
+         (BOX ?τ) (APP addr* (e ...)) (OP op (addr ...) (e ...))
          (CHECK-TYPE τ) (CHECK-TAG τ))
   (Kont ::= (K ...))
 ;; sequences, variables, misc
@@ -1112,21 +1112,16 @@
       (STATE L e_0 Γ ρ Store Kont_app)
       RST-App+
       (where Kont_app #{kont-add Kont (APP () (e_1))})]
-    #;[-->
-      (STATE L (box addr) Γ ρ Store Kont)
-      (STATE L e Γ ρ Store Kont_b)
-      RST-boxV
-      ;; TODO
-      ;; - allocate new address
-      ;; - add to box
-
-
-      (where Kont_b #{kont-add Kont (OP box () ())})]
     [-->
-      (STATE L (box e) Γ ρ Store Kont)
-      (STATE L e Γ ρ Store Kont_b)
-      RST-boxE+
-      (where Kont_b #{kont-add Kont (OP box () ())})]
+      (STATE R (box e) Γ ρ Store Kont)
+      (STATE R e Γ ρ Store Kont_b)
+      R-boxE+
+      (where Kont_b #{kont-add Kont (BOX TST)})]
+    [-->
+      (STATE L\R (:: (box e) τ) Γ ρ Store Kont)
+      (STATE L\R e Γ ρ Store Kont_b)
+      ST-boxE+
+      (where Kont_b #{kont-add Kont (BOX τ)})]
     [-->
       (STATE L (unbox e) Γ ρ Store Kont)
       (STATE L e Γ ρ Store Kont_u)
@@ -1210,6 +1205,14 @@
       (where ((OP op (addr_a ...) ()) Kont_rest) #{kont-pop Kont})
       (where (addr_arg0 addr_arg ...) ,(reverse (term (addr addr_a ...))))
       (where (e_new Store_new) #{apply-op Store op addr_arg0 addr_arg ...})]
+    [-->
+      (STATE L addr Γ ρ Store Kont)
+      (STATE L addr_b Γ ρ Store_b Kont)
+      RST-boxV+
+      (judgment-holds (address? addr (STATE L addr Γ ρ Store Kont)))
+      (where ((Box ?τ) Kont_rest) #{kont-pop Kont})
+      (fresh addr_b)
+      (where Store_b #{store-set Store L addr_b (box addr) ?τ})]
     #;[-->
       (STATE L addr Γ ρ Store Kont)
       ???
@@ -1325,8 +1328,6 @@
   [(apply-op Store aop addr ...)
    (v Store)
    (where v ,(do-aop (term aop) (term (#{store-ref-integer addr} ...))))]
-  [(apply-op Store box addr)
-   (box addr)]
   [(apply-op Store unbox addr_b)
    (addr Store)
    (where (box addr) #{store-ref-value Store addr_b})]
