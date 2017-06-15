@@ -487,10 +487,17 @@
    (where (L v ?τ) #{store-ref Store addr})])
 
 (define-metafunction RST
-  store-set : Store L addr v ?τ -> Store
-  [(store-set Store L addr v ?τ)
-   ,(cons (term (addr L v ?τ)) (term Store))])
+  store-set : Store L addr ?v ?τ -> Store
+  [(store-set Store L addr ?v ?τ)
+   ,(cons (term (addr L ?v ?τ)) (term Store))])
 
+;; Used in transitions for LET/LETREC
+;; - (let ((x L e)) e_body) evaluates `e` in language `L`
+;; - when finished, need to add value to environment with "context" type
+;; For example, `(let ((x R (:: (λ ....) (→ ....)))) e_body)`
+;; --- stores type annotation `(→ ....)`
+;; --- evaluates `(:: (λ ....) (→ ....))` in the R language, which ignores the type
+;; --- pops the type annotation, updates the store entry for the relevant closure
 (define-metafunction RST
   store-update-type : Store addr ?τ -> Store
   [(store-update-type Store addr ?τ_new)
@@ -499,6 +506,8 @@
   [(store-update-type Store addr ?τ)
    ,(raise-user-error 'store-update-type "address ~a unbound in store ~a" (term addr) (term Store))])
 
+;; Used in transitions for LETREC/SET-BOX!
+;; i.e. for back-patching the store
 (define-metafunction RST
   store-update : Store addr any -> Store
   [(store-update Store addr #f)
@@ -577,6 +586,31 @@
     )
   )
 
+  (test-case "constructor-of"
+    (check-mf-apply*
+     [(constructor-of Boolean)
+      Boolean]
+     [(constructor-of Integer)
+      Integer]
+     [(constructor-of (→ Integer Integer))
+      →]
+     [(constructor-of (→ (Boxof Integer) (Boxof Boolean)))
+      →]
+     [(constructor-of (Boxof (→ Integer Integer)))
+      Boxof]))
+
+  (test-case "annotated"
+   (check-true
+     (judgment-holds (annotated (:: 3 Integer))))
+   (check-false
+     (judgment-holds (annotated 3)))
+
+   (check-false
+     (judgment-holds (un-annotated (:: 3 Integer))))
+   (check-true
+     (judgment-holds (un-annotated 3)))
+  )
+
   (test-case "type-env-set"
     (check-mf-apply*
      [(type-env-set () T x (:: 4 Integer))
@@ -610,9 +644,108 @@
      [(runtime-env-ref () x)
       #false]
      [(runtime-env-ref ((x y)) x)
-      y]
-    )
-  )
+      y]))
+
+  (test-case "runtime-env-set"
+    (check-mf-apply*
+     [(runtime-env-set () x a1)
+      ((x a1))]
+     [(runtime-env-set ((x a1)) y a2)
+      ((y a2) (x a1))]))
+
+  (test-case "store-ref"
+    (check-mf-apply*
+     [(store-ref ((a1 R 4 Integer)) a1)
+      (R 4 Integer)]
+     [(store-ref ((a1 R 3 TST)) a1)
+      (R 3 TST)]
+     [(store-ref ((a1 R 3 TST) (a2 T (CLOSURE (λ (x) 1) () ()) (→ Integer Integer))) a2)
+      (T (CLOSURE (λ (x) 1) () ()) (→ Integer Integer))]))
+
+  (test-case "store-ref-language"
+    (check-mf-apply*
+     [(store-ref-language ((a1 R 1 TST) (a2 S (box 4) (Boxof Integer))) a1)
+      R]
+     [(store-ref-language ((a1 R 1 TST) (a2 S (box 4) (Boxof Integer))) a2)
+      S]))
+
+  (test-case "store-ref-value"
+    (check-mf-apply*
+     [(store-ref-value ((a1 R 4 Integer)) a1)
+      4]
+     [(store-ref-value ((a1 R #false TST) (a2 S 3 Integer)) a1)
+      #false]
+     [(store-ref-value ((a1 R 1 TST) (a2 S #true Boolean)) a2)
+      #true]))
+
+  (test-case "store-ref-type"
+    (check-mf-apply*
+     [(store-ref-type ((a1 R 1 TST) (a2 T 4 Integer)) a1)
+      TST]
+     [(store-ref-type ((a1 R 1 TST) (a2 T 4 Integer)) a2)
+      Integer]
+     [(store-ref-type ((a3 T (box (box 2)) (Boxof (Boxof Integer)))) a3)
+      (Boxof (Boxof Integer))]))
+
+  (test-case "store-ref-integer"
+    (check-mf-apply*
+     [(store-ref-integer ((a1 R 1 TST)) a1)
+      1])
+
+    (check-exn exn:fail:contract?
+      (λ () (term #{store-ref-integer ((a1 R (box 3) TST)) a1}))))
+
+  (test-case "store-set"
+    (check-mf-apply*
+     [(store-set () R a1 3 TST)
+      ((a1 R 3 TST))]
+     [(store-set () R a1 4 Integer)
+      ((a1 R 4 Integer))]
+     [(store-set () R a1 UNDEF TST)
+      ((a1 R UNDEF TST))]
+     [(store-set () T a1 3 Integer)
+      ((a1 T 3 Integer))]))
+
+  (test-case "store-update-type"
+    (check-mf-apply*
+     [(store-update-type ((a1 R (box 4) TST)) a1 (Boxof Integer))
+      ((a1 R (box 4) (Boxof Integer)))]
+     [(store-update-type ((a2 T 4 Integer) (a1 R (box 4) TST)) a1 (Boxof Integer))
+      ((a2 T 4 Integer) (a1 R (box 4) (Boxof Integer)))]))
+
+  (test-case "store-update"
+    (check-mf-apply*
+     [(store-update ((a1 R 1 Integer)) a1 (S #false Boolean))
+      ((a1 S #false Boolean))]
+     [(store-update ((a1 T #true Boolean) (a2 R 3 TST)) a1 (T #false Integer))
+      ((a1 T #false Integer) (a2 R 3 TST))]))
+
+  (test-case "kont-add"
+    (check-mf-apply*
+     [(kont-add () HALT)
+      (HALT)]
+     [(kont-add (HALT) (IF 3 3))
+      ((IF 3 3) HALT)]))
+
+  (test-case "kont-pop"
+    (check-mf-apply*
+     [(kont-pop (HALT))
+      (HALT ())]
+     [(kont-pop ((BOX Integer) HALT))
+      ((BOX Integer) (HALT))]))
+
+  (test-case "language<?"
+    (check-true
+      (judgment-holds (language<? R S)))
+    (check-true
+      (judgment-holds (language<? S T)))
+    (check-true
+      (judgment-holds (language<? R T)))
+    (check-false
+      (judgment-holds (language<? T R)))
+    (check-false
+      (judgment-holds (language<? S R))))
+
 )
 
 ;; -----------------------------------------------------------------------------
@@ -990,29 +1123,30 @@
    #false])
 
 (module+ test
-  (check-mf-apply*
-   [(well-tagged? 4 Integer)
-    #true]
-   [(well-tagged? #true Boolean)
-    #true]
-   [(well-tagged? #false Boolean)
-    #true]
-   [(well-tagged? (box 3) (Boxof Integer))
-    #true]
-   [(well-tagged? (box 4) (Boxof Boolean))
-    #true]
-   [(well-tagged? (CLOSURE 1 () ()) (→ Integer Boolean))
-    #true]
-   ;;
-   [(well-tagged? 3 Boolean)
-    #false]
-   [(well-tagged? 3 (Boxof Integer))
-    #false]
-   [(well-tagged? #false (Boxof Integer))
-    #false]
-   [(well-tagged? (CLOSURE 1 () ()) Integer)
-    #false]
-  )
+  (test-case "well-tagged"
+    (check-mf-apply*
+     [(well-tagged? 4 Integer)
+      #true]
+     [(well-tagged? #true Boolean)
+      #true]
+     [(well-tagged? #false Boolean)
+      #true]
+     [(well-tagged? (box 3) (Boxof Integer))
+      #true]
+     [(well-tagged? (box 4) (Boxof Boolean))
+      #true]
+     [(well-tagged? (CLOSURE 1 () ()) (→ Integer Boolean))
+      #true]
+     ;;
+     [(well-tagged? 3 Boolean)
+      #false]
+     [(well-tagged? 3 (Boxof Integer))
+      #false]
+     [(well-tagged? #false (Boxof Integer))
+      #false]
+     [(well-tagged? (CLOSURE 1 () ()) Integer)
+      #false]
+    ))
 )
 
 ;; -----------------------------------------------------------------------------
@@ -1366,29 +1500,7 @@
 
 (module+ test
   (test-case "init"
-    (check-pred Σ? (term #{init (R 4)}))
-  )
-
-  (test-case "store-set"
-    (check-mf-apply*
-     [(store-set () R a1 4 Integer)
-      ((a1 R 4 Integer))]
-    )
-  )
-
-  (test-case "store-ref"
-    (check-mf-apply*
-     [(store-ref ((a1 R 4 Integer)) a1)
-      (R 4 Integer)]
-    )
-  )
-
-  (test-case "store-ref-value"
-    (check-mf-apply*
-     [(store-ref-value ((a1 R 4 Integer)) a1)
-      4]
-    )
-  )
+    (check-pred Σ? (term #{init (R 4)})))
 
   (test-case "do-aop" ;; (->  aop-sym int* (or/c int bool))
   )
