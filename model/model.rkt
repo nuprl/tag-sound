@@ -24,6 +24,7 @@
 ;; - type have discriminative unions
 ;; - check σ in the right places?
 ;; - well-formed type variables
+;; - well-formed states (disjoint ρ Store)
 ;; - closed
 ;; - remove unused α in `type-normalize`
 ;; - tautology-checking function
@@ -1283,7 +1284,7 @@
       (where ((LET L_ctx x ?τ e) Kont_rest) #{kont-pop Kont})
       (fresh addr)
       (where ρ_x #{runtime-env-set ρ x addr})
-      (where Store_τ ,(if (term (judgment-holds (language<? L L_ctx)))
+      (where Store_τ ,(if (judgment-holds (language<? L L_ctx))
                         (term #{store-update-type Store addr ?τ})
                         (term Store_v)))]
     [-->
@@ -1294,7 +1295,7 @@
       (where ((LETREC L_ctx x ?τ e) Kont_rest) #{kont-pop Kont})
       (where addr_x #{runtime-env-ref ρ x})
       (where Store_v #{store-update Store addr_x #{store-ref Store addr}})
-      (where Store_τ ,(if (term (judgment-holds (language<? L L_ctx)))
+      (where Store_τ ,(if (judgment-holds (language<? L L_ctx))
                         (term #{store-update-type Store addr_x ?τ})
                         (term Store_v)))]
     [-->
@@ -1364,6 +1365,7 @@
        (raise-user-error 'eval "typechecking failed" (term P))))
    (where Σ_0 #{init P})
    (where Σ_1 ,(-->RST* (term Σ_0)))
+   (judgment-holds (final? Σ_1))
    (where v #{store-ref-value #{state->store Σ_1} #{state->expression Σ_1}})])
 
 (define-metafunction RST
@@ -1376,7 +1378,7 @@
   #:contract (final? Σ)
   [
    (address? #{state->expression Σ} Σ)
-   (where HALT #{state->kont Σ})
+   (where (HALT) #{state->kont Σ})
    ---
    (final? Σ)])
 
@@ -1462,7 +1464,7 @@
    (addr_b Store_b)
    (where (L_b ?v_b ?τ_b) #{store-ref Store addr_b})
    (where (L_v ?v_v ?τ_v) #{store-ref Store addr_v})
-   (where (v_new Store_new) ,(if (term (judgment-holds (language<? L_v L_b)))
+   (where (v_new Store_new) ,(if (judgment-holds (language<? L_v L_b))
                                (term #{dynamic-typecheck L_b Store ?v_v ?τ_b})
                                (term ?v_v)))
    (where Store_b #{store-update Store_new addr_b (L_b v_new ?τ_b)})])
@@ -1472,7 +1474,7 @@
   [(dynamic-typecheck R Store v τ)
    (v Store)]
   [(dynamic-typecheck S Store v τ)
-   ,(if (term (judgment-holds (well-tagged v τ)))
+   ,(if (judgment-holds (well-tagged v τ))
       (term (v Store))
       (raise-dynamic-typecheck-error (term S) (term v) (term τ)))]
   [(dynamic-typecheck T Store v τ)
@@ -1480,7 +1482,7 @@
    ,(raise-user-error 'not-implemented)])
 
 (define (raise-dynamic-typecheck-error L v τ)
-  (raise-user-error 'dynamic-typecheck "language ~a expected ~a received ~a" L τ v))
+  (raise-user-error 'dynamic-typecheck "language ~a expected ~a given ~a" L τ v))
 
 (define (do-aop aop int*)
   (define f
@@ -1493,16 +1495,122 @@
      [(+) +]
      [(-) -]
      [(*) *]
-     [else (raise-argument-error 'fold-aop "aop?" aop)]))
-  (for/fold ([acc (car int*)])
-            ([n2 (in-list (cdr int*))])
-    (f acc n2)))
+     [else (raise-argument-error 'do-aop "aop?" aop)]))
+  (if (null? int*)
+    (raise-argument-error 'do-aop "non-empty list?" 1 aop int*)
+    (for/fold ([acc (car int*)])
+              ([n2 (in-list (cdr int*))])
+      (f acc n2))))
 
 (module+ test
   (test-case "init"
     (check-pred Σ? (term #{init (R 4)})))
 
+  (test-case "final"
+    (check-true
+      (judgment-holds (final? (STATE R a1 () () ((a1 R 4 TST)) (HALT))))))
+
+  (test-case "variable?"
+    (check-true
+      (judgment-holds (variable? x (STATE R 3 () ((x a1)) ((a1 R #true TST)) (HALT)))))
+
+    (check-false
+      (judgment-holds (variable? t (STATE R 3 () ((x a1)) ((a1 R #true TST)) (HALT))))))
+
+  (test-case "address?"
+    (check-true
+      (judgment-holds (address? x (STATE R 4 () () ((x R 5 TST)) ((OP + (x) ()) HALT)))))
+
+    (check-false
+      (judgment-holds (address? x (STATE R 3 () ((x a1)) ((a1 R #true TST)) (HALT))))))
+
+  (test-case "statesmen"
+    (check-mf-apply*
+     [(state->language (STATE R 3 () ((x a1)) ((a1 R #true TST)) (HALT)))
+      R]
+     [(state->expression (STATE R 3 () ((x a1)) ((a1 R #true TST)) (HALT)))
+      3]
+     [(state->type-env (STATE R 3 () ((x a1)) ((a1 R #true TST)) (HALT)))
+      ()]
+     [(state->runtime-env (STATE R 3 () ((x a1)) ((a1 R #true TST)) (HALT)))
+      ((x a1))]
+     [(state->store (STATE R 3 () ((x a1)) ((a1 R #true TST)) (HALT)))
+      ((a1 R #true TST))]
+     [(state->kont (STATE R 3 () ((x a1)) ((a1 R #true TST)) (HALT)))
+      (HALT)]))
+
+  (test-case "type-annotation"
+    (check-mf-apply*
+     [(type-annotation R 3)
+      TST]
+     [(type-annotation R (:: 3 Integer))
+      TST]
+     [(type-annotation R (:: #true Integer))
+      TST]
+     [(type-annotation S (:: 3 Integer))
+      Integer]
+     [(type-annotation S (:: (λ (x) x) (→ (Boxof Boolean) (Boxof Boolean))))
+      (→ (Boxof Boolean) (Boxof Boolean))]
+     [(type-annotation T (:: (box 4) (Boxof (U Boolean Integer))))
+      (Boxof (U Boolean Integer))]))
+
+  #;(test-case "apply-closure"
+    ;; Test results look good, but do not pass because of freshining.
+    ;;  not sure how to fix
+    (check-mf-apply*
+     [(apply-closure (CLOSURE (λ (x) x) () ()) a1)
+      (x () ((x a1)))]))
+
+  (test-case "apply-op"
+  )
+
+  (test-case "dynamic-typecheck"
+    (check-mf-apply*
+     [(dynamic-typecheck R () 3 Integer)
+      (3 ())]
+     [(dynamic-typecheck R () 3 Boolean)
+      (3 ())]
+     [(dynamic-typecheck R ((a2 R 3 Integer)) 3 (Boxof Integer))
+      (3 ((a2 R 3 Integer)))]
+     [(dynamic-typecheck S () 3 Integer)
+      (3 ())]
+     [(dynamic-typecheck S () (box #true) (Boxof Integer))
+      ((box #true) ())]
+     [(dynamic-typecheck S () (CLOSURE (λ (x) x) () ()) (→ Integer Boolean))
+      ((CLOSURE (λ (x) x) () ()) ())]
+     #;[(dynamic-typecheck T () 3 Integer)
+      (3 Integer)])
+
+    (check-exn #rx"expected Boolean given 3"
+      (λ () (term #{dynamic-typecheck S () 3 Boolean})))
+
+    (check-exn #rx"expected Boolean given \\(box 3\\)"
+      (λ () (term #{dynamic-typecheck S () (box 3) Boolean})))
+
+  )
+
+  (test-case "raise-dynamic-typecheck-error"
+    (check-exn #rx"expected .* given"
+      (λ () (raise-dynamic-typecheck-error (term R) (term 2) (term Boolean)))))
+
   (test-case "do-aop" ;; (->  aop-sym int* (or/c int bool))
+    (check-apply* do-aop
+     ['= '(1 1 1 1)
+      ==> #true]
+     ['= '(1 1 2 1)
+      ==> #false]
+     ['+ '(1 1)
+      ==> 2]
+     ['- '(43 1)
+      ==> 42]
+     ['* '(6 6)
+      ==> 36])
+
+    (check-exn exn:fail:contract?
+      (λ () (do-aop 'yolo '(1 1))))
+
+    (check-exn exn:fail:contract?
+      (λ () (do-aop '+ '())))
   )
 
   (test-case "eval"
