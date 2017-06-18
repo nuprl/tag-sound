@@ -28,8 +28,6 @@
 ;; - closed terms
 ;; - remove unused α in `type-normalize`
 ;; - tautology-checking function
-;; - better error-reporting, for dynamic typecheck
-;;   (report in terms of top-level, not just the subgoal that failed)
 ;; - implement chaperones ... I think by 
 ;;   adding pre/post fields to closures and checking these during evaluation
 
@@ -88,11 +86,12 @@
   (?τ ::= σ TST)
   (σ ::= (∀ (α) σ) τ)
   (τ ::= (U k τ) (μ (α) τ) α k)
-  (k ::= Boolean Integer (→ τ τ) (Boxof τ))
+  (k ::= flat-τ (→ τ τ) (Boxof τ))
+  (flat-τ ::= Boolean Integer)
   (Γ ::= ((x L ?τ) ...))
   (P ::= (L e))
 ;; values, machine states
-  (v ::= boolean integer c (box v))
+  (v ::= addr boolean integer c (box v))
   (?v ::= v UNDEF) ;; for letrec
   (c ::= (CLOSURE e Γ ρ)) ;; WARNING Γ and ρ must have same domain
   (Σ ::= (STATE L e Γ ρ Store Kont)) ;; WARNING Γ and ρ have same domain
@@ -480,9 +479,19 @@
 (define-metafunction RST
   store-ref-integer : Store addr -> integer
   [(store-ref-integer Store addr)
-   ,(if (integer? (term ?v))
-      (term ?v)
-      (raise-argument-error 'store-ref-integer "non-integer value ~a at address ~a in store ~a" (term ?v) (term addr) (term Store)))
+   integer
+   (where (L integer ?τ) #{store-ref Store addr})]
+  [(store-ref-integer Store addr)
+   ,(raise-argument-error 'store-ref-integer "non-integer value ~a at address ~a in store ~a" (term ?v) (term addr) (term Store))
+   (where (L ?v ?τ) #{store-ref Store addr})])
+
+(define-metafunction RST
+  store-ref-box : Store addr -> (box _)
+  [(store-ref-box Store addr)
+   (box ?v)
+   (where (L (box ?v) ?τ) #{store-ref Store addr})]
+  [(store-ref-box Store addr)
+   ,(raise-argument-error 'store-ref-box "non-box value ~a at address ~a in store ~a" (term ?v) (term addr) (term Store))
    (where (L ?v ?τ) #{store-ref Store addr})])
 
 (define-metafunction RST
@@ -519,7 +528,7 @@
    ,(raise-argument-error 'store-update "store-entry?" 2 (term Store) (term addr) #f)]
   [(store-update Store addr (L_new ?v_new ?τ_new))
    ((addr_0 L_0 ?v_0 ?τ_0) ... (addr L_new ?v_new ?τ_new) (addr_2 L_2 ?v_2 ?τ_2) ...)
-   (where ((addr_0 L_0 ?v_0 ?τ_0) ... (addr L_1 ?v_1 ?τ_1) (addr_2 L_2 ?v_2 ?τ_2) ...) Store)]
+   (where ((addr_0 L_0 ?v_0 ?τ_0) ... (addr _ _ _) (addr_2 L_2 ?v_2 ?τ_2) ...) Store)]
   [(store-update Store addr (L_new ?v_new ?τ_new))
    ,(raise-user-error 'store-update "address ~a unbound in store ~a" (term addr) (term Store))])
 
@@ -699,6 +708,14 @@
 
     (check-exn exn:fail:contract?
       (λ () (term #{store-ref-integer ((a1 R (box 3) TST)) a1}))))
+
+  (test-case "store-ref-box"
+    (check-mf-apply*
+     [(store-ref-box ((a1 R (box 1) TST)) a1)
+      (box 1)])
+
+    (check-exn exn:fail:contract?
+      (λ () (term #{store-ref-box ((a1 R 777 TST)) a1}))))
 
   (test-case "store-set"
     (check-mf-apply*
@@ -1457,46 +1474,61 @@
 
 (define-metafunction RST
   apply-op : Store op addr ... -> (e Store)
+  [(apply-op Store aop)
+   ,(raise-arguments-error 'apply-op "expected two or more addresses" "store" (term Store) "op" (term aop))]
+  [(apply-op Store aop addr)
+   ,(raise-arguments-error 'apply-op "expected two or more addresses" "store" (term Store) "op" (term aop))]
   [(apply-op Store aop addr ...)
    (v Store)
-   (where v ,(do-aop (term aop) (term (#{store-ref-integer addr} ...))))]
+   (where v ,(do-aop (term aop) (term (#{store-ref-integer Store addr} ...))))]
   [(apply-op Store unbox addr_b)
    (addr Store)
-   (where (box addr) #{store-ref-value Store addr_b})]
+   (where (box addr) #{store-ref-box Store addr_b})]
+  [(apply-op Store unbox addr ...)
+   ,(raise-arguments-error 'apply-op "expected one address" "store" (term Store) "op" (term unbox) "addresses" (term (addr ...)))]
   [(apply-op Store set-box! addr_b addr_v)
-   ;; TODO is final value store or address or what???
    (addr_b Store_b)
-   (where (L_b ?v_b ?τ_b) #{store-ref Store addr_b})
-   (where (L_v ?v_v ?τ_v) #{store-ref Store addr_v})
-   (where (v_new Store_new) ,(if (judgment-holds (language<? L_v L_b))
-                               (term #{dynamic-typecheck L_b Store ?v_v ?τ_b})
-                               (term ?v_v)))
-   (where Store_b #{store-update Store_new addr_b (L_b v_new ?τ_b)})])
+   (where _ #{store-ref-box Store addr_b})
+   (where (L_b _ ?τ_b) #{store-ref Store addr_b})
+   (where L_v #{store-ref-language Store addr_v})
+   (where (addr_new Store_new) ,(if (judgment-holds (language<? L_v L_b))
+                                  (term #{dynamic-typecheck L_b Store addr_v ?τ_b})
+                                  (term (addr_v Store))))
+   (where Store_b #{store-update Store_new addr_b (L_b (box addr_new) ?τ_b)})]
+  [(apply-op Store set-box! addr_0 addr_1)
+   ,(raise-user-error 'apply-op "something went wrong for ~a in store ~a" (term (set-box! addr_0 addr_1)) (term Store))]
+  [(apply-op Store set-box! addr ...)
+   ,(raise-arguments-error 'apply-op "expected two addresses" "store" (term Store) "op" (term set-box!) "addresses" (term (addr ...)))])
 
 (define-metafunction RST
-  dynamic-typecheck : L Store v τ -> (v Store)
-  [(dynamic-typecheck R Store v τ)
-   (v Store)]
-  [(dynamic-typecheck S Store v τ)
+  dynamic-typecheck : L Store addr τ -> (addr Store)
+  [(dynamic-typecheck R Store addr τ)
+   (addr Store)]
+  [(dynamic-typecheck S Store addr τ)
    ,(if (judgment-holds (well-tagged v τ))
-      (term (v Store))
-      (raise-dynamic-typecheck-error (term S) (term v) (term τ)))]
-  [(dynamic-typecheck T Store v τ)
-   (T-dynamic-typecheck Store v τ)])
+      (term (addr Store))
+      (raise-dynamic-typecheck-error (term S) (term v) (term τ)))
+   (where v #{store-ref-value Store addr})]
+  [(dynamic-typecheck T Store addr τ)
+   ,(or (term any)
+        (raise-dynamic-typecheck-error (term T) (term #{store-ref-value Store addr}) (term τ)))
+   (where any (T-dynamic-typecheck Store addr τ))])
 
 (define-metafunction RST
-  T-dynamic-typecheck : Store v τ -> (v Store)
-  [(T-dynamic-typecheck Store (box v) (Boxof τ))
-   ((box v_new) Store_new)
-   (where (v_new Store_new) (T-dynamic-typecheck Store v τ))]
-  ;; TODO box address?
-  [(T-dynamic-typecheck Store (CLOSURE e Γ ρ) (→ τ_0 τ_1))
-   ,(raise-user-error 'no)]
-  [(T-dynamic-typecheck Store v τ)
-   (v Store)
-   (judgment-holds (well-tagged v τ))]
-  [(T-dynamic-typecheck Store v τ)
-   ,(raise-dynamic-typecheck-error (term T) (term v) (term τ))])
+  T-dynamic-typecheck : Store addr τ -> any
+  [(T-dynamic-typecheck Store addr (Boxof τ))
+   (addr Store_new)
+   (where (box addr_v) #{store-ref-box Store addr})
+   (where (addr_new Store_new) (T-dynamic-typecheck Store addr_v τ))]
+  [(T-dynamic-typecheck Store addr (→ τ_0 τ_1))
+   ,(raise-user-error 'no)
+   #;(where (CLOSURE e Γ ρ) #{store-ref-value Store addr})]
+  [(T-dynamic-typecheck Store addr flat-τ)
+   (addr Store)
+   (where v #{store-ref-value Store addr})
+   (judgment-holds (well-tagged v flat-τ))]
+  [(T-dynamic-typecheck Store addr τ)
+   #f])
 
 (define (raise-dynamic-typecheck-error L v τ)
   (raise-user-error 'dynamic-typecheck "language ~a expected ~a given ~a" L τ v))
@@ -1506,9 +1538,10 @@
     (case aop
      [(=) (let ([compare-to (box #f)])
             (λ (acc n)
+              ;; Pretty ugly hack, because don't want to change `for/fold` parameters
               (if (unbox compare-to)
                 (and acc (= (unbox compare-to) n))
-                (begin (set-box! compare-to n) #true))))]
+                (begin (set-box! compare-to n) (= acc n)))))]
      [(+) +]
      [(-) -]
      [(*) *]
@@ -1578,40 +1611,96 @@
      [(apply-closure (CLOSURE (λ (x) x) () ()) a1)
       (x () ((x a1)))]))
 
-  (test-case "apply-op"
+  (test-case "apply-op:simple/exn"
+    (let ([store-1 (term ((a1 R 1 TST)))])
+      (check α=?
+        (term #{apply-op ,store-1 + a1 a1})
+        (term [2 ,store-1]))
+      (check-exn exn:fail:contract?
+        (λ () (term #{apply-op ,store-1 +})))
+      (check-exn exn:fail:contract?
+        (λ () (term #{apply-op ,store-1 + a1})))
+      (check-exn exn:fail:contract?
+        (λ () (term #{apply-op ,store-1 unbox a1})))
+      (check-exn exn:fail:contract?
+        (λ () (term #{apply-op ,store-1 unbox a1 a1})))
+      (check-exn exn:fail:contract?
+        (λ () (term #{apply-op ,store-1 set-box! a1})))
+      (check-exn exn:fail:contract?
+        (λ () (term #{apply-op ,store-1 set-box! a1 a1})))
+      (check-exn exn:fail:contract?
+        (λ () (term #{apply-op ,store-1 set-box! a1 a1 a1})))))
+
+  (test-case "apply-op:aop"
+    (let ([store-2 (term ((a1 R 1 TST) (a2 T 2 Integer) (a3 S 99 Boolean)))])
+      (check α=?
+        (term #{apply-op ,store-2 + a1 a2 a2 a3})
+        (term [104 ,store-2]))
+      (check α=?
+        (term #{apply-op ,store-2 = a1 a2})
+        (term [#false ,store-2]))
+      (check α=?
+        (term #{apply-op ,store-2 = a2 a2})
+        (term [#true ,store-2]))
+      (check α=?
+        (term #{apply-op ,store-2 - a1 a2})
+        (term [-1 ,store-2]))
+      (check α=?
+        (term #{apply-op ,store-2 * a1 a2 a2})
+        (term [4 ,store-2]))))
+
+  (test-case "apply-op:simple-box"
+    (let ([store-3 (term ((a1 R 1 TST) (a2 R (box a1) TST) (a3 R 4 TST)))])
+      (check α=?
+        (term #{apply-op ,store-3 unbox a2})
+        (term [a1 ,store-3]))
+      (check α=?
+        (term #{apply-op ,store-3 set-box! a2 a1})
+        (term [a2 ,store-3]))
+      (check α=?
+        (term #{apply-op ,store-3 set-box! a2 a3})
+        (term [a2 ((a1 R 1 TST) (a2 R (box a3) TST) (a3 R 4 TST))]))
+      (check α=?
+        (term #{apply-op ,store-3 set-box! a2 a2})
+        (term [a2 ((a1 R 1 TST) (a2 R (box a2) TST) (a3 R 4 TST))]))))
+
+  (test-case "apply-op:more-typed"
+    ;; TODO R=>T S=>T
+  )
+
+  (test-case "apply-op:less-typed"
+    ;; TODO T=>S S=>R
   )
 
   (test-case "dynamic-typecheck"
     (check-mf-apply*
-     [(dynamic-typecheck R () 3 Integer)
-      (3 ())]
-     [(dynamic-typecheck R () 3 Boolean)
-      (3 ())]
-     [(dynamic-typecheck R ((a2 R 3 Integer)) 3 (Boxof Integer))
-      (3 ((a2 R 3 Integer)))]
-     [(dynamic-typecheck S () 3 Integer)
-      (3 ())]
-     [(dynamic-typecheck S () (box #true) (Boxof Integer))
-      ((box #true) ())]
-     [(dynamic-typecheck S () (CLOSURE (λ (x) x) () ()) (→ Integer Boolean))
-      ((CLOSURE (λ (x) x) () ()) ())]
-     [(dynamic-typecheck T () 3 Integer)
-      (3 ())]
-     [(dynamic-typecheck T () (box 3) (Boxof Integer))
-      ((box 3) ())]
-     [(dynamic-typecheck T ((a1 R 3 Integer)) (box (box #true)) (Boxof (Boxof Boolean)))
-      ((box (box #true)) ((a1 R 3 Integer)))])
+     [(dynamic-typecheck R ((a1 R 3 TST)) a1 Integer)
+      (a1 ((a1 R 3 TST)))]
+     [(dynamic-typecheck R ((a1 R 3 TST)) a1 Boolean)
+      (a1 ((a1 R 3 TST)))]
+     [(dynamic-typecheck S ((a1 R 3 TST)) a1 Integer)
+      (a1 ((a1 R 3 TST)))]
+     [(dynamic-typecheck S ((a1 R (box #true) (Boxof Boolean))) a1 (Boxof Integer))
+      (a1 ((a1 R (box #true) (Boxof Boolean))))]
+     [(dynamic-typecheck S ((a1 R (CLOSURE (λ (x) x) () ()) (→ Integer Integer))) a1 (→ Integer Boolean))
+      (a1 ((a1 R (CLOSURE (λ (x) x) () ()) (→ Integer Integer))))]
+     [(dynamic-typecheck T ((a1 R 3 TST)) a1 Integer)
+      (a1 ((a1 R 3 TST)))]
+     [(dynamic-typecheck T ((a1 R (box a2) (Boxof Integer)) (a2 R 3 TST)) a1 (Boxof Integer))
+      (a1 ((a1 R (box a2) (Boxof Integer)) (a2 R 3 TST)))]
+     [(dynamic-typecheck T ((a1 R 3 Integer) (a2 R (box a4) TST) (a3 R #true TST) (a4 R (box a3) TST)) a2 (Boxof (Boxof Boolean)))
+      (a2 ((a1 R 3 Integer) (a2 R (box a4) TST) (a3 R #true TST) (a4 R (box a3) TST)))])
 
     (check-exn #rx"expected Boolean given 3"
-      (λ () (term #{dynamic-typecheck S () 3 Boolean})))
+      (λ () (term #{dynamic-typecheck S ((a1 R 3 TST)) a1 Boolean})))
 
     (check-exn #rx"expected Boolean given \\(box 3\\)"
-      (λ () (term #{dynamic-typecheck S () (box 3) Boolean})))
+      (λ () (term #{dynamic-typecheck S ((a1 R (box 3) (Boxof Boolean))) a1 Boolean})))
 
     (check-exn #rx"expected Boolean given 3"
-      (λ () (term #{dynamic-typecheck T () 3 Boolean})))
-    (check-exn #rx"expected Boolean given 3"
-      (λ () (term #{dynamic-typecheck T () (box 3) (Boxof Boolean)})))
+      (λ () (term #{dynamic-typecheck T ((a1 R 3 TST)) a1 Boolean})))
+    (check-exn #rx"expected \\(Boxof Boolean\\) given \\(box 3\\)"
+      (λ () (term #{dynamic-typecheck T ((a1 R (box 3) TST)) a1 (Boxof Boolean)})))
   )
 
   (test-case "raise-dynamic-typecheck-error"
@@ -1623,6 +1712,8 @@
      ['= '(1 1 1 1)
       ==> #true]
      ['= '(1 1 2 1)
+      ==> #false]
+     ['= '(1 2)
       ==> #false]
      ['+ '(1 1)
       ==> 2]
