@@ -25,9 +25,13 @@
 ;; - check σ in the right places?
 ;; - well-formed type variables
 ;; - well-formed states (disjoint ρ Store)
-;; - closed
+;; - closed terms
 ;; - remove unused α in `type-normalize`
 ;; - tautology-checking function
+;; - better error-reporting, for dynamic typecheck
+;;   (report in terms of top-level, not just the subgoal that failed)
+;; - implement chaperones ... I think by 
+;;   adding pre/post fields to closures and checking these during evaluation
 
 ;; ---
 
@@ -1478,8 +1482,21 @@
       (term (v Store))
       (raise-dynamic-typecheck-error (term S) (term v) (term τ)))]
   [(dynamic-typecheck T Store v τ)
-   ;; TODO really is not THAT hard, but need to think a little
-   ,(raise-user-error 'not-implemented)])
+   (T-dynamic-typecheck Store v τ)])
+
+(define-metafunction RST
+  T-dynamic-typecheck : Store v τ -> (v Store)
+  [(T-dynamic-typecheck Store (box v) (Boxof τ))
+   ((box v_new) Store_new)
+   (where (v_new Store_new) (T-dynamic-typecheck Store v τ))]
+  ;; TODO box address?
+  [(T-dynamic-typecheck Store (CLOSURE e Γ ρ) (→ τ_0 τ_1))
+   ,(raise-user-error 'no)]
+  [(T-dynamic-typecheck Store v τ)
+   (v Store)
+   (judgment-holds (well-tagged v τ))]
+  [(T-dynamic-typecheck Store v τ)
+   ,(raise-dynamic-typecheck-error (term T) (term v) (term τ))])
 
 (define (raise-dynamic-typecheck-error L v τ)
   (raise-user-error 'dynamic-typecheck "language ~a expected ~a given ~a" L τ v))
@@ -1578,8 +1595,12 @@
       ((box #true) ())]
      [(dynamic-typecheck S () (CLOSURE (λ (x) x) () ()) (→ Integer Boolean))
       ((CLOSURE (λ (x) x) () ()) ())]
-     #;[(dynamic-typecheck T () 3 Integer)
-      (3 Integer)])
+     [(dynamic-typecheck T () 3 Integer)
+      (3 ())]
+     [(dynamic-typecheck T () (box 3) (Boxof Integer))
+      ((box 3) ())]
+     [(dynamic-typecheck T ((a1 R 3 Integer)) (box (box #true)) (Boxof (Boxof Boolean)))
+      ((box (box #true)) ((a1 R 3 Integer)))])
 
     (check-exn #rx"expected Boolean given 3"
       (λ () (term #{dynamic-typecheck S () 3 Boolean})))
@@ -1587,6 +1608,10 @@
     (check-exn #rx"expected Boolean given \\(box 3\\)"
       (λ () (term #{dynamic-typecheck S () (box 3) Boolean})))
 
+    (check-exn #rx"expected Boolean given 3"
+      (λ () (term #{dynamic-typecheck T () 3 Boolean})))
+    (check-exn #rx"expected Boolean given 3"
+      (λ () (term #{dynamic-typecheck T () (box 3) (Boxof Boolean)})))
   )
 
   (test-case "raise-dynamic-typecheck-error"
