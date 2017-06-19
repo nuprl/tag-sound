@@ -1492,13 +1492,18 @@
    (where (L_b _ ?τ_b) #{store-ref Store addr_b})
    (where L_v #{store-ref-language Store addr_v})
    (where (addr_new Store_new) ,(if (judgment-holds (language<? L_v L_b))
-                                  (term #{dynamic-typecheck L_b Store addr_v ?τ_b})
+                                  (term #{dynamic-typecheck L_b Store addr_v #{unbox-type ?τ_b}})
                                   (term (addr_v Store))))
    (where Store_b #{store-update Store_new addr_b (L_b (box addr_new) ?τ_b)})]
   [(apply-op Store set-box! addr_0 addr_1)
    ,(raise-user-error 'apply-op "something went wrong for ~a in store ~a" (term (set-box! addr_0 addr_1)) (term Store))]
   [(apply-op Store set-box! addr ...)
    ,(raise-arguments-error 'apply-op "expected two addresses" "store" (term Store) "op" (term set-box!) "addresses" (term (addr ...)))])
+
+(define-metafunction RST
+  unbox-type : ?τ -> ?τ
+  [(unbox-type (Boxof ?τ))
+   ?τ])
 
 (define-metafunction RST
   dynamic-typecheck : L Store addr τ -> (addr Store)
@@ -1665,11 +1670,44 @@
         (term [a2 ((a1 R 1 TST) (a2 R (box a2) TST) (a3 R 4 TST))]))))
 
   (test-case "apply-op:more-typed"
-    ;; TODO R=>T S=>T
+    (let ([store-4 (term ((boxS S (box i1) (Boxof Integer))
+                          (i1 S 1 Integer)
+                          (boxT T (box i2) (Boxof Integer))
+                          (i2 T 2 Integer)
+                          (i3 R 3 TST)
+                          (bad R #false TST)))])
+      (check α=?
+        (term #{apply-op ,store-4 set-box! boxS i3})
+        (term [boxS ((boxS S (box i3) (Boxof Integer)) (i1 S 1 Integer) (boxT T (box i2) (Boxof Integer)) (i2 T 2 Integer) (i3 R 3 TST) (bad R #false TST))]))
+      (check-exn #rx"expected Integer given #f"
+        (λ () (term #{apply-op ,store-4 set-box! boxS bad})))
+
+      (check α=?
+        (term #{apply-op ,store-4 set-box! boxT i3})
+        (term [boxT ((boxS S (box i1) (Boxof Integer)) (i1 S 1 Integer) (boxT T (box i3) (Boxof Integer)) (i2 T 2 Integer) (i3 R 3 TST) (bad R #false TST))]))
+      (check-exn #rx"expected Integer given #f"
+        (λ () (term #{apply-op ,store-4 set-box! boxT bad}))))
   )
 
   (test-case "apply-op:less-typed"
-    ;; TODO T=>S S=>R
+    (let ([store-4 (term ((boxS S (box i1) (Boxof Integer))
+                          (i1 S 1 Integer)
+                          (boxR R (box i3) TST)
+                          (i2 T 2 Integer)
+                          (i3 R 3 TST)
+                          (bad T #false Boolean)))])
+      (check α=?
+        (term #{apply-op ,store-4 set-box! boxS i2})
+        (term [boxS ((boxS S (box i2) (Boxof Integer)) (i1 S 1 Integer) (boxR R (box i3) TST) (i2 T 2 Integer) (i3 R 3 TST) (bad T #false Boolean))]))
+      (check-not-exn ;; trusted, because `bad` is typed
+        (λ () (term #{apply-op ,store-4 set-box! boxS bad})))
+
+      (check α=?
+        (term #{apply-op ,store-4 set-box! boxR i1})
+        (term [boxR ((boxS S (box i1) (Boxof Integer)) (i1 S 1 Integer) (boxR R (box i1) TST) (i2 T 2 Integer) (i3 R 3 TST) (bad T #false Boolean))]))
+      (check α=?
+        (term #{apply-op ,store-4 set-box! boxR i3})
+        (term [boxR ((boxS S (box i1) (Boxof Integer)) (i1 S 1 Integer) (boxR R (box i3) TST) (i2 T 2 Integer) (i3 R 3 TST) (bad T #false Boolean))])))
   )
 
   (test-case "dynamic-typecheck"
