@@ -1628,7 +1628,7 @@
               ([n2 (in-list (cdr int*))])
       (f acc n2))))
 
-#;(module+ test
+(module+ test
   (test-case "init"
     (check-pred Σ? (term #{init (R 4)})))
 
@@ -1903,8 +1903,7 @@
       120]
     )
   )
-)
-(module+ test
+
   (test-case "eval:simple:S"
     (check-mf-apply*
      [(eval (S 4))
@@ -1943,9 +1942,6 @@
                    (fact n0)))))
       120]
     )
-    #;(parameterize ([*debug* #t])
-    (check-mf-apply*
-    ))
   )
 
   (test-case "eval:simple:S:fail"
@@ -1958,8 +1954,61 @@
       (λ () (term (eval (S (:: (+ 2 5) Boolean))))))
   )
 
-  (test-case "eval:simple:S"
+  (test-case "eval:simple:T"
+    (check-mf-apply*
+     [(eval (T 4))
+      4]
+     [(eval (T #true))
+      #true]
+     [(eval (T (+ 2 2)))
+      4]
+     [(eval (T ((:: (λ (x) x) (→ Integer Integer)) 1)))
+      1]
+     [(eval (T ((:: (λ (x) (+ x 1)) (→ Integer Integer)) 1)))
+      2]
+     [(eval (T (unbox (:: (box 3) (Boxof Integer)))))
+      3]
+     [(eval (T (unbox (set-box! (:: (box 3) (Boxof Integer)) 4))))
+      4]
+     [(eval (T (if (:: (λ (x) x) (→ (Boxof Integer) (Boxof Integer))) 1 0)))
+      1]
+     [(eval (T (if #false (+ 6 6) 0)))
+      0]
+     [(eval (T (let ((x T (:: 1 Integer)))
+                 (let ((y T (:: 2 Integer)))
+                   (+ x y)))))
+      3]
+     [(eval (T (let ([negate T (:: (λ (x) (if x #false #true)) (→ Boolean Boolean))])
+                 (let ([b T (:: #false Boolean)])
+                   (negate (negate b))))))
+      #false]
+     [(eval (T (let ([x T (:: 4 Integer)])
+                 (let ([add-x T (:: (λ (y) (+ y x)) (→ Integer Integer))])
+                   (let ([x T (:: 5 Integer)])
+                     (add-x x))))))
+      9]
+     [(eval (T (letrec ((fact T (:: (λ (n) (if (= n 1) 1 (* n (fact (- n 1))))) (→ Integer Integer))))
+                 (let ((n0 T (:: 5 Integer)))
+                   (fact n0)))))
+      120]
+    )
+    #;(parameterize ([*debug* #t])
+    (check-mf-apply*
+    ))
   )
+
+  (test-case "eval:simple:T:fail"
+    (check-exn #rx"typechecking failed"
+      (λ ()
+        (term
+          #{eval (T (set-box! (:: (box 0) (Boxof Integer)) (:: (box 4) (Boxof Integer))))})))
+
+    (check-exn #rx"typechecking failed"
+      (λ () (term (eval (T (:: (+ 2 5) Boolean))))))
+  )
+)
+#;(module+ test
+
   (test-case "eval:simple:T"
   )
 
