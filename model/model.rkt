@@ -565,6 +565,15 @@
    --- Trans
    (language<? R T)])
 
+(define-metafunction RST
+  need-annotation? : e -> boolean
+  [(need-annotation? (λ (x) e))
+   #true]
+  [(need-annotation? (box e))
+   #true]
+  [(need-annotation? _)
+   #false])
+
 (module+ test
   (test-case "τ=?"
     (check-mf-apply*
@@ -789,6 +798,18 @@
     (check-false
       (judgment-holds (language<? S R))))
 
+  (test-case "need-annotation?"
+    (check-mf-apply*
+     [(need-annotation? 3)
+      #false]
+     [(need-annotation? (λ (x) (λ (y) y)))
+      #true]
+     [(need-annotation? (box (box 6)))
+      #true]
+     [(need-annotation? (let ((x R (box 4))) x))
+      #false]
+     [(need-annotation? (if (box 1) (box 2) (box 3)))
+      #false]))
 )
 
 ;; -----------------------------------------------------------------------------
@@ -1276,10 +1297,14 @@
                           (term #{kont-add Kont_letrec (CHECK-TYPE ?τ)})
                           (term Kont_letrec)))]
     [-->
-      (STATE L (:: e τ) Γ ρ Store Kont)
-      (STATE L e Γ ρ Store Kont)
-      RST-Ann+ (side-condition (debug "RST-Ann+~n"))
-    ]
+      (STATE R (:: e τ) Γ ρ Store Kont)
+      (STATE R e Γ ρ Store Kont)
+      R-Ann+ (side-condition (debug "RST-Ann+~n"))]
+    [-->
+      (STATE L\R (:: e τ) Γ ρ Store Kont)
+      (STATE L\R e Γ ρ Store Kont)
+      ST-Ann+ (side-condition (debug "ST-Ann+~n"))
+      (where #false #{need-annotation? e})]
     [-->
       (STATE L (e_0 e_1) Γ ρ Store Kont)
       (STATE L e_0 Γ ρ Store Kont_app)
@@ -1603,7 +1628,7 @@
               ([n2 (in-list (cdr int*))])
       (f acc n2))))
 
-(module+ test
+#;(module+ test
   (test-case "init"
     (check-pred Σ? (term #{init (R 4)})))
 
@@ -1812,8 +1837,7 @@
     (check-exn exn:fail:contract?
       (λ () (do-aop '+ '())))
   )
-)
-(module+ test
+
   (test-case "eval:simple:R"
     (check-mf-apply*
      [(eval (R 4))
@@ -1878,9 +1902,60 @@
                    (fact n0)))))
       120]
     )
+  )
+)
+(module+ test
+  (test-case "eval:simple:S"
+    (check-mf-apply*
+     [(eval (S 4))
+      4]
+     [(eval (S #true))
+      #true]
+     [(eval (S (+ 2 2)))
+      4]
+     [(eval (S ((:: (λ (x) x) (→ Integer Integer)) 1)))
+      1]
+     [(eval (S ((:: (λ (x) (+ x 1)) (→ Integer Integer)) 1)))
+      2]
+     [(eval (S (unbox (:: (box 3) (Boxof Integer)))))
+      3]
+     [(eval (S (unbox (set-box! (:: (box 3) (Boxof Integer)) 4))))
+      4]
+     [(eval (S (if (:: (λ (x) x) (→ (Boxof Integer) (Boxof Integer))) 1 0)))
+      1]
+     [(eval (S (if #false (+ 6 6) 0)))
+      0]
+     [(eval (S (let ((x S (:: 1 Integer)))
+                 (let ((y S (:: 2 Integer)))
+                   (+ x y)))))
+      3]
+     [(eval (S (let ([negate S (:: (λ (x) (if x #false #true)) (→ Boolean Boolean))])
+                 (let ([b S (:: #false Boolean)])
+                   (negate (negate b))))))
+      #false]
+     [(eval (S (let ([x S (:: 4 Integer)])
+                 (let ([add-x S (:: (λ (y) (+ y x)) (→ Integer Integer))])
+                   (let ([x S (:: 5 Integer)])
+                     (add-x x))))))
+      9]
+     [(eval (S (letrec ((fact S (:: (λ (n) (if (= n 1) 1 (* n (fact (- n 1))))) (→ Integer Integer))))
+                 (let ((n0 S (:: 5 Integer)))
+                   (fact n0)))))
+      120]
+    )
     #;(parameterize ([*debug* #t])
     (check-mf-apply*
     ))
+  )
+
+  (test-case "eval:simple:S:fail"
+    (check-exn #rx"typechecking failed"
+      (λ ()
+        (term
+          #{eval (S (set-box! (:: (box 0) (Boxof Integer)) (:: (box 4) (Boxof Integer))))})))
+
+    (check-exn #rx"typechecking failed"
+      (λ () (term (eval (S (:: (+ 2 5) Boolean))))))
   )
 
   (test-case "eval:simple:S"
