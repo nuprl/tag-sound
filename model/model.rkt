@@ -100,7 +100,7 @@
   (Store ::= ((addr L ?v ?τ) ...))
   (K ::= HALT (IF e e) (LET L x ?τ e) (LETREC L x ?τ e)
          (BOX ?τ) (APP addr* (e ...)) (OP op (addr ...) (e ...))
-         (CHECK-TYPE τ) (CHECK-TAG τ))
+         (CHECK-TYPE τ))
   (Kont ::= (K ...))
 ;; sequences, variables, misc
   (Σ* ::= (Σ ...))
@@ -152,6 +152,9 @@
 
   (test-case "σ"
     (check-pred σ? (term Integer)))
+
+  (test-case "v"
+    (check-pred v? (term (CLOSURE (λ (x) x) () ()))))
 
   (test-case "Γ"
     (check-pred Γ? (term ((x T Integer))))
@@ -1205,44 +1208,44 @@
     [-->
       (STATE R (λ (x) e) Γ ρ Store Kont)
       (STATE R addr Γ ρ Store_λ Kont)
-      R-Lambda+
+      R-Lambda+ (side-condition (debug "R-Lambda+~n"))
       (fresh addr)
       (where c (CLOSURE (λ (x) e) Γ ρ))
-      (where Store_λ #{store-set Store L addr c TST})]
+      (where Store_λ #{store-set Store R addr c TST})]
     [-->
       (STATE L\R (:: (λ (x) e) τ) Γ ρ Store Kont)
       (STATE L\R addr Γ ρ Store_λ Kont)
-      ST-Lambda+
+      ST-Lambda+ (side-condition (debug "ST-Lambda+~n"))
       (fresh addr)
       (where c (CLOSURE (λ (x) e) Γ ρ))
       (where Store_λ #{store-set Store L\R addr c τ})]
     [-->
       (STATE L boolean Γ ρ Store Kont)
       (STATE L addr Γ ρ Store_bool Kont)
-      RST-Bool+
+      RST-Bool+ (side-condition (debug "RST-Bool+~n"))
       (fresh addr)
       (where Store_bool #{store-set Store L addr boolean Boolean})]
     [-->
       (STATE L integer Γ ρ Store Kont)
       (STATE L addr Γ ρ Store_int Kont)
-      RST-Int+
+      RST-Int+ (side-condition (debug "RST-Int+ ~a~n" (term integer)))
       (fresh addr)
       (where Store_int #{store-set Store L addr integer Integer})]
     [-->
       (STATE L (if e_0 e_1 e_2) Γ ρ Store Kont)
       (STATE L e_0 Γ ρ Store Kont_if)
-      RST-If+
+      RST-If+ (side-condition (debug "RST-If+~n"))
       (where Kont_if #{kont-add Kont (IF e_1 e_2)})]
     [-->
       (STATE L_ctx (let ((x L_0 e_0)) e_1) Γ ρ Store Kont)
       (STATE L_0 e_0 Γ ρ Store Kont_let)
-      RST-Let+
+      RST-Let+ (side-condition (debug "RST-Let+~n"))
       (where ?τ #{type-annotation L_ctx e_0})
       (where Kont_let #{kont-add Kont (LET L_ctx x ?τ e_1)})]
     [-->
       (STATE L_ctx (letrec ((x L_0 e_0)) e_1) Γ ρ Store Kont)
       (STATE L_0 e_0 Γ ρ_x Store_addr Kont_letrec)
-      RST-LetRec+
+      RST-LetRec+ (side-condition (debug "RST-LetRec+~n"))
       (fresh addr)
       (where ρ_x #{runtime-env-set ρ x addr})
       (where ?τ #{type-annotation L_ctx e_0})
@@ -1251,36 +1254,37 @@
     [-->
       (STATE L (:: e τ) Γ ρ Store Kont)
       (STATE L e Γ ρ Store Kont)
-      RST-Ann+]
+      RST-Ann+ (side-condition (debug "RST-Ann+~n"))
+    ]
     [-->
       (STATE L (e_0 e_1) Γ ρ Store Kont)
       (STATE L e_0 Γ ρ Store Kont_app)
-      RST-App+
+      RST-App+ (side-condition (debug "RST-App+ going to eval ~a~n" (term e_0)))
       (where Kont_app #{kont-add Kont (APP () (e_1))})]
     [-->
       (STATE R (box e) Γ ρ Store Kont)
       (STATE R e Γ ρ Store Kont_b)
-      R-boxE+
+      R-boxE+ (side-condition (debug "R-boxE+~n"))
       (where Kont_b #{kont-add Kont (BOX TST)})]
     [-->
       (STATE L\R (:: (box e) τ) Γ ρ Store Kont)
       (STATE L\R e Γ ρ Store Kont_b)
-      ST-boxE+
+      ST-boxE+ (side-condition (debug "ST-BoxE+~n"))
       (where Kont_b #{kont-add Kont (BOX τ)})]
     [-->
       (STATE L (unbox e) Γ ρ Store Kont)
       (STATE L e Γ ρ Store Kont_u)
-      RST-unbox+
+      RST-unbox+ (side-condition (debug "RST-unbox+~n"))
       (where Kont_u #{kont-add Kont (OP unbox () ())})]
     [-->
       (STATE L (set-box! e_0 e_1) Γ ρ Store Kont)
       (STATE L e_0 Γ ρ Store Kont_s)
-      RST-set-box!+
+      RST-set-box!+ (side-condition (debug "RST-set-box+~n"))
       (where Kont_s #{kont-add Kont (OP set-box! () (e_1))})]
     [-->
       (STATE L (aop e_0 e_1) Γ ρ Store Kont)
       (STATE L e_0 Γ ρ Store Kont_a)
-      RST-aop+
+      RST-aop+ (side-condition (debug "RST-aop+ ~a ~n" (term (aop e_0 e_1))))
       (where Kont_a #{kont-add Kont (OP aop () (e_1))})]
 ;; --- kont-removing
     [-->
@@ -1288,6 +1292,7 @@
       (STATE L addr Γ ρ Store Kont)
       RST-var-
       (judgment-holds (variable? x (STATE L x Γ ρ Store Kont)))
+      (side-condition (debug "RST-var-~n"))
       (where addr #{runtime-env-ref ρ x})]
     [-->
       (STATE L addr Γ ρ Store Kont)
@@ -1295,6 +1300,7 @@
       RST-If-
       (judgment-holds (address? addr (STATE L addr Γ ρ Store Kont)))
       (where ((IF e_1 e_2) Kont_rest) #{kont-pop Kont})
+      (side-condition (debug "RST-If-~n"))
       (where boolean_0 #{store-ref-value Store addr})
       (where e_next ,(if (term boolean_0) (term e_1) (term e_2)))]
     [-->
@@ -1303,6 +1309,7 @@
       RST-Let-
       (judgment-holds (address? addr (STATE L addr Γ ρ Store Kont)))
       (where ((LET L_ctx x ?τ e) Kont_rest) #{kont-pop Kont})
+      (side-condition (debug "RST-let-~n"))
       (fresh addr)
       (where ρ_x #{runtime-env-set ρ x addr})
       (where Store_τ ,(if (judgment-holds (language<? L L_ctx))
@@ -1314,6 +1321,7 @@
       RST-Letrec-
       (judgment-holds (address? addr (STATE L addr Γ ρ Store Kont)))
       (where ((LETREC L_ctx x ?τ e) Kont_rest) #{kont-pop Kont})
+      (side-condition (debug "RST-letrec-~n"))
       (where addr_x #{runtime-env-ref ρ x})
       (where Store_v #{store-update Store addr_x #{store-ref Store addr}})
       (where Store_τ ,(if (judgment-holds (language<? L L_ctx))
@@ -1321,33 +1329,43 @@
                         (term Store_v)))]
     [-->
       (STATE L addr Γ ρ Store Kont)
-      (STATE L e_a0 Γ ρ Store Kont_rest)
+      (STATE L e_a0 Γ ρ Store Kont_next)
       RST-App1-
       (judgment-holds (address? addr (STATE L addr Γ ρ Store Kont)))
       (where ((APP (addr_a ...) (e_a0 e_a1 ...)) Kont_rest) #{kont-pop Kont})
       (where Kont_next #{kont-add Kont_rest (APP (addr addr_a ...) (e_a1 ...))})]
     [-->
       (STATE L addr Γ ρ Store Kont)
-      (STATE L e_a0 Γ ρ Store Kont_rest)
+      (STATE L e_a0 Γ ρ Store Kont_next)
       RST-Op1-
       (judgment-holds (address? addr (STATE L addr Γ ρ Store Kont)))
       (where ((OP op (addr_a ...) (e_a0 e_a1 ...)) Kont_rest) #{kont-pop Kont})
+      (side-condition (debug "RST-op1-~n"))
       (where Kont_next #{kont-add Kont_rest (OP op (addr addr_a ...) (e_a1 ...))})]
     [-->
-      (STATE L addr Γ ρ Store Kont)
-      (STATE L e_c Γ_c ρ_c Store Kont_rest)
+      (STATE L addr_arg Γ ρ Store Kont)
+      (STATE L e_c Γ_c ρ_c Store_c Kont_next)
       RST-App2-
-      (judgment-holds (address? addr (STATE L addr Γ ρ Store Kont)))
-      (where ((APP (addr_a ...) ()) Kont_rest) #{kont-pop Kont})
-      (where (addr_f addr_arg ...) ,(reverse (term (addr addr_a ...))))
-      (where c #{store-ref Store addr_f})
-      (where (e_c Γ_c ρ_c) #{apply-closure c addr_arg ...})]
+      (judgment-holds (address? addr_arg (STATE L addr Γ ρ Store Kont)))
+      ;; TODO multi-arg functions
+      (where ((APP (addr_f) ()) Kont_rest) #{kont-pop Kont})
+      (side-condition (debug "RST-App2-~n"))
+      (where (L_c c ?τ_c) #{store-ref Store addr_f})
+      (where (addr_arg+ Store_c) ,(if (judgment-holds (language<? L L_c))
+                                    (term #{dynamic-typecheck L_c Store addr_arg #{type-domain ?τ_c}})
+                                    (term (addr_arg Store))))
+      ;; TODO ... applying function makes permanent change to store, is that okay?
+      (where (e_c Γ_c ρ_c) #{apply-closure c addr_arg+})
+      (where Kont_next ,(if (judgment-holds (language<? L_c L))
+                          (term #{kont-add Kont_rest (CHECK-TYPE τ)})
+                          (term Kont_rest)))]
     [-->
       (STATE L addr Γ ρ Store Kont)
       (STATE L e_new Γ ρ Store_new Kont_rest)
       RST-Op2-
       (judgment-holds (address? addr (STATE L addr Γ ρ Store Kont)))
       (where ((OP op (addr_a ...) ()) Kont_rest) #{kont-pop Kont})
+      (side-condition (debug "RST-op2-~n"))
       (where (addr_arg0 addr_arg ...) ,(reverse (term (addr addr_a ...))))
       (where (e_new Store_new) #{apply-op Store op addr_arg0 addr_arg ...})]
     [-->
@@ -1355,25 +1373,20 @@
       (STATE L addr_b Γ ρ Store_b Kont)
       RST-boxV+
       (judgment-holds (address? addr (STATE L addr Γ ρ Store Kont)))
-      (where ((Box ?τ) Kont_rest) #{kont-pop Kont})
+      (where ((BOX ?τ) Kont_rest) #{kont-pop Kont})
+      (side-condition (debug "RST-boxv-~n"))
       (fresh addr_b)
       (where Store_b #{store-set Store L addr_b (box addr) ?τ})]
-    #;[-->
+    [-->
       (STATE L addr Γ ρ Store Kont)
-      ???
-      RST-Check
+      (STATE L addr_new Γ ρ Store_new Kont_rest)
+      RST-Check ;; TODO
       (judgment-holds (address? addr (STATE L addr Γ ρ Store Kont)))
-      ???]
-    #;[-->
-      (STATE L addr Γ ρ Store Kont)
-      ???
-      RST-Tag
-      (judgment-holds (address? addr (STATE L addr Γ ρ Store Kont)))
-      ???]
+      (where ((CHECK-TYPE τ) Kont_rest) #{kont-pop Kont})
+      (where (addr_new Store_new) #{dynamic-typecheck L Store addr τ})]
 ))
 
 (define -->RST*
-  ;; TODO need to check fixpoint
   (make--->* -->RST))
 
 (define-metafunction RST
@@ -1492,7 +1505,7 @@
    (where (L_b _ ?τ_b) #{store-ref Store addr_b})
    (where L_v #{store-ref-language Store addr_v})
    (where (addr_new Store_new) ,(if (judgment-holds (language<? L_v L_b))
-                                  (term #{dynamic-typecheck L_b Store addr_v #{unbox-type ?τ_b}})
+                                  (term #{dynamic-typecheck L_b Store addr_v #{type-unbox ?τ_b}})
                                   (term (addr_v Store))))
    (where Store_b #{store-update Store_new addr_b (L_b (box addr_new) ?τ_b)})]
   [(apply-op Store set-box! addr_0 addr_1)
@@ -1501,9 +1514,19 @@
    ,(raise-arguments-error 'apply-op "expected two addresses" "store" (term Store) "op" (term set-box!) "addresses" (term (addr ...)))])
 
 (define-metafunction RST
-  unbox-type : ?τ -> ?τ
-  [(unbox-type (Boxof ?τ))
+  type-unbox : ?τ -> ?τ
+  [(type-unbox (Boxof ?τ))
    ?τ])
+
+(define-metafunction RST
+  type-domain : ?τ -> ?τ
+  [(type-domain (→ ?τ_0 ?τ_1))
+   ?τ_0])
+
+(define-metafunction RST
+  type-codomain : ?τ -> ?τ
+  [(type-codomain (→ ?τ_0 ?τ_1))
+   ?τ_1])
 
 (define-metafunction RST
   dynamic-typecheck : L Store addr τ -> (addr Store)
@@ -1767,12 +1790,29 @@
       (λ () (do-aop '+ '())))
   )
 
-  (test-case "eval"
+  (test-case "eval:simple:R"
     (check-mf-apply*
      [(eval (R 4))
       4]
+     [(eval (R #true))
+      #true]
+     [(eval (R (+ 2 2)))
+      4]
+     [(eval (R ((λ (x) x) 1)))
+      1]
+     [(eval (R ((λ (x) (+ x 1)) 1)))
+      2]
     )
   )
+
+  (test-case "eval:simple:S"
+  )
+  (test-case "eval:simple:T"
+  )
+
+  ;; apply untyped function
+  ;; apply untyped argument
+  ;; "permanent" changes to store
 )
 
 ;; -----------------------------------------------------------------------------
