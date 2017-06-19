@@ -28,6 +28,7 @@
 ;; - closed terms
 ;; - remove unused α in `type-normalize`
 ;; - tautology-checking function
+;; - multi-arg functions
 
 ;; ---
 
@@ -96,9 +97,9 @@
   ;; TODO am currently not touching Γ, see what happens
   (ρ ::= ((x addr) ...)) ;; runtime environment
   (Store ::= ((addr L ?v ?τ) ...))
-  (K ::= HALT (IF e e) (LET x L e) (LETREC x L e)
+  (K ::= HALT (IF e e) (LET x e) (LETREC x e)
          (BOX ?τ) (APP addr* (e ...)) (OP op (addr ...) (e ...))
-         (CHECK-TYPE τ))
+         (TYPE-BOUNDARY L ?τ))
   (Kont ::= (K ...))
 ;; sequences, variables, misc
   (Σ* ::= (Σ ...))
@@ -492,7 +493,10 @@
    integer
    (where (L integer ?τ) #{store-ref Store addr})]
   [(store-ref-integer Store addr)
-   ,(raise-argument-error 'store-ref-integer "non-integer value ~a at address ~a in store ~a" (term ?v) (term addr) (term Store))
+   ,(raise-arguments-error 'store-ref-integer "expected address for integer value"
+     "address" (term addr)
+     "bad value" (term ?v)
+     "store" (term Store))
    (where (L ?v ?τ) #{store-ref Store addr})])
 
 (define-metafunction RST
@@ -501,7 +505,10 @@
    (box ?v)
    (where (L (box ?v) ?τ) #{store-ref Store addr})]
   [(store-ref-box Store addr)
-   ,(raise-argument-error 'store-ref-box "non-box value ~a at address ~a in store ~a" (term ?v) (term addr) (term Store))
+   ,(raise-arguments-error 'store-ref-box "address of box value"
+     "address" (term addr)
+     "bad value" (term ?v)
+     "store" (term Store))
    (where (L ?v ?τ) #{store-ref Store addr})])
 
 (define-metafunction RST
@@ -528,7 +535,9 @@
    ((addr_0 L_0 ?v_0 ?τ_0) ... (addr L ?v ?τ_new) (addr_2 L_2 ?v_2 ?τ_2) ...)
    (where ((addr_0 L_0 ?v_0 ?τ_0) ... (addr L ?v ?τ_old) (addr_2 L_2 ?v_2 ?τ_2) ...) Store)]
   [(store-update-type Store addr ?τ)
-   ,(raise-user-error 'store-update-type "address ~a unbound in store ~a" (term addr) (term Store))])
+   ,(raise-arguments-error 'store-update-type "bound address"
+     "address" (term addr)
+     "store" (term Store))])
 
 ;; Used in transitions for LETREC/SET-BOX!
 ;; i.e. for back-patching the store
@@ -540,7 +549,9 @@
    ((addr_0 L_0 ?v_0 ?τ_0) ... (addr L_new ?v_new ?τ_new) (addr_2 L_2 ?v_2 ?τ_2) ...)
    (where ((addr_0 L_0 ?v_0 ?τ_0) ... (addr _ _ _) (addr_2 L_2 ?v_2 ?τ_2) ...) Store)]
   [(store-update Store addr (L_new ?v_new ?τ_new))
-   ,(raise-user-error 'store-update "address ~a unbound in store ~a" (term addr) (term Store))])
+   ,(raise-arguments-error 'store-update "bound address"
+     "address" (term addr)
+     "store" (term Store))])
 
 (define-metafunction RST
   kont-add : Kont K -> Kont
@@ -1279,10 +1290,8 @@
       (STATE L_ctx (let ((x L_0 e_0)) e_1) Γ ρ Store Kont)
       (STATE L_0 e_0 Γ ρ Store Kont_next)
       RST-Let+ (side-condition (debug "RST-Let+~n"))
-      (where Kont_let #{kont-add Kont (LET x L_ctx e_1)})
-      (where Kont_next ,(if (judgment-holds (language<? L_0 L_ctx))
-                          (term #{kont-add Kont_let (CHECK-TYPE #{type-annotation L_ctx e_0})})
-                          (term Kont_let)))]
+      (where Kont_let #{kont-add Kont (LET x e_1)})
+      (where Kont_next #{kont-add Kont_let (TYPE-BOUNDARY L_ctx #{type-annotation L_ctx e_0})})]
     [-->
       (STATE L_ctx (letrec ((x L_0 e_0)) e_1) Γ ρ Store Kont)
       (STATE L_0 e_0 Γ ρ_x Store_addr Kont_rest)
@@ -1292,10 +1301,8 @@
       (where ρ_x #{runtime-env-set ρ x addr})
       (where ?τ #{type-annotation L_ctx e_0})
       (where Store_addr #{store-set Store L_0 addr UNDEF ?τ})
-      (where Kont_letrec #{kont-add Kont (LETREC x L_ctx e_1)})
-      (where Kont_rest ,(if (judgment-holds (language<? L_0 L_ctx))
-                          (term #{kont-add Kont_letrec (CHECK-TYPE ?τ)})
-                          (term Kont_letrec)))]
+      (where Kont_letrec #{kont-add Kont (LETREC x e_1)})
+      (where Kont_rest #{kont-add Kont_letrec (TYPE-BOUNDARY L_ctx ?τ)})]
     [-->
       (STATE R (:: e τ) Γ ρ Store Kont)
       (STATE R e Γ ρ Store Kont)
@@ -1353,57 +1360,56 @@
       (where e_next ,(if (term any_0) (term e_1) (term e_2)))]
     [-->
       (STATE L addr Γ ρ Store Kont)
-      (STATE L_ctx e_body Γ ρ_x Store Kont_rest)
+      (STATE L e_body Γ ρ_x Store Kont_rest)
       RST-Let-
       (judgment-holds (address? addr (STATE L addr Γ ρ Store Kont)))
-      (where ((LET x L_ctx e_body) Kont_rest) #{kont-pop Kont})
+      (where ((LET x e_body) Kont_rest) #{kont-pop Kont})
       (side-condition (debug "RST-let-~n"))
       (where ρ_x #{runtime-env-set ρ x addr})]
     [-->
       (STATE L addr Γ ρ Store Kont)
-      (STATE L_ctx e_body Γ ρ Store_x Kont_rest)
+      (STATE L e_body Γ ρ Store_x Kont_rest)
       RST-Letrec-
       (judgment-holds (address? addr (STATE L addr Γ ρ Store Kont)))
-      (where ((LETREC x L_ctx e_body) Kont_rest) #{kont-pop Kont})
+      (where ((LETREC x e_body) Kont_rest) #{kont-pop Kont})
       (side-condition (debug "RST-letrec-~n"))
       (where addr_x #{runtime-env-ref ρ x})
       (where Store_x #{store-update Store addr_x #{store-ref Store addr}})]
     [-->
       (STATE L addr Γ ρ Store Kont)
       (STATE L e_a0 Γ ρ Store Kont_next)
-      RST-App1-
+      RST-App=
       (judgment-holds (address? addr (STATE L addr Γ ρ Store Kont)))
       (where ((APP (addr_a ...) (e_a0 e_a1 ...)) Kont_rest) #{kont-pop Kont})
       (where Kont_next #{kont-add Kont_rest (APP (addr addr_a ...) (e_a1 ...))})]
     [-->
       (STATE L addr Γ ρ Store Kont)
       (STATE L e_a0 Γ ρ Store Kont_next)
-      RST-Op1-
+      RST-Op=
       (judgment-holds (address? addr (STATE L addr Γ ρ Store Kont)))
       (where ((OP op (addr_a ...) (e_a0 e_a1 ...)) Kont_rest) #{kont-pop Kont})
       (side-condition (debug "RST-op1-~n"))
       (where Kont_next #{kont-add Kont_rest (OP op (addr addr_a ...) (e_a1 ...))})]
     [-->
       (STATE L addr_arg Γ ρ Store Kont)
-      (STATE L e_c Γ_c ρ_c Store_c Kont_next)
-      RST-App2-
+      (STATE L_c e_c Γ_c ρ_c Store_c Kont_next)
+      RST-App-
       (judgment-holds (address? addr_arg (STATE L addr Γ ρ Store Kont)))
-      ;; TODO multi-arg functions
       (where ((APP (addr_f) ()) Kont_rest) #{kont-pop Kont})
-      (side-condition (debug "RST-App2-~n"))
+      (side-condition (debug "RST-App+ trying to apply ~a~n" (term #{store-ref Store addr_f})))
       (where (L_c c ?τ_c) #{store-ref Store addr_f})
       (where (addr_arg+ Store_c) ,(if (judgment-holds (language<? L L_c))
                                     (term #{dynamic-typecheck L_c Store addr_arg #{type-domain ?τ_c}})
                                     (term (addr_arg Store))))
       ;; TODO ... applying function makes permanent change to store, is that okay?
+      (side-condition (debug "App2 wow got arg~n"))
       (where (e_c Γ_c ρ_c) #{apply-closure c addr_arg+})
-      (where Kont_next ,(if (judgment-holds (language<? L_c L))
-                          (term #{kont-add Kont_rest (CHECK-TYPE τ)})
-                          (term Kont_rest)))]
+      (side-condition (debug "App2 wow applied closure nextup ~a cod is ~a~n" (term e_c) (term (type-codomain ?τ_c))))
+      (where Kont_next #{kont-add Kont_rest (TYPE-BOUNDARY L #{type-codomain ?τ_c})})]
     [-->
       (STATE L addr Γ ρ Store Kont)
       (STATE L e_new Γ ρ Store_new Kont_rest)
-      RST-Op2-
+      RST-Op-
       (judgment-holds (address? addr (STATE L addr Γ ρ Store Kont)))
       (where ((OP op (addr_a ...) ()) Kont_rest) #{kont-pop Kont})
       (side-condition (debug "RST-op2-~n"))
@@ -1420,11 +1426,14 @@
       (where Store_b #{store-set Store L addr_b (box addr) ?τ})]
     [-->
       (STATE L addr Γ ρ Store Kont)
-      (STATE L addr_new Γ ρ Store_new Kont_rest)
-      RST-Check ;; TODO
+      (STATE L_ctx addr_new Γ ρ Store_new Kont_rest)
+      RST-Boundary
       (judgment-holds (address? addr (STATE L addr Γ ρ Store Kont)))
-      (where ((CHECK-TYPE τ) Kont_rest) #{kont-pop Kont})
-      (where (addr_new Store_new) #{dynamic-typecheck L Store addr τ})]
+      (where ((TYPE-BOUNDARY L_ctx ?τ) Kont_rest) #{kont-pop Kont})
+      (side-condition (debug "dynamic checking ~a~n" (term (L_ctx addr ?τ))))
+      (where (addr_new Store_new) ,(if (judgment-holds (language<? L L_ctx))
+                                     (term #{dynamic-typecheck L_ctx Store addr ?τ})
+                                     (term (addr Store))))]
 ))
 
 (define -->RST*
@@ -1563,31 +1572,37 @@
 
 (define-metafunction RST
   type-unbox : ?τ -> ?τ
+  [(type-unbox TST)
+   TST]
   [(type-unbox (Boxof ?τ))
    ?τ])
 
 (define-metafunction RST
   type-domain : ?τ -> ?τ
+  [(type-domain TST)
+   TST]
   [(type-domain (→ ?τ_0 ?τ_1))
    ?τ_0])
 
 (define-metafunction RST
   type-codomain : ?τ -> ?τ
+  [(type-codomain TST)
+   TST]
   [(type-codomain (→ ?τ_0 ?τ_1))
    ?τ_1])
 
 (define-metafunction RST
-  dynamic-typecheck : L Store addr τ -> (addr Store)
-  [(dynamic-typecheck R Store addr τ)
+  dynamic-typecheck : L Store addr ?τ -> (addr Store)
+  [(dynamic-typecheck R Store addr ?τ)
    (addr Store)]
   [(dynamic-typecheck S Store addr τ)
    ,(if (judgment-holds (well-tagged v τ))
-      (term (addr Store))
-      (raise-dynamic-typecheck-error (term S) (term v) (term τ)))
+      (term (addr #{store-update-type Store addr τ}))
+      (raise-dynamic-typecheck-error (term S) (term #{store-ref-value* Store v}) (term τ)))
    (where v #{store-ref-value Store addr})]
   [(dynamic-typecheck T Store addr τ)
    ,(or (term any)
-        (raise-dynamic-typecheck-error (term T) (term #{store-ref-value Store addr}) (term τ)))
+        (raise-dynamic-typecheck-error (term T) (term #{store-ref-value* Store addr}) (term τ)))
    (where any (T-dynamic-typecheck Store addr τ))])
 
 (define-metafunction RST
@@ -1597,8 +1612,10 @@
    (where (box addr_v) #{store-ref-box Store addr})
    (where (addr_new Store_new) (T-dynamic-typecheck Store addr_v τ))]
   [(T-dynamic-typecheck Store addr (→ τ_0 τ_1))
-   ,(raise-user-error 'no)
-   #;(where (CLOSURE e Γ ρ) #{store-ref-value Store addr})]
+   (addr #{store-update-type Store addr (→ τ_0 τ_1)})
+   (where (_ c TST) #{store-ref Store addr})]
+  [(T-dynamic-typecheck Store addr (→ τ_0 τ_1))
+   ,(error 'die)]
   [(T-dynamic-typecheck Store addr flat-τ)
    (addr Store)
    (where v #{store-ref-value Store addr})
@@ -1749,7 +1766,7 @@
                           (bad R #false TST)))])
       (check α=?
         (term #{apply-op ,store-4 set-box! boxS i3})
-        (term [boxS ((boxS S (box i3) (Boxof Integer)) (i1 S 1 Integer) (boxT T (box i2) (Boxof Integer)) (i2 T 2 Integer) (i3 R 3 TST) (bad R #false TST))]))
+        (term [boxS ((boxS S (box i3) (Boxof Integer)) (i1 S 1 Integer) (boxT T (box i2) (Boxof Integer)) (i2 T 2 Integer) (i3 R 3 Integer) (bad R #false TST))]))
       (check-exn #rx"expected Integer given #f"
         (λ () (term #{apply-op ,store-4 set-box! boxS bad})))
 
@@ -1788,11 +1805,11 @@
      [(dynamic-typecheck R ((a1 R 3 TST)) a1 Boolean)
       (a1 ((a1 R 3 TST)))]
      [(dynamic-typecheck S ((a1 R 3 TST)) a1 Integer)
-      (a1 ((a1 R 3 TST)))]
+      (a1 ((a1 R 3 Integer)))]
      [(dynamic-typecheck S ((a1 R (box #true) (Boxof Boolean))) a1 (Boxof Integer))
-      (a1 ((a1 R (box #true) (Boxof Boolean))))]
+      (a1 ((a1 R (box #true) (Boxof Integer))))]
      [(dynamic-typecheck S ((a1 R (CLOSURE (λ (x) x) () ()) (→ Integer Integer))) a1 (→ Integer Boolean))
-      (a1 ((a1 R (CLOSURE (λ (x) x) () ()) (→ Integer Integer))))]
+      (a1 ((a1 R (CLOSURE (λ (x) x) () ()) (→ Integer Boolean))))]
      [(dynamic-typecheck T ((a1 R 3 TST)) a1 Integer)
       (a1 ((a1 R 3 TST)))]
      [(dynamic-typecheck T ((a1 R (box a2) (Boxof Integer)) (a2 R 3 TST)) a1 (Boxof Integer))
@@ -1992,9 +2009,6 @@
                    (fact n0)))))
       120]
     )
-    #;(parameterize ([*debug* #t])
-    (check-mf-apply*
-    ))
   )
 
   (test-case "eval:simple:T:fail"
@@ -2006,13 +2020,58 @@
     (check-exn #rx"typechecking failed"
       (λ () (term (eval (T (:: (+ 2 5) Boolean))))))
   )
+
+  (test-case "apply-R-in-T"
+    (check-mf-apply*
+     [(eval (T (let ((f R (:: (λ (x) (+ x 1)) (→ Integer Integer))))
+                 (f 3))))
+      4]
+     [(eval (T (let ((f R (:: (λ (x) (box x)) (→ Integer (Boxof Integer)))))
+                 (f 3))))
+      (box 3)]
+    )
+
+    (check-exn #rx"expected Integer given #f"
+      (λ () (term (eval (T (let ((f R (:: (λ (x) #false) (→ Integer Integer)))) (f 3)))))))
+
+    (check-exn #rx"expected address for integer value"
+      (λ () (term (eval (T (let ((f R (:: (λ (x) (+ x #false)) (→ Integer Integer)))) (f 3)))))))
+
+    (check-exn #rx"expected address for integer value"
+      (λ () (term (eval (T (let ((f R (:: (λ (x) (+ #true #false)) (→ Integer Integer)))) (f 3)))))))
+
+  )
+
+  (test-case "apply-R-in-S"
+    (check-mf-apply*
+     [(eval (S (let ((f R (:: (λ (x) (+ x 1)) (→ Integer Integer))))
+                 (f 3))))
+      4]
+     [(eval (S (let ((f R (:: (λ (x) (box x)) (→ Integer (Boxof Integer)))))
+                 (f 3))))
+      (box 3)]
+     [(eval (S (let ((f R (:: (λ (x) (box #f)) (→ Integer (Boxof Integer)))))
+                 (f 3))))
+      (box #f)] ;; tag sound!
+    )
+
+    (check-exn #rx"expected Integer given #f"
+      (λ () (term (eval (S (let ((f R (:: (λ (x) #false) (→ Integer Integer)))) (f 3)))))))
+
+    (check-exn #rx"expected address for integer"
+      (λ () (term (eval (S (let ((f R (:: (λ (x) (+ #true #false)) (→ Integer Integer)))) (f 3)))))))
+  )
+
 )
 #;(module+ test
 
-  (test-case "eval:simple:T"
-  )
 
-  ;; apply untyped function
+  #;(test-case "helpme" (parameterize ([*debug* #t])
+  (check-mf-apply*
+  )))
+
+  ;; remove Γ
+  ;; cross-boundary boxes
   ;; apply untyped argument
   ;; "permanent" changes to store
 )
