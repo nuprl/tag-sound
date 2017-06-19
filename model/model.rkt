@@ -20,7 +20,7 @@
 ;; - arity of primops
 
 ;; TODO
-;; - more careful about UNDEF
+;; - more careful about UNDEF, don't use ?v where UNDEF cannot appear
 ;; - type have discriminative unions
 ;; - check σ in the right places?
 ;; - well-formed type variables
@@ -28,8 +28,6 @@
 ;; - closed terms
 ;; - remove unused α in `type-normalize`
 ;; - tautology-checking function
-;; - implement chaperones ... I think by 
-;;   adding pre/post fields to closures and checking these during evaluation
 
 ;; ---
 
@@ -98,7 +96,7 @@
   ;; TODO am currently not touching Γ, see what happens
   (ρ ::= ((x addr) ...)) ;; runtime environment
   (Store ::= ((addr L ?v ?τ) ...))
-  (K ::= HALT (IF e e) (LET L x ?τ e) (LETREC L x ?τ e)
+  (K ::= HALT (IF e e) (LET x L e) (LETREC x L e)
          (BOX ?τ) (APP addr* (e ...)) (OP op (addr ...) (e ...))
          (CHECK-TYPE τ))
   (Kont ::= (K ...))
@@ -480,6 +478,15 @@
    (where (L ?v ?τ) #{store-ref Store addr})])
 
 (define-metafunction RST
+  store-ref-value* : Store v -> v
+  [(store-ref-value* Store addr)
+   #{store-ref-value* Store #{store-ref-value Store addr}}]
+  [(store-ref-value* Store (box v))
+   (box #{store-ref-value* Store v})]
+  [(store-ref-value* Store v)
+   v])
+
+(define-metafunction RST
   store-ref-integer : Store addr -> integer
   [(store-ref-integer Store addr)
    integer
@@ -508,8 +515,8 @@
   [(store-set Store L addr ?v ?τ)
    ,(cons (term (addr L ?v ?τ)) (term Store))])
 
-;; Used in transitions for LET/LETREC
-;; - (let ((x L e)) e_body) evaluates `e` in language `L`
+;; Used in transition for LETREC
+;; - (letrec ((x L e)) e_body) evaluates `e` in language `L`
 ;; - when finished, need to add value to environment with "context" type
 ;; For example, `(let ((x R (:: (λ ....) (→ ....)))) e_body)`
 ;; --- stores type annotation `(→ ....)`
@@ -694,6 +701,17 @@
       #false]
      [(store-ref-value ((a1 R 1 TST) (a2 S #true Boolean)) a2)
       #true]))
+
+  (test-case "store-ref-value*"
+    (check-mf-apply*
+     [(store-ref-value* () 4)
+      4]
+     [(store-ref-value* ((a R 3 Integer)) a)
+      3]
+     [(store-ref-value* () (CLOSURE (λ (x) x) () ()))
+      (CLOSURE (λ (x) x) () ())]
+     [(store-ref-value* ((a1 R (box a2) TST) (a2 R #true TST)) a1)
+      (box #true)]))
 
   (test-case "store-ref-type"
     (check-mf-apply*
@@ -1238,19 +1256,25 @@
       (where Kont_if #{kont-add Kont (IF e_1 e_2)})]
     [-->
       (STATE L_ctx (let ((x L_0 e_0)) e_1) Γ ρ Store Kont)
-      (STATE L_0 e_0 Γ ρ Store Kont_let)
+      (STATE L_0 e_0 Γ ρ Store Kont_next)
       RST-Let+ (side-condition (debug "RST-Let+~n"))
-      (where ?τ #{type-annotation L_ctx e_0})
-      (where Kont_let #{kont-add Kont (LET L_ctx x ?τ e_1)})]
+      (where Kont_let #{kont-add Kont (LET x L_ctx e_1)})
+      (where Kont_next ,(if (judgment-holds (language<? L_0 L_ctx))
+                          (term #{kont-add Kont_let (CHECK-TYPE #{type-annotation L_ctx e_0})})
+                          (term Kont_let)))]
     [-->
       (STATE L_ctx (letrec ((x L_0 e_0)) e_1) Γ ρ Store Kont)
-      (STATE L_0 e_0 Γ ρ_x Store_addr Kont_letrec)
-      RST-LetRec+ (side-condition (debug "RST-LetRec+~n"))
+      (STATE L_0 e_0 Γ ρ_x Store_addr Kont_rest)
+      RST-LetRec+
+      (side-condition (debug "RST-LetRec+~n"))
       (fresh addr)
       (where ρ_x #{runtime-env-set ρ x addr})
       (where ?τ #{type-annotation L_ctx e_0})
-      (where Store_addr #{store-set Store addr UNDEF ?τ})
-      (where Kont_letrec #{kont-add Kont (LETREC L_ctx x ?τ e_1)})]
+      (where Store_addr #{store-set Store L_0 addr UNDEF ?τ})
+      (where Kont_letrec #{kont-add Kont (LETREC x L_ctx e_1)})
+      (where Kont_rest ,(if (judgment-holds (language<? L_0 L_ctx))
+                          (term #{kont-add Kont_letrec (CHECK-TYPE ?τ)})
+                          (term Kont_letrec)))]
     [-->
       (STATE L (:: e τ) Γ ρ Store Kont)
       (STATE L e Γ ρ Store Kont)
@@ -1300,33 +1324,25 @@
       RST-If-
       (judgment-holds (address? addr (STATE L addr Γ ρ Store Kont)))
       (where ((IF e_1 e_2) Kont_rest) #{kont-pop Kont})
-      (side-condition (debug "RST-If-~n"))
-      (where boolean_0 #{store-ref-value Store addr})
-      (where e_next ,(if (term boolean_0) (term e_1) (term e_2)))]
+      (where any_0 #{store-ref-value Store addr})
+      (where e_next ,(if (term any_0) (term e_1) (term e_2)))]
     [-->
       (STATE L addr Γ ρ Store Kont)
-      (STATE L_ctx e Γ ρ_x Store_τ Kont_rest)
+      (STATE L_ctx e_body Γ ρ_x Store Kont_rest)
       RST-Let-
       (judgment-holds (address? addr (STATE L addr Γ ρ Store Kont)))
-      (where ((LET L_ctx x ?τ e) Kont_rest) #{kont-pop Kont})
+      (where ((LET x L_ctx e_body) Kont_rest) #{kont-pop Kont})
       (side-condition (debug "RST-let-~n"))
-      (fresh addr)
-      (where ρ_x #{runtime-env-set ρ x addr})
-      (where Store_τ ,(if (judgment-holds (language<? L L_ctx))
-                        (term #{store-update-type Store addr ?τ})
-                        (term Store_v)))]
+      (where ρ_x #{runtime-env-set ρ x addr})]
     [-->
       (STATE L addr Γ ρ Store Kont)
-      (STATE L_ctx e Γ ρ Store_τ Kont_rest)
+      (STATE L_ctx e_body Γ ρ Store_x Kont_rest)
       RST-Letrec-
       (judgment-holds (address? addr (STATE L addr Γ ρ Store Kont)))
-      (where ((LETREC L_ctx x ?τ e) Kont_rest) #{kont-pop Kont})
+      (where ((LETREC x L_ctx e_body) Kont_rest) #{kont-pop Kont})
       (side-condition (debug "RST-letrec-~n"))
       (where addr_x #{runtime-env-ref ρ x})
-      (where Store_v #{store-update Store addr_x #{store-ref Store addr}})
-      (where Store_τ ,(if (judgment-holds (language<? L L_ctx))
-                        (term #{store-update-type Store addr_x ?τ})
-                        (term Store_v)))]
+      (where Store_x #{store-update Store addr_x #{store-ref Store addr}})]
     [-->
       (STATE L addr Γ ρ Store Kont)
       (STATE L e_a0 Γ ρ Store Kont_next)
@@ -1370,11 +1386,11 @@
       (where (e_new Store_new) #{apply-op Store op addr_arg0 addr_arg ...})]
     [-->
       (STATE L addr Γ ρ Store Kont)
-      (STATE L addr_b Γ ρ Store_b Kont)
-      RST-boxV+
+      (STATE L addr_b Γ ρ Store_b Kont_rest)
+      RST-make-box-
       (judgment-holds (address? addr (STATE L addr Γ ρ Store Kont)))
       (where ((BOX ?τ) Kont_rest) #{kont-pop Kont})
-      (side-condition (debug "RST-boxv-~n"))
+      (side-condition (debug "RST-boxV+~n"))
       (fresh addr_b)
       (where Store_b #{store-set Store L addr_b (box addr) ?τ})]
     [-->
@@ -1400,7 +1416,7 @@
    (where Σ_0 #{init P})
    (where Σ_1 ,(-->RST* (term Σ_0)))
    (judgment-holds (final? Σ_1))
-   (where v #{store-ref-value #{state->store Σ_1} #{state->expression Σ_1}})])
+   (where v #{state->final-value Σ_1})])
 
 (define-metafunction RST
   init : P -> Σ
@@ -1463,6 +1479,13 @@
   state->kont : Σ -> Kont
   [(state->kont (STATE L e Γ ρ Store Kont))
    Kont])
+
+(define-metafunction RST
+  state->final-value : Σ -> v
+  [(state->final-value Σ)
+   #{store-ref-value* Store v}
+   (where Store #{state->store Σ})
+   (where v #{state->expression Σ})])
 
 (define-metafunction RST
   type-annotation : L e -> ?τ
@@ -1789,7 +1812,8 @@
     (check-exn exn:fail:contract?
       (λ () (do-aop '+ '())))
   )
-
+)
+(module+ test
   (test-case "eval:simple:R"
     (check-mf-apply*
      [(eval (R 4))
@@ -1802,7 +1826,61 @@
       1]
      [(eval (R ((λ (x) (+ x 1)) 1)))
       2]
+     [(eval (R (* 2 3)))
+      6]
+     [(eval (R (- 10 4)))
+      6]
+     [(eval (R (= 4 4)))
+      #true]
+     [(eval (R (= 4 2)))
+      #false]
+     [(eval (R (unbox (box 3))))
+      3]
+     [(eval (R (unbox (set-box! (box 3) 4))))
+      4]
+     [(eval (R (box 3)))
+      (box 3)]
+     [(eval (R (set-box! (box 0) (box 4))))
+      (box (box 4))]
+     [(eval (R (if #true 1 0)))
+      1]
+     [(eval (R (if 1 1 0)))
+      1]
+     [(eval (R (if (λ (x) x) 1 0)))
+      1]
+     [(eval (R (if #false (+ 1 1) (+ 0 0))))
+      0]
+     [(eval (R (if #false ((λ (x) (x x)) (λ (x) (x x))) 0)))
+      0]
+     [(eval (R (:: (+ 2 5) Integer)))
+      7]
+     [(eval (R (:: (+ 2 5) Boolean)))
+      7]
+     [(eval (R (:: (+ 2 5) (→ Integer Boolean))))
+      7]
+     [(eval (R ((:: (λ (x) (= x 4)) Boolean) 4)))
+      #true]
+     [(eval (R (let ((x R 1))
+                 (let ((y R 2))
+                   (+ x y)))))
+      3]
+     [(eval (R (let ([negate R (λ (x) (if x #false #true))])
+                 (let ([b R #false])
+                   (negate (negate b))))))
+      #false]
+     [(eval (R (let ([x R 4])
+                 (let ([add-x R (λ (y) (+ y x))])
+                   (let ([x R 5])
+                     (add-x x))))))
+      9]
+     [(eval (R (letrec ((fact R (λ (n) (if (= n 1) 1 (* n (fact (- n 1)))))))
+                 (let ((n0 R 5))
+                   (fact n0)))))
+      120]
     )
+    #;(parameterize ([*debug* #t])
+    (check-mf-apply*
+    ))
   )
 
   (test-case "eval:simple:S"
