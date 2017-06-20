@@ -1911,6 +1911,11 @@
                  (let ((n0 R 5))
                    (fact n0)))))
       120]
+     [(eval (R (let ((b R (box 3)))
+                 (let ((f R (λ (x) (unbox b))))
+                   (let ((dontcare R (set-box! b 4)))
+                     (f 1))))))
+      4]
     )
   )
 
@@ -2057,7 +2062,6 @@
 
 )
 #;(module+ test
-
 
   #;(test-case "helpme" (parameterize ([*debug* #t])
   (check-mf-apply*
