@@ -984,7 +984,7 @@
    (T-typed Γ (let ((x L (:: e_0 τ_0))) e_1) τ_1)]
   [
    (un-annotated e_0)
-   (side-condition ,(raise-user-error 'T-typed "un-annotated let expression ~a" (term (let ((L x e_0)) e_1))))
+   (side-condition ,(raise-user-error 'T-typed "un-annotated let expression ~a" (term (let ((x L e_0)) e_1))))
    --- LetError
    (T-typed Γ (let ((x L e_0)) e_1) Integer)]
   [
@@ -1446,7 +1446,7 @@
    (side-condition
      (if (term #{typecheck P})
        #true
-       (raise-user-error 'eval "typechecking failed" (term P))))
+       (raise-user-error 'eval "typechecking failed in ~a" (term P))))
    (where Σ_0 #{init P})
    (where Σ_1 ,(-->RST* (term Σ_0)))
    (judgment-holds (final? Σ_1))
@@ -1640,7 +1640,7 @@
               ([n2 (in-list (cdr int*))])
       (f acc n2))))
 
-(module+ test
+#;(module+ test
   (test-case "init"
     (check-pred Σ? (term #{init (R 4)})))
 
@@ -2061,13 +2061,151 @@
   )
 
 )
-#;(module+ test
+(module+ test
+  (test-case "boxof-R-in-T"
+    (check-mf-apply*
+     [(eval (T (let ((b R (:: (box 1) (Boxof Integer))))
+                 (let ((_ T (:: (set-box! b 2) (Boxof Integer))))
+                   (unbox b)))))
+      2]
+    )
+
+    (check-exn #rx"T expected \\(Boxof Integer\\) given \\(box #f\\)"
+      (λ () (term
+        (eval (T (let ((b R (:: (box #false) (Boxof Integer))))
+                   0))))))
+
+    (check-exn #rx"typechecking failed"
+      (λ () (term
+        (eval (T (let ((b R (:: (box 1) (Boxof Integer))))
+                   (set-box! b #false)))))))
+  )
+
+  (test-case "boxof-R-in-S"
+    (check-mf-apply*
+     [(eval (S (let ((b R (:: (box 1) (Boxof Integer))))
+                 (let ((_ S (:: (set-box! b 2) (Boxof Integer))))
+                   (unbox b)))))
+      2]
+     [(eval (S (let ((b R (:: (box 1) (Boxof Integer))))
+                 (let ((_ S (:: (set-box! b 2) (Boxof Integer))))
+                   (unbox b)))))
+      ;; # nothing goes wrong?
+      ;; def f(x:List(Int))->List(Int):
+      ;;   x[0] = 2
+      ;;   return x
+      ;; print(f([False]))
+      2]
+    )
+
+    (check-exn #rx"S expected \\(Boxof Integer\\) given #f"
+      (λ () (term
+        (eval (S (let ((b R (:: #false (Boxof Integer))))
+                   0))))))
+
+    (check-exn #rx"typechecking failed"
+      (λ () (term
+        (eval (S (let ((b R (:: (box 1) (Boxof Integer))))
+                   (set-box! b #false)))))))
+  )
+
+
+  (test-case "boxof-S-in-T"
+    (check-mf-apply*
+     [(eval (T (let ((b S (:: (box 1) (Boxof Integer))))
+                 (let ((_ T (:: (set-box! b 2) (Boxof Integer))))
+                   (unbox b)))))
+      2]
+    )
+
+    (check-exn #rx"typechecking failed"
+      (λ () (term
+        (eval (T (let ((b S (:: (box #false) (Boxof Integer))))
+                   0))))))
+
+    (check-exn #rx"T expected \\(Boxof Integer\\) given \\(box #f\\)"
+      (λ () (term
+        (eval (T (let ((b S (:: (let ((r R (:: (box #false) (Boxof Integer)))) r)
+                                (Boxof Integer))))
+                   0))))))
+  )
+
+  (test-case "boxof-T-in-S"
+    (check-mf-apply*
+     [(eval (S (let ((b T (:: (box 1) (Boxof Integer))))
+                 (unbox (set-box! b 4)))))
+      4]
+    )
+
+    (check-exn #rx"typechecking failed"
+      (λ () (term
+        (eval (S (let ((b T (:: (box 1) (Boxof Integer))))
+                   (set-box! b #false)))))))
+
+    (check-exn #rx"T expected \\(Boxof Integer\\) given \\(box #f\\)"
+      (λ () (term
+        (eval (S (let ((b T (:: (box (:: (box 1) (Boxof Integer))) (Boxof (Boxof Integer)))))
+                   (let ((r R (:: (box #false) (Boxof Integer))))
+                     (set-box! b r))))))))
+  )
+
+  (test-case "boxof-T-in-R"
+    (check-mf-apply*
+     [(eval (R (let ((b T (:: (box 1) (Boxof Integer))))
+                 (unbox b))))
+      1]
+     [(eval (R (let ((b T (:: (box 1) (Boxof Integer))))
+                 (unbox (set-box! b 4)))))
+      4]
+     [(eval (R (let ((bb T (:: (box (:: (box 1) (Boxof Integer))) (Boxof (Boxof Integer)))))
+                 (let ((_ R (set-box! (unbox bb) 777)))
+                   (unbox (unbox bb))))))
+      777]
+    )
+
+    (check-exn #rx"T expected Integer given #f"
+      (λ () (term
+        (eval (R (let ((b T (:: (box 1) (Boxof Integer))))
+                   (set-box! b #f)))))))
+
+    (check-exn #rx"T expected Integer given #f"
+      (λ () (term
+        (eval (R (let ((bb T (:: (box (:: (box 1) (Boxof Integer))) (Boxof (Boxof Integer)))))
+                   (let ((_ R (set-box! (unbox bb) #false)))
+                     (unbox (unbox bb)))))))))
+  )
+
+  (test-case "boxof-S-in-R"
+    (check-mf-apply*
+     [(eval (R (let ((b S (:: (box 1) (Boxof Integer))))
+                 (unbox (set-box! b 32)))))
+      32]
+     [(eval (R (let ((b S (:: (box (:: (box 3) (Boxof Integer))) (Boxof (Boxof Integer)))))
+                 (let ((_ R (set-box! b (box #false))))
+                   (unbox (unbox b))))))
+      #false]
+     [(eval (R (let ((b S (:: (box 1) (Boxof Integer))))
+                 (let ((b2 S (:: (let ((x R (:: b (Boxof Boolean)))) x) (Boxof Boolean))))
+                   (unbox (set-box! b2 #false))))))
+      #false]
+     [(eval (R (let ((b S (:: (box 1) (Boxof Integer))))
+                 (let ((b2 S (:: (let ((x R (:: b (Boxof Boolean))))
+                                   (set-box! x #false)) (Boxof Boolean))))
+                   (unbox b2)))))
+      #false]
+    )
+
+    (check-exn #rx"S expected Integer given #f"
+      (λ () (term
+        (eval (R (let ((b S (:: (box 3) (Boxof Integer))))
+                   (let ((_ R (set-box! b #false)))
+                     (unbox b))))))))
+  )
 
   #;(test-case "helpme" (parameterize ([*debug* #t])
   (check-mf-apply*
   )))
 
-  ;; remove Γ
   ;; cross-boundary boxes
   ;; apply untyped argument
   ;; "permanent" changes to store
