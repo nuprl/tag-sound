@@ -332,13 +332,40 @@
    ---
    (type-equal? τ_0 τ_1)])
 
+;; TODO
+;; - union <: union
+;; - ∀ μ
 (define-judgment-form RST
   #:mode (subtype? I I)
   #:contract (subtype? τ τ)
   [
    (type-equal? τ_0 τ_1)
    --- Id
-   (subtype? τ_0 τ_1)])
+   (subtype? τ_0 τ_1)]
+  [
+   (subtype? τ_d1 τ_d0)
+   (subtype? τ_c0 τ_c1)
+   --- Arrow
+   (subtype? (→ τ_d0 τ_c0) (→ τ_d1 τ_c1))]
+  [
+   (subtype? τ τ_1)
+   --- Union-Base
+   (subtype? τ (U τ_0 ... τ_1 τ_2 ...))])
+
+(define-metafunction RST
+  subtype-min-type : ?τ ?τ -> any
+  [(subtype-min-type τ TST)
+   τ]
+  [(subtype-min-type TST τ)
+   τ]
+  [(subtype-min-type τ_0 τ_1)
+   τ_0
+   (judgment-holds (subtype? τ_0 τ_1))]
+  [(subtype-min-type τ_0 τ_1)
+   τ_1
+   (judgment-holds (subtype? τ_1 τ_0))]
+  [(subtype-min-type τ_a τ_unrelated)
+   #f])
 
 (define-metafunction RST
   unionize : τ τ -> τ
@@ -613,6 +640,24 @@
      [(type-normalize Integer)
       Integer]
     )
+  )
+
+  (test-case "subtype-min-type"
+    (check-mf-apply*
+     [(subtype-min-type Integer Integer)
+      Integer]
+     [(subtype-min-type Integer TST)
+      Integer]
+     [(subtype-min-type TST Integer)
+      Integer]
+     [(subtype-min-type Integer (U Boolean Integer))
+      Integer]
+     [(subtype-min-type (U Boolean Integer) Integer)
+      Integer]
+     [(subtype-min-type (→ (U Boolean Integer) Integer) (→ Integer Integer))
+      (→ (U Boolean Integer) Integer)]
+     [(subtype-min-type (→ Integer (U Boolean Integer)) (→ Integer Integer))
+      (→ Integer Integer)])
   )
 
   (test-case "unionize"
@@ -1600,6 +1645,12 @@
         (raise-dynamic-typecheck-error (term T) (term #{store-ref-value* Store addr}) (term τ)))
    (where any (T-dynamic-typecheck Store addr τ))])
 
+;; Dynamic typechecking
+;; - for (Box τ), recur into τ
+;; - for (→ τ_0 τ_1), 
+;; - for flat types, do first-order check
+;; Note: → could check subtyping against existing type, early detect errors
+;;       just because we have types at runtime
 (define-metafunction RST
   T-dynamic-typecheck : Store addr τ -> any
   [(T-dynamic-typecheck Store addr (Boxof τ))
@@ -1607,10 +1658,9 @@
    (where (box addr_v) #{store-ref-box Store addr})
    (where (addr_new Store_new) (T-dynamic-typecheck Store addr_v τ))]
   [(T-dynamic-typecheck Store addr (→ τ_0 τ_1))
-   (addr #{store-update-type Store addr (→ τ_0 τ_1)})
-   (where (_ c TST) #{store-ref Store addr})]
-  [(T-dynamic-typecheck Store addr (→ τ_0 τ_1))
-   ,(error 'die)]
+   (addr #{store-update-type Store addr τ_new})
+   (where (_ c ?τ) #{store-ref Store addr})
+   (where τ_new (subtype-min-type (→ τ_0 τ_1) ?τ))]
   [(T-dynamic-typecheck Store addr flat-τ)
    (addr Store)
    (where v #{store-ref-value Store addr})
@@ -2202,11 +2252,21 @@
                      (unbox b))))))))
   )
 
+  (test-case "double-wrap"
+    (check-exn #rx"T expected \\(→ Boolean Boolean\\) given \\(CLOSURE"
+      (λ () (term
+        (eval (T (let ((h R (:: (let ((g T (:: (let ((f R (:: (λ (x) x)
+                                                              (→ Integer Integer))))
+                                                 f)
+                                               (→ Integer Integer)))) g)
+                                (→ Boolean Boolean))))
+                   (h #true))))))))
+
   #;(test-case "helpme" (parameterize ([*debug* #t])
   (check-mf-apply*
   )))
 
-  ;; cross-boundary boxes
+  ;; how simple is the interpreter can explain to matthias?
   ;; apply untyped argument
   ;; "permanent" changes to store
 )
