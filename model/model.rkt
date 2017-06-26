@@ -2,13 +2,25 @@
 
 ;; The point of this model is to study contract insertion & boundaries.
 ;; I think the cross-boundary soudnenss is going to work fine,
-;;  with R < S < T
-;;  and interesting types
+;;  with R > S > T and interesting types
+;;  - > is "statically coarser than"
+;;  - idea being, (well-typed T e τ) implies (well-typed S e τ)
+;;    because well-typed S just checks tag
+;;    and well-typed R just throws away τ
 ;; but the model is here to find out, before diving into the weeds of:
 ;; - TR contract generation
 ;; - TR type-driven rewriting
 ;; - actual boundaries
 ;; (keep a TODO list of Racket things!)
+
+;; Soundness
+;; If (well-typed L e τ) then either:
+;; - e -->* v and (well-typed L v τ)
+;; - e diverges
+;; - e raises (error (boundary L_1 -> L_2)
+;;                   (expected τ) (given v)
+;;                   (reason (U first-order
+;;                              (return v_2))))
 
 ;; Key points:
 ;; - S, T use same type checker
@@ -29,6 +41,7 @@
 ;; - remove unused α in `type-normalize`
 ;; - tautology-checking function
 ;; - multi-arg functions
+;; - "finer" "coarser" formally ... ⊢_L should be a relation (no outputs)
 
 ;; ---
 
