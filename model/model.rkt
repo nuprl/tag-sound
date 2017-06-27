@@ -13,6 +13,20 @@
 ;; - actual boundaries
 ;; (keep a TODO list of Racket things!)
 
+;; Dear Reader,
+;;  VSS-POPL-2017 (transient) inserts checks for:
+;;   - every argument of every function
+;;   - every result of every application
+;;   - every dereference
+;;  If you have clear notion of boundaries (R > S > T), then S needs only check:
+;;   - R arguments to S functions
+;;   - results of R functions
+;;   - dereferences of R boxes
+;;   - R arguments to S boxes
+;;  Much less!
+;;  This model argues how/why "less checking" gives a useful soundness.
+;;  The TR implementation will use contracts to implement boundaries
+
 ;; Soundness
 ;; If (well-typed L e τ) then either:
 ;; - e -->* v and (well-typed L v τ)
