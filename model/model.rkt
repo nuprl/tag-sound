@@ -9,9 +9,11 @@
 ;;    and well-typed R just throws away τ
 ;; but the model is here to find out, before diving into the weeds of:
 ;; - TR contract generation
+;;   - try "simple chaperones" to track ownership
+;;     (what does unbox do? make a new chaperone?)
 ;; - TR type-driven rewriting
+;;     (avoid this, just use chaperones if possible)
 ;; - actual boundaries
-;; (keep a TODO list of Racket things!)
 
 ;; Dear Reader,
 ;;  VSS-POPL-2017 (transient) inserts checks for:
@@ -36,16 +38,9 @@
 ;;                   (reason (U first-order
 ;;                              (return v_2))))
 
-;; Key points:
-;; - S, T use same type checker
-;;   - cool to see how, despite same typechecker, S is less trustworthy
-
-;; Questions
-;; - how to polymorphic functions? should not be hard but please get right
-;;   also application thereof
-;; - arity of primops
-
 ;; TODO
+;; - polymorphic functions
+;; - arity of primops (check? I dont' remember why I wrote this note)
 ;; - more careful about UNDEF, don't use ?v where UNDEF cannot appear
 ;; - type have discriminative unions
 ;; - check σ in the right places?
@@ -59,7 +54,6 @@
 
 ;; ---
 
-;; - evaluate with context-aware CESK machine
 ;; - prove "soundness" for closed programs
 ;; - prove absence of certain errors in certain contexts
 
@@ -70,16 +64,6 @@
 ;; - IN OTHER WORDS no types at runtime
 ;; No problemo, define translations and show machine equivalence.
 ;; Should be easy right ha ha ha.
-
-;; PROPERTIES
-;; - type soundness for closed T programs
-;; - tag soundness for closed S programs
-;; - safety for closed R programs
-;; - bounds on where certain errors can occur
-;;   T can error for bad R or bad S (eventually find witness of bad input)
-;;   S can error for bad R or bad S (ditto, but based on tag checks so maybe different? yes different)
-;;   R can error anywhere, might just be wrong like `(+ 1 "two")`
-;; - simulation between interpreted code and colorbind-compiled code
 
 ;; -----------------------------------------------------------------------------
 
