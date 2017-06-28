@@ -87,7 +87,8 @@
 
 (define-language RST
 ;; terms, programs, languages, typing
-  (e ::= x boolean integer (λ (x) e) (unbox e) (set-box! e e) (box e) (aop e e) (e e) (if e e e) (let ((x L e)) e) (letrec ((x L e)) e) (:: e σ))
+  (e ::= x boolean integer (λ (x) e) (unbox e) (set-box! e e) (box e) (aop e e)
+         (e e) (if e e e) (let ((x L e)) e) (letrec ((x L e)) e) (:: e σ))
   (op ::= unbox set-box! aop)
   (aop ::= + = - *)
   (L ::= R S T)
@@ -98,14 +99,16 @@
   (τ ::= (U k τ) (μ (α) τ) α k)
   (k ::= flat-τ (→ τ τ) (Boxof τ))
   (flat-τ ::= Boolean Integer)
-  (Γ ::= ((x L ?τ) ...))
+  (Γ ::= ((x ?τ) ...))
+     ;; Γ used to be ((x L ?τ) ...), but L ununsed. May want to:
+     ;; - verify only (_ R TST), and no other language uses TST
+     ;; - generate contracts
   (P ::= (L e))
 ;; values, machine states
   (v ::= addr boolean integer c (box v))
   (?v ::= v UNDEF) ;; for letrec
   (c ::= (CLOSURE e ρ))
   (Σ ::= (STATE L e ρ Store Kont))
-  ;; TODO am currently not touching Γ, see what happens
   (ρ ::= ((x addr) ...)) ;; runtime environment
   (Store ::= ((addr L ?v ?τ) ...))
   (K ::= HALT (IF e e) (LET x e) (LETREC x e)
@@ -167,10 +170,10 @@
     (check-pred v? (term (CLOSURE (λ (x) x) ()))))
 
   (test-case "Γ"
-    (check-pred Γ? (term ((x T Integer))))
-    (check-pred Γ? (term ((x S Integer))))
-    (check-pred Γ? (term ((x R Integer))))
-    (check-pred Γ? (term ((x R TST)))))
+    (check-pred Γ? (term ((x Integer))))
+    (check-pred Γ? (term ((x Integer))))
+    (check-pred Γ? (term ((x Integer))))
+    (check-pred Γ? (term ((x TST)))))
 )
 
 ;; -----------------------------------------------------------------------------
@@ -469,23 +472,23 @@
    ---
    (annotated (:: e τ))])
 
-;; (type-env-set Γ L x e)
-;; If term `e` from language `L` is type-annotated with τ, bind `(x τ)` in `Γ`
+;; (type-env-set Γ x e)
+;; If term `e` is type-annotated with τ, bind `(x τ)` in `Γ`
 ;; else return `Γ`
 (define-metafunction RST
-  type-env-set : Γ L x any -> Γ
-  [(type-env-set Γ L x (:: e σ))
-   ,(cons (term (x L σ)) (term Γ))]
-  [(type-env-set Γ L x ?τ)
-   ,(cons (term (x L ?τ)) (term Γ))]
-  [(type-env-set Γ R x e)
-   ,(cons (term (x R TST)) (term Γ))])
+  type-env-set : Γ x any -> Γ
+  [(type-env-set Γ x (:: e σ))
+   ,(cons (term (x σ)) (term Γ))]
+  [(type-env-set Γ x ?τ)
+   ,(cons (term (x ?τ)) (term Γ))]
+  [(type-env-set Γ x e)
+   ,(cons (term (x TST)) (term Γ))])
 
 (define-metafunction RST
   type-env-ref : Γ x -> any
   [(type-env-ref Γ x)
    ,(let ([xlσ (assoc (term x) (term Γ))])
-      (and xlσ (caddr xlσ)))])
+      (and xlσ (cadr xlσ)))])
 
 (define-metafunction RST
   runtime-env-ref : ρ x -> any
@@ -713,14 +716,14 @@
 
   (test-case "type-env-set"
     (check-mf-apply*
-     [(type-env-set () T x (:: 4 Integer))
-      ((x T Integer))]
-     [(type-env-set () R x TST)
-      ((x R TST))]
-     [(type-env-set () R x Integer)
-      ((x R Integer))]
-     [(type-env-set () R x (:: 4 (Boxof Integer)))
-      ((x R (Boxof Integer)))]
+     [(type-env-set () x (:: 4 Integer))
+      ((x Integer))]
+     [(type-env-set () x TST)
+      ((x TST))]
+     [(type-env-set () x Integer)
+      ((x Integer))]
+     [(type-env-set () x (:: 4 (Boxof Integer)))
+      ((x (Boxof Integer)))]
     )
   )
 
@@ -728,13 +731,13 @@
     (check-mf-apply*
      [(type-env-ref () x)
       #f]
-     [(type-env-ref ((x R Integer)) x)
+     [(type-env-ref ((x Integer)) x)
       Integer]
-     [(type-env-ref ((x R (Boxof Integer))) x)
+     [(type-env-ref ((x (Boxof Integer))) x)
       (Boxof Integer)]
-     [(type-env-ref ((x S Integer)) x)
+     [(type-env-ref ((x Integer)) x)
       Integer]
-     [(type-env-ref ((x R Integer) (y R Integer)) y)
+     [(type-env-ref ((x Integer) (y Integer)) y)
       Integer]
     )
   )
@@ -914,7 +917,7 @@
    --- Integer
    (R-typed Γ integer TST)]
   [
-   (where Γ_x #{type-env-set Γ R x TST})
+   (where Γ_x #{type-env-set Γ x TST})
    (R-typed Γ_x e TST)
    --- Lambda
    (R-typed Γ (λ (x) e) TST)]
@@ -949,12 +952,12 @@
    (R-typed Γ (if e_0 e_1 e_2) TST)]
   [
    (well-typed Γ (L e_0) ?τ)
-   (where Γ_x #{type-env-set Γ L x e_0})
+   (where Γ_x #{type-env-set Γ x e_0})
    (R-typed Γ_x e_1 TST)
    --- Let
    (R-typed Γ (let ((x L e_0)) e_1) TST)]
   [
-   (where Γ_x #{type-env-set Γ L x e_0})
+   (where Γ_x #{type-env-set Γ x e_0})
    (well-typed Γ_x (L e_0) ?τ)
    (R-typed Γ_x e_1 TST)
    --- Letrec
@@ -984,7 +987,7 @@
    --- Integer
    (T-typed Γ integer Integer)]
   [
-   (where Γ_x #{type-env-set Γ T x τ_0}) ;; TODO sometimes use S ?
+   (where Γ_x #{type-env-set Γ x τ_0}) ;; TODO sometimes use S ?
    (T-typed Γ_x e τ_2)
    (subtype? τ_2 τ_1)
    --- Lambda
@@ -1034,7 +1037,7 @@
    (T-typed Γ (if e_0 e_1 e_2) τ)]
   [
    (well-typed Γ (L (:: e_0 τ_0)) ?τ_dontcare) ;; ?τ_dontcare might be TST, only τ_0 matters
-   (where Γ_x #{type-env-set Γ L x τ_0})
+   (where Γ_x #{type-env-set Γ x τ_0})
    (T-typed Γ_x e_1 τ_1)
    --- Let
    (T-typed Γ (let ((x L (:: e_0 τ_0))) e_1) τ_1)]
@@ -1044,7 +1047,7 @@
    --- LetError
    (T-typed Γ (let ((x L e_0)) e_1) Integer)]
   [
-   (where Γ_x #{type-env-set Γ L x τ_0})
+   (where Γ_x #{type-env-set Γ x τ_0})
    (well-typed Γ_x (L (:: e_0 τ_0)) τ_dontcare)
    (T-typed Γ_x e_1 τ_1)
    --- Letrec
