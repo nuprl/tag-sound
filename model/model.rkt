@@ -604,6 +604,8 @@
   [(kont-pop Kont)
    (,(car (term Kont)) ,(cdr (term Kont)))])
 
+;; (language<? L0 L1)
+;; if L1 has a finer static type system than L0
 (define-judgment-form RST
   #:mode (language<? I I)
   #:contract (language<? L L)
