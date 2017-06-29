@@ -44,3 +44,13 @@
 
 ;; typeof(mon τ _ _) = τ
 ;; typeof(_) = τ0 or (TST → TST)
+
+;; -----------------------------------------------------------------------------
+;; --- examples
+
+;; Assume type-checked,
+;; ((λR f . f) (λS x . (+ x 1))) :: String->String
+;; --> (mon [String->String] R ((λ f . f) (mon [Int->Int] (λS x . (+ x 1)))))
+;; --> (mon [String->String] R (mon [Int->Int] (λS x . (+ x 1))))
+;; --> (mon [String->String] R (λS x . (+ x 1)))
+;; ??? why does/should this work ??!
