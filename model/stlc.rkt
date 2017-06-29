@@ -2,6 +2,12 @@
 
 ;; Workspace for a type sound RST, based on simply-typed λ calculus
 
+;; TODO
+;; - substitution lemma (anything hard here?)
+;; - mon, need to remember more things????
+;; - mon, why/how not nested???
+;; - lemma `∀L . ⊢L mon(t,e,L+) : t`
+
 ;; =============================================================================
 
 (require
@@ -21,3 +27,20 @@
 
 ;; =============================================================================
 
+
+;; -----------------------------------------------------------------------------
+;; --- evalution
+
+;; simple rule for application
+;; - if e0 not value then step
+;; - if e1 not value then step
+;; - if L_ctx = R and v0 not λ then die
+;; - if L_ctx finer-than L_λ then mon(t_cod (e[x ↦ mon(t_dom v1 L_ctx)]) L_λ)
+;; - if L_ctx coarser-than L_λ then e[x ↦ mon(t_dom v1 L_ctx)]
+;; - else e[x ↦ v1]
+
+;; lang(mon _ _ L) = L
+;; lang(_) = L_ctx
+
+;; typeof(mon τ _ _) = τ
+;; typeof(_) = τ0 or (TST → TST)
