@@ -54,7 +54,13 @@
 
 ;; ---
 
+;; HIGH-LEVEL CHECKLIST
 ;; - prove "soundness" for closed programs
+;;   - work with on-paper calculi
+;;     - STLC
+;;     - sysF
+;;     - sysF + list
+;;     - sysF + list + box
 ;; - prove absence of certain errors in certain contexts
 
 ;; After CESK machine is good,
@@ -518,7 +524,6 @@
   [(store-ref-value Store addr)
    ?v
    (where (L ?v ?τ) #{store-ref Store addr})])
-
 (define-metafunction RST
   store-ref-value* : Store v -> v
   [(store-ref-value* Store addr)
@@ -1671,7 +1676,7 @@
   T-dynamic-typecheck : Store addr τ -> any
   [(T-dynamic-typecheck Store addr (Boxof τ))
    (addr Store_new)
-   (where (box addr_v) #{store-ref-box Store addr})
+   (where (box addr_v) #{store-ref-value Store addr})
    (where (addr_new Store_new) (T-dynamic-typecheck Store addr_v τ))]
   [(T-dynamic-typecheck Store addr (→ τ_0 τ_1))
    (addr #{store-update-type Store addr τ_new})
@@ -1706,7 +1711,7 @@
               ([n2 (in-list (cdr int*))])
       (f acc n2))))
 
-#;(module+ test
+(module+ test
   (test-case "init"
     (check-pred Σ? (term #{init (R 4)})))
 
@@ -2126,8 +2131,6 @@
       (λ () (term (eval (S (let ((f R (:: (λ (x) (+ #true #false)) (→ Integer Integer)))) (f 3)))))))
   )
 
-)
-(module+ test
   (test-case "boxof-R-in-T"
     (check-mf-apply*
      [(eval (T (let ((b R (:: (box 1) (Boxof Integer))))
@@ -2277,6 +2280,18 @@
                                                (→ Integer Integer)))) g)
                                 (→ Boolean Boolean))))
                    (h #true))))))))
+
+  (test-case "box"
+    (check-exn #rx"T expected \\(Boxof Integer\\) given 42"
+      (λ () (term (eval (T (let ((x R (:: 42 (Boxof Integer)))) #false))))))
+
+    (check-exn #rx"S expected \\(Boxof Integer\\) given 42"
+      (λ () (term (eval (S (let ((x R (:: 42 (Boxof Integer)))) #false))))))
+
+    (check-not-exn
+      (λ () (term (eval (S (let ((x R (:: (box #true) (Boxof Integer)))) #false)))))))
+)
+(module+ test
 
   #;(test-case "helpme" (parameterize ([*debug* #t])
   (check-mf-apply*
