@@ -48,7 +48,8 @@
 ;; Simple [Racket Shallow Typed] language
 (define-language RST
   (e ::= v (e e) x (let (x τ P) e) (+ e e) (= e e) (if e e e) (and e e) (pre-mon L τ P))
-  (v ::= integer boolean (λ (x τ) e) (mon L τ (L v)))
+  (v ::= integer boolean Λ (mon L τ (L v)))
+  (Λ ::= (λ (x τ) e))
   (P ::= (L e))
   (τ ::= Int Bool (Pair τ τ) (→ τ τ) TST)
   (L ::= R S T)
@@ -59,18 +60,22 @@
          (+ E e) (+ v E)
          (= E e) (= v E)
          (if E e e)
-         (and E e)
+         (and E e) (and v E)
          ;; --- following 2 handled explicitly ... I guess need "context/lang"?
          ;; (let (x τ (L E)) e) ;; ???
          ;; (pre-mon L τ P) ;; ???
          )
-  (RuntimeError ::= (AppError P) (BoundaryError L τ P))
+  (RuntimeError ::= (DynError P) (BoundaryError L τ P))
+  (A ::= P RuntimeError)
   (x ::= variable-not-otherwise-mentioned)
 #:binding-forms
   (λ (x τ) e #:refers-to x))
 
 (define (α=? e0 e1)
   (alpha-equivalent? RST e0 e1))
+
+(define Λ?
+  (redex-match? RST Λ))
 
 (module+ test
   (*term-equal?* α=?)
@@ -81,23 +86,39 @@
       #:with (x?* ...) (for/list ([x (in-list (syntax-e #'(x* ...)))]) (format-id stx "~a?" (syntax-e x)))
       (syntax/loc stx (begin (define x?* (redex-match? RST x*)) ...))]))
 
-  (define-predicate* [e v τ Γ P])
+  (define-predicate* [e v τ Γ P E])
 
   (test-case "define-language"
     (check-pred e? (term 2))
     (check-pred e? (term (+ 1 1)))
     (check-pred e? (term (= x 1)))
     (check-pred e? (term (if (= x 1) 1 #false)))
+    (check-pred e? (term (if #true 2 3)))
     (check-pred τ? (term (→ Int Int)))
     (check-pred τ? (term TST))
     (check-pred P? (term (R (if (= x 1) 1 #false))))
     (check-pred P? (term (R (λ (x TST) (if (= x 1) 1 #false)))))
-    (check-pred P? (term (R (let (f (→ Int Int) (R (λ (x TST) (if (= x 1) 1 #false)))) (f 1))))))
+    (check-pred P? (term (R (if 1 2 3))))
+    (check-pred P? (term (R (let (f (→ Int Int) (R (λ (x TST) (if (= x 1) 1 #false)))) (f 1)))))
+    (check-pred e? (term (if 1 2 3)))
+    ;(check-pred E? (term (in-hole hole 2)))
+    ;(check-pred E? (term (in-hole (+ hole (+ 2 2)) 1)))
+    ;(check-pred E? (term (in-hole hole (if #true 2 3))))
+    ;(check-pred E? (term (in-hole hole (if 1 2 3))))
+  )
 
 )
 
 ;; -----------------------------------------------------------------------------
-;; --- check-type
+;; --- type checking / inference
+
+(define-judgment-form RST
+  #:mode (well-typed I)
+  #:contract (well-typed P)
+  [
+   (infer-type () P τ)
+   ---
+   (well-typed P)])
 
 (define-judgment-form RST
   #:mode (check-type I I I)
@@ -129,7 +150,7 @@
    (infer-type Γ (R boolean) TST)]
   [
    ---
-   (infer-type Γ (L\R boolean) TST)]
+   (infer-type Γ (L\R boolean) Bool)]
   [
    (where Γ_x #{type-env-set Γ (x τ_dom)})
    (infer-type Γ_x (R e) τ_cod)
@@ -257,8 +278,13 @@
 
 (module+ test
 
+  (test-case "check-type#"
+    (check-true (term #{check-type# (R (if 1 2 3)) TST})))
+
   (test-case "infer-type#"
     (check-mf-apply*
+     ((infer-type# (S (if (and #true #true) (+ 1 1) (+ 2 2))))
+      Int)
      ((infer-type# (R (let (f (→ Int Int) (R (λ (x TST) (if (= x 1) 1 #false)))) (f 1))))
       TST)
      ((infer-type# (S (let (f (→ Int Int) (R (λ (x TST) (if (= x 1) 1 #false)))) (f 1))))
@@ -391,124 +417,167 @@
 ;; -----------------------------------------------------------------------------
 ;; --- evalution
 
-;(define -->RST
-;  (reduction-relation RST
-;    #:domain P
-;;; -- MON
-;    [-->
-;     (L (in-hole E (pre-mon L_ctx τ_ctx P)))
-;     (L (in-hole E (pre-mon L_ctx τ_ctx P_step)))
-;     PreMon-Step
-;     (where (P_step) ,(apply-reduction-relation -->RST (term P)))]
-;    [-->
-;     (L (in-hole E (pre-mon L_ctx τ_ctx (L_v v))))
-;     (L (in-hole E v_+))
-;     PreMon-CoarserContext
-;     (judgment-holds (coarser-than L_ctx L_v))
-;     (where v_+ ,(if (judgment-holds (flat L_v τ_ctx))
-;                   (term v) ;; Assumes `⊢ v : τ_ctx`
-;                   (term (mon L_ctx τ_ctx (L_v v)))))]
-;    [-->
-;     (L (in-hole E (pre-mon L τ (L v))))
-;     (L (in-hole E v))
-;     PreMon-NoBoundary]
-;    [-->
-;     (L (in-hole E (pre-mon L_ctx τ_ctx (L_v v))))
-;     (L (in-hole E v_+))
-;     PreMon-FinerContext-M
-;     (judgment-holds (finer-than L_ctx L_v))
-;     (judgment-holds (dynamic-typecheck (L_v v) τ))
-;     (where v_+ ,(if (judgment-holds (flat L_v τ_ctx))
-;                   (term v)
-;                   (term (mon L_ctx τ_ctx (L_v v)))))]
-;    [-->
-;     (L (in-hole E (pre-mon L_ctx τ_ctx (L_v v))))
-;     (L (BoundaryError L_ctx τ_ctx (L_v v)))
-;     PreMon-FinerContext-N
-;     (judgment-holds (finer-than L_ctx L_v))
-;     (side-condition ,(not (judgment-holds (dynamic-typecheck (L_v v) τ}))))]
-;;; -- APP
-;    [-->
-;     (L (in-hole E ((λ (x τ) e) v_1)))
-;     (L (in-hole E (substitute e x v_1)))
-;     App-Beta]
-;    [-->
-;     (L (in-hole E ((mon L_ctx (→ τ_dom τ_cod) (L_λ v)) v_1)))
-;     (L (in-hole E (pre-mon L_ctx τ_cod (L_λ (v (pre-mon L_λ τ_dom (L_ctx v_1)))))))
-;     App-Mon]
-;    [-->
-;     (R (in-hole E (v_0 v_1)))
-;     (DynError (R (v_0 v_1)))
-;     App-Error]
-;;; -- LET
-;    [-->
-;     (L (in-hole E (let (x τ P) e_body)))
-;     (L (in-hole E (let (x τ P_step) e_body)))
-;     Let
-;     (where (P_step) ,(apply-reduction-relation -->RST (term P)))]
-;    [-->
-;     (L (in-hole E (let (x τ (L_v v)) e_body)))
-;     (L (in-hole E ((λ (x τ) e_body) (pre-mon L τ (L_v v)))))
-;     Let-Beta]
-;;; -- Primop, If, etc
-;    [-->
-;     (L (in-hole E (+ integer_0 integer_1)))
-;     (L (in-hole E ,(+ (term integer_0) (term integer_1))))
-;     +]
-;    [-->
-;     (R (in-hole E (+ v_0 v_1)))
-;     (DynError (R (+ v_0 v_1)))
-;     +-Error]
-;    [-->
-;     (L (in-hole E (= integer_0 integer_1)))
-;     (L (in-hole E ,(= (term integer_0) (term integer_1))))
-;     =]
-;    [-->
-;     (R (in-hole E (= v_0 v_1)))
-;     (DynError (R (= v_0 v_1)))
-;     =-Error]
-;    [-->
-;     (L (in-hole E (and #true e_1)))
-;     (L (in-hole E e_1))
-;     And-True]
-;    [-->
-;     (L (in-hole E (and #false e_1)))
-;     (L (in-hole E #false))
-;     And-False]
-;    [-->
-;     (R (in-hole E (and v_0 e_1)))
-;     (DynError (R (and v_0 e_1)))
-;     And-Error]
-;    [-->
-;     (L (in-hole E (if #true e_1 e_2)))
-;     (L (in-hole E e_1))
-;     If-True]
-;    [-->
-;     (L (in-hole E (if #false e_1 e_2)))
-;     (L (in-hole E e_2))
-;     If-False]
-;    [-->
-;     (R (in-hole E (if v_0 e_1 e_2)))
-;     (DynError (R (if v_0 e_1 e_2)))
-;     If-Error]
-;))
+(define -->RST
+  (reduction-relation RST
+    #:domain A
+;; -- MON
+    [-->
+     (L (in-hole E (pre-mon L_ctx τ_ctx P)))
+     (L (in-hole E (pre-mon L_ctx τ_ctx P_step)))
+     PreMon-Step
+     (where (P_step) ,(apply-reduction-relation -->RST (term P)))]
+    [-->
+     (L (in-hole E (pre-mon L_ctx τ_ctx (L_v v))))
+     (L (in-hole E v_+))
+     PreMon-CoarserContext
+     (judgment-holds (coarser-than L_ctx L_v))
+     (where v_+ ,(if (judgment-holds (flat L_v τ_ctx))
+                   (term v) ;; Assumes `⊢ v : τ_ctx`
+                   (term (mon L_ctx τ_ctx (L_v v)))))]
+    [-->
+     (L (in-hole E (pre-mon L τ (L v))))
+     (L (in-hole E v))
+     PreMon-NoBoundary]
+    [-->
+     (L (in-hole E (pre-mon L_ctx τ_ctx (L_v v))))
+     (L (in-hole E v_+))
+     PreMon-FinerContext-M
+     (judgment-holds (finer-than L_ctx L_v))
+     (judgment-holds (dynamic-typecheck (L_v v) τ))
+     (where v_+ ,(if (judgment-holds (flat L_v τ_ctx))
+                   (term v)
+                   (term (mon L_ctx τ_ctx (L_v v)))))]
+    [-->
+     (L (in-hole E (pre-mon L_ctx τ_ctx (L_v v))))
+     (L (BoundaryError L_ctx τ_ctx (L_v v)))
+     PreMon-FinerContext-N
+     (judgment-holds (finer-than L_ctx L_v))
+     (side-condition (not (judgment-holds (dynamic-typecheck (L_v v) τ))))]
+;; -- APP
+    [-->
+     (L (in-hole E ((λ (x τ) e) v_1)))
+     (L (in-hole E (substitute e x v_1)))
+     App-Beta]
+    [-->
+     (L (in-hole E ((mon L_ctx (→ τ_dom τ_cod) (L_λ v)) v_1)))
+     (L (in-hole E (pre-mon L_ctx τ_cod (L_λ (v (pre-mon L_λ τ_dom (L_ctx v_1)))))))
+     App-Mon]
+    [-->
+     (R (in-hole E (v_0 v_1)))
+     (DynError (R (v_0 v_1)))
+     App-Error
+     (side-condition (not (Λ? (term v_0))))]
+;; -- LET
+    [-->
+     (L (in-hole E (let (x τ P) e_body)))
+     (L (in-hole E (let (x τ P_step) e_body)))
+     Let
+     (where (P_step) ,(apply-reduction-relation -->RST (term P)))]
+    [-->
+     (L (in-hole E (let (x τ (L_v v)) e_body)))
+     (L (in-hole E ((λ (x τ) e_body) (pre-mon L τ (L_v v)))))
+     Let-Beta]
+;; -- Primop, If, etc
+    [-->
+     (L (in-hole E (+ integer_0 integer_1)))
+     (L (in-hole E ,(+ (term integer_0) (term integer_1))))
+     +]
+    [-->
+     (R (in-hole E (+ v_0 v_1)))
+     (DynError (R (+ v_0 v_1)))
+     +-Error
+     (side-condition (or (not (integer? (term v_0))) (not (integer? (term v_1)))))]
+    [-->
+     (L (in-hole E (= integer_0 integer_1)))
+     (L (in-hole E ,(= (term integer_0) (term integer_1))))
+     =]
+    [-->
+     (R (in-hole E (= v_0 v_1)))
+     (DynError (R (= v_0 v_1)))
+     =-Error
+     (side-condition (or (not (integer? (term v_0))) (not (integer? (term v_1)))))]
+    [-->
+     (L (in-hole E (and boolean_0 boolean_1)))
+     (L (in-hole E ,(and (term boolean_0) (term boolean_1))))
+     And]
+    [-->
+     (R (in-hole E (and v_0 v_1)))
+     (DynError (R (and v_0 v_1)))
+     And-Error
+     (side-condition (or (not (boolean? (term v_0))) (not (boolean? (term v_1)))))]
+    [-->
+     (L (in-hole E (if #true e_1 e_2)))
+     (L (in-hole E e_1))
+     If-True]
+    [-->
+     (L (in-hole E (if #false e_1 e_2)))
+     (L (in-hole E e_2))
+     If-False]
+    [-->
+     (R (in-hole E (if v_0 e_1 e_2)))
+     (DynError (R (if v_0 e_1 e_2)))
+     If-Error
+     (side-condition (not (boolean? (term v_0))))]
+))
+
+(define -->RST*
+  (make--->* -->RST))
+
+(define-metafunction RST
+  eval : P -> A
+  [(eval P)
+   A
+   (judgment-holds (well-typed P))
+   (where A ,(-->RST* (term P)))]
+  [(eval P)
+   ,(raise-user-error 'eval "trouble eval'ing ~a" (term P))
+   (judgment-holds (well-typed P))]
+  [(eval P)
+   ,(raise-user-error 'eval "ill-typed program ~a" (term P))])
 
 (module+ test
+
+  (test-case "eval:I"
+
+    (check-mf-apply*
+     ((eval (R (if 1 2 3)))
+      (DynError (R (if 1 2 3))))
+     ((eval (R (if #false 2 3)))
+      (R 3))
+     ((eval (R (if #true 2 3)))
+      (R 2))
+     ((eval (R (and 1 2)))
+      (DynError (R (and 1 2))))
+     ((eval (R (and #true 3)))
+      (DynError (R (and #true 3))))
+     ((eval (R (and #true #false)))
+      (R #false))
+     ((eval (R (and #false #true)))
+      (R #false))
+     ((eval (R (and #true #true)))
+      (R #true))
+     ((eval (R (= 1 1)))
+      (R #true))
+     ((eval (R (= 1 2)))
+      (R #false))
+     ((eval (R (= #true 2)))
+      (DynError (R (= #true 2))))
+     ((eval (R (= 3 (= 1 1))))
+      (DynError (R (= 3 #true))))
+     ((eval (R (+ 2 2)))
+      (R 4))
+    )
+  )
+
+  (test-case "eval:II"
+    (check-mf-apply*
+     ((eval (S (if (and #true #true) (+ 1 1) (+ 2 2))))
+      (S 2))
+     ((eval (T (if (and #true (= 4 2)) (+ 1 1) (+ 2 2))))
+      (T 4))
+    )
+  )
 )
-
-;; simple rule for application
-;; - if e0 not value then step
-;; - if e1 not value then step
-;; - if L_ctx = R and v0 not λ then die
-;; - if L_ctx finer-than L_λ then mon(t_cod (e[x ↦ mon(t_dom v1 L_ctx)]) L_λ)
-;; - if L_ctx coarser-than L_λ then e[x ↦ mon(t_dom v1 L_ctx)]
-;; - else e[x ↦ v1]
-
-;; lang(mon _ _ L) = L
-;; lang(_) = L_ctx
-
-;; typeof(mon τ _ _) = τ
-;; typeof(_) = τ0 or (TST → TST)
 
 ;; -----------------------------------------------------------------------------
 ;; --- type helpers
@@ -574,13 +643,3 @@
    ,(for/first ([xτ (in-list (term Γ))]
                 #:when (eq? (term x) (car xτ)))
       (cadr xτ))])
-
-;; -----------------------------------------------------------------------------
-;; --- examples
-
-;; Assume type-checked,
-;; ((λR f . f) (λS x . (+ x 1))) :: String->String
-;; --> (mon [String->String] R ((λ f . f) (mon [Int->Int] (λS x . (+ x 1)))))
-;; --> (mon [String->String] R (mon [Int->Int] (λS x . (+ x 1))))
-;; --> (mon [String->String] R (λS x . (+ x 1)))
-;; ??? why does/should this work ??!
