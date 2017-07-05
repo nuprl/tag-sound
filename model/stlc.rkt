@@ -158,7 +158,7 @@
    (infer-type Γ (R (λ (x τ_dom) e)) TST)]
   [
    (where Γ_x #{type-env-set Γ (x τ_dom)})
-   (infer-type Γ_x (R e) τ_cod)
+   (infer-type Γ_x (L\R e) τ_cod)
    ---
    (infer-type Γ (L\R (λ (x τ_dom) e)) (→ τ_dom τ_cod))]
   [
@@ -291,6 +291,15 @@
       Int)
      ((infer-type# (T (let (f (→ Int Int) (R (λ (x TST) (if (= x 1) 1 #false)))) (f 1))))
       Int)))
+
+  (test-case "well-typed"
+    (check-judgment-holds*
+     (well-typed (T (λ (x Int) 2)))
+     (infer-type () (T (λ (x Int) 3)) (→ Int Int))
+     (check-type () (T (λ (x Int) 3)) (→ Int Int))
+     (well-typed (R ((mon R (→ Int Int) (T (λ (x Int) 2))) 7)))
+    )
+  )
 )
 
 ;; -----------------------------------------------------------------------------
@@ -443,8 +452,8 @@
      (L (in-hole E v_+))
      PreMon-FinerContext-M
      (judgment-holds (finer-than L_ctx L_v))
-     (judgment-holds (dynamic-typecheck (L_v v) τ))
-     (where v_+ ,(if (judgment-holds (flat L_v τ_ctx))
+     (judgment-holds (dynamic-typecheck (L_ctx v) τ_ctx))
+     (where v_+ ,(if (judgment-holds (flat L_ctx τ_ctx))
                    (term v)
                    (term (mon L_ctx τ_ctx (L_v v)))))]
     [-->
@@ -452,7 +461,7 @@
      (L (BoundaryError L_ctx τ_ctx (L_v v)))
      PreMon-FinerContext-N
      (judgment-holds (finer-than L_ctx L_v))
-     (side-condition (not (judgment-holds (dynamic-typecheck (L_v v) τ))))]
+     (side-condition (not (judgment-holds (dynamic-typecheck (L_ctx v) τ_ctx))))]
 ;; -- APP
     [-->
      (L (in-hole E ((λ (x τ) e) v_1)))
@@ -466,7 +475,7 @@
      (R (in-hole E (v_0 v_1)))
      (DynError (R (v_0 v_1)))
      App-Error
-     (side-condition (not (Λ? (term v_0))))]
+     (side-condition (not (judgment-holds (proc? v_0))))]
 ;; -- LET
     [-->
      (L (in-hole E (let (x τ P) e_body)))
@@ -537,8 +546,8 @@
 
 (module+ test
 
-  (test-case "eval:I"
-
+  (test-case "eval:R:I"
+    ;; simplest terms, R language
     (check-mf-apply*
      ((eval (R (if 1 2 3)))
       (DynError (R (if 1 2 3))))
@@ -566,10 +575,29 @@
       (DynError (R (= 3 #true))))
      ((eval (R (+ 2 2)))
       (R 4))
+     ((eval (R (+ #true 2)))
+      (DynError (R (+ #true 2))))
+     ((eval (R (+ 2 #true)))
+      (DynError (R (+ 2 #true))))
     )
   )
 
-  (test-case "eval:II"
+  (test-case "eval:R:II"
+    (check-mf-apply*
+      ((eval (R (let (n1 Bool (R #false)) n1)))
+       (R #false))
+      ((eval (R (let (n1 Int (R (+ 2 2))) (+ n1 n1))))
+       (R 8))
+      ((eval (R ((λ (x TST) (+ x 1)) 1)))
+       (R 2))
+      ((eval (R (1 1)))
+       (DynError (R (1 1))))
+      ((eval (R ((mon R (→ Int Int) (T (λ (x Int) 2))) 7)))
+       (R 2))
+    )
+  )
+
+  (test-case "eval:S:I"
     (check-mf-apply*
      ((eval (S (if (and #true #true) (+ 1 1) (+ 2 2))))
       (S 2))
@@ -643,3 +671,19 @@
    ,(for/first ([xτ (in-list (term Γ))]
                 #:when (eq? (term x) (car xτ)))
       (cadr xτ))])
+
+;; -----------------------------------------------------------------------------
+;; --- eval helpers
+
+(define-judgment-form RST
+  #:mode (proc? I)
+  #:contract (proc? v)
+  [
+   ---
+   (proc? (λ (x τ) e))]
+  [
+   ;; TODO should only check type? Depends on L?
+   (proc? v_1)
+   ---
+   (proc? (mon L_0 τ_0 (L_1 v_1)))])
+
