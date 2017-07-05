@@ -64,7 +64,7 @@
          ;; (let (x τ (L E)) e) ;; ???
          ;; (pre-mon L τ P) ;; ???
          )
-  (RuntimeError ::= (AppError P))
+  (RuntimeError ::= (AppError P) (BoundaryError L τ P))
   (x ::= variable-not-otherwise-mentioned)
 #:binding-forms
   (λ (x τ) e #:refers-to x))
@@ -284,7 +284,7 @@
    --- Trans
    (coarser-than R T)])
 
-;; L <= L
+;; L < L
 (define-judgment-form RST
   #:mode (finer-than I I)
   #:contract (finer-than L L)
@@ -296,22 +296,29 @@
    (finer-than T S)]
   [
    --- Trans
-   (finer-than T R)]
-  [
-   ---
-   (finer-than L L)])
+   (finer-than T R)])
 
 (module+ test
   (test-case "coarser/finer"
     (check-true (judgment-holds (coarser-than R T)))
     (check-true (judgment-holds (coarser-than R S)))
     (check-true (judgment-holds (coarser-than S T)))
+
+    (check-false (judgment-holds (finer-than R T)))
+    (check-false (judgment-holds (finer-than R S)))
+    (check-false (judgment-holds (finer-than S T)))
+
     (check-true (judgment-holds (finer-than T R)))
     (check-true (judgment-holds (finer-than S R)))
     (check-true (judgment-holds (finer-than T S)))
-    (check-true (judgment-holds (finer-than R R)))
-    (check-true (judgment-holds (finer-than S S)))
-    (check-true (judgment-holds (finer-than T T)))))
+
+    (check-false (judgment-holds (coarser-than T R)))
+    (check-false (judgment-holds (coarser-than S R)))
+    (check-false (judgment-holds (coarser-than T S)))
+
+    (check-false (judgment-holds (finer-than R R)))
+    (check-false (judgment-holds (finer-than S S)))
+    (check-false (judgment-holds (finer-than T T)))))
 
 ;; -----------------------------------------------------------------------------
 ;; --- flat types
@@ -345,6 +352,43 @@
 )
 
 ;; -----------------------------------------------------------------------------
+;; --- dynamic-typecheck
+
+;; Only called when τ is from "finer" language than P
+(define-judgment-form RST
+  #:mode (dynamic-typecheck I I)
+  #:contract (dynamic-typecheck (L v) τ)
+  [
+   (side-condition ,(raise-user-error 'dynamic-typecheck "language R has no dynamic typechecker ~a ~a" (term e) (term τ)))
+   --- R
+   (dynamic-typecheck (R v) τ)]
+  [
+   ---
+   (dynamic-typecheck (L\R integer) Int)]
+  [
+   ---
+   (dynamic-typecheck (L\R boolean) Bool)]
+  [
+   ---
+   (dynamic-typecheck (L\R (λ (x _) e)) (→ τ_dom τ_cod))]
+  [
+   ;; OK because same type
+   ---
+   (dynamic-typecheck (L\R (mon L_0 τ P)) τ)])
+
+(module+ test
+  (test-case "dynamic-typecheck"
+    (check-true (judgment-holds (dynamic-typecheck (S 4) Int)))
+    (check-false (judgment-holds (dynamic-typecheck (S 4) Bool)))
+
+    (check-true (judgment-holds (dynamic-typecheck (S (λ (x Int) 3)) (→ Int Int))))
+    (check-true (judgment-holds (dynamic-typecheck (T (λ (x Int) 3)) (→ Int Int))))
+    (check-true (judgment-holds (dynamic-typecheck (S (λ (x Bool) #false)) (→ Bool Bool))))
+    (check-true (judgment-holds (dynamic-typecheck (T (λ (x Bool) #false)) (→ Bool Bool))))
+  )
+)
+
+;; -----------------------------------------------------------------------------
 ;; --- evalution
 
 ;(define -->RST
@@ -352,17 +396,37 @@
 ;    #:domain P
 ;;; -- MON
 ;    [-->
+;     (L (in-hole E (pre-mon L_ctx τ_ctx P)))
+;     (L (in-hole E (pre-mon L_ctx τ_ctx P_step)))
+;     PreMon-Step
+;     (where (P_step) ,(apply-reduction-relation -->RST (term P)))]
+;    [-->
 ;     (L (in-hole E (pre-mon L_ctx τ_ctx (L_v v))))
+;     (L (in-hole E v_+))
+;     PreMon-CoarserContext
+;     (judgment-holds (coarser-than L_ctx L_v))
+;     (where v_+ ,(if (judgment-holds (flat L_v τ_ctx))
+;                   (term v) ;; Assumes `⊢ v : τ_ctx`
+;                   (term (mon L_ctx τ_ctx (L_v v)))))]
+;    [-->
+;     (L (in-hole E (pre-mon L τ (L v))))
 ;     (L (in-hole E v))
-;     PreMon-Mon
-;     ;; L_v finer than L_ctx
-;     ;; (flat L_v v)
-;     ]
-;
-;    [--> ;; TODO overlap
+;     PreMon-NoBoundary]
+;    [-->
 ;     (L (in-hole E (pre-mon L_ctx τ_ctx (L_v v))))
-;     (L (in-hole E (mon L_ctx τ_ctx (L_v v))))
-;     PreMon-Mon]
+;     (L (in-hole E v_+))
+;     PreMon-FinerContext-M
+;     (judgment-holds (finer-than L_ctx L_v))
+;     (judgment-holds (dynamic-typecheck (L_v v) τ))
+;     (where v_+ ,(if (judgment-holds (flat L_v τ_ctx))
+;                   (term v)
+;                   (term (mon L_ctx τ_ctx (L_v v)))))]
+;    [-->
+;     (L (in-hole E (pre-mon L_ctx τ_ctx (L_v v))))
+;     (L (BoundaryError L_ctx τ_ctx (L_v v)))
+;     PreMon-FinerContext-N
+;     (judgment-holds (finer-than L_ctx L_v))
+;     (side-condition ,(not (judgment-holds (dynamic-typecheck (L_v v) τ}))))]
 ;;; -- APP
 ;    [-->
 ;     (L (in-hole E ((λ (x τ) e) v_1)))
