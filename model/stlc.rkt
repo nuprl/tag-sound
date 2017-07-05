@@ -7,6 +7,8 @@
 ;; - mon, need to remember more things????
 ;; - mon, why/how not nested???
 ;; - lemma `∀L . ⊢L mon(t,e,L+) : t`
+;; - (L E) ... the hole in E should always have context L
+;;   - pre-mon cannot contain boundaries?
 
 ;; - (check-type (T e) τ)
 ;;   implies (check-type (S e) τ)
@@ -14,6 +16,8 @@
 ;; - 
 
 ;; NEXT
+;; - less ad-hoc about R dynamic checks
+;;   - should be explicit, check integer args, function in app position
 ;; - can infer-type not care about language?
 ;;   - maybe, just change type= and its just 1 set of rules?
 ;; - Pair values
@@ -43,7 +47,7 @@
 
 ;; Simple [Racket Shallow Typed] language
 (define-language RST
-  (e ::= v (e e) x (let (x τ P) e) (+ e e) (= e e) (if e e e) (and e e) (mon L τ P) (pre-mon L τ P))
+  (e ::= v (e e) x (let (x τ P) e) (+ e e) (= e e) (if e e e) (and e e) (pre-mon L τ P))
   (v ::= integer boolean (λ (x τ) e) (mon L τ (L v)))
   (P ::= (L e))
   (τ ::= Int Bool (Pair τ τ) (→ τ τ) TST)
@@ -55,7 +59,12 @@
          (+ E e) (+ v E)
          (= E e) (= v E)
          (if E e e)
-         (and E e))
+         (and E e)
+         ;; --- following 2 handled explicitly ... I guess need "context/lang"?
+         ;; (let (x τ (L E)) e) ;; ???
+         ;; (pre-mon L τ P) ;; ???
+         )
+  (RuntimeError ::= (AppError P))
   (x ::= variable-not-otherwise-mentioned)
 #:binding-forms
   (λ (x τ) e #:refers-to x))
@@ -259,6 +268,154 @@
 )
 
 ;; -----------------------------------------------------------------------------
+;; --- "granularity"
+
+;; L > L
+(define-judgment-form RST
+  #:mode (coarser-than I I)
+  #:contract (coarser-than L L)
+  [
+   ---
+   (coarser-than R S)]
+  [
+   ---
+   (coarser-than S T)]
+  [
+   --- Trans
+   (coarser-than R T)])
+
+;; L <= L
+(define-judgment-form RST
+  #:mode (finer-than I I)
+  #:contract (finer-than L L)
+  [
+   ---
+   (finer-than S R)]
+  [
+   ---
+   (finer-than T S)]
+  [
+   --- Trans
+   (finer-than T R)]
+  [
+   ---
+   (finer-than L L)])
+
+(module+ test
+  (test-case "coarser/finer"
+    (check-true (judgment-holds (coarser-than R T)))
+    (check-true (judgment-holds (coarser-than R S)))
+    (check-true (judgment-holds (coarser-than S T)))
+    (check-true (judgment-holds (finer-than T R)))
+    (check-true (judgment-holds (finer-than S R)))
+    (check-true (judgment-holds (finer-than T S)))
+    (check-true (judgment-holds (finer-than R R)))
+    (check-true (judgment-holds (finer-than S S)))
+    (check-true (judgment-holds (finer-than T T)))))
+
+;; -----------------------------------------------------------------------------
+;; --- evalution
+
+;(define -->RST
+;  (reduction-relation RST
+;    #:domain P
+;;; -- MON
+;    [-->
+;     (L (in-hole E (pre-mon L_ctx τ_ctx (L_v v))))
+;     (L (in-hole E v))
+;     PreMon-Mon
+;     ;; L_v finer than L_ctx
+;     ;; (flat L_v v)
+;     ]
+;
+;    [--> ;; TODO overlap
+;     (L (in-hole E (pre-mon L_ctx τ_ctx (L_v v))))
+;     (L (in-hole E (mon L_ctx τ_ctx (L_v v))))
+;     PreMon-Mon]
+;;; -- APP
+;    [-->
+;     (L (in-hole E ((λ (x τ) e) v_1)))
+;     (L (in-hole E (substitute e x v_1)))
+;     App-Beta]
+;    [-->
+;     (L (in-hole E ((mon L_ctx (→ τ_dom τ_cod) (L_λ v)) v_1)))
+;     (L (in-hole E (pre-mon L_ctx τ_cod (L_λ (v (pre-mon L_λ τ_dom (L_ctx v_1)))))))
+;     App-Mon]
+;    [-->
+;     (R (in-hole E (v_0 v_1)))
+;     (DynError (R (v_0 v_1)))
+;     App-Error]
+;;; -- LET
+;    [-->
+;     (L (in-hole E (let (x τ P) e_body)))
+;     (L (in-hole E (let (x τ P_step) e_body)))
+;     Let
+;     (where (P_step) ,(apply-reduction-relation -->RST (term P)))]
+;    [-->
+;     (L (in-hole E (let (x τ (L_v v)) e_body)))
+;     (L (in-hole E ((λ (x τ) e_body) (pre-mon L τ (L_v v)))))
+;     Let-Beta]
+;;; -- Primop, If, etc
+;    [-->
+;     (L (in-hole E (+ integer_0 integer_1)))
+;     (L (in-hole E ,(+ (term integer_0) (term integer_1))))
+;     +]
+;    [-->
+;     (R (in-hole E (+ v_0 v_1)))
+;     (DynError (R (+ v_0 v_1)))
+;     +-Error]
+;    [-->
+;     (L (in-hole E (= integer_0 integer_1)))
+;     (L (in-hole E ,(= (term integer_0) (term integer_1))))
+;     =]
+;    [-->
+;     (R (in-hole E (= v_0 v_1)))
+;     (DynError (R (= v_0 v_1)))
+;     =-Error]
+;    [-->
+;     (L (in-hole E (and #true e_1)))
+;     (L (in-hole E e_1))
+;     And-True]
+;    [-->
+;     (L (in-hole E (and #false e_1)))
+;     (L (in-hole E #false))
+;     And-False]
+;    [-->
+;     (R (in-hole E (and v_0 e_1)))
+;     (DynError (R (and v_0 e_1)))
+;     And-Error]
+;    [-->
+;     (L (in-hole E (if #true e_1 e_2)))
+;     (L (in-hole E e_1))
+;     If-True]
+;    [-->
+;     (L (in-hole E (if #false e_1 e_2)))
+;     (L (in-hole E e_2))
+;     If-False]
+;    [-->
+;     (R (in-hole E (if v_0 e_1 e_2)))
+;     (DynError (R (if v_0 e_1 e_2)))
+;     If-Error]
+;))
+
+(module+ test
+)
+
+;; simple rule for application
+;; - if e0 not value then step
+;; - if e1 not value then step
+;; - if L_ctx = R and v0 not λ then die
+;; - if L_ctx finer-than L_λ then mon(t_cod (e[x ↦ mon(t_dom v1 L_ctx)]) L_λ)
+;; - if L_ctx coarser-than L_λ then e[x ↦ mon(t_dom v1 L_ctx)]
+;; - else e[x ↦ v1]
+
+;; lang(mon _ _ L) = L
+;; lang(_) = L_ctx
+
+;; typeof(mon τ _ _) = τ
+;; typeof(_) = τ0 or (TST → TST)
+
+;; -----------------------------------------------------------------------------
 ;; --- type helpers
 
 (define-metafunction RST
@@ -322,23 +479,6 @@
    ,(for/first ([xτ (in-list (term Γ))]
                 #:when (eq? (term x) (car xτ)))
       (cadr xτ))])
-
-;; -----------------------------------------------------------------------------
-;; --- evalution
-
-;; simple rule for application
-;; - if e0 not value then step
-;; - if e1 not value then step
-;; - if L_ctx = R and v0 not λ then die
-;; - if L_ctx finer-than L_λ then mon(t_cod (e[x ↦ mon(t_dom v1 L_ctx)]) L_λ)
-;; - if L_ctx coarser-than L_λ then e[x ↦ mon(t_dom v1 L_ctx)]
-;; - else e[x ↦ v1]
-
-;; lang(mon _ _ L) = L
-;; lang(_) = L_ctx
-
-;; typeof(mon τ _ _) = τ
-;; typeof(_) = τ0 or (TST → TST)
 
 ;; -----------------------------------------------------------------------------
 ;; --- examples
