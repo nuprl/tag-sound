@@ -314,6 +314,37 @@
     (check-true (judgment-holds (finer-than T T)))))
 
 ;; -----------------------------------------------------------------------------
+;; --- flat types
+
+;; `(flat L τ)` iff `τ` is strictly positive and `L` fully-checks values with type `τ`
+(define-judgment-form RST
+  #:mode (flat I I)
+  #:contract (flat L τ)
+  [
+   ---
+   (flat L\R Int)]
+  [
+   ---
+   (flat L\R Bool)]
+  [
+   (flat T τ_0)
+   (flat T τ_1)
+   ---
+   (flat T (Pair τ_0 τ_1))])
+
+(module+ test
+  (test-case "flat"
+    (check-true (judgment-holds (flat T Int)))
+    (check-true (judgment-holds (flat S Int)))
+    (check-false (judgment-holds (flat R Int)))
+
+    (check-true (judgment-holds (flat T (Pair Int Int))))
+    (check-false (judgment-holds (flat S (Pair Int Int))))
+    (check-false (judgment-holds (flat T (Pair Int (Pair (→ Int Int) Int)))))
+  )
+)
+
+;; -----------------------------------------------------------------------------
 ;; --- evalution
 
 ;(define -->RST
