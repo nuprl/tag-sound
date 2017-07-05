@@ -13,6 +13,14 @@
 ;;   implies (check-type (R e) τ)
 ;; - 
 
+;; NEXT
+;; - can infer-type not care about language?
+;;   - maybe, just change type= and its just 1 set of rules?
+;; - Pair values
+;; - polymorphism
+;; - containers
+;; - union types, recursive types
+
 ;; =============================================================================
 
 (require
@@ -48,9 +56,36 @@
          (= E e) (= v E)
          (if E e e)
          (and E e))
-  (x ::= (variable-not-otherwise-mentioned))
+  (x ::= variable-not-otherwise-mentioned)
 #:binding-forms
   (λ (x τ) e #:refers-to x))
+
+(define (α=? e0 e1)
+  (alpha-equivalent? RST e0 e1))
+
+(module+ test
+  (*term-equal?* α=?)
+
+  (define-syntax (define-predicate* stx)
+    (syntax-parse stx
+     [(_ [x*:id ...])
+      #:with (x?* ...) (for/list ([x (in-list (syntax-e #'(x* ...)))]) (format-id stx "~a?" (syntax-e x)))
+      (syntax/loc stx (begin (define x?* (redex-match? RST x*)) ...))]))
+
+  (define-predicate* [e v τ Γ P])
+
+  (test-case "define-language"
+    (check-pred e? (term 2))
+    (check-pred e? (term (+ 1 1)))
+    (check-pred e? (term (= x 1)))
+    (check-pred e? (term (if (= x 1) 1 #false)))
+    (check-pred τ? (term (→ Int Int)))
+    (check-pred τ? (term TST))
+    (check-pred P? (term (R (if (= x 1) 1 #false))))
+    (check-pred P? (term (R (λ (x TST) (if (= x 1) 1 #false)))))
+    (check-pred P? (term (R (let (f (→ Int Int) (R (λ (x TST) (if (= x 1) 1 #false)))) (f 1))))))
+
+)
 
 ;; -----------------------------------------------------------------------------
 ;; --- check-type
@@ -73,7 +108,7 @@
 
 (define-judgment-form RST
   #:mode (infer-type I I O)
-  #:contract (infer-type Γ P TST)
+  #:contract (infer-type Γ P τ)
   [
    ---
    (infer-type Γ (R integer) TST)]
@@ -86,126 +121,142 @@
   [
    ---
    (infer-type Γ (L\R boolean) TST)]
-;  [
-;   (where Γ_x #{type-env-set Γ (x τ)})
-;   (infer-type-R Γ_x e TST)
-;   ---
-;   (infer-type-R Γ (λ (x τ) e) TST)]
-;  [
-;   (infer-type-R Γ e_0 TST)
-;   (infer-type-R Γ e_1 TST)
-;   ---
-;   (infer-type-R Γ (e_0 e_1) TST)]
-;  [
-;   (where τ #{type-env-ref Γ x})
-;   ---
-;   (infer-type-R Γ x TST)]
-;  [
-;   (check-type Γ P τ)
-;   (where Γ_x #{type-env-set Γ (x τ)})
-;   (infer-type-R Γ_x e TST)
-;   ---
-;   (infer-type-R Γ (let (x τ P) e) TST)]
-;  [
-;   (infer-type-R Γ e_0 TST)
-;   (infer-type-R Γ e_1 TST)
-;   ---
-;   (infer-type-R Γ (+ e_0 e_1) TST)]
-;  [
-;   (infer-type-R Γ e_0 TST)
-;   (infer-type-R Γ e_1 TST)
-;   ---
-;   (infer-type-R Γ (= e_0 e_1) TST)]
-;  [
-;   (infer-type-R Γ e_0 TST)
-;   (infer-type-R Γ e_1 TST)
-;   (infer-type-R Γ e_2 TST)
-;   ---
-;   (infer-type-R Γ (if e_0 e_1 e_2) TST)]
-;  [
-;   (infer-type-R Γ e_0 TST)
-;   (infer-type-R Γ e_1 TST)
-;   ---
-;   (infer-type-R Γ (and e_0 e_1) TST)]
-;  [
-;   (check-type P τ) ;; maybe too strict
-;   ---
-;   (infer-type-R Γ (mon R τ P) TST)]
-;  [
-;   (check-type P τ)
-;   ---
-;   (infer-type-R Γ (pre-mon R τ P) TST)]
+  [
+   (where Γ_x #{type-env-set Γ (x τ_dom)})
+   (infer-type Γ_x (R e) τ_cod)
+   ---
+   (infer-type Γ (R (λ (x τ_dom) e)) TST)]
+  [
+   (where Γ_x #{type-env-set Γ (x τ_dom)})
+   (infer-type Γ_x (R e) τ_cod)
+   ---
+   (infer-type Γ (L\R (λ (x τ_dom) e)) (→ τ_dom τ_cod))]
+  [
+   (infer-type Γ (R e_0) τ_0)
+   (infer-type Γ (R e_1) τ_1)
+   ---
+   (infer-type Γ (R (e_0 e_1)) TST)]
+  [
+   (infer-type Γ (L\R e_0) τ_0)
+   (infer-type Γ (L\R e_1) τ_1)
+   (where (→ τ_dom τ_cod) τ_0)
+   (type= τ_dom τ_1)
+   ---
+   (infer-type Γ (L\R (e_0 e_1)) τ_cod)]
+  [
+   (where τ #{type-env-ref Γ x})
+   ---
+   (infer-type Γ (R x) TST)]
+  [
+   (where τ #{type-env-ref Γ x})
+   ---
+   (infer-type Γ (L\R x) τ)]
+  [
+   (check-type Γ P τ)
+   (where Γ_x #{type-env-set Γ (x τ)})
+   (infer-type Γ_x (R e_body) τ_body)
+   ---
+   (infer-type Γ (R (let (x τ P) e_body)) TST)]
+  [
+   (check-type Γ P τ)
+   (where Γ_x #{type-env-set Γ (x τ)})
+   (infer-type Γ_x (L\R e_body) τ_body)
+   ---
+   (infer-type Γ (L\R (let (x τ P) e_body)) τ_body)]
+  [
+   (infer-type Γ (R e_0) τ_0)
+   (infer-type Γ (R e_1) τ_1)
+   ---
+   (infer-type Γ (R (+ e_0 e_1)) TST)]
+  [
+   (infer-type Γ (L\R e_0) τ_0)
+   (infer-type Γ (L\R e_1) τ_1)
+   (type= τ_0 Int)
+   (type= τ_1 Int)
+   ---
+   (infer-type Γ (L\R (+ e_0 e_1)) Int)]
+  [
+   (infer-type Γ (R e_0) τ_0)
+   (infer-type Γ (R e_1) τ_1)
+   ---
+   (infer-type Γ (R (= e_0 e_1)) TST)]
+  [
+   (infer-type Γ (L\R e_0) τ_0)
+   (infer-type Γ (L\R e_1) τ_1)
+   (type= τ_0 Int)
+   (type= τ_1 Int)
+   ---
+   (infer-type Γ (L\R (= e_0 e_1)) Bool)]
+  [
+   (infer-type Γ (R e_0) τ_0)
+   (infer-type Γ (R e_1) τ_1)
+   (infer-type Γ (R e_2) τ_2)
+   ---
+   (infer-type Γ (R (if e_0 e_1 e_2)) TST)]
+  [
+   (infer-type Γ (L\R e_0) τ_0)
+   (infer-type Γ (L\R e_1) τ_1)
+   (infer-type Γ (L\R e_2) τ_2)
+   (type= τ_1 τ_2)
+   ---
+   (infer-type Γ (L\R (if e_0 e_1 e_2)) τ_2)]
+  [
+   (infer-type Γ (R e_0) τ_0)
+   (infer-type Γ (R e_1) τ_1)
+   ---
+   (infer-type Γ (R (and e_0 e_1)) TST)]
+  [
+   (infer-type Γ (L\R e_0) τ_0)
+   (infer-type Γ (L\R e_1) τ_1)
+   (type= τ_0 Bool)
+   (type= τ_1 Bool)
+   ---
+   (infer-type Γ (L\R (and e_0 e_1)) Bool)]
+  [
+   (check-type Γ P τ)
+   ---
+   (infer-type Γ (R (mon R τ P)) TST)]
+  [
+   (check-type Γ P τ)
+   ---
+   (infer-type Γ (L\R (mon L\R τ P)) τ)]
+  [
+   (check-type Γ P τ)
+   ---
+   (infer-type Γ (R (pre-mon R τ P)) τ)]
+  [
+   (check-type Γ P τ)
+   ---
+   (infer-type Γ (L\R (pre-mon L\R τ P)) τ)]
 )
 
-;;(define-judgment-form RST
-;;  #:mode (infer-type-S I I I)
-;;  #:contract (infer-type-S Γ e τ)
-;;  [
-;;   ---
-;;   (infer-type-S Γ integer Int)]
-;;  [
-;;   ---
-;;   (infer-type-S Γ boolean Bool)]
-;;  [
-;;   (where Γ_x #{type-env-set Γ (x τ_dom)})
-;;   (infer-type-S Γ_x e τ_cod)
-;;   ---
-;;   (infer-type-S Γ (λ (x τ_dom) e) (→ τ_dom τ_cod))]
-;;  [
-;;   (infer-type-S Γ e_0 (→ τ_dom τ_cod))
-;;   (infer-type-S Γ e_1 τ_1)
-;;   (type= τ_dom τ_1)
-;;   ---
-;;   (infer-type-S Γ (e_0 e_1) τ_cod)]
-;;  [
-;;   (where τ #{type-env-ref Γ x})
-;;   ---
-;;   (infer-type-S Γ x τ)]
-;;  [
-;;   (check-type P τ)
-;;   (where Γ_x #{type-env-set Γ (x τ)})
-;;   (infer-type-S Γ_x e τ_e)
-;;   ---
-;;   (infer-type-S Γ (let (x τ P) e) τ_e)]
-;;  [
-;;   (infer-type-S Γ e_0 Int)
-;;   (infer-type-S Γ e_1 Int)
-;;   ---
-;;   (infer-type-S Γ (+ e_0 e_1) Int)]
-;;  [
-;;   (infer-type-S Γ e_0 Int)
-;;   (infer-type-S Γ e_1 Int)
-;;   ---
-;;   (infer-type-S Γ (= e_0 e_1) Bool)]
-;;  [
-;;   (infer-type-S Γ e_0 τ_0)
-;;   (infer-type-S Γ e_1 τ_1)
-;;   (infer-type-S Γ e_2 τ_2)
-;;   (type= τ_1 τ_2)
-;;   ---
-;;   (infer-type-S Γ (if e_0 e_1 e_2) τ_2)]
-;;  [
-;;   (infer-type-S Γ e_0 Bool)
-;;   (infer-type-S Γ e_1 Bool)
-;;   ---
-;;   (infer-type-S Γ (and e_0 e_1) Bool)]
-;;  [
-;;   (check-type P τ) ;; maybe too strict
-;;   ---
-;;   (infer-type-S Γ (mon S τ P) τ)]
-;;  [
-;;   (check-type P τ)
-;;   ---
-;;   (infer-type-S Γ (pre-mon S τ P) τ)]
-;;)
-;;
-;;(define-judgment-form RST
-;;  #:mode (check-type-T I I I)
-;;  #:contract (check-type-T Γ e τ)
-;;)
+(define-metafunction RST
+  check-type# : P τ -> boolean
+  [(check-type# P τ)
+   #true
+   (judgment-holds (check-type () P τ))]
+  [(check-type# P τ)
+   #false])
 
-;; -----------------------------------------------------------------------------
-;; --- infer-type
+(define-metafunction RST
+  infer-type# : P -> τ
+  [(infer-type# P)
+   τ
+   (judgment-holds (infer-type () P τ))]
+  [(infer-type# P)
+   ,(raise-user-error 'infer-type# "failed to infer type for term ~a" (term P))])
+
+(module+ test
+
+  (test-case "infer-type#"
+    (check-mf-apply*
+     ((infer-type# (R (let (f (→ Int Int) (R (λ (x TST) (if (= x 1) 1 #false)))) (f 1))))
+      TST)
+     ((infer-type# (S (let (f (→ Int Int) (R (λ (x TST) (if (= x 1) 1 #false)))) (f 1))))
+      Int)
+     ((infer-type# (T (let (f (→ Int Int) (R (λ (x TST) (if (= x 1) 1 #false)))) (f 1))))
+      Int)))
+)
 
 ;; -----------------------------------------------------------------------------
 ;; --- type helpers
