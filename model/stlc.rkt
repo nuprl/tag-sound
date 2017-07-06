@@ -2,8 +2,10 @@
 
 ;; Workspace for a type sound RST, based on simply-typed λ calculus
 
+;; Status 2017-07-06 : ON HOLD.
+;;  Set this model down, start a new one with just SR
+
 ;; (((SHORT TERM
-;; - run small examples (copy from model, think about others)
 ;; - decide names, state lemmas
 ;; - formal lemmas + proofs
 ;; - simplify
@@ -53,7 +55,7 @@
 ;; =============================================================================
 
 ;; Simple [Racket Shallow Typed] language
-(define-language RST
+(define-language++ RST #:alpha-equivalent? α=?
   (e ::= v (e e) x (let (x τ P) e) (+ e e) (= e e) (if e e e) (and e e) (pre-mon L τ P))
   (v ::= integer boolean Λ (mon L τ (L v)))
   (Λ ::= (λ (x τ) e))
@@ -79,22 +81,8 @@
   (let (x τ P) e #:refers-to x)
   (λ (x τ) e #:refers-to x))
 
-(define (α=? e0 e1)
-  (alpha-equivalent? RST e0 e1))
-
-(define Λ?
-  (redex-match? RST Λ))
-
 (module+ test
   (*term-equal?* α=?)
-
-  (define-syntax (define-predicate* stx)
-    (syntax-parse stx
-     [(_ [x*:id ...])
-      #:with (x?* ...) (for/list ([x (in-list (syntax-e #'(x* ...)))]) (format-id stx "~a?" (syntax-e x)))
-      (syntax/loc stx (begin (define x?* (redex-match? RST x*)) ...))]))
-
-  (define-predicate* [e v τ L\R Γ P E])
 
   (test-case "define-language"
     (check-pred e? (term 2))
