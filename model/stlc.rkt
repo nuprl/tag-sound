@@ -459,6 +459,11 @@
      PreMon-Step
      (where (P_step) ,(apply-reduction-relation -->RST (term P)))]
     [-->
+     (L (in-hole E (pre-mon L_ctx τ_ctx P)))
+     RuntimeError
+     PreMon-Error
+     (where (RuntimeError) ,(apply-reduction-relation -->RST (term P)))]
+    [-->
      (L (in-hole E (pre-mon L_ctx τ_ctx (L_v v))))
      (L (in-hole E v_+))
      PreMon-CoarserContext
@@ -481,7 +486,7 @@
                    (term (mon L_ctx τ_ctx (L_v v)))))]
     [-->
      (L (in-hole E (pre-mon L_ctx τ_ctx (L_v v))))
-     (L (BoundaryError L_ctx τ_ctx (L_v v)))
+     (BoundaryError L_ctx τ_ctx (L_v v))
      PreMon-FinerContext-N
      (judgment-holds (finer-than L_ctx L_v))
      (side-condition (not (judgment-holds (dynamic-typecheck (L_ctx v) τ_ctx))))]
@@ -699,8 +704,54 @@
     (check-exn #rx"typechecking failed"
       (λ () (term (eval (T (let (x Bool (T (+ 2 5))) x)))))))
 
-;  (test-case "eval:from-model"
-    ;; test from the other model of RST
+  (test-case "apply-R-in-T"
+    (check-mf-apply*
+     [(eval (T (let (f (→ Int Int) (R (λ (x TST) (+ x 1))))
+                 (f 3))))
+      (T 4)]
+     [(eval (T (let (f (→ Int Bool) (R (λ (x TST) (if (= 0 x) #false #true))))
+                 (f 3))))
+      (T #true)]
+     [(eval (T (let (f (→ Int Int) (R (λ (x TST) #false))) (f 1))))
+      (BoundaryError T Int (R #false))]
+     [(eval (T (let (f (→ Int Int) (R (λ (x TST) (+ x #false)))) (f 3))))
+      (DynError (R (+ 3 #false)))]
+     [(eval (T (let (f (→ Int Int) (R (λ (x TST) (+ #true #false)))) (f 3))))
+      (DynError (R (+ #true #false)))]
+    )
+  )
+
+  #;(test-case "apply-R-in-S"
+    (check-mf-apply*
+     [(eval (S (let ((f R (:: (λ (x) (+ x 1)) (→ Integer Integer))))
+                 (f 3))))
+      4]
+     [(eval (S (let ((f R (:: (λ (x) (box x)) (→ Integer (Boxof Integer)))))
+                 (f 3))))
+      (box 3)]
+     [(eval (S (let ((f R (:: (λ (x) (box #f)) (→ Integer (Boxof Integer)))))
+                 (f 3))))
+      (box #f)] ;; tag sound!
+    )
+
+    (check-exn #rx"expected Integer given #f"
+      (λ () (term (eval (S (let ((f R (:: (λ (x) #false) (→ Integer Integer)))) (f 3)))))))
+
+    (check-exn #rx"expected address for integer"
+      (λ () (term (eval (S (let ((f R (:: (λ (x) (+ #true #false)) (→ Integer Integer)))) (f 3)))))))
+  )
+
+  #;(test-case "double-wrap"
+    (check-exn #rx"T expected \\(→ Boolean Boolean\\) given \\(CLOSURE"
+      (λ () (term
+        (eval (T (let ((h R (:: (let ((g T (:: (let ((f R (:: (λ (x) x)
+                                                              (→ Integer Integer))))
+                                                 f)
+                                               (→ Integer Integer)))) g)
+                                (→ Boolean Boolean))))
+                   (h #true))))))))
+
+
 )
 
 ;; -----------------------------------------------------------------------------
