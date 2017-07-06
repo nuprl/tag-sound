@@ -2,6 +2,13 @@
 
 ;; Workspace for a type sound RST, based on simply-typed λ calculus
 
+;; (((SHORT TERM
+;; - run small examples (copy from model, think about others)
+;; - decide names, state lemmas
+;; - formal lemmas + proofs
+;; - simplify
+;; - polymorphism)))
+
 ;; TODO
 ;; - substitution lemma (anything hard here?)
 ;; - mon, need to remember more things????
@@ -69,6 +76,7 @@
   (A ::= P RuntimeError)
   (x ::= variable-not-otherwise-mentioned)
 #:binding-forms
+  (let (x τ P) e #:refers-to x)
   (λ (x τ) e #:refers-to x))
 
 (define (α=? e0 e1)
@@ -86,7 +94,7 @@
       #:with (x?* ...) (for/list ([x (in-list (syntax-e #'(x* ...)))]) (format-id stx "~a?" (syntax-e x)))
       (syntax/loc stx (begin (define x?* (redex-match? RST x*)) ...))]))
 
-  (define-predicate* [e v τ Γ P E])
+  (define-predicate* [e v τ L\R Γ P E])
 
   (test-case "define-language"
     (check-pred e? (term 2))
@@ -101,10 +109,9 @@
     (check-pred P? (term (R (if 1 2 3))))
     (check-pred P? (term (R (let (f (→ Int Int) (R (λ (x TST) (if (= x 1) 1 #false)))) (f 1)))))
     (check-pred e? (term (if 1 2 3)))
-    ;(check-pred E? (term (in-hole hole 2)))
-    ;(check-pred E? (term (in-hole (+ hole (+ 2 2)) 1)))
-    ;(check-pred E? (term (in-hole hole (if #true 2 3))))
-    ;(check-pred E? (term (in-hole hole (if 1 2 3))))
+    (check-pred L\R? (term S))
+    (check-pred L\R? (term T))
+    (check-false (L\R? (term R)))
   )
 
 )
@@ -128,7 +135,8 @@
    ---
    (check-type Γ (R e) τ)]
   [
-   (infer-type Γ (S e) #{tag-only τ})
+   (infer-type Γ (S e) τ_actual)
+   (type= #{tag-only τ} #{tag-only τ_actual})
    ---
    (check-type Γ (S e) τ)]
   [
@@ -182,15 +190,20 @@
    ---
    (infer-type Γ (L\R x) τ)]
   [
+(side-condition ,(debug "noooo ~n"))
    (check-type Γ P τ)
    (where Γ_x #{type-env-set Γ (x τ)})
    (infer-type Γ_x (R e_body) τ_body)
    ---
    (infer-type Γ (R (let (x τ P) e_body)) TST)]
   [
+(side-condition ,(debug "WHAT ~n"))
    (check-type Γ P τ)
+(side-condition ,(debug "WHAT THE ~n"))
    (where Γ_x #{type-env-set Γ (x τ)})
+(side-condition ,(debug "WHAT THE FUKN~n"))
    (infer-type Γ_x (L\R e_body) τ_body)
+(side-condition ,(debug "WHAT THE FUKN FUC~n"))
    ---
    (infer-type Γ (L\R (let (x τ P) e_body)) τ_body)]
   [
@@ -225,6 +238,7 @@
    (infer-type Γ (R (if e_0 e_1 e_2)) TST)]
   [
    (infer-type Γ (L\R e_0) τ_0)
+   (type= τ_0 Bool)
    (infer-type Γ (L\R e_1) τ_1)
    (infer-type Γ (L\R e_2) τ_2)
    (type= τ_1 τ_2)
@@ -298,7 +312,16 @@
      (infer-type () (T (λ (x Int) 3)) (→ Int Int))
      (check-type () (T (λ (x Int) 3)) (→ Int Int))
      (well-typed (R ((mon R (→ Int Int) (T (λ (x Int) 2))) 7)))
+     (well-typed (T (let (x Int (T 1)) (let (y Int (T 2)) (+ x y)))))
+     (check-type () (T 1) Int)
+     (infer-type () (S 1) Int)
+     (check-type () (S 1) Int)
+     (well-typed (S (let (x Int (S 1)) x)))
+     (well-typed (S (let (x Int (S 1)) (let (y Int (S 2)) y))))
+     (well-typed (S (let (x Int (S 1)) (let (y Int (S 2)) (+ x y)))))
     )
+
+    (check-false (judgment-holds (well-typed (T (if (λ (x Int) x) 1 0)))))
   )
 )
 
@@ -542,7 +565,7 @@
    ,(raise-user-error 'eval "trouble eval'ing ~a" (term P))
    (judgment-holds (well-typed P))]
   [(eval P)
-   ,(raise-user-error 'eval "ill-typed program ~a" (term P))])
+   ,(raise-user-error 'eval "typechecking failed ~a" (term P))])
 
 (module+ test
 
@@ -601,10 +624,83 @@
     (check-mf-apply*
      ((eval (S (if (and #true #true) (+ 1 1) (+ 2 2))))
       (S 2))
-     ((eval (T (if (and #true (= 4 2)) (+ 1 1) (+ 2 2))))
-      (T 4))
+     [(eval (S #true))
+      (S #true)]
+     [(eval (S (+ 2 2)))
+      (S 4)]
+     [(eval (S ((λ (x Int) x) 1)))
+      (S 1)]
+     [(eval (S ((λ (x Int) (+ x 1)) 1)))
+      (S 2)]
+     [(eval (S (if #false (+ 6 6) 0)))
+      (S 0)]
+     [(eval (S (let (x Int (S 1))
+                 (let (y Int (S 2))
+                   (+ x y)))))
+      (S 3)]
+     [(eval (S (let (negate (→ Bool Bool) (S (λ (x Bool) (if x #false #true))))
+                 (let (b Bool (S #false))
+                   (negate (negate b))))))
+      (S #false)]
+     [(eval (S (let (x Int (S 4))
+                 (let (add-x (→ Int Int) (S (λ (y Int) (+ y x))))
+                   (let (x Int (S 5))
+                     (add-x x))))))
+      (S 9)]
     )
   )
+
+  (test-case "eval:simple:S:fail"
+    (check-exn #rx"typechecking failed"
+      (λ () (term #{eval (S ((λ (x Int) (+ x 1)) #false))})))
+
+    (check-exn #rx"typechecking failed"
+      (λ () (term (eval (S (let (x Bool (S (+ 2 5))) x))))))
+  )
+
+  (test-case "eval:simple:T"
+    (check-mf-apply*
+     [(eval (T 4))
+      (T 4)]
+     ((eval (T (if (and #true (= 4 2)) (+ 1 1) (+ 2 2))))
+      (T 4))
+     [(eval (T #true))
+      (T #true)]
+     [(eval (T (+ 2 2)))
+      (T 4)]
+     [(eval (T ((λ (x Int) x) 1)))
+      (T 1)]
+     [(eval (T ((λ (x Int) (+ x 1)) 1)))
+      (T 2)]
+     [(eval (T (if ((λ (x Bool) x) #true) 1 0)))
+      (T 1)]
+     [(eval (T (if #false (+ 6 6) 0)))
+      (T 0)]
+     [(eval (T (let (x Int (T 1))
+                 (let (y Int (T 2))
+                   (+ x y)))))
+      (T 3)]
+     [(eval (T (let (negate (→ Bool Bool) (T (λ (x Bool) (if x #false #true))))
+                 (let (b Bool (T #false))
+                   (negate (negate b))))))
+      (T #false)]
+     [(eval (T (let (x Int (T 4))
+                 (let (add-x (→ Int Int) (T (λ (y Int) (+ y x))))
+                   (let (x Int (T 5))
+                     (add-x x))))))
+      (T 9)]
+    )
+  )
+
+  (test-case "eval:simple:T:fail"
+    (check-exn #rx"typechecking failed"
+      (λ () (term #{eval (T ((λ (x Int) (+ x 1)) #false))})))
+
+    (check-exn #rx"typechecking failed"
+      (λ () (term (eval (T (let (x Bool (T (+ 2 5))) x)))))))
+
+;  (test-case "eval:from-model"
+    ;; test from the other model of RST
 )
 
 ;; -----------------------------------------------------------------------------
