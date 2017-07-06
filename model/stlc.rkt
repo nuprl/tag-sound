@@ -178,20 +178,15 @@
    ---
    (infer-type Γ (L\R x) τ)]
   [
-(side-condition ,(debug "noooo ~n"))
    (check-type Γ P τ)
    (where Γ_x #{type-env-set Γ (x τ)})
    (infer-type Γ_x (R e_body) τ_body)
    ---
    (infer-type Γ (R (let (x τ P) e_body)) TST)]
   [
-(side-condition ,(debug "WHAT ~n"))
    (check-type Γ P τ)
-(side-condition ,(debug "WHAT THE ~n"))
    (where Γ_x #{type-env-set Γ (x τ)})
-(side-condition ,(debug "WHAT THE FUKN~n"))
    (infer-type Γ_x (L\R e_body) τ_body)
-(side-condition ,(debug "WHAT THE FUKN FUC~n"))
    ---
    (infer-type Γ (L\R (let (x τ P) e_body)) τ_body)]
   [
