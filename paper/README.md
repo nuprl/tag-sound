@@ -74,3 +74,11 @@ No allocation at runtime, but lose blame.
     where `b*` is a SET of boundaries that might pinpoint the bad cast
     (can guarantee?)
   - `e -->* RuntimeError` (from S or R interacting with runtime functions)
+
+
+Other Soundness
+---
+
+- sound for flat types
+- sound for all but list types
+- 
