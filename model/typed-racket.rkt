@@ -10,9 +10,6 @@
 ;;   - `e` raises a boundary error `b` that points to a _specific location_
 ;;     where an untyped value entered typed code.
 
-;; TODO
-;; - label boundaries
-
 ;; Lemmas
 ;;   - `∀ e . ⊢T e : τ => τ != TST`
 ;;   - `∀ (mon L_ctx τ_ctx (L_v v)) . ⊢L_v v : τ_ctx`
@@ -38,7 +35,7 @@
 ;; -----------------------------------------------------------------------------
 
 (define-language++ μTR #:alpha-equivalent? α=?
-  (e ::= v (e e) x (let (x τ P) e) (cons e e) (+ e e) (= e e) (if e e e) (and e e) (pre-mon L τ P srcloc))
+  (e ::= v (e e) x (let (x τ P) e) (cons e e) (car e) (cdr e) (+ e e) (= e e) (if e e e) (and e e) (pre-mon L τ P srcloc))
   (v ::= integer boolean Λ (cons v v) (mon L τ (L v) srcloc))
   (Λ ::= (λ (x τ) e))
   (P ::= (L e))
@@ -49,6 +46,7 @@
   (E ::= hole
          (E e) (v E)
          (cons E e) (cons v E)
+         (car E) (cdr E)
          (+ E e) (+ v E)
          (= E e) (= v E)
          (if E e e)
@@ -78,6 +76,7 @@
     (check-pred P? (term (R (let (f (→ Int Int) (R (λ (x TST) (if (= x 1) 1 #false)))) (f 1)))))
     (check-pred e? (term (if 1 2 3)))
     (check-pred v? (term (mon T (→ Int Int) (R (λ (x TST) x)) (foo (→ Int Int)))))
+    (check-pred P? (term (T (let (ff (Pair (→ Int Int) Bool) (R (cons (λ (x TST) (+ x x)) #f))) ((car ff) 4)))))
   )
 )
 
@@ -129,6 +128,22 @@
    (infer-type Γ (T e_1) τ_1)
    ---
    (infer-type Γ (T (cons e_0 e_1)) (Pair τ_0 τ_1))]
+  [
+   (infer-type Γ (R e) τ_e)
+   ---
+   (infer-type Γ (R (car e)) TST)]
+  [
+   (infer-type Γ (T e) (Pair τ_0 τ_1))
+   ---
+   (infer-type Γ (T (car e)) τ_0)]
+  [
+   (infer-type Γ (R e) τ)
+   ---
+   (infer-type Γ (R (cdr e)) TST)]
+  [
+   (infer-type Γ (T e) (Pair τ_0 τ_1))
+   ---
+   (infer-type Γ (T (cdr e)) τ_1)]
   [
    (where Γ_x #{type-env-set Γ (x TST)})
    (infer-type Γ_x (R e) τ_cod)
@@ -288,6 +303,17 @@
                               g)))
                    (h #true))))
      (well-typed (R ((mon R (→ Int Int) (T (λ (x Int) 2)) (src (→ Int Int))) 7)))
+     (well-typed (R (car (λ (x TST) x))))
+     (well-typed (R (car 3)))
+     (well-typed (R (car (cons 1 2))))
+     (well-typed (T (car (cons 1 2))))
+    )
+
+  )
+
+  (test-case "not-well-typed"
+    (check-not-judgment-holds*
+      (well-typed (T (car 1)))
     )
   )
 )
@@ -345,7 +371,7 @@
      (L (in-hole E ((mon L_ctx τ_ctx (L_λ v) srcloc) v_1)))
      (L (in-hole E e_cod))
      App-Mon
-     (where (→ τ_dom τ_cod) #{coerce-→ τ_ctx})
+     (where (→ τ_dom τ_cod) τ_ctx)
      (where P_subst (L_λ (v (pre-mon L_λ τ_dom (L_ctx v_1) (dom srcloc)))))
      (where e_cod (pre-mon L_ctx τ_cod P_subst (cod srcloc)))]
     [-->
@@ -353,6 +379,37 @@
      (DynError (R (v_0 v_1)))
      App-Error
      (side-condition (not (judgment-holds (proc? v_0))))]
+;; -- CAR/CDR
+    [-->
+     (L (in-hole E (car (cons v_0 v_1))))
+     (L (in-hole E v_0))
+     Car]
+    [-->
+     (L (in-hole E (car (mon L_ctx τ_ctx (L_v v) srcloc))))
+     (L (in-hole E e_+))
+     Car-Mon
+     (where (Pair τ_car _) τ_ctx)
+     (where e_+ (pre-mon L_ctx τ_car (L_v (car v)) (car srcloc)))]
+    [-->
+     (R (in-hole E (car v)))
+     (DynError (R (car v)))
+     Car-Error
+     (side-condition (not (judgment-holds (cons? v))))]
+    [-->
+     (L (in-hole E (cdr (cons v_0 v_1))))
+     (L (in-hole E v_1))
+     Cdr]
+    [-->
+     (L (in-hole E (cdr (mon L_ctx τ_ctx (L_v v) srcloc))))
+     (L (in-hole E e_+))
+     Cdr-Mon
+     (where (Pair _ τ_cdr) τ_ctx)
+     (where e_+ (pre-mon L_ctx τ_cdr (L_v (cdr v)) (cdr srcloc)))]
+    [-->
+     (R (in-hole E (cdr v)))
+     (DynError (R (cdr v)))
+     Cdr-Error
+     (side-condition (not (judgment-holds (cons? v))))]
 ;; -- LET
     [-->
      (L (in-hole E (let (x τ P) e_body)))
@@ -455,6 +512,14 @@
       (DynError (R (+ #true 2))))
      ((eval (R (+ 2 #true)))
       (DynError (R (+ 2 #true))))
+     ((eval (R (cons 1 2)))
+      (R (cons 1 2)))
+     ((eval (R (+ 1 (car (cons (+ 1 1) (+ 2 2))))))
+      (R 3))
+     ((eval (R (+ 1 (cdr (cons (+ 1 1) (+ 2 2))))))
+      (R 5))
+     ((eval (R ((car (cons (λ (x TST) (+ x 1)) 4)) 8)))
+      (R 9))
     )
   )
 
@@ -506,6 +571,10 @@
                    (let (x Int (T 5))
                      (add-x x))))))
       (T 9)]
+     [(eval (T (cons (+ 2 2) (+ 1 1))))
+      (T (cons 4 2))]
+     [(eval (T (+ 2 (cdr (cons #false 4)))))
+      (T 6)]
     )
   )
 
@@ -517,7 +586,7 @@
       (λ () (term (eval (T (let (x Bool (T (+ 2 5))) x)))))))
 
   (test-case "apply-R-in-T"
-    (check-mf-apply* #:is-equal? α=?
+    (check-mf-apply*
      [(eval (T (let (f (→ Int Int) (R (λ (x TST) (+ x 1))))
                  (f 3))))
       (T 4)]
@@ -558,6 +627,20 @@
                             g)))
                  (h 5))))
       (T 5))))
+
+  (test-case "more-R-in-T"
+    (check-mf-apply*
+     ((eval (T (let (ff (Pair (→ Int Int) Bool) (R (cons (λ (x TST) (+ x x)) #false)))
+                 ((car ff) 4))))
+      (T 8))
+     ((eval (T (let (ff (Pair (→ Bool Bool) Bool) (R (cons (λ (x TST) x) #false)))
+                 ((car ff) (cdr ff)))))
+      (T #false))
+     ((eval (T (let (ff (Pair (→ Bool Int) Bool) (R (cons (λ (x TST) x) #false)))
+                 ((car ff) (cdr ff)))))
+      (BoundaryError T Int (R #false) (cod (car (ff (Pair (→ Bool Int) Bool))))))
+    )
+  )
 )
 
 ;; =============================================================================
@@ -566,15 +649,6 @@
 
 ;; -----------------------------------------------------------------------------
 ;; --- type helpers
-
-(define-metafunction μTR
-  coerce-→ : τ -> τ
-  [(coerce-→ TST)
-   (→ TST TST)]
-  [(coerce-→ (→ τ_dom τ_cod))
-   (→ τ_dom τ_cod)]
-  [(coerce-→ τ)
-   ,(raise-argument-error 'coerce-→ "cannot coerce ~a" (term τ))])
 
 (define-judgment-form μTR
   #:mode (type= I I)
@@ -660,12 +734,6 @@
    #{type-normalize (U τ_0 ... τ_1 ...)}])
 
 (module+ test
-  (test-case "coerce-→"
-    (check-mf-apply*
-     ((coerce-→ (→ Int Bool))
-      (→ Int Bool))
-     ((coerce-→ TST)
-      (→ TST TST))))
 
   (test-case "simple-type->constructor"
     (check-apply* simple-type->constructor
@@ -788,6 +856,17 @@
    ---
    (proc? (mon L_0 τ_0 (L_1 v_1) srcloc))])
 
+(define-judgment-form μTR
+  #:mode (cons? I)
+  #:contract (cons? v)
+  [
+   ---
+   (cons? (cons e_0 e_1))]
+  [
+   (cons? v_1) ;; TODO should only check type? Depends on L?
+   ---
+   (cons? (mon L_0 τ_0 (L_1 v_1) srcloc))])
+
 (define-metafunction μTR
   tag-only : τ -> τ
   [(tag-only Int)
@@ -808,9 +887,15 @@
      (dynamic-typecheck (T (λ (x Int) 3)) (→ Int Int))
      (dynamic-typecheck (T (λ (x Bool) #false)) (→ Bool Bool))
      (dynamic-typecheck (T (mon R TST (T (mon T (→ Int Int) (R (λ (x TST) x)) (b1 (→ Int Int)))) (b2 TST))) (→ Int Int))
+     (dynamic-typecheck (T (cons 1 1)) (Pair Int Int))
+     (dynamic-typecheck (T (cons 2 #false)) (Pair Int Bool))
+     (dynamic-typecheck (T (cons (λ (x TST) x) #true)) (Pair (→ Bool Bool) Bool))
     )
 
-    (check-false (judgment-holds (dynamic-typecheck (T 4) Bool)))
+    (check-not-judgment-holds*
+     (dynamic-typecheck (T (cons 1 #false)) (Pair Int Int))
+     (dynamic-typecheck (T 4) Bool)
+    )
   )
 )
 
