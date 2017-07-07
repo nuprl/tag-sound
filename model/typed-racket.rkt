@@ -353,15 +353,12 @@
      (L (in-hole E (pre-mon T τ_ctx (R v) srcloc)))
      (L (in-hole E v_+))
      PreMon-FinerContext-MaybeOk
-     (judgment-holds (dynamic-typecheck (T v) τ_ctx))
-     (where v_+ ,(if (judgment-holds (flat T τ_ctx))
-                   (term v)
-                   (term (mon T τ_ctx (R v) srcloc))))]
+     (where v_+ #{dynamic-typecheck T τ_ctx (R v) srcloc})]
     [-->
      (L (in-hole E (pre-mon T τ_ctx (R v) srcloc)))
-     (BoundaryError T τ_ctx (R v) srcloc)
+     RuntimeError
      PreMon-FinerContext-NotOk
-     (side-condition (not (judgment-holds (dynamic-typecheck (T v) τ_ctx))))]
+     (where RuntimeError #{dynamic-typecheck T τ_ctx (R v) srcloc})]
 ;; -- APP
     [-->
      (L (in-hole E ((λ (x τ) e) v_1)))
@@ -379,37 +376,6 @@
      (DynError (R (v_0 v_1)))
      App-Error
      (side-condition (not (judgment-holds (proc? v_0))))]
-;; -- CAR/CDR
-    [-->
-     (L (in-hole E (car (cons v_0 v_1))))
-     (L (in-hole E v_0))
-     Car]
-    [-->
-     (L (in-hole E (car (mon L_ctx τ_ctx (L_v v) srcloc))))
-     (L (in-hole E e_+))
-     Car-Mon
-     (where (Pair τ_car _) τ_ctx)
-     (where e_+ (pre-mon L_ctx τ_car (L_v (car v)) (car srcloc)))]
-    [-->
-     (R (in-hole E (car v)))
-     (DynError (R (car v)))
-     Car-Error
-     (side-condition (not (judgment-holds (cons? v))))]
-    [-->
-     (L (in-hole E (cdr (cons v_0 v_1))))
-     (L (in-hole E v_1))
-     Cdr]
-    [-->
-     (L (in-hole E (cdr (mon L_ctx τ_ctx (L_v v) srcloc))))
-     (L (in-hole E e_+))
-     Cdr-Mon
-     (where (Pair _ τ_cdr) τ_ctx)
-     (where e_+ (pre-mon L_ctx τ_cdr (L_v (cdr v)) (cdr srcloc)))]
-    [-->
-     (R (in-hole E (cdr v)))
-     (DynError (R (cdr v)))
-     Cdr-Error
-     (side-condition (not (judgment-holds (cons? v))))]
 ;; -- LET
     [-->
      (L (in-hole E (let (x τ P) e_body)))
@@ -421,6 +387,24 @@
      (L (in-hole E ((λ (x τ) e_body) (pre-mon L τ (L_v v) (#{xerox x} τ)))))
      Let-Beta]
 ;; -- Primop, If, etc
+    [-->
+     (L (in-hole E (car (cons v_0 v_1))))
+     (L (in-hole E v_0))
+     Car]
+    [-->
+     (R (in-hole E (car v)))
+     (DynError (R (car v)))
+     Car-Error
+     (side-condition (not (judgment-holds (cons? v))))]
+    [-->
+     (L (in-hole E (cdr (cons v_0 v_1))))
+     (L (in-hole E v_1))
+     Cdr]
+    [-->
+     (R (in-hole E (cdr v)))
+     (DynError (R (cdr v)))
+     Cdr-Error
+     (side-condition (not (judgment-holds (cons? v))))]
     [-->
      (L (in-hole E (+ integer_0 integer_1)))
      (L (in-hole E ,(+ (term integer_0) (term integer_1))))
@@ -809,40 +793,47 @@
 ;; -----------------------------------------------------------------------------
 ;; --- dynamic-typecheck
 
-;; Only called when τ is from "finer" language than P
-(define-judgment-form μTR
-  #:mode (dynamic-typecheck I I)
-  #:contract (dynamic-typecheck (L v) τ)
-  [
-   (side-condition ,(raise-user-error 'dynamic-typecheck "language R has no dynamic typechecker ~a ~a" (term e) (term τ)))
-   --- R
-   (dynamic-typecheck (R v) τ)]
-  [
-   --- T-Int
-   (dynamic-typecheck (T integer) Int)]
-  [
-   --- T-Bool
-   (dynamic-typecheck (T boolean) Bool)]
-  [
-   (dynamic-typecheck (T v_0) τ_0)
-   (dynamic-typecheck (T v_1) τ_1)
-   --- T-Cons
-   (dynamic-typecheck (T (cons v_0 v_1)) (Pair τ_0 τ_1))]
-  [
-   --- T-Proc
-   (dynamic-typecheck (T (λ (x _) e)) (→ τ_dom τ_cod))]
-  [
-   (type= #{tag-only τ_mon} #{tag-only τ})
-   --- T-Mon
-   (dynamic-typecheck (T (mon L_0 τ_mon P srcloc)) τ)]
-  [
-   (dynamic-typecheck (T v) τ)
-   --- T-MonTST
-   (dynamic-typecheck (T (mon L_ctx TST (L v) srcloc)) τ)]
-  [
-   (side-condition ,(printf "WARNING: T expects value ~a to have TST~n" (term v)))
-   --- T-TST
-   (dynamic-typecheck (T v) TST)])
+(define-metafunction μTR
+  dynamic-typecheck : L τ P srcloc -> any ;; value or BoundaryError
+  [(dynamic-typecheck R τ P srcloc)
+   ,(raise-user-error 'dynamic-typecheck "language R has no dynamic typechecker ~a ~a" (term e) (term τ))]
+  [(dynamic-typecheck T Int (L integer) srcloc)
+   integer]
+  [(dynamic-typecheck T Int (L v) srcloc)
+   (BoundaryError T Int (L v) srcloc)]
+  [(dynamic-typecheck T Bool (L boolean) srcloc)
+   boolean]
+  [(dynamic-typecheck T Bool (L v) srcloc)
+   (BoundaryError T Bool (L v) srcloc)]
+  [(dynamic-typecheck T (Pair τ_0 τ_1) (L (cons v_0 v_1)) srcloc)
+   RuntimeError
+   (where RuntimeError #{dynamic-typecheck T τ_0 (L v_0) (car srcloc)})]
+  [(dynamic-typecheck T (Pair τ_0 τ_1) (L (cons v_0 v_1)) srcloc)
+   RuntimeError
+   (where RuntimeError #{dynamic-typecheck T τ_1 (L v_1) (cdr srcloc)})]
+  [(dynamic-typecheck T (Pair τ_0 τ_1) (L (cons v_0 v_1)) srcloc)
+   (cons v_0+ v_1+)
+   (where v_0+ #{dynamic-typecheck T τ_0 (L v_0) (car srcloc)})
+   (where v_1+ #{dynamic-typecheck T τ_1 (L v_1) (cdr srcloc)})]
+  [(dynamic-typecheck T (→ τ_dom τ_cod) (L Λ) srcloc)
+   (mon T (→ τ_dom τ_cod) (L Λ) srcloc)]
+  [(dynamic-typecheck T τ (L (mon L_mon τ_mon P_mon srcloc_mon)) srcloc)
+   RuntimeError
+   (where TST τ_mon)
+   (where RuntimeError #{dynamic-typecheck T τ P_mon srcloc})]
+  [(dynamic-typecheck T τ (L (mon L_mon τ_mon P_mon srcloc_mon)) srcloc)
+   v ;; TODO this is definitely a bug
+   (where TST τ_mon)
+   (where v #{dynamic-typecheck T τ P_mon srcloc})]
+  [(dynamic-typecheck T τ (L (mon L_mon τ_mon P_mon srcloc_mon)) srcloc)
+   (pre-mon T τ (mon L_mon τ_mon P_mon srcloc_mon) srcloc)
+   (judgment-holds (type= #{tag-only τ_mon} #{tag-only τ}))]
+  [(dynamic-typecheck T TST (L v) srcloc)
+   v
+   (side-condition (printf "WARNING: T expects value ~a to have TST~n" (term v)))])
+
+;; TODO
+;; (dynamic-typecheck T (→ Int Int) (R (mon R TST (T (mon T (→ Int Int) (R (λ (x TST) x)) (b1 (→ Int Int)))) (b2 TST))) (b3 TST))
 
 (define-judgment-form μTR
   #:mode (proc? I)
@@ -882,19 +873,25 @@
 
 (module+ test
   (test-case "dynamic-typecheck"
-    (check-judgment-holds*
-     (dynamic-typecheck (T 4) Int)
-     (dynamic-typecheck (T (λ (x Int) 3)) (→ Int Int))
-     (dynamic-typecheck (T (λ (x Bool) #false)) (→ Bool Bool))
-     (dynamic-typecheck (T (mon R TST (T (mon T (→ Int Int) (R (λ (x TST) x)) (b1 (→ Int Int)))) (b2 TST))) (→ Int Int))
-     (dynamic-typecheck (T (cons 1 1)) (Pair Int Int))
-     (dynamic-typecheck (T (cons 2 #false)) (Pair Int Bool))
-     (dynamic-typecheck (T (cons (λ (x TST) x) #true)) (Pair (→ Bool Bool) Bool))
-    )
-
-    (check-not-judgment-holds*
-     (dynamic-typecheck (T (cons 1 #false)) (Pair Int Int))
-     (dynamic-typecheck (T 4) Bool)
+    (check-mf-apply*
+     ((dynamic-typecheck T Int (R 4) (x Int))
+      4)
+     ((dynamic-typecheck T (→ Int Int) (R (λ (x Int) 3)) (f (→ Int Int)))
+      (mon T (→ Int Int) (R (λ (x Int) 3)) (f (→ Int Int))))
+     ((dynamic-typecheck T (→ Bool Bool) (T (λ (x Bool) #false)) (f (→ Bool Bool)))
+      (mon T (→ Bool Bool) (T (λ (x Bool) #false)) (f (→ Bool Bool))))
+     ((dynamic-typecheck T (→ Int Int) (R (mon R TST (T (mon T (→ Int Int) (R (λ (x TST) x)) (b1 (→ Int Int)))) (b2 TST))) (b3 TST))
+      (mon T (→ Int Int) (R (mon R TST (T (mon T (→ Int Int) (R (λ (x TST) x)) (b1 (→ Int Int)))) (b2 TST))) (b3 TST)))
+     ((dynamic-typecheck T (Pair Int Int) (R (cons 1 1)) (x (Pair Int Int)))
+      (cons 1 1))
+     ((dynamic-typecheck T (Pair Int Bool) (R (cons 2 #false)) (x (Pair Int Bool)))
+      (cons 2 #false))
+     ((dynamic-typecheck T (Pair (→ Bool Bool) Bool) (R (cons (λ (x TST) x) #true)) (x (Pair (→ Bool Bool) Bool)))
+      (cons (mon T (→ Bool Bool) (R (λ (x TST) x)) (car (x (Pair (→ Bool Bool) Bool)))) #true))
+     ((dynamic-typecheck T (Pair Int Int) (R (cons 1 #false)) (x (Pair Int Int)))
+      (BoundaryError T (Pair Int Int) (R (cons 1 #false)) (x (Pair Int Int))))
+     ((dynamic-typecheck T Bool (R 4) (x Bool))
+      (BoundaryError T Bool (R 4) (x Bool)))
     )
   )
 )
