@@ -22,7 +22,8 @@
 (require
   racket/set
   redex/reduction-semantics
-  redex-abbrevs)
+  redex-abbrevs
+  (only-in racket/string string-split))
 
 (define *debug* (make-parameter #f))
 
@@ -37,8 +38,8 @@
 ;; -----------------------------------------------------------------------------
 
 (define-language++ μTR #:alpha-equivalent? α=?
-  (e ::= v (e e) x (let (x τ P) e) (cons e e) (+ e e) (= e e) (if e e e) (and e e) (pre-mon L τ P))
-  (v ::= integer boolean Λ (cons v v) (mon L τ (L v)))
+  (e ::= v (e e) x (let (x τ P) e) (cons e e) (+ e e) (= e e) (if e e e) (and e e) (pre-mon L τ P srcloc))
+  (v ::= integer boolean Λ (cons v v) (mon L τ (L v) srcloc))
   (Λ ::= (λ (x τ) e))
   (P ::= (L e))
   (τ ::= (U τk ...) τk TST)
@@ -52,7 +53,8 @@
          (= E e) (= v E)
          (if E e e)
          (and E e) (and v E))
-  (RuntimeError ::= (DynError P) (BoundaryError L τ P))
+  (RuntimeError ::= (DynError P) (BoundaryError L τ P srcloc))
+  (srcloc ::= (dom srcloc) (cod srcloc) (car srcloc) (cdr srcloc) (x τ))
   (A ::= P RuntimeError)
   (x ::= variable-not-otherwise-mentioned)
 #:binding-forms
@@ -75,6 +77,7 @@
     (check-pred P? (term (R (if 1 2 3))))
     (check-pred P? (term (R (let (f (→ Int Int) (R (λ (x TST) (if (= x 1) 1 #false)))) (f 1)))))
     (check-pred e? (term (if 1 2 3)))
+    (check-pred v? (term (mon T (→ Int Int) (R (λ (x TST) x)) (foo (→ Int Int)))))
   )
 )
 
@@ -127,10 +130,10 @@
    ---
    (infer-type Γ (T (cons e_0 e_1)) (Pair τ_0 τ_1))]
   [
-   (where Γ_x #{type-env-set Γ (x τ_dom)})
+   (where Γ_x #{type-env-set Γ (x TST)})
    (infer-type Γ_x (R e) τ_cod)
    ---
-   (infer-type Γ (R (λ (x τ_dom) e)) TST)]
+   (infer-type Γ (R (λ (x TST) e)) TST)]
   [
    (where Γ_x #{type-env-set Γ (x τ_dom)})
    (infer-type Γ_x (T e) τ_cod)
@@ -157,11 +160,11 @@
    ---
    (infer-type Γ (T x) τ)]
   [
-   (check-type Γ P τ)
-   (where Γ_x #{type-env-set Γ (x τ)})
+   (infer-type Γ P _)
+   (where Γ_x #{type-env-set Γ (x TST)})
    (infer-type Γ_x (R e_body) τ_body)
    ---
-   (infer-type Γ (R (let (x τ P) e_body)) TST)]
+   (infer-type Γ (R (let (x TST P) e_body)) TST)]
   [
    (check-type Γ P τ)
    (where Γ_x #{type-env-set Γ (x τ)})
@@ -219,19 +222,19 @@
   [
    (check-type Γ P τ)
    ---
-   (infer-type Γ (R (mon R τ P)) TST)]
+   (infer-type Γ (R (mon R τ P srcloc)) TST)]
   [
    (check-type Γ P τ)
    ---
-   (infer-type Γ (T (mon T τ P)) τ)]
+   (infer-type Γ (T (mon T τ P srcloc)) τ)]
   [
    (check-type Γ P τ)
    ---
-   (infer-type Γ (R (pre-mon R τ P)) τ)]
+   (infer-type Γ (R (pre-mon R τ P srcloc)) TST)]
   [
    (check-type Γ P τ)
    ---
-   (infer-type Γ (T (pre-mon T τ P)) τ)]
+   (infer-type Γ (T (pre-mon T τ P srcloc)) τ)]
 )
 
 (define-metafunction μTR
@@ -259,7 +262,7 @@
     (check-mf-apply*
      ((infer-type# (T (if (and #true #true) (+ 1 1) (+ 2 2))))
       Int)
-     ((infer-type# (R (let (f (→ Int Int) (R (λ (x TST) (if (= x 1) 1 #false)))) (f 1))))
+     ((infer-type# (R (let (f TST (R (λ (x TST) (if (= x 1) 1 #false)))) (f 1))))
       TST)
      ((infer-type# (T (let (f (→ Int Int) (R (λ (x TST) (if (= x 1) 1 #false)))) (f 1))))
       Int)))
@@ -269,7 +272,7 @@
      (well-typed (T (λ (x Int) 2)))
      (infer-type () (T (λ (x Int) 3)) (→ Int Int))
      (check-type () (T (λ (x Int) 3)) (→ Int Int))
-     (well-typed (R ((mon R (→ Int Int) (T (λ (x Int) 2))) 7)))
+     (well-typed (R ((mon R (→ Int Int) (T (λ (x Int) 2)) (src (→ Int Int))) 7)))
      (well-typed (T (let (x Int (T 1)) (let (y Int (T 2)) (+ x y)))))
      (check-type () (T 1) Int)
      (check-type () (T 1) (U Int (Pair Int Int)))
@@ -277,6 +280,14 @@
      (check-type () (T (and 1 #true)) (U Bool Int))
      (well-typed (T (if (λ (x Int) x) 1 0)))
      (well-typed (T (let (x Int (T 1)) (let (y Int (T 2)) (+ x y)))))
+     (well-typed (T (let (h (→ Bool Bool)
+                         (R (let (g TST
+                                    (T (let (f (→ Int Int)
+                                               (R (λ (x TST) x)))
+                                         f)))
+                              g)))
+                   (h #true))))
+     (well-typed (R ((mon R (→ Int Int) (T (λ (x Int) 2)) (src (→ Int Int))) 7)))
     )
   )
 )
@@ -288,38 +299,41 @@
   (reduction-relation μTR
     #:domain A
 ;; -- MON
+;; the "outermost" language for these doesn't really matter,
+;; because `let-beta` will insert pre-mons from any language into the current E,
+;; so just worry about the 2 languages inside the `mon` or `pre-mon` form
     [-->
-     (L (in-hole E (pre-mon L_ctx τ_ctx P)))
-     (L (in-hole E (pre-mon L_ctx τ_ctx P_step)))
+     (L (in-hole E (pre-mon L_ctx τ_ctx P srcloc)))
+     (L (in-hole E (pre-mon L_ctx τ_ctx P_step srcloc)))
      PreMon-Step
      (where (P_step) ,(apply-reduction-relation -->μTR (term P)))]
     [-->
-     (L (in-hole E (pre-mon L_ctx τ_ctx P)))
+     (L (in-hole E (pre-mon L_ctx τ_ctx P _)))
      RuntimeError
      PreMon-Error
      (where (RuntimeError) ,(apply-reduction-relation -->μTR (term P)))]
     [-->
-     (R (in-hole E (pre-mon R τ_ctx (T v))))
-     (R (in-hole E v_+))
+     (L (in-hole E (pre-mon R τ_ctx (T v) srcloc)))
+     (L (in-hole E v_+))
      PreMon-T->R
      (where v_+ ,(if (judgment-holds (flat T τ_ctx))
                    (term v)
-                   (term (mon L_ctx τ_ctx (L_v v)))))]
+                   (term (mon R τ_ctx (T v) srcloc))))]
     [-->
-     (L (in-hole E (pre-mon L τ (L v))))
+     (L (in-hole E (pre-mon L τ (L v) srcloc)))
      (L (in-hole E v))
      PreMon-NoBoundary]
     [-->
-     (T (in-hole E (pre-mon T τ_ctx (R v))))
-     (T (in-hole E v_+))
+     (L (in-hole E (pre-mon T τ_ctx (R v) srcloc)))
+     (L (in-hole E v_+))
      PreMon-FinerContext-MaybeOk
      (judgment-holds (dynamic-typecheck (T v) τ_ctx))
      (where v_+ ,(if (judgment-holds (flat T τ_ctx))
                    (term v)
-                   (term (mon T τ_ctx (R v)))))]
+                   (term (mon T τ_ctx (R v) srcloc))))]
     [-->
-     (T (in-hole E (pre-mon T τ_ctx (R v))))
-     (BoundaryError T τ_ctx (R v))
+     (L (in-hole E (pre-mon T τ_ctx (R v) srcloc)))
+     (BoundaryError T τ_ctx (R v) srcloc)
      PreMon-FinerContext-NotOk
      (side-condition (not (judgment-holds (dynamic-typecheck (T v) τ_ctx))))]
 ;; -- APP
@@ -328,9 +342,12 @@
      (L (in-hole E (substitute e x v_1)))
      App-Beta]
     [-->
-     (L (in-hole E ((mon L_ctx (→ τ_dom τ_cod) (L_λ v)) v_1)))
-     (L (in-hole E (pre-mon L_ctx τ_cod (L_λ (v (pre-mon L_λ τ_dom (L_ctx v_1)))))))
-     App-Mon]
+     (L (in-hole E ((mon L_ctx τ_ctx (L_λ v) srcloc) v_1)))
+     (L (in-hole E e_cod))
+     App-Mon
+     (where (→ τ_dom τ_cod) #{coerce-→ τ_ctx})
+     (where P_subst (L_λ (v (pre-mon L_λ τ_dom (L_ctx v_1) (dom srcloc)))))
+     (where e_cod (pre-mon L_ctx τ_cod P_subst (cod srcloc)))]
     [-->
      (R (in-hole E (v_0 v_1)))
      (DynError (R (v_0 v_1)))
@@ -340,11 +357,11 @@
     [-->
      (L (in-hole E (let (x τ P) e_body)))
      (L (in-hole E (let (x τ P_step) e_body)))
-     Let
+     Let-Step
      (where (P_step) ,(apply-reduction-relation -->μTR (term P)))]
     [-->
      (L (in-hole E (let (x τ (L_v v)) e_body)))
-     (L (in-hole E ((λ (x τ) e_body) (pre-mon L τ (L_v v)))))
+     (L (in-hole E ((λ (x τ) e_body) (pre-mon L τ (L_v v) (#{xerox x} τ)))))
      Let-Beta]
 ;; -- Primop, If, etc
     [-->
@@ -383,6 +400,11 @@
      (L (in-hole E (if #false e_1 e_2)))
      (L (in-hole E e_2))
      If-False]))
+
+(define-metafunction μTR
+  xerox : x -> x
+  [(xerox x)
+   ,(string->symbol (car (string-split (symbol->string (term x)) "«")))])
 
 (define -->μTR*
   (make--->* -->μTR))
@@ -438,15 +460,17 @@
 
   (test-case "eval:R:II"
     (check-mf-apply*
-      ((eval (R (let (n1 Bool (R #false)) n1)))
+      ((eval (R (let (n1 TST (R #false)) n1)))
        (R #false))
-      ((eval (R (let (n1 Int (R (+ 2 2))) (+ n1 n1))))
+      ((eval (R (let (n1 TST (R (+ 2 2))) (+ n1 n1))))
        (R 8))
       ((eval (R ((λ (x TST) (+ x 1)) 1)))
        (R 2))
       ((eval (R (1 1)))
        (DynError (R (1 1))))
-      ((eval (R ((mon R (→ Int Int) (T (λ (x Int) 2))) 7)))
+      ((eval (R (pre-mon R Int (T 6) (boundary Int))))
+       (R 6))
+      ((eval (R ((mon R (→ Int Int) (T (λ (x Int) 2)) (boundary (→ Int Int))) 7)))
        (R 2))
     )
   )
@@ -493,7 +517,7 @@
       (λ () (term (eval (T (let (x Bool (T (+ 2 5))) x)))))))
 
   (test-case "apply-R-in-T"
-    (check-mf-apply*
+    (check-mf-apply* #:is-equal? α=?
      [(eval (T (let (f (→ Int Int) (R (λ (x TST) (+ x 1))))
                  (f 3))))
       (T 4)]
@@ -501,7 +525,7 @@
                  (f 3))))
       (T #true)]
      [(eval (T (let (f (→ Int Int) (R (λ (x TST) #false))) (f 1))))
-      (BoundaryError T Int (R #false))]
+      (BoundaryError T Int (R #false) (cod (f (→ Int Int))))]
      [(eval (T (let (f (→ Int Int) (R (λ (x TST) (+ x #false)))) (f 3))))
       (DynError (R (+ 3 #false)))]
      [(eval (T (let (f (→ Int Int) (R (λ (x TST) (+ #true #false)))) (f 3))))
@@ -509,21 +533,32 @@
     )
   )
 
-  #;(test-case "double-wrap"
-    ;; TODO no exception raised!
-    (check-exn #rx"T expected \\(→ Bool Bool\\) fuck"
-      (λ () (term
-        (eval (T (let (h (→ Bool Bool)
-                         (R (let (g (→ Int Int)
-                                    (T (let (f (→ Int Int)
-                                               (R (λ (x TST) x)))
-                                         f)))
-                              g)))
-                   (h #true))))))))
+  (test-case "eval:R:III"
+    (check-mf-apply*
+     ((eval (R (pre-mon R (→ Int Int) (T (mon T (→ Int Int) (R (λ (x TST) x)) (b1 (→ Int Int)))) (b2 (→ Int Int)))))
+      (R (mon R (→ Int Int) (T (mon T (→ Int Int) (R (λ (x TST) x)) (b1 (→ Int Int)))) (b2 (→ Int Int)))))
+    )
+  )
 
-
+  (test-case "double-wrap"
+    (check-mf-apply*
+     ((eval (T (let (h (→ Bool Bool)
+                       (R (let (g TST
+                                  (T (let (f (→ Int Int)
+                                             (R (λ (x TST) x)))
+                                       f)))
+                            g)))
+                 (h #true))))
+      (BoundaryError T Int (R #true) (cod (f (→ Int Int)))))
+     ((eval (T (let (h (→ Int Int)
+                       (R (let (g TST
+                                  (T (let (f (→ Int Int)
+                                             (R (λ (x TST) x)))
+                                       f)))
+                            g)))
+                 (h 5))))
+      (T 5))))
 )
-
 
 ;; =============================================================================
 ;; === less interesting from here on
@@ -532,7 +567,6 @@
 ;; -----------------------------------------------------------------------------
 ;; --- type helpers
 
-;; TODO need this?
 (define-metafunction μTR
   coerce-→ : τ -> τ
   [(coerce-→ TST)
@@ -680,6 +714,9 @@
   #:contract (flat L τ)
   [
    ---
+   (flat L TST)]
+  [
+   ---
    (flat T Int)]
   [
    ---
@@ -713,23 +750,31 @@
    --- R
    (dynamic-typecheck (R v) τ)]
   [
-   ---
+   --- T-Int
    (dynamic-typecheck (T integer) Int)]
   [
-   ---
+   --- T-Bool
    (dynamic-typecheck (T boolean) Bool)]
   [
    (dynamic-typecheck (T v_0) τ_0)
    (dynamic-typecheck (T v_1) τ_1)
-   ---
+   --- T-Cons
    (dynamic-typecheck (T (cons v_0 v_1)) (Pair τ_0 τ_1))]
   [
-   ---
+   --- T-Proc
    (dynamic-typecheck (T (λ (x _) e)) (→ τ_dom τ_cod))]
   [
-   ;; OK because same type
-   ---
-   (dynamic-typecheck (T (mon L_0 τ P)) τ)])
+   (type= #{tag-only τ_mon} #{tag-only τ})
+   --- T-Mon
+   (dynamic-typecheck (T (mon L_0 τ_mon P srcloc)) τ)]
+  [
+   (dynamic-typecheck (T v) τ)
+   --- T-MonTST
+   (dynamic-typecheck (T (mon L_ctx TST (L v) srcloc)) τ)]
+  [
+   (side-condition ,(printf "WARNING: T expects value ~a to have TST~n" (term v)))
+   --- T-TST
+   (dynamic-typecheck (T v) TST)])
 
 (define-judgment-form μTR
   #:mode (proc? I)
@@ -741,16 +786,31 @@
    ;; TODO should only check type? Depends on L?
    (proc? v_1)
    ---
-   (proc? (mon L_0 τ_0 (L_1 v_1)))])
+   (proc? (mon L_0 τ_0 (L_1 v_1) srcloc))])
 
+(define-metafunction μTR
+  tag-only : τ -> τ
+  [(tag-only Int)
+   Int]
+  [(tag-only Bool)
+   Bool]
+  [(tag-only (Pair τ_0 τ_1))
+   (Pair TST TST)]
+  [(tag-only (→ τ_dom τ_cod))
+   (→ TST TST)]
+  [(tag-only TST)
+   TST])
 
 (module+ test
   (test-case "dynamic-typecheck"
-    (check-true (judgment-holds (dynamic-typecheck (T 4) Int)))
-    (check-false (judgment-holds (dynamic-typecheck (T 4) Bool)))
+    (check-judgment-holds*
+     (dynamic-typecheck (T 4) Int)
+     (dynamic-typecheck (T (λ (x Int) 3)) (→ Int Int))
+     (dynamic-typecheck (T (λ (x Bool) #false)) (→ Bool Bool))
+     (dynamic-typecheck (T (mon R TST (T (mon T (→ Int Int) (R (λ (x TST) x)) (b1 (→ Int Int)))) (b2 TST))) (→ Int Int))
+    )
 
-    (check-true (judgment-holds (dynamic-typecheck (T (λ (x Int) 3)) (→ Int Int))))
-    (check-true (judgment-holds (dynamic-typecheck (T (λ (x Bool) #false)) (→ Bool Bool))))
+    (check-false (judgment-holds (dynamic-typecheck (T 4) Bool)))
   )
 )
 
