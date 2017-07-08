@@ -52,7 +52,7 @@
          (if E e e)
          (and E e) (and v E))
   (RuntimeError ::= (DynError P) (BoundaryError L τ P srcloc))
-  (srcloc ::= (dom srcloc) (cod srcloc) (car srcloc) (cdr srcloc) (x τ))
+  (srcloc ::= (dom srcloc) (cod srcloc) (car srcloc) (cdr srcloc) (π srcloc) (x τ))
   (A ::= P RuntimeError)
   (x ::= variable-not-otherwise-mentioned)
 #:binding-forms
@@ -623,6 +623,11 @@
      ((eval (T (let (ff (Pair (→ Bool Int) Bool) (R (cons (λ (x TST) x) #false)))
                  ((car ff) (cdr ff)))))
       (BoundaryError T Int (R #false) (cod (car (ff (Pair (→ Bool Int) Bool))))))
+     ((eval (T (let (ff (→ Int (U Bool Int)) (R (λ (x TST) (if (= x 0) #false x))))
+                 (let (gg (→ (U Bool Int) Int) (R (λ (x TST) 900)))
+                   (+ (gg (ff 0))
+                      (gg (ff 1)))))))
+      (T 1800))
     )
   )
 )
@@ -796,14 +801,17 @@
   dynamic-typecheck : L τ P srcloc -> any
   [(dynamic-typecheck R τ P srcloc)
    ,(raise-user-error 'dynamic-typecheck "language R has no dynamic typechecker ~a ~a" (term e) (term τ))]
+;; --- Int
   [(dynamic-typecheck T Int (L integer) srcloc)
    integer]
   [(dynamic-typecheck T Int (L v) srcloc)
    (BoundaryError T Int (L v) srcloc)]
+;; --- Bool
   [(dynamic-typecheck T Bool (L boolean) srcloc)
    boolean]
   [(dynamic-typecheck T Bool (L v) srcloc)
    (BoundaryError T Bool (L v) srcloc)]
+;; --- Pair
   [(dynamic-typecheck T (Pair τ_0 τ_1) (L (cons v_0 v_1)) srcloc)
    RuntimeError
    (where RuntimeError #{dynamic-typecheck T τ_0 (L v_0) (car srcloc)})]
@@ -814,27 +822,33 @@
    (cons v_0+ v_1+)
    (where v_0+ #{dynamic-typecheck T τ_0 (L v_0) (car srcloc)})
    (where v_1+ #{dynamic-typecheck T τ_1 (L v_1) (cdr srcloc)})]
+;; --- U
+  [(dynamic-typecheck T (U τk ...) (L v) srcloc)
+   ,(let loop ([tk* (term (τk ...))])
+      (if (null? tk*)
+        (term (BoundaryError T (U τk ...) (L v) srcloc))
+        (let ([x (term #{dynamic-typecheck T ,(car tk*) (L v) (π srcloc)})])
+          (if (RuntimeError? x)
+            (loop (cdr tk*))
+            x))))]
+;; --- →
   [(dynamic-typecheck T (→ τ_dom τ_cod) (L Λ) srcloc)
    (mon T (→ τ_dom τ_cod) (L Λ) srcloc)]
   [(dynamic-typecheck T τ (L (mon L_mon τ_mon P_mon srcloc_mon)) srcloc)
    RuntimeError
    (where TST τ_mon)
    (where RuntimeError #{dynamic-typecheck T τ P_mon srcloc})]
-  [(dynamic-typecheck T τ (L (mon L_mon τ_mon P_mon srcloc_mon)) srcloc)
-   v ;; TODO remove this case, TST should not be a chaperone
-   (where TST τ_mon)
-   (where v #{dynamic-typecheck T τ P_mon srcloc})]
   [(dynamic-typecheck T τ P srcloc)
    (mon T τ P srcloc)
    ;; τ must be non-flat, because that's the only type we keep mon's for
    (where (L (mon L_mon τ_mon P_mon srcloc_mon)) P)
    (judgment-holds (type= #{tag-only τ_mon} #{tag-only τ}))]
+  [(dynamic-typecheck T (→ τ_dom τ_cod) P srcloc)
+   (BoundaryError T (→ τ_dom τ_cod) P srcloc)]
+;; --- TST
   [(dynamic-typecheck T TST (L v) srcloc)
    v
    (side-condition (printf "WARNING: T expects value ~a to have TST~n" (term v)))])
-
-;; TODO
-;; (dynamic-typecheck T (→ Int Int) (R (mon R TST (T (mon T (→ Int Int) (R (λ (x TST) x)) (b1 (→ Int Int)))) (b2 TST))) (b3 TST))
 
 (define-judgment-form μTR
   #:mode (proc? I)
@@ -893,6 +907,14 @@
       (BoundaryError T Int (R #false) (cdr (x (Pair Int Int)))))
      ((dynamic-typecheck T Bool (R 4) (x Bool))
       (BoundaryError T Bool (R 4) (x Bool)))
+     ((dynamic-typecheck T (U Bool Int) (R 3) (x (U Bool Int)))
+      3)
+     ((dynamic-typecheck T (U Bool Int) (R #false) (x (U Bool Int)))
+      #false)
+     ((dynamic-typecheck T (U (→ Int Int) Int) (R 3) (x (U (→ Int Int) Int)))
+      3)
+     ((dynamic-typecheck T (U (→ Int Int) Int) (R (λ (x TST) 3)) (x (U (→ Int Int) Int)))
+      (mon T (→ Int Int) (R (λ (x TST) 3)) (π (x (U (→ Int Int) Int)))))
     )
   )
 )
