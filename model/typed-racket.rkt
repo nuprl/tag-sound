@@ -674,8 +674,7 @@
     (cond
      [(or (null? t*) (null? (cdr t*)))
       t*]
-     [(equal? (car t*) (cadr t*))
-      ;; TODO not great (but also not horrible)
+     [(equal? (car t*) (cadr t*)) ;; TODO not great (but also not horrible)
       (loop (cdr t*))]
      [else
       (cons (car t*) (loop (cdr t*)))])))
@@ -792,9 +791,9 @@
 
 ;; -----------------------------------------------------------------------------
 ;; --- dynamic-typecheck
-
+ ;; value or BoundaryError
 (define-metafunction μTR
-  dynamic-typecheck : L τ P srcloc -> any ;; value or BoundaryError
+  dynamic-typecheck : L τ P srcloc -> any
   [(dynamic-typecheck R τ P srcloc)
    ,(raise-user-error 'dynamic-typecheck "language R has no dynamic typechecker ~a ~a" (term e) (term τ))]
   [(dynamic-typecheck T Int (L integer) srcloc)
@@ -822,11 +821,13 @@
    (where TST τ_mon)
    (where RuntimeError #{dynamic-typecheck T τ P_mon srcloc})]
   [(dynamic-typecheck T τ (L (mon L_mon τ_mon P_mon srcloc_mon)) srcloc)
-   v ;; TODO this is definitely a bug
+   v ;; TODO remove this case, TST should not be a chaperone
    (where TST τ_mon)
    (where v #{dynamic-typecheck T τ P_mon srcloc})]
-  [(dynamic-typecheck T τ (L (mon L_mon τ_mon P_mon srcloc_mon)) srcloc)
-   (pre-mon T τ (mon L_mon τ_mon P_mon srcloc_mon) srcloc)
+  [(dynamic-typecheck T τ P srcloc)
+   (mon T τ P srcloc)
+   ;; τ must be non-flat, because that's the only type we keep mon's for
+   (where (L (mon L_mon τ_mon P_mon srcloc_mon)) P)
    (judgment-holds (type= #{tag-only τ_mon} #{tag-only τ}))]
   [(dynamic-typecheck T TST (L v) srcloc)
    v
@@ -880,8 +881,8 @@
       (mon T (→ Int Int) (R (λ (x Int) 3)) (f (→ Int Int))))
      ((dynamic-typecheck T (→ Bool Bool) (T (λ (x Bool) #false)) (f (→ Bool Bool)))
       (mon T (→ Bool Bool) (T (λ (x Bool) #false)) (f (→ Bool Bool))))
-     ((dynamic-typecheck T (→ Int Int) (R (mon R TST (T (mon T (→ Int Int) (R (λ (x TST) x)) (b1 (→ Int Int)))) (b2 TST))) (b3 TST))
-      (mon T (→ Int Int) (R (mon R TST (T (mon T (→ Int Int) (R (λ (x TST) x)) (b1 (→ Int Int)))) (b2 TST))) (b3 TST)))
+     ((dynamic-typecheck T (→ Int Int) (T (mon T (→ Int Int) (R (λ (x TST) x)) (b1 (→ Int Int)))) (b3 (→ Int Int)))
+      (mon T (→ Int Int) (T (mon T (→ Int Int) (R (λ (x TST) x)) (b1 (→ Int Int)))) (b3 (→ Int Int))))
      ((dynamic-typecheck T (Pair Int Int) (R (cons 1 1)) (x (Pair Int Int)))
       (cons 1 1))
      ((dynamic-typecheck T (Pair Int Bool) (R (cons 2 #false)) (x (Pair Int Bool)))
@@ -889,7 +890,7 @@
      ((dynamic-typecheck T (Pair (→ Bool Bool) Bool) (R (cons (λ (x TST) x) #true)) (x (Pair (→ Bool Bool) Bool)))
       (cons (mon T (→ Bool Bool) (R (λ (x TST) x)) (car (x (Pair (→ Bool Bool) Bool)))) #true))
      ((dynamic-typecheck T (Pair Int Int) (R (cons 1 #false)) (x (Pair Int Int)))
-      (BoundaryError T (Pair Int Int) (R (cons 1 #false)) (x (Pair Int Int))))
+      (BoundaryError T Int (R #false) (cdr (x (Pair Int Int)))))
      ((dynamic-typecheck T Bool (R 4) (x Bool))
       (BoundaryError T Bool (R 4) (x Bool)))
     )
