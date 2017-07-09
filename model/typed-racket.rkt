@@ -13,6 +13,7 @@
 ;; Lemmas
 ;;   - `∀ e . ⊢T e : τ => τ != TST`
 ;;   - `∀ (mon L_ctx τ_ctx (L_v v)) . ⊢L_v v : τ_ctx`
+;;     - need stronger statement: `v` well-tagged according to `L_ctx`
 
 ;; -----------------------------------------------------------------------------
 
@@ -857,8 +858,7 @@
    ---
    (proc? (λ (x τ) e))]
   [
-   ;; TODO should only check type? Depends on L?
-   (proc? v_1)
+   (proc? v_1) ;; since mon always check constructor, could just check τ_0
    ---
    (proc? (mon L_0 τ_0 (L_1 v_1) srcloc))])
 
@@ -869,7 +869,7 @@
    ---
    (cons? (cons e_0 e_1))]
   [
-   (cons? v_1) ;; TODO should only check type? Depends on L?
+   (cons? v_1)
    ---
    (cons? (mon L_0 τ_0 (L_1 v_1) srcloc))])
 
