@@ -108,16 +108,16 @@
   #:mode (infer-type I I O)
   #:contract (infer-type Γ P τ)
   [
-   ---
+   --- R-I-Int
    (infer-type Γ (R integer) TST)]
   [
-   ---
+   --- T-I-Int
    (infer-type Γ (T integer) Int)]
   [
-   ---
+   --- R-I-Bool
    (infer-type Γ (R boolean) TST)]
   [
-   ---
+   --- T-I-Bool
    (infer-type Γ (T boolean) Bool)]
   [
    (infer-type Γ (R e_0) τ_0)
@@ -148,24 +148,26 @@
   [
    (where Γ_x #{type-env-set Γ (x TST)})
    (infer-type Γ_x (R e) τ_cod)
-   ---
+   --- R-I-λ
    (infer-type Γ (R (λ (x TST) e)) TST)]
   [
    (where Γ_x #{type-env-set Γ (x τ_dom)})
    (infer-type Γ_x (T e) τ_cod)
-   ---
+   --- T-I-λ
    (infer-type Γ (T (λ (x τ_dom) e)) (→ τ_dom τ_cod))]
   [
+  (side-condition ,(debug "inferring ~a~n" (term (e_0 e_1))))
    (infer-type Γ (R e_0) τ_0)
    (infer-type Γ (R e_1) τ_1)
-   ---
+  (side-condition ,(debug "inferring ~a success~n" (term (e_0 e_1)) (term (τ_0 τ_1))))
+   --- R-I-App
    (infer-type Γ (R (e_0 e_1)) TST)]
   [
    (infer-type Γ (T e_0) τ_0)
    (infer-type Γ (T e_1) τ_1)
    (where (→ τ_dom τ_cod) τ_0)
    (type= τ_dom τ_1)
-   ---
+   --- T-I-App
    (infer-type Γ (T (e_0 e_1)) τ_cod)]
   [
    (where τ #{type-env-ref Γ x})
@@ -176,16 +178,20 @@
    ---
    (infer-type Γ (T x) τ)]
   [
-   (infer-type Γ P _)
+   ;; NOTE: the `let`-annotation is bad for R but good for T
+   ;; - T components need to be protected from R contexts via their types
+   ;; - it's easier to ask for annotation on let
+   ;;   than to reconstruct the type from the T-component at runtime
+   (check-type Γ P τ)
    (where Γ_x #{type-env-set Γ (x TST)})
    (infer-type Γ_x (R e_body) τ_body)
-   ---
-   (infer-type Γ (R (let (x TST P) e_body)) TST)]
+   --- R-I-Let
+   (infer-type Γ (R (let (x τ P) e_body)) TST)]
   [
    (check-type Γ P τ)
    (where Γ_x #{type-env-set Γ (x τ)})
    (infer-type Γ_x (T e_body) τ_body)
-   ---
+   --- T-I-Let
    (infer-type Γ (T (let (x τ P) e_body)) τ_body)]
   [
    (infer-type Γ (R e_0) τ_0)
@@ -297,7 +303,7 @@
      (well-typed (T (if (λ (x Int) x) 1 0)))
      (well-typed (T (let (x Int (T 1)) (let (y Int (T 2)) (+ x y)))))
      (well-typed (T (let (h (→ Bool Bool)
-                         (R (let (g TST
+                         (R (let (g (→ Int Int)
                                     (T (let (f (→ Int Int)
                                                (R (λ (x TST) x)))
                                          f)))
@@ -308,6 +314,8 @@
      (well-typed (R (car 3)))
      (well-typed (R (car (cons 1 2))))
      (well-typed (T (car (cons 1 2))))
+     (well-typed (T (λ (x Int) (+ x 1))))
+     (well-typed (R (let (f (→ Int Int) (T (λ (x Int) (+ x 1)))) (f 3))))
     )
 
   )
@@ -385,7 +393,8 @@
      (where (P_step) ,(apply-reduction-relation -->μTR (term P)))]
     [-->
      (L (in-hole E (let (x τ (L_v v)) e_body)))
-     (L (in-hole E ((λ (x τ) e_body) (pre-mon L τ (L_v v) (#{xerox x} τ)))))
+     ;; -- function annotation ignored at runtime
+     (L (in-hole E ((λ (x TST) e_body) (pre-mon L τ (L_v v) (#{xerox x} τ)))))
      Let-Beta]
 ;; -- Primop, If, etc
     [-->
@@ -587,6 +596,20 @@
     )
   )
 
+  (test-case "apply-T-in-R"
+    (check-mf-apply*
+     [(eval (R (let (f (→ Int Int) (T (λ (x Int) (+ x 1)))) (f 3))))
+      (R 4)]
+     [(eval (R (let (f (→ Int Bool) (T (λ (x Int) (if (= 0 x) #false #true)))) (f 3))))
+      (R #true)]
+     [(eval (R (let (f (→ Int Int) (T (λ (x Int) (+ x 4)))) (f #true))))
+      (BoundaryError T Int (R #true) (dom (f (→ Int Int))))]
+    )
+
+    (check-exn #rx"typechecking failed"
+      (λ () (term #{eval (R (let (f (→ Int Int) (T (λ (x Int) #false))) (f 1)))})))
+  )
+
   (test-case "eval:R:III"
     (check-mf-apply*
      ((eval (R (pre-mon R (→ Int Int) (T (mon T (→ Int Int) (R (λ (x TST) x)) (b1 (→ Int Int)))) (b2 (→ Int Int)))))
@@ -597,15 +620,15 @@
   (test-case "double-wrap"
     (check-mf-apply*
      ((eval (T (let (h (→ Bool Bool)
-                       (R (let (g TST
+                       (R (let (g (→ Int Int)
                                   (T (let (f (→ Int Int)
                                              (R (λ (x TST) x)))
                                        f)))
                             g)))
                  (h #true))))
-      (BoundaryError T Int (R #true) (cod (f (→ Int Int)))))
+      (BoundaryError T Int (R #true) (dom (g (→ Int Int)))))
      ((eval (T (let (h (→ Int Int)
-                       (R (let (g TST
+                       (R (let (g (→ Int Int)
                                   (T (let (f (→ Int Int)
                                              (R (λ (x TST) x)))
                                        f)))
