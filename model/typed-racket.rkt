@@ -14,6 +14,15 @@
 ;;   - `∀ e . ⊢T e : τ => τ != TST`
 ;;   - `∀ (mon L_ctx τ_ctx (L_v v)) . ⊢L_v v : τ_ctx`
 ;;     - need stronger statement: `v` well-tagged according to `L_ctx`
+;;   - completions
+;;     - minimal-completion actually minimal (not easy)
+;;     - any completion is well-typed (easy)
+
+;; Awkwardnesses
+;; - E is a "term context", also need a "program context",
+;;   but don't have it so there's extra congruence rules e.g. PreMon-Error
+;; - matthias wants set!
+;;   tests first? I'm not exactly sure what this means. No strong updates right?
 
 ;; -----------------------------------------------------------------------------
 
@@ -36,7 +45,11 @@
 ;; -----------------------------------------------------------------------------
 
 (define-language++ μTR #:alpha-equivalent? α=?
-  (e ::= v (e e) x (let (x τ P) e) (cons e e) (car e) (cdr e) (+ e e) (= e e) (if e e e) (and e e) (pre-mon L τ P srcloc))
+  (e ::= v x (e e) (let (x τ P) e) (if e e e) (and e e)
+         (cons e e) (car e) (cdr e)
+         (+ e e) (= e e)
+         (dyn-check tag e)
+         (pre-mon L τ P srcloc))
   (v ::= integer boolean Λ (cons v v) (mon L τ (L v) srcloc))
   (Λ ::= (λ (x τ) e))
   (P ::= (L e))
@@ -44,6 +57,8 @@
   (τk ::= Int Bool (Pair τ τ) (→ τ τ))
   (L ::= R T)
   (Γ ::= ((x τ) ...))
+  (primop ::= car cdr + =)
+  (tag ::= Int Bool Pair →)
   (E ::= hole
          (E e) (v E)
          (cons E e) (cons v E)
@@ -51,8 +66,9 @@
          (+ E e) (+ v E)
          (= E e) (= v E)
          (if E e e)
-         (and E e) (and v E))
-  (RuntimeError ::= (DynError P) (BoundaryError L τ P srcloc))
+         (and E e)
+         (dyn-check tag E))
+  (RuntimeError ::= (DynError tag v P) (BoundaryError L τ P srcloc))
   (srcloc ::= (dom srcloc) (cod srcloc) (car srcloc) (cdr srcloc) (π srcloc) (x τ))
   (A ::= P RuntimeError)
   (x ::= variable-not-otherwise-mentioned)
@@ -257,6 +273,10 @@
    (check-type Γ P τ)
    ---
    (infer-type Γ (T (pre-mon T τ P srcloc)) τ)]
+  [
+   (side-condition ,(raise-user-error 'infer-type "dyn-check not allowed in source terms ~a" (term (L (dyn-check tag e)))))
+   ---
+   (infer-type Γ (L (dyn-check tag e)) TST)]
 )
 
 (define-metafunction μTR
@@ -318,6 +338,11 @@
      (well-typed (R (let (f (→ Int Int) (T (λ (x Int) (+ x 1)))) (f 3))))
     )
 
+    (check-exn #rx"dyn-check not allowed"
+      (λ () (term (well-typed (R (dyn-check Int 3))))))
+    (check-exn #rx"dyn-check not allowed"
+      (λ () (term (well-typed (T (dyn-check → (λ (x Int) 3)))))))
+
   )
 
   (test-case "not-well-typed"
@@ -361,12 +386,12 @@
     [-->
      (L (in-hole E (pre-mon T τ_ctx (R v) srcloc)))
      (L (in-hole E v_+))
-     PreMon-FinerContext-MaybeOk
+     PreMon-R->T-MaybeOk
      (where v_+ #{dynamic-typecheck T τ_ctx (R v) srcloc})]
     [-->
      (L (in-hole E (pre-mon T τ_ctx (R v) srcloc)))
      RuntimeError
-     PreMon-FinerContext-NotOk
+     PreMon-R->T-Error
      (where RuntimeError #{dynamic-typecheck T τ_ctx (R v) srcloc})]
 ;; -- APP
     [-->
@@ -380,11 +405,6 @@
      (where (→ τ_dom τ_cod) τ_ctx)
      (where P_subst (L_λ (v (pre-mon L_λ τ_dom (L_ctx v_1) (dom srcloc)))))
      (where e_cod (pre-mon L_ctx τ_cod P_subst (cod srcloc)))]
-    [-->
-     (R (in-hole E (v_0 v_1)))
-     (DynError (R (v_0 v_1)))
-     App-Error
-     (side-condition (not (judgment-holds (proc? v_0))))]
 ;; -- LET
     [-->
      (L (in-hole E (let (x τ P) e_body)))
@@ -396,52 +416,12 @@
      ;; -- function annotation ignored at runtime
      (L (in-hole E ((λ (x TST) e_body) (pre-mon L τ (L_v v) (#{xerox x} τ)))))
      Let-Beta]
-;; -- Primop, If, etc
+;; -- control flow
     [-->
-     (L (in-hole E (car (cons v_0 v_1))))
-     (L (in-hole E v_0))
-     Car]
-    [-->
-     (R (in-hole E (car v)))
-     (DynError (R (car v)))
-     Car-Error
-     (side-condition (not (judgment-holds (cons? v))))]
-    [-->
-     (L (in-hole E (cdr (cons v_0 v_1))))
-     (L (in-hole E v_1))
-     Cdr]
-    [-->
-     (R (in-hole E (cdr v)))
-     (DynError (R (cdr v)))
-     Cdr-Error
-     (side-condition (not (judgment-holds (cons? v))))]
-    [-->
-     (L (in-hole E (+ integer_0 integer_1)))
-     (L (in-hole E ,(+ (term integer_0) (term integer_1))))
-     +]
-    [-->
-     (R (in-hole E (+ v_0 v_1)))
-     (DynError (R (+ v_0 v_1)))
-     +-Error
-     (side-condition (or (not (integer? (term v_0))) (not (integer? (term v_1)))))]
-    [-->
-     (L (in-hole E (= integer_0 integer_1)))
-     (L (in-hole E ,(= (term integer_0) (term integer_1))))
-     =]
-    [-->
-     (R (in-hole E (= v_0 v_1)))
-     (DynError (R (= v_0 v_1)))
-     =-Error
-     (side-condition (or (not (integer? (term v_0))) (not (integer? (term v_1)))))]
-    [-->
-     (L (in-hole E (and boolean_0 boolean_1)))
-     (L (in-hole E ,(and (term boolean_0) (term boolean_1))))
-     And]
-    [-->
-     (R (in-hole E (and v_0 v_1)))
-     (DynError (R (and v_0 v_1)))
-     And-Error
-     (side-condition (or (not (boolean? (term v_0))) (not (boolean? (term v_1)))))]
+     (L (in-hole E (and v_0 e_1)))
+     (L (in-hole E e_2))
+     And
+     (where e_2 ,(if (eq? #false (term v_0)) (term #false) (term e_1)))]
     [-->
      (L (in-hole E (if v e_1 e_2)))
      (L (in-hole E e_1))
@@ -450,26 +430,45 @@
     [-->
      (L (in-hole E (if #false e_1 e_2)))
      (L (in-hole E e_2))
-     If-False]))
-
-(define-metafunction μTR
-  xerox : x -> x
-  [(xerox x)
-   ,(string->symbol (car (string-split (symbol->string (term x)) "«")))])
+     If-False]
+;; -- primop
+    [-->
+     (L (in-hole E (primop v ...)))
+     (L (in-hole E #{apply-op primop v ...}))
+     Primop]
+;; -- dyn-check
+    [-->
+     (L (in-hole E (dyn-check tag v)))
+     (L (in-hole E v))
+     DynCheck-Ok
+     (judgment-holds (well-tagged v tag))]
+    [-->
+     (L (in-hole E (dyn-check tag v)))
+     (DynError tag v (L (in-hole E (dyn-check tag v))))
+     DynCheck-Error
+     (side-condition (not (judgment-holds (well-tagged v tag))))]))
 
 (define -->μTR*
   (make--->* -->μTR))
 
 (define-metafunction μTR
-  eval : P -> A
+  eval : P  -> any
   [(eval P)
-   A
+   #{eval* P #false}])
+
+(define-metafunction μTR
+  eval* : P boolean -> any
+  [(eval* P boolean_keeptrace)
+   any
    (judgment-holds (well-typed P))
-   (where A ,(-->μTR* (term P)))]
-  [(eval P)
+   (where P_c #{minimal-completion# P})
+   (where any ,(if (term boolean_keeptrace)
+                 (apply-reduction-relation* -->μTR (term P_c) #:all? #t)
+                 (-->μTR* (term P_c))))]
+  [(eval* P _)
    ,(raise-user-error 'eval "trouble eval'ing ~a" (term P))
    (judgment-holds (well-typed P))]
-  [(eval P)
+  [(eval* P _)
    ,(raise-user-error 'eval "typechecking failed ~a" (term P))])
 
 (module+ test
@@ -483,9 +482,9 @@
      ((eval (R (if #true 2 3)))
       (R 2))
      ((eval (R (and 1 2)))
-      (DynError (R (and 1 2))))
+      (R 2))
      ((eval (R (and #true 3)))
-      (DynError (R (and #true 3))))
+      (R 3))
      ((eval (R (and #true #false)))
       (R #false))
      ((eval (R (and #false #true)))
@@ -497,15 +496,15 @@
      ((eval (R (= 1 2)))
       (R #false))
      ((eval (R (= #true 2)))
-      (DynError (R (= #true 2))))
+      (DynError Int #true (R (= (dyn-check Int #true) (dyn-check Int 2)))))
      ((eval (R (= 3 (= 1 1))))
-      (DynError (R (= 3 #true))))
+      (DynError Int #true (R (= 3 (dyn-check Int #true)))))
      ((eval (R (+ 2 2)))
       (R 4))
      ((eval (R (+ #true 2)))
-      (DynError (R (+ #true 2))))
+      (DynError Int #true (R (+ (dyn-check Int #true) (dyn-check Int 2)))))
      ((eval (R (+ 2 #true)))
-      (DynError (R (+ 2 #true))))
+      (DynError Int #true (R (+ 2 (dyn-check Int #true)))))
      ((eval (R (cons 1 2)))
       (R (cons 1 2)))
      ((eval (R (+ 1 (car (cons (+ 1 1) (+ 2 2))))))
@@ -526,7 +525,7 @@
       ((eval (R ((λ (x TST) (+ x 1)) 1)))
        (R 2))
       ((eval (R (1 1)))
-       (DynError (R (1 1))))
+       (DynError → 1 (R ((dyn-check → 1) 1))))
       ((eval (R (pre-mon R Int (T 6) (boundary Int))))
        (R 6))
       ((eval (R ((mon R (→ Int Int) (T (λ (x Int) 2)) (boundary (→ Int Int))) 7)))
@@ -590,9 +589,9 @@
      [(eval (T (let (f (→ Int Int) (R (λ (x TST) #false))) (f 1))))
       (BoundaryError T Int (R #false) (cod (f (→ Int Int))))]
      [(eval (T (let (f (→ Int Int) (R (λ (x TST) (+ x #false)))) (f 3))))
-      (DynError (R (+ 3 #false)))]
+      (DynError Int #false (R (+ 3 (dyn-check Int #false))))]
      [(eval (T (let (f (→ Int Int) (R (λ (x TST) (+ #true #false)))) (f 3))))
-      (DynError (R (+ #true #false)))]
+      (DynError Int #true (R (+ (dyn-check Int #true) (dyn-check Int #false))))]
     )
   )
 
@@ -653,6 +652,15 @@
                       (gg (ff 1)))))))
       (T 1800))
     )
+  )
+
+  (test-case "well-typed-programs-run-faster"
+    (define (check-shorter-trace t1 t2)
+      (define-values [trace1 trace2]
+          (values (term #{eval* ,t1 #true}) (term #{eval* ,t2 #true})))
+      (check < (length trace1) (length trace2)))
+
+    (check-shorter-trace (term (T (+ 2 2))) (term (R (+ 2 2))))
   )
 )
 
@@ -745,6 +753,33 @@
   [(make-union (U τ_0 ...) (U τ_1 ...))
    #{type-normalize (U τ_0 ... τ_1 ...)}])
 
+(define-judgment-form μTR
+  #:mode (well-tagged I I)
+  #:contract (well-tagged v tag)
+  [
+   ---
+   (well-tagged integer Int)]
+  [
+   ---
+   (well-tagged boolean Bool)]
+  [
+   ---
+   (well-tagged Λ →)]
+  [
+   ---
+   (well-tagged (cons _ _) Pair)]
+  [
+   (tag= #{tag-only τ} tag)
+   ---
+   (well-tagged (mon _ τ _ _) tag)])
+
+(define-judgment-form μTR
+  #:mode (tag= I I)
+  #:contract (tag= tag tag)
+  [
+   ---
+   (tag= tag tag)])
+
 (module+ test
 
   (test-case "simple-type->constructor"
@@ -768,6 +803,16 @@
       (U Int (Pair Int Int) (Pair Bool Int)))
      ((type-normalize (U (Pair Int Int) (Pair Int Int) Int))
       (U Int (Pair Int Int)))))
+
+  (test-case "well-tagged"
+    (check-judgment-holds*
+     (well-tagged 4 Int)
+     (well-tagged #true Bool)
+     (well-tagged (λ (x TST) 4) →)
+     (well-tagged (cons 1 1) Pair)
+     (well-tagged (mon T (→ (Pair Int Int) Int) (R (λ (x TST) (+ 2 (car x)))) (x Int)) →)
+    )
+  )
 )
 
 ;; -----------------------------------------------------------------------------
@@ -820,9 +865,9 @@
 
 ;; -----------------------------------------------------------------------------
 ;; --- dynamic-typecheck
- ;; value or BoundaryError
+
 (define-metafunction μTR
-  dynamic-typecheck : L τ P srcloc -> any
+  dynamic-typecheck : L τ P srcloc -> any ;; value or BoundaryError
   [(dynamic-typecheck R τ P srcloc)
    ,(raise-user-error 'dynamic-typecheck "language R has no dynamic typechecker ~a ~a" (term e) (term τ))]
 ;; --- Int
@@ -866,7 +911,7 @@
    (mon T τ P srcloc)
    ;; τ must be non-flat, because that's the only type we keep mon's for
    (where (L (mon L_mon τ_mon P_mon srcloc_mon)) P)
-   (judgment-holds (type= #{tag-only τ_mon} #{tag-only τ}))]
+   (judgment-holds (tag= #{tag-only τ_mon} #{tag-only τ}))]
   [(dynamic-typecheck T (→ τ_dom τ_cod) P srcloc)
    (BoundaryError T (→ τ_dom τ_cod) P srcloc)]
 ;; --- TST
@@ -897,17 +942,136 @@
    (cons? (mon L_0 τ_0 (L_1 v_1) srcloc))])
 
 (define-metafunction μTR
-  tag-only : τ -> τ
+  tag-only : τ -> tag
   [(tag-only Int)
    Int]
   [(tag-only Bool)
    Bool]
   [(tag-only (Pair τ_0 τ_1))
-   (Pair TST TST)]
+   Pair]
   [(tag-only (→ τ_dom τ_cod))
-   (→ TST TST)]
+   →]
   [(tag-only TST)
    TST])
+
+;; Add runtime checks to ensure safety
+(define-judgment-form μTR
+  #:mode (minimal-completion I O)
+  #:contract (minimal-completion P P)
+  [
+   ---
+   (minimal-completion (L integer) (L integer))]
+  [
+   ---
+   (minimal-completion (L boolean) (L boolean))]
+  [
+   (minimal-completion (L e) (L e_c))
+   ---
+   (minimal-completion (L (λ (x τ) e)) (L (λ (x τ) e_c)))]
+  [
+   (minimal-completion (L e_0) (L e_0c))
+   (minimal-completion (L e_1) (L e_1c))
+   ---
+   (minimal-completion (L (cons e_0 e_1)) (L (cons e_0c e_1c)))]
+  [
+   ---
+   (minimal-completion (L x) (L x))]
+  [
+   (minimal-completion P_m P_mc)
+   ---
+   (minimal-completion (L (mon L_m τ_m P_m srcloc)) (L (mon L_m τ_m P_mc srcloc)))]
+  [
+   (minimal-completion P P_c)
+   (minimal-completion (L e) (L e_c))
+   ---
+   (minimal-completion (L (let (x τ P) e)) (L (let (x τ P_c) e_c)))]
+  [
+   (minimal-completion (L e_0) (L e_0c))
+   (minimal-completion (L e_1) (L e_1c))
+   (minimal-completion (L e_2) (L e_2c))
+   ---
+   (minimal-completion (L (if e_0 e_1 e_2)) (L (if e_0c e_1c e_2c)))]
+  [
+   (minimal-completion (L e_0) (L e_0c))
+   (minimal-completion (L e_1) (L e_1c))
+   ---
+   (minimal-completion (L (and e_0 e_1)) (L (and e_0c e_1c)))]
+  [
+   (side-condition ,(raise-user-error 'minimal-completion "dyn-check not allowed in source programs ~a" (term (L (dyn-check tag e)))))
+   ---
+   (minimal-completion (L (dyn-check tag e)) (L (dyn-check tag e)))]
+  [
+   (minimal-completion P P_c)
+   ---
+   (minimal-completion (L (pre-mon L_m τ P srcloc)) (L (pre-mon L_m τ P_c srcloc)))]
+  [
+   (minimal-completion (R e_0) (R e_0c))
+   (minimal-completion (R e_1) (R e_1c))
+   --- R-App
+   (minimal-completion (R (e_0 e_1)) (R ((dyn-check → e_0c) e_1c)))]
+  [
+   (minimal-completion (T e_0) (T e_0c))
+   (minimal-completion (T e_1) (T e_1c))
+   --- T-App
+   (minimal-completion (T (e_0 e_1)) (T (e_0c e_1c)))]
+  [
+   (minimal-completion (R e_0) (R e_0c))
+   --- R-Car
+   (minimal-completion (R (car e_0)) (R (car (dyn-check Pair e_0c))))]
+  [
+   (minimal-completion (T e_0) (T e_0c))
+   --- T-Car
+   (minimal-completion (T (car e_0)) (T (car e_0c)))]
+  [
+   (minimal-completion (R e_0) (R e_0c))
+   --- R-Cdr
+   (minimal-completion (R (cdr e_0)) (R (cdr (dyn-check Pair e_0c))))]
+  [
+   (minimal-completion (T e_0) (T e_0c))
+   --- T-Cdr
+   (minimal-completion (T (cdr e_0)) (T (cdr e_0c)))]
+  [
+   (minimal-completion (R e_0) (R e_0c))
+   (minimal-completion (R e_1) (R e_1c))
+   --- R-+
+   (minimal-completion (R (+ e_0 e_1)) (R (+ (dyn-check Int e_0c) (dyn-check Int e_1c))))]
+  [
+   (minimal-completion (T e_0) (T e_0c))
+   (minimal-completion (T e_1) (T e_1c))
+   --- T-+
+   (minimal-completion (T (+ e_0 e_1)) (T (+ e_0c e_1c)))]
+  [
+   (minimal-completion (R e_0) (R e_0c))
+   (minimal-completion (R e_1) (R e_1c))
+   --- R-=
+   (minimal-completion (R (= e_0 e_1)) (R (= (dyn-check Int e_0c) (dyn-check Int e_1c))))]
+  [
+   (minimal-completion (T e_0) (T e_0c))
+   (minimal-completion (T e_1) (T e_1c))
+   --- T-=
+   (minimal-completion (T (= e_0 e_1)) (T (= e_0c e_1c)))])
+
+(define-metafunction μTR
+  minimal-completion# : P -> P
+  [(minimal-completion# P)
+   P_+
+   (judgment-holds (minimal-completion P P_+))])
+
+(define-metafunction μTR
+  xerox : x -> x
+  [(xerox x)
+   ,(string->symbol (car (string-split (symbol->string (term x)) "«")))])
+
+(define-metafunction μTR
+  apply-op : primop v ... -> v
+  [(apply-op car (cons v_0 _))
+   v_0]
+  [(apply-op cdr (cons _ v_1))
+   v_1]
+  [(apply-op + v_0 v_1)
+   ,(+ (term v_0) (term v_1))]
+  [(apply-op = v_0 v_1)
+   ,(= (term v_0) (term v_1))])
 
 (module+ test
   (test-case "dynamic-typecheck"
@@ -940,5 +1104,97 @@
       (mon T (→ Int Int) (R (λ (x TST) 3)) (π (x (U (→ Int Int) Int)))))
     )
   )
-)
 
+  (test-case "minimal-completion"
+    (check-mf-apply*
+     ((minimal-completion# (R 1))
+      (R 1))
+     ((minimal-completion# (T 1))
+      (T 1))
+     ((minimal-completion# (R #true))
+      (R #true))
+     ((minimal-completion# (T #true))
+      (T #true))
+     ((minimal-completion# (R (λ (x TST) 4)))
+      (R (λ (x TST) 4)))
+     ((minimal-completion# (T (λ (x TST) 4)))
+      (T (λ (x TST) 4)))
+     ((minimal-completion# (R (cons 1 1)))
+      (R (cons 1 1)))
+     ((minimal-completion# (T (cons 1 1)))
+      (T (cons 1 1)))
+     ((minimal-completion# (R free-vars))
+      (R free-vars))
+     ((minimal-completion# (T freedom))
+      (T freedom))
+     ((minimal-completion# (R (mon R (→ Int Int) (T (λ (x Int) x)) (f (→ Int Int)))))
+      (R (mon R (→ Int Int) (T (λ (x Int) x)) (f (→ Int Int)))))
+     ((minimal-completion# (T (mon T (→ Int Int) (R (λ (x TST) (+ x 1))) (f (→ Int Int)))))
+      (T (mon T (→ Int Int) (R (λ (x TST) (+ (dyn-check Int x) (dyn-check Int 1)))) (f (→ Int Int)))))
+     ((minimal-completion# (R (pre-mon R (→ Int Int) (T (λ (x Int) x)) (f (→ Int Int)))))
+      (R (pre-mon R (→ Int Int) (T (λ (x Int) x)) (f (→ Int Int)))))
+     ((minimal-completion# (T (pre-mon T (→ Int Int) (R (λ (x TST) (+ x 1))) (f (→ Int Int)))))
+      (T (pre-mon T (→ Int Int) (R (λ (x TST) (+ (dyn-check Int x) (dyn-check Int 1)))) (f (→ Int Int)))))
+     ((minimal-completion# (R (let (x Int (T (+ 2 2))) (+ x x))))
+      (R (let (x Int (T (+ 2 2))) (+ (dyn-check Int x) (dyn-check Int x)))))
+     ((minimal-completion# (T (let (x Int (R (+ 2 2))) (+ x x))))
+      (T (let (x Int (R (+ (dyn-check Int 2) (dyn-check Int 2)))) (+ x x))))
+     ((minimal-completion# (R (if (+ 1 1) (+ 1 1) (+ 1 1))))
+      (R (if (+ (dyn-check Int 1) (dyn-check Int 1)) (+ (dyn-check Int 1) (dyn-check Int 1)) (+ (dyn-check Int 1) (dyn-check Int 1)))))
+     ((minimal-completion# (T (if (+ 1 1) (+ 1 1) (+ 1 1))))
+      (T (if (+ 1 1) (+ 1 1) (+ 1 1))))
+     ((minimal-completion# (R (and (+ 1 1) (+ 1 1))))
+      (R (and (+ (dyn-check Int 1) (dyn-check Int 1)) (+ (dyn-check Int 1) (dyn-check Int 1)))))
+     ((minimal-completion# (T (and (+ 1 1) (+ 1 1))))
+      (T (and (+ 1 1) (+ 1 1))))
+     ((minimal-completion# (R (let (n1 TST (R #false)) n1)))
+      (R (let (n1 TST (R #false)) n1)))
+     ((minimal-completion# (R (= #true 2)))
+      (R (= (dyn-check Int #true) (dyn-check Int 2))))
+     ((minimal-completion# (R (f x)))
+      (R ((dyn-check → f) x)))
+     ((minimal-completion# (T (f x)))
+      (T (f x)))
+     ((minimal-completion# (R (car 1)))
+      (R (car (dyn-check Pair 1))))
+     ((minimal-completion# (T (car 1)))
+      (T (car 1)))
+     ((minimal-completion# (R (cdr 1)))
+      (R (cdr (dyn-check Pair 1))))
+     ((minimal-completion# (T (cdr 1)))
+      (T (cdr 1)))
+     ((minimal-completion# (R (+ 1 1)))
+      (R (+ (dyn-check Int 1) (dyn-check Int 1))))
+     ((minimal-completion# (T (+ 1 1)))
+      (T (+ 1 1)))
+     ((minimal-completion# (R (= 1 1)))
+      (R (= (dyn-check Int 1) (dyn-check Int 1))))
+     ((minimal-completion# (T (= 1 1)))
+      (T (= 1 1)))
+    )
+  )
+
+  (test-case "xerox"
+    (check-mf-apply*
+     ((xerox x)
+      x)
+     ((xerox xx«2)
+      xx)
+     ((xerox some-variable-name)
+      some-variable-name)
+    )
+  )
+
+  (test-case "apply-op"
+    (check-mf-apply*
+     ((apply-op car (cons 1 2))
+      1)
+     ((apply-op cdr (cons 1 2))
+      2)
+     ((apply-op + 1 2)
+      3)
+     ((apply-op = 1 2)
+      #false)
+    )
+  )
+)
