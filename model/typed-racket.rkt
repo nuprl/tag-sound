@@ -21,7 +21,6 @@
 ;; Awkwardnesses
 ;; - matthias wants set!
 ;;   tests first? I'm not exactly sure what this means. No strong updates right?
-;; - erase λ annotations for runtime!
 
 ;; -----------------------------------------------------------------------------
 
@@ -50,7 +49,7 @@
          (dyn-check tag e)
          (pre-mon L τ P srcloc))
   (v ::= integer boolean Λ (cons v v) (mon L τ (L v) srcloc))
-  (Λ ::= (λ (x τ) e))
+  (Λ ::= (λ (x) e) (λ (x τ) e))
   (P ::= (L e))
   (τ ::= (U τk ...) τk TST)
   (τk ::= Int Bool (Pair τ τ) (→ τ τ))
@@ -74,6 +73,7 @@
   (x ::= variable-not-otherwise-mentioned)
 #:binding-forms
   (let (x τ P) e #:refers-to x)
+  (λ (x) e #:refers-to x)
   (λ (x τ) e #:refers-to x))
 
 (module+ test
@@ -382,7 +382,7 @@
      (where RuntimeError #{dynamic-typecheck T τ_ctx (R v) srcloc})]
 ;; -- APP
     [-->
-     (in-hole E ((λ (x τ) e) v_1))
+     (in-hole E ((λ (x) e) v_1))
      (in-hole E (substitute e x v_1))
      App-Beta]
     [-->
@@ -605,7 +605,7 @@
   (test-case "eval:R:III"
     (check-mf-apply*
      ((eval (R (pre-mon R (→ Int Int) (T (mon T (→ Int Int) (R (λ (x TST) x)) (b1 (→ Int Int)))) (b2 (→ Int Int)))))
-      (mon R (→ Int Int) (T (mon T (→ Int Int) (R (λ (x TST) x)) (b1 (→ Int Int)))) (b2 (→ Int Int))))
+      (mon R (→ Int Int) (T (mon T (→ Int Int) (R (λ (x) x)) (b1 (→ Int Int)))) (b2 (→ Int Int))))
     )
   )
 
@@ -1051,9 +1051,19 @@
    (judgment-holds (minimal-completion P P_+))])
 
 (define-metafunction μTR
-  xerox : x -> x
+  xerox : any -> any
+  [(xerox (any ...))
+   (#{xerox any} ...)]
   [(xerox x)
-   ,(string->symbol (car (string-split (symbol->string (term x)) "«")))])
+   ,(string->symbol (car (string-split (symbol->string (term x)) "«")))]
+  [(xerox any)
+   any])
+
+(define (xerox=? t0 t1)
+  (define t0+ (term #{xerox ,t0}))
+  (define t1+ (term #{xerox ,t1}))
+  (printf "WHATA HE~n    ~a~n    ~a~n" t0+ t1+)
+  (equal? t0+ t1+))
 
 (define-metafunction μTR
   apply-op : primop v ... -> v
@@ -1078,7 +1088,7 @@
   [
    (erasure (L e) e_e)
    ---
-   (erasure (L (λ (x τ) e)) (λ (x τ) e_e))]
+   (erasure (L (λ (x τ) e)) (λ (x) e_e))]
   [
    (erasure (L e_0) e_0e)
    (erasure (L e_1) e_1e)
@@ -1100,7 +1110,7 @@
    (erasure (L_x e_x) e_xe)
    (erasure (L e) e_c)
    ---
-   (erasure (L (let (x τ (L_x e_x)) e)) ((λ (x TST) e_c) (pre-mon L τ (L_x e_xe) (#{xerox x} τ))))]
+   (erasure (L (let (x τ (L_x e_x)) e)) ((λ (x) e_c) (pre-mon L τ (L_x e_xe) (#{xerox x} τ))))]
   [
    (erasure (L e_0) e_0e)
    (erasure (L e_1) e_1e)
@@ -1276,11 +1286,6 @@
       4)
      ((erasure# (R #true))
       #true)
-     ;; TODO they LOOK similar....
-     #;((erasure# (R (λ (x TST) (let (x (→ Int Int) (T (λ (y Int) y))) (x 45)))))
-      (λ (x TST)
-        ((λ (z TST) (z 45))
-         (pre-mon R (→ Int Int) (T (λ (y Int) y)) (x (→ Int Int))))))
      ((erasure# (R (cons 1 2)))
       (cons 1 2))
      ((erasure# (T (pre-mon T Int (T 3) (x Int))))
@@ -1312,7 +1317,11 @@
      ((erasure# (T (dyn-check Int 4)))
       (dyn-check Int 4))
      ((erasure# (R (let (x (→ Int Int) (T (λ (y Int) (+ y 2)))) (x 3))))
-      ((λ (x TST) (x 3)) (pre-mon R (→ Int Int) (T (λ (y Int) (+ y 2))) (x (→ Int Int)))))
+      ((λ (x) (x 3)) (pre-mon R (→ Int Int) (T (λ (y) (+ y 2))) (x (→ Int Int)))))
+     ((erasure# (R (λ (x TST) (let (z (→ Int Int) (T (λ (y Int) y))) (z 45)))))
+      (λ (x)
+        ((λ (z) (z 45))
+         (pre-mon R (→ Int Int) (T (λ (y) y)) (z (→ Int Int))))))
     )
   )
 )
