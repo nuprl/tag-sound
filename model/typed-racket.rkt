@@ -19,10 +19,9 @@
 ;;     - any completion is well-typed (easy)
 
 ;; Awkwardnesses
-;; - E is a "term context", also need a "program context",
-;;   but don't have it so there's extra congruence rules e.g. PreMon-Error
 ;; - matthias wants set!
 ;;   tests first? I'm not exactly sure what this means. No strong updates right?
+;; - erase λ annotations for runtime!
 
 ;; -----------------------------------------------------------------------------
 
@@ -67,10 +66,11 @@
          (= E e) (= v E)
          (if E e e)
          (and E e)
-         (dyn-check tag E))
-  (RuntimeError ::= (DynError tag v P) (BoundaryError L τ P srcloc))
+         (dyn-check tag E)
+         (pre-mon L τ (L E) srcloc))
+  (RuntimeError ::= (DynError tag v e) (BoundaryError L τ P srcloc))
   (srcloc ::= (dom srcloc) (cod srcloc) (car srcloc) (cdr srcloc) (π srcloc) (x τ))
-  (A ::= P RuntimeError)
+  (A ::= e RuntimeError)
   (x ::= variable-not-otherwise-mentioned)
 #:binding-forms
   (let (x τ P) e #:refers-to x)
@@ -359,92 +359,75 @@
   (reduction-relation μTR
     #:domain A
 ;; -- MON
-;; the "outermost" language for these doesn't really matter,
-;; because `let-beta` will insert pre-mons from any language into the current E,
-;; so just worry about the 2 languages inside the `mon` or `pre-mon` form
     [-->
-     (L (in-hole E (pre-mon L_ctx τ_ctx P srcloc)))
-     (L (in-hole E (pre-mon L_ctx τ_ctx P_step srcloc)))
-     PreMon-Step
-     (where (P_step) ,(apply-reduction-relation -->μTR (term P)))]
-    [-->
-     (L (in-hole E (pre-mon L_ctx τ_ctx P _)))
-     RuntimeError
-     PreMon-Error
-     (where (RuntimeError) ,(apply-reduction-relation -->μTR (term P)))]
-    [-->
-     (L (in-hole E (pre-mon R τ_ctx (T v) srcloc)))
-     (L (in-hole E v_+))
+     (in-hole E (pre-mon R τ_ctx (T v) srcloc))
+     (in-hole E v_+)
      PreMon-T->R
      (where v_+ ,(if (judgment-holds (flat T τ_ctx))
                    (term v)
                    (term (mon R τ_ctx (T v) srcloc))))]
     [-->
-     (L (in-hole E (pre-mon L τ (L v) srcloc)))
-     (L (in-hole E v))
+     (in-hole E (pre-mon L_m τ (L_m v) srcloc))
+     (in-hole E v)
      PreMon-NoBoundary]
     [-->
-     (L (in-hole E (pre-mon T τ_ctx (R v) srcloc)))
-     (L (in-hole E v_+))
+     (in-hole E (pre-mon T τ_ctx (R v) srcloc))
+     (in-hole E v_+)
      PreMon-R->T-MaybeOk
      (where v_+ #{dynamic-typecheck T τ_ctx (R v) srcloc})]
     [-->
-     (L (in-hole E (pre-mon T τ_ctx (R v) srcloc)))
+     (in-hole E (pre-mon T τ_ctx (R v) srcloc))
      RuntimeError
      PreMon-R->T-Error
      (where RuntimeError #{dynamic-typecheck T τ_ctx (R v) srcloc})]
 ;; -- APP
     [-->
-     (L (in-hole E ((λ (x τ) e) v_1)))
-     (L (in-hole E (substitute e x v_1)))
+     (in-hole E ((λ (x τ) e) v_1))
+     (in-hole E (substitute e x v_1))
      App-Beta]
     [-->
-     (L (in-hole E ((mon L_ctx τ_ctx (L_λ v) srcloc) v_1)))
-     (L (in-hole E e_cod))
+     (in-hole E ((mon L_ctx τ_ctx (L_λ v) srcloc) v_1))
+     (in-hole E e_cod)
      App-Mon
      (where (→ τ_dom τ_cod) τ_ctx)
      (where P_subst (L_λ (v (pre-mon L_λ τ_dom (L_ctx v_1) (dom srcloc)))))
      (where e_cod (pre-mon L_ctx τ_cod P_subst (cod srcloc)))]
 ;; -- LET
     [-->
-     (L (in-hole E (let (x τ P) e_body)))
-     (L (in-hole E (let (x τ P_step) e_body)))
-     Let-Step
-     (where (P_step) ,(apply-reduction-relation -->μTR (term P)))]
-    [-->
-     (L (in-hole E (let (x τ (L_v v)) e_body)))
+     (in-hole E (let _ _))
      ;; -- function annotation ignored at runtime
-     (L (in-hole E ((λ (x TST) e_body) (pre-mon L τ (L_v v) (#{xerox x} τ)))))
-     Let-Beta]
+     (in-hole E 42)
+     Let-Beta
+     (side-condition (raise-user-error '-->μTR "let not allowed at runtime"))]
 ;; -- control flow
     [-->
-     (L (in-hole E (and v_0 e_1)))
-     (L (in-hole E e_2))
+     (in-hole E (and v_0 e_1))
+     (in-hole E e_2)
      And
      (where e_2 ,(if (eq? #false (term v_0)) (term #false) (term e_1)))]
     [-->
-     (L (in-hole E (if v e_1 e_2)))
-     (L (in-hole E e_1))
+     (in-hole E (if v e_1 e_2))
+     (in-hole E e_1)
      If-True
      (side-condition (not (eq? #false (term v))))]
     [-->
-     (L (in-hole E (if #false e_1 e_2)))
-     (L (in-hole E e_2))
+     (in-hole E (if #false e_1 e_2))
+     (in-hole E e_2)
      If-False]
 ;; -- primop
     [-->
-     (L (in-hole E (primop v ...)))
-     (L (in-hole E #{apply-op primop v ...}))
+     (in-hole E (primop v ...))
+     (in-hole E #{apply-op primop v ...})
      Primop]
 ;; -- dyn-check
     [-->
-     (L (in-hole E (dyn-check tag v)))
-     (L (in-hole E v))
+     (in-hole E (dyn-check tag v))
+     (in-hole E v)
      DynCheck-Ok
      (judgment-holds (well-tagged v tag))]
     [-->
-     (L (in-hole E (dyn-check tag v)))
-     (DynError tag v (L (in-hole E (dyn-check tag v))))
+     (in-hole E (dyn-check tag v))
+     (DynError tag v (in-hole E (dyn-check tag v)))
      DynCheck-Error
      (side-condition (not (judgment-holds (well-tagged v tag))))]))
 
@@ -462,11 +445,21 @@
    any
    (judgment-holds (well-typed P))
    (where P_c #{minimal-completion# P})
+   (where e_c #{erasure# P_c})
    (where any ,(if (term boolean_keeptrace)
-                 (apply-reduction-relation* -->μTR (term P_c) #:all? #t)
-                 (-->μTR* (term P_c))))]
+                 (apply-reduction-relation* -->μTR (term e_c) #:all? #t)
+                 (-->μTR* (term e_c))))]
+  [(eval* P boolean_keeptrace)
+   ,(raise-user-error 'eval "trouble eval'ing ~a" (term e_c))
+   (judgment-holds (well-typed P))
+   (where P_c #{minimal-completion# P})
+   (where e_c #{erasure# P_c})]
+  [(eval* P boolean_keeptrace)
+   ,(raise-user-error 'eval "trouble erasing let from ~a" (term P_c))
+   (judgment-holds (well-typed P))
+   (where P_c #{minimal-completion# P})]
   [(eval* P _)
-   ,(raise-user-error 'eval "trouble eval'ing ~a" (term P))
+   ,(raise-user-error 'eval "trouble completing ~a" (term P))
    (judgment-holds (well-typed P))]
   [(eval* P _)
    ,(raise-user-error 'eval "typechecking failed ~a" (term P))])
@@ -476,98 +469,98 @@
     ;; simplest terms, R language
     (check-mf-apply*
      ((eval (R (if 1 2 3)))
-      (R 2))
+      2)
      ((eval (R (if #false 2 3)))
-      (R 3))
+      3)
      ((eval (R (if #true 2 3)))
-      (R 2))
+      2)
      ((eval (R (and 1 2)))
-      (R 2))
+      2)
      ((eval (R (and #true 3)))
-      (R 3))
+      3)
      ((eval (R (and #true #false)))
-      (R #false))
+      #false)
      ((eval (R (and #false #true)))
-      (R #false))
+      #false)
      ((eval (R (and #true #true)))
-      (R #true))
+      #true)
      ((eval (R (= 1 1)))
-      (R #true))
+      #true)
      ((eval (R (= 1 2)))
-      (R #false))
+      #false)
      ((eval (R (= #true 2)))
-      (DynError Int #true (R (= (dyn-check Int #true) (dyn-check Int 2)))))
+      (DynError Int #true (= (dyn-check Int #true) (dyn-check Int 2))))
      ((eval (R (= 3 (= 1 1))))
-      (DynError Int #true (R (= 3 (dyn-check Int #true)))))
+      (DynError Int #true (= 3 (dyn-check Int #true))))
      ((eval (R (+ 2 2)))
-      (R 4))
+      4)
      ((eval (R (+ #true 2)))
-      (DynError Int #true (R (+ (dyn-check Int #true) (dyn-check Int 2)))))
+      (DynError Int #true (+ (dyn-check Int #true) (dyn-check Int 2))))
      ((eval (R (+ 2 #true)))
-      (DynError Int #true (R (+ 2 (dyn-check Int #true)))))
+      (DynError Int #true (+ 2 (dyn-check Int #true))))
      ((eval (R (cons 1 2)))
-      (R (cons 1 2)))
+      (cons 1 2))
      ((eval (R (+ 1 (car (cons (+ 1 1) (+ 2 2))))))
-      (R 3))
+      3)
      ((eval (R (+ 1 (cdr (cons (+ 1 1) (+ 2 2))))))
-      (R 5))
+      5)
      ((eval (R ((car (cons (λ (x TST) (+ x 1)) 4)) 8)))
-      (R 9))
+      9)
     )
   )
 
   (test-case "eval:R:II"
     (check-mf-apply*
       ((eval (R (let (n1 TST (R #false)) n1)))
-       (R #false))
+       #false)
       ((eval (R (let (n1 TST (R (+ 2 2))) (+ n1 n1))))
-       (R 8))
+       8)
       ((eval (R ((λ (x TST) (+ x 1)) 1)))
-       (R 2))
+       2)
       ((eval (R (1 1)))
-       (DynError → 1 (R ((dyn-check → 1) 1))))
+       (DynError → 1 ((dyn-check → 1) 1)))
       ((eval (R (pre-mon R Int (T 6) (boundary Int))))
-       (R 6))
+       6)
       ((eval (R ((mon R (→ Int Int) (T (λ (x Int) 2)) (boundary (→ Int Int))) 7)))
-       (R 2))
+       2)
     )
   )
 
   (test-case "eval:simple:T"
     (check-mf-apply*
      [(eval (T 4))
-      (T 4)]
+      4]
      ((eval (T (if (and #true (= 4 2)) (+ 1 1) (+ 2 2))))
-      (T 4))
+      4)
      [(eval (T #true))
-      (T #true)]
+      #true]
      [(eval (T (+ 2 2)))
-      (T 4)]
+      4]
      [(eval (T ((λ (x Int) x) 1)))
-      (T 1)]
+      1]
      [(eval (T ((λ (x Int) (+ x 1)) 1)))
-      (T 2)]
+      2]
      [(eval (T (if ((λ (x Bool) x) #true) 1 0)))
-      (T 1)]
+      1]
      [(eval (T (if #false (+ 6 6) 0)))
-      (T 0)]
+      0]
      [(eval (T (let (x Int (T 1))
                  (let (y Int (T 2))
                    (+ x y)))))
-      (T 3)]
+      3]
      [(eval (T (let (negate (→ Bool Bool) (T (λ (x Bool) (if x #false #true))))
                  (let (b Bool (T #false))
                    (negate (negate b))))))
-      (T #false)]
+      #false]
      [(eval (T (let (x Int (T 4))
                  (let (add-x (→ Int Int) (T (λ (y Int) (+ y x))))
                    (let (x Int (T 5))
                      (add-x x))))))
-      (T 9)]
+      9]
      [(eval (T (cons (+ 2 2) (+ 1 1))))
-      (T (cons 4 2))]
+      (cons 4 2)]
      [(eval (T (+ 2 (cdr (cons #false 4)))))
-      (T 6)]
+      6]
     )
   )
 
@@ -582,25 +575,25 @@
     (check-mf-apply*
      [(eval (T (let (f (→ Int Int) (R (λ (x TST) (+ x 1))))
                  (f 3))))
-      (T 4)]
+      4]
      [(eval (T (let (f (→ Int Bool) (R (λ (x TST) (if (= 0 x) #false #true))))
                  (f 3))))
-      (T #true)]
+      #true]
      [(eval (T (let (f (→ Int Int) (R (λ (x TST) #false))) (f 1))))
       (BoundaryError T Int (R #false) (cod (f (→ Int Int))))]
      [(eval (T (let (f (→ Int Int) (R (λ (x TST) (+ x #false)))) (f 3))))
-      (DynError Int #false (R (+ 3 (dyn-check Int #false))))]
+      (DynError Int #f (pre-mon T Int (R (+ 3 (dyn-check Int #f))) (cod (f (→ Int Int)))))]
      [(eval (T (let (f (→ Int Int) (R (λ (x TST) (+ #true #false)))) (f 3))))
-      (DynError Int #true (R (+ (dyn-check Int #true) (dyn-check Int #false))))]
+      (DynError Int #t (pre-mon T Int (R (+ (dyn-check Int #t) (dyn-check Int #f))) (cod (f (→ Int Int)))))]
     )
   )
 
   (test-case "apply-T-in-R"
     (check-mf-apply*
      [(eval (R (let (f (→ Int Int) (T (λ (x Int) (+ x 1)))) (f 3))))
-      (R 4)]
+      4]
      [(eval (R (let (f (→ Int Bool) (T (λ (x Int) (if (= 0 x) #false #true)))) (f 3))))
-      (R #true)]
+      #true]
      [(eval (R (let (f (→ Int Int) (T (λ (x Int) (+ x 4)))) (f #true))))
       (BoundaryError T Int (R #true) (dom (f (→ Int Int))))]
     )
@@ -612,7 +605,7 @@
   (test-case "eval:R:III"
     (check-mf-apply*
      ((eval (R (pre-mon R (→ Int Int) (T (mon T (→ Int Int) (R (λ (x TST) x)) (b1 (→ Int Int)))) (b2 (→ Int Int)))))
-      (R (mon R (→ Int Int) (T (mon T (→ Int Int) (R (λ (x TST) x)) (b1 (→ Int Int)))) (b2 (→ Int Int)))))
+      (mon R (→ Int Int) (T (mon T (→ Int Int) (R (λ (x TST) x)) (b1 (→ Int Int)))) (b2 (→ Int Int))))
     )
   )
 
@@ -633,16 +626,16 @@
                                        f)))
                             g)))
                  (h 5))))
-      (T 5))))
+      5)))
 
   (test-case "more-R-in-T"
     (check-mf-apply*
      ((eval (T (let (ff (Pair (→ Int Int) Bool) (R (cons (λ (x TST) (+ x x)) #false)))
                  ((car ff) 4))))
-      (T 8))
+      8)
      ((eval (T (let (ff (Pair (→ Bool Bool) Bool) (R (cons (λ (x TST) x) #false)))
                  ((car ff) (cdr ff)))))
-      (T #false))
+      #false)
      ((eval (T (let (ff (Pair (→ Bool Int) Bool) (R (cons (λ (x TST) x) #false)))
                  ((car ff) (cdr ff)))))
       (BoundaryError T Int (R #false) (cod (car (ff (Pair (→ Bool Int) Bool))))))
@@ -650,7 +643,7 @@
                  (let (gg (→ (U Bool Int) Int) (R (λ (x TST) 900)))
                    (+ (gg (ff 0))
                       (gg (ff 1)))))))
-      (T 1800))
+      1800)
     )
   )
 
@@ -1073,6 +1066,85 @@
   [(apply-op = v_0 v_1)
    ,(= (term v_0) (term v_1))])
 
+(define-judgment-form μTR
+  #:mode (erasure I O)
+  #:contract (erasure P e)
+  [
+   ---
+   (erasure (L integer) integer)]
+  [
+   ---
+   (erasure (L boolean) boolean)]
+  [
+   (erasure (L e) e_e)
+   ---
+   (erasure (L (λ (x τ) e)) (λ (x τ) e_e))]
+  [
+   (erasure (L e_0) e_0e)
+   (erasure (L e_1) e_1e)
+   ---
+   (erasure (L (cons e_0 e_1)) (cons e_0e e_1e))]
+  [
+   (erasure (L_e e) e_e)
+   ---
+   (erasure (L (mon L_m τ_m (L_e e) srcloc)) (mon L_m τ_m (L_e e_e) srcloc))]
+  [
+   ---
+   (erasure (L x) x)]
+  [
+   (erasure (L e_0) e_0e)
+   (erasure (L e_1) e_1e)
+   ---
+   (erasure (L (e_0 e_1)) (e_0e e_1e))]
+  [
+   (erasure (L_x e_x) e_xe)
+   (erasure (L e) e_c)
+   ---
+   (erasure (L (let (x τ (L_x e_x)) e)) ((λ (x TST) e_c) (pre-mon L τ (L_x e_xe) (#{xerox x} τ))))]
+  [
+   (erasure (L e_0) e_0e)
+   (erasure (L e_1) e_1e)
+   (erasure (L e_2) e_2e)
+   ---
+   (erasure (L (if e_0 e_1 e_2)) (if e_0e e_1e e_2e))]
+  [
+   (erasure (L e_0) e_0e)
+   (erasure (L e_1) e_1e)
+   ---
+   (erasure (L (and e_0 e_1)) (and e_0e e_1e))]
+  [
+   (erasure (L e) e_e)
+   ---
+   (erasure (L (car e)) (car e_e))]
+  [
+   (erasure (L e) e_e)
+   ---
+   (erasure (L (cdr e)) (cdr e_e))]
+  [
+   (erasure (L e_0) e_0e)
+   (erasure (L e_1) e_1e)
+   ---
+   (erasure (L (+ e_0 e_1)) (+ e_0e e_1e))]
+  [
+   (erasure (L e_0) e_0e)
+   (erasure (L e_1) e_1e)
+   ---
+   (erasure (L (= e_0 e_1)) (= e_0e e_1e))]
+  [
+   (erasure (L e) e_e)
+   ---
+   (erasure (L (dyn-check tag e)) (dyn-check tag e_e))]
+  [
+   (erasure (L_m e_m) e_me)
+   ---
+   (erasure (L (pre-mon L_ctx τ_ctx (L_m e_m) srcloc)) (pre-mon L_ctx τ_ctx (L_m e_me) srcloc))])
+
+(define-metafunction μTR
+  erasure# : P -> e
+  [(erasure# P)
+   e
+   (judgment-holds (erasure P e))])
+
 (module+ test
   (test-case "dynamic-typecheck"
     (check-mf-apply*
@@ -1195,6 +1267,52 @@
       3)
      ((apply-op = 1 2)
       #false)
+    )
+  )
+
+  (test-case "erasure"
+    (check-mf-apply*
+     ((erasure# (T 4))
+      4)
+     ((erasure# (R #true))
+      #true)
+     ;; TODO they LOOK similar....
+     #;((erasure# (R (λ (x TST) (let (x (→ Int Int) (T (λ (y Int) y))) (x 45)))))
+      (λ (x TST)
+        ((λ (z TST) (z 45))
+         (pre-mon R (→ Int Int) (T (λ (y Int) y)) (x (→ Int Int))))))
+     ((erasure# (R (cons 1 2)))
+      (cons 1 2))
+     ((erasure# (T (pre-mon T Int (T 3) (x Int))))
+      (pre-mon T Int (T 3) (x Int)))
+     ((erasure# (R (pre-mon T Int (R 3) (x Int))))
+      (pre-mon T Int (R 3) (x Int)))
+     ((erasure# (T (pre-mon R Int (T 3) (x Int))))
+      (pre-mon R Int (T 3) (x Int)))
+     ((erasure# (T (mon T Int (T 3) (x Int))))
+      (mon T Int (T 3) (x Int)))
+     ((erasure# (R (mon T Int (R 3) (x Int))))
+      (mon T Int (R 3) (x Int)))
+     ((erasure# (T (mon R Int (T 3) (x Int))))
+      (mon R Int (T 3) (x Int)))
+     ((erasure# (T (f x)))
+      (f x))
+     ((erasure# (R (if 1 2 3)))
+      (if 1 2 3))
+     ((erasure# (R (and 1 2)))
+      (and 1 2))
+     ((erasure# (R (car x)))
+      (car x))
+     ((erasure# (R (cdr x)))
+      (cdr x))
+     ((erasure# (R (+ 1 2)))
+      (+ 1 2))
+     ((erasure# (T (= 3 3)))
+      (= 3 3))
+     ((erasure# (T (dyn-check Int 4)))
+      (dyn-check Int 4))
+     ((erasure# (R (let (x (→ Int Int) (T (λ (y Int) (+ y 2)))) (x 3))))
+      ((λ (x TST) (x 3)) (pre-mon R (→ Int Int) (T (λ (y Int) (+ y 2))) (x (→ Int Int)))))
     )
   )
 )
