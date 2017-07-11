@@ -48,13 +48,13 @@
 (define-language++ μTR #:alpha-equivalent? α=?
   (e ::= v x (e e) (if e e e) (and e e)
          (let (x τ P) e) (let (x e) e)
-         (letrec (x τ P) e) (letrec (x τ e) e) (letrec (x e) e)
+         (letrec (x τ P) e) (letrec (x τ e) e) (letrec (x e) e) (REC x)
          (cons e e) (car e) (cdr e)
          (binop e e) (= e e)
          (box e) (unbox e) (set-box! e e)
          (dyn-check tag e)
          (pre-mon L τ P srcloc))
-  (v ::= integer boolean Λ (cons v v) (box v) (mon L τ (L v) srcloc))
+  (v ::= x integer boolean Λ (cons v v) (mon L τ (L v) srcloc))
   (Λ ::= (λ (x) e) (λ (x τ) e))
   (P ::= (L e))
   (τ ::= (U τk ...) τk TST)
@@ -62,7 +62,7 @@
   (L ::= R T)
   (Γ ::= ((x τ) ...))
   (ρ ::= (RB ...))
-  (RB ::= (x v) (x (LETREC x)))
+  (RB ::= (x (box v)) (x UNDEF) (x (LETREC v)))
   (primop ::= car cdr binop =)
   (binop ::= + * -)
   (tag ::= Int Bool Pair → Box)
@@ -91,6 +91,42 @@
 (module+ test
   (*term-equal?* α=?)
 
+  (define R-fib (term
+    (R (letrec (fib (→ Int Int)
+               (R (λ (n TST)
+                    (if (= n 0) 1 (if (= n 1) 1
+                      (let (prev2 TST (R (box 1)))
+                        (let (prev1 TST (R (box 1)))
+                          (letrec (loop TST
+                                  (R (λ (n TST)
+                                       (let (curr TST (R (+ (unbox prev1) (unbox prev2))))
+                                         (if (= n 0)
+                                           curr
+                                           (let (blah TST (R (set-box! prev2 (unbox prev1))))
+                                             (let (bb TST (R (set-box! prev1 curr)))
+                                               (loop (- n 1)))))))))
+                            (loop n)))))))))
+         (fib 5)))))
+
+  (define T-fib (term
+    (T (letrec (fib (→ Int Int)
+               (T (λ (n Int)
+                    (if (= n 0) 1 (if (= n 1) 1
+                      (let (prev2 (Box Int) (T (box 1)))
+                        (let (prev1 (Box Int) (T (box 1)))
+                          (letrec (loop (→ Int Int)
+                                  (T (λ (n Int)
+                                       (let (curr Int (T (+ (unbox prev1) (unbox prev2))))
+                                         (if (= n 0)
+                                           curr
+                                           (let (blah Int (T (set-box! prev2 (unbox prev1))))
+                                             (let (bb Int (T (set-box! prev1 curr)))
+                                               (loop (- n 1)))))))))
+                            (loop n)))))))))
+         (fib 5)))))
+
+  ;; TODO gradually typed fib
+
   (test-case "define-language"
     (check-pred e? (term 2))
     (check-pred e? (term (+ 1 1)))
@@ -109,6 +145,7 @@
     (check-pred e? (term (set-box! x 3)))
     (check-pred v? (term (mon T (→ Int Int) (R (λ (x TST) x)) (foo (→ Int Int)))))
     (check-pred P? (term (T (let (ff (Pair (→ Int Int) Bool) (R (cons (λ (x TST) (+ x x)) #f))) ((car ff) 4)))))
+    (check-pred P? R-fib)
   )
 )
 
@@ -395,6 +432,15 @@
      (well-typed (T (let (x (Box Int) (R (box #true))) (+ 1 (unbox x)))))
      (well-typed (R (letrec (fact (→ Int Int) (R (λ (n TST) (if (= n 0) n (* n (fact (- n 1))))))) (fact 6))))
      (well-typed (T (letrec (fact (→ Int Int) (T (λ (n Int) (if (= n 0) n (* n (fact (- n 1))))))) (fact 6))))
+     (well-typed (T (letrec (x (Box Int) (R (box 3))) x)))
+     (well-typed (T (letrec (x (Box Int) (R (box 3)))
+                      (let (y Int (T (set-box! x 4)))
+                        y))))
+     (well-typed (T (letrec (x (Box Int) (R (box 3)))
+                      (let (y Int (T (set-box! x 4)))
+                        (+ y (unbox x))))))
+     (well-typed ,R-fib)
+     (well-typed ,T-fib)
     )
 
     (check-exn #rx"dyn-check not allowed"
@@ -409,6 +455,7 @@
       (well-typed (T (car 1)))
       (well-typed (T (set-box! 1 1)))
       (well-typed (T (unbox (λ (x Int) x))))
+      (well-typed (T (unbox 1)))
     )
   )
 )
@@ -453,12 +500,6 @@
      (where (→ τ_dom τ_cod) τ_ctx)
      (where P_subst (L_λ (v (pre-mon L_λ τ_dom (L_ctx v_1) (dom srcloc)))))
      (where e_cod (pre-mon L_ctx τ_cod P_subst (cod srcloc)))]
-;; -- var
-    [-->
-     [ρ (in-hole E x)]
-     [ρ (in-hole E v)]
-     Var ;; just for letrec
-     (where v #{runtime-env-ref ρ x})]
 ;; -- LET/REC
     [-->
      [ρ (in-hole E (let (x v) e))]
@@ -466,18 +507,26 @@
      Let]
     [-->
      [ρ (in-hole E (letrec (x τ e_x) e))] ;; TODO the τ doesn't matter, it's just a "start" marker
-     [ρ_x (in-hole E (letrec (x e_x) e))]
+     [ρ_x (in-hole E (letrec (x_self (substitute e_x x (REC x_self)))
+                       (substitute e x (REC x_self))))]
      LetRec-Init
-     (where ρ_x #{runtime-env-add ρ x (LETREC x)})]
+     (fresh x_self)
+     (where ρ_x #{runtime-env-add ρ x_self UNDEF})]
     [-->
      [ρ (in-hole E (letrec (x v) e))]
      [ρ_x (in-hole E e)]
      LetRec-End
      (where ρ_x #{runtime-env-update ρ x v})]
     [-->
-     (ρ (in-hole E (LETREC x)))
+     [ρ (in-hole E (REC x))]
+     [ρ (in-hole E v)]
+     LetRec-Var
+     (where (LETREC v) #{runtime-env-ref ρ x})]
+    [-->
+     [ρ (in-hole E (REC x))]
      (UndefError x)
-     LetRec-Error]
+     LetRec-Error
+     (where UNDEF #{runtime-env-ref ρ x})]
 ;; -- control flow
     [-->
      [ρ (in-hole E (and v_0 e_1))]
@@ -513,6 +562,7 @@
      [ρ (in-hole E (set-box! x v))]
      [ρ_v (in-hole E v)]
      SetBox
+     (where (box v_x) #{runtime-env-ref ρ x})
      (where ρ_v #{runtime-env-update ρ x v})]
     [-->
      [ρ (in-hole E (set-box! (mon L (Box τ) (L_m v_m) srcloc) v))]
@@ -528,14 +578,26 @@
      Primop]
 ;; -- dyn-check
     [-->
+     [ρ (in-hole E (dyn-check Box x))]
+     any_next
+     DynCheck-Box
+     (where (box v) #{runtime-env-ref ρ x})
+     (where any_next
+       ,(if (judgment-holds (well-tagged (box v) Box))
+          (term [ρ (in-hole E x)])
+          ;; hahah never happens
+          (term (DynError Box (box v) (in-hole E (dyn-check tag x))))))]
+    [-->
      [ρ (in-hole E (dyn-check tag v))]
      [ρ (in-hole E v)]
      DynCheck-Ok
+     (side-condition (not (x? (term v))))
      (judgment-holds (well-tagged v tag))]
     [-->
      [ρ (in-hole E (dyn-check tag v))]
      (DynError tag v (in-hole E (dyn-check tag v)))
      DynCheck-Error
+     (side-condition (not (x? (term v))))
      (side-condition (not (judgment-holds (well-tagged v tag))))]))
 
 (define -->μTR*
@@ -723,12 +785,43 @@
       (λ () (term #{eval (R (let (f (→ Int Int) (T (λ (x Int) #false))) (f 1)))})))
   )
 
+  (test-case "eval:box"
+    (check-mf-apply*
+     ((eval (R (let (x TST (R (box 3))) 0)))
+       0)
+     ((eval (R (let (x TST (R (box 3))) x)))
+      (box 3))
+     ((eval (R (letrec (x TST (R (box 3))) x)))
+       (box 3))
+     ;; TODO cross-boundary
+     ((eval (R (let (x TST (R (box 3))) (unbox x))))
+       3)
+     ((eval (R (let (x TST (R (box 3))) (+ 1 (unbox x)))))
+       4)
+     ((eval (R (let (x TST (R (box 3)))
+                (let (z TST (R (unbox x)))
+                 (let (y TST (R (set-box! x 4)))
+                   (+ z (unbox x)))))))
+       7)
+     ;((eval (T (let (x (Box Int) (R (box 3)))
+     ;            (let (y Int (T (set-box! x 4)))
+     ;              (+ y (unbox x))))))
+     ;  8)
+     ;((eval (T (letrec (x (Box Int) (R (box 3)))
+     ;            (let (y Int (T (set-box! x 4)))
+     ;              (+ y (unbox x))))))
+     ;  8)
+    )
+  )
+
   (test-case "eval:R:III"
     (check-mf-apply*
      ((eval (R (pre-mon R (→ Int Int) (T (mon T (→ Int Int) (R (λ (x TST) x)) (b1 (→ Int Int)))) (b2 (→ Int Int)))))
       (mon R (→ Int Int) (T (mon T (→ Int Int) (R (λ (x) x)) (b1 (→ Int Int)))) (b2 (→ Int Int))))
      ((eval (R (letrec (fact TST (R (λ (n TST) (if (= 0 n) 1 (* n (fact (- n 1))))))) (fact 6))))
       720)
+     ;;((eval ,R-fib)
+     ;; 9)
     )
   )
 
@@ -875,7 +968,7 @@
 
 (define-judgment-form μTR
   #:mode (well-tagged I I)
-  #:contract (well-tagged v tag)
+  #:contract (well-tagged any tag)
   [
    ---
    (well-tagged integer Int)]
@@ -966,35 +1059,41 @@
 
 (define-metafunction μTR
   runtime-env-add : ρ x any -> ρ
-  [(runtime-env-add ρ x (REF v))
-   ,(cons (term (x (REF v))) (term ρ))]
-  [(runtime-env-add ρ x (LETREC x))
-   ,(cons (term (x (LETREC x))) (term ρ))])
+  [(runtime-env-add ρ x (box v))
+   ,(cons (term (x (box v))) (term ρ))]
+  [(runtime-env-add ρ x UNDEF)
+   ,(cons (term (x UNDEF)) (term ρ))])
 
 (define-metafunction μTR
-  runtime-env-ref : ρ x -> v
+  runtime-env-ref : ρ x -> any
   [(runtime-env-ref () x)
    ,(raise-user-error 'runtime-env-ref "unbound variable ~a" (term x))]
-  [(runtime-env-ref ((x v) RB ...) x)
-   v]
+  [(runtime-env-ref ((x (box v)) RB ...) x)
+   (box v)]
+  [(runtime-env-ref ((x UNDEF) RB ...) x)
+   UNDEF]
+  [(runtime-env-ref ((x (LETREC v)) RB ...) x)
+   (LETREC v)]
   [(runtime-env-ref (RB_0 RB_1 ...) x)
    (runtime-env-ref (RB_1 ...) x)])
 
 (define-metafunction μTR
   runtime-env-update : ρ x v -> ρ
-  [(runtime-env-update (RB_0 ... (x (LETREC x)) RB_1 ...) x v)
-   (RB_0 ... (x v) RB_1 ...)]
+  [(runtime-env-update (RB_0 ... (x UNDEF) RB_1 ...) x v)
+   (RB_0 ... (x (LETREC v)) RB_1 ...)]
   [(runtime-env-update (RB_0 ... (x (box v_x)) RB_1 ...) x v)
    (RB_0 ... (x (box v)) RB_1 ...)]
   [(runtime-env-update ρ x v)
    ,(raise-arguments-error 'runtime-env-ref "unbound variable" "var" (term x) "env" (term ρ))])
 
 (define-metafunction μTR
-  runtime-env-unload : ρ v -> v
-  [(runtime-env-unload () v)
-   v]
-  [(runtime-env-unload ((x v_x) RB ...) v)
-   (runtime-env-unload (RB ...) (substitute v x v_x))])
+  runtime-env-unload : ρ any -> any
+  [(runtime-env-unload () any)
+   any]
+  [(runtime-env-unload ((x (box v_x)) RB ...) any)
+   (runtime-env-unload (RB ...) (substitute any x (box v_x)))]
+  [(runtime-env-unload ((x (LETREC v_x)) RB ...) any)
+   (runtime-env-unload (RB ...) any)])
 
 (module+ test
   (test-case "runtime-env"
@@ -1417,7 +1516,7 @@
 
 (define-judgment-form μTR
   #:mode (well-formed-monitor I)
-  #:contract (well-formed-monitor v)
+  #:contract (well-formed-monitor any)
   [
    (well-tagged Λ #{tag-only τ})
    --- λ
