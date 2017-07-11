@@ -50,7 +50,7 @@
          (let (x τ P) e) (let (x e) e)
          (letrec (x τ P) e) (letrec (x τ e) e) (letrec (x e) e)
          (cons e e) (car e) (cdr e)
-         (+ e e) (= e e)
+         (binop e e) (= e e)
          (box e) (unbox e) (set-box! e e)
          (dyn-check tag e)
          (pre-mon L τ P srcloc))
@@ -63,13 +63,14 @@
   (Γ ::= ((x τ) ...))
   (ρ ::= (RB ...))
   (RB ::= (x v) (x (LETREC x)))
-  (primop ::= car cdr + =)
+  (primop ::= car cdr binop =)
+  (binop ::= + * -)
   (tag ::= Int Bool Pair → Box)
   (E ::= hole
          (E e) (v E) (if E e e) (and E e) (let (x E) e) (letrec (x E) e)
          (cons E e) (cons v E)
          (car E) (cdr E)
-         (+ E e) (+ v E)
+         (binop E e) (binop v E)
          (= E e) (= v E)
          (box E) (set-box! E e) (set-box! v E) (unbox E)
          (dyn-check tag E)
@@ -81,9 +82,9 @@
   (x ::= variable-not-otherwise-mentioned)
 #:binding-forms
   (let (x τ P) e #:refers-to x)
-  (letrec (x e_L #:refers-to x) e #:refers-to x)
   (letrec (x τ e_L #:refers-to x) e #:refers-to x)
   (letrec (x τ (L e_L #:refers-to x)) e #:refers-to x)
+  ;; the 3rd letrec is NOT a binding form, needs to cooperate with enclosing environment
   (λ (x) e #:refers-to x)
   (λ (x τ) e #:refers-to x))
 
@@ -223,17 +224,29 @@
    --- T-I-Let
    (infer-type Γ (T (let (x τ P) e_body)) τ_body)]
   [
+   (where Γ_x #{type-env-set Γ (x τ)})
+   (check-type Γ_x P τ)
+   (infer-type Γ_x (R e_body) τ_body)
+   --- R-I-LetRec
+   (infer-type Γ (R (letrec (x τ P) e_body)) TST)]
+  [
+   (where Γ_x #{type-env-set Γ (x τ)})
+   (check-type Γ_x P τ)
+   (infer-type Γ_x (T e_body) τ_body)
+   --- T-I-LetRec
+   (infer-type Γ (T (letrec (x τ P) e_body)) τ_body)]
+  [
    (infer-type Γ (R e_0) τ_0)
    (infer-type Γ (R e_1) τ_1)
    ---
-   (infer-type Γ (R (+ e_0 e_1)) TST)]
+   (infer-type Γ (R (binop e_0 e_1)) TST)]
   [
    (infer-type Γ (T e_0) τ_0)
    (infer-type Γ (T e_1) τ_1)
    (type= τ_0 Int)
    (type= τ_1 Int)
    ---
-   (infer-type Γ (T (+ e_0 e_1)) Int)]
+   (infer-type Γ (T (binop e_0 e_1)) Int)]
   [
    (infer-type Γ (R e_0) τ_0)
    (infer-type Γ (R e_1) τ_1)
@@ -380,6 +393,8 @@
      (well-typed (R (unbox 3)))
      (well-typed (T (+ 1 (unbox (box 4)))))
      (well-typed (T (let (x (Box Int) (R (box #true))) (+ 1 (unbox x)))))
+     (well-typed (R (letrec (fact (→ Int Int) (R (λ (n TST) (if (= n 0) n (* n (fact (- n 1))))))) (fact 6))))
+     (well-typed (T (letrec (fact (→ Int Int) (T (λ (n Int) (if (= n 0) n (* n (fact (- n 1))))))) (fact 6))))
     )
 
     (check-exn #rx"dyn-check not allowed"
@@ -712,6 +727,8 @@
     (check-mf-apply*
      ((eval (R (pre-mon R (→ Int Int) (T (mon T (→ Int Int) (R (λ (x TST) x)) (b1 (→ Int Int)))) (b2 (→ Int Int)))))
       (mon R (→ Int Int) (T (mon T (→ Int Int) (R (λ (x) x)) (b1 (→ Int Int)))) (b2 (→ Int Int))))
+     ((eval (R (letrec (fact TST (R (λ (n TST) (if (= 0 n) 1 (* n (fact (- n 1))))))) (fact 6))))
+      720)
     )
   )
 
@@ -1172,6 +1189,11 @@
    ---
    (minimal-completion (L (let (x τ P) e)) (L (let (x τ P_c) e_c)))]
   [
+   (minimal-completion P P_c)
+   (minimal-completion (L e) (L e_c))
+   ---
+   (minimal-completion (L (letrec (x τ P) e)) (L (letrec (x τ P_c) e_c)))]
+  [
    (minimal-completion (L e_0) (L e_0c))
    (minimal-completion (L e_1) (L e_1c))
    (minimal-completion (L e_2) (L e_2c))
@@ -1219,13 +1241,13 @@
   [
    (minimal-completion (R e_0) (R e_0c))
    (minimal-completion (R e_1) (R e_1c))
-   --- R-+
-   (minimal-completion (R (+ e_0 e_1)) (R (+ (dyn-check Int e_0c) (dyn-check Int e_1c))))]
+   --- R-Binop
+   (minimal-completion (R (binop e_0 e_1)) (R (binop (dyn-check Int e_0c) (dyn-check Int e_1c))))]
   [
    (minimal-completion (T e_0) (T e_0c))
    (minimal-completion (T e_1) (T e_1c))
-   --- T-+
-   (minimal-completion (T (+ e_0 e_1)) (T (+ e_0c e_1c)))]
+   --- T-Binop
+   (minimal-completion (T (binop e_0 e_1)) (T (binop e_0c e_1c)))]
   [
    (minimal-completion (R e_0) (R e_0c))
    (minimal-completion (R e_1) (R e_1c))
@@ -1288,6 +1310,10 @@
    v_1]
   [(apply-op + v_0 v_1)
    ,(+ (term v_0) (term v_1))]
+  [(apply-op * v_0 v_1)
+   ,(* (term v_0) (term v_1))]
+  [(apply-op - v_0 v_1)
+   ,(- (term v_0) (term v_1))]
   [(apply-op = v_0 v_1)
    ,(= (term v_0) (term v_1))])
 
@@ -1355,7 +1381,7 @@
    (erasure (L e_0) e_0e)
    (erasure (L e_1) e_1e)
    ---
-   (erasure (L (+ e_0 e_1)) (+ e_0e e_1e))]
+   (erasure (L (binop e_0 e_1)) (binop e_0e e_1e))]
   [
    (erasure (L e_0) e_0e)
    (erasure (L e_1) e_1e)
@@ -1502,6 +1528,14 @@
       (T (cdr 1)))
      ((minimal-completion# (R (+ 1 1)))
       (R (+ (dyn-check Int 1) (dyn-check Int 1))))
+     ((minimal-completion# (R (* 1 1)))
+      (R (* (dyn-check Int 1) (dyn-check Int 1))))
+     ((minimal-completion# (R (- 1 1)))
+      (R (- (dyn-check Int 1) (dyn-check Int 1))))
+     ((minimal-completion# (T (- 1 1)))
+      (T (- 1 1)))
+     ((minimal-completion# (T (* 1 1)))
+      (T (* 1 1)))
      ((minimal-completion# (T (+ 1 1)))
       (T (+ 1 1)))
      ((minimal-completion# (R (= 1 1)))
@@ -1542,6 +1576,10 @@
       2)
      ((apply-op + 1 2)
       3)
+     ((apply-op * 3 3)
+      9)
+     ((apply-op - 1 2)
+      -1)
      ((apply-op = 1 2)
       #false)
     )
