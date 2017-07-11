@@ -21,6 +21,8 @@
 ;; Awkwardnesses
 ;; - matthias wants set!
 ;;   tests first? I'm not exactly sure what this means. No strong updates right?
+;;   - okay coming along
+;; - occurrence typing
 
 ;; -----------------------------------------------------------------------------
 
@@ -28,6 +30,7 @@
   racket/set
   redex/reduction-semantics
   redex-abbrevs
+  redex-abbrevs/unstable
   (only-in racket/string string-split))
 
 (define *debug* (make-parameter #f))
@@ -43,36 +46,44 @@
 ;; -----------------------------------------------------------------------------
 
 (define-language++ μTR #:alpha-equivalent? α=?
-  (e ::= v x (e e) (let (x τ P) e) (if e e e) (and e e)
+  (e ::= v x (e e) (if e e e) (and e e)
+         (let (x τ P) e) (let (x e) e)
+         (letrec (x τ P) e) (letrec (x τ e) e) (letrec (x e) e)
          (cons e e) (car e) (cdr e)
          (+ e e) (= e e)
+         (box e) (unbox e) (set-box! e e)
          (dyn-check tag e)
          (pre-mon L τ P srcloc))
-  (v ::= integer boolean Λ (cons v v) (mon L τ (L v) srcloc))
+  (v ::= integer boolean Λ (cons v v) (box v) (mon L τ (L v) srcloc))
   (Λ ::= (λ (x) e) (λ (x τ) e))
   (P ::= (L e))
   (τ ::= (U τk ...) τk TST)
-  (τk ::= Int Bool (Pair τ τ) (→ τ τ))
+  (τk ::= Int Bool (Pair τ τ) (→ τ τ) (Box τ))
   (L ::= R T)
   (Γ ::= ((x τ) ...))
+  (ρ ::= (RB ...))
+  (RB ::= (x v) (x (LETREC x)))
   (primop ::= car cdr + =)
-  (tag ::= Int Bool Pair →)
+  (tag ::= Int Bool Pair → Box)
   (E ::= hole
-         (E e) (v E)
+         (E e) (v E) (if E e e) (and E e) (let (x E) e) (letrec (x E) e)
          (cons E e) (cons v E)
          (car E) (cdr E)
          (+ E e) (+ v E)
          (= E e) (= v E)
-         (if E e e)
-         (and E e)
+         (box E) (set-box! E e) (set-box! v E) (unbox E)
          (dyn-check tag E)
          (pre-mon L τ (L E) srcloc))
-  (RuntimeError ::= (DynError tag v e) (BoundaryError L τ P srcloc))
-  (srcloc ::= (dom srcloc) (cod srcloc) (car srcloc) (cdr srcloc) (π srcloc) (x τ))
-  (A ::= e RuntimeError)
+  (RuntimeError ::= (DynError tag v e) (BoundaryError L τ P srcloc) (UndefError x))
+  (srcloc ::= (path-elem srcloc) (proj natural srcloc) (x τ))
+  (path-elem ::= dom cod car cdr unbox set-box!)
+  (A ::= [ρ e] RuntimeError)
   (x ::= variable-not-otherwise-mentioned)
 #:binding-forms
   (let (x τ P) e #:refers-to x)
+  (letrec (x e_L #:refers-to x) e #:refers-to x)
+  (letrec (x τ e_L #:refers-to x) e #:refers-to x)
+  (letrec (x τ (L e_L #:refers-to x)) e #:refers-to x)
   (λ (x) e #:refers-to x)
   (λ (x τ) e #:refers-to x))
 
@@ -92,6 +103,9 @@
     (check-pred P? (term (R (if 1 2 3))))
     (check-pred P? (term (R (let (f (→ Int Int) (R (λ (x TST) (if (= x 1) 1 #false)))) (f 1)))))
     (check-pred e? (term (if 1 2 3)))
+    (check-pred e? (term (box 4)))
+    (check-pred e? (term (unbox x)))
+    (check-pred e? (term (set-box! x 3)))
     (check-pred v? (term (mon T (→ Int Int) (R (λ (x TST) x)) (foo (→ Int Int)))))
     (check-pred P? (term (T (let (ff (Pair (→ Int Int) Bool) (R (cons (λ (x TST) (+ x x)) #f))) ((car ff) 4)))))
   )
@@ -175,7 +189,6 @@
   (side-condition ,(debug "inferring ~a~n" (term (e_0 e_1))))
    (infer-type Γ (R e_0) τ_0)
    (infer-type Γ (R e_1) τ_1)
-  (side-condition ,(debug "inferring ~a success~n" (term (e_0 e_1)) (term (τ_0 τ_1))))
    --- R-I-App
    (infer-type Γ (R (e_0 e_1)) TST)]
   [
@@ -233,6 +246,34 @@
    (type= τ_1 Int)
    ---
    (infer-type Γ (T (= e_0 e_1)) Bool)]
+  [
+   (infer-type Γ (R e) τ)
+   --- R-I-Box
+   (infer-type Γ (R (box e)) TST)]
+  [
+   (infer-type Γ (T e) τ) ;; no need to generalize
+   --- T-I-Box
+   (infer-type Γ (T (box e)) (Box τ))]
+  [
+   (infer-type Γ (R e) τ)
+   --- R-I-Unbox
+   (infer-type Γ (R (unbox e)) TST)]
+  [
+   (infer-type Γ (T e) (Box τ))
+   --- T-I-Unbox
+   (infer-type Γ (T (unbox e)) τ)]
+  [
+   (infer-type Γ (R e_0) τ_0)
+   (infer-type Γ (R e_1) τ_1)
+   --- R-I-SetBox
+   (infer-type Γ (R (set-box! e_0 e_1)) TST)]
+  [
+   (infer-type Γ (T e_0) τ_0)
+   (infer-type Γ (T e_1) τ_1)
+   (where (Box τ) τ_0)
+   (type= τ τ_1)
+   --- T-I-SetBox
+   (infer-type Γ (T (set-box! e_0 e_1)) τ_1)]
   [
    (infer-type Γ (R e_0) τ_0)
    (infer-type Γ (R e_1) τ_1)
@@ -336,6 +377,9 @@
      (well-typed (T (car (cons 1 2))))
      (well-typed (T (λ (x Int) (+ x 1))))
      (well-typed (R (let (f (→ Int Int) (T (λ (x Int) (+ x 1)))) (f 3))))
+     (well-typed (R (unbox 3)))
+     (well-typed (T (+ 1 (unbox (box 4)))))
+     (well-typed (T (let (x (Box Int) (R (box #true))) (+ 1 (unbox x)))))
     )
 
     (check-exn #rx"dyn-check not allowed"
@@ -348,6 +392,8 @@
   (test-case "not-well-typed"
     (check-not-judgment-holds*
       (well-typed (T (car 1)))
+      (well-typed (T (set-box! 1 1)))
+      (well-typed (T (unbox (λ (x Int) x))))
     )
   )
 )
@@ -360,73 +406,119 @@
     #:domain A
 ;; -- MON
     [-->
-     (in-hole E (pre-mon R τ_ctx (T v) srcloc))
-     (in-hole E v_+)
+     [ρ (in-hole E (pre-mon R τ_ctx (T v) srcloc))]
+     [ρ (in-hole E v_+)]
      PreMon-T->R
      (where v_+ ,(if (judgment-holds (flat T τ_ctx))
                    (term v)
                    (term (mon R τ_ctx (T v) srcloc))))]
     [-->
-     (in-hole E (pre-mon L_m τ (L_m v) srcloc))
-     (in-hole E v)
+     [ρ (in-hole E (pre-mon L_m τ (L_m v) srcloc))]
+     [ρ (in-hole E v)]
      PreMon-NoBoundary]
     [-->
-     (in-hole E (pre-mon T τ_ctx (R v) srcloc))
-     (in-hole E v_+)
+     [ρ (in-hole E (pre-mon T τ_ctx (R v) srcloc))]
+     [ρ (in-hole E v_+)]
      PreMon-R->T-MaybeOk
      (where v_+ #{dynamic-typecheck T τ_ctx (R v) srcloc})]
     [-->
-     (in-hole E (pre-mon T τ_ctx (R v) srcloc))
+     [ρ (in-hole E (pre-mon T τ_ctx (R v) srcloc))]
      RuntimeError
      PreMon-R->T-Error
      (where RuntimeError #{dynamic-typecheck T τ_ctx (R v) srcloc})]
 ;; -- APP
     [-->
-     (in-hole E ((λ (x) e) v_1))
-     (in-hole E (substitute e x v_1))
+     [ρ (in-hole E ((λ (x) e) v_1))]
+     [ρ (in-hole E (substitute e x v_1))]
      App-Beta]
     [-->
-     (in-hole E ((mon L_ctx τ_ctx (L_λ v) srcloc) v_1))
-     (in-hole E e_cod)
+     [ρ (in-hole E ((mon L_ctx τ_ctx (L_λ v) srcloc) v_1))]
+     [ρ (in-hole E e_cod)]
      App-Mon
      (where (→ τ_dom τ_cod) τ_ctx)
      (where P_subst (L_λ (v (pre-mon L_λ τ_dom (L_ctx v_1) (dom srcloc)))))
      (where e_cod (pre-mon L_ctx τ_cod P_subst (cod srcloc)))]
-;; -- LET
+;; -- var
     [-->
-     (in-hole E (let _ _))
-     ;; -- function annotation ignored at runtime
-     (in-hole E 42)
-     Let-Beta
-     (side-condition (raise-user-error '-->μTR "let not allowed at runtime"))]
+     [ρ (in-hole E x)]
+     [ρ (in-hole E v)]
+     Var ;; just for letrec
+     (where v #{runtime-env-ref ρ x})]
+;; -- LET/REC
+    [-->
+     [ρ (in-hole E (let (x v) e))]
+     [ρ (in-hole E (substitute e x v))]
+     Let]
+    [-->
+     [ρ (in-hole E (letrec (x τ e_x) e))] ;; TODO the τ doesn't matter, it's just a "start" marker
+     [ρ_x (in-hole E (letrec (x e_x) e))]
+     LetRec-Init
+     (where ρ_x #{runtime-env-add ρ x (LETREC x)})]
+    [-->
+     [ρ (in-hole E (letrec (x v) e))]
+     [ρ_x (in-hole E e)]
+     LetRec-End
+     (where ρ_x #{runtime-env-update ρ x v})]
+    [-->
+     (ρ (in-hole E (LETREC x)))
+     (UndefError x)
+     LetRec-Error]
 ;; -- control flow
     [-->
-     (in-hole E (and v_0 e_1))
-     (in-hole E e_2)
+     [ρ (in-hole E (and v_0 e_1))]
+     [ρ (in-hole E e_2)]
      And
      (where e_2 ,(if (eq? #false (term v_0)) (term #false) (term e_1)))]
     [-->
-     (in-hole E (if v e_1 e_2))
-     (in-hole E e_1)
+     [ρ (in-hole E (if v e_1 e_2))]
+     [ρ (in-hole E e_1)]
      If-True
      (side-condition (not (eq? #false (term v))))]
     [-->
-     (in-hole E (if #false e_1 e_2))
-     (in-hole E e_2)
+     [ρ (in-hole E (if #false e_1 e_2))]
+     [ρ (in-hole E e_2)]
      If-False]
+;; -- box
+    [-->
+     [ρ (in-hole E (box v))]
+     [ρ_x (in-hole E x)]
+     Box
+     (fresh x)
+     (where ρ_x #{runtime-env-add ρ x (box v)})]
+    [-->
+     [ρ (in-hole E (unbox x))]
+     [ρ (in-hole E v)]
+     Unbox
+     (where (box v) #{runtime-env-ref ρ x})]
+    [-->
+     [ρ (in-hole E (unbox (mon L (Box τ) (L_m v_m) srcloc)))]
+     [ρ (in-hole E (mon L τ (L_m (unbox v_m)) (unbox srcloc)))]
+     Unbox-Mon]
+    [-->
+     [ρ (in-hole E (set-box! x v))]
+     [ρ_v (in-hole E v)]
+     SetBox
+     (where ρ_v #{runtime-env-update ρ x v})]
+    [-->
+     [ρ (in-hole E (set-box! (mon L (Box τ) (L_m v_m) srcloc) v))]
+     [ρ (in-hole E (set-box! v_m v_+))]
+     SetBox-Mon
+     ;; bring `v_m` into the box's language,
+     ;;  may-or-may-not require a dynamic check
+     (where v_+ (pre-mon L_m τ (L v_m) (set-box! srcloc)))]
 ;; -- primop
     [-->
-     (in-hole E (primop v ...))
-     (in-hole E #{apply-op primop v ...})
+     [ρ (in-hole E (primop v ...))]
+     [ρ (in-hole E #{apply-op primop v ...})]
      Primop]
 ;; -- dyn-check
     [-->
-     (in-hole E (dyn-check tag v))
-     (in-hole E v)
+     [ρ (in-hole E (dyn-check tag v))]
+     [ρ (in-hole E v)]
      DynCheck-Ok
      (judgment-holds (well-tagged v tag))]
     [-->
-     (in-hole E (dyn-check tag v))
+     [ρ (in-hole E (dyn-check tag v))]
      (DynError tag v (in-hole E (dyn-check tag v)))
      DynCheck-Error
      (side-condition (not (judgment-holds (well-tagged v tag))))]))
@@ -446,9 +538,11 @@
    (judgment-holds (well-typed P))
    (where P_c #{minimal-completion# P})
    (where e_c #{erasure# P_c})
+   (where any_state #{load e_c})
    (where any ,(if (term boolean_keeptrace)
-                 (apply-reduction-relation* -->μTR (term e_c) #:all? #t)
-                 (-->μTR* (term e_c))))]
+                 (apply-reduction-relation* -->μTR (term any_state) #:all? #t)
+                 (let ([final (-->μTR* (term any_state))])
+                   (term #{unload ,final}))))]
   [(eval* P boolean_keeptrace)
    ,(raise-user-error 'eval "trouble eval'ing ~a" (term e_c))
    (judgment-holds (well-typed P))
@@ -463,6 +557,18 @@
    (judgment-holds (well-typed P))]
   [(eval* P _)
    ,(raise-user-error 'eval "typechecking failed ~a" (term P))])
+
+(define-metafunction μTR
+  load : e -> [ρ e]
+  [(load e)
+   (#{runtime-env-init} e)])
+
+(define-metafunction μTR
+  unload : A -> any
+  [(unload RuntimeError)
+   RuntimeError]
+  [(unload [ρ v])
+   (runtime-env-unload ρ v)])
 
 (module+ test
   (test-case "eval:R:I"
@@ -721,6 +827,10 @@
    --- Arrow
    (subtype (→ τ_dom0 τ_cod0) (→ τ_dom1 τ_cod1))]
   [
+   (type= τ_0 τ_1)
+   --- Box
+   (subtype (Box τ_0) (Box τ_1))]
+  [
    (subtype τ_lhs τ_rhs)
    --- U-Member
    (subtype τ_lhs (U τ_0 ... τ_rhs τ_1 ...))]
@@ -760,6 +870,9 @@
    (well-tagged Λ →)]
   [
    ---
+   (well-tagged (box _) Box)]
+  [
+   ---
    (well-tagged (cons _ _) Pair)]
   [
    (tag= #{tag-only τ} tag)
@@ -783,6 +896,10 @@
       ==> 'Bool)
      ((term (Pair Int Int))
       ==> 'Pair)
+     ((term (Box Int))
+      ==> 'Box)
+     ((term (Box (→ Int Int)))
+      ==> 'Box)
      ((term (→ Int Int))
       ==> '→)))
 
@@ -803,6 +920,8 @@
      (well-tagged #true Bool)
      (well-tagged (λ (x TST) 4) →)
      (well-tagged (cons 1 1) Pair)
+     (well-tagged (box 1) Box)
+     (well-tagged (box (λ (x Int) x)) Box)
      (well-tagged (mon T (→ (Pair Int Int) Int) (R (λ (x TST) (+ 2 (car x)))) (x Int)) →)
     )
   )
@@ -822,6 +941,49 @@
    ,(for/first ([xτ (in-list (term Γ))]
                 #:when (eq? (term x) (car xτ)))
       (cadr xτ))])
+
+(define-metafunction μTR
+  runtime-env-init : -> ρ
+  [(runtime-env-init)
+   ()])
+
+(define-metafunction μTR
+  runtime-env-add : ρ x any -> ρ
+  [(runtime-env-add ρ x (REF v))
+   ,(cons (term (x (REF v))) (term ρ))]
+  [(runtime-env-add ρ x (LETREC x))
+   ,(cons (term (x (LETREC x))) (term ρ))])
+
+(define-metafunction μTR
+  runtime-env-ref : ρ x -> v
+  [(runtime-env-ref () x)
+   ,(raise-user-error 'runtime-env-ref "unbound variable ~a" (term x))]
+  [(runtime-env-ref ((x v) RB ...) x)
+   v]
+  [(runtime-env-ref (RB_0 RB_1 ...) x)
+   (runtime-env-ref (RB_1 ...) x)])
+
+(define-metafunction μTR
+  runtime-env-update : ρ x v -> ρ
+  [(runtime-env-update (RB_0 ... (x (LETREC x)) RB_1 ...) x v)
+   (RB_0 ... (x v) RB_1 ...)]
+  [(runtime-env-update (RB_0 ... (x (box v_x)) RB_1 ...) x v)
+   (RB_0 ... (x (box v)) RB_1 ...)]
+  [(runtime-env-update ρ x v)
+   ,(raise-arguments-error 'runtime-env-ref "unbound variable" "var" (term x) "env" (term ρ))])
+
+(define-metafunction μTR
+  runtime-env-unload : ρ v -> v
+  [(runtime-env-unload () v)
+   v]
+  [(runtime-env-unload ((x v_x) RB ...) v)
+   (runtime-env-unload (RB ...) (substitute v x v_x))])
+
+(module+ test
+  (test-case "runtime-env"
+    (check-pred ρ? (term #{runtime-env-init}))
+  )
+)
 
 ;; -----------------------------------------------------------------------------
 ;; --- flat types
@@ -845,14 +1007,33 @@
    ---
    (flat T (Pair τ_0 τ_1))])
 
+(define-judgment-form μTR
+  #:mode (non-flat I I)
+  #:contract (non-flat L τ)
+  [
+   (side-condition ,(not (judgment-holds (flat L τ))))
+   ---
+   (non-flat L τ)])
+
 (module+ test
   (test-case "flat"
-    (check-true (judgment-holds (flat T Int)))
-    (check-false (judgment-holds (flat R Int)))
-    (check-false (judgment-holds (flat T (→ Bool Bool))))
+    (check-judgment-holds*
+     (flat T Int)
+     (flat T (Pair Int Int))
 
-    (check-true (judgment-holds (flat T (Pair Int Int))))
-    (check-false (judgment-holds (flat T (Pair Int (Pair (→ Int Int) Int)))))
+     (non-flat R Int)
+     (non-flat T (→ Bool Bool))
+     (non-flat T (Pair Int (Pair (→ Int Int) Int)))
+    )
+
+    (check-not-judgment-holds*
+     (flat R Int)
+     (flat T (→ Bool Bool))
+     (flat T (Pair Int (Pair (→ Int Int) Int)))
+
+     (non-flat T Int)
+     (non-flat T (Pair Int Int))
+    )
   )
 )
 
@@ -886,27 +1067,37 @@
    (where v_1+ #{dynamic-typecheck T τ_1 (L v_1) (cdr srcloc)})]
 ;; --- U
   [(dynamic-typecheck T (U τk ...) (L v) srcloc)
-   ,(let loop ([tk* (term (τk ...))])
+   ,(let loop ([tk* (term (τk ...))] [i 0])
       (if (null? tk*)
         (term (BoundaryError T (U τk ...) (L v) srcloc))
-        (let ([x (term #{dynamic-typecheck T ,(car tk*) (L v) (π srcloc)})])
+        (let ([x (term #{dynamic-typecheck T ,(car tk*) (L v) (proj ,i srcloc)})])
           (if (RuntimeError? x)
-            (loop (cdr tk*))
+            (loop (cdr tk*) (+ i 1))
             x))))]
+;; --- Box
+  [(dynamic-typecheck T (Box τ) (L (box v)) srcloc)
+   (mon T (Box τ) (L (box v)) srcloc)
+   ;; IGNORE what's in the middle, it's just to catch runtime errors
+   ;;  safe to ignore because dynamic _unbox_ installs monitors,
+   ;;  and unbox will catch cases that this function cannot
+   (where v_dontcare #{dynamic-typecheck T τ (L v) (unbox srcloc)})]
 ;; --- →
   [(dynamic-typecheck T (→ τ_dom τ_cod) (L Λ) srcloc)
    (mon T (→ τ_dom τ_cod) (L Λ) srcloc)]
-  [(dynamic-typecheck T τ (L (mon L_mon τ_mon P_mon srcloc_mon)) srcloc)
+;; --- higher-order common (→ Box)
+  [(dynamic-typecheck T τ P srcloc)
    RuntimeError
+   (where (L (mon L_mon τ_mon P_mon srcloc_mon)) P)
    (where TST τ_mon)
    (where RuntimeError #{dynamic-typecheck T τ P_mon srcloc})]
   [(dynamic-typecheck T τ P srcloc)
    (mon T τ P srcloc)
-   ;; τ must be non-flat, because that's the only type we keep mon's for
+   (side-condition (or (judgment-holds (non-flat T τ)) (raise-user-error 'dynamic-typecheck "bad case")))
    (where (L (mon L_mon τ_mon P_mon srcloc_mon)) P)
    (judgment-holds (tag= #{tag-only τ_mon} #{tag-only τ}))]
-  [(dynamic-typecheck T (→ τ_dom τ_cod) P srcloc)
-   (BoundaryError T (→ τ_dom τ_cod) P srcloc)]
+  [(dynamic-typecheck T τ P srcloc)
+   (BoundaryError T τ P srcloc)
+   (judgment-holds (non-flat T τ))]
 ;; --- TST
   [(dynamic-typecheck T TST (L v) srcloc)
    v
@@ -944,6 +1135,8 @@
    Pair]
   [(tag-only (→ τ_dom τ_cod))
    →]
+  [(tag-only (Box τ))
+   Box]
   [(tag-only TST)
    TST])
 
@@ -1042,7 +1235,29 @@
    (minimal-completion (T e_0) (T e_0c))
    (minimal-completion (T e_1) (T e_1c))
    --- T-=
-   (minimal-completion (T (= e_0 e_1)) (T (= e_0c e_1c)))])
+   (minimal-completion (T (= e_0 e_1)) (T (= e_0c e_1c)))]
+  [
+   (minimal-completion (L e_0) (L e_0c))
+   --- Box
+   (minimal-completion (L (box e_0)) (L (box e_0c)))]
+  [
+   (minimal-completion (R e_0) (R e_0c))
+   --- R-Unbox
+   (minimal-completion (R (unbox e_0)) (R (unbox (dyn-check Box e_0c))))]
+  [
+   (minimal-completion (T e_0) (T e_0c))
+   --- T-Unbox
+   (minimal-completion (T (unbox e_0)) (T (unbox e_0c)))]
+  [
+   (minimal-completion (R e_0) (R e_0c))
+   (minimal-completion (R e_1) (R e_1c))
+   --- R-SetBox
+   (minimal-completion (R (set-box! e_0 e_1)) (R (set-box! (dyn-check Box e_0c) e_1c)))]
+  [
+   (minimal-completion (T e_0) (T e_0c))
+   (minimal-completion (T e_1) (T e_1c))
+   --- T-SetBox
+   (minimal-completion (T (set-box! e_0 e_1)) (T (set-box! e_0c e_1c)))])
 
 (define-metafunction μTR
   minimal-completion# : P -> P
@@ -1062,7 +1277,7 @@
 (define (xerox=? t0 t1)
   (define t0+ (term #{xerox ,t0}))
   (define t1+ (term #{xerox ,t1}))
-  (printf "WHATA HE~n    ~a~n    ~a~n" t0+ t1+)
+  (debug "xerox=~n    ~a~n    ~a~n" t0+ t1+)
   (equal? t0+ t1+))
 
 (define-metafunction μTR
@@ -1110,7 +1325,13 @@
    (erasure (L_x e_x) e_xe)
    (erasure (L e) e_c)
    ---
-   (erasure (L (let (x τ (L_x e_x)) e)) ((λ (x) e_c) (pre-mon L τ (L_x e_xe) (#{xerox x} τ))))]
+   (erasure (L (let (x τ (L_x e_x)) e)) (let (x (pre-mon L τ (L_x e_xe) (#{xerox x} τ))) e_c))]
+  [
+   (erasure (L_x e_x) e_xe)
+   (erasure (L e) e_c)
+   ---
+   (erasure (L (letrec (x τ (L_x e_x)) e))
+            (letrec (x τ (pre-mon L τ (L_x e_xe) (#{xerox x} τ))) e_c))]
   [
    (erasure (L e_0) e_0e)
    (erasure (L e_1) e_1e)
@@ -1141,6 +1362,19 @@
    ---
    (erasure (L (= e_0 e_1)) (= e_0e e_1e))]
   [
+   (erasure (L e_0) e_0e)
+   ---
+   (erasure (L (box e_0)) (box e_0e))]
+  [
+   (erasure (L e_0) e_0e)
+   ---
+   (erasure (L (unbox e_0)) (unbox e_0e))]
+  [
+   (erasure (L e_0) e_0e)
+   (erasure (L e_1) e_1e)
+   ---
+   (erasure (L (set-box! e_0 e_1)) (set-box! e_0e e_1e))]
+  [
    (erasure (L e) e_e)
    ---
    (erasure (L (dyn-check tag e)) (dyn-check tag e_e))]
@@ -1154,6 +1388,23 @@
   [(erasure# P)
    e
    (judgment-holds (erasure P e))])
+
+(define-judgment-form μTR
+  #:mode (well-formed-monitor I)
+  #:contract (well-formed-monitor v)
+  [
+   (well-tagged Λ #{tag-only τ})
+   --- λ
+   (well-formed-monitor (mon L τ (L_v Λ) _))]
+  [
+   (well-tagged (box v) #{tag-only τ})
+   --- box
+   (well-formed-monitor (mon L τ (L_v (box v)) _))]
+  [
+   (tag= #{tag-only τ} #{tag-only τ_m})
+   (well-formed-monitor (mon L_m τ_m (L_mm v_mm) srcloc))
+   --- recur
+   (well-formed-monitor (mon L τ (L_v (mon L_m τ_m (L_mm v_mm) srcloc)) _))])
 
 (module+ test
   (test-case "dynamic-typecheck"
@@ -1183,7 +1434,11 @@
      ((dynamic-typecheck T (U (→ Int Int) Int) (R 3) (x (U (→ Int Int) Int)))
       3)
      ((dynamic-typecheck T (U (→ Int Int) Int) (R (λ (x TST) 3)) (x (U (→ Int Int) Int)))
-      (mon T (→ Int Int) (R (λ (x TST) 3)) (π (x (U (→ Int Int) Int)))))
+      (mon T (→ Int Int) (R (λ (x TST) 3)) (proj 0 (x (U (→ Int Int) Int)))))
+     ((dynamic-typecheck T (Box Int) (R (box 3)) (x (Box Int)))
+      (mon T (Box Int) (R (box 3)) (x (Box Int))))
+     ((dynamic-typecheck T (Box (Pair Bool (→ Int Int))) (R (box (cons #true (λ (x Int) x)))) (f (Box (Pair Bool (→ Int Int)))))
+      (mon T (Box (Pair Bool (→ Int Int))) (R (box (cons #true (λ (x Int) x)))) (f (Box (Pair Bool (→ Int Int))))))
     )
   )
 
@@ -1253,6 +1508,18 @@
       (R (= (dyn-check Int 1) (dyn-check Int 1))))
      ((minimal-completion# (T (= 1 1)))
       (T (= 1 1)))
+     ((minimal-completion# (R (box (+ 3 3))))
+      (R (box (+ (dyn-check Int 3) (dyn-check Int 3)))))
+     ((minimal-completion# (T (box (+ 3 3))))
+      (T (box (+ 3 3))))
+     ((minimal-completion# (R (unbox (box 2))))
+      (R (unbox (dyn-check Box (box 2)))))
+     ((minimal-completion# (T (unbox (box 2))))
+      (T (unbox (box 2))))
+     ((minimal-completion# (R (set-box! (box 1) 2)))
+      (R (set-box! (dyn-check Box (box 1)) 2)))
+     ((minimal-completion# (T (set-box! (box 1) 2)))
+      (T (set-box! (box 1) 2)))
     )
   )
 
@@ -1314,14 +1581,39 @@
       (+ 1 2))
      ((erasure# (T (= 3 3)))
       (= 3 3))
+     ((erasure# (T (box 2)))
+      (box 2))
+     ((erasure# (R (unbox 3)))
+      (unbox 3))
+     ((erasure# (R (set-box! (box 2) #false)))
+      (set-box! (box 2) #false))
      ((erasure# (T (dyn-check Int 4)))
       (dyn-check Int 4))
+    )
+
+    ;; TODO some issue with binding forms ... using weaker equality for now
+    (check-mf-apply* #:is-equal? xerox=?
      ((erasure# (R (let (x (→ Int Int) (T (λ (y Int) (+ y 2)))) (x 3))))
-      ((λ (x) (x 3)) (pre-mon R (→ Int Int) (T (λ (y) (+ y 2))) (x (→ Int Int)))))
+      (let (x (pre-mon R (→ Int Int) (T (λ (y) (+ y 2))) (x (→ Int Int)))) (x 3)))
+     ((erasure# (R (letrec (f (→ Int Int) (T (λ (y Int) (if (= 0 y) 0 (+ 1 (f 0)))))) (f 3))))
+      (letrec (f (→ Int Int) (pre-mon R (→ Int Int) (T (λ (y) (if (= 0 y) 0 (+ 1 (f 0))))) (f (→ Int Int)))) (f 3)))
      ((erasure# (R (λ (x TST) (let (z (→ Int Int) (T (λ (y Int) y))) (z 45)))))
       (λ (x)
-        ((λ (z) (z 45))
-         (pre-mon R (→ Int Int) (T (λ (y) y)) (z (→ Int Int))))))
+        (let (z (pre-mon R (→ Int Int) (T (λ (y) y)) (z (→ Int Int)))) (z 45))))
+    )
+  )
+
+  (test-case "well-formed-monitor"
+    (check-judgment-holds*
+     (well-formed-monitor (mon R (→ Int Int) (T (λ (x) 3)) (f (→ Int Int))))
+     (well-formed-monitor (mon R (Box Int) (T (box 3)) (f (Box Int))))
+     (well-formed-monitor (mon R (→ Int Int)
+      (T (mon R (→ Bool Bool) (T (λ (x) 3)) (g (→ Bool Bool))))
+      (f (→ Int Int))))
+    )
+    (check-not-judgment-holds*
+     (well-formed-monitor (mon R Int (T 4) (f Int)))
+     (well-formed-monitor (mon R (→ Int Int) (T (box 4)) (f (→ Int Int))))
     )
   )
 )
