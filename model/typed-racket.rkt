@@ -19,10 +19,8 @@
 ;;     - any completion is well-typed (easy)
 
 ;; Awkwardnesses
-;; - matthias wants set!
-;;   tests first? I'm not exactly sure what this means. No strong updates right?
-;;   - okay coming along
 ;; - occurrence typing
+;; - dyn-typecheck needs to unload (to check boxes)
 
 ;; -----------------------------------------------------------------------------
 
@@ -51,10 +49,10 @@
          (letrec (x τ P) e) (letrec (x τ e) e) (letrec (x e) e) (REC x)
          (cons e e) (car e) (cdr e)
          (binop e e) (= e e)
-         (box e) (unbox e) (set-box! e e)
+         (box e) (make-box e) (unbox e) (set-box! e e)
          (dyn-check tag e)
          (pre-mon L τ P srcloc))
-  (v ::= x integer boolean Λ (cons v v) (mon L τ (L v) srcloc))
+  (v ::= (box x) (box v) integer boolean Λ (cons v v) (mon L τ (L v) srcloc))
   (Λ ::= (λ (x) e) (λ (x τ) e))
   (P ::= (L e))
   (τ ::= (U τk ...) τk TST)
@@ -62,7 +60,7 @@
   (L ::= R T)
   (Γ ::= ((x τ) ...))
   (ρ ::= (RB ...))
-  (RB ::= (x (box v)) (x UNDEF) (x (LETREC v)))
+  (RB ::= (x (BOX v)) (x UNDEF) (x (LETREC v)))
   (primop ::= car cdr binop =)
   (binop ::= + * -)
   (tag ::= Int Bool Pair → Box)
@@ -72,7 +70,7 @@
          (car E) (cdr E)
          (binop E e) (binop v E)
          (= E e) (= v E)
-         (box E) (set-box! E e) (set-box! v E) (unbox E)
+         (make-box E) (set-box! E e) (set-box! v E) (unbox E)
          (dyn-check tag E)
          (pre-mon L τ (L E) srcloc))
   (RuntimeError ::= (DynError tag v e) (BoundaryError L τ P srcloc) (UndefError x))
@@ -306,6 +304,14 @@
    (infer-type Γ (T (box e)) (Box τ))]
   [
    (infer-type Γ (R e) τ)
+   --- R-I-MakeBox
+   (infer-type Γ (R (make-box e)) TST)]
+  [
+   (infer-type Γ (T e) τ)
+   --- T-I-MakeBox
+   (infer-type Γ (T (make-box e)) (Box τ))]
+  [
+   (infer-type Γ (R e) τ)
    --- R-I-Unbox
    (infer-type Γ (R (unbox e)) TST)]
   [
@@ -429,11 +435,15 @@
      (well-typed (R (let (f (→ Int Int) (T (λ (x Int) (+ x 1)))) (f 3))))
      (well-typed (R (unbox 3)))
      (well-typed (T (+ 1 (unbox (box 4)))))
+     (well-typed (T (+ 1 (unbox (make-box 4)))))
      (well-typed (T (let (x (Box Int) (R (box #true))) (+ 1 (unbox x)))))
      (well-typed (R (letrec (fact (→ Int Int) (R (λ (n TST) (if (= n 0) n (* n (fact (- n 1))))))) (fact 6))))
      (well-typed (T (letrec (fact (→ Int Int) (T (λ (n Int) (if (= n 0) n (* n (fact (- n 1))))))) (fact 6))))
      (well-typed (T (letrec (x (Box Int) (R (box 3))) x)))
      (well-typed (T (letrec (x (Box Int) (R (box 3)))
+                      (let (y Int (T (set-box! x 4)))
+                        y))))
+     (well-typed (T (letrec (x (Box Int) (R (make-box 3)))
                       (let (y Int (T (set-box! x 4)))
                         y))))
      (well-typed (T (letrec (x (Box Int) (R (box 3)))
@@ -482,12 +492,12 @@
      [ρ (in-hole E (pre-mon T τ_ctx (R v) srcloc))]
      [ρ (in-hole E v_+)]
      PreMon-R->T-MaybeOk
-     (where v_+ #{dynamic-typecheck T τ_ctx (R v) srcloc})]
+     (where v_+ #{dynamic-typecheck T τ_ctx (R #{runtime-env-unload ρ v}) srcloc})]
     [-->
      [ρ (in-hole E (pre-mon T τ_ctx (R v) srcloc))]
      RuntimeError
      PreMon-R->T-Error
-     (where RuntimeError #{dynamic-typecheck T τ_ctx (R v) srcloc})]
+     (where RuntimeError #{dynamic-typecheck T τ_ctx (R #{runtime-env-unload ρ v}) srcloc})]
 ;; -- APP
     [-->
      [ρ (in-hole E ((λ (x) e) v_1))]
@@ -511,7 +521,7 @@
                        (substitute e x (REC x_self))))]
      LetRec-Init
      (fresh x_self)
-     (where ρ_x #{runtime-env-add ρ x_self UNDEF})]
+     (where ρ_x #{runtime-env-set ρ x_self UNDEF})]
     [-->
      [ρ (in-hole E (letrec (x v) e))]
      [ρ_x (in-hole E e)]
@@ -544,25 +554,25 @@
      If-False]
 ;; -- box
     [-->
-     [ρ (in-hole E (box v))]
-     [ρ_x (in-hole E x)]
+     [ρ (in-hole E (make-box v))]
+     [ρ_x (in-hole E (box x_loc))]
      Box
-     (fresh x)
-     (where ρ_x #{runtime-env-add ρ x (box v)})]
+     (fresh x_loc)
+     (where ρ_x #{runtime-env-set ρ x_loc (BOX v)})]
     [-->
-     [ρ (in-hole E (unbox x))]
+     [ρ (in-hole E (unbox (box x)))]
      [ρ (in-hole E v)]
      Unbox
-     (where (box v) #{runtime-env-ref ρ x})]
+     (where (BOX v) #{runtime-env-ref ρ x})]
     [-->
      [ρ (in-hole E (unbox (mon L (Box τ) (L_m v_m) srcloc)))]
      [ρ (in-hole E (mon L τ (L_m (unbox v_m)) (unbox srcloc)))]
      Unbox-Mon]
     [-->
-     [ρ (in-hole E (set-box! x v))]
+     [ρ (in-hole E (set-box! (box x) v))]
      [ρ_v (in-hole E v)]
      SetBox
-     (where (box v_x) #{runtime-env-ref ρ x})
+     (where (BOX v_x) #{runtime-env-ref ρ x})
      (where ρ_v #{runtime-env-update ρ x v})]
     [-->
      [ρ (in-hole E (set-box! (mon L (Box τ) (L_m v_m) srcloc) v))]
@@ -577,16 +587,6 @@
      [ρ (in-hole E #{apply-op primop v ...})]
      Primop]
 ;; -- dyn-check
-    [-->
-     [ρ (in-hole E (dyn-check Box x))]
-     any_next
-     DynCheck-Box
-     (where (box v) #{runtime-env-ref ρ x})
-     (where any_next
-       ,(if (judgment-holds (well-tagged (box v) Box))
-          (term [ρ (in-hole E x)])
-          ;; hahah never happens
-          (term (DynError Box (box v) (in-hole E (dyn-check tag x))))))]
     [-->
      [ρ (in-hole E (dyn-check tag v))]
      [ρ (in-hole E v)]
@@ -968,7 +968,7 @@
 
 (define-judgment-form μTR
   #:mode (well-tagged I I)
-  #:contract (well-tagged any tag)
+  #:contract (well-tagged v tag)
   [
    ---
    (well-tagged integer Int)]
@@ -1030,8 +1030,8 @@
      (well-tagged #true Bool)
      (well-tagged (λ (x TST) 4) →)
      (well-tagged (cons 1 1) Pair)
-     (well-tagged (box 1) Box)
-     (well-tagged (box (λ (x Int) x)) Box)
+     (well-tagged (box x) Box)
+     (well-tagged (box y) Box)
      (well-tagged (mon T (→ (Pair Int Int) Int) (R (λ (x TST) (+ 2 (car x)))) (x Int)) →)
     )
   )
@@ -1058,18 +1058,18 @@
    ()])
 
 (define-metafunction μTR
-  runtime-env-add : ρ x any -> ρ
-  [(runtime-env-add ρ x (box v))
-   ,(cons (term (x (box v))) (term ρ))]
-  [(runtime-env-add ρ x UNDEF)
+  runtime-env-set : ρ x any -> ρ
+  [(runtime-env-set ρ x (BOX v))
+   ,(cons (term (x (BOX v))) (term ρ))]
+  [(runtime-env-set ρ x UNDEF)
    ,(cons (term (x UNDEF)) (term ρ))])
 
 (define-metafunction μTR
   runtime-env-ref : ρ x -> any
   [(runtime-env-ref () x)
    ,(raise-user-error 'runtime-env-ref "unbound variable ~a" (term x))]
-  [(runtime-env-ref ((x (box v)) RB ...) x)
-   (box v)]
+  [(runtime-env-ref ((x (BOX v)) RB ...) x)
+   (BOX v)]
   [(runtime-env-ref ((x UNDEF) RB ...) x)
    UNDEF]
   [(runtime-env-ref ((x (LETREC v)) RB ...) x)
@@ -1081,19 +1081,19 @@
   runtime-env-update : ρ x v -> ρ
   [(runtime-env-update (RB_0 ... (x UNDEF) RB_1 ...) x v)
    (RB_0 ... (x (LETREC v)) RB_1 ...)]
-  [(runtime-env-update (RB_0 ... (x (box v_x)) RB_1 ...) x v)
-   (RB_0 ... (x (box v)) RB_1 ...)]
+  [(runtime-env-update (RB_0 ... (x (BOX v_x)) RB_1 ...) x v)
+   (RB_0 ... (x (BOX v)) RB_1 ...)]
   [(runtime-env-update ρ x v)
    ,(raise-arguments-error 'runtime-env-ref "unbound variable" "var" (term x) "env" (term ρ))])
 
 (define-metafunction μTR
-  runtime-env-unload : ρ any -> any
-  [(runtime-env-unload () any)
-   any]
-  [(runtime-env-unload ((x (box v_x)) RB ...) any)
-   (runtime-env-unload (RB ...) (substitute any x (box v_x)))]
-  [(runtime-env-unload ((x (LETREC v_x)) RB ...) any)
-   (runtime-env-unload (RB ...) any)])
+  runtime-env-unload : ρ v -> v
+  [(runtime-env-unload () v)
+   v]
+  [(runtime-env-unload ((x (BOX v_x)) RB ...) v)
+   (runtime-env-unload (RB ...) (substitute v x v_x))]
+  [(runtime-env-unload ((x (LETREC v_x)) RB ...) v)
+   (runtime-env-unload (RB ...) v)])
 
 (module+ test
   (test-case "runtime-env"
@@ -1362,6 +1362,10 @@
    --- Box
    (minimal-completion (L (box e_0)) (L (box e_0c)))]
   [
+   (minimal-completion (L e_0) (L e_0c))
+   --- MakeBox
+   (minimal-completion (L (make-box e_0)) (L (make-box e_0c)))]
+  [
    (minimal-completion (R e_0) (R e_0c))
    --- R-Unbox
    (minimal-completion (R (unbox e_0)) (R (unbox (dyn-check Box e_0c))))]
@@ -1489,7 +1493,11 @@
   [
    (erasure (L e_0) e_0e)
    ---
-   (erasure (L (box e_0)) (box e_0e))]
+   (erasure (L (box e_0)) (make-box e_0e))]
+  [
+   (erasure (L e_0) e_0e)
+   ---
+   (erasure (L (make-box e_0)) (make-box e_0e))]
   [
    (erasure (L e_0) e_0e)
    ---
@@ -1516,15 +1524,15 @@
 
 (define-judgment-form μTR
   #:mode (well-formed-monitor I)
-  #:contract (well-formed-monitor any)
+  #:contract (well-formed-monitor v)
   [
    (well-tagged Λ #{tag-only τ})
    --- λ
    (well-formed-monitor (mon L τ (L_v Λ) _))]
   [
-   (well-tagged (box v) #{tag-only τ})
+   (well-tagged (box any) #{tag-only τ})
    --- box
-   (well-formed-monitor (mon L τ (L_v (box v)) _))]
+   (well-formed-monitor (mon L τ (L_v (box any)) _))]
   [
    (tag= #{tag-only τ} #{tag-only τ_m})
    (well-formed-monitor (mon L_m τ_m (L_mm v_mm) srcloc))
@@ -1719,11 +1727,13 @@
      ((erasure# (T (= 3 3)))
       (= 3 3))
      ((erasure# (T (box 2)))
-      (box 2))
+      (make-box 2))
+     ((erasure# (T (make-box 2)))
+      (make-box 2))
      ((erasure# (R (unbox 3)))
       (unbox 3))
      ((erasure# (R (set-box! (box 2) #false)))
-      (set-box! (box 2) #false))
+      (set-box! (make-box 2) #false))
      ((erasure# (T (dyn-check Int 4)))
       (dyn-check Int 4))
     )
@@ -1750,7 +1760,7 @@
     )
     (check-not-judgment-holds*
      (well-formed-monitor (mon R Int (T 4) (f Int)))
-     (well-formed-monitor (mon R (→ Int Int) (T (box 4)) (f (→ Int Int))))
+     (well-formed-monitor (mon R (→ Int Int) (T (box 3)) (f (→ Int Int))))
     )
   )
 )
