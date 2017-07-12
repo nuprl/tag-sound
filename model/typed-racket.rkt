@@ -468,11 +468,12 @@
 
   (test-case "not-well-typed"
     (check-not-judgment-holds*
-      (well-typed (T (car 1)))
-      (well-typed (T (set-box! 1 1)))
-      (well-typed (T (unbox (λ (x Int) x))))
-      (well-typed (T (unbox 1)))
-      (well-typed (T (set-box! (box 0) (box 4))))
+     (well-typed (T (car 1)))
+     (well-typed (T (set-box! 1 1)))
+     (well-typed (T (unbox (λ (x Int) x))))
+     (well-typed (T (unbox 1)))
+     (well-typed (T (set-box! (box 0) (box 4))))
+     (well-typed (T (let (b (Box Int) (R (box 1))) (set-box! b #false))))
     )
   )
 )
@@ -904,6 +905,49 @@
     )
   )
 
+  (test-case "boxof-R-in-T"
+    (check-mf-apply*
+     [(eval (T (let (b (Box Int) (R (box 1)))
+                 (let (_dontcare Int (T (set-box! b 2)))
+                   (unbox b)))))
+      2]
+     ((eval (T (let (b (Box Int) (R (box #false)))
+                   0)))
+      (BoundaryError T (Box Int) (R (box #false)) (b (Box Int))))
+    )
+  )
+
+  (test-case "boxof-T-in-R"
+    (check-mf-apply*
+     [(eval (R (let (b (Box Int) (T (box 1)))
+                 (unbox b))))
+      1]
+     [(eval (R (let (b (Box Int) (T (box 1)))
+                 (set-box! b 4))))
+      4]
+     [(eval (R (let (bb (Box (Box Int)) (T (box (box 1))))
+                 (let (_dontcare Int (R (set-box! (unbox bb) 777)))
+                   (unbox (unbox bb))))))
+      777]
+     [(eval (R (let (b (Box Int) (T (box 1)))
+                 (set-box! b #f))))
+      (BoundaryError T Int (R #f) (set-box! (b (Box Int))))]
+     [(eval (R (let (bb (Box (Box Int)) (T (box (box 1))))
+                 (let (_dontcare Bool (R (set-box! (unbox bb) #false)))
+                   (unbox (unbox bb))))))
+      (BoundaryError T Int (R #false) (set-box! (unbox (bb (Box (Box Int))))))]
+    )
+  )
+
+  (test-case "box:error"
+    (check-mf-apply*
+     ((eval (T (let (x (Box Int) (R 42)) #false)))
+      (BoundaryError T (Box Int) (R 42) (x (Box Int))))
+     ((eval (T (let (x (Box Int) (R (box #true))) #false)))
+      (BoundaryError T (Box Int) (R (box #true)) (x (Box Int))))
+    )
+  )
+
   (test-case "well-typed-programs-run-faster"
     (define (check-shorter-trace t1 t2)
       (define-values [trace1 trace2]
@@ -1260,9 +1304,10 @@
    (side-condition (or (judgment-holds (non-flat T τ)) (raise-user-error 'dynamic-typecheck "bad case")))
    (where (L (mon L_mon τ_mon P_mon srcloc_mon)) P)
    (judgment-holds (tag= #{tag-only τ_mon} #{tag-only τ}))]
-  [(dynamic-typecheck T τ P srcloc ρ)
-   (BoundaryError T τ P srcloc)
-   (judgment-holds (non-flat T τ))]
+  [(dynamic-typecheck T τ (L e) srcloc ρ)
+   (BoundaryError T τ (L any) srcloc)
+   (judgment-holds (non-flat T τ))
+   (where any #{runtime-env-unload ρ e})]
 ;; --- TST
   [(dynamic-typecheck T TST (L v) srcloc ρ)
    v
