@@ -20,7 +20,6 @@
 
 ;; Awkwardnesses
 ;; - occurrence typing
-;; - dyn-typecheck needs to unload (to check boxes)
 
 ;; -----------------------------------------------------------------------------
 
@@ -52,7 +51,7 @@
          (box e) (make-box e) (unbox e) (set-box! e e)
          (dyn-check tag e)
          (pre-mon L τ P srcloc))
-  (v ::= (box x) (box v) integer boolean Λ (cons v v) (mon L τ (L v) srcloc))
+  (v ::= (box x) integer boolean Λ (cons v v) (mon L τ (L v) srcloc))
   (Λ ::= (λ (x) e) (λ (x τ) e))
   (P ::= (L e))
   (τ ::= (U τk ...) τk TST)
@@ -103,7 +102,7 @@
                                            (let (blah TST (R (set-box! prev2 (unbox prev1))))
                                              (let (bb TST (R (set-box! prev1 curr)))
                                                (loop (- n 1)))))))))
-                            (loop n)))))))))
+                            (loop (- n 2))))))))))
          (fib 5)))))
 
   (define T-fib (term
@@ -144,6 +143,10 @@
     (check-pred v? (term (mon T (→ Int Int) (R (λ (x TST) x)) (foo (→ Int Int)))))
     (check-pred P? (term (T (let (ff (Pair (→ Int Int) Bool) (R (cons (λ (x TST) (+ x x)) #f))) ((car ff) 4)))))
     (check-pred P? R-fib)
+    (check-pred e? (term (pre-mon T Int (T (set-box!  (mon T (Box Int) (R (box z)) (x (Box Int))) 4)) (y Int))))
+    (check-false (v? (term (box 3))))
+    (check-false (v? (term (pre-mon T Int (T (set-box! (box 3) 4)) (y Int)))))
+    (check-pred v? (term (mon T Int (T 4) (y Int))))
   )
 )
 
@@ -434,6 +437,9 @@
      (well-typed (T (λ (x Int) (+ x 1))))
      (well-typed (R (let (f (→ Int Int) (T (λ (x Int) (+ x 1)))) (f 3))))
      (well-typed (R (unbox 3)))
+     (well-typed (R (+ 1 (make-box 3))))
+     (well-typed (R (make-box (λ (x TST) (+ 2 2)))))
+     (well-typed (T (make-box (λ (x Bool) (+ 2 2)))))
      (well-typed (T (+ 1 (unbox (box 4)))))
      (well-typed (T (+ 1 (unbox (make-box 4)))))
      (well-typed (T (let (x (Box Int) (R (box #true))) (+ 1 (unbox x)))))
@@ -466,6 +472,7 @@
       (well-typed (T (set-box! 1 1)))
       (well-typed (T (unbox (λ (x Int) x))))
       (well-typed (T (unbox 1)))
+      (well-typed (T (set-box! (box 0) (box 4))))
     )
   )
 )
@@ -492,12 +499,12 @@
      [ρ (in-hole E (pre-mon T τ_ctx (R v) srcloc))]
      [ρ (in-hole E v_+)]
      PreMon-R->T-MaybeOk
-     (where v_+ #{dynamic-typecheck T τ_ctx (R #{runtime-env-unload ρ v}) srcloc})]
+     (where v_+ #{dynamic-typecheck T τ_ctx (R v) srcloc ρ})]
     [-->
      [ρ (in-hole E (pre-mon T τ_ctx (R v) srcloc))]
      RuntimeError
      PreMon-R->T-Error
-     (where RuntimeError #{dynamic-typecheck T τ_ctx (R #{runtime-env-unload ρ v}) srcloc})]
+     (where RuntimeError #{dynamic-typecheck T τ_ctx (R v) srcloc ρ})]
 ;; -- APP
     [-->
      [ρ (in-hole E ((λ (x) e) v_1))]
@@ -566,7 +573,7 @@
      (where (BOX v) #{runtime-env-ref ρ x})]
     [-->
      [ρ (in-hole E (unbox (mon L (Box τ) (L_m v_m) srcloc)))]
-     [ρ (in-hole E (mon L τ (L_m (unbox v_m)) (unbox srcloc)))]
+     [ρ (in-hole E (pre-mon L τ (L_m (unbox v_m)) (unbox srcloc)))]
      Unbox-Mon]
     [-->
      [ρ (in-hole E (set-box! (box x) v))]
@@ -576,11 +583,11 @@
      (where ρ_v #{runtime-env-update ρ x v})]
     [-->
      [ρ (in-hole E (set-box! (mon L (Box τ) (L_m v_m) srcloc) v))]
-     [ρ (in-hole E (set-box! v_m v_+))]
+     [ρ (in-hole E (set-box! v_m e_+))]
      SetBox-Mon
      ;; bring `v_m` into the box's language,
      ;;  may-or-may-not require a dynamic check
-     (where v_+ (pre-mon L_m τ (L v_m) (set-box! srcloc)))]
+     (where e_+ (pre-mon L_m τ (L v) (set-box! srcloc)))]
 ;; -- primop
     [-->
      [ρ (in-hole E (primop v ...))]
@@ -619,6 +626,7 @@
    (where any ,(if (term boolean_keeptrace)
                  (apply-reduction-relation* -->μTR (term any_state) #:all? #t)
                  (let ([final (-->μTR* (term any_state))])
+                 (when (*debug*) (printf "FINAL STATE ~a~n" final))
                    (term #{unload ,final}))))]
   [(eval* P boolean_keeptrace)
    ,(raise-user-error 'eval "trouble eval'ing ~a" (term e_c))
@@ -641,11 +649,15 @@
    (#{runtime-env-init} e)])
 
 (define-metafunction μTR
-  unload : A -> any
+  unload : any -> any
   [(unload RuntimeError)
    RuntimeError]
   [(unload [ρ v])
-   (runtime-env-unload ρ v)])
+   (runtime-env-unload ρ v)]
+  [(unload [ρ e])
+   ,(raise-arguments-error 'unload "tried to unload non-value (evaluation got stuck?)"
+     "non-value" (term e)
+     "env" (term ρ))])
 
 (module+ test
   (test-case "eval:R:I"
@@ -689,6 +701,14 @@
       5)
      ((eval (R ((car (cons (λ (x TST) (+ x 1)) 4)) 8)))
       9)
+     ((eval (R (unbox (box 3))))
+      3)
+     ((eval (R (set-box! (box 3) 4)))
+      4)
+     ((eval (R (box 3)))
+      (box 3))
+     ((eval (R (set-box! (box 0) (box 4))))
+      (box 4))
     )
   )
 
@@ -706,6 +726,11 @@
        6)
       ((eval (R ((mon R (→ Int Int) (T (λ (x Int) 2)) (boundary (→ Int Int))) 7)))
        2)
+      ((eval (R (let (b TST (R (box 3)))
+                  (let (f TST (R (λ (x TST) (unbox b))))
+                    (let (dontcare TST (R (set-box! b 4)))
+                      (f 1))))))
+       4)
     )
   )
 
@@ -744,6 +769,12 @@
       (cons 4 2)]
      [(eval (T (+ 2 (cdr (cons #false 4)))))
       6]
+     [(eval (T (unbox (box 3))))
+      3]
+     [(eval (T (set-box! (box 3) 4)))
+      4]
+     [(eval (T (if (λ (x (Box Int)) x) 1 0)))
+      1]
     )
   )
 
@@ -768,6 +799,15 @@
       (DynError Int #f (pre-mon T Int (R (+ 3 (dyn-check Int #f))) (cod (f (→ Int Int)))))]
      [(eval (T (let (f (→ Int Int) (R (λ (x TST) (+ #true #false)))) (f 3))))
       (DynError Int #t (pre-mon T Int (R (+ (dyn-check Int #t) (dyn-check Int #f))) (cod (f (→ Int Int)))))]
+     [(eval (T (let (f (→ Int (Box Int)) (R (λ (x TST) (box x))))
+                 (f 3))))
+      (mon T (Box Int) (R (box 3)) (cod (f (→ Int (Box Int)))))]
+     ((eval (T (let (f (→ Int Int) (R (λ (x TST) #false))) (f 3))))
+      (BoundaryError T Int (R #false) (cod (f (→ Int Int)))))
+     ((eval (T (let (f (→ Int Int) (R (λ (x TST) (+ x #false)))) (f 3))))
+      (DynError Int #false (pre-mon T Int (R (+ 3 (dyn-check Int #false))) (cod (f (→ Int Int))))))
+     ((eval (T (let (f (→ Int Int) (R (λ (x TST) (+ #true #false)))) (f 3))))
+      (DynError Int #true (pre-mon T Int (R (+ (dyn-check Int #true) (dyn-check Int #false))) (cod (f (→ Int Int))))))
     )
   )
 
@@ -803,15 +843,16 @@
                  (let (y TST (R (set-box! x 4)))
                    (+ z (unbox x)))))))
        7)
-     ;((eval (T (let (x (Box Int) (R (box 3)))
-     ;            (let (y Int (T (set-box! x 4)))
-     ;              (+ y (unbox x))))))
-     ;  8)
-     ;((eval (T (letrec (x (Box Int) (R (box 3)))
-     ;            (let (y Int (T (set-box! x 4)))
-     ;              (+ y (unbox x))))))
-     ;  8)
+     ((eval (T (let (x (Box Int) (R (make-box 3)))
+                 (let (y Int (T (set-box! x 4)))
+                   (+ y (unbox x))))))
+      8)
+     ((eval (T (letrec (x (Box Int) (R (box 3)))
+                 (let (y Int (T (set-box! x 4)))
+                   (+ y (unbox x))))))
+       8)
     )
+
   )
 
   (test-case "eval:R:III"
@@ -820,8 +861,8 @@
       (mon R (→ Int Int) (T (mon T (→ Int Int) (R (λ (x) x)) (b1 (→ Int Int)))) (b2 (→ Int Int))))
      ((eval (R (letrec (fact TST (R (λ (n TST) (if (= 0 n) 1 (* n (fact (- n 1))))))) (fact 6))))
       720)
-     ;;((eval ,R-fib)
-     ;; 9)
+     ((eval ,R-fib)
+      8)
     )
   )
 
@@ -1086,14 +1127,15 @@
   [(runtime-env-update ρ x v)
    ,(raise-arguments-error 'runtime-env-ref "unbound variable" "var" (term x) "env" (term ρ))])
 
+;; Hmm, using `any` because `(box v)` rather than `(box x)`
 (define-metafunction μTR
-  runtime-env-unload : ρ v -> v
-  [(runtime-env-unload () v)
-   v]
-  [(runtime-env-unload ((x (BOX v_x)) RB ...) v)
-   (runtime-env-unload (RB ...) (substitute v x v_x))]
-  [(runtime-env-unload ((x (LETREC v_x)) RB ...) v)
-   (runtime-env-unload (RB ...) v)])
+  runtime-env-unload : ρ any -> any
+  [(runtime-env-unload () any)
+   any]
+  [(runtime-env-unload ((x (BOX v_x)) RB ...) any)
+   (runtime-env-unload (RB ...) (substitute any x v_x))]
+  [(runtime-env-unload ((x (LETREC v_x)) RB ...) any)
+   (runtime-env-unload (RB ...) any)])
 
 (module+ test
   (test-case "runtime-env"
@@ -1156,66 +1198,73 @@
 ;; -----------------------------------------------------------------------------
 ;; --- dynamic-typecheck
 
+;; Bad design here, so need ρ. This function does 2 things
+;; - checks that a value might be well-typed
+;; - creates a monitored version of the value
+;; This double-duty doesn't work for boxes, because
+;; - to check a box, need to get current value of location
+;; - the monitored box should NOT monitor the insides and NOT return a box with values substituted
 (define-metafunction μTR
-  dynamic-typecheck : L τ P srcloc -> any ;; value or BoundaryError
-  [(dynamic-typecheck R τ P srcloc)
+  dynamic-typecheck : L τ P srcloc ρ -> any ;; value or BoundaryError
+  [(dynamic-typecheck R τ P srcloc ρ)
    ,(raise-user-error 'dynamic-typecheck "language R has no dynamic typechecker ~a ~a" (term e) (term τ))]
 ;; --- Int
-  [(dynamic-typecheck T Int (L integer) srcloc)
+  [(dynamic-typecheck T Int (L integer) srcloc ρ)
    integer]
-  [(dynamic-typecheck T Int (L v) srcloc)
+  [(dynamic-typecheck T Int (L v) srcloc ρ)
    (BoundaryError T Int (L v) srcloc)]
 ;; --- Bool
-  [(dynamic-typecheck T Bool (L boolean) srcloc)
+  [(dynamic-typecheck T Bool (L boolean) srcloc ρ)
    boolean]
-  [(dynamic-typecheck T Bool (L v) srcloc)
+  [(dynamic-typecheck T Bool (L v) srcloc ρ)
    (BoundaryError T Bool (L v) srcloc)]
 ;; --- Pair
-  [(dynamic-typecheck T (Pair τ_0 τ_1) (L (cons v_0 v_1)) srcloc)
+  [(dynamic-typecheck T (Pair τ_0 τ_1) (L (cons v_0 v_1)) srcloc ρ)
    RuntimeError
-   (where RuntimeError #{dynamic-typecheck T τ_0 (L v_0) (car srcloc)})]
-  [(dynamic-typecheck T (Pair τ_0 τ_1) (L (cons v_0 v_1)) srcloc)
+   (where RuntimeError #{dynamic-typecheck T τ_0 (L v_0) (car srcloc) ρ})]
+  [(dynamic-typecheck T (Pair τ_0 τ_1) (L (cons v_0 v_1)) srcloc ρ)
    RuntimeError
-   (where RuntimeError #{dynamic-typecheck T τ_1 (L v_1) (cdr srcloc)})]
-  [(dynamic-typecheck T (Pair τ_0 τ_1) (L (cons v_0 v_1)) srcloc)
+   (where RuntimeError #{dynamic-typecheck T τ_1 (L v_1) (cdr srcloc) ρ})]
+  [(dynamic-typecheck T (Pair τ_0 τ_1) (L (cons v_0 v_1)) srcloc ρ)
    (cons v_0+ v_1+)
-   (where v_0+ #{dynamic-typecheck T τ_0 (L v_0) (car srcloc)})
-   (where v_1+ #{dynamic-typecheck T τ_1 (L v_1) (cdr srcloc)})]
+   (where v_0+ #{dynamic-typecheck T τ_0 (L v_0) (car srcloc) ρ})
+   (where v_1+ #{dynamic-typecheck T τ_1 (L v_1) (cdr srcloc) ρ})]
 ;; --- U
-  [(dynamic-typecheck T (U τk ...) (L v) srcloc)
+  [(dynamic-typecheck T (U τk ...) (L v) srcloc ρ)
    ,(let loop ([tk* (term (τk ...))] [i 0])
       (if (null? tk*)
         (term (BoundaryError T (U τk ...) (L v) srcloc))
-        (let ([x (term #{dynamic-typecheck T ,(car tk*) (L v) (proj ,i srcloc)})])
+        (let ([x (term #{dynamic-typecheck T ,(car tk*) (L v) (proj ,i srcloc) ρ})])
           (if (RuntimeError? x)
             (loop (cdr tk*) (+ i 1))
             x))))]
 ;; --- Box
-  [(dynamic-typecheck T (Box τ) (L (box v)) srcloc)
-   (mon T (Box τ) (L (box v)) srcloc)
+  [(dynamic-typecheck T (Box τ) (L (box x)) srcloc ρ)
+   (mon T (Box τ) (L (box x)) srcloc)
    ;; IGNORE what's in the middle, it's just to catch runtime errors
    ;;  safe to ignore because dynamic _unbox_ installs monitors,
    ;;  and unbox will catch cases that this function cannot
-   (where v_dontcare #{dynamic-typecheck T τ (L v) (unbox srcloc)})]
+   (where (BOX v) #{runtime-env-ref ρ x})
+   (where e_dontcare #{dynamic-typecheck T τ (L v) (unbox srcloc) ρ})]
 ;; --- →
-  [(dynamic-typecheck T (→ τ_dom τ_cod) (L Λ) srcloc)
+  [(dynamic-typecheck T (→ τ_dom τ_cod) (L Λ) srcloc ρ)
    (mon T (→ τ_dom τ_cod) (L Λ) srcloc)]
 ;; --- higher-order common (→ Box)
-  [(dynamic-typecheck T τ P srcloc)
+  [(dynamic-typecheck T τ P srcloc ρ)
    RuntimeError
    (where (L (mon L_mon τ_mon P_mon srcloc_mon)) P)
    (where TST τ_mon)
-   (where RuntimeError #{dynamic-typecheck T τ P_mon srcloc})]
-  [(dynamic-typecheck T τ P srcloc)
+   (where RuntimeError #{dynamic-typecheck T τ P_mon srcloc ρ})]
+  [(dynamic-typecheck T τ P srcloc ρ)
    (mon T τ P srcloc)
    (side-condition (or (judgment-holds (non-flat T τ)) (raise-user-error 'dynamic-typecheck "bad case")))
    (where (L (mon L_mon τ_mon P_mon srcloc_mon)) P)
    (judgment-holds (tag= #{tag-only τ_mon} #{tag-only τ}))]
-  [(dynamic-typecheck T τ P srcloc)
+  [(dynamic-typecheck T τ P srcloc ρ)
    (BoundaryError T τ P srcloc)
    (judgment-holds (non-flat T τ))]
 ;; --- TST
-  [(dynamic-typecheck T TST (L v) srcloc)
+  [(dynamic-typecheck T TST (L v) srcloc ρ)
    v
    (side-condition (printf "WARNING: T expects value ~a to have TST~n" (term v)))])
 
@@ -1542,36 +1591,36 @@
 (module+ test
   (test-case "dynamic-typecheck"
     (check-mf-apply*
-     ((dynamic-typecheck T Int (R 4) (x Int))
+     ((dynamic-typecheck T Int (R 4) (x Int) ())
       4)
-     ((dynamic-typecheck T (→ Int Int) (R (λ (x Int) 3)) (f (→ Int Int)))
+     ((dynamic-typecheck T (→ Int Int) (R (λ (x Int) 3)) (f (→ Int Int)) ())
       (mon T (→ Int Int) (R (λ (x Int) 3)) (f (→ Int Int))))
-     ((dynamic-typecheck T (→ Bool Bool) (T (λ (x Bool) #false)) (f (→ Bool Bool)))
+     ((dynamic-typecheck T (→ Bool Bool) (T (λ (x Bool) #false)) (f (→ Bool Bool)) ())
       (mon T (→ Bool Bool) (T (λ (x Bool) #false)) (f (→ Bool Bool))))
-     ((dynamic-typecheck T (→ Int Int) (T (mon T (→ Int Int) (R (λ (x TST) x)) (b1 (→ Int Int)))) (b3 (→ Int Int)))
+     ((dynamic-typecheck T (→ Int Int) (T (mon T (→ Int Int) (R (λ (x TST) x)) (b1 (→ Int Int)))) (b3 (→ Int Int)) ())
       (mon T (→ Int Int) (T (mon T (→ Int Int) (R (λ (x TST) x)) (b1 (→ Int Int)))) (b3 (→ Int Int))))
-     ((dynamic-typecheck T (Pair Int Int) (R (cons 1 1)) (x (Pair Int Int)))
+     ((dynamic-typecheck T (Pair Int Int) (R (cons 1 1)) (x (Pair Int Int)) ())
       (cons 1 1))
-     ((dynamic-typecheck T (Pair Int Bool) (R (cons 2 #false)) (x (Pair Int Bool)))
+     ((dynamic-typecheck T (Pair Int Bool) (R (cons 2 #false)) (x (Pair Int Bool)) ())
       (cons 2 #false))
-     ((dynamic-typecheck T (Pair (→ Bool Bool) Bool) (R (cons (λ (x TST) x) #true)) (x (Pair (→ Bool Bool) Bool)))
+     ((dynamic-typecheck T (Pair (→ Bool Bool) Bool) (R (cons (λ (x TST) x) #true)) (x (Pair (→ Bool Bool) Bool)) ())
       (cons (mon T (→ Bool Bool) (R (λ (x TST) x)) (car (x (Pair (→ Bool Bool) Bool)))) #true))
-     ((dynamic-typecheck T (Pair Int Int) (R (cons 1 #false)) (x (Pair Int Int)))
+     ((dynamic-typecheck T (Pair Int Int) (R (cons 1 #false)) (x (Pair Int Int)) ())
       (BoundaryError T Int (R #false) (cdr (x (Pair Int Int)))))
-     ((dynamic-typecheck T Bool (R 4) (x Bool))
+     ((dynamic-typecheck T Bool (R 4) (x Bool) ())
       (BoundaryError T Bool (R 4) (x Bool)))
-     ((dynamic-typecheck T (U Bool Int) (R 3) (x (U Bool Int)))
+     ((dynamic-typecheck T (U Bool Int) (R 3) (x (U Bool Int)) ())
       3)
-     ((dynamic-typecheck T (U Bool Int) (R #false) (x (U Bool Int)))
+     ((dynamic-typecheck T (U Bool Int) (R #false) (x (U Bool Int)) ())
       #false)
-     ((dynamic-typecheck T (U (→ Int Int) Int) (R 3) (x (U (→ Int Int) Int)))
+     ((dynamic-typecheck T (U (→ Int Int) Int) (R 3) (x (U (→ Int Int) Int)) ())
       3)
-     ((dynamic-typecheck T (U (→ Int Int) Int) (R (λ (x TST) 3)) (x (U (→ Int Int) Int)))
+     ((dynamic-typecheck T (U (→ Int Int) Int) (R (λ (x TST) 3)) (x (U (→ Int Int) Int)) ())
       (mon T (→ Int Int) (R (λ (x TST) 3)) (proj 0 (x (U (→ Int Int) Int)))))
-     ((dynamic-typecheck T (Box Int) (R (box 3)) (x (Box Int)))
-      (mon T (Box Int) (R (box 3)) (x (Box Int))))
-     ((dynamic-typecheck T (Box (Pair Bool (→ Int Int))) (R (box (cons #true (λ (x Int) x)))) (f (Box (Pair Bool (→ Int Int)))))
-      (mon T (Box (Pair Bool (→ Int Int))) (R (box (cons #true (λ (x Int) x)))) (f (Box (Pair Bool (→ Int Int))))))
+     ((dynamic-typecheck T (Box Int) (R (box z)) (x (Box Int)) ((z (BOX 3))))
+      (mon T (Box Int) (R (box z)) (x (Box Int))))
+     ((dynamic-typecheck T (Box (Pair Bool (→ Int Int))) (R (box q)) (f (Box (Pair Bool (→ Int Int)))) ((q (BOX (cons #true (λ (x Int) x))))))
+      (mon T (Box (Pair Bool (→ Int Int))) (R (box q)) (f (Box (Pair Bool (→ Int Int))))))
     )
   )
 
@@ -1753,14 +1802,14 @@
   (test-case "well-formed-monitor"
     (check-judgment-holds*
      (well-formed-monitor (mon R (→ Int Int) (T (λ (x) 3)) (f (→ Int Int))))
-     (well-formed-monitor (mon R (Box Int) (T (box 3)) (f (Box Int))))
+     (well-formed-monitor (mon R (Box Int) (T (box z)) (f (Box Int))))
      (well-formed-monitor (mon R (→ Int Int)
       (T (mon R (→ Bool Bool) (T (λ (x) 3)) (g (→ Bool Bool))))
       (f (→ Int Int))))
     )
     (check-not-judgment-holds*
      (well-formed-monitor (mon R Int (T 4) (f Int)))
-     (well-formed-monitor (mon R (→ Int Int) (T (box 3)) (f (→ Int Int))))
+     (well-formed-monitor (mon R (→ Int Int) (T (box z)) (f (→ Int Int))))
     )
   )
 )
