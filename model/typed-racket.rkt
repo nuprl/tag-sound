@@ -21,6 +21,9 @@
 ;; Awkwardnesses
 ;; - occurrence typing
 
+;; - review once more, writeup on text
+;; - start retic model, what are those soundness?!!!
+
 ;; -----------------------------------------------------------------------------
 
 (require
@@ -73,8 +76,8 @@
          (dyn-check tag E)
          (pre-mon L τ (L E) srcloc))
   (RuntimeError ::= (DynError tag v e) (BoundaryError L τ P srcloc) (UndefError x))
-  (srcloc ::= (path-elem srcloc) (proj natural srcloc) (x τ))
-  (path-elem ::= dom cod car cdr unbox set-box!)
+  (srcloc ::= (path-elem srcloc) (x τ))
+  (path-elem ::= dom cod car cdr unbox set-box! (proj natural))
   (A ::= [ρ e] RuntimeError)
   (x ::= variable-not-otherwise-mentioned)
 #:binding-forms
@@ -1278,7 +1281,7 @@
    ,(let loop ([tk* (term (τk ...))] [i 0])
       (if (null? tk*)
         (term (BoundaryError T (U τk ...) (L v) srcloc))
-        (let ([x (term #{dynamic-typecheck T ,(car tk*) (L v) (proj ,i srcloc) ρ})])
+        (let ([x (term #{dynamic-typecheck T ,(car tk*) (L v) ((proj ,i) srcloc) ρ})])
           (if (RuntimeError? x)
             (loop (cdr tk*) (+ i 1))
             x))))]
@@ -1661,7 +1664,7 @@
      ((dynamic-typecheck T (U (→ Int Int) Int) (R 3) (x (U (→ Int Int) Int)) ())
       3)
      ((dynamic-typecheck T (U (→ Int Int) Int) (R (λ (x TST) 3)) (x (U (→ Int Int) Int)) ())
-      (mon T (→ Int Int) (R (λ (x TST) 3)) (proj 0 (x (U (→ Int Int) Int)))))
+      (mon T (→ Int Int) (R (λ (x TST) 3)) ((proj 0) (x (U (→ Int Int) Int)))))
      ((dynamic-typecheck T (Box Int) (R (box z)) (x (Box Int)) ((z (BOX 3))))
       (mon T (Box Int) (R (box z)) (x (Box Int))))
      ((dynamic-typecheck T (Box (Pair Bool (→ Int Int))) (R (box q)) (f (Box (Pair Bool (→ Int Int)))) ((q (BOX (cons #true (λ (x Int) x))))))
