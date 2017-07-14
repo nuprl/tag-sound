@@ -13,9 +13,10 @@
 ;;     and lang(P) = lang(P')
 ;;     and P not well typed at τ
 ;;   - `e` raises a dynamic-typing error
-;;     DynError tag v e'
+;;     DynError tag v e' srcloc
 ;;     where e' subterm of e
 ;;     and not well-tagged v tag
+;;     and tag is component of srcloc (TODO)
 
 ;; Lemmas
 ;;   - `∀ e . ⊢T e : τ => τ != TST`
@@ -59,7 +60,7 @@
          (cons e e) (car e) (cdr e)
          (binop e e) (= e e)
          (box e) (make-box e) (unbox e) (set-box! e e)
-         (dyn-check tag e)
+         (dyn-check tag e srcloc)
          (pre-mon L τ P srcloc))
   (v ::= (box x) integer boolean Λ (cons v v) (mon L τ (L v) srcloc))
   (Λ ::= (λ (x) e) (λ (x τ) e))
@@ -80,10 +81,10 @@
          (binop E e) (binop v E)
          (= E e) (= v E)
          (make-box E) (set-box! E e) (set-box! v E) (unbox E)
-         (dyn-check tag E)
+         (dyn-check tag E srcloc)
          (pre-mon L τ (L E) srcloc))
-  (RuntimeError ::= (DynError tag v e) (BoundaryError L τ P srcloc) (UndefError x))
-  (srcloc ::= (path-elem srcloc) (x τ))
+  (RuntimeError ::= (DynError tag v srcloc) (BoundaryError L τ P srcloc) (UndefError x))
+  (srcloc ::= (path-elem srcloc) (unbox τ) (set-box! τ) (primop τ) (x τ))
   (path-elem ::= dom cod car cdr unbox set-box! (proj natural))
   (A ::= [ρ e] RuntimeError)
   (x ::= variable-not-otherwise-mentioned)
@@ -384,9 +385,9 @@
    ---
    (infer-type Γ (T (pre-mon T τ P srcloc)) τ)]
   [
-   (side-condition ,(raise-user-error 'infer-type "dyn-check not allowed in source terms ~a" (term (L (dyn-check tag e)))))
+   (side-condition ,(raise-user-error 'infer-type "dyn-check not allowed in source terms ~a" (term (L (dyn-check tag e srcloc)))))
    ---
-   (infer-type Γ (L (dyn-check tag e)) TST)]
+   (infer-type Γ (L (dyn-check tag e srcloc)) TST)]
 )
 
 (define-metafunction μTR
@@ -474,9 +475,9 @@
     )
 
     (check-exn #rx"dyn-check not allowed"
-      (λ () (term (well-typed (R (dyn-check Int 3))))))
+      (λ () (term (well-typed (R (dyn-check Int 3 (x Int)))))))
     (check-exn #rx"dyn-check not allowed"
-      (λ () (term (well-typed (T (dyn-check → (λ (x Int) 3)))))))
+      (λ () (term (well-typed (T (dyn-check → (λ (x Int) 3) (f Int)))))))
 
   )
 
@@ -612,13 +613,13 @@
      Primop] ;; no need to check because well-typed or dyn-check'd
 ;; -- dyn-check
     [-->
-     [ρ (in-hole E (dyn-check tag v))]
+     [ρ (in-hole E (dyn-check tag v srcloc))]
      [ρ (in-hole E v)]
      DynCheck-Ok
      (judgment-holds (well-tagged v tag))]
     [-->
-     [ρ (in-hole E (dyn-check tag v))]
-     (DynError tag v (in-hole E (dyn-check tag v)))
+     [ρ (in-hole E (dyn-check tag v srcloc))]
+     (DynError tag v srcloc)
      DynCheck-Error
      (side-condition (not (judgment-holds (well-tagged v tag))))]))
 
@@ -699,15 +700,15 @@
      ((eval (R (= 1 2)))
       #false)
      ((eval (R (= #true 2)))
-      (DynError Int #true (= (dyn-check Int #true) (dyn-check Int 2))))
+      (DynError Int #true (dom (= (→ Int (→ Int Bool))))))
      ((eval (R (= 3 (= 1 1))))
-      (DynError Int #true (= 3 (dyn-check Int #true))))
+      (DynError Int #true (dom (cod (= (→ Int (→ Int Bool)))))))
      ((eval (R (+ 2 2)))
       4)
      ((eval (R (+ #true 2)))
-      (DynError Int #true (+ (dyn-check Int #true) (dyn-check Int 2))))
+      (DynError Int #true (dom (+ (→ Int (→ Int Int))))))
      ((eval (R (+ 2 #true)))
-      (DynError Int #true (+ 2 (dyn-check Int #true))))
+      (DynError Int #true (dom (cod (+ (→ Int (→ Int Int)))))))
      ((eval (R (cons 1 2)))
       (cons 1 2))
      ((eval (R (+ 1 (car (cons (+ 1 1) (+ 2 2))))))
@@ -736,7 +737,7 @@
       ((eval (R ((λ (x TST) (+ x 1)) 1)))
        2)
       ((eval (R (1 1)))
-       (DynError → 1 ((dyn-check → 1) 1)))
+       (DynError → 1 (#%app (→ TST TST))))
       ((eval (R (pre-mon R Int (T 6) (boundary Int))))
        6)
       ((eval (R ((mon R (→ Int Int) (T (λ (x Int) 2)) (boundary (→ Int Int))) 7)))
@@ -811,18 +812,18 @@
      [(eval (T (let (f (→ Int Int) (R (λ (x TST) #false))) (f 1))))
       (BoundaryError T Int (R #false) (cod (f (→ Int Int))))]
      [(eval (T (let (f (→ Int Int) (R (λ (x TST) (+ x #false)))) (f 3))))
-      (DynError Int #f (pre-mon T Int (R (+ 3 (dyn-check Int #f))) (cod (f (→ Int Int)))))]
+      (DynError Int #f (dom (cod (+ (→ Int (→ Int Int))))))]
      [(eval (T (let (f (→ Int Int) (R (λ (x TST) (+ #true #false)))) (f 3))))
-      (DynError Int #t (pre-mon T Int (R (+ (dyn-check Int #t) (dyn-check Int #f))) (cod (f (→ Int Int)))))]
+      (DynError Int #t (dom (+ (→ Int (→ Int Int)))))]
      [(eval (T (let (f (→ Int (Box Int)) (R (λ (x TST) (box x))))
                  (f 3))))
       (mon T (Box Int) (R (box 3)) (cod (f (→ Int (Box Int)))))]
      ((eval (T (let (f (→ Int Int) (R (λ (x TST) #false))) (f 3))))
       (BoundaryError T Int (R #false) (cod (f (→ Int Int)))))
      ((eval (T (let (f (→ Int Int) (R (λ (x TST) (+ x #false)))) (f 3))))
-      (DynError Int #false (pre-mon T Int (R (+ 3 (dyn-check Int #false))) (cod (f (→ Int Int))))))
+      (DynError Int #false (dom (cod (+ (→ Int (→ Int Int)))))))
      ((eval (T (let (f (→ Int Int) (R (λ (x TST) (+ #true #false)))) (f 3))))
-      (DynError Int #true (pre-mon T Int (R (+ (dyn-check Int #true) (dyn-check Int #false))) (cod (f (→ Int Int))))))
+      (DynError Int #true (dom (+ (→ Int (→ Int Int))))))
     )
   )
 
@@ -1459,9 +1460,9 @@
    ---
    (minimal-completion (L (and e_0 e_1)) (L (and e_0c e_1c)))]
   [
-   (side-condition ,(raise-user-error 'minimal-completion "dyn-check not allowed in source programs ~a" (term (L (dyn-check tag e)))))
+   (side-condition ,(raise-user-error 'minimal-completion "dyn-check not allowed in source programs ~a" (term (L (dyn-check tag e srcloc)))))
    ---
-   (minimal-completion (L (dyn-check tag e)) (L (dyn-check tag e)))]
+   (minimal-completion (L (dyn-check tag e srcloc)) (L (dyn-check tag e srcloc)))]
   [
    (minimal-completion P P_c)
    ---
@@ -1470,7 +1471,7 @@
    (minimal-completion (R e_0) (R e_0c))
    (minimal-completion (R e_1) (R e_1c))
    --- R-App
-   (minimal-completion (R (e_0 e_1)) (R ((dyn-check → e_0c) e_1c)))]
+   (minimal-completion (R (e_0 e_1)) (R ((dyn-check → e_0c (#%app (→ TST TST))) e_1c)))]
   [
    (minimal-completion (T e_0) (T e_0c))
    (minimal-completion (T e_1) (T e_1c))
@@ -1479,7 +1480,7 @@
   [
    (minimal-completion (R e_0) (R e_0c))
    --- R-Car
-   (minimal-completion (R (car e_0)) (R (car (dyn-check Pair e_0c))))]
+   (minimal-completion (R (car e_0)) (R (car (dyn-check Pair e_0c (car (Pair TST TST))))))]
   [
    (minimal-completion (T e_0) (T e_0c))
    --- T-Car
@@ -1487,7 +1488,7 @@
   [
    (minimal-completion (R e_0) (R e_0c))
    --- R-Cdr
-   (minimal-completion (R (cdr e_0)) (R (cdr (dyn-check Pair e_0c))))]
+   (minimal-completion (R (cdr e_0)) (R (cdr (dyn-check Pair e_0c (cdr (Pair TST TST))))))]
   [
    (minimal-completion (T e_0) (T e_0c))
    --- T-Cdr
@@ -1495,8 +1496,9 @@
   [
    (minimal-completion (R e_0) (R e_0c))
    (minimal-completion (R e_1) (R e_1c))
+   (where srcloc (binop (→ Int (→ Int Int))))
    --- R-Binop
-   (minimal-completion (R (binop e_0 e_1)) (R (binop (dyn-check Int e_0c) (dyn-check Int e_1c))))]
+   (minimal-completion (R (binop e_0 e_1)) (R (binop (dyn-check Int e_0c (dom srcloc)) (dyn-check Int e_1c (dom (cod srcloc))))))]
   [
    (minimal-completion (T e_0) (T e_0c))
    (minimal-completion (T e_1) (T e_1c))
@@ -1505,8 +1507,9 @@
   [
    (minimal-completion (R e_0) (R e_0c))
    (minimal-completion (R e_1) (R e_1c))
+   (where srcloc (= (→ Int (→ Int Bool))))
    --- R-=
-   (minimal-completion (R (= e_0 e_1)) (R (= (dyn-check Int e_0c) (dyn-check Int e_1c))))]
+   (minimal-completion (R (= e_0 e_1)) (R (= (dyn-check Int e_0c (dom srcloc)) (dyn-check Int e_1c (dom (cod srcloc))))))]
   [
    (minimal-completion (T e_0) (T e_0c))
    (minimal-completion (T e_1) (T e_1c))
@@ -1523,7 +1526,7 @@
   [
    (minimal-completion (R e_0) (R e_0c))
    --- R-Unbox
-   (minimal-completion (R (unbox e_0)) (R (unbox (dyn-check Box e_0c))))]
+   (minimal-completion (R (unbox e_0)) (R (unbox (dyn-check Box e_0c (unbox (Box TST))))))]
   [
    (minimal-completion (T e_0) (T e_0c))
    --- T-Unbox
@@ -1532,7 +1535,7 @@
    (minimal-completion (R e_0) (R e_0c))
    (minimal-completion (R e_1) (R e_1c))
    --- R-SetBox
-   (minimal-completion (R (set-box! e_0 e_1)) (R (set-box! (dyn-check Box e_0c) e_1c)))]
+   (minimal-completion (R (set-box! e_0 e_1)) (R (set-box! (dyn-check Box e_0c (set-box! (Box TST))) e_1c)))]
   [
    (minimal-completion (T e_0) (T e_0c))
    (minimal-completion (T e_1) (T e_1c))
@@ -1665,7 +1668,7 @@
   [
    (erasure (L e) e_e)
    ---
-   (erasure (L (dyn-check tag e)) (dyn-check tag e_e))]
+   (erasure (L (dyn-check tag e srcloc)) (dyn-check tag e_e srcloc))]
   [
    (erasure (L_m e_m) e_me)
    ---
@@ -1739,6 +1742,15 @@
   )
 
   (test-case "minimal-completion"
+    (define d+ (term (dom (+ (→ Int (→ Int Int))))))
+    (define dc+ (term (dom (cod (+ (→ Int (→ Int Int)))))))
+    (define d* (term (dom (* (→ Int (→ Int Int))))))
+    (define dc* (term (dom (cod (* (→ Int (→ Int Int)))))))
+    (define d- (term (dom (- (→ Int (→ Int Int))))))
+    (define dc- (term (dom (cod (- (→ Int (→ Int Int)))))))
+    (define d= (term (dom (= (→ Int (→ Int Bool))))))
+    (define dc= (term (dom (cod (= (→ Int (→ Int Bool)))))))
+
     (check-mf-apply*
      ((minimal-completion# (R 1))
       (R 1))
@@ -1763,45 +1775,45 @@
      ((minimal-completion# (R (mon R (→ Int Int) (T (λ (x Int) x)) (f (→ Int Int)))))
       (R (mon R (→ Int Int) (T (λ (x Int) x)) (f (→ Int Int)))))
      ((minimal-completion# (T (mon T (→ Int Int) (R (λ (x TST) (+ x 1))) (f (→ Int Int)))))
-      (T (mon T (→ Int Int) (R (λ (x TST) (+ (dyn-check Int x) (dyn-check Int 1)))) (f (→ Int Int)))))
+      (T (mon T (→ Int Int) (R (λ (x TST) (+ (dyn-check Int x ,d+) (dyn-check Int 1 ,dc+)))) (f (→ Int Int)))))
      ((minimal-completion# (R (pre-mon R (→ Int Int) (T (λ (x Int) x)) (f (→ Int Int)))))
       (R (pre-mon R (→ Int Int) (T (λ (x Int) x)) (f (→ Int Int)))))
      ((minimal-completion# (T (pre-mon T (→ Int Int) (R (λ (x TST) (+ x 1))) (f (→ Int Int)))))
-      (T (pre-mon T (→ Int Int) (R (λ (x TST) (+ (dyn-check Int x) (dyn-check Int 1)))) (f (→ Int Int)))))
+      (T (pre-mon T (→ Int Int) (R (λ (x TST) (+ (dyn-check Int x ,d+) (dyn-check Int 1 ,dc+)))) (f (→ Int Int)))))
      ((minimal-completion# (R (let (x Int (T (+ 2 2))) (+ x x))))
-      (R (let (x Int (T (+ 2 2))) (+ (dyn-check Int x) (dyn-check Int x)))))
+      (R (let (x Int (T (+ 2 2))) (+ (dyn-check Int x ,d+) (dyn-check Int x ,dc+)))))
      ((minimal-completion# (T (let (x Int (R (+ 2 2))) (+ x x))))
-      (T (let (x Int (R (+ (dyn-check Int 2) (dyn-check Int 2)))) (+ x x))))
+      (T (let (x Int (R (+ (dyn-check Int 2 ,d+) (dyn-check Int 2 ,dc+)))) (+ x x))))
      ((minimal-completion# (R (if (+ 1 1) (+ 1 1) (+ 1 1))))
-      (R (if (+ (dyn-check Int 1) (dyn-check Int 1)) (+ (dyn-check Int 1) (dyn-check Int 1)) (+ (dyn-check Int 1) (dyn-check Int 1)))))
+      (R (if (+ (dyn-check Int 1 ,d+) (dyn-check Int 1 ,dc+)) (+ (dyn-check Int 1 ,d+) (dyn-check Int 1 ,dc+)) (+ (dyn-check Int 1 ,d+) (dyn-check Int 1 ,dc+)))))
      ((minimal-completion# (T (if (+ 1 1) (+ 1 1) (+ 1 1))))
       (T (if (+ 1 1) (+ 1 1) (+ 1 1))))
      ((minimal-completion# (R (and (+ 1 1) (+ 1 1))))
-      (R (and (+ (dyn-check Int 1) (dyn-check Int 1)) (+ (dyn-check Int 1) (dyn-check Int 1)))))
+      (R (and (+ (dyn-check Int 1 ,d+) (dyn-check Int 1 ,dc+)) (+ (dyn-check Int 1 ,d+) (dyn-check Int 1 ,dc+)))))
      ((minimal-completion# (T (and (+ 1 1) (+ 1 1))))
       (T (and (+ 1 1) (+ 1 1))))
      ((minimal-completion# (R (let (n1 TST (R #false)) n1)))
       (R (let (n1 TST (R #false)) n1)))
      ((minimal-completion# (R (= #true 2)))
-      (R (= (dyn-check Int #true) (dyn-check Int 2))))
+      (R (= (dyn-check Int #true ,d=) (dyn-check Int 2 ,dc=))))
      ((minimal-completion# (R (f x)))
-      (R ((dyn-check → f) x)))
+      (R ((dyn-check → f (#%app (→ TST TST))) x)))
      ((minimal-completion# (T (f x)))
       (T (f x)))
      ((minimal-completion# (R (car 1)))
-      (R (car (dyn-check Pair 1))))
+      (R (car (dyn-check Pair 1 (car (Pair TST TST))))))
      ((minimal-completion# (T (car 1)))
       (T (car 1)))
      ((minimal-completion# (R (cdr 1)))
-      (R (cdr (dyn-check Pair 1))))
+      (R (cdr (dyn-check Pair 1 (cdr (Pair TST TST))))))
      ((minimal-completion# (T (cdr 1)))
       (T (cdr 1)))
      ((minimal-completion# (R (+ 1 1)))
-      (R (+ (dyn-check Int 1) (dyn-check Int 1))))
+      (R (+ (dyn-check Int 1 ,d+) (dyn-check Int 1 ,dc+))))
      ((minimal-completion# (R (* 1 1)))
-      (R (* (dyn-check Int 1) (dyn-check Int 1))))
+      (R (* (dyn-check Int 1 ,d*) (dyn-check Int 1 ,dc*))))
      ((minimal-completion# (R (- 1 1)))
-      (R (- (dyn-check Int 1) (dyn-check Int 1))))
+      (R (- (dyn-check Int 1 ,d-) (dyn-check Int 1 ,dc-))))
      ((minimal-completion# (T (- 1 1)))
       (T (- 1 1)))
      ((minimal-completion# (T (* 1 1)))
@@ -1809,19 +1821,19 @@
      ((minimal-completion# (T (+ 1 1)))
       (T (+ 1 1)))
      ((minimal-completion# (R (= 1 1)))
-      (R (= (dyn-check Int 1) (dyn-check Int 1))))
+      (R (= (dyn-check Int 1 ,d=) (dyn-check Int 1 ,dc=))))
      ((minimal-completion# (T (= 1 1)))
       (T (= 1 1)))
      ((minimal-completion# (R (box (+ 3 3))))
-      (R (box (+ (dyn-check Int 3) (dyn-check Int 3)))))
+      (R (box (+ (dyn-check Int 3 ,d+) (dyn-check Int 3 ,dc+)))))
      ((minimal-completion# (T (box (+ 3 3))))
       (T (box (+ 3 3))))
      ((minimal-completion# (R (unbox (box 2))))
-      (R (unbox (dyn-check Box (box 2)))))
+      (R (unbox (dyn-check Box (box 2) (unbox (Box TST))))))
      ((minimal-completion# (T (unbox (box 2))))
       (T (unbox (box 2))))
      ((minimal-completion# (R (set-box! (box 1) 2)))
-      (R (set-box! (dyn-check Box (box 1)) 2)))
+      (R (set-box! (dyn-check Box (box 1) (set-box! (Box TST))) 2)))
      ((minimal-completion# (T (set-box! (box 1) 2)))
       (T (set-box! (box 1) 2)))
     )
@@ -1897,8 +1909,8 @@
       (unbox 3))
      ((erasure# (R (set-box! (box 2) #false)))
       (set-box! (make-box 2) #false))
-     ((erasure# (T (dyn-check Int 4)))
-      (dyn-check Int 4))
+     ((erasure# (T (dyn-check Int 4 (x Int))))
+      (dyn-check Int 4 (x Int)))
     )
 
     ;; TODO some issue with binding forms ... using weaker equality for now
