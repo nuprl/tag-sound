@@ -410,7 +410,11 @@
      ((infer-type# (R (let (f TST (R (λ (x TST) (if (= x 1) 1 #false)))) (f 1))))
       TST)
      ((infer-type# (T (let (f (→ Int Int) (R (λ (x TST) (if (= x 1) 1 #false)))) (f 1))))
-      Int)))
+      Int)
+     ((infer-type# (T (if 1 2 #false)))
+      (U Bool Int))
+    )
+  )
 
   (test-case "well-typed"
     (check-judgment-holds*
@@ -490,11 +494,13 @@
 ;; -- MON
     [-->
      [ρ (in-hole E (pre-mon R τ_ctx (T v) srcloc))]
-     [ρ (in-hole E v_+)]
-     PreMon-T->R
-     (where v_+ ,(if (judgment-holds (flat T τ_ctx))
-                   (term v)
-                   (term (mon R τ_ctx (T v) srcloc))))]
+     [ρ (in-hole E v)]
+     PreMon-T->R-Flat
+     (judgment-holds (flat T τ_ctx))]
+    [-->
+     [ρ (in-hole E (pre-mon R τ_ctx (T v) srcloc))]
+     [ρ (in-hole E (mon R τ_ctx (T v) srcloc))]
+     (judgment-holds (non-flat T τ_ctx))]
     [-->
      [ρ (in-hole E (pre-mon L_m τ (L_m v) srcloc))]
      [ρ (in-hole E v)]
@@ -519,8 +525,33 @@
      [ρ (in-hole E e_cod)]
      App-Mon
      (where (→ τ_dom τ_cod) τ_ctx)
-     (where P_subst (L_λ (v (pre-mon L_λ τ_dom (L_ctx v_1) (dom srcloc)))))
-     (where e_cod (pre-mon L_ctx τ_cod P_subst (cod srcloc)))]
+     (where P_dom (L_λ (v (pre-mon L_λ τ_dom (L_ctx v_1) (dom srcloc)))))
+     (where e_cod (pre-mon L_ctx τ_cod P_dom (cod srcloc)))]
+;; -- BOX
+    [-->
+     [ρ (in-hole E (make-box v))]
+     [ρ_x (in-hole E (box x_loc))]
+     Make-Box
+     (fresh x_loc)
+     (where ρ_x #{runtime-env-set ρ x_loc (BOX v)})]
+    [-->
+     [ρ (in-hole E (unbox (box x)))]
+     [ρ (in-hole E v)]
+     Unbox
+     (where (BOX v) #{runtime-env-ref-box ρ x})]
+    [-->
+     [ρ (in-hole E (unbox (mon L (Box τ) (L_m v_m) srcloc)))]
+     [ρ (in-hole E (pre-mon L τ (L_m (unbox v_m)) (unbox srcloc)))]
+     Unbox-Mon]
+    [-->
+     [ρ (in-hole E (set-box! (box x) v))]
+     [ρ_v (in-hole E v)]
+     SetBox
+     (where ρ_v #{runtime-env-update-box ρ x v})]
+    [-->
+     [ρ (in-hole E (set-box! (mon L (Box τ) (L_m v_m) srcloc) v))]
+     [ρ (in-hole E (set-box! v_m (pre-mon L_m τ (L v) (set-box! srcloc))))]
+     SetBox-Mon] ;; bring `v_m` into the box's language,
 ;; -- LET/REC
     [-->
      [ρ (in-hole E (let (x v) e))]
@@ -537,78 +568,51 @@
      [ρ (in-hole E (letrec (x v) e))]
      [ρ_x (in-hole E e)]
      LetRec-End
-     (where ρ_x #{runtime-env-update ρ x v})]
+     (where ρ_x #{runtime-env-update-rec ρ x v})]
     [-->
      [ρ (in-hole E (REC x))]
      [ρ (in-hole E v)]
      LetRec-Var
-     (where (LETREC v) #{runtime-env-ref ρ x})]
+     (where v #{runtime-env-ref-rec ρ x})]
     [-->
      [ρ (in-hole E (REC x))]
      (UndefError x)
      LetRec-Error
-     (where UNDEF #{runtime-env-ref ρ x})]
-;; -- control flow
+     (where UNDEF #{runtime-env-ref-rec ρ x})]
+;; -- AND / IF
     [-->
      [ρ (in-hole E (and v_0 e_1))]
-     [ρ (in-hole E e_2)]
-     And
-     (where e_2 ,(if (eq? #false (term v_0)) (term #false) (term e_1)))]
+     [ρ (in-hole E e_1)]
+     And-True
+     (judgment-holds (truthy v_0))]
+    [-->
+     [ρ (in-hole E (and #false e_1))]
+     [ρ (in-hole E #false)]
+     And-False]
     [-->
      [ρ (in-hole E (if v e_1 e_2))]
      [ρ (in-hole E e_1)]
      If-True
-     (side-condition (not (eq? #false (term v))))]
+     (judgment-holds (truthy v))]
     [-->
      [ρ (in-hole E (if #false e_1 e_2))]
      [ρ (in-hole E e_2)]
      If-False]
-;; -- box
-    [-->
-     [ρ (in-hole E (make-box v))]
-     [ρ_x (in-hole E (box x_loc))]
-     Box
-     (fresh x_loc)
-     (where ρ_x #{runtime-env-set ρ x_loc (BOX v)})]
-    [-->
-     [ρ (in-hole E (unbox (box x)))]
-     [ρ (in-hole E v)]
-     Unbox
-     (where (BOX v) #{runtime-env-ref ρ x})]
-    [-->
-     [ρ (in-hole E (unbox (mon L (Box τ) (L_m v_m) srcloc)))]
-     [ρ (in-hole E (pre-mon L τ (L_m (unbox v_m)) (unbox srcloc)))]
-     Unbox-Mon]
-    [-->
-     [ρ (in-hole E (set-box! (box x) v))]
-     [ρ_v (in-hole E v)]
-     SetBox
-     (where (BOX v_x) #{runtime-env-ref ρ x})
-     (where ρ_v #{runtime-env-update ρ x v})]
-    [-->
-     [ρ (in-hole E (set-box! (mon L (Box τ) (L_m v_m) srcloc) v))]
-     [ρ (in-hole E (set-box! v_m e_+))]
-     SetBox-Mon
-     ;; bring `v_m` into the box's language,
-     ;;  may-or-may-not require a dynamic check
-     (where e_+ (pre-mon L_m τ (L v) (set-box! srcloc)))]
 ;; -- primop
     [-->
      [ρ (in-hole E (primop v ...))]
      [ρ (in-hole E #{apply-op primop v ...})]
-     Primop]
+     Primop] ;; no need to check because well-typed or dyn-check'd
 ;; -- dyn-check
     [-->
      [ρ (in-hole E (dyn-check tag v))]
      [ρ (in-hole E v)]
      DynCheck-Ok
-     (side-condition (not (x? (term v))))
      (judgment-holds (well-tagged v tag))]
     [-->
      [ρ (in-hole E (dyn-check tag v))]
      (DynError tag v (in-hole E (dyn-check tag v)))
      DynCheck-Error
-     (side-condition (not (x? (term v))))
      (side-condition (not (judgment-holds (well-tagged v tag))))]))
 
 (define -->μTR*
@@ -626,10 +630,10 @@
    (judgment-holds (well-typed P))
    (where P_c #{minimal-completion# P})
    (where e_c #{erasure# P_c})
-   (where any_state #{load e_c})
+   (where any_init #{load e_c})
    (where any ,(if (term boolean_keeptrace)
-                 (apply-reduction-relation* -->μTR (term any_state) #:all? #t)
-                 (let ([final (-->μTR* (term any_state))])
+                 (apply-reduction-relation* -->μTR (term any_init) #:all? #t)
+                 (let ([final (-->μTR* (term any_init))])
                  (when (*debug*) (printf "FINAL STATE ~a~n" final))
                    (term #{unload ,final}))))]
   [(eval* P boolean_keeptrace)
@@ -1166,6 +1170,31 @@
    (runtime-env-ref (RB_1 ...) x)])
 
 (define-metafunction μTR
+  runtime-env-ref-box : ρ x -> (BOX v)
+  [(runtime-env-ref-box ρ x)
+   (BOX v)
+   (where (BOX v) #{runtime-env-ref ρ x})]
+  [(runtime-env-ref-box ρ x)
+   ,(raise-arguments-error 'runtime-env-ref-box "bad location in box"
+      "location" (term x)
+      "value" (term #{runtime-env-ref ρ x})
+      "env" (term ρ))])
+
+(define-metafunction μTR
+  runtime-env-ref-rec : ρ x -> any
+  [(runtime-env-ref-rec ρ x)
+   v
+   (where (LETREC v) #{runtime-env-ref ρ x})]
+  [(runtime-env-ref-rec ρ x)
+   UNDEF
+   (where UNDEF #{runtime-env-ref ρ x})]
+  [(runtime-env-ref-rec ρ x)
+   ,(raise-arguments-error 'runtime-env-ref-rec "bad recursive binding"
+      "var" (term x)
+      "value" (term #{runtime-env-ref ρ x})
+      "env" (term ρ))])
+
+(define-metafunction μTR
   runtime-env-update : ρ x v -> ρ
   [(runtime-env-update (RB_0 ... (x UNDEF) RB_1 ...) x v)
    (RB_0 ... (x (LETREC v)) RB_1 ...)]
@@ -1173,6 +1202,28 @@
    (RB_0 ... (x (BOX v)) RB_1 ...)]
   [(runtime-env-update ρ x v)
    ,(raise-arguments-error 'runtime-env-ref "unbound variable" "var" (term x) "env" (term ρ))])
+
+(define-metafunction μTR
+  runtime-env-update-box : ρ x v -> ρ
+  [(runtime-env-update-box ρ x v)
+   #{runtime-env-update ρ x v}
+   (where (BOX v_x) #{runtime-env-ref-box ρ x})]
+  [(runtime-env-update-box ρ x v)
+   ,(raise-arguments-error 'runtime-env-update "bad location"
+     "location" (term x)
+     "value" (term #{runtime-env-ref ρ x})
+     "env" (term ρ))])
+
+(define-metafunction μTR
+  runtime-env-update-rec : ρ x v -> ρ
+  [(runtime-env-update-rec ρ x v)
+   #{runtime-env-update ρ x v}
+   (where UNDEF #{runtime-env-ref-rec ρ x})]
+  [(runtime-env-update-rec ρ x v)
+   ,(raise-arguments-error 'runtime-env-update "bad rec binding"
+     "var" (term x)
+     "value" (term #{runtime-env-ref ρ x})
+     "env" (term ρ))])
 
 ;; Hmm, using `any` because `(box v)` rather than `(box x)`
 (define-metafunction μTR
@@ -1635,6 +1686,14 @@
    (well-formed-monitor (mon L_m τ_m (L_mm v_mm) srcloc))
    --- recur
    (well-formed-monitor (mon L τ (L_v (mon L_m τ_m (L_mm v_mm) srcloc)) _))])
+
+(define-judgment-form μTR
+  #:mode (truthy I)
+  #:contract (truthy v)
+  [
+   (side-condition ,(not (equal? (term v) #false)))
+   ---
+   (truthy v)])
 
 (module+ test
   (test-case "dynamic-typecheck"
