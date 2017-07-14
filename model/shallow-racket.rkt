@@ -9,9 +9,10 @@
 ;;   If `⊢ e : τ` then `⊢ e : tag(τ)` and either
 ;;   - `e` reduces to `v` and `⊢ v : tag(τ)`
 ;;   - `e` diverges
-;;   - `e` raises a runtime error (bad value given to partial primitive)
+;;   - `e` raises a runtime error
+;;     ???
 ;;   - `e` raises a boundary error `b` that points to a _specific location_
-;;     where an untyped value entered typed code.
+;;     ???
 
 ;; MT1 is weaker, MT2 is the same
 
@@ -20,7 +21,9 @@
 (require
   racket/set
   redex/reduction-semantics
-  redex-abbrevs)
+  redex-abbrevs
+  redex-abbrevs/unstable
+  (only-in racket/string string-split))
 
 (define *debug* (make-parameter #f))
 
@@ -33,4 +36,3 @@
            (for-syntax racket/base racket/syntax syntax/parse)))
 
 ;; -----------------------------------------------------------------------------
-
