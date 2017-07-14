@@ -6,9 +6,16 @@
 ;;   If `⊢ e : τ` then either
 ;;   - `e` reduces to `v` and `⊢ v : τ`
 ;;   - `e` diverges
-;;   - `e` raises a runtime error (bad value given to partial primitive)
-;;   - `e` raises a boundary error `b` that points to a _specific location_
-;;     where an untyped value entered typed code.
+;;   - `e` raises a boundary error
+;;     BoundaryError L τ P src
+;;     where src = (path ... (x τ))
+;;     and (let (x τ P') e') subterm of e
+;;     and lang(P) = lang(P')
+;;     and P not well typed at τ
+;;   - `e` raises a dynamic-typing error
+;;     DynError tag v e'
+;;     where e' subterm of e
+;;     and not well-tagged v tag
 
 ;; Lemmas
 ;;   - `∀ e . ⊢T e : τ => τ != TST`
