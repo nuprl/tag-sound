@@ -176,13 +176,13 @@
    --- R-I-Int
    (infer-type Γ (R integer) TST)]
   [
-   --- T-I-Int
+   --- S-I-Int
    (infer-type Γ (S integer) Int)]
   [
    --- R-I-Bool
    (infer-type Γ (R boolean) TST)]
   [
-   --- T-I-Bool
+   --- S-I-Bool
    (infer-type Γ (S boolean) Bool)]
   [
    (infer-type Γ (R e_0) τ_0)
@@ -218,7 +218,7 @@
   [
    (where Γ_x #{type-env-set Γ (x τ_dom)})
    (infer-type Γ_x (S e) τ_cod)
-   --- T-I-λ
+   --- S-I-λ
    (infer-type Γ (S (λ (x τ_dom) e)) (→ τ_dom τ_cod))]
   [
   (side-condition ,(debug "inferring ~a~n" (term (e_0 e_1))))
@@ -231,7 +231,7 @@
    (infer-type Γ (S e_1) τ_1)
    (where (→ τ_dom τ_cod) τ_0)
    (type= τ_dom τ_1)
-   --- T-I-App
+   --- S-I-App
    (infer-type Γ (S (e_0 e_1)) τ_cod)]
   [
    (where τ #{type-env-ref Γ x})
@@ -242,10 +242,6 @@
    ---
    (infer-type Γ (S x) τ)]
   [
-   ;; NOTE: the `let`-annotation is bad for R but good for T
-   ;; - T components need to be protected from R contexts via their types
-   ;; - it's easier to ask for annotation on let
-   ;;   than to reconstruct the type from the T-component at runtime
    (check-type Γ P τ)
    (where Γ_x #{type-env-set Γ (x TST)})
    (infer-type Γ_x (R e_body) τ_body)
@@ -255,7 +251,7 @@
    (check-type Γ P τ)
    (where Γ_x #{type-env-set Γ (x τ)})
    (infer-type Γ_x (S e_body) τ_body)
-   --- T-I-Let
+   --- S-I-Let
    (infer-type Γ (S (let (x τ P) e_body)) τ_body)]
   [
    (where Γ_x #{type-env-set Γ (x τ)})
@@ -267,7 +263,7 @@
    (where Γ_x #{type-env-set Γ (x τ)})
    (check-type Γ_x P τ)
    (infer-type Γ_x (S e_body) τ_body)
-   --- T-I-LetRec
+   --- S-I-LetRec
    (infer-type Γ (S (letrec (x τ P) e_body)) τ_body)]
   [
    (infer-type Γ (R e_0) τ_0)
@@ -299,7 +295,7 @@
    (infer-type Γ (R (box e)) TST)]
   [
    (infer-type Γ (S e) τ) ;; no need to generalize
-   --- T-I-Box
+   --- S-I-Box
    (infer-type Γ (S (box e)) (Box τ))]
   [
    (infer-type Γ (R e) τ)
@@ -307,7 +303,7 @@
    (infer-type Γ (R (make-box e)) TST)]
   [
    (infer-type Γ (S e) τ)
-   --- T-I-MakeBox
+   --- S-I-MakeBox
    (infer-type Γ (S (make-box e)) (Box τ))]
   [
    (infer-type Γ (R e) τ)
@@ -315,7 +311,7 @@
    (infer-type Γ (R (unbox e)) TST)]
   [
    (infer-type Γ (S e) (Box τ))
-   --- T-I-Unbox
+   --- S-I-Unbox
    (infer-type Γ (S (unbox e)) τ)]
   [
    (infer-type Γ (R e_0) τ_0)
@@ -327,7 +323,7 @@
    (infer-type Γ (S e_1) τ_1)
    (where (Box τ) τ_0)
    (type= τ τ_1)
-   --- T-I-SetBox
+   --- S-I-SetBox
    (infer-type Γ (S (set-box! e_0 e_1)) τ_1)]
   [
    (infer-type Γ (R e_0) τ_0)
@@ -674,7 +670,7 @@
     )
   )
 
-  (test-case "eval:simple:T"
+  (test-case "eval:simple:S"
     (check-mf-apply*
      [(eval (S 4))
       4]
@@ -718,14 +714,14 @@
     )
   )
 
-  (test-case "eval:simple:T:fail"
+  (test-case "eval:simple:S:fail"
     (check-exn #rx"typechecking failed"
       (λ () (term #{eval (S ((λ (x Int) (+ x 1)) #false))})))
 
     (check-exn #rx"typechecking failed"
       (λ () (term (eval (S (let (x Bool (S (+ 2 5))) x)))))))
 
-  (test-case "apply-R-in-T"
+  (test-case "apply-R-in-S"
     (check-mf-apply*
      [(eval (S (let (f (→ Int Int) (R (λ (x TST) (+ x 1))))
                  (f 3))))
@@ -734,7 +730,7 @@
                  (f 3))))
       #true]
      [(eval (S (let (f (→ Int Int) (R (λ (x TST) #false))) (f 1))))
-      (BoundaryError T Int (R #false) (cod (f (→ Int Int))))]
+      (BoundaryError S Int (R #false) (cod (f (→ Int Int))))]
      [(eval (S (let (f (→ Int Int) (R (λ (x TST) (+ x #false)))) (f 3))))
       (DynError Int #f (dom (cod (+ (→ Int (→ Int Int))))))]
      [(eval (S (let (f (→ Int Int) (R (λ (x TST) (+ #true #false)))) (f 3))))
@@ -743,7 +739,7 @@
                  (f 3))))
       (box 3)]
      ((eval (S (let (f (→ Int Int) (R (λ (x TST) #false))) (f 3))))
-      (BoundaryError T Int (R #false) (cod (f (→ Int Int)))))
+      (BoundaryError S Int (R #false) (cod (f (→ Int Int)))))
      ((eval (S (let (f (→ Int Int) (R (λ (x TST) (+ x #false)))) (f 3))))
       (DynError Int #false (dom (cod (+ (→ Int (→ Int Int)))))))
      ((eval (S (let (f (→ Int Int) (R (λ (x TST) (+ #true #false)))) (f 3))))
@@ -751,14 +747,14 @@
     )
   )
 
-  (test-case "apply-T-in-R"
+  (test-case "apply-S-in-R"
     (check-mf-apply*
      [(eval (R (let (f (→ Int Int) (S (λ (x Int) (+ x 1)))) (f 3))))
       4]
      [(eval (R (let (f (→ Int Bool) (S (λ (x Int) (if (= 0 x) #false #true)))) (f 3))))
       #true]
      [(eval (R (let (f (→ Int Int) (S (λ (x Int) (+ x 4)))) (f #true))))
-      (BoundaryError T Int (R #true) (dom (f (→ Int Int))))]
+      (BoundaryError S Int (R #true) (dom (f (→ Int Int))))]
     )
 
     (check-exn #rx"typechecking failed"
@@ -813,7 +809,7 @@
                                        f)))
                             g)))
                  (h #true))))
-      (BoundaryError T Int (R #true) (dom (g (→ Int Int)))))
+      (BoundaryError S Int (R #true) (dom (g (→ Int Int)))))
      ((eval (S (let (h (→ Int Int)
                        (R (let (g (→ Int Int)
                                   (S (let (f (→ Int Int)
@@ -823,7 +819,7 @@
                  (h 5))))
       5)))
 
-  (test-case "more-R-in-T"
+  (test-case "more-R-in-S"
     (check-mf-apply*
      ((eval (S (let (ff (Pair (→ Int Int) Bool) (R (cons (λ (x TST) (+ x x)) #false)))
                  ((car ff) 4))))
@@ -833,7 +829,7 @@
       #false)
      ((eval (S (let (ff (Pair (→ Bool Int) Bool) (R (cons (λ (x TST) x) #false)))
                  ((car ff) (cdr ff)))))
-      (BoundaryError T Int (R #false) (cod (car (ff (Pair (→ Bool Int) Bool))))))
+      (BoundaryError S Int (R #false) (cod (car (ff (Pair (→ Bool Int) Bool))))))
      ((eval (S (let (ff (→ Int (U Bool Int)) (R (λ (x TST) (if (= x 0) #false x))))
                  (let (gg (→ (U Bool Int) Int) (R (λ (x TST) 900)))
                    (+ (gg (ff 0))
@@ -842,7 +838,7 @@
     )
   )
 
-  (test-case "boxof-R-in-T"
+  (test-case "boxof-R-in-S"
     (check-mf-apply*
      [(eval (S (let (b (Box Int) (R (box 1)))
                  (let (_dontcare Int (S (set-box! b 2)))
@@ -850,11 +846,11 @@
       2]
      ((eval (S (let (b (Box Int) (R (box #false)))
                    0)))
-      (BoundaryError T (Box Int) (R (box #false)) (b (Box Int))))
+      (BoundaryError S (Box Int) (R (box #false)) (b (Box Int))))
     )
   )
 
-  (test-case "boxof-T-in-R"
+  (test-case "boxof-S-in-R"
     (check-mf-apply*
      [(eval (R (let (b (Box Int) (S (box 1)))
                  (unbox b))))
@@ -868,20 +864,20 @@
       777]
      [(eval (R (let (b (Box Int) (S (box 1)))
                  (set-box! b #f))))
-      (BoundaryError T Int (R #f) (set-box! (b (Box Int))))]
+      (BoundaryError S Int (R #f) (set-box! (b (Box Int))))]
      [(eval (R (let (bb (Box (Box Int)) (S (box (box 1))))
                  (let (_dontcare Bool (R (set-box! (unbox bb) #false)))
                    (unbox (unbox bb))))))
-      (BoundaryError T Int (R #false) (set-box! (unbox (bb (Box (Box Int))))))]
+      (BoundaryError S Int (R #false) (set-box! (unbox (bb (Box (Box Int))))))]
     )
   )
 
   (test-case "box:error"
     (check-mf-apply*
      ((eval (S (let (x (Box Int) (R 42)) #false)))
-      (BoundaryError T (Box Int) (R 42) (x (Box Int))))
+      (BoundaryError S (Box Int) (R 42) (x (Box Int))))
      ((eval (S (let (x (Box Int) (R (box #true))) #false)))
-      (BoundaryError T (Box Int) (R (box #true)) (x (Box Int))))
+      (BoundaryError S (Box Int) (R (box #true)) (x (Box Int))))
     )
   )
 
@@ -1014,7 +1010,7 @@
    ---
    (tag= tag tag)])
 
-#;(module+ test
+(module+ test
 
   (test-case "simple-type->constructor"
     (check-apply* simple-type->constructor
@@ -1160,7 +1156,7 @@
   [(runtime-env-unload ((x (LETREC v_x)) RB ...) any)
    (runtime-env-unload (RB ...) any)])
 
-#;(module+ test
+(module+ test
   (test-case "runtime-env"
     (check-pred ρ? (term #{runtime-env-init}))
   )
@@ -1178,15 +1174,10 @@
    (flat L TST)]
   [
    ---
-   (flat T Int)]
+   (flat S Int)]
   [
    ---
-   (flat T Bool)]
-  [
-   (flat T τ_0)
-   (flat T τ_1)
-   ---
-   (flat T (Pair τ_0 τ_1))])
+   (flat S Bool)])
 
 (define-judgment-form μSR
   #:mode (non-flat I I)
@@ -1196,24 +1187,24 @@
    ---
    (non-flat L τ)])
 
-#;(module+ test
+(module+ test
   (test-case "flat"
     (check-judgment-holds*
-     (flat T Int)
-     (flat T (Pair Int Int))
+     (flat S Int)
+     (flat S Bool)
 
      (non-flat R Int)
-     (non-flat T (→ Bool Bool))
-     (non-flat T (Pair Int (Pair (→ Int Int) Int)))
+     (non-flat S (→ Bool Bool))
+     (non-flat S (Pair Int Int))
     )
 
     (check-not-judgment-holds*
      (flat R Int)
-     (flat T (→ Bool Bool))
-     (flat T (Pair Int (Pair (→ Int Int) Int)))
+     (flat S (→ Bool Bool))
+     (flat S (Pair Int (Pair (→ Int Int) Int)))
 
-     (non-flat T Int)
-     (non-flat T (Pair Int Int))
+     (non-flat S Int)
+     (non-flat S Bool)
     )
   )
 )
@@ -1225,22 +1216,14 @@
   #:contract (proc? v)
   [
    ---
-   (proc? (λ (x τ) e))]
-  [
-   (proc? v_1) ;; since mon always check constructor, could just check τ_0
-   ---
-   (proc? (mon L_0 τ_0 (L_1 v_1) srcloc))])
+   (proc? (λ (x τ) e))])
 
 (define-judgment-form μSR
   #:mode (cons? I)
   #:contract (cons? v)
   [
    ---
-   (cons? (cons e_0 e_1))]
-  [
-   (cons? v_1)
-   ---
-   (cons? (mon L_0 τ_0 (L_1 v_1) srcloc))])
+   (cons? (cons e_0 e_1))])
 
 (define-metafunction μSR
   tag-only : τ -> tag
@@ -1280,10 +1263,6 @@
    ---
    (minimal-completion (L x) (L x))]
   [
-   (minimal-completion P_m P_mc)
-   ---
-   (minimal-completion (L (mon L_m τ_m P_m srcloc)) (L (mon L_m τ_m P_mc srcloc)))]
-  [
    (minimal-completion P P_c)
    (minimal-completion (L e) (L e_c))
    ---
@@ -1309,10 +1288,6 @@
    ---
    (minimal-completion (L (dyn-check tag e srcloc)) (L (dyn-check tag e srcloc)))]
   [
-   (minimal-completion P P_c)
-   ---
-   (minimal-completion (L (pre-mon L_m τ P srcloc)) (L (pre-mon L_m τ P_c srcloc)))]
-  [
    (minimal-completion (R e_0) (R e_0c))
    (minimal-completion (R e_1) (R e_1c))
    --- R-App
@@ -1320,7 +1295,7 @@
   [
    (minimal-completion (S e_0) (S e_0c))
    (minimal-completion (S e_1) (S e_1c))
-   --- T-App
+   --- S-App
    (minimal-completion (S (e_0 e_1)) (S (e_0c e_1c)))]
   [
    (minimal-completion (R e_0) (R e_0c))
@@ -1328,7 +1303,7 @@
    (minimal-completion (R (car e_0)) (R (car (dyn-check Pair e_0c (car (Pair TST TST))))))]
   [
    (minimal-completion (S e_0) (S e_0c))
-   --- T-Car
+   --- S-Car
    (minimal-completion (S (car e_0)) (S (car e_0c)))]
   [
    (minimal-completion (R e_0) (R e_0c))
@@ -1336,7 +1311,7 @@
    (minimal-completion (R (cdr e_0)) (R (cdr (dyn-check Pair e_0c (cdr (Pair TST TST))))))]
   [
    (minimal-completion (S e_0) (S e_0c))
-   --- T-Cdr
+   --- S-Cdr
    (minimal-completion (S (cdr e_0)) (S (cdr e_0c)))]
   [
    (minimal-completion (R e_0) (R e_0c))
@@ -1347,7 +1322,7 @@
   [
    (minimal-completion (S e_0) (S e_0c))
    (minimal-completion (S e_1) (S e_1c))
-   --- T-Binop
+   --- S-Binop
    (minimal-completion (S (binop e_0 e_1)) (S (binop e_0c e_1c)))]
   [
    (minimal-completion (R e_0) (R e_0c))
@@ -1358,7 +1333,7 @@
   [
    (minimal-completion (S e_0) (S e_0c))
    (minimal-completion (S e_1) (S e_1c))
-   --- T-=
+   --- S-=
    (minimal-completion (S (= e_0 e_1)) (S (= e_0c e_1c)))]
   [
    (minimal-completion (L e_0) (L e_0c))
@@ -1374,7 +1349,7 @@
    (minimal-completion (R (unbox e_0)) (R (unbox (dyn-check Box e_0c (unbox (Box TST))))))]
   [
    (minimal-completion (S e_0) (S e_0c))
-   --- T-Unbox
+   --- S-Unbox
    (minimal-completion (S (unbox e_0)) (S (unbox e_0c)))]
   [
    (minimal-completion (R e_0) (R e_0c))
@@ -1384,14 +1359,32 @@
   [
    (minimal-completion (S e_0) (S e_0c))
    (minimal-completion (S e_1) (S e_1c))
-   --- T-SetBox
+   --- S-SetBox
    (minimal-completion (S (set-box! e_0 e_1)) (S (set-box! e_0c e_1c)))])
+
+(define-judgment-form μSR
+  #:mode (transient-completion I I O)
+  #:contract (transient-completion Γ P P)
+  ;; TODO
+  [
+   ---
+   (transient-completion Γ P P)]
+)
+
+(define-metafunction μSR
+  transient-completion# : P -> P
+  [(transient-completion# P)
+   P_t
+   (judgment-holds (transient-completion () P P_t))]
+  [(transient-completion# P)
+   ,(raise-user-error 'transient-completion "failed to complete ~a" (term P))])
 
 (define-metafunction μSR
   minimal-completion# : P -> P
   [(minimal-completion# P)
    P_+
-   (judgment-holds (minimal-completion P P_+))])
+   (where P_t (transient-completion# P))
+   (judgment-holds (minimal-completion P_t P_+))])
 
 (define-metafunction μSR
   xerox : any -> any
@@ -1427,120 +1420,96 @@
   #:mode (erasure I O)
   #:contract (erasure P e)
   [
-   ---
+   --- E-Int
    (erasure (L integer) integer)]
   [
-   ---
+   --- E-Bool
    (erasure (L boolean) boolean)]
   [
    (erasure (L e) e_e)
-   ---
+   --- E-λ
    (erasure (L (λ (x τ) e)) (λ (x) e_e))]
   [
    (erasure (L e_0) e_0e)
    (erasure (L e_1) e_1e)
-   ---
+   --- E-Pair
    (erasure (L (cons e_0 e_1)) (cons e_0e e_1e))]
   [
-   (erasure (L_e e) e_e)
-   ---
-   (erasure (L (mon L_m τ_m (L_e e) srcloc)) (mon L_m τ_m (L_e e_e) srcloc))]
-  [
-   ---
+   --- E-Var
    (erasure (L x) x)]
   [
    (erasure (L e_0) e_0e)
    (erasure (L e_1) e_1e)
-   ---
+   --- E-App
    (erasure (L (e_0 e_1)) (e_0e e_1e))]
   [
-   (erasure (L_x e_x) e_xe)
+   (erasure (L_x e_x) e_xc)
    (erasure (L e) e_c)
-   ---
-   (erasure (L (let (x τ (L_x e_x)) e)) (let (x (pre-mon L τ (L_x e_xe) (#{xerox x} τ))) e_c))]
+   --- E-Let
+   (erasure (L (let (x τ (L_x e_x)) e))
+            (let (x e_xc) e_c))]
   [
-   (erasure (L_x e_x) e_xe)
+   (erasure (L_x e_x) e_xc)
    (erasure (L e) e_c)
-   ---
+   --- E-Letrec
    (erasure (L (letrec (x τ (L_x e_x)) e))
-            (letrec (x τ (pre-mon L τ (L_x e_xe) (#{xerox x} τ))) e_c))]
+            (letrec (x τ e_xc) e_c))]
   [
    (erasure (L e_0) e_0e)
    (erasure (L e_1) e_1e)
    (erasure (L e_2) e_2e)
-   ---
+   --- E-If
    (erasure (L (if e_0 e_1 e_2)) (if e_0e e_1e e_2e))]
   [
    (erasure (L e_0) e_0e)
    (erasure (L e_1) e_1e)
-   ---
+   --- E-And
    (erasure (L (and e_0 e_1)) (and e_0e e_1e))]
   [
    (erasure (L e) e_e)
-   ---
+   --- E-Car
    (erasure (L (car e)) (car e_e))]
   [
    (erasure (L e) e_e)
-   ---
+   --- E-Cdr
    (erasure (L (cdr e)) (cdr e_e))]
   [
    (erasure (L e_0) e_0e)
    (erasure (L e_1) e_1e)
-   ---
+   --- E-Binop
    (erasure (L (binop e_0 e_1)) (binop e_0e e_1e))]
   [
    (erasure (L e_0) e_0e)
    (erasure (L e_1) e_1e)
-   ---
+   --- E-=
    (erasure (L (= e_0 e_1)) (= e_0e e_1e))]
   [
    (erasure (L e_0) e_0e)
-   ---
+   --- E-Box
    (erasure (L (box e_0)) (make-box e_0e))]
   [
    (erasure (L e_0) e_0e)
-   ---
+   --- E-MakeBox
    (erasure (L (make-box e_0)) (make-box e_0e))]
   [
    (erasure (L e_0) e_0e)
-   ---
+   --- E-Unbox
    (erasure (L (unbox e_0)) (unbox e_0e))]
   [
    (erasure (L e_0) e_0e)
    (erasure (L e_1) e_1e)
-   ---
+   --- E-SetBox
    (erasure (L (set-box! e_0 e_1)) (set-box! e_0e e_1e))]
   [
    (erasure (L e) e_e)
-   ---
-   (erasure (L (dyn-check tag e srcloc)) (dyn-check tag e_e srcloc))]
-  [
-   (erasure (L_m e_m) e_me)
-   ---
-   (erasure (L (pre-mon L_ctx τ_ctx (L_m e_m) srcloc)) (pre-mon L_ctx τ_ctx (L_m e_me) srcloc))])
+   --- E-Dyn
+   (erasure (L (dyn-check tag e srcloc)) (dyn-check tag e_e srcloc))])
 
 (define-metafunction μSR
   erasure# : P -> e
   [(erasure# P)
    e
    (judgment-holds (erasure P e))])
-
-(define-judgment-form μSR
-  #:mode (well-formed-monitor I)
-  #:contract (well-formed-monitor v)
-  [
-   (well-tagged Λ #{tag-only τ})
-   --- λ
-   (well-formed-monitor (mon L τ (L_v Λ) _))]
-  [
-   (well-tagged (box any) #{tag-only τ})
-   --- box
-   (well-formed-monitor (mon L τ (L_v (box any)) _))]
-  [
-   (tag= #{tag-only τ} #{tag-only τ_m})
-   (well-formed-monitor (mon L_m τ_m (L_mm v_mm) srcloc))
-   --- recur
-   (well-formed-monitor (mon L τ (L_v (mon L_m τ_m (L_mm v_mm) srcloc)) _))])
 
 (define-judgment-form μSR
   #:mode (truthy I)
@@ -1550,7 +1519,7 @@
    ---
    (truthy v)])
 
-#;(module+ test
+(module+ test
 
   (test-case "minimal-completion"
     (define d+ (term (dom (+ (→ Int (→ Int Int))))))
@@ -1583,14 +1552,6 @@
       (R free-vars))
      ((minimal-completion# (S freedom))
       (S freedom))
-     ((minimal-completion# (R (mon R (→ Int Int) (S (λ (x Int) x)) (f (→ Int Int)))))
-      (R (mon R (→ Int Int) (S (λ (x Int) x)) (f (→ Int Int)))))
-     ((minimal-completion# (S (mon T (→ Int Int) (R (λ (x TST) (+ x 1))) (f (→ Int Int)))))
-      (S (mon T (→ Int Int) (R (λ (x TST) (+ (dyn-check Int x ,d+) (dyn-check Int 1 ,dc+)))) (f (→ Int Int)))))
-     ((minimal-completion# (R (pre-mon R (→ Int Int) (S (λ (x Int) x)) (f (→ Int Int)))))
-      (R (pre-mon R (→ Int Int) (S (λ (x Int) x)) (f (→ Int Int)))))
-     ((minimal-completion# (S (pre-mon T (→ Int Int) (R (λ (x TST) (+ x 1))) (f (→ Int Int)))))
-      (S (pre-mon T (→ Int Int) (R (λ (x TST) (+ (dyn-check Int x ,d+) (dyn-check Int 1 ,dc+)))) (f (→ Int Int)))))
      ((minimal-completion# (R (let (x Int (S (+ 2 2))) (+ x x))))
       (R (let (x Int (S (+ 2 2))) (+ (dyn-check Int x ,d+) (dyn-check Int x ,dc+)))))
      ((minimal-completion# (S (let (x Int (R (+ 2 2))) (+ x x))))
@@ -1650,6 +1611,10 @@
     )
   )
 
+  (test-case "transient-completion"
+    ;;TODO
+  )
+
   (test-case "xerox"
     (check-mf-apply*
      ((xerox x)
@@ -1686,18 +1651,6 @@
       #true)
      ((erasure# (R (cons 1 2)))
       (cons 1 2))
-     ((erasure# (S (pre-mon T Int (S 3) (x Int))))
-      (pre-mon T Int (S 3) (x Int)))
-     ((erasure# (R (pre-mon T Int (R 3) (x Int))))
-      (pre-mon T Int (R 3) (x Int)))
-     ((erasure# (S (pre-mon R Int (S 3) (x Int))))
-      (pre-mon R Int (S 3) (x Int)))
-     ((erasure# (S (mon T Int (S 3) (x Int))))
-      (mon T Int (S 3) (x Int)))
-     ((erasure# (R (mon T Int (R 3) (x Int))))
-      (mon T Int (R 3) (x Int)))
-     ((erasure# (S (mon R Int (S 3) (x Int))))
-      (mon R Int (S 3) (x Int)))
      ((erasure# (S (f x)))
       (f x))
      ((erasure# (R (if 1 2 3)))
@@ -1724,29 +1677,14 @@
       (dyn-check Int 4 (x Int)))
     )
 
-    ;; TODO some issue with binding forms ... using weaker equality for now
     (check-mf-apply* #:is-equal? xerox=?
      ((erasure# (R (let (x (→ Int Int) (S (λ (y Int) (+ y 2)))) (x 3))))
-      (let (x (pre-mon R (→ Int Int) (S (λ (y) (+ y 2))) (x (→ Int Int)))) (x 3)))
+      (let (x (λ (y) (+ y 2))) (x 3)))
      ((erasure# (R (letrec (f (→ Int Int) (S (λ (y Int) (if (= 0 y) 0 (+ 1 (f 0)))))) (f 3))))
-      (letrec (f (→ Int Int) (pre-mon R (→ Int Int) (S (λ (y) (if (= 0 y) 0 (+ 1 (f 0))))) (f (→ Int Int)))) (f 3)))
+      (letrec (f (→ Int Int) (λ (y) (if (= 0 y) 0 (+ 1 (f 0))))) (f 3)))
      ((erasure# (R (λ (x TST) (let (z (→ Int Int) (S (λ (y Int) y))) (z 45)))))
-      (λ (x)
-        (let (z (pre-mon R (→ Int Int) (S (λ (y) y)) (z (→ Int Int)))) (z 45))))
+      (λ (x) (let (z (λ (y) y)) (z 45))))
     )
   )
 
-  (test-case "well-formed-monitor"
-    (check-judgment-holds*
-     (well-formed-monitor (mon R (→ Int Int) (S (λ (x) 3)) (f (→ Int Int))))
-     (well-formed-monitor (mon R (Box Int) (S (box z)) (f (Box Int))))
-     (well-formed-monitor (mon R (→ Int Int)
-      (S (mon R (→ Bool Bool) (S (λ (x) 3)) (g (→ Bool Bool))))
-      (f (→ Int Int))))
-    )
-    (check-not-judgment-holds*
-     (well-formed-monitor (mon R Int (S 4) (f Int)))
-     (well-formed-monitor (mon R (→ Int Int) (S (box z)) (f (→ Int Int))))
-    )
-  )
 )
