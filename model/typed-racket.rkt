@@ -1391,11 +1391,7 @@
   #:contract (cons? v)
   [
    ---
-   (cons? (cons e_0 e_1))]
-  [
-   (cons? v_1)
-   ---
-   (cons? (mon L_0 τ_0 (L_1 v_1) srcloc))])
+   (cons? (cons e_0 e_1))])
 
 (define-metafunction μTR
   tag-only : τ -> tag
