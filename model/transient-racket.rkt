@@ -560,7 +560,7 @@
   [(eval* P boolean_keeptrace)
    any
    (judgment-holds (well-typed P))
-   (where P_c #{minimal-completion# P})
+   (where P_c #{completion# P})
    (where e_c #{erasure# P_c})
    (where any_init #{load e_c})
    (where any ,(if (term boolean_keeptrace)
@@ -571,12 +571,12 @@
   [(eval* P boolean_keeptrace)
    ,(raise-user-error 'eval "trouble eval'ing ~a" (term e_c))
    (judgment-holds (well-typed P))
-   (where P_c #{minimal-completion# P})
+   (where P_c #{completion# P})
    (where e_c #{erasure# P_c})]
   [(eval* P boolean_keeptrace)
    ,(raise-user-error 'eval "trouble erasing let from ~a" (term P_c))
    (judgment-holds (well-typed P))
-   (where P_c #{minimal-completion# P})]
+   (where P_c #{completion# P})]
   [(eval* P _)
    ,(raise-user-error 'eval "trouble completing ~a" (term P))
    (judgment-holds (well-typed P))]
@@ -1284,9 +1284,9 @@
    ---
    (minimal-completion (L (and e_0 e_1)) (L (and e_0c e_1c)))]
   [
-   (side-condition ,(raise-user-error 'minimal-completion "dyn-check not allowed in source programs ~a" (term (L (dyn-check tag e srcloc)))))
+   (minimal-completion (L e) (L e_c))
    ---
-   (minimal-completion (L (dyn-check tag e srcloc)) (L (dyn-check tag e srcloc)))]
+   (minimal-completion (L (dyn-check tag e srcloc)) (L (dyn-check tag e_c srcloc)))]
   [
    (minimal-completion (R e_0) (R e_0c))
    (minimal-completion (R e_1) (R e_1c))
@@ -1362,20 +1362,212 @@
    --- S-SetBox
    (minimal-completion (S (set-box! e_0 e_1)) (S (set-box! e_0c e_1c)))])
 
+;; Input program is _well-typed_ and _type-annotated_
+;; ... this is VERY similar to typechecking
+;;     currently not skipping checks that typechecker already did
+;; ... whatever just get a firstdraft going for eval tests
 (define-judgment-form μSR
-  #:mode (transient-completion I I O)
-  #:contract (transient-completion Γ P P)
-  ;; TODO
+  #:mode (transient-completion I I O O)
+  #:contract (transient-completion Γ P P τ)
   [
-   ---
-   (transient-completion Γ P P)]
+   --- TC-Int-R
+   (transient-completion Γ (R integer) (R integer) TST)]
+  [
+   --- TC-Int-S
+   (transient-completion Γ (S integer) (S integer) Int)]
+  [
+   --- TC-Bool-R
+   (transient-completion Γ (R boolean) (R boolean) TST)]
+  [
+   --- TC-Bool-S
+   (transient-completion Γ (S boolean) (S boolean) Bool)]
+  [
+   (where τ #{type-env-ref Γ x})
+   --- TC-Var-R
+   (transient-completion Γ (R x) (R x) TST)]
+  [
+   (where τ #{type-env-ref Γ x})
+   --- TC-Var-S
+   (transient-completion Γ (S x) (S x) τ)]
+  [
+   (transient-completion Γ (R e) (R e_c) τ)
+   --- TC-Box-R
+   (transient-completion Γ (R (box e)) (R (box e_c)) TST)]
+  [
+   (transient-completion Γ (S e) (S e_c) τ)
+   --- TC-Box-S
+   (transient-completion Γ (S (box e)) (S (box e_c)) (Box τ))]
+  [
+   (transient-completion Γ (R e_0) (R e_0tc) τ_0)
+   (transient-completion Γ (R e_1) (R e_1tc) τ_1)
+   --- TC-Cons-R
+   (transient-completion Γ (R (cons e_0 e_1)) (R (cons e_0tc e_1tc)) TST)]
+  [
+   (transient-completion Γ (S e_0) (S e_0tc) τ_0)
+   (transient-completion Γ (S e_1) (S e_1tc) τ_1)
+   --- TC-Cons-S
+   (transient-completion Γ (S (cons e_0 e_1)) (S (cons e_0tc e_1tc)) (Pair τ_0 τ_1))]
+  [
+   (where Γ_x #{type-env-set Γ (x τ_dom)})
+   (transient-completion Γ_x (R e) (R e_c) τ_cod)
+   --- TC-λ-R
+   (transient-completion Γ (R (λ (x τ_dom) e)) (R (λ (x τ_dom) e_c)) TST)]
+  [
+   (where Γ_x #{type-env-set Γ (x τ_dom)})
+   (transient-completion Γ_x (S e) (S e_c) τ_cod)
+   (where tag #{tag-only τ_dom})
+   (where e_c+ ((λ (x TST) e_c) (dyn-check tag x (? TST))))
+   --- TC-λ-S
+   (transient-completion Γ (S (λ (x τ_dom) e)) (S (λ (x τ_dom) e_c+)) (→ τ_dom τ_cod))]
+  [
+   (transient-completion Γ (R e_0) (R e_0c) τ_0)
+   (transient-completion Γ (R e_1) (R e_1c) τ_1)
+   --- TC-App-R
+   (transient-completion Γ (R (e_0 e_1)) (R (e_0c e_1c)) TST)]
+  [
+   (transient-completion Γ (T e_0) (T e_0c) τ_0)
+   (transient-completion Γ (T e_1) (T e_1c) τ_1)
+   (where (→ τ_dom τ_cod) τ_0)
+   (type= τ_dom τ_1)
+   --- TC-App-S
+   (transient-completion Γ (T (e_0 e_1)) (T (e_0c e_1c)) τ_cod)]
+  [
+   (transient-completion Γ (R e_0) (R e_0c) τ_0)
+   (transient-completion Γ (R e_1) (R e_1c) τ_1)
+   (transient-completion Γ (R e_2) (R e_2c) τ_2)
+   --- TC-If-R
+   (transient-completion Γ (R (if e_0 e_1 e_2)) (R (if e_0c e_1c e_2c)) TST)]
+  [
+   (transient-completion Γ (S e_0) (S e_0c) τ_0)
+   (transient-completion Γ (S e_1) (S e_1c) τ_1)
+   (transient-completion Γ (S e_2) (S e_2c) τ_2)
+   (where τ_3 #{make-union τ_1 τ_2})
+   --- TC-If-S
+   (transient-completion Γ (S (if e_0 e_1 e_2)) (S (if e_0c e_1c e_2c)) τ_3)]
+  [
+   (transient-completion Γ (R e_0) (R e_0c) τ_0)
+   (transient-completion Γ (R e_1) (R e_1c) τ_1)
+   --- TC-And-R
+   (transient-completion Γ (R (and e_0 e_1)) (R (and e_0c e_1c)) TST)]
+  [
+   (transient-completion Γ (S e_0) (S e_0c) τ_0)
+   (transient-completion Γ (S e_1) (S e_1c) τ_1)
+   (where τ_2 #{make-union τ_0 τ_1})
+   --- TC-And-S
+   (transient-completion Γ (S (and e_0 e_1)) (S (and e_0c e_1c)) τ_2)]
+  [
+   (transient-completion Γ P P_c τ_x)
+   (where Γ_x #{type-env-set Γ (x τ)}) ;; Use annotation type, not inferred type
+   (transient-completion Γ_x (R e) (R e_c) τ_e)
+   --- TC-Let-R
+   (transient-completion Γ (R (let (x τ P) e)) (R (let (x τ P_c) e_c)) TST)]
+  [
+   (transient-completion Γ P P_c τ_x)
+   (where Γ_x #{type-env-set Γ (x τ)})
+   (transient-completion Γ_x (S e) (S e_c) τ_e)
+   (where tag #{tag-only τ})
+   (where e_c+ ,(if (equal? 'R (car (term P))) ;; TODO helper function
+                  (term ((λ (x TST) e_c) (dyn-check tag x (? TST))))
+                  (term e_c)))
+   --- TC-Let-S
+   (transient-completion Γ (S (let (x τ P) e)) (S (let (x τ P_c) e_c+)) τ_e)]
+  [
+   (where Γ_x #{type-env-set Γ (x τ)})
+   (transient-completion Γ_x P P_c τ_x)
+   (transient-completion Γ_x (R e) (R e_c) τ_e)
+   --- TC-LetRec-R
+   (transient-completion Γ (R (letrec (x τ P) e)) (R (letrec (x τ P_c) e_c)) TST)]
+  [
+   (where Γ_x #{type-env-set Γ (x τ)})
+   (transient-completion Γ_x P P_c τ_x)
+   (transient-completion Γ_x (S e) (S e_c) τ_e)
+   (where tag #{tag-only τ})
+   (where e_c+ ,(if (equal? 'R (car (term P)))
+                  (term ((λ (x TST) e_c) (dyn-check tag x (? TST))))
+                  (term e_c)))
+   --- TC-LetRec-S
+   (transient-completion Γ (S (letrec (x τ P) e)) (S (letrec (x τ P_c) e_c+)) TST)]
+  [
+   (transient-completion Γ (R e) (R e_c) τ)
+   --- TC-Car-R
+   (transient-completion Γ (R (car e)) (R (car e_c)) TST)]
+  [
+   (transient-completion Γ (S e) (S e_c) τ)
+   (where (Pair τ_car τ_cdr) τ)
+   (where tag #{tag-only τ_car})
+   --- TC-Car-S
+   (transient-completion Γ (S (car e)) (S (dyn-check tag (car e_c) (? TST))) τ_car)]
+  [
+   (transient-completion Γ (R e) (R e_c) τ)
+   --- TC-Cdr-R
+   (transient-completion Γ (R (cdr e)) (R (cdr e_c)) TST)]
+  [
+   (transient-completion Γ (S e) (S e_c) τ)
+   (where (Pair τ_car τ_cdr) τ)
+   (where tag #{tag-only τ_cdr})
+   --- TC-Cdr-S
+   (transient-completion Γ (S (cdr e)) (S (dyn-check tag (cdr e_c) (? TST))) τ_cdr)]
+  [
+   (transient-completion Γ (R e_0) (R e_0c) τ_0)
+   (transient-completion Γ (R e_1) (R e_1c) τ_1)
+   --- TC-Binop-R
+   (transient-completion Γ (R (binop e_0 e_1)) (R (binop e_0c e_1c)) TST)]
+  [
+   (transient-completion Γ (S e_0) (S e_0c) τ_0)
+   (transient-completion Γ (S e_1) (S e_1c) τ_1)
+   (type= τ_0 Int)
+   (type= τ_1 Int)
+   --- TC-Binop-S
+   (transient-completion Γ (S (binop e_0 e_1)) (S (binop e_0c e_1c)) Int)]
+  [
+   (transient-completion Γ (R e_0) (R e_0c) τ_0)
+   (transient-completion Γ (R e_1) (R e_1c) τ_1)
+   --- TC-=-R
+   (transient-completion Γ (R (= e_0 e_1)) (R (= e_0c e_1c)) TST)]
+  [
+   (transient-completion Γ (S e_0) (S e_0c) τ_0)
+   (transient-completion Γ (S e_1) (S e_1c) τ_1)
+   (type= τ_0 Int)
+   (type= τ_1 Int)
+   --- TC-=-S
+   (transient-completion Γ (S (= e_0 e_1)) (S (= e_0c e_1c)) Bool)]
+  [
+   (transient-completion Γ (R e) (R e_c) τ)
+   --- TC-Unbox-R
+   (transient-completion Γ (R (unbox e)) (R (unbox e_c)) TST)]
+  [
+   (transient-completion Γ (S e) (S e_c) τ)
+   (where (Box τ_unbox) τ)
+   (where tag #{tag-only τ_unbox})
+   --- TC-Unbox-S
+   (transient-completion Γ (S (unbox e)) (S (dyn-check tag (unbox e_c) (? TST))) τ_unbox)]
+  [
+   (transient-completion Γ (L (box e)) (L (box e_c)) τ)
+   --- TC-MakeBox
+   (transient-completion Γ (L (make-box e)) (L (make-box e_c)) τ)]
+  [
+   (transient-completion Γ (R e_0) (R e_0c) τ_0)
+   (transient-completion Γ (R e_1) (R e_1c) τ_1)
+   --- TC-SetBox-R
+   (transient-completion Γ (R (set-box! e_0 e_1)) (R (set-box! e_0c e_1c)) TST)]
+  [
+   (transient-completion Γ (S e_0) (S e_0c) τ_0)
+   (transient-completion Γ (S e_1) (S e_1c) τ_1)
+   (where (Box τ) τ_0)
+   (type= τ τ_1)
+   --- TC-SetBox-S
+   (transient-completion Γ (S (set-box! e_0 e_1)) (S (set-box! e_0c e_1c)) τ_1)]
+  [
+   (side-condition ,(raise-user-error 'infer-type "dyn-check not allowed in source terms ~a" (term (L (dyn-check tag e srcloc)))))
+   --- TC-DynCheck-R
+   (transient-completion Γ (L (dyn-check tag e srcloc)) (L (dyn-check tag e srcloc)) TST)]
 )
 
 (define-metafunction μSR
   transient-completion# : P -> P
   [(transient-completion# P)
    P_t
-   (judgment-holds (transient-completion () P P_t))]
+   (judgment-holds (transient-completion () P P_t τ_P))]
   [(transient-completion# P)
    ,(raise-user-error 'transient-completion "failed to complete ~a" (term P))])
 
@@ -1383,8 +1575,14 @@
   minimal-completion# : P -> P
   [(minimal-completion# P)
    P_+
-   (where P_t (transient-completion# P))
-   (judgment-holds (minimal-completion P_t P_+))])
+   (judgment-holds (minimal-completion P P_+))])
+
+(define-metafunction μSR
+  completion# : P -> P
+  [(completion# P)
+   P_+
+   (where P_t #{transient-completion# P})
+   (where P_+ #{minimal-completion# P_t})])
 
 (define-metafunction μSR
   xerox : any -> any
@@ -1542,16 +1740,12 @@
       (S #true))
      ((minimal-completion# (R (λ (x TST) 4)))
       (R (λ (x TST) 4)))
-     ((minimal-completion# (S (λ (x TST) 4)))
-      (S (λ (x TST) 4)))
+     ((minimal-completion# (S (λ (x Int) 4)))
+      (S (λ (x Int) 4)))
      ((minimal-completion# (R (cons 1 1)))
       (R (cons 1 1)))
      ((minimal-completion# (S (cons 1 1)))
       (S (cons 1 1)))
-     ((minimal-completion# (R free-vars))
-      (R free-vars))
-     ((minimal-completion# (S freedom))
-      (S freedom))
      ((minimal-completion# (R (let (x Int (S (+ 2 2))) (+ x x))))
       (R (let (x Int (S (+ 2 2))) (+ (dyn-check Int x ,d+) (dyn-check Int x ,dc+)))))
      ((minimal-completion# (S (let (x Int (R (+ 2 2))) (+ x x))))
@@ -1612,7 +1806,53 @@
   )
 
   (test-case "transient-completion"
-    ;;TODO
+    (check-mf-apply*
+     ((transient-completion# (S 420))
+      (S 420))
+     ((transient-completion# (S #true))
+      (S #true))
+     ((transient-completion# (S (if 1 1 1)))
+      (S (if 1 1 1)))
+     ((transient-completion# (S (and 1 1)))
+      (S (and 1 1)))
+     ((transient-completion# (S (cons 1 1)))
+      (S (cons 1 1)))
+     ((transient-completion# (S (car (cons 1 1))))
+      (S (dyn-check Int (car (cons 1 1)) (? TST))))
+     ((transient-completion# (S (cdr (cons 1 1))))
+      (S (dyn-check Int (cdr (cons 1 1)) (? TST))))
+     ((transient-completion# (R (car (cons 1 1))))
+      (R (car (cons 1 1))))
+     ((transient-completion# (R (cdr 1)))
+      (R (cdr 1)))
+     ((transient-completion# (S (+ 1 1)))
+      (S (+ 1 1)))
+     ((transient-completion# (S (- 1 1)))
+      (S (- 1 1)))
+     ((transient-completion# (S (* 1 1)))
+      (S (* 1 1)))
+     ((transient-completion# (S (= 1 1)))
+      (S (= 1 1)))
+     ((transient-completion# (S (box 1)))
+      (S (box 1)))
+     ((transient-completion# (S (make-box 1)))
+      (S (make-box 1)))
+     ((transient-completion# (S (unbox (box 1))))
+      (S (dyn-check Int (unbox (box 1)) (? TST))))
+     ((transient-completion# (S (set-box! (box 1) 2)))
+      (S (set-box! (box 1) 2)))
+     ((transient-completion# (S (λ (x Int) x)))
+      (S (λ (x Int) ((λ (x TST) x) (dyn-check Int x (? TST))))))
+     ((transient-completion# (S (λ (x (Pair Int Int)) x)))
+      (S (λ (x (Pair Int Int)) ((λ (x TST) x) (dyn-check Pair x (? TST))))))
+     ((transient-completion# (S (let (x Int (R 420)) x)))
+      (S (let (x Int (R 420)) ((λ (x TST) x) (dyn-check Int x (? TST))))))
+     ((transient-completion# (S (let (x (Box Int) (R (box #true))) x)))
+      (S (let (x (Box Int) (R (box #true))) ((λ (x TST) x) (dyn-check Box x (? TST))))))
+     ((transient-completion# (S (let (x Int (S 420)) x)))
+      (S (let (x Int (S 420)) x)))
+     ;; TODO more tests
+    )
   )
 
   (test-case "xerox"
