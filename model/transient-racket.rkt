@@ -18,10 +18,9 @@
 ;;
 ;; (maybe can improve 'boundary error' to a sound overapprox)
 
-
 ;; Lemmas
 ;; - transient-completion : never uses context
-;;
+;; - "blames last boundary"
 
 ;; Questions
 ;; - how to negative box boundaries?
@@ -29,6 +28,12 @@
 ;;   - can do same thing for box?
 ;;   - or just forget it, because the box is tag-sound
 ;; - how to trace back to let-boundaries?
+
+;; Future
+;; - remove boundaries when possible
+;;   - distinguish "this function was statically checked"
+;; - RST interactions
+;; - Function annotations are NOT weaker than λ types
 
 ;; -----------------------------------------------------------------------------
 
@@ -74,7 +79,8 @@
   (RB ::= (x (BOX v)) (x UNDEF) (x (LETREC v)))
   (primop ::= car cdr binop =)
   (binop ::= + * -)
-  (tag ::= Int Bool Pair → Box)
+  (tag ::= tagk (U tagk ...))
+  (tagk ::= Int Bool Pair → Box)
   (E ::= hole
          (E e) (v E) (if E e e) (and E e) (let (x E) e) (letrec (x E) e)
          (cons E e) (cons v E)
@@ -154,6 +160,31 @@
     (check-pred P? (term (S (let (ff (Pair (→ Int Int) Bool) (R (cons (λ (x TST) (+ x x)) #f))) ((car ff) 4)))))
     (check-pred P? R-fib)
     (check-false (v? (term (box 3))))
+    (check-pred P? (term (S (λ (x (Pair Int Int))
+                              ((λ (x TST) x)
+                               (dyn-check Pair x (x (Pair Int Int))))))))
+    (check-pred τ/γ? (term (Int (car (x«107» (Pair Int Int))))))
+    (check-pred τ/γ? (term (Int (cdr (x«107» (Pair Int Int))))))
+    (check-pred τ/γ? (term ((Pair (Int (car (x«107» (Pair Int Int))))
+                                  (Int (cdr (x«107» (Pair Int Int)))))
+                            (x«107» (Pair Int Int)))))
+    (check-false (τ/γ? (term ((Pair Int Int) •))))
+    (check-pred τ/γ? (term ((→ ((Pair (Int •) (Int •)) •)
+                               ((Pair (Int (car (x«107» (Pair Int Int))))
+                                      (Int (cdr (x«107» (Pair Int Int)))))
+                                (x«107» (Pair Int Int))))
+                            •)))
+    (check-pred srcloc? (term ((proj 0) (x (U Bool Int)))))
+    (check-pred τ/γ? (term (Bool ((proj 0) (x (U Bool Int))))))
+    (check-pred τ/γ? (term (Int ((proj 1) (x (U Bool Int))))))
+    (check-pred τ/γ? (term ((U (Bool ((proj 0) (x (U Bool Int))))
+                              (Int ((proj 1) (x (U Bool Int))))) •)))
+    (check-pred τ/γ? (term (TST •)))
+    (check-pred τ/γ? (term (TST (x TST))))
+    (check-pred Γ/γ? (term ((x (TST (x TST))))))
+    (check-pred P? (term (R x)))
+    (check-pred e? (term (dyn-check Int 1 (x Int))))
+    (check-pred e? (term ((λ (x) x) (dyn-check Int 1 (x Int)))))
   )
 )
 
@@ -610,7 +641,7 @@
      "non-value" (term e)
      "env" (term ρ))])
 
-#;(module+ test
+(module+ test
   (test-case "eval:R:I"
     ;; simplest terms, R language
     (check-mf-apply*
@@ -741,7 +772,7 @@
                  (f 3))))
       #true]
      [(eval (S (let (f (→ Int Int) (R (λ (x TST) #false))) (f 1))))
-      (BoundaryError S Int (R #false) (cod (f (→ Int Int))))]
+      (DynError Int #false (cod (f (→ Int Int))))]
      [(eval (S (let (f (→ Int Int) (R (λ (x TST) (+ x #false)))) (f 3))))
       (DynError Int #f (dom (cod (+ (→ Int (→ Int Int))))))]
      [(eval (S (let (f (→ Int Int) (R (λ (x TST) (+ #true #false)))) (f 3))))
@@ -750,7 +781,7 @@
                  (f 3))))
       (box 3)]
      ((eval (S (let (f (→ Int Int) (R (λ (x TST) #false))) (f 3))))
-      (BoundaryError S Int (R #false) (cod (f (→ Int Int)))))
+      (DynError Int #false (cod (f (→ Int Int)))))
      ((eval (S (let (f (→ Int Int) (R (λ (x TST) (+ x #false)))) (f 3))))
       (DynError Int #false (dom (cod (+ (→ Int (→ Int Int)))))))
      ((eval (S (let (f (→ Int Int) (R (λ (x TST) (+ #true #false)))) (f 3))))
@@ -765,7 +796,7 @@
      [(eval (R (let (f (→ Int Bool) (S (λ (x Int) (if (= 0 x) #false #true)))) (f 3))))
       #true]
      [(eval (R (let (f (→ Int Int) (S (λ (x Int) (+ x 4)))) (f #true))))
-      (BoundaryError S Int (R #true) (dom (f (→ Int Int))))]
+      (DynError Int #true (x Int))]
     )
 
     (check-exn #rx"typechecking failed"
@@ -779,17 +810,16 @@
      ((eval (R (let (x TST (R (box 3))) x)))
       (box 3))
      ((eval (R (letrec (x TST (R (box 3))) x)))
-       (box 3))
-     ;; TODO cross-boundary
+      (box 3))
      ((eval (R (let (x TST (R (box 3))) (unbox x))))
-       3)
+      3)
      ((eval (R (let (x TST (R (box 3))) (+ 1 (unbox x)))))
-       4)
+      4)
      ((eval (R (let (x TST (R (box 3)))
                 (let (z TST (R (unbox x)))
                  (let (y TST (R (set-box! x 4)))
                    (+ z (unbox x)))))))
-       7)
+      7)
      ((eval (S (let (x (Box Int) (R (make-box 3)))
                  (let (y Int (S (set-box! x 4)))
                    (+ y (unbox x))))))
@@ -797,7 +827,7 @@
      ((eval (S (letrec (x (Box Int) (R (box 3)))
                  (let (y Int (S (set-box! x 4)))
                    (+ y (unbox x))))))
-       8)
+      8)
     )
 
   )
@@ -820,7 +850,7 @@
                                        f)))
                             g)))
                  (h #true))))
-      (BoundaryError S Int (R #true) (dom (g (→ Int Int)))))
+      #true) ;; different from T
      ((eval (S (let (h (→ Int Int)
                        (R (let (g (→ Int Int)
                                   (S (let (f (→ Int Int)
@@ -840,7 +870,7 @@
       #false)
      ((eval (S (let (ff (Pair (→ Bool Int) Bool) (R (cons (λ (x TST) x) #false)))
                  ((car ff) (cdr ff)))))
-      (BoundaryError S Int (R #false) (cod (car (ff (Pair (→ Bool Int) Bool))))))
+      (DynError Int #false (cod (car (ff (Pair (→ Bool Int) Bool))))))
      ((eval (S (let (ff (→ Int (U Bool Int)) (R (λ (x TST) (if (= x 0) #false x))))
                  (let (gg (→ (U Bool Int) Int) (R (λ (x TST) 900)))
                    (+ (gg (ff 0))
@@ -851,13 +881,13 @@
 
   (test-case "boxof-R-in-S"
     (check-mf-apply*
-     [(eval (S (let (b (Box Int) (R (box 1)))
+     ((eval (S (let (b (Box Int) (R (box 1)))
                  (let (_dontcare Int (S (set-box! b 2)))
                    (unbox b)))))
-      2]
+      2)
      ((eval (S (let (b (Box Int) (R (box #false)))
                    0)))
-      (BoundaryError S (Box Int) (R (box #false)) (b (Box Int))))
+      0)
     )
   )
 
@@ -875,20 +905,26 @@
       777]
      [(eval (R (let (b (Box Int) (S (box 1)))
                  (set-box! b #f))))
-      (BoundaryError S Int (R #f) (set-box! (b (Box Int))))]
+      #f]
+     [(eval (R (let (b (Box Int) (S (box 1)))
+                 (let (u TST (R (set-box! b #f)))
+                   (unbox b)))))
+      #f]
      [(eval (R (let (bb (Box (Box Int)) (S (box (box 1))))
                  (let (_dontcare Bool (R (set-box! (unbox bb) #false)))
                    (unbox (unbox bb))))))
-      (BoundaryError S Int (R #false) (set-box! (unbox (bb (Box (Box Int))))))]
+      #f]
     )
   )
 
   (test-case "box:error"
     (check-mf-apply*
      ((eval (S (let (x (Box Int) (R 42)) #false)))
-      (BoundaryError S (Box Int) (R 42) (x (Box Int))))
+      (DynError Box 42 (x (Box Int))))
      ((eval (S (let (x (Box Int) (R (box #true))) #false)))
-      (BoundaryError S (Box Int) (R (box #true)) (x (Box Int))))
+      #false)
+     ((eval (S (let (x (Box Int) (R (box #true))) (unbox x))))
+      (DynError Int #true (unbox (x (Box Int)))))
     )
   )
 
@@ -999,20 +1035,24 @@
   #:mode (well-tagged I I)
   #:contract (well-tagged v tag)
   [
-   ---
+   --- Tag-Int
    (well-tagged integer Int)]
   [
-   ---
+   --- Tag-Bool
    (well-tagged boolean Bool)]
   [
-   ---
+   --- Tag-→
    (well-tagged Λ →)]
   [
-   ---
+   --- Tag-Box
    (well-tagged (box _) Box)]
   [
-   ---
-   (well-tagged (cons _ _) Pair)])
+   --- Tag-Pair
+   (well-tagged (cons _ _) Pair)]
+  [
+   (well-tagged v tagk) ;; pick one winner
+   --- Tag-U
+   (well-tagged v (U tagk_0 ... tagk tagk_1 ...))])
 
 (define-judgment-form μSR
   #:mode (tag= I I)
@@ -1057,6 +1097,12 @@
      (well-tagged (cons 1 1) Pair)
      (well-tagged (box x) Box)
      (well-tagged (box y) Box)
+     (well-tagged (box z) (U Box Pair))
+     (well-tagged 4 (U → Bool Int))
+     (well-tagged (cons 1 1) (U Bool Int Pair))
+    )
+    (check-not-judgment-holds*
+     (well-tagged 3 (U Bool Box Pair))
     )
   )
 )
@@ -1260,8 +1306,13 @@
    →]
   [(tag-only (Box τ))
    Box]
+  [(tag-only (U τk ...))
+   ,(cons (term U) (tagk-sort (term (#{tag-only τk} ...))))]
   [(tag-only TST)
    TST])
+
+(define (tagk-sort tagk*)
+  (sort tagk* symbol<?))
 
 ;; Add runtime checks to ensure safety
 (define-judgment-form μSR
@@ -1386,12 +1437,6 @@
    (minimal-completion (S (set-box! e_0 e_1)) (S (set-box! e_0c e_1c)))])
 
 ;; Input program is _well-typed_ and _type-annotated_
-;; ... this is VERY similar to typechecking
-;;     currently not skipping checks that typechecker already did
-;; ... whatever just get a firstdraft going for eval tests
-;; TODO 
-;; - gee maybe would be cleaner with srclocs in parallel ... a tree that corresponds to
-;;   the type??? wait nevermind that's uglier just think about the app case
 (define-judgment-form μSR
   #:mode (transient-completion I I O O)
   #:contract (transient-completion Γ/γ P P τ/γ)
@@ -1409,8 +1454,9 @@
    (transient-completion Γ/γ (S boolean) (S boolean) (Bool •))]
   [
    (where τ/γ #{src-env-ref Γ/γ x})
+   ;; TODO should be bullet location? I do want to conclude TST
    --- TC-Var-R
-   (transient-completion Γ/γ (R x) (R x) (TST τ/γ))]
+   (transient-completion Γ/γ (R x) (R x) (TST •))]
   [
    (where τ/γ #{src-env-ref Γ/γ x})
    --- TC-Var-S
@@ -1439,26 +1485,27 @@
    --- TC-λ-R
    (transient-completion Γ/γ (R (λ (x τ_dom) e)) (R (λ (x τ_dom) e_c)) (TST •))]
   [
-   (where Γ/γ_x #{src-env-set Γ/γ (x #{add-srcloc τ_dom (x τ_dom)})})
+   (where srcloc_x (#{xerox x} τ_dom))
+   (where τ/γ_dom #{add-srcloc τ_dom srcloc_x})
+   (where Γ/γ_x #{src-env-set Γ/γ (x τ/γ_dom)})
    (transient-completion Γ/γ_x (S e) (S e_c) τ/γ_cod)
    (where tag #{tag-only τ_dom})
-   (where e_c+ ((λ (x TST) e_c) (dyn-check tag x (x τ_dom))))
+   (where e_c+ ((λ (x TST) e_c) (dyn-check tag x srcloc_x)))
    --- TC-λ-S
-   (transient-completion Γ/γ (S (λ (x τ_dom) e)) (S (λ (x τ_dom) e_c+)) ((→ (τ_dom •) τ/γ_cod) •))]
+   (transient-completion Γ/γ (S (λ (x τ_dom) e)) (S (λ (x τ_dom) e_c+)) ((→ τ/γ\_dom τ/γ_cod) •))]
   [
    (transient-completion Γ/γ (R e_0) (R e_0c) τ/γ_0)
    (transient-completion Γ/γ (R e_1) (R e_1c) τ/γ_1)
    --- TC-App-R
    (transient-completion Γ/γ (R (e_0 e_1)) (R (e_0c e_1c)) (TST •))]
   [
-   (transient-completion Γ/γ (T e_0) (T e_0c) τ/γ_0)
-   (transient-completion Γ/γ (T e_1) (T e_1c) τ/γ_1)
-   (where ((→ τ/γ_dom τ/γ_cod) _) τ/γ_0)
+   (transient-completion Γ/γ (S e_0) (S e_0c) τ/γ_0)
+   (transient-completion Γ/γ (S e_1) (S e_1c) τ/γ_1)
+   (where ((→ τ/γ_dom τ/γ_cod) srcloc_0) τ/γ_0)
    (where tag #{tag-only #{remove-srcloc τ/γ_cod}})
-   (where srcloc #{get-srcloc τ/γ_cod})
-   (where e_c (dyn-check tag (e_0c e_1c) srcloc))
+   (where e_c (dyn-check tag (e_0c e_1c) (cod srcloc_0)))
    --- TC-App-S
-   (transient-completion Γ/γ (T (e_0 e_1)) (T e_c) τ/γ_cod)]
+   (transient-completion Γ/γ (S (e_0 e_1)) (S e_c) τ/γ_cod)]
   [
    (transient-completion Γ/γ (R e_0) (R e_0c) τ/γ_0)
    (transient-completion Γ/γ (R e_1) (R e_1c) τ/γ_1)
@@ -1485,33 +1532,37 @@
    (transient-completion Γ/γ (S (and e_0 e_1)) (S (and e_0c e_1c)) τ/γ_2)]
   [
    (transient-completion Γ/γ P P_c τ/γ_x)
-   (where Γ/γ_x #{src-env-set Γ/γ (x #{add-srcloc τ (x τ)})}) ;; Use annotation type, not inferred type
+   (where srcloc_x (#{xerox x} τ))
+   (where Γ/γ_x #{src-env-set Γ/γ (x #{add-srcloc τ srcloc_x})}) ;; Use annotation type, not inferred type
    (transient-completion Γ/γ_x (R e) (R e_c) τ/γ_e)
    --- TC-Let-R
    (transient-completion Γ/γ (R (let (x τ P) e)) (R (let (x τ P_c) e_c)) (TST •))]
   [
    (transient-completion Γ/γ P P_c τ/γ_x)
-   (where Γ/γ_x #{src-env-set Γ/γ (x #{add-srcloc τ (x τ)})})
+   (where srcloc_x (#{xerox x} τ))
+   (where Γ/γ_x #{src-env-set Γ/γ (x #{add-srcloc τ srcloc_x})})
    (transient-completion Γ/γ_x (S e) (S e_c) τ/γ_e)
    (where tag #{tag-only τ})
    (where e_c+ ,(if (equal? 'R (car (term P))) ;; TODO helper function
-                  (term ((λ (x TST) e_c) (dyn-check tag x (x τ))))
+                  (term ((λ (x TST) e_c) (dyn-check tag x srcloc_x)))
                   (term e_c)))
    --- TC-Let-S
    (transient-completion Γ/γ (S (let (x τ P) e)) (S (let (x τ P_c) e_c+)) τ/γ_e)]
   [
-   (where Γ/γ_x #{src-env-set Γ/γ (x #{add-srcloc τ (x τ)})})
+   (where srcloc_x (#{xerox x} τ))
+   (where Γ/γ_x #{src-env-set Γ/γ (x #{add-srcloc τ srcloc_x})})
    (transient-completion Γ/γ_x P P_c τ/γ_x)
    (transient-completion Γ/γ_x (R e) (R e_c) τ/γ_e)
    --- TC-LetRec-R
    (transient-completion Γ/γ (R (letrec (x τ P) e)) (R (letrec (x τ P_c) e_c)) (TST •))]
   [
-   (where Γ/γ_x #{src-env-set Γ/γ (x #{add-srcloc τ (x τ)})})
+   (where srcloc_x (#{xerox x} τ))
+   (where Γ/γ_x #{src-env-set Γ/γ (x #{add-srcloc τ srcloc_x})})
    (transient-completion Γ/γ_x P P_c τ/γ_x)
    (transient-completion Γ/γ_x (S e) (S e_c) τ/γ_e)
    (where tag #{tag-only τ})
    (where e_c+ ,(if (equal? 'R (car (term P)))
-                  (term ((λ (x TST) e_c) (dyn-check tag x (x τ))))
+                  (term ((λ (x TST) e_c) (dyn-check tag x srcloc_x)))
                   (term e_c)))
    --- TC-LetRec-S
    (transient-completion Γ/γ (S (letrec (x τ P) e)) (S (letrec (x τ P_c) e_c+)) τ/γ_e)]
@@ -1756,8 +1807,8 @@
    (Bool srcloc)]
   [(add-srcloc TST srcloc)
    (TST srcloc)]
-  [(add-srcloc (U τ ...))
-   (U τ/γ ...)
+  [(add-srcloc (U τ ...) srcloc)
+   ((U τ/γ ...) srcloc)
    (where (τ/γ ...)
          ,(for/list ([t (in-list (term (τ ...)))]
                      [i (in-naturals)])
@@ -1926,17 +1977,25 @@
      ((transient-completion# (S (set-box! (box 1) 2)))
       (S (set-box! (box 1) 2)))
      ((transient-completion# (S (λ (x Int) x)))
-      (S (λ (x Int) ((λ (x TST) x) (dyn-check Int x (x Int))))))
-     ;((transient-completion# (S (λ (x (Pair Int Int)) x)))
-     ; (S (λ (x (Pair Int Int)) ((λ (x TST) x) (dyn-check Pair x (x (Pair Int Int)))))))
-     ;((transient-completion# (S (let (x Int (R 420)) x)))
-     ; (S (let (x Int (R 420)) ((λ (x TST) x) (dyn-check Int x (x Int))))))
-     ;((transient-completion# (S (let (x (Box Int) (R (box #true))) x)))
-     ; (S (let (x (Box Int) (R (box #true))) ((λ (x TST) x) (dyn-check Box x (x (Box Int)))))))
-     ;((transient-completion# (S (let (x Int (S 420)) x)))
-     ; (S (let (x Int (S 420)) x)))
-     ;;; TODO more tests
-     ;; TODO completion with unions
+      (S (λ (z Int) ((λ (z TST) z) (dyn-check Int z (x Int))))))
+     ((transient-completion# (S (λ (x (Pair Int Int)) x)))
+      (S (λ (z (Pair Int Int)) ((λ (z TST) z) (dyn-check Pair z (x (Pair Int Int)))))))
+     ((transient-completion# (S (let (x Int (R 420)) x)))
+      (S (let (z Int (R 420)) ((λ (z TST) z) (dyn-check Int z (x Int))))))
+     ((transient-completion# (S (let (x (Box Int) (R (box #true))) x)))
+      (S (let (z (Box Int) (R (box #true))) ((λ (z TST) z) (dyn-check Box z (x (Box Int)))))))
+     ((transient-completion# (S (let (x Int (S 420)) x)))
+      (S (let (x Int (S 420)) x)))
+     ((transient-completion# (S (λ (x (U Bool Int)) x)))
+      (S (λ (z (U Bool Int)) ((λ (z TST) z) (dyn-check (U Bool Int) z (x (U Bool Int)))))))
+     ((transient-completion# (S (λ (x (U (Pair Int Int) (→ Bool Bool))) x)))
+      (S (λ (z (U (Pair Int Int) (→ Bool Bool))) ((λ (z TST) z) (dyn-check (U Pair →) z (x (U (Pair Int Int) (→ Bool Bool))))))))
+     ((transient-completion# (R (λ (x TST) x)))
+      (R (λ (x TST) x)))
+     ((transient-completion# (S ((λ (x Int) x) 1)))
+      ;; TODO ideally no boundary for this app
+      (S (dyn-check Int ((λ (z Int) ((λ (z TST) z) (dyn-check Int z (x Int)))) 1) (cod •))))
+     ;; TODO more tests
     )
   )
 
