@@ -19,12 +19,14 @@
 ;;     and tag is component of srcloc (TODO)
 
 ;; Lemmas
-;;   - `∀ e . ⊢T e : τ => τ != TST`
-;;   - `∀ (mon L_ctx τ_ctx (L_v v)) . ⊢L_v v : τ_ctx`
-;;     - need stronger statement: `v` well-tagged according to `L_ctx`
-;;   - completions
-;;     - minimal-completion actually minimal (not easy)
-;;     - any completion is well-typed (easy)
+;; - `∀ e . ⊢T e : τ => τ != TST`
+;; - `∀ (mon L_ctx τ_ctx (L_v v)) . ⊢L_v v : τ_ctx`
+;;   - need stronger statement: `v` well-tagged according to `L_ctx`
+;; - completions
+;;   - minimal-completion actually minimal (not easy)
+;;   - any completion is well-typed (easy)
+;; - "blames first boundary" or nothing atall
+;; - "boundary error 'more often' than transient"
 
 ;; Awkwardnesses
 ;; - occurrence typing
