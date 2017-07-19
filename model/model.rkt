@@ -76,7 +76,8 @@
 (require
   racket/set
   redex/reduction-semantics
-  redex-abbrevs)
+  redex-abbrevs
+  redex-abbrevs/unstable)
 
 (define *debug* (make-parameter #f))
 
