@@ -13,9 +13,8 @@
 ;;     and lang(P) = lang(P')
 ;;     and P not well typed at τ
 ;;   - `e` raises a dynamic-typing error
-;;     DynError tag v e' srcloc
-;;     where e' subterm of e
-;;     and not well-tagged v tag
+;;     DynError tag v srcloc
+;;     where not well-tagged v tag
 ;;     and tag is component of srcloc (TODO)
 
 ;; Lemmas
@@ -75,7 +74,8 @@
   (RB ::= (x (BOX v)) (x UNDEF) (x (LETREC v)))
   (primop ::= car cdr binop =)
   (binop ::= + * -)
-  (tag ::= Int Bool Pair → Box)
+  (tag ::= tagk (U tagk ...))
+  (tagk ::= Int Bool Pair → Box)
   (E ::= hole
          (E e) (v E) (if E e e) (and E e) (let (x E) e) (letrec (x E) e)
          (cons E e) (cons v E)
@@ -1089,7 +1089,11 @@
   [
    (tag= #{tag-only τ} tag)
    ---
-   (well-tagged (mon _ τ _ _) tag)])
+   (well-tagged (mon _ τ _ _) tag)]
+  [
+   (well-tagged v tagk)
+   --- Tag-U
+   (well-tagged v (U tagk_0 ... tagk tagk_1 ...))])
 
 (define-judgment-form μTR
   #:mode (tag= I I)
@@ -1134,7 +1138,12 @@
      (well-tagged (cons 1 1) Pair)
      (well-tagged (box x) Box)
      (well-tagged (box y) Box)
-     (well-tagged (mon T (→ (Pair Int Int) Int) (R (λ (x TST) (+ 2 (car x)))) (x Int)) →)
+     (well-tagged (box z) (U Box Pair))
+     (well-tagged 4 (U → Bool Int))
+     (well-tagged (cons 1 1) (U Bool Int Pair))
+    )
+    (check-not-judgment-holds*
+     (well-tagged 3 (U Bool Box Pair))
     )
   )
 )
