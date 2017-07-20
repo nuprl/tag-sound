@@ -15,7 +15,8 @@
 ;;   - `e` raises a dynamic-typing error
 ;;     DynError tag v srcloc
 ;;     where not well-tagged v tag
-;;     and tag is component of srcloc (TODO)
+;;     and srcloc = (path ... (f τ))
+;;     and tag = resolve (path ... τ)
 
 ;; Proof outline:
 ;; - completion of R program is well typed
