@@ -238,7 +238,6 @@
    --- T-I-λ
    (infer-type Γ (T (λ (x τ_dom) e)) (→ τ_dom τ_cod))]
   [
-  (side-condition ,(debug "inferring ~a~n" (term (e_0 e_1))))
    (infer-type Γ (R e_0) τ_0)
    (infer-type Γ (R e_1) τ_1)
    --- R-I-App

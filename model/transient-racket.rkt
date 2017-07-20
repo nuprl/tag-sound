@@ -2,7 +2,7 @@
 
 ;; Simple model of Transient Racket
 ;; - typecheck program
-;; - use types to insert runtime checks & blame collaboration
+;; - use types to insert runtime checks
 ;;   insert checks at destructors
 ;; - no monitors
 
@@ -10,13 +10,16 @@
 ;;   If `⊢ e : τ` then `⊢ e : tag(τ)` either
 ;;   - `e` reduces to `v` and `⊢ v : tag(τ)`
 ;;   - `e` diverges
-;;   - `e` raises a runtime error (bad value given to partial primitive)
-;;   - `e` raises a boundary error `b*` that points to a **set** of boundaries,
-;;     one of which might be the source of the error
+;;   - `e` raises a dynamic typing error
+;;     DynError tag v srcloc
+;;     where not well-tagged v tag
+;;     and tag is component of srcloc (TODO)
+;;   - `e` raises a transient-typing error
+;;     DynError tag v srcloc
+;;     where not well-tagged v tag
+;;     and srcloc is path to the boundary that inspired the check
 ;;
 ;; MT1 is weaker, MT2 is weaker
-;;
-;; (maybe can improve 'boundary error' to a sound overapprox)
 
 ;; Lemmas
 ;; - transient-completion : never uses context
@@ -202,7 +205,8 @@
   #:mode (check-type I I I)
   #:contract (check-type Γ P τ)
   [
-   (infer-type Γ (R e) TST)
+   (infer-type Γ (R e) τ_actual)
+   (type= TST τ_actual)
    ---
    (check-type Γ (R e) τ)]
   [
@@ -263,7 +267,6 @@
    --- S-I-λ
    (infer-type Γ (S (λ (x τ_dom) e)) (→ τ_dom τ_cod))]
   [
-  (side-condition ,(debug "inferring ~a~n" (term (e_0 e_1))))
    (infer-type Γ (R e_0) τ_0)
    (infer-type Γ (R e_1) τ_1)
    --- R-I-App
@@ -413,7 +416,7 @@
   [(infer-type# P)
    ,(raise-user-error 'infer-type# "failed to infer type for term ~a" (term P))])
 
-#;(module+ test
+(module+ test
 
   (test-case "check-type#"
     (check-true (term #{check-type# (R (if 1 2 3)) TST})))
