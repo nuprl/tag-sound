@@ -13,11 +13,13 @@
 ;;   - `e` raises a dynamic typing error
 ;;     DynError tag v srcloc
 ;;     where not well-tagged v tag
-;;     and tag is component of srcloc (TODO)
+;;     and srcloc = (path ... (x τ))
+;;     and either (λ (x τ) ....) or (let (x τ ....) ....) in e
 ;;   - `e` raises a transient-typing error
 ;;     DynError tag v srcloc
 ;;     where not well-tagged v tag
-;;     and srcloc is path to the boundary that inspired the check
+;;     and srcloc = (path ... (f τ))
+;;     and tag = resolve (path ... τ)
 ;;
 ;; MT1 is weaker, MT2 is weaker
 
@@ -617,8 +619,8 @@
    (where any ,(if (term boolean_keeptrace)
                  (apply-reduction-relation* -->μSR (term any_init) #:all? #t)
                  (let ([final (-->μSR* (term any_init))])
-                 (when (*debug*) (printf "FINAL STATE ~a~n" final))
-                   (term #{unload ,final}))))]
+                   (when (*debug*) (printf "FINAL STATE ~a~n" final))
+                     (term #{unload ,final}))))]
   [(eval* P boolean_keeptrace)
    ,(raise-user-error 'eval "trouble eval'ing ~a" (term e_c))
    (judgment-holds (well-typed P))
@@ -2080,4 +2082,56 @@
     )
   )
 
+)
+
+(module+ test
+  (test-case "well-typed-programs-run-faster"
+    (define (check-shorter-trace t1 t2)
+      (define-values [trace1 trace2]
+          (values (term #{eval* ,t1 #true}) (term #{eval* ,t2 #true})))
+      (check < (length trace1) (length trace2)))
+
+    (check-shorter-trace (term (S (+ 2 2))) (term (R (+ 2 2))))
+  )
+
+  (test-case "misc"
+    (check-mf-apply*
+     ((eval
+       (S (letrec (fact (→ Int Int)
+                   (S (λ (n Int)
+                        (if (= 0 n)
+                          1
+                          (* n (fact (- n 1)))))))
+            (fact 6))))
+      720)
+     ((eval
+       (S (letrec (fib
+                   (→ Int Int)
+                   (S (λ (n Int)
+                        (if (= n 0)
+                          1
+                          (if (= n 1)
+                            1
+                            (let (prev2 (Box Int) (S (box 1)))
+                              (let (prev1 (Box Int) (S (box 1)))
+                                (letrec (loop
+                                         (→ Int Int)
+                                         (S (λ (n Int)
+                                              (let (curr Int (S (+ (unbox prev1) (unbox prev2))))
+                                                (if (= n 0)
+                                                  curr
+                                                  (let (_1 Int (S (set-box! prev2 (unbox prev1))))
+                                                    (let (_2 Int (S (set-box! prev1 curr)))
+                                                      (loop (- n 1)))))))))
+                                  (loop (- n 2))))))))))
+         (fib 5))))
+       8)
+     ((eval (S (let (x (Box Int) (R (box #true))) x)))
+      (box #true))
+     ((eval (R (let (b (Box Int) (S (box 1)))
+                 (let (u TST (R (set-box! b #true)))
+                   (unbox b)))))
+      #true)
+     )
+  )
 )

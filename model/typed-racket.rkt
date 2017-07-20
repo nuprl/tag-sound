@@ -1953,3 +1953,55 @@
     )
   )
 )
+
+(module+ test
+  (test-case "well-typed-programs-run-faster"
+    (define (check-shorter-trace t1 t2)
+      (define-values [trace1 trace2]
+          (values (term #{eval* ,t1 #true}) (term #{eval* ,t2 #true})))
+      (check < (length trace1) (length trace2)))
+
+    (check-shorter-trace (term (T (+ 2 2))) (term (R (+ 2 2))))
+  )
+
+  (test-case "misc"
+    (check-mf-apply*
+     ((eval
+       (T (letrec (fact (→ Int Int)
+                   (T (λ (n Int)
+                        (if (= 0 n)
+                          1
+                          (* n (fact (- n 1)))))))
+            (fact 6))))
+      720)
+     ((eval
+       (T (letrec (fib
+                   (→ Int Int)
+                   (T (λ (n Int)
+                        (if (= n 0)
+                          1
+                          (if (= n 1)
+                            1
+                            (let (prev2 (Box Int) (T (box 1)))
+                              (let (prev1 (Box Int) (T (box 1)))
+                                (letrec (loop
+                                         (→ Int Int)
+                                         (T (λ (n Int)
+                                              (let (curr Int (T (+ (unbox prev1) (unbox prev2))))
+                                                (if (= n 0)
+                                                  curr
+                                                  (let (_1 Int (T (set-box! prev2 (unbox prev1))))
+                                                    (let (_2 Int (T (set-box! prev1 curr)))
+                                                      (loop (- n 1)))))))))
+                                  (loop (- n 2))))))))))
+         (fib 5))))
+       8)
+     ((eval (T (let (x (Box Int) (R (box #true))) x)))
+      (BoundaryError T (Box Int) (R (box #true)) (x (Box Int))))
+     ((eval (R (let (b (Box Int) (T (box 1)))
+                 (let (u TST (R (set-box! b #true)))
+                   (unbox b)))))
+      (BoundaryError T Int (R #true) (set-box! (b (Box Int)))))
+    )
+  )
+)
