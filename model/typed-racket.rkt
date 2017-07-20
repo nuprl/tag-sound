@@ -17,6 +17,13 @@
 ;;     where not well-tagged v tag
 ;;     and tag is component of srcloc (TODO)
 
+;; Proof outline:
+;; - completion of R program is well typed
+;; - erasure correspondence (evaluator ignores types)
+;; - soundness for pure R,T programs
+;; - monitored terms cannot fuck up
+;; - ... overall soundness follows from monitors + T soundness, I guess
+
 ;; Lemmas
 ;; - `∀ e . ⊢T e : τ => τ != TST`
 ;; - `∀ (mon L_ctx τ_ctx (L_v v)) . ⊢L_v v : τ_ctx`

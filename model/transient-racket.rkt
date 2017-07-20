@@ -21,6 +21,12 @@
 ;;
 ;; MT1 is weaker, MT2 is weaker
 
+;; Proof outline:
+;; - S sound by itself
+;; - R sound after completion
+;; - (no monitors so cannot rely on them)
+;; - S after completion, guards every observation
+
 ;; Lemmas
 ;; - transient-completion : never uses context
 ;; - "blames last boundary"
