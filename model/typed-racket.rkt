@@ -38,9 +38,6 @@
 ;; Awkwardnesses
 ;; - occurrence typing
 
-;; - review once more, writeup on text
-;; - start retic model, what are those soundness?!!!
-
 ;; -----------------------------------------------------------------------------
 
 (require
