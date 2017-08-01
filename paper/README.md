@@ -25,6 +25,32 @@ Also discussion of the hazards and pitfalls,
  tldr why you should use Typed Racket and work to improve its performance.
 
 
+Intro II
+---
+
+0. Typed Racket
+  - generalized soundness
+  - zero types = racket
+  - 100% types = normal typed language, with optimizations
+1. the cost is high
+  - cite Takikawa
+  - comes from allocation, indirection, checking
+2. one idea, improve Typed Racket
+  - same guarantees, better implementation
+  - soft contracts, space-efficient contracts, soft typing, general tuning
+3. Vitousek etal have nuclear option
+  - type-based rewriting
+  - tag soundness
+  - little-to-no-blame
+  - fully typed ~ worst performance (basically, linear increase)
+  - much better performance!!! cite Zeina
+4. Research Question
+  - what is performance, if we skip on type safety and blame?
+  - constraint 1 : untyped = Racket
+  - constraint 2 : typed = Typed Racket, with optimizations
+  
+
+
 Typed Racket
 ---
 
@@ -40,6 +66,11 @@ Soundness is similar to conventional:
     (could be derived boundary, R-input to a T function)
   - `e -->* RuntimeError` (from T or R interacting with runtime functions)
 
+EXPLAIN WITH COLORS,
+ colors for the boundaries
+ - lambda (keep color)
+ - vector (keep color)
+ - list (flip color)
 
 Tagged Racket
 ---
