@@ -23,6 +23,7 @@
 ;;   - should `check` return the inferred type?
 ;; - recursive functions work
 ;; - untyped function, unbound variables hack
+;; - stores in reduction-relation
 
 ;; -----------------------------------------------------------------------------
 
@@ -59,11 +60,13 @@
   (c ::= ;; completions
          v x (c c) (if c c c) (let (x c) c)
          (δ c ...) (check κ c))
+  (C ::= hole (C c) (v C) (if C c c) (let (x C) c) (δ v ... C c ...) (check κ C))
   (v ::= integer boolean (fun f (x) c))
   (δ ::= δ- δ= δ+)
   (δ- ::= + / and or unbox set-box!)
   (δ= ::= int? bool? proc? box?)
   (δ+ ::= make-box)
+  (δ-cod ::= RuntimeError v)
   ;; ---
   (τ ::= (U τ0 ...) τ0)
   (τ0 ::= Natural Integer Boolean (Box τ) (→ τ τ))
@@ -73,8 +76,8 @@
   (κ ::= int bool proc box)
   (Γ ::= ((x τφ) ...))
   (RuntimeError ::= DivisonByZero)
-  (CheckError ::= (CheckError v κ))
-  (A ::= e RuntimeError CheckError)
+  (CheckError ::= (Check v κ))
+  (A ::= c RuntimeError CheckError)
   (x ::= variable-not-otherwise-mentioned)
 #:binding-forms
   (fun f τ_dom τ_cod (x) e #:refers-to (shadow f x))
@@ -307,8 +310,42 @@
   (reduction-relation TAG
     #:domain A
     [-->
-      e
-      42]))
+      (in-hole C ((fun f (x) c) v))
+      (in-hole C (substitute (substitute c x v) f (fun f (x) c)))
+      Beta]
+    [-->
+      (in-hole C (if v c_0 c_1))
+      (in-hole C c_0)
+      If-True
+      (side-condition (not (eq? #f (term v))))]
+    [-->
+      (in-hole C (if #false c_0 c_1))
+      (in-hole C c_1)
+      If-False]
+    [-->
+      (in-hole C (let (x v) c))
+      (in-hole C (substitute c x v))
+      Let]
+    [-->
+      (in-hole C (δ v ...))
+      RuntimeError
+      δ-Error
+      (where RuntimeError #{apply-primop δ v ...})]
+    [-->
+      (in-hole C (δ v ...))
+      (in-hole C v_δ)
+      δ-Ok
+      (where v_δ #{apply-primop δ v ...})]
+    [-->
+      (in-hole C (check κ v))
+      CheckError
+      check-Error
+      (judgment-holds (not-well-tagged v κ))]
+    [-->
+      (in-hole C (check κ v))
+      (in-hole C v)
+      check-Ok
+      (judgment-holds (well-tagged v κ))]))
 
 (define -->*
   (make--->* -->TAG))
@@ -368,6 +405,57 @@
   [
    ---
    (tag-of (→ τ_0 τ_1) proc)])
+
+(define-judgment-form TAG
+  #:mode (well-tagged I I)
+  #:contract (well-tagged v κ)
+  [
+   ---
+   (well-tagged integer int)]
+  [
+   ---
+   (well-tagged boolean bool)]
+  [
+   ---
+   (well-tagged (fun f (x) _) proc)]
+  [
+   ---
+   (well-tagged (box _) box)])
+
+(define-judgment-form TAG
+  #:mode (not-well-tagged I I)
+  #:contract (not-well-tagged v κ)
+  [
+   (side-condition ,(not (judgment-holds (well-tagged v κ))))
+   ---
+   (not-well-tagged v κ)])
+
+(define-metafunction TAG
+  apply-primop : δ v -> δ-cod
+  [(apply-primop + integer_0 integer_1)
+   ,(+ (term integer_0) (term integer_1))]
+  [(apply-primop / integer_0 0)
+   DivisionByZero]
+  [(apply-primop / integer_0 integer_1)
+   ,(inexact->exact (floor (/ (term integer_0) (term integer_1))))]
+  [(apply-primop and boolean_0 boolean_1)
+   ,(and (term boolean_0) (term boolean_1))]
+  [(apply-primop or boolean_0 boolean_1)
+   ,(or (term boolean_0) (term boolean_1))]
+  [(apply-primop unbox (box v))
+   v]
+  [(apply-primop set-box! (box _) v)
+   ,(raise-user-error 'WRONG)]
+  [(apply-primop int? v)
+   ,(integer? (term v))]
+  [(apply-primop bool? v)
+   ,(boolean? (term v))]
+  [(apply-primop proc? v)
+   ,(procedure? (term v))]
+  [(apply-primop box? v)
+   ,(box? (term v))]
+  [(apply-primop δ v ...)
+   ,(raise-user-error 'apply-primop "UNDEFINED ~a" (term (δ v ...)))])
 
 (define-judgment-form TAG
   #:mode (erase-φ I O)
