@@ -1,0 +1,31 @@
+\usepackage{amsmath}
+\usepackage{amssymb}
+\usepackage{mathpartir}
+
+\newcommand{\compilesto}{\rightsquigarrow}
+\newcommand{\context}{\mathcal{C}}
+\newcommand{\tagof}[1]{\lfloor #1 \rfloor}
+\newcommand{\config}[1]{\langle #1 \rangle}
+\newcommand{\stepsto}{\rightarrow^*}
+\newcommand{\blameset}{\mathcal{B}}
+\newcommand{\blame}[1]{\textsc{Blame}(#1)}
+\newcommand{\labels}{\mathcal{L}}
+\newcommand{\dyncheck}[2]{#1 \Downarrow \config{#2, l , \respath}}
+\newcommand{\fresh}[1]{\emph{fresh}(#1)}
+\newcommand{\respath}{\textsc{Res}}
+
+\newcommand{\assign}{:\!=}
+
+\newcommand{\tint}{\mathsf{Int}}
+
+\newcommand{\kproc}{\texttt{proc}}
+\newcommand{\kref}{\texttt{ref}}
+\newcommand{\kint}{\texttt{int}}
+
+\newcommand{\torigin}{\lozenge}
+\newcommand{\uorigin}{\blacklozenge}
+
+\newcommand{\vref}[1]{\textbf{ref}~#1}
+
+\newcommand{\tfun}[5]{\mathbf{fun} #1 (#2 : #3) \rightarrow #4\,.\,#5}
+\newcommand{\ufun}[3]{\mathbf{fun} #1 (#2)\,.\,#3}

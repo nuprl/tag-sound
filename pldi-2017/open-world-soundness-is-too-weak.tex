@@ -1,0 +1,159 @@
+\documentclass{article}
+\input{texstyle.tex}
+\begin{document}
+
+%% TODO this is a good blog post
+
+\begin{abstract}
+  Reticulated's open-world soundness is a weak property because even a dynamically-typed,
+   Python-like language is open-world sound.
+\end{abstract}
+
+\tableofcontents
+
+
+\section{Python}
+
+This is a nonsense typed language that compiles into Python.
+It is nonsense for two reasons:
+\begin{itemize}
+\item The type-checker accepts every well-formed program
+\item Evaluation can raise arbitrary blame errors (the programmer gets no hint as to what went wrong)
+\item The environment $\Gamma$ is ignored.
+\end{itemize}
+
+\begin{mathpar}
+  \inferrule*{
+  }{
+    \Gamma \vdash n \compilesto n : \tint
+  }
+
+  \inferrule*{
+  }{
+    \Gamma \vdash x \compilesto x : \tint
+  }
+
+  \inferrule*{
+    \Gamma \vdash e_0 \compilesto e_0' : \tint
+    \\\\
+    \Gamma \vdash e_1 \compilesto e_1' : \tint
+  }{
+    \Gamma \vdash e_0 + e_1 \compilesto (\dyncheck{e_0'}{\kint}) +^\torigin (\dyncheck{e_1'}{\kint}) : \tint
+  }
+
+  \inferrule*{
+    \Gamma \vdash e \compilesto e' : \tint
+  }{
+    \Gamma \vdash \tfun{f}{x}{T_1}{T_2}{e} \compilesto \ufun{f}{x}{e'} : \tint
+  }
+
+  \inferrule*{
+    \Gamma \vdash e_0 \compilesto e_0' : \tint
+    \\\\
+    \Gamma \vdash e_1 \compilesto e_1' : \tint
+  }{
+    \Gamma \vdash (e_0~e_1) \compilesto ((\dyncheck{e_0'}{\kproc})~e_1')^\torigin : \tint
+  }
+
+  \inferrule*{
+    \Gamma \vdash e \compilesto e' : \tint
+  }{
+    \Gamma \vdash \vref{e} \compilesto \vref{e'} : \tint
+  }
+
+  \inferrule*{
+    \Gamma \vdash e \compilesto e' : \tint
+  }{
+    \Gamma \vdash !e \compilesto !(\dyncheck{e'}{\kref}) : \tint
+  }
+
+  \inferrule*{
+    \Gamma \vdash e_0 \compilesto e_0' : \tint
+    \\\\
+    \Gamma \vdash e_1 \compilesto e_1' : \tint
+  }{
+    \Gamma \vdash e_0 \assign e_1 \compilesto (\dyncheck{e_0'}{\kref}) \assign e_1' : \tint
+  }
+\end{mathpar}
+
+
+Here is another nonsense translation:
+
+\begin{mathpar}
+  \inferrule*{
+    \fresh{l}
+  }{
+    \vdash e_s \compilesto \dyncheck{0}{\tagof{T}, l, \respath} : T
+  }
+\end{mathpar}
+
+
+
+
+\section{Open World Soundness}
+
+%% TODO should use "type soundness", the corollary
+
+From POPL 2017
+
+\textbf{Lemma B.13} (Open world soundness)
+\begin{itemize}
+\item[] \emph{If}
+  \subitem $\Gamma \vdash e_s \compilesto e : T$
+  \subitem $\vdash \context : \tagof{\Gamma} ; \tagof{T} \Rightarrow \emptyset; S$
+\item[] \emph{then}
+  \subitem $\emptyset; \emptyset \vdash \context[e] : S$
+\item[] \emph{and either:}
+\item[]
+  \begin{itemize}
+  \item $\config{\context[e], \emptyset, \emptyset} \stepsto \config{v, \sigma, \blameset}
+         \mbox{ and }
+         \emptyset; \Sigma \vdash v : S
+         \mbox{ and }
+         \Sigma \vdash \sigma$
+  \item $\config{\context[e], \emptyset, \emptyset} \stepsto \blame{\labels}$
+  \item $\config{\context[e], \emptyset, \emptyset} \stepsto \config{e', \sigma, \blameset}
+         \mbox{ and }
+         \config{e', \sigma, \blameset} \mbox{ is stuck}$
+  \item $\config{\context[e], \emptyset, \emptyset}$ diverges
+  \end{itemize}
+\end{itemize}
+
+Informally, if a Reticulated program $e_s$ is well-typed, then compiling the program,
+ using it in any Python context, and running the whole program will yield one
+ of four outcomes:
+\begin{itemize}
+\item evaluation produces a value with the same \emph{type-tag} as the source expression;
+\item evaluation reduces to a blame error that points to a set of labels;
+\item evaluation reduces to a segfault due to Python; or
+\item evaluation diverges.
+\end{itemize}
+
+
+\subsection{Auxiliary Definitions}
+
+From POPL 2017.
+(This section should be more detailed.)
+
+\begin{itemize}
+\item[] $\compilesto$ translates a Reticulated program into a "safe" Python program
+\item[] $\tagof{}$ gets the top-level constructor of a type
+\item[] TODO context typing
+\item[] TODO $\Sigma \vdash \sigma$
+\item[] $\labels$ is a set of blame labels
+\item[] $\stepsto$ is evaluation
+\item[] TODO more???
+\end{itemize}
+
+
+\section{Python is Open-World Sound}
+
+\section{Closing Remarks}
+
+Dynamically typed \ldots won't get stuck \ldots blame is trivial \ldots labels always fresh \ldots still blame-subtyping
+
+You need requirements!
+How to rule out trivial things??!
+
+
+\end{document}
