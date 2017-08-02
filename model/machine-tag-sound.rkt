@@ -17,6 +17,13 @@
 ;; (2) is "guaranteed optimization", if you add types the program will
 ;;     use fewer tag checks (the <~ relation is a kind of stepping simulation)
 
+;; TODO
+;; - refine +, track natural vs. int ?
+;; - redundant in unbox ... wherever we need the type after a primop
+;;   - should `check` return the inferred type?
+;; - recursive functions work
+;; - untyped function, unbound variables hack
+
 ;; -----------------------------------------------------------------------------
 
 (require
@@ -42,7 +49,7 @@
   ;; --- e = source language
   (e ::= ve x (e e) (if e e e) (let (x τ φ e) e)
          (δ e ...))
-  (ve ::= integer boolean (fun f τ τ (x) e))
+  (ve ::= integer boolean (fun f (x) e) (fun f τ τ (x) e))
   ;; eτ = intermediate language
   ;;;; (eτ ::= vτ (x : τφ) ((eτ eτ) : τφ) ((if eτ eτ eτ) : τφ)
   ;;;;         ((let (x τ eτ) eτ) : τφ)
@@ -53,10 +60,10 @@
          v x (c c) (if c c c) (let (x c) c)
          (δ c ...) (check κ c))
   (v ::= integer boolean (fun f (x) c))
-  (δ ::= δ- δ+)
-  (δ- ::= + / and or unbox set-box! int? bool? proc?)
+  (δ ::= δ- δ= δ+)
+  (δ- ::= + / and or unbox set-box!)
+  (δ= ::= int? bool? proc? box?)
   (δ+ ::= make-box)
-  (binop ::= + / and or set-box!)
   ;; ---
   (τ ::= (U τ0 ...) τ0)
   (τ0 ::= Natural Integer Boolean (Box τ) (→ τ τ))
@@ -71,6 +78,7 @@
   (x ::= variable-not-otherwise-mentioned)
 #:binding-forms
   (fun f τ_dom τ_cod (x) e #:refers-to (shadow f x))
+  (fun f (x) e #:refers-to (shadow f x))
   (let (x τ φ e_x) e #:refers-to x)
   (fun f (x) c #:refers-to (shadow f x))
   (let (x c_x) c #:refers-to x)
@@ -80,23 +88,20 @@
 
 (define-judgment-form TAG
   #:mode (check-type I I I O)
-  #:contract (check-type Γ e τ c)
+  #:contract (check-type Γ e κ c)
   [
    (infer-type Γ e c τφ_c)
+   (tag=? τφ_c κ)
    (flag++ τφ_c)
-   (erase-φ τφ_c τ_c)
-   (type=? τ τ_c)
    ---
-   (check-type Γ e τ c)]
+   (check-type Γ e κ c)]
   [
    (infer-type Γ e c τφ_c)
+   (tag=? τφ_c κ)
    (flag-- τφ_c)
-   (erase-φ τφ_c τ_c)
-   (type=? τ τ_c) ;; IDK
-   (tag-of τ_c κ)
    (where c_+ (check κ c))
    ---
-   (check-type Γ e τ c_+)])
+   (check-type Γ e κ c_+)])
 
 (define-judgment-form TAG
   #:mode (infer-type I I O O)
@@ -126,33 +131,177 @@
   [
    (infer-type Γ e_0 c_0 τφ_0)
    (infer-type Γ e_1 c_1 τφ_1)
-   (infer-type Γ e_2 c_2 τφ_2)
+   (infer-type Γ e_2 c_2 τφ_1)
+   ;; TODO τφ_12 don't need to be the same
+   ;; - same type, but unify flags
+   ;; - return U of the 2
    ---
-   (infer-type Γ (if e_0 e_1 e_2) (if c_0 c_1 c_2) (U τφ_1 τφ_2))]
-  ;[
-  ; ;; TODO
-  ; ---
-  ; (infer-type Γ (let (x τ ++ e_x) e) (let (x c_x) c) τφ)]
-)
+   (infer-type Γ (if e_0 e_1 e_2) (if c_0 c_1 c_2) τφ_1)]
+  [
+   (infer-type Γ e_x c_x τφ_x)
+   (type=? τ_x #{erase-φ# τφ_x})
+   (where Γ_x #{type-env-add Γ x τφ_x})
+   (infer-type Γ_x e c τφ)
+   --- Let-τ
+   (infer-type Γ (let (x τ_x ++ e_x) e) (let (x c_x) c) τφ)]
+  [
+   (infer-completion Γ e_x c_x)
+   (add-φ τ_x -- τφ_x)
+   (where Γ_x #{type-env-add Γ x τφ_x})
+   (infer-type Γ_x e c τφ)
+   --- Let-λ
+   (infer-type Γ (let (x τ_x -- e_x) e) (let (x c_x) c) τφ)]
+  ;; --- δ
+  [
+   (check-type Γ e_0 int c_0)
+   (check-type Γ e_1 int c_1)
+   ---
+   (infer-type Γ (+ e_0 e_1) (+ c_0 c_1) (Integer ++))]
+  [
+   (check-type Γ e_0 int c_0)
+   (check-type Γ e_1 int c_1)
+   ---
+   (infer-type Γ (/ e_0 e_1) (/ c_0 c_1) (Integer ++))]
+  [
+   (check-type Γ e_0 bool c_0)
+   (check-type Γ e_1 bool c_1)
+   ---
+   (infer-type Γ (and e_0 e_1) (and c_0 c_1) (Boolean ++))]
+  [
+   (check-type Γ e_0 bool c_0)
+   (check-type Γ e_1 bool c_1)
+   ---
+   (infer-type Γ (or e_0 e_1) (or c_0 c_1) (Boolean ++))]
+  [
+   (check-type Γ e_0 box c_0)
+   (infer-type Γ e_0 _ τφ_0) ;; TODO redundant
+   ---
+   (infer-type Γ (unbox e_0) (unbox c_0) τφ_0)]
+  [
+   (check-type Γ e_0 box c_0)
+   (infer-type Γ e_1 c_1 τφ_1)
+   ;; TODO should types match?
+   ---
+   (infer-type Γ (set-box! e_0 e_1) (set-box! c_0 c_1) (Box ++ τφ_1))]
+  [
+   (infer-type Γ e_0 c_0 _)
+   ---
+   (infer-type Γ (int? e_0) (int? c_0) (Boolean ++))]
+  [
+   (infer-type Γ e_0 c_0 _)
+   ---
+   (infer-type Γ (bool? e_0) (bool? c_0) (Boolean ++))]
+  [
+   (infer-type Γ e_0 c_0 _)
+   ---
+   (infer-type Γ (box? e_0) (box? c_0) (Boolean ++))]
+  [
+   (infer-type Γ e_0 c_0 _)
+   ---
+   (infer-type Γ (proc? e_0) (proc? c_0) (Boolean ++))]
+  [
+   (infer-type Γ e_0 c_0 τφ_0)
+   ---
+   (infer-type Γ (make-box e_0) (make-box c_0) (Box ++ τφ_0))])
 
 (define-judgment-form TAG
-  #:mode (tag-of I O)
-  #:contract (tag-of τ0 κ)
+  #:mode (infer-completion I I O)
+  #:contract (infer-completion Γ e c)
   [
    ---
-   (tag-of Natural int)]
+   (infer-completion Γ integer integer)]
   [
    ---
-   (tag-of Integer int)]
+   (infer-completion Γ boolean boolean)]
+  [
+   (infer-completion Γ e c)
+   ;; TODO
+   ---
+   (infer-completion Γ (fun f (x) e) (fun f (x) c))]
   [
    ---
-   (tag-of Boolean bool)]
+   (infer-completion Γ x x)]
   [
+   (infer-completion Γ e_0 c_0)
+   (infer-completion Γ e_1 c_1)
+   (where c_0+ (check proc c_0))
    ---
-   (tag-of (Box τ) box)]
+   (infer-completion Γ (e_0 e_1) (c_0+ c_1))]
   [
+   (infer-completion Γ e_0 c_0)
+   (infer-completion Γ e_1 c_1)
+   (infer-completion Γ e_2 c_2)
    ---
-   (tag-of (→ τ_0 τ_1) proc)])
+   (infer-completion Γ (if e_0 e_1 e_2) (if e_0 e_1 e_2))]
+  [
+   (infer-type Γ e_x c_x τφ_x)
+   (type=? τ_x #{erase-φ# τφ_x})
+   (where Γ_x #{type-env-add Γ x τφ_x})
+   (infer-completion Γ_x e c)
+   --- Let-τ
+   (infer-completion Γ (let (x τ_x ++ e_x) e) (let (x c_x) c))]
+  [
+   (infer-completion Γ e_x c_x)
+   (add-φ τ_x -- τφ_x)
+   (where Γ_x #{type-env-add Γ x τφ_x})
+   (infer-completion Γ_x e c)
+   --- Let-λ
+   (infer-completion Γ (let (x τ_x -- e_x) e) (let (x c_x) c))]
+  [
+   (infer-completion Γ e_0 c_0)
+   (infer-completion Γ e_1 c_1)
+   (where c_0+ (check int c_0))
+   (where c_1+ (check int c_1))
+   ---
+   (infer-completion Γ (+ e_0 e_1) (+ c_0+ c_1+))]
+  [
+   (infer-completion Γ e_0 c_0)
+   (infer-completion Γ e_1 c_1)
+   (where c_0+ (check int c_0))
+   (where c_1+ (check int c_1))
+   ---
+   (infer-completion Γ (/ e_0 e_1) (/ c_0+ c_1+))]
+  [
+   (infer-completion Γ e_0 c_0)
+   (infer-completion Γ e_1 c_1)
+   (where c_0+ (check bool c_0))
+   (where c_1+ (check bool c_1))
+   ---
+   (infer-completion Γ (and e_0 e_1) (and c_0+ c_1+))]
+  [
+   (infer-completion Γ e_0 c_0)
+   (infer-completion Γ e_1 c_1)
+   (where c_0+ (check bool c_0))
+   (where c_1+ (check bool c_1))
+   ---
+   (infer-completion Γ (or e_0 e_1) (or c_0+ c_1+))]
+  [
+   (infer-completion Γ e_0 c_0)
+   (where c_0+ (check box c_0))
+   ---
+   (infer-completion Γ (unbox e_0) (unbox c_0+))]
+  [
+   (infer-completion Γ e_0 c_0)
+   (infer-completion Γ e_1 c_1)
+   (where c_0+ (check box c_0))
+   ---
+   (infer-completion Γ (set-box! e_0 e_1) (set-box! c_0 c_1))]
+  [
+   (infer-completion Γ e_0 c_0)
+   ---
+   (infer-completion Γ (int? e_0) (int? c_0))]
+  [
+   (infer-completion Γ e_0 c_0)
+   ---
+   (infer-completion Γ (bool? e_0) (bool? c_0))]
+  [
+   (infer-completion Γ e_0 c_0)
+   ---
+   (infer-completion Γ (proc? e_0) (proc? c_0))]
+  [
+   (infer-completion Γ e_0 c_0)
+   ---
+   (infer-completion Γ (box? e_0) (box? c_0))])
 
 (define -->TAG
   (reduction-relation TAG
@@ -201,30 +350,24 @@
    ---
    (flag-- (_ -- τφ ...))])
 
-(module+ test
-  (test-case "flag++"
-    (check-judgment-holds*
-     (flag++ (Integer ++))
-     (flag++ (Boolean ++))
-     (flag++ (→ ++ (Integer ++) (Boolean --)))
-     (flag++ (Box ++ (Integer --)))
-    )
-    (check-not-judgment-holds*
-     (flag++ (Integer --))
-     (flag++ (→ -- (Integer --) (Integer --)))
-    )
-  )
-
-  (test-case "flag--"
-    (check-judgment-holds*
-     (flag-- (Integer --))
-     (flag-- (→ -- (Integer --) (Integer --)))
-    )
-    (check-not-judgment-holds*
-     (flag-- (Integer ++))
-    )
-  )
-)
+(define-judgment-form TAG
+  #:mode (tag-of I O)
+  #:contract (tag-of τ0 κ)
+  [
+   ---
+   (tag-of Natural int)]
+  [
+   ---
+   (tag-of Integer int)]
+  [
+   ---
+   (tag-of Boolean bool)]
+  [
+   ---
+   (tag-of (Box τ) box)]
+  [
+   ---
+   (tag-of (→ τ_0 τ_1) proc)])
 
 (define-judgment-form TAG
   #:mode (erase-φ I O)
@@ -237,6 +380,14 @@
    (erase-φ τφ_1 τ_1) ...
    ---
    (erase-φ (any φ τφ_0 τφ_1 ...) (any τ_0 τ_1 ...))])
+
+(define-metafunction TAG
+  erase-φ# : τφ -> τ
+  [(erase-φ# τφ)
+   τ
+   (judgment-holds (erase-φ τφ τ))]
+  [(erase-φ# τφ)
+   ,(raise-user-error 'erase-φ "failed to erase ~a" (term τφ))])
 
 (define-judgment-form TAG
   #:mode (add-φ I I O)
@@ -273,7 +424,69 @@
    ---
    (type=? τ τ)])
 
+(define-judgment-form TAG
+  #:mode (tag=? I I)
+  #:contract (tag=? any any)
+  [
+   (where κ #{->tag any_0})
+   (where κ #{->tag any_1})
+   ---
+   (tag=? any_0 any_1)])
+
+(define-metafunction TAG
+  ->tag : any -> κ
+  [(->tag τφ)
+   κ
+   (judgment-holds (erase-φ τφ τ))
+   (judgment-holds (tag-of τ κ))]
+  [(->tag τ)
+   κ
+   (judgment-holds (tag-of τ κ))]
+  [(->tag κ)
+   κ])
+
+(define-metafunction TAG
+  type-env-add : Γ x τφ -> Γ
+  [(type-env-add Γ x τφ)
+   ,(cons (term (x τφ)) (term Γ))])
+
 (module+ test
+  (test-case "flag++"
+    (check-judgment-holds*
+     (flag++ (Integer ++))
+     (flag++ (Boolean ++))
+     (flag++ (→ ++ (Integer ++) (Boolean --)))
+     (flag++ (Box ++ (Integer --)))
+    )
+    (check-not-judgment-holds*
+     (flag++ (Integer --))
+     (flag++ (→ -- (Integer --) (Integer --)))
+    )
+  )
+
+  (test-case "flag--"
+    (check-judgment-holds*
+     (flag-- (Integer --))
+     (flag-- (→ -- (Integer --) (Integer --)))
+    )
+    (check-not-judgment-holds*
+     (flag-- (Integer ++))
+    )
+  )
+
+  (test-case "tag=?"
+    (check-judgment-holds*
+     (tag=? int int)
+     (tag=? Integer int)
+     (tag=? int Integer)
+     (tag=? int Natural)
+     (tag=? int (Natural ++))
+     (tag=? int (Natural --))
+     (tag=? proc (→ Natural Natural))
+     (tag=? proc (→ (U Boolean Natural) (Box Integer)))
+    )
+  )
+
   (test-case "erase-φ"
     (check-judgment-holds*
      (erase-φ (Integer ++) Integer)
@@ -281,9 +494,4 @@
     )
   )
 )
-
-(define-metafunction TAG
-  type-env-add : Γ x τφ -> Γ
-  [(type-env-add Γ x τφ)
-   ,(cons (term (x τφ)) (term Γ))])
 
