@@ -113,3 +113,11 @@ Other Soundness
 - sound for flat types
 - sound for all but list types
 - 
+
+
+References
+---
+
+Vitouseks
+Levity Polymorphism
+Concrete Types
