@@ -64,7 +64,15 @@
   ;;;; (?τφ ::= Dyn ....)
   (τ ::= (U τ0 ...) τ0)
   (τ0 ::= (Natural φ) (Integer φ) (Boolean φ) (→ φ τ0 τ0))
+  (φ ::= + - x)
   (κ ::= int bool proc)
   (Γ ::= ((x τ) ...))
-;#:binding-forms
+  (RuntimeError ::= DivisonByZero)
+  (CheckError ::= (CheckError v κ))
+  (x ::= variable-not-otherwise-mentioned)
+#:binding-forms
+  (fun f (x : ?τ) e #:refers-to (shadow f x))
+  (let (x ?τ e_x) e #:refers-to x)
+  (fun f (x) c #:refers-to (shadow f x))
+  (let (x c_x) c #:refers-to x)
 )
