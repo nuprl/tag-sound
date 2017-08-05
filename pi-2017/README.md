@@ -66,55 +66,72 @@ If you do all that, and are careful about the meaning of types vs.
 Soundness
 ---
 
-1. Machine-Tag Sound
+If "preservation types" and "blame" are 2 dimensions, then there are 4 soundnesses
 
-if e:t then e ~> c:k and either:
-- e -->* v and v:k
-- e diverges
-- e -->* RuntimeError
-- e -->* CheckError(v,k)
+### 00. machine-tag sound
 
-Need a completeness theorem ... guards every place where first-order values
- drop to primitive functions.
+#### soundness
 
-Gee maybe check the ICFP 2016 paper?
+if ⊢ e : τ then e compilesto c and ⊢ c : k and either:
+- c -->* v and ⊢ v : k
+- c diverges
+- c -->* Ω
+- c -->* CheckError(v' k')
 
-Can prove an efficiency theorem,
- with static typing you only get more efficient programs
+#### stuck
 
-
-2. Machine-Tag Sound, with Blame
-
-if e:t then e ~> c:k and either:
-- e -->* v and v:k
-- e diverges
-- e -->* RuntimeError
-- e -->* CheckError(v,k',src)
-  where `src` is one of the boundaries between typed and untyped code
-
-How? By completely monitoring the interface between typed and untyped code.
-You only _check_ flat values,
- but you monitor any other kind of value (procedures, lists, hashtables, ...)
+define stuck configurations,
+ not stuck iff never break preservation
 
 
-3
-  ???
+#### efficiency
+
+if e0 ⊑ e1 then e0 <~ e1
+aka. if no fewer types, then no less efficient (perhaps more efficient)
 
 
-4. Static Sound, with Blame (Typed Racket)
-if e:t then either:
-- e -->* v and v:t
-- e diverges
-- e -->* RuntimeError
-- e -->* TypeError(v,t',src)
+#### static types not preserved
 
-Need a complete monitor,
- complete monitors prevent the ounce of sewage
-
-Can prove optimization?
+∃ e . ⊢ e : τ
+and running e yields a value with an incompatible type
 
 
-Ergonomic Errors
----
+### 01. machine-tag with blame
 
-Is there a word for the errors that your type system doesn't catch?
+#### soundness
+
+if ⊢ e : τ then e compilesto c and ⊢ c : k and either:
+- c -->* v and ⊢ v : k
+- c diverges
+- c -->* Ω
+- c -->* CheckError(v' k' src)
+  where src refers to the static boundary where v entered typed code
+
+
+#### stuck
+
+define stuck, same as 00
+
+
+#### efficiency
+
+chaperones allow optimizations
+
+chaperones also have cost, so programs can slow down in another sense
+
+
+#### static types not preserved
+
+
+### 10. type-sound
+- nondescript runtime type errors
+- not tracking blame ~> more space efficient (coarser equality on contracts)
+- never stuck, with respect to "interpreter" on static types
+- complete monitoring ~> no sewage
+- chaperones => more unsafe ops, but more allocation & indirection
+
+
+### 11. type-sound with blame
+- runtime type errors point to one static boundary
+- harder to collapse contracts
+- otherwise same properties as 10
