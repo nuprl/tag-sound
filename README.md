@@ -20,3 +20,7 @@ TODO
 - [ ] think about tag soundness in Typed Racket
 - [ ] build simple model, quickly! try to state and prove properties
 - [ ] extend Typed Racket
+- [ ] "strictness" analysis
+  - TR is 100% eager
+  - retic is lazy, with 1 lookahead (the tag)
+  - racket is totally lazy

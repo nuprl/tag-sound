@@ -110,9 +110,24 @@ No allocation at runtime, but lose blame.
 Other Soundness
 ---
 
-- sound for flat types
-- sound for all but list types
-- 
+0. nothing
+1. O(1) checks
+2. flat types
+3. all types
+
+... \kappa-based dynamic typing
+... transient (as I'm thinking about it) is O(1) at every input to typed code
+... but dynamic typing is lazier, checks every use, so `z + z` is 2 checks
+... every variable reference is nowa tag check, okay
+... easy to implement? anyway wait until later. Then maybe, Henglein to reduce
+
+
+Tradeoffs
+---
+
+Guard all channels ==> optimize
+
+Label all values \/ Eager checks (for unlabeled) ==> blame
 
 
 References
