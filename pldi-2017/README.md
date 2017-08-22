@@ -48,7 +48,9 @@ Intro II
   - what is performance, if we skip on type safety and blame?
   - constraint 1 : untyped = Racket
   - constraint 2 : typed = Typed Racket, with optimizations
-  
+
+NOTE: first introduce tag soundness (reasonable soundness)
+      second, introduce "drop monitors" as principled implementation
 
 
 Typed Racket
@@ -115,11 +117,22 @@ Other Soundness
 2. flat types
 3. all types
 
-... \kappa-based dynamic typing
-... transient (as I'm thinking about it) is O(1) at every input to typed code
-... but dynamic typing is lazier, checks every use, so `z + z` is 2 checks
-... every variable reference is nowa tag check, okay
-... easy to implement? anyway wait until later. Then maybe, Henglein to reduce
+#### \kappa-based dynamic typing
+- transient (as I'm thinking about it) is O(1) at every input to typed code
+- but dynamic typing is lazier, checks every use, so `z + z` is 2 checks
+- every variable reference is nowa tag check, okay
+- easy to implement? anyway wait until later. Then maybe, Henglein to reduce
+
+#### Retic confuses "my transient" and "\kappa-based"
+
+Checks:
+- input of +
+- derefs
+
+Should not need to check both ... if you check every deref & every application,
+ no need to check inputs to + in typed code ... typed code can assume tag-safety,
+ which is all that + needs.
+
 
 
 Tradeoffs
