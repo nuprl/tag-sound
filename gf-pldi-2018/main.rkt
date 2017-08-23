@@ -139,4 +139,4 @@
   (apply exact (append (list "\\pythoninline{") x (list "}"))))
 
 (define (pythonexternal a)
-  (exact (format "\\pythonexternal{gf-pldi-2017}" a)))
+  (exact (format "\\pythonexternal{~a}" a)))

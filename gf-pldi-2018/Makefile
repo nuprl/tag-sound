@@ -1,5 +1,5 @@
-PAPER=gf-pldi-2017
-PKG=gf-pldi-2017
+PAPER=gf-pldi-2018
+PKG=gf-pldi-2018
 SCRIBBLE_FLAGS=++style texstyle.tex ++extra mathpartir.sty
 
 pdf: compile texstyle.tex
