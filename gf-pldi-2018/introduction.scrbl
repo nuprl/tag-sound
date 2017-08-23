@@ -1,9 +1,32 @@
 #lang gf-pldi-2018
 @title[#:tag "sec:introduction"]{Introduction}
 
+Soundness costs time and money.
+Typed Racket suggests the cost can be high,
+ if follow conventional wisdom and check eagerly.
 
+TypeScript, on the other hand.
+No soundness, at least nothing extra.
+No cost.
 
+Reticulated, third option.
 
+Spectrum of soundness.
+All three above instances of general scheme.
+Since tradeoffs non-trivial, better give the programmer control.
+
+Examples, Int dot, f cod is dot, id polymorphic.
+
+Reminds of CBN CBV.
+Typechecking is eager or lazy.
+
+Gives control over costs, errors, optimizations.
+
+Main contribution, model of type system and proofs of meta-theory properties.
+Show how to express Typed Racket, Reticulated, and TypeScript semantics in the
+ model.
+Dart too?
+Show how errors matter and change.
 
 Two-part evalation.
 First, for all configurations, measure fully-strict, fully-lax, tag-strict strategies.
