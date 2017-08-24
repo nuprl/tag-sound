@@ -1,9 +1,9 @@
 #lang gf-pldi-2018 @sigplan
 
-@title{Between Soundness and Unsoundness and What it Means for Performance}
+@title{Lazy Gradual Typing}
+@;@title{Between Soundness and Unsoundness and What it Means for Performance}
 @; k but this title is no longer accurate, it's no longer about soundness
 @; its about "Call-by-Name, Call-by-Value" except its types and there's no names
-@; I guess see CBPV for terms
 
 @(define NEU
    @affiliation[

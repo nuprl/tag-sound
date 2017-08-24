@@ -1,15 +1,34 @@
 #lang gf-pldi-2018
 @title[#:tag "sec:introduction"]{Introduction}
 
-Soundness costs time and money.
+@; write a fable? about correct-by-construction vs. trans.validation ?
+
+A gradual typing system lets programmers trade the proof obligations
+ of static typing for the run-time overhead of dynamic typing.
+Suppose the safety of a program @${C[e]} depends on whether the expression @${e}
+ has type @${\tau}.
+To establish the type of @${e}, one can either build a proof @${\vdash e : \tau}
+ using the static typing system, or let the language evaluate @${e} and
+ check whether the resulting value (if any) happens to belong to the
+ static type @${\tau}.
+Both approaches ensure that ${C[e]} does not commit a type error.
+
+
+ 
+
+To show that an expression @${e} has type @${\tau}, one can either
+ prove @${\vdash e : \tau} within the static type system, or 
+
+@; -----------------------------------------------------------------------------
+
 Typed Racket suggests the cost can be high,
  if follow conventional wisdom and check eagerly.
+
+Reticulated, third option.
 
 TypeScript, on the other hand.
 No soundness, at least nothing extra.
 No cost.
-
-Reticulated, third option.
 
 Spectrum of soundness.
 All three above instances of general scheme.
