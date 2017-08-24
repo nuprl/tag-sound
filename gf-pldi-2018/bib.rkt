@@ -62,6 +62,7 @@
   (define/short icse "ICSE" (string-append International Conference "on Software Engineering"))
   (define/short ieee-software (string-append IEEE "Software"))
   (define/short ifl "IFL" (string-append International Symposium "Functional and Logic Programming"))
+  (define/short ip "Information Processing" "Information Processing")
   (define/short issta "ISSTA" (string-append International Symposium "on Software Testing and Analysis"))
   (define/short jfp "JFP" (string-append Journal "Functional Programming"))
   (define/short jsl "JSL" (string-append Journal "of Symbolic Logic"))
@@ -2053,3 +2054,9 @@
     #:location (techrpt-location #:institution "Northeastern University" #:number "NU-CCIS-2017-001")
     #:date 2017))
 
+(define r-ip-1983
+  (make-bib
+   #:title "Types, Abstraction, and Parametric Polymorphism"
+   #:author "John C. Reynolds"
+   #:location (proceedings-location ip)
+   #:date 1983))

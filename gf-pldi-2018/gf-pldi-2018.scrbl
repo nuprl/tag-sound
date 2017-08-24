@@ -1,6 +1,6 @@
-#lang gf-pldi-2018 @sigplan
+#lang gf-pldi-2018 @sigplan @anonymous
 
-@title{Lazy Gradual Typing}
+@title{Modes of Gradual Typing}
 @;@title{Between Soundness and Unsoundness and What it Means for Performance}
 @; k but this title is no longer accurate, it's no longer about soundness
 @; its about "Call-by-Name, Call-by-Value" except its types and there's no names
@@ -22,7 +22,7 @@
 @; -----------------------------------------------------------------------------
 
 @abstract{
-  TODO
+  TBA
 }
 
 @include-section{introduction.scrbl}
