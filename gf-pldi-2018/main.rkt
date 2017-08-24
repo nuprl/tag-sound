@@ -3,6 +3,11 @@
 ;; Utilities / setup for acmart-style Scribble papers
 
 (provide
+  ;; --- new stuff
+  MT
+
+  ;; ---------------------------------------------------------------------------
+  ;; --- old stuff
   (all-from-out
     "bib.rkt"
     scribble-abbrevs
@@ -140,3 +145,9 @@
 
 (define (pythonexternal a)
   (exact (format "\\pythonexternal{~a}" a)))
+
+;; -----------------------------------------------------------------------------
+;; --- new stuff
+
+(define MT
+  ($ "\\tau^M"))
