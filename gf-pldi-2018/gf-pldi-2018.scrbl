@@ -27,13 +27,14 @@
   The choice of type soundness affects the performance
    of gradually typed programs.
 
-  This paper introduces a modal type system, @|MT|, that can express several notions of
-   type soudness, including the type soundnesses implemented in Typed Racket,
-   Reticulated, and TypeScript.
-  Using @|MT|, a language designer can precisely measure the cost of type
-   soundness.
-  Furthermore, a programmer can use the modalities to trade
+  This paper introduces a modal migratory typing system, @|MMT|, with a generalized
+   notion of type soundness that subsumes the soundnesses of
+   Typed Racket, Reticulated, and TypeScript.
+  Using @|MMT|, a language designer can precisely measure the cost of type
+   soundness in a suite of programs.
+  Furthermore, a programmer can use @|MMT| to trade
    dynamic type safety for performance.
+  We validate these claims by extending Typed Racket with @|MMT| modalities.
 }
 
 @include-section{introduction.scrbl}
