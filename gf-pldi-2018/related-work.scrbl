@@ -8,8 +8,7 @@ Performance good.
 In contrast we have principled checks.
 
 Like types@~cite[bfnorsvw-oopsla-2009] are annotations with no semantics.
-@citet[rnv-ecoop-2015] apply the idea to TypeScript; TypeScript has like types
- by default and programmers may opt-in to concrete (enforced) types.
-In contrast, our types always have semantics.
-The question is when those semantics get enforced.
-
+@citet[rnv-ecoop-2015] apply the idea to TypeScript; TypeScript has only like types,
+ and their work gives programmers the choice of using (concrete) types that
+ are enforced at run-time.
+We generalize the idea.
