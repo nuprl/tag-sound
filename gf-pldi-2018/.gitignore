@@ -3,3 +3,6 @@
 *.out
 *.pdf
 *.toc
+
+acmart.cls
+gf-pldi-2018.tex
