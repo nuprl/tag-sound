@@ -53,27 +53,29 @@ TypeScript's "absent" types have no effect on performance.
 Since the choice of how to dynamically enforce types has non-trivial implications
  for performance (and debugging), language designers should give programmers
  the freedom to choose their semantics.
-We do this by extending the syntax of types, @${\tau}, with three modalities:
+We do this by extending the syntax of types, @${\tau}, with two modalities:
  an @emph{eager} modality @${\mnow},
- a @emph{lazy} modality @${\mlater},
- and a @emph{temporarily eager} modality @${\mtmp}.
+ a @emph{lazy} modality @${\mlater}.
 In terms of the example above:
  the type @${\tlist^\mnow(\tint^\mnow)} eagerly checks any dynamically typed arguments;
  the type @${\tlist^\mnow(\tint^\mlater)} eagerly checks list-ness, but delays checking list elements;
  and the type @${\tlist^\mlater(\tint^\mlater)} has no run-time cost.
 
+This works for finite, read-only values.
+For higher-order values, one must decide whether to @emph{locally check} or
+ @emph{globally monitor} the value.
+To distinguish global monitors, we introduce a third modality @${\mnowm};
+ for example, the type @${(\tarrow^\mnowm\tau_0~\tau_1)} denotes a wrapper.
+
 Contributions:
 @itemlist[
 @item{
-  Describe dynamic type-checking strategies using modalities.
-}
-@item{
-  A formal model whose type soundness statement generalizes the soundness
+  Equip types with modalities that describe dynamic type-checking strategies;
+   generalize the soundness theorems
    of Typed Racket, Reticulated, StrongScript@~cite[rnv-ecoop-2015], and TypeScript.
 }
 @item{
-  An implementation of modal migratory typing for Typed Racket, and a two-part
-   performance evaluation: (1) comparing the cost of established type soundnesses
+  A two-part performance evaluation: (1) comparing the cost of established type soundnesses
    (e.g. TR's generalized soundness vs. Reticulated's tag soundness), and
    (2) demonstrating how to systematically change modalities to improve performance.
 }
