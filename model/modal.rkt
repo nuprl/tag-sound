@@ -74,3 +74,57 @@
   (fun f τ x e #:refers-to (shadow f x)))
 
 ;; -----------------------------------------------------------------------------
+
+;; -----------------------------------------------------------------------------
+;; --- well-formedness
+
+(define-judgment-form MMT
+  #:mode (well-formed-type I)
+  #:contract (well-formed-type τ)
+  [
+   (type-arity-ok τ)
+   ---
+   (well-formed-type τ)])
+
+(define-judgment-form MMT
+  #:mode (type-arity-ok I)
+  #:contract (type-arity-ok τ)
+  [
+   (where natural_k #{type-constructor-arity k})
+   (where natural_τ ,(length (term (τ ...))))
+   (side-condition ,(= (term natural_k) (term natural_τ)))
+   (type-arity-ok τ) ...
+   ---
+   (type-arity-ok (k _ τ ...))])
+
+(define-metafunction MMT
+  type-constructor-arity : k -> natural
+  [(type-constructor-arity Int)
+   0]
+  [(type-constructor-arity Bool)
+   0]
+  [(type-constructor-arity Pair)
+   2]
+  [(type-constructor-arity →)
+   2]
+  [(type-constructor-arity Box)
+   1]
+  [(type-constructor-arity k)
+   ,(raise-user-error 'type-constructor-arity "not implemented for ~a" (term k))])
+
+(module+ test
+  (test-case "well-formed-type"
+    (check-judgment-holds*
+     (well-formed-type (Int □))
+     (well-formed-type (Int ∎))
+     (well-formed-type (Bool ◊))
+     (well-formed-type (→ □ (→ □ (Int ◊) (Int ∎))
+                            (Pair □ (Box ∎ (Int ∎))
+                                    (Int ∎))))))
+
+  (test-case "well-formed-type:bad-arity"
+    (check-not-judgment-holds*
+     (well-formed-type (Int ◊ (Int ◊)))
+     (well-formed-type (→ □))
+     (well-formed-type (→ □ (Box □) (Int □)))))
+)
