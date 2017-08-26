@@ -38,6 +38,8 @@
 }
 
 @include-section{introduction.scrbl}
+@include-section{what-is-soundness.scrbl}
+@include-section{modalities.scrbl}
 @include-section{related-work.scrbl}
 
 @generate-bibliography[]
