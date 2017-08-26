@@ -8,6 +8,12 @@
 
 ;; Need
 ;; - soundness
+;;   if ⊢ e : τ^μ then either
+;;   - e diverges
+;;   - e -->* runtime-error
+;;   - e -->* boundary-error
+;;   - e -->* v and v ⊨ τ^μ
+;; - corollary : soundness for TR retic TS SS
 ;; - complete monitor
 ;;
 ;; - union types, recursive types, forall types
@@ -74,6 +80,101 @@
   (fun f τ x e #:refers-to (shadow f x)))
 
 ;; -----------------------------------------------------------------------------
+;; --- static type checking
+
+;; -----------------------------------------------------------------------------
+;; --- evaluation
+
+;; -----------------------------------------------------------------------------
+;; --- models
+
+;; Well-typed if:
+;; A. higher-order and ∎ and monitored
+;; B. well-tagged under the given modality, and subterms well-typed
+;; C. not well-tagged, and ◊ modality
+(define-judgment-form MMT
+  #:mode (well-typed-value I I)
+  #:contract (well-typed-value v τ)
+  [
+   (not-well-tagged-value v k)
+   ---
+   (well-typed-value v (k ◊ τ_k ...))]
+  [
+   (well-typed-value v (k □ τ_k ...))
+   ---
+   (well-typed-value v (k ◊ τ_k ...))]
+  [
+   (well-tagged-value v k)
+   (where (v_k ...) #{sub-values v})
+   (well-typed-value* (v_k ...) (τ_k ...))
+   ---
+   (well-typed-value v (k □ τ_k ...))]
+  [
+   ---
+   (well-typed-value integer (Int ∎))]
+  [
+   ---
+   (well-typed-value boolean (Bool ∎))]
+  [
+   (well-typed-value v_0 τ_0)
+   (well-typed-value v_1 τ_1)
+   ---
+   (well-typed-value (cons v_0 v_1) (Pair ∎ τ_0 τ_1))]
+  [
+   (where (mon (→ ∎ τ_0 τ_1) v_arr) v)
+   ---
+   (well-typed-value v (→ ∎ τ_0 τ_1))]
+  [
+   (where (mon τ v_box) v)
+   ---
+   (well-typed-value v (Box ∎ τ))])
+
+(define-judgment-form MMT
+  #:mode (well-typed-value* I I)
+  #:contract (well-typed-value* (v ...) (τ ...))
+  [
+   --- Null
+   (well-typed-value* () (τ ...))]
+  [
+   (well-typed-value v_0 τ_0)
+   (well-typed-value* (v_1 ...) (τ_1 ...))
+   ---
+   (well-typed-value* (v_0 v_1 ...) (τ_0 τ_1 ...))])
+
+(define-judgment-form MMT
+  #:mode (well-tagged-value I I)
+  #:contract (well-tagged-value v k)
+  [
+   ---
+   (well-tagged-value integer Int)]
+  [
+   ---
+   (well-tagged-value boolean Bool)]
+  [
+   ---
+   (well-tagged-value (cons v_0 v_1) Pair)]
+  [
+   ---
+   (well-tagged-value (fun f τ e) →)]
+  [
+   ---
+   (well-tagged-value (box _) Box)]
+  [
+   (well-tagged-value v k)
+   ---
+   (well-tagged-value (mon τ v) k)])
+
+(define-judgment-form MMT
+  #:mode (not-well-tagged-value I I)
+  #:contract (not-well-tagged-value v k)
+  [
+   (side-condition ,(not (judgment-holds (well-tagged-value v k))))
+   ---
+   (not-well-tagged-value v k)])
+
+(module+ test
+  ;; TODO
+)
 
 ;; -----------------------------------------------------------------------------
 ;; --- well-formedness
@@ -128,3 +229,31 @@
      (well-formed-type (→ □))
      (well-formed-type (→ □ (Box □) (Int □)))))
 )
+
+;; -----------------------------------------------------------------------------
+;; --- utils
+
+(define-judgment-form MMT
+  #:mode (μ<=? I I)
+  #:contract (μ<=? μ μ)
+  [
+   --- Refl
+   (μ<=? μ μ)])
+
+(define-metafunction MMT
+  sub-values : v -> (v ...)
+  [(sub-values integer)
+   ()]
+  [(sub-values boolean)
+   ()]
+  [(sub-values (cons v_0 v_1))
+   (v_0 v_1)]
+  [(sub-values Λ)
+   ()]
+  [(sub-values (box v_0))
+   (v_0)])
+
+(module+ test
+  ;; TODO
+)
+
