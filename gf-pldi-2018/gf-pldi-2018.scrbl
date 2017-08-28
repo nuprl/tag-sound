@@ -1,9 +1,6 @@
 #lang gf-pldi-2018 @sigplan @anonymous
 
-@title{Modes of Migratory Typing}
-@;@title{Between Soundness and Unsoundness and What it Means for Performance}
-@; k but this title is no longer accurate, it's no longer about soundness
-@; its about "Call-by-Name, Call-by-Value" except its types and there's no names
+@title{Between Soundness and Unsoundness and What it Means for Performance}
 
 @(define NEU
    @affiliation[
@@ -22,19 +19,16 @@
 @; -----------------------------------------------------------------------------
 
 @abstract{
-  Different implementations of gradual typing implement different notions
-   of type soundness.
-  The choice of type soundness affects the performance
-   of gradually typed programs.
+  Typed Racket implements a generalized form type soundness.
+  The run-time cost of enforcing this type soundness is high.
 
-  This paper introduces a modal migratory typing system, @|MMT|, with a generalized
-   notion of type soundness that subsumes the soundnesses of
-   Typed Racket, Reticulated, and TypeScript.
-  Using @|MMT|, a language designer can precisely measure the cost of type
-   soundness in a suite of programs.
-  Furthermore, a programmer can use @|MMT| to trade
-   dynamic type safety for performance.
-  We validate these claims by extending Typed Racket with @|MMT| modalities.
+  Reticulated Python implements tag soundness; a term with the static type
+   @${\tlist(\tint)} can evaluate to any kind of list.
+  The run-time cost of enforcing this type soundness appears significantly
+   lower than the cost of enforcing generalized soundness.
+
+  This paper measures the cost of generalized soundness compared to tag
+   soundness in the context of Typed Racket.
 }
 
 @include-section{introduction.scrbl}
