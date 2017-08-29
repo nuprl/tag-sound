@@ -33,6 +33,25 @@ Primary design goals:
 @;}
 @;]
 
+@section{Approaches}
+
+First idea, check tags when values cross from untyped to typed.
+On imports.
+After calling untyped function.
+Before calling typed function
+Slogan is, @emph{you can trust the tags}.
+
+@; suppose f : T0 -> T1 called from typed code, but not sure about arguments,
+@;  instead of asking T0 about argument,
+@;  could ask T0_f about arguments ... meaning are the parts that f accesses already checked
+@;  OH NO need to know about f transitive closure
+
+Second idea, check tags at the last second.
+Slogan is, @emph{it's just dynamic typing}.
+Only check the boundary between typed code and the runtime.
+Use @${\tau} instead of machine tags to guide checks.
+The benefit is more undefined primop apps, can use to reason about the program.
+
 
 @section{Model, Theorems}
 
