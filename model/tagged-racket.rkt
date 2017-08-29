@@ -41,11 +41,13 @@
 
 (define-language++ TAG #:alpha-equivalent? α=?
 ;; τ = specification language
-  (?τ ::= τ Dyn)
-  (τ ::= k (k τ ...))
-  (k ::= Nat Int Bool Pair → Box)
+  (τ ::= k0 (k1 τ) (k2 τ τ))
+  (k ::= k0 k1 k2)
+  (k0 ::= Nat Int Bool)
+  (k1 ::= Box)
+  (k2 ::= Pair →)
   (K ::= k) ;; types we can check at runtime, O(1)
-  (Γ ::= ((x ?τ) ...))
+  (Γ ::= ((x τ) ...))
 
 ;; v = values
   (v ::= (box x) integer boolean Λ (cons v v))
@@ -56,12 +58,12 @@
 ;;      and embedded untyped terms
   (e ::= v x (e e) (if e e e)
          (let (x e) e)
-         (:: Λ τ)
-         (require (x τ e) e)
+         (:: Λ τ) ;; not allowed in untyped code
+         (require (x τ e) e) ;; not allowed in untyped code
          (unop e) (binop e e))
   (primop ::= unop binop)
-  (binop ::= + * - =)
-  (unop ::= car cdr)
+  (binop ::= + * - = set-box! cons)
+  (unop ::= car cdr make-box unbox)
 
 ;; t = explicitly typed intermediate language, still allows untyped (source) terms
   (t ::= (:: v τ) (:: x τ) (:: (t t) τ) (:: (if t t t) τ)
@@ -75,8 +77,9 @@
   (σ ::= ((x v) ...))
   (E ::= hole (E c) (v E) (if E c c) (let (x E) c) (unop E) (binop E c) (binop v E))
   (RuntimeError ::= (CheckError K v))
-  (A ::= [ρ e] RuntimeError)
+  (A ::= [σ e] RuntimeError)
 
+  (x* ::= (x ...))
   (x ::= variable-not-otherwise-mentioned)
 #:binding-forms
   (let (x e) e_1 #:refers-to x)
@@ -160,7 +163,7 @@
   [(eval# c)
    A_1
    (where A_0 #{load# c})
-   (where A_1 ,(apply-reduction-relation* eval* (term c)))]
+   (where A_1 ,(eval* (term c)))]
   [(eval# c)
    ,(raise-argument-error 'eval# "core term" (term c))])
 
@@ -196,6 +199,10 @@
      [(value-check# [() 4] Bool)
       #false]
      [(value-check# [() (fun f (x) #false)] →)
+      #true]
+     [(value-check# [((x 4)) (box x)] Box)
+      #true]
+     [(value-check# [() (cons 1 1)] Pair)
       #true])
     (void)))
 
@@ -251,7 +258,22 @@
   #:contract (value-check A K)
   [
    ---
-   (value-check A K)])
+   (value-check RuntimeError K)]
+  [
+   ---
+   (value-check [σ (box _)] Box)]
+  [
+   ---
+   (value-check [σ natural] Nat)]
+  [
+   ---
+   (value-check [σ integer] Int)]
+  [
+   ---
+   (value-check [σ Λ] →)]
+  [
+   ---
+   (value-check [σ (cons _ _)] Pair)])
 
 (define-metafunction TAG
   tag# : τ -> K
@@ -264,7 +286,16 @@
   #:contract (tag-of τ K)
   [
    ---
-   (tag-of τ Int)])
+   (tag-of K K)]
+  [
+   ---
+   (tag-of (Box _) Box)]
+  [
+   ---
+   (tag-of (Pair _ _) Pair)]
+  [
+   ---
+   (tag-of (→ _ _) →)])
 
 ;; =============================================================================
 ;; =============================================================================
@@ -278,7 +309,6 @@
   [
    (no-free-variables e)
    (enough-annotations e)
-   (arity-ok e)
    ---
    (well-formed e)])
 
@@ -298,11 +328,18 @@
     )
     (void)))
 
+;; -----------------------------------------------------------------------------
+
 (define-judgment-form TAG
   #:mode (no-free-variables I)
   #:contract (no-free-variables e)
   [
    (free-variables e ())
+   ---
+   (no-free-variables e)]
+  [
+   (free-variables e x*)
+   (side-condition #false)
    ---
    (no-free-variables e)])
 
@@ -310,9 +347,88 @@
   #:mode (free-variables I O)
   #:contract (free-variables e x*)
   [
+   (free-variables x x*)
+   ---
+   (free-variables (box x) x*)]
+  [
+   ---
+   (free-variables integer ())]
+  [
+   ---
+   (free-variables boolean ())]
+  [
+   (where (fun x_f (x) e) Λ)
+   (free-variables e x*_Λ)
+   (where x* ,(set-subtract (term x*_Λ) (term (x_f x))))
+   ---
+   (free-variables Λ x*)]
+  [
+   (free-variables e_0 x*_0)
+   (free-variables e_1 x*_1)
+   (where x* ,(set-union (term x*_0) (term x*_1)))
+   ---
+   (free-variables (cons e_0 e_1) x*)]
+  [
    ---
    (free-variables x (x))]
-)
+  [
+   (free-variables e_0 x*_0)
+   (free-variables e_1 x*_1)
+   (where x* ,(set-union (term x*_0) (term x*_1)))
+   ---
+   (free-variables (e_0 e_1) x*)]
+  [
+   (free-variables e_0 x*_0)
+   (free-variables e_1 x*_1)
+   (free-variables e_2 x*_2)
+   (where x* ,(set-union (term x*_0) (term x*_1) (term x*_2)))
+   ---
+   (free-variables (if e_0 e_1 e_2) x*)]
+  [
+   (free-variables e_0 x*_0)
+   (free-variables e_1 x*_pre1)
+   (where x*_1 ,(set-remove (term x*_pre1) (term x)))
+   (where x* ,(set-union (term x*_0) (term x*_1)))
+   ---
+   (free-variables (let (x e_0) e_1) x*)]
+  [
+   (free-variables Λ x*)
+   ---
+   (free-variables (:: Λ τ) x*)]
+  [
+   (free-variables e_0 x*_0)
+   (free-variables e_1 x*_pre1)
+   (where x*_1 ,(set-remove (term x*_pre1) (term x)))
+   (where x* ,(set-union (term x*_0) (term x*_1)))
+   ---
+   (free-variables (require (x τ e_0) e_1) x*)]
+  [
+   (free-variables e x*)
+   ---
+   (free-variables (unop e) x*)]
+  [
+   (free-variables e_0 x*_0)
+   (free-variables e_1 x*_1)
+   (where x* ,(set-union (term x*_0) (term x*_1)))
+   ---
+   (free-variables (binop e_0 e_1) x*)])
+
+(module+ test
+(parameterize ((*debug* #true))
+  (test-case "closed:basic"
+    (check-not-judgment-holds*
+     (no-free-variables (+ x 5))
+     (no-free-variables (if (= x 1) 1 (* x (fact (- x 1))))))
+    (check-judgment-holds*
+     (no-free-variables 3)
+     (no-free-variables (fun f (x) 2))
+     (no-free-variables (fun f (x) x))
+     (no-free-variables (fun fact (x) (if (= x 1) 1 (* x (fact (- x 1))))))
+     (no-free-variables (let (y (:: (fun f (x) x) (→ Int Int))) (y 4)))
+     (no-free-variables (+ 3 3)))
+    (void))))
+
+;; -----------------------------------------------------------------------------
 
 (define-judgment-form TAG
   #:mode (enough-annotations I)
@@ -327,21 +443,123 @@
   #:contract (enough-annotations/typed e)
   [
    ---
-   (enough-annotations/typed e)])
+   (enough-annotations/typed (box x))]
+  [
+   ---
+   (enough-annotations/typed integer)]
+  [
+   ---
+   (enough-annotations/typed boolean)]
+  [
+   (side-condition #false)
+   ---
+   (enough-annotations/typed Λ)]
+  [
+   (enough-annotations/typed e_0)
+   (enough-annotations/typed e_1)
+   ---
+   (enough-annotations/typed (cons e_0 e_1))]
+  [
+   ---
+   (enough-annotations/typed x)]
+  [
+   (enough-annotations/typed e_0)
+   (enough-annotations/typed e_1)
+   ---
+   (enough-annotations/typed (e_0 e_1))]
+  [
+   (enough-annotations/typed e_0)
+   (enough-annotations/typed e_1)
+   (enough-annotations/typed e_2)
+   ---
+   (enough-annotations/typed (if e_0 e_1 e_2))]
+  [
+   (enough-annotations/typed e_0)
+   (enough-annotations/typed e_1)
+   ---
+   (enough-annotations/typed (let (x e_0) e_1))]
+  [
+   (where (fun x_f (x) e) Λ)
+   (enough-annotations/typed e)
+   ---
+   (enough-annotations/typed (:: Λ τ))]
+  [
+   (enough-annotations/untyped e_0)
+   (enough-annotations/typed e_1)
+   ---
+   (enough-annotations/typed (require (x τ e_0) e_1))]
+  [
+   (enough-annotations/typed e)
+   ---
+   (enough-annotations/typed (unop e))]
+  [
+   (enough-annotations/typed e_0)
+   (enough-annotations/typed e_1)
+   ---
+   (enough-annotations/typed (binop e_0 e_1))])
 
 (define-judgment-form TAG
   #:mode (enough-annotations/untyped I)
   #:contract (enough-annotations/untyped e)
   [
    ---
-   (enough-annotations/untyped e)])
-
-(define-judgment-form TAG
-  #:mode (arity-ok I)
-  #:contract (arity-ok e)
+   (enough-annotations/untyped (box x))]
   [
    ---
-   (arity-ok e)])
+   (enough-annotations/untyped integer)]
+  [
+   ---
+   (enough-annotations/untyped boolean)]
+  [
+   (where (fun x_f (x) e) Λ)
+   (enough-annotations/untyped e)
+   ---
+   (enough-annotations/untyped Λ)]
+  [
+   (enough-annotations/untyped e_0)
+   (enough-annotations/untyped e_1)
+   ---
+   (enough-annotations/untyped (cons e_0 e_1))]
+  [
+   ---
+   (enough-annotations/untyped x)]
+  [
+   (enough-annotations/untyped e_0)
+   (enough-annotations/untyped e_1)
+   ---
+   (enough-annotations/untyped (e_0 e_1))]
+  [
+   (enough-annotations/untyped e_0)
+   (enough-annotations/untyped e_1)
+   (enough-annotations/untyped e_2)
+   ---
+   (enough-annotations/untyped (if e_0 e_1 e_2))]
+  [
+   (enough-annotations/untyped e_0)
+   (enough-annotations/untyped e_1)
+   ---
+   (enough-annotations/untyped (let (x e_0) e_1))]
+  [
+   (enough-annotations/untyped e)
+   ---
+   (enough-annotations/untyped (unop e))]
+  [
+   (enough-annotations/untyped e_0)
+   (enough-annotations/untyped e_1)
+   ---
+   (enough-annotations/untyped (binop e_0 e_1))])
+
+(module+ test
+  (test-case "enough-annotations"
+    (check-judgment-holds*
+     (enough-annotations (+ 1 1))
+     (enough-annotations (:: (fun f (x) x) (→ Int Int)))
+     (enough-annotations (let (x 4) (+ x x)))
+     (enough-annotations (require (x Int ((fun f (x) 1) 0)) x)))
+    (check-not-judgment-holds*
+     (enough-annotations (fun f (x) x))
+     (enough-annotations (let (x (fun f (y) y)) (x 1))))
+    (void)))
 
 ;; =============================================================================
 ;; === misc
