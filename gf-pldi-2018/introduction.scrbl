@@ -1,6 +1,10 @@
 #lang gf-pldi-2018
 @title[#:tag "sec:introduction"]{Introduction}
 
+@; TODO
+@; - where to insert checks --- function? read? context?
+@; - at least one non-machine base type e.g. Natural
+
 A gradual typing system lets programmers trade the proof obligations
  of static typing for the run-time overhead of dynamic typing.
 If a typed context @${C[\cdot]} expects an expression with type @${\tau}, then

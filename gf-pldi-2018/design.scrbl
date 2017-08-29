@@ -7,6 +7,9 @@
 Primary design goals:
 @itemlist[
 @item{
+  re-use Typed Racket type checker,
+}
+@item{
   type-tag soundness,
 }
 @item{
