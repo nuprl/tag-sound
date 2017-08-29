@@ -56,7 +56,8 @@
 ;;      and embedded untyped terms
   (e ::= v x (e e) (if e e e)
          (let (x e) e)
-         (:: Λ τ) (let (x (:: e τ)) e)
+         (:: Λ τ)
+         (require (x τ e) e)
          (unop e) (binop e e))
   (primop ::= unop binop)
   (binop ::= + * - =)
@@ -65,7 +66,7 @@
 ;; t = explicitly typed intermediate language, still allows untyped (source) terms
   (t ::= (:: v τ) (:: x τ) (:: (t t) τ) (:: (if t t t) τ)
          (:: (let (x t) t) τ)
-         (:: (let (x e) t) τ)
+         (:: (require (x τ e) t) τ)
          (:: (unop t) τ)
          (:: (binop t t) τ))
 
@@ -79,10 +80,10 @@
   (x ::= variable-not-otherwise-mentioned)
 #:binding-forms
   (let (x e) e_1 #:refers-to x)
-  (let (x (:: e τ)) e_1 #:refers-to x)
+  (require (x τ e) e_1 #:refers-to x)
   (fun x_f (x) e #:refers-to (shadow x_f x))
   (:: (let (x t) t_1 #:refers-to x) τ)
-  (:: (let (x e) t_1 #:refers-to x) τ)
+  (:: (require (x τ_x e) t_1 #:refers-to x) τ)
   (let (x c) c_1 #:refers-to x))
 
 ;; =============================================================================
@@ -91,6 +92,7 @@
   theorem:type-soundness : e -> boolean
   [(theorem:type-soundness e)
    boolean_sound
+   (judgment-holds (well-formed e))
    (where (:: t τ) #{type-check# e})
    (where c #{completion# t})
    (where A #{eval# c})
@@ -270,7 +272,76 @@
 ;; =============================================================================
 ;; === grammar
 
-;; TODO
+(define-judgment-form TAG
+  #:mode (well-formed I)
+  #:contract (well-formed e)
+  [
+   (no-free-variables e)
+   (enough-annotations e)
+   (arity-ok e)
+   ---
+   (well-formed e)])
+
+(module+ test
+  (test-case "well-formed:basic"
+    (check-judgment-holds*
+     (well-formed (+ 2 2))
+     (well-formed (:: (fun f (x) 2) (→ Int Int)))
+     (well-formed (let (x (:: (fun f (x) 2) (→ Int Int))) x))
+     (well-formed (require (x (→ Int Int) (fun f (x) 2)) x))
+    )
+    (check-not-judgment-holds*
+     (well-formed (+ x 2))
+     (well-formed (fun f (x) 2))
+     (well-formed (let (x (fun f (x) 2)) x))
+     (well-formed (require (x (→ Int Int) (:: (fun f (x) 2) (→ Int Int))) x))
+    )
+    (void)))
+
+(define-judgment-form TAG
+  #:mode (no-free-variables I)
+  #:contract (no-free-variables e)
+  [
+   (free-variables e ())
+   ---
+   (no-free-variables e)])
+
+(define-judgment-form TAG
+  #:mode (free-variables I O)
+  #:contract (free-variables e x*)
+  [
+   ---
+   (free-variables x (x))]
+)
+
+(define-judgment-form TAG
+  #:mode (enough-annotations I)
+  #:contract (enough-annotations e)
+  [
+   (enough-annotations/typed e)
+   ---
+   (enough-annotations e)])
+
+(define-judgment-form TAG
+  #:mode (enough-annotations/typed I)
+  #:contract (enough-annotations/typed e)
+  [
+   ---
+   (enough-annotations/typed e)])
+
+(define-judgment-form TAG
+  #:mode (enough-annotations/untyped I)
+  #:contract (enough-annotations/untyped e)
+  [
+   ---
+   (enough-annotations/untyped e)])
+
+(define-judgment-form TAG
+  #:mode (arity-ok I)
+  #:contract (arity-ok e)
+  [
+   ---
+   (arity-ok e)])
 
 ;; =============================================================================
 ;; === misc
