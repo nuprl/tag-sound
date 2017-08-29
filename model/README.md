@@ -1,6 +1,31 @@
 model
 ===
 
+Note from Matthias:
+
+> Two thoughts on the theoretical underpinnings; please contemplate while away: 
+>
+> 1. The type system of our model for Transient GTLC must include ONE type that
+> shows that Raw GTLC (rip types out) does NOT preserve a subject reduction
+> theorem. That is, there are places where the typed-predicted value of an
+> expression does NOT include the actual value (say, natural : type vs -5 :
+> actual). That way we can claim that Transient is a first confirmed point
+> between Sound and NOT Sound.
+>
+> 2. Ideally we should have something like this for Generalized GTLC vs
+> Transient GTLC. I think in a sense Transient fails like Raw BUT catches all
+> abuses IF an observation takes place.
+>
+> Literature: please read introduction to Cartwright’s Constructive Data Type
+> Definitions. It discusses final vs initial algebraic semantics best. You may
+> also wish to read Felleisen-Wand ’88 from that perspective (skip all details
+> about continuations).
+>
+> Title: Soundness is Not Binary. Or: Between Soundness and Unsoundness and
+> What It Means for Performance.
+
+
+
 Model of:
 - Racket
 - Tag-Sound Typed Racket (shallow)
