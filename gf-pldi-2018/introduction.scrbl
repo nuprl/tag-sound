@@ -19,69 +19,57 @@ For example, let @${f} be a function that increments the first element in a
 @;
  @exact|{$$f = \vlam{(xs : \tlist(\tint))}{(\efst{xs}) + 1}$$}|
 @;
-There are at least three ways to check whether untyped arguments to this
+There are at least two ways to check whether untyped arguments to this
  function behave as values with type @$|{\tlist(\tint)}|.
+One way is to @emph{eagerly} check that the actual parameter @${xs} is a list
+ and that its elements are all integers.
+A second way is to @emph{lazily} check the types; for example,
+ by (1) checking that @${xs} is a list before evaluating the body of the function
+ and (2) checking that the return value of @${\efst{xs}} is an integer.
 
-One approach is to eagerly check that the argument is a list that only contains
- strings.
-Thus the calls @${(f~``NaN'')} and @${(f~[1, ``NaN''])} result in dynamic type errors.
-This is faithful to Reynold's notion of static typing@~cite[r-ip-1983],
- but adds linear-time overhead to the constant-time function.
-Typed Racket@~cite[thf-popl-2008] implements this approach.
+@; TODO tr and retic also differ in terms of type errors
 
-A second approach is to eagerly check that the argument is a list,
- but delay checking its elements until they are accessed.
-Under this semantics, the call @${(f~[``NaN''])} fails with a dynamic type error
- and the call @${(f~[1, ``NaN''])} succeeds.
-Reticulated implements this approach@~cite[vss-popl-2017].
+Typed Racket implements the first approach, and ensures a generalized form
+ of type soundness@~cite[tfffgksst-snapl-2017].
+In short, if the expression @${e} has the static type @${\tau} and reduces
+ to a value @${v}, then @${v} is of type @${\tau}.
 
-A third approach is to ignore the type annotation.
-TypeScript implements this approach@~cite[bat-ecoop-2014].
-The TypeScript semantics of @${(f~``NaN'')} is the JavaScript semantics of
- the type-erased program.
+Reticulated implements the second approach and ensures type-tag soundness@~cite[vss-popl-2017].
+If @${e} has the static type @${\tau} and reduces to a value @${v}, then
+ @${v} is of type @${\tagof{\tau}}.
+For example, @${\tagof{\tlist{\tau}}} is @${\tlist} and
+ @${\tagof{\tarrow \tau_0~\tau_1}} is @${\tarrow}, you know?
 
-Naturally, the semantics of dynamic typing affects the performance of
- gradually typed programs.
-Typed Racket's "eager" semantics can slow programs by two or more orders of
- magnitude@~cite[tfgnvf-popl-2016], but the compiler can use type information
- to generate more efficient code@~cite[sthff-padl-2012].
-Reticulated's "lazy" semantics typically adds no more than one order of
- magnitude@~cite[gm-tr-2017]; it remains to be seen whether Reticulated can
- implement safe, type-based optimizations.
-TypeScript's "absent" types have no effect on performance.
+Based on two ad-hoc performance evaluations, the performance of Typed Racket
+ and Reticulated is very different.
+The performance overhead of gradual typing in Typed Racket can be two orders
+ of magnitude or more@~cite[tfgnvf-popl-2016 greenman-jfp-2017].
+The performance overhead of gradual typing in Reticulated is apparently within
+ one order of magnitude no matter how the programmer mixes statically typed
+ and dynamically typed code@~cite[gm-tr-2017].
 
-Since the choice of how to dynamically enforce types has non-trivial implications
- for performance (and debugging), language designers should give programmers
- the freedom to choose their semantics.
-We do this by extending the syntax of types, @${\tau}, with two modalities:
- an @emph{eager} modality @${\mnow},
- a @emph{lazy} modality @${\mlater}.
-In terms of the example above:
- the type @${\tlist^\mnow(\tint^\mnow)} eagerly checks any dynamically typed arguments;
- the type @${\tlist^\mnow(\tint^\mlater)} eagerly checks list-ness, but delays checking list elements;
- and the type @${\tlist^\mlater(\tint^\mlater)} has no run-time cost.
-
-This works for finite, read-only values.
-For higher-order values, one must decide whether to @emph{locally check} or
- @emph{globally monitor} the value.
-To distinguish global monitors, we introduce a third modality @${\mnowm};
- for example, the type @${(\tarrow^\mnowm\tau_0~\tau_1)} denotes a wrapper.
-
-Contributions:
+These evaluations suggest that exchanging type soundness for tag soundness
+ could drastically improve the performance of Typed Racket.
+This paper provides an answer; contributions:
 @itemlist[
 @item{
-  Equip types with modalities that describe dynamic type-checking strategies;
-   generalize the soundness theorems
-   of Typed Racket, Reticulated, StrongScript@~cite[rnv-ecoop-2015], and TypeScript.
+  design principles for tag-sound gradual typing,
 }
 @item{
-  A two-part performance evaluation: (1) comparing the cost of established type soundnesses
-   (e.g. TR's generalized soundness vs. Reticulated's tag soundness), and
-   (2) demonstrating how to systematically change modalities to improve performance.
+  performance evaluation of tag-soundness for Racket (Tagged Racket),
 }
 ]
 
-@bold{Note:} we say "migratory typing"@~cite[tfffgksst-snapl-2017]
- because the type system does not include a dynamic type or a type consistency
- relation.
-@; Our focus is integrating statically checked code and dynamically checked code.
+An open question is whether programmers will accept tag soundness as an
+ alternative to type soundness for reasoning about the correctness of their
+ programs.
+
+This paper is organized as follows.
+@Section-ref{sec:background} outlines the general problem of implementing a
+ performant gradual type system, and compares the particular approaches taken by
+ Typed Racket and Reticulated.
+@Section-ref{sec:design} lists our design goals for tag-sound gradual
+ typing and presents a formal model.
+@Section-ref{sec:evaluation} compares the performance of Tagged Racket
+ to Typed Racket.
+@Section-ref{sec:conclusion} concludes.
