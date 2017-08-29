@@ -14,6 +14,8 @@
 ;; Soundness = tag soundness
 
 ;; TODO
+;; - support Nat types
+;; - polymorphic primitives
 ;; - blame for dynamic checks
 ;; - remove unnecessary checks
 ;; - optimize
@@ -67,6 +69,7 @@
 
 ;; t = explicitly typed intermediate language, still allows untyped (source) terms
   (t ::= (:: v τ) (:: x τ) (:: (t t) τ) (:: (if t t t) τ)
+         (:: (fun x (x) t) τ)
          (:: (let (x t) t) τ)
          (:: (require (x τ e) t) τ)
          (:: (unop t) τ)
@@ -118,7 +121,7 @@
   type-check# : e -> (:: t τ)
   [(type-check# e)
    (:: t τ)
-   (judgment-holds (type-check e (:: t τ)))
+   (judgment-holds (type-check () e (:: t τ)))
    (side-condition (term #{sound-elaboration# e (:: t τ)}))]
   [(type-check# e)
    ,(raise-argument-error 'type-check# "well-typed expression" (term e))])
@@ -210,16 +213,82 @@
 ;; === type check
 
 (define-judgment-form TAG
-  #:mode (type-check I O)
-  #:contract (type-check e t)
+  #:mode (type-check I I O)
+  #:contract (type-check Γ e t)
   [
    ---
-   (type-check e (:: 0 Int))])
+   (type-check Γ integer (:: integer Int))]
+  [
+   ---
+   (type-check Γ boolean (:: boolean Bool))]
+  [
+   (where (fun x_f (x) e) Λ)
+   (where Γ_f #{type-env-set Γ (x_f (→ τ_0 τ_1))})
+   (where Γ_x #{type-env-set Γ_f (x τ_0)})
+   (type-check Γ_x e (:: t τ_1))
+   (where t_Λ (:: (fun x_f (x) (:: t τ_1)) (→ τ_0 τ_1)))
+   ---
+   (type-check Γ (:: Λ (→ τ_0 τ_1)) t_Λ)]
+  [
+   (where τ #{type-env-ref Γ x})
+   ---
+   (type-check Γ x (:: x τ))]
+  [
+   (type-check Γ e_0 t_0)
+   (type-check Γ e_1 t_1)
+   (where (→ τ_dom τ_cod) #{type-annotation t_0})
+   (where τ_dom #{type-annotation t_1})
+   ---
+   (type-check Γ (e_0 e_1) (:: (t_0 t_1) τ_cod))]
+  [
+   (type-check Γ e_0 t_0)
+   (type-check Γ e_1 t_1)
+   (type-check Γ e_2 t_2)
+   (where τ #{type-annotation t_1})
+   (where τ #{type-annotation t_2})
+   ---
+   (type-check Γ (if e_0 e_1 e_2) (:: (if t_0 t_1 t_2) τ))]
+  [
+   (type-check Γ e_x t_x)
+   (where τ_x #{type-annotation t_x})
+   (where Γ_x #{type-env-set Γ (x τ_x)})
+   (type-check Γ_x e_1 (:: t_1 τ_1))
+   ---
+   (type-check Γ (let (x e_x) e_1) (:: (let (x t_x) t_1) τ_1))]
+  [
+   (where Γ_x #{type-env-set Γ (x τ_x)})
+   (type-check Γ_x e (:: t τ))
+   ---
+   (type-check Γ (require (x τ_x e_x) e) (:: (require (x τ_x e_x) t) τ))]
+  [
+   (where (→ τ_dom τ_cod) #{primop-type unop})
+   (type-check Γ e t)
+   (where τ_dom #{type-annotation t})
+   ---
+   (type-check Γ (unop e) (:: (unop t) τ_cod))]
+  [
+   (where (→ τ_dom0 (→ τ_dom1 τ_cod)) #{primop-type binop})
+   (type-check Γ e_0 t_0)
+   (type-check Γ e_1 t_1)
+   (where τ_dom0 #{type-annotation t_0})
+   (where τ_dom1 #{type-annotation t_1})
+   ---
+   (type-check Γ (binop e_0 e_1) (:: (binop t_0 t_1) τ_cod))])
 
 (define-metafunction TAG
   sound-elaboration# : e t -> boolean
   [(sound-elaboration# e t)
-   ,(raise-user-error 'sound-elaboration# "undefined")])
+   ,(equal? (term #{erase-types# e})
+            (term #{erase-types# t}))])
+
+(define-metafunction TAG
+  erase-types# : any -> e
+  [(erase-types# (:: any τ))
+   #{erase-types# any}]
+  [(erase-types# (any ...))
+   (#{erase-types# any} ...)]
+  [(erase-types# any)
+   #{erase-types# any}])
 
 ;; =============================================================================
 ;; === completion
@@ -562,7 +631,47 @@
     (void)))
 
 ;; =============================================================================
-;; === misc
+;; === misc / helpers / util
+
+(define-metafunction TAG
+  type-env-ref : Γ x -> τ
+  [(type-env-ref Γ x)
+   ,(or
+      (for/first ([xt (in-list (term Γ))]
+                  #:when (equal? (term x) (car xt)))
+        (cadr xt))
+      (raise-arguments-error 'type-env-ref "unbound variable" "var" (term x) "env" (term Γ)))])
+
+(define-metafunction TAG
+  type-env-set : Γ (x τ) -> Γ
+  [(type-env-set Γ (x τ))
+   ,(cons (term (x τ)) (term Γ))])
+
+(define-metafunction TAG
+  type-annotation : t -> τ
+  [(type-annotation (:: _ τ))
+   τ])
+
+(define-metafunction TAG
+  primop-type : primop -> τ
+  [(primop-type +)
+   (→ Int (→ Int Int))]
+  [(primop-type -)
+   (→ Int (→ Int Int))]
+  [(primop-type *)
+   (→ Int (→ Int Int))]
+  [(primop-type =)
+   (→ Int (→ Int Bool))]
+  [(primop-type set-box!)
+   (→ (Box Int) (→ Int Void))]
+  [(primop-type car)
+   (→ (Pair Int Int) Int)]
+  [(primop-type cdr)
+   (→ (Pair Int Int) Int)]
+  [(primop-type make-box)
+   (→ Int (Box Int))]
+  [(primop-type unbox)
+   (→ (Box Int) Int)])
 
 ;; =============================================================================
 ;; === test
