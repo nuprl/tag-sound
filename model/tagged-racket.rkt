@@ -64,8 +64,8 @@
          (require (x τ e) e) ;; not allowed in untyped code
          (unop e) (binop e e))
   (primop ::= unop binop)
-  (binop ::= + * - = set-box! cons)
   (unop ::= car cdr make-box unbox)
+  (binop ::= + * - = set-box! cons)
 
 ;; t = explicitly typed intermediate language, still allows untyped (source) terms
   (t ::= (:: v τ) (:: x τ) (:: (t t) τ) (:: (if t t t) τ)
@@ -88,8 +88,9 @@
   (let (x e) e_1 #:refers-to x)
   (require (x τ e) e_1 #:refers-to x)
   (fun x_f (x) e #:refers-to (shadow x_f x))
-  (:: (let (x t) t_1 #:refers-to x) τ)
-  (:: (require (x τ_x e) t_1 #:refers-to x) τ)
+  (fun x_f (x) t #:refers-to (shadow x_f x))
+  (let (x t) t_1 #:refers-to x)
+  (require (x τ_x e) t_1 #:refers-to x)
   (let (x c) c_1 #:refers-to x))
 
 ;; =============================================================================
@@ -99,7 +100,8 @@
   [(theorem:type-soundness e)
    boolean_sound
    (judgment-holds (well-formed e))
-   (where (:: t τ) #{type-check# e})
+   (where t #{type-check# e})
+   (where τ #{type-annotation t})
    (where c #{completion# t})
    (where A #{eval# c})
    (where K #{tag# τ})
@@ -118,11 +120,11 @@
 ;; -----------------------------------------------------------------------------
 
 (define-metafunction TAG
-  type-check# : e -> (:: t τ)
+  type-check# : e -> t
   [(type-check# e)
-   (:: t τ)
-   (judgment-holds (type-check () e (:: t τ)))
-   (side-condition (term #{sound-elaboration# e (:: t τ)}))]
+   t
+   (judgment-holds (type-check () e t))
+   (judgment-holds (sound-elaboration e t))]
   [(type-check# e)
    ,(raise-argument-error 'type-check# "well-typed expression" (term e))])
 
@@ -225,8 +227,9 @@
    (where (fun x_f (x) e) Λ)
    (where Γ_f #{type-env-set Γ (x_f (→ τ_0 τ_1))})
    (where Γ_x #{type-env-set Γ_f (x τ_0)})
-   (type-check Γ_x e (:: t τ_1))
-   (where t_Λ (:: (fun x_f (x) (:: t τ_1)) (→ τ_0 τ_1)))
+   (type-check Γ_x e t)
+   (where τ_1 #{type-annotation t})
+   (where t_Λ (:: (fun x_f (x) t) (→ τ_0 τ_1)))
    ---
    (type-check Γ (:: Λ (→ τ_0 τ_1)) t_Λ)]
   [
@@ -252,12 +255,14 @@
    (type-check Γ e_x t_x)
    (where τ_x #{type-annotation t_x})
    (where Γ_x #{type-env-set Γ (x τ_x)})
-   (type-check Γ_x e_1 (:: t_1 τ_1))
+   (type-check Γ_x e_1 t_1)
+   (where τ_1 #{type-annotation t_1})
    ---
    (type-check Γ (let (x e_x) e_1) (:: (let (x t_x) t_1) τ_1))]
   [
    (where Γ_x #{type-env-set Γ (x τ_x)})
-   (type-check Γ_x e (:: t τ))
+   (type-check Γ_x e t)
+   (where τ #{type-annotation t})
    ---
    (type-check Γ (require (x τ_x e_x) e) (:: (require (x τ_x e_x) t) τ))]
   [
@@ -275,20 +280,89 @@
    ---
    (type-check Γ (binop e_0 e_1) (:: (binop t_0 t_1) τ_cod))])
 
-(define-metafunction TAG
-  sound-elaboration# : e t -> boolean
-  [(sound-elaboration# e t)
-   ,(equal? (term #{erase-types# e})
-            (term #{erase-types# t}))])
+(define-judgment-form TAG
+  #:mode (sound-elaboration I I)
+  #:contract (sound-elaboration e t)
+  [
+   (where any_0 #{erase-types# e})
+   (where any_1 #{erase-types# t})
+   (side-condition ,(α=? (term any_0) (term any_1)))
+   ---
+   (sound-elaboration e t)])
 
 (define-metafunction TAG
-  erase-types# : any -> e
+  erase-types# : any -> any
   [(erase-types# (:: any τ))
    #{erase-types# any}]
   [(erase-types# (any ...))
    (#{erase-types# any} ...)]
   [(erase-types# any)
-   #{erase-types# any}])
+   any])
+
+(module+ test
+  (check α=?
+    (term (:: (fun f (x) (:: x (Box Int))) (→ (Box Int) (Box Int))))
+    (term (:: (fun f (x) (:: x (Box Int))) (→ (Box Int) (Box Int)))))
+
+  (test-case "type-check"
+    (check-mf-apply* #:is-equal? α=?
+     [(type-check# 4)
+      (:: 4 Int)]
+     [(type-check# #false)
+      (:: #false Bool)]
+     [(type-check# #true)
+      (:: #true Bool)]
+     [(type-check# (:: (fun f (x) x) (→ (Box Int) (Box Int))))
+      (:: (fun f (x) (:: x (Box Int))) (→ (Box Int) (Box Int)))]
+     ;[(type-check# (:: (fun f (x) x) (→ (Box Bool) (Box Bool))))
+     ; (:: (fun f (x) (:: x (Box Bool))) (→ (Box Bool) (Box Bool)))]
+     [(type-check# (cons 1 1))
+      (:: (cons (:: 1 Int) (:: 1 Int)) (Pair Int Int))]
+     [(type-check# ((:: (fun f (x) 4) (→ Int Int)) 3))
+      (:: ((:: (fun f (x) (:: 4 Int)) (→ Int Int)) (:: 3 Int)) Int)]
+     [(type-check# (if 1 2 3))
+      (:: (if (:: 1 Int) (:: 2 Int) (:: 3 Int)) Int)]
+     [(type-check# (let (x 4) x))
+      (:: (let (x (:: 4 Int)) (:: x Int)) Int)]
+     [(type-check# (require (x Int 1) x))
+      (:: (require (x Int 1) (:: x Int)) Int)]
+     [(type-check# (car (cons 1 2)))
+      (:: (car (:: (cons (:: 1 Int) (:: 2 Int)) (Pair Int Int))) Int)]
+     [(type-check# (cdr (cons 2 1)))
+      (:: (cdr (:: (cons (:: 2 Int) (:: 1 Int)) (Pair Int Int))) Int)]
+     [(type-check# (make-box 3))
+      (:: (make-box (:: 3 Int)) (Box Int))]
+     [(type-check# (unbox (make-box 3)))
+      (:: (unbox (:: (make-box (:: 3 Int)) (Box Int))) Int)]
+     [(type-check# (+ 1 1))
+      (:: (+ (:: 1 Int) (:: 1 Int)) Int)]
+     [(type-check# (- 1 1))
+      (:: (- (:: 1 Int) (:: 1 Int)) Int)]
+     [(type-check# (* 1 1))
+      (:: (* (:: 1 Int) (:: 1 Int)) Int)]
+     [(type-check# (= 1 1))
+      (:: (= (:: 1 Int) (:: 1 Int)) Bool)]
+     [(type-check# (set-box! (make-box 2) 3))
+      (:: (set-box! (:: (make-box (:: 2 Int)) (Box Int)) (:: 3 Int)) Int)])
+    (void))
+
+  (test-case "sound-elaboration"
+    (check-judgment-holds*
+     (sound-elaboration 4 (:: 4 Int))
+     (sound-elaboration (:: (fun f (x) x) (→ Int Int))
+                        (:: (fun f (x) (:: x Int)) (→ Int Int)))
+     (sound-elaboration (+ 2 2) (:: (+ (:: 2 Int) (:: 2 Int)) Int))
+     (sound-elaboration (make-box 3) (:: (make-box (:: 3 Int)) (Box Int))))
+    (void))
+
+  (test-case "erase-types"
+    (check-mf-apply* #:is-equal? α=?
+     [(erase-types# (:: 3 Int))
+      3]
+     [(erase-types# (:: (fun f (x) (:: 4 Int)) (→ Int Int)))
+      (fun f (x) 4)])
+    (void))
+)
 
 ;; =============================================================================
 ;; === completion
@@ -483,7 +557,6 @@
    (free-variables (binop e_0 e_1) x*)])
 
 (module+ test
-(parameterize ((*debug* #true))
   (test-case "closed:basic"
     (check-not-judgment-holds*
      (no-free-variables (+ x 5))
@@ -495,7 +568,7 @@
      (no-free-variables (fun fact (x) (if (= x 1) 1 (* x (fact (- x 1))))))
      (no-free-variables (let (y (:: (fun f (x) x) (→ Int Int))) (y 4)))
      (no-free-variables (+ 3 3)))
-    (void))))
+    (void)))
 
 ;; -----------------------------------------------------------------------------
 
@@ -663,7 +736,9 @@
   [(primop-type =)
    (→ Int (→ Int Bool))]
   [(primop-type set-box!)
-   (→ (Box Int) (→ Int Void))]
+   (→ (Box Int) (→ Int Int))]
+  [(primop-type cons)
+   (→ Int (→ Int (Pair Int Int)))]
   [(primop-type car)
    (→ (Pair Int Int) Int)]
   [(primop-type cdr)
