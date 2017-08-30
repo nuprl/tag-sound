@@ -27,6 +27,7 @@
   redex/reduction-semantics
   redex-abbrevs
   redex-abbrevs/unstable
+  (only-in racket/list partition remove-duplicates)
   (only-in racket/string string-split))
 
 (define *debug* (make-parameter #f))
@@ -51,7 +52,8 @@
   (k2 ::= Pair →)
   (K ::= k) ;; types we can check at runtime, O(1)
   (Γ ::= ((x τ) ...))
-  (Σ ::= ((α τ*) ...)) ;; constraints
+  (Σ ::= (subst ...)) ;; constraints
+  (subst ::= (α τ*))
   (τ* ::= (τ ...))
 
 ;; v = values
@@ -84,7 +86,8 @@
   (c ::= v Λc x (c c) (if c c c) (let (x c) c) (unop c) (binop c c) (cons c c) (check K c))
   (Λc ::= (fun x (x) c))
   (vc ::= v Λc)
-  (σ ::= ((x vc) ...))
+  (σ ::= (csub ...))
+  (csub ::= (x vc))
   (E ::= hole (E c) (vc E) (if E c c) (let (x E) c) (unop E) (binop E c) (binop vc E) (cons E c) (cons vc E) (check K E))
   (RuntimeError ::= (CheckError K vc))
   (A ::= [σ c] RuntimeError)
@@ -93,7 +96,7 @@
   (α* ::= (α ...))
   (x α ::= variable-not-otherwise-mentioned)
 #:binding-forms
-  (∀ (α) τ #:refers-to α)
+  ;;(∀ (α) τ #:refers-to α)
   (let (x e) e_1 #:refers-to x)
   (require (x τ e) e_1 #:refers-to x)
   (fun x_f (x) e #:refers-to (shadow x_f x))
@@ -351,68 +354,18 @@
 
 (define-metafunction TAG
   apply-substitution : Σ τ -> τ
-  [(apply-substitution Σ τ)
+  [(apply-substitution Σ τ_α)
    #{apply-type-environment Γ τ}
-   (where Γ #{substitution-resolve Σ})])
+   (where Γ #{substitution-resolve Σ})
+   (where τ #{strip-∀ τ_α})])
 
+;; TODO remove this
 (define-metafunction TAG
-  unifying-substitution : Σ τ τ -> Σ
-  [(unifying-substitution Σ α τ_1)
-   #{substitution-update Σ α τ_1}]
-  [(unifying-substitution Σ τ_0 α)
-   #{substitution-update Σ α τ_0}]
-  [(unifying-substitution Σ (k1 τ_0) (k1 τ_1))
-   #{unifying-substitution Σ τ_0 τ_1}]
-  [(unifying-substitution Σ (k2 τ_dom0 τ_cod1) (k2 τ_dom1 τ_cod1))
-   Σ_1
-   (where Σ_0 #{unifying-substitution Σ τ_dom0 τ_dom1})
-   (where Σ_1 #{unifying-substitution Σ_0 τ_cod0 τ_cod1})]
-  [(unifying-substitution Σ (∀ (α) τ_0) τ_1)
-   #{unifying-substitution Σ_0 τ_0 τ_1}
-   (where Σ_0 #{substitution-add Σ α})]
-  [(unifying-substitution Σ τ_0 (∀ (α) τ_1))
-   #{unifying-substitution Σ_1 τ_0 τ_1}
-   (where Σ_1 #{substitution-add Σ α})]
-  [(unifying-substitution Σ τ_0 τ_1)
-   ,(raise-arguments-error 'unify "unifiable types" "τ0" (term τ_0) "τ1" (term τ_1))])
-
-(define-metafunction TAG
-  apply-type-environment : Γ τ -> τ
-  [(apply-type-environment () τ)
-   τ] ;; TODO check closed?
-  [(apply-type-environment ((α_0 τ_0) (α_rest τ_rest) ...) τ)
-   (apply-type-environment ((α_rest τ_rest) ...) (substitute τ α_0 τ_0))])
-
-;; Solve a system of unification constraints
-(define-metafunction TAG
-  substitution-resolve : Σ -> Γ
-  [(substitution-resolve Σ)
-   ,(error 'dieee)])
-
-(define-metafunction TAG
-  substitution-add : Σ α -> Σ
-  [(substitution-add Σ α)
-   ,(cons (term (α ())) (term Σ))])
-
-(define-metafunction TAG
-  substitution-pop : Σ -> ((α τ) Σ)
-  [(substitution-pop Σ)
-   ,(cons (car (term Σ)) (cdr (term Σ)))])
-
-(define-metafunction TAG
-  substitution-update : Σ α τ -> Σ
-  [(substitution-update Σ α τ)
-   ,(let* ([success? (box #f)]
-           [Σ+ (for/list ([at (in-list (term Σ))])
-                 (if (equal? (car at) (term α))
-                   (begin
-                     (set-box! success? #true)
-                     (cons (car at) (set-add (cadr at) (term τ))))
-                   at))])
-      (if (unbox success?)
-        Σ+
-        (raise-arguments-error 'substitution-update "unbound variable" "var" (term α) "Σ" (term Σ))))])
-
+  strip-∀ : τ -> τ
+  [(strip-∀ (∀ (α) τ))
+   (strip-∀ τ)]
+  [(strip-∀ τ)
+   τ])
 
 ;; =============================================================================
 ;; === completion
@@ -467,13 +420,12 @@
    (completion (:: (require (x τ_x e_x) t) _) (let (x (check K c_x)) c))]
   [
    (completion t c)
-   (where (→ _ τ_cod) #{primop-type unop})
    (where K #{tag# τ_cod})
    (where c_check ,(if (judgment-holds (eliminator unop))
                      (term (check K (unop c)))
                      (term (unop c))))
    ---
-   (completion (:: (unop t) _) c_check)]
+   (completion (:: (unop t) τ_cod) c_check)]
   [
    (completion t_0 c_0)
    (completion t_1 c_1)
@@ -971,6 +923,87 @@
 ;; === misc / helpers / util
 
 (define-metafunction TAG
+  unifying-substitution : Σ τ τ -> Σ
+  [(unifying-substitution Σ α τ_1)
+   #{substitution-update Σ α τ_1}]
+  [(unifying-substitution Σ τ_0 α)
+   #{substitution-update Σ α τ_0}]
+  [(unifying-substitution Σ (k1 τ_0) (k1 τ_1))
+   #{unifying-substitution Σ τ_0 τ_1}]
+  [(unifying-substitution Σ (k2 τ_dom0 τ_cod1) (k2 τ_dom1 τ_cod1))
+   Σ_1
+   (where Σ_0 #{unifying-substitution Σ τ_dom0 τ_dom1})
+   (where Σ_1 #{unifying-substitution Σ_0 τ_cod0 τ_cod1})]
+  [(unifying-substitution Σ (∀ (α) τ_0) τ_1)
+   #{unifying-substitution Σ_0 τ_0 τ_1}
+   (where Σ_0 #{substitution-add Σ α})]
+  [(unifying-substitution Σ τ_0 (∀ (α) τ_1))
+   #{unifying-substitution Σ_1 τ_0 τ_1}
+   (where Σ_1 #{substitution-add Σ α})]
+  [(unifying-substitution Σ τ_0 τ_1)
+   ,(raise-arguments-error 'unify "cannot unify types" "τ0" (term τ_0) "τ1" (term τ_1))])
+
+(define-metafunction TAG
+  apply-type-environment : Γ τ -> τ
+  [(apply-type-environment () τ)
+   τ] ;; TODO check closed?
+  [(apply-type-environment ((α_0 τ_0) (α_rest τ_rest) ...) τ)
+   (apply-type-environment ((α_rest τ_rest) ...) (substitute τ α_0 τ_0))])
+
+;; Solve a system of unification constraints
+;; - Σ = [α ↦ (α ... τ ...)]
+;; - find [α ↦ (τ)], add to Γ, substitute for α in Σ
+;; - repeat
+(define-metafunction TAG
+  substitution-resolve : Σ -> Γ
+  [(substitution-resolve Σ_0)
+   ,(let loop ([Γ '()]
+               [Σ (term Σ_0)])
+      (cond
+       [(null? Σ)
+        Γ]
+       [else
+        (define-values [Γ+ Σ+]
+          (for/fold ([Γ+ Γ] [Σ+ '()])
+                    ([at* (in-list Σ)])
+            (define a (car at*))
+            (define t* (cadr at*))
+            (define-values [vars types] (partition α? t*))
+            (cond
+             [(null? t*)
+              (values Γ+ Σ+)]
+             [(andmap (λ (v) (assoc v Γ)) vars) ;; then we have solution for α
+              (define all-types
+                (remove-duplicates
+                  (for/fold ([acc types])
+                            ([v (in-list vars)])
+                    (cons (term #{type-env-ref ,Γ ,v}) acc))))
+              (when (or (null? all-types) (not (null? (cdr all-types))))
+                (raise-argument-error 'substitution-resolve "unsolvable constraints" (term Σ_0)))
+              (values (cons (list a (car all-types)) Γ+) Σ+)]
+             [else
+              (values Γ+ (cons at* Σ+))])))
+        (loop Γ+ Σ+)]))])
+
+(define-metafunction TAG
+  substitution-add : Σ α -> Σ
+  [(substitution-add Σ α)
+   ,(cons (term (α ())) (term Σ))])
+
+(define-metafunction TAG
+  substitution-pop : Σ -> ((α τ) Σ)
+  [(substitution-pop Σ)
+   ,(cons (car (term Σ)) (cdr (term Σ)))])
+
+(define-metafunction TAG
+  substitution-update : Σ α τ -> Σ
+  [(substitution-update Σ α τ)
+   (subst_pre ... (α ,(set-add (term τ*) (term τ))) subst_post ...)
+   (where (subst_pre ... (α τ*) subst_post ...) Σ)]
+  [(substitution-update Σ α τ)
+   ,(raise-arguments-error 'substitution-update "unbound variable" "var" (term α) "Σ" (term Σ))])
+
+(define-metafunction TAG
   type-env-ref : Γ x -> τ
   [(type-env-ref Γ x)
    ,(or
@@ -1065,14 +1098,10 @@
 (define-metafunction TAG
   runtime-env-update : σ (x vc) -> σ
   [(runtime-env-update σ (x vc))
-   ,(let* ([success? (box #f)]
-           [σ+ (for/list ([xv (in-list (term σ))])
-                 (if (equal? (term x) (car xv))
-                   (begin (set-box! success? #true) (term (x vc)))
-                   xv))])
-      (if (unbox success?)
-        σ+
-        (raise-arguments-error 'runtime-env-update "unbound variable" "var" (term x) "env" (term σ))))])
+   (csub_pre ... (x vc) csub_post ...)
+   (where (csub_pre ... (x _) csub_post ...) σ)]
+  [(runtime-env-update σ (x vc))
+   ,(raise-arguments-error 'runtime-env-update "unbound variable" "var" (term x) "env" (term σ))])
 
 (define-metafunction TAG
   fresh-location : σ -> x
@@ -1151,6 +1180,18 @@
       3]
      [(erase-types# (:: (fun f (x) (:: 4 Int)) (→ Int Int)))
       (fun f (x) 4)])
+    (void))
+
+  (test-case "unify"
+    (check-mf-apply*
+     [(unify Int (∀ (α) α))
+      Int]
+     [(unify (∀ (α) α) Int)
+      Int]
+     [(unify (∀ (α) (→ (Pair Int Int) α))
+             (∀ (α_0) (∀ (α_1) (→ (Pair α_0 α_1) α_0))))
+      (→ (Pair Int Int) Int)]
+    )
     (void))
 )
 
