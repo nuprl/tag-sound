@@ -29,6 +29,9 @@
 
   This paper measures the cost of generalized soundness compared to tag
    soundness in the context of Typed Racket.
+  We find that @emph{naive tag soundness} improves gradually typed programs,
+   but adds unacceptable overhead to typed code.
+  We present some techniques for reducing the overhead.
 }
 
 @include-section{introduction.scrbl}
