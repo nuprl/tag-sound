@@ -14,8 +14,8 @@
 ;; Soundness = tag soundness
 
 ;; TODO
-;; - support Nat types
-;; - polymorphic primitives
+;; - sound completion (let vs require)
+;; - support Nat types .... see primop-type
 ;; - blame for dynamic checks
 ;; - remove unnecessary checks
 ;; - optimize
@@ -43,13 +43,16 @@
 
 (define-language++ TAG #:alpha-equivalent? α=?
 ;; τ = specification language
-  (τ ::= k0 (k1 τ) (k2 τ τ))
+  (τ ::= τ0 (∀ (α) τ))
+  (τ0 ::= α k0 (k1 τ) (k2 τ τ))
   (k ::= k0 k1 k2)
   (k0 ::= Nat Int Bool)
   (k1 ::= Box)
   (k2 ::= Pair →)
   (K ::= k) ;; types we can check at runtime, O(1)
   (Γ ::= ((x τ) ...))
+  (Σ ::= ((α τ*) ...)) ;; constraints
+  (τ* ::= (τ ...))
 
 ;; v = values
   (v ::= (box x) integer boolean (cons v v))
@@ -87,8 +90,10 @@
   (A ::= [σ c] RuntimeError)
 
   (x* ::= (x ...))
-  (x ::= variable-not-otherwise-mentioned)
+  (α* ::= (α ...))
+  (x α ::= variable-not-otherwise-mentioned)
 #:binding-forms
+  (∀ (α) τ #:refers-to α)
   (let (x e) e_1 #:refers-to x)
   (require (x τ e) e_1 #:refers-to x)
   (fun x_f (x) e #:refers-to (shadow x_f x))
@@ -301,17 +306,21 @@
    ---
    (type-check Γ (require (x τ_x e_x) e) (:: (require (x τ_x e_x) t) τ))]
   [
-   (where (→ τ_dom τ_cod) #{primop-type unop})
    (type-check Γ e t)
-   (where τ_dom #{type-annotation t})
+   (where τ_e #{type-annotation t})
+   (where τ_p #{primop-type unop})
+   (where α #{fresh-type-variable (τ_e τ_p)})
+   (where (→ _ τ_cod) #{unify (∀ (α) (→ τ_e α)) τ_p})
    ---
    (type-check Γ (unop e) (:: (unop t) τ_cod))]
   [
-   (where (→ τ_dom0 (→ τ_dom1 τ_cod)) #{primop-type binop})
    (type-check Γ e_0 t_0)
    (type-check Γ e_1 t_1)
-   (where τ_dom0 #{type-annotation t_0})
-   (where τ_dom1 #{type-annotation t_1})
+   (where τ_e0 #{type-annotation t_0})
+   (where τ_e1 #{type-annotation t_1})
+   (where τ_p #{primop-type binop})
+   (where α #{fresh-type-variable (τ_e0 τ_e1 τ_p)})
+   (where (→ _ (→ _ τ_cod)) #{unify (∀ (α) (→ τ_e0 (→ τ_e1 α))) τ_p})
    ---
    (type-check Γ (binop e_0 e_1) (:: (binop t_0 t_1) τ_cod))])
 
@@ -333,6 +342,77 @@
    (#{erase-types# any} ...)]
   [(erase-types# any)
    any])
+
+(define-metafunction TAG
+  unify : τ τ -> τ
+  [(unify τ_0 τ_1)
+   #{apply-substitution Σ_+ τ_0}
+   (where Σ_+ #{unifying-substitution () τ_0 τ_1})])
+
+(define-metafunction TAG
+  apply-substitution : Σ τ -> τ
+  [(apply-substitution Σ τ)
+   #{apply-type-environment Γ τ}
+   (where Γ #{substitution-resolve Σ})])
+
+(define-metafunction TAG
+  unifying-substitution : Σ τ τ -> Σ
+  [(unifying-substitution Σ α τ_1)
+   #{substitution-update Σ α τ_1}]
+  [(unifying-substitution Σ τ_0 α)
+   #{substitution-update Σ α τ_0}]
+  [(unifying-substitution Σ (k1 τ_0) (k1 τ_1))
+   #{unifying-substitution Σ τ_0 τ_1}]
+  [(unifying-substitution Σ (k2 τ_dom0 τ_cod1) (k2 τ_dom1 τ_cod1))
+   Σ_1
+   (where Σ_0 #{unifying-substitution Σ τ_dom0 τ_dom1})
+   (where Σ_1 #{unifying-substitution Σ_0 τ_cod0 τ_cod1})]
+  [(unifying-substitution Σ (∀ (α) τ_0) τ_1)
+   #{unifying-substitution Σ_0 τ_0 τ_1}
+   (where Σ_0 #{substitution-add Σ α})]
+  [(unifying-substitution Σ τ_0 (∀ (α) τ_1))
+   #{unifying-substitution Σ_1 τ_0 τ_1}
+   (where Σ_1 #{substitution-add Σ α})]
+  [(unifying-substitution Σ τ_0 τ_1)
+   ,(raise-arguments-error 'unify "unifiable types" "τ0" (term τ_0) "τ1" (term τ_1))])
+
+(define-metafunction TAG
+  apply-type-environment : Γ τ -> τ
+  [(apply-type-environment () τ)
+   τ] ;; TODO check closed?
+  [(apply-type-environment ((α_0 τ_0) (α_rest τ_rest) ...) τ)
+   (apply-type-environment ((α_rest τ_rest) ...) (substitute τ α_0 τ_0))])
+
+;; Solve a system of unification constraints
+(define-metafunction TAG
+  substitution-resolve : Σ -> Γ
+  [(substitution-resolve Σ)
+   ,(error 'dieee)])
+
+(define-metafunction TAG
+  substitution-add : Σ α -> Σ
+  [(substitution-add Σ α)
+   ,(cons (term (α ())) (term Σ))])
+
+(define-metafunction TAG
+  substitution-pop : Σ -> ((α τ) Σ)
+  [(substitution-pop Σ)
+   ,(cons (car (term Σ)) (cdr (term Σ)))])
+
+(define-metafunction TAG
+  substitution-update : Σ α τ -> Σ
+  [(substitution-update Σ α τ)
+   ,(let* ([success? (box #f)]
+           [Σ+ (for/list ([at (in-list (term Σ))])
+                 (if (equal? (car at) (term α))
+                   (begin
+                     (set-box! success? #true)
+                     (cons (car at) (set-add (cadr at) (term τ))))
+                   at))])
+      (if (unbox success?)
+        Σ+
+        (raise-arguments-error 'substitution-update "unbound variable" "var" (term α) "Σ" (term Σ))))])
+
 
 ;; =============================================================================
 ;; === completion
@@ -620,6 +700,39 @@
 ;; -----------------------------------------------------------------------------
 
 (define-judgment-form TAG
+  #:mode (closed-type I)
+  #:contract (closed-type τ)
+  [
+   (free-type-variables τ ())
+   ---
+   (closed-type τ)])
+
+(define-judgment-form TAG
+  #:mode (free-type-variables I O)
+  #:contract(free-type-variables τ α*)
+  [
+   ---
+   (free-type-variables k0 ())]
+  [
+   (free-type-variables τ α*)
+   ---
+   (free-type-variables (k1 τ) α*)]
+  [
+   (free-type-variables τ_0 α*_0)
+   (free-type-variables τ_1 α*_1)
+   (where α* ,(set-union (term α*_0) (term α*_1)))
+   ---
+   (free-type-variables (k2 τ_0 τ_1) α*)]
+  [
+   ---
+   (free-type-variables α (α))]
+  [
+   (free-type-variables τ α*_τ)
+   (where α* ,(set-remove (term α*_τ) (term α)))
+   ---
+   (free-type-variables (∀ (α) τ) α*)])
+
+(define-judgment-form TAG
   #:mode (no-free-variables I)
   #:contract (no-free-variables e)
   [
@@ -714,6 +827,11 @@
      (no-free-variables (fun fact (x) (if (= x 1) 1 (* x (fact (- x 1))))))
      (no-free-variables (let (y (:: (fun f (x) x) (→ Int Int))) (y 4)))
      (no-free-variables (+ 3 3)))
+
+    (check-judgment-holds*
+     (closed-type Int)
+     (closed-type Bool))
+
     (void)))
 
 ;; -----------------------------------------------------------------------------
@@ -882,15 +1000,15 @@
   [(primop-type =)
    (→ Int (→ Int Bool))]
   [(primop-type set-box!)
-   (→ (Box Int) (→ Int Int))]
+   (∀ (α) (→ (Box α) (→ α α)))]
   [(primop-type car)
-   (→ (Pair Int Int) Int)]
+   (∀ (α_0) (∀ (α_1) (→ (Pair α_0 α_1) α_0)))]
   [(primop-type cdr)
-   (→ (Pair Int Int) Int)]
+   (∀ (α_0) (∀ (α_1) (→ (Pair α_0 α_1) α_1)))]
   [(primop-type make-box)
-   (→ Int (Box Int))]
+   (∀ (α) (→ α (Box α)))]
   [(primop-type unbox)
-   (→ (Box Int) Int)])
+   (∀ (α) (→ (Box α) α))])
 
 (define-metafunction TAG
   apply-primop : [σ (primop vc ...)] -> A
@@ -961,6 +1079,12 @@
   [(fresh-location σ)
    any_0
    (where any_0 ,(variable-not-in (term σ) 'loc))])
+
+(define-metafunction TAG
+  fresh-type-variable : any -> α
+  [(fresh-type-variable any)
+   any_0
+   (where any_0 ,(variable-not-in (term any) 'α))])
 
 ;; =============================================================================
 ;; === test
