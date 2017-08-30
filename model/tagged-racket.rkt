@@ -52,36 +52,39 @@
   (Γ ::= ((x τ) ...))
 
 ;; v = values
-  (v ::= (box x) integer boolean Λ (cons v v))
-  (Λ ::= (fun x (x) e))
+  (v ::= (box x) integer boolean (cons v v))
 
 ;; e = implicitly typed source language, allows untyped terms
 ;;     needs explicit types for functions
 ;;      and embedded untyped terms
-  (e ::= v x (e e) (if e e e)
+  (e ::= v Λ x (e e) (if e e e)
          (let (x e) e)
          (:: Λ τ) ;; not allowed in untyped code
          (require (x τ e) e) ;; not allowed in untyped code
          (unop e) (binop e e) (cons e e))
+  (Λ ::= (fun x (x) e))
   (primop ::= unop binop)
   (unop ::= car cdr make-box unbox)
   (binop ::= + * - = set-box!)
 
 ;; t = explicitly typed intermediate language, still allows untyped (source) terms
-  (t ::= (:: v τ) (:: x τ) (:: (t t) τ) (:: (if t t t) τ)
+  (t ::= (:: v τ) (:: Λt τ) (:: x τ) (:: (t t) τ) (:: (if t t t) τ)
          (:: (fun x (x) t) τ)
          (:: (let (x t) t) τ)
          (:: (require (x τ e) t) τ)
          (:: (unop t) τ)
          (:: (binop t t) τ)
          (:: (cons t t) τ))
+  (Λt ::= (fun x (x) t))
 
 ;; c = type-erased, explicitly checked core language
-  (c ::= v x (c c) (if c c c) (let (x c) c) (unop c) (binop c c) (cons c c) (check K c))
-  (σ ::= ((x v) ...))
-  (E ::= hole (E c) (v E) (if E c c) (let (x E) c) (unop E) (binop E c) (binop v E) (cons E c) (cons v E) (check K E))
-  (RuntimeError ::= (CheckError K v))
-  (A ::= [σ e] RuntimeError)
+  (c ::= v Λc x (c c) (if c c c) (let (x c) c) (unop c) (binop c c) (cons c c) (check K c))
+  (Λc ::= (fun x (x) c))
+  (vc ::= v Λc)
+  (σ ::= ((x vc) ...))
+  (E ::= hole (E c) (vc E) (if E c c) (let (x E) c) (unop E) (binop E c) (binop vc E c) (cons vc E) (check K E))
+  (RuntimeError ::= (CheckError K vc))
+  (A ::= [σ c] RuntimeError)
 
   (x* ::= (x ...))
   (x ::= variable-not-otherwise-mentioned)
@@ -90,23 +93,38 @@
   (require (x τ e) e_1 #:refers-to x)
   (fun x_f (x) e #:refers-to (shadow x_f x))
   (fun x_f (x) t #:refers-to (shadow x_f x))
+  (fun x_f (x) c #:refers-to (shadow x_f x))
   (let (x t) t_1 #:refers-to x)
   (require (x τ_x e) t_1 #:refers-to x)
   (let (x c) c_1 #:refers-to x))
+
+(module+ test
+  (check-pred c?
+    (term (check Int (factorial«46» (- n«47» 1)))))
+  (check-pred c?
+    (term (fun factorial«46» (n«47») (if (= n«47» 1) 1 (* n«47» (check Int (factorial«46» (- n«47» 1))))))))
+  (check-pred c?
+    (term (check Int ((fun factorial«46» (n«47») (if (= n«47» 1) 1 (* n«47» (check Int (factorial«46» (- n«47» 1)))))) 5))))
+  (check-pred σ? (term ()))
+  (check-pred A?
+    (term  (()
+      (check Int ((fun factorial«46» (n«47») (if (= n«47» 1) 1 (* n«47» (check Int (factorial«46» (- n«47» 1)))))) 5)))))
+)
 
 ;; =============================================================================
 
 (define-metafunction TAG
   theorem:type-soundness : e -> boolean
   [(theorem:type-soundness e)
-   boolean_sound
+   boolean
    (judgment-holds (well-formed e))
    (where t #{type-check# e})
    (where τ #{type-annotation t})
    (where c #{completion# t})
    (where A #{eval# c})
    (where K #{tag# τ})
-   (where boolean_ok #{value-check# A K})])
+   (side-condition (printf "VAL CHECK ~a~n" (term (A K))))
+   (where boolean #{value-check# A K})])
 
 (module+ test
   (test-case "type-soundness:basic"
@@ -131,7 +149,7 @@
 
 (module+ test
   (test-case "type-check:basic"
-    (check-mf-apply*
+    (check-mf-apply* #:is-equal? α=?
      [(type-check# (+ 2 2))
       (:: (+ (:: 2 Int) (:: 2 Int)) Int)]
      [(type-check# (:: (fun f (x) #true) (→ Int Bool)))
@@ -145,21 +163,21 @@
   [(completion# t)
    c
    (judgment-holds (completion t c))
-   (side-condition (term #{sound-completion# t c}))]
+   #;(judgment-holds (sound-completion t c))]
   [(completion# t)
-   ,(raise-argument-error 'completion# "(completable) type-annotated term" (term t))])
+   ,(raise-argument-error 'completion# "completable, type-annotated term" (term t))])
 
 (module+ test
   (test-case "completion:basic"
-    (check-mf-apply*
+    (check-mf-apply* #:is-equal? α=?
      [(completion# (:: (+ (:: 2 Int) (:: 2 Int)) Int))
       (+ 2 2)]
      [(completion# (:: (let (x (:: 2 Int)) (:: (+ (:: x Int) (:: 2 Int)) Int)) Int))
       (let (x 2) (+ x 2))]
-     [(completion# (:: (let (f (:: (fun f (x) x) (→ Int Int))) (:: ((:: f (→ Int Int)) (:: 2 Int)) Int)) Int))
-      (let (f (fun f (x) x)) (check Int (f x)))]
-     [(completion# (:: (car (:: (cons 2 2) (Pair Int Int))) Int))
-      (check Int (car (cons x 2)))])
+     [(completion# (:: (let (f (:: (fun f (x) (:: x Int)) (→ Int Int))) (:: ((:: f (→ Int Int)) (:: 2 Int)) Int)) Int))
+      (let (f (fun f (x) x)) (check Int (f 2)))]
+     [(completion# (:: (car (:: (cons (:: 1 Int) (:: 2 Int)) (Pair Int Int))) Int))
+      (check Int (car (cons 1 2)))])
     (void)))
 
 ;; -----------------------------------------------------------------------------
@@ -183,10 +201,10 @@
   [(unload# RuntimeError)
    RuntimeError]
   [(unload# [σ (box x)])
-   (box v)
-   (where v #{runtime-env-ref σ x})]
-  [(unload# [σ v])
-   v])
+   (box vc)
+   (where vc #{runtime-env-ref σ x})]
+  [(unload# [σ vc])
+   vc])
 
 (module+ test
   (test-case "eval:basic"
@@ -325,12 +343,158 @@
   #:contract (completion t c)
   [
    ---
-   (completion t 0)])
+   (completion (:: (box x) _) (box x))]
+  [
+   ---
+   (completion (:: integer _) integer)]
+  [
+   ---
+   (completion (:: boolean _) boolean)]
+  [
+   (completion t c)
+   ---
+   (completion (:: (fun x_f (x) t) _) (fun x_f (x) c))]
+  [
+   (completion t_0 c_0)
+   (completion t_1 c_1)
+   ---
+   (completion (:: (cons t_0 t_1) _) (cons c_0 c_1))]
+  [
+   ---
+   (completion (:: x _) x)]
+  [
+   (completion t_0 c_0)
+   (completion t_1 c_1)
+   (where (→ τ_dom τ_cod) #{type-annotation t_0})
+   (where K #{tag# τ_cod})
+   ---
+   (completion (:: (t_0 t_1) _) (check K (c_0 c_1)))]
+  [
+   (completion t_0 c_0)
+   (completion t_1 c_1)
+   (completion t_2 c_2)
+   ---
+   (completion (:: (if t_0 t_1 t_2) _) (if c_0 c_1 c_2))]
+  [
+   (completion t_x c_x)
+   (completion t c)
+   ---
+   (completion (:: (let (x t_x) t) _) (let (x c_x) c))]
+  [
+   (completion/untyped e_x c_x)
+   (completion t c)
+   (where K #{tag# τ_x})
+   ---
+   (completion (:: (require (x τ_x e_x) t) _) (let (x (check K c_x)) c))]
+  [
+   (completion t c)
+   (where (→ _ τ_cod) #{primop-type unop})
+   (where K #{tag# τ_cod})
+   (where c_check ,(if (judgment-holds (eliminator unop))
+                     (term (check K (unop c)))
+                     (term (unop c))))
+   ---
+   (completion (:: (unop t) _) c_check)]
+  [
+   (completion t_0 c_0)
+   (completion t_1 c_1)
+   ;; TODO need to check sometimes?
+   ---
+   (completion (:: (binop t_0 t_1) _) (binop c_0 c_1))])
+
+(define-judgment-form TAG
+  #:mode (completion/untyped I O)
+  #:contract (completion/untyped e c)
+  [
+   ---
+   (completion/untyped (box x) (box x))]
+  [
+   ---
+   (completion/untyped integer integer)]
+  [
+   ---
+   (completion/untyped boolean boolean)]
+  [
+   (where (fun x_f (x) e) Λ)
+   (completion/untyped e c)
+   ---
+   (completion/untyped Λ (fun x_f (x) c))]
+  [
+   (completion/untyped e_0 c_0)
+   (completion/untyped e_1 c_1)
+   ---
+   (completion/untyped (cons e_0 e_1) (cons c_0 c_1))]
+  [
+   ---
+   (completion/untyped x x)]
+  [
+   (completion/untyped e_0 c_0)
+   (completion/untyped e_1 c_1)
+   (where c_check (check → c_0))
+   ;; TODO need to check arguments if e_0 typed
+   ---
+   (completion/untyped (e_0 e_1) (c_check c_1))]
+  [
+   (completion/untyped e_0 c_0)
+   (completion/untyped e_1 c_1)
+   (completion/untyped e_2 c_2)
+   ---
+   (completion/untyped (if e_0 e_1 e_2) (if c_0 c_1 c_2))]
+  [
+   (completion/untyped e_x c_x)
+   (completion/untyped e c)
+   ---
+   (completion/untyped (let (x e_x) e) (let (x c_x) c))]
+  [
+   (completion/untyped e c)
+   (where (→ _ τ_cod) #{primop-type unop})
+   (where K #{tag# τ_cod})
+   (where c_check ,(if (judgment-holds (eliminator unop))
+                     (term (check K c))
+                     (term c)))
+   ---
+   (completion/untyped (unop e) (unop c_check))]
+  [
+   (completion/untyped e_0 c_0)
+   (completion/untyped e_1 c_1)
+   (where (→ τ_dom0 (→ τ_dom1 τ_cod)) #{primop-type binop})
+   (where c_check0 (check #{tag# τ_dom0} c_0))
+   (where c_check1 (check #{tag# τ_dom1} c_1)) ;; TODO don't check for set-box!
+   ---
+   (completion/untyped (binop e_0 e_1) (binop c_check0 c_check1))])
+
+(define-judgment-form TAG
+  #:mode (eliminator I)
+  #:contract (eliminator primop)
+  [
+   ---
+   (eliminator car)]
+  [
+   ---
+   (eliminator cdr)]
+  [
+   ---
+   (eliminator unbox)])
+
+(define-judgment-form TAG
+  #:mode (sound-completion I I)
+  #:contract (sound-completion t c)
+  [
+   (where any_0 #{erase-types# t})
+   (where any_1 #{erase-checks# c})
+   (side-condition ,(α=? (term any_0) (term any_1)))
+   (side-condition #false) ;; TODO completion is converting "require" to "let"
+   ---
+   (sound-completion t c)])
 
 (define-metafunction TAG
-  sound-completion# : t c -> boolean
-  [(sound-completion# t c)
-   ,(raise-user-error 'sound-completion# "not implemented")])
+  erase-checks# : any -> any
+  [(erase-checks# (check K c))
+   #{erase-checks# c}]
+  [(erase-checks# (any ...))
+   (#{erase-checks# any} ...)]
+  [(erase-checks# any)
+   any])
 
 ;; =============================================================================
 ;; === eval
@@ -339,32 +503,32 @@
   (reduction-relation TAG
    #:domain A
    [-->
-    [σ (in-hole E (Λ v))]
+    [σ (in-hole E (Λc vc))]
     [σ (in-hole E c_v)]
     E-Beta
-    (where (fun x_f (x) c) Λ)
-    (where c_f (substitute c x_f Λ))
-    (where c_v (substitute c_f x v))]
+    (where (fun x_f (x) c) Λc)
+    (where c_f (substitute c x_f Λc))
+    (where c_v (substitute c_f x vc))]
    [-->
-    [σ (in-hole E (if v c_0 c_1))]
+    [σ (in-hole E (if vc c_0 c_1))]
     [σ (in-hole E c_next)]
     E-If
-    (where c_next ,(if (term v) (term c_0) (term c_1)))]
+    (where c_next ,(if (term vc) (term c_0) (term c_1)))]
    [-->
-    [σ (in-hole E (let (x v) c))]
+    [σ (in-hole E (let (x vc) c))]
     [σ (in-hole E c_x)]
     E-Let
-    (where c_x (substitute c x v))]
+    (where c_x (substitute c x vc))]
    [-->
-    [σ (in-hole E (primop v ...))]
+    [σ (in-hole E (primop vc ...))]
     #{maybe-in-hole E A}
     E-PrimOp
-    (where A (apply-primop [σ (primop v ...)]))]
+    (where A (apply-primop [σ (primop vc ...)]))]
    [-->
-    [σ (check K v)]
+    [σ (check K vc)]
     #{maybe-in-hole E A}
     E-Check
-    (where A #{apply-check [σ (check K v)]})]))
+    (where A #{apply-check [σ (check K vc)]})]))
 
 (define-metafunction TAG
   maybe-in-hole : E A -> A
@@ -396,7 +560,7 @@
    (value-check [σ integer] Int)]
   [
    ---
-   (value-check [σ Λ] →)]
+   (value-check [σ Λc] →)]
   [
    ---
    (value-check [σ (cons _ _)] Pair)])
@@ -730,50 +894,50 @@
    (→ (Box Int) Int)])
 
 (define-metafunction TAG
-  apply-primop : [σ (primop v ...)] -> A
-  [(apply-primop [σ (car (cons v_0 _))])
-   [σ v_0]]
-  [(apply-primop [σ (cdr (cons _ v_1))])
-   [σ v_1]]
-  [(apply-primop [σ (make-box v)])
+  apply-primop : [σ (primop vc ...)] -> A
+  [(apply-primop [σ (car (cons vc_0 _))])
+   [σ vc_0]]
+  [(apply-primop [σ (cdr (cons _ vc_1))])
+   [σ vc_1]]
+  [(apply-primop [σ (make-box vc)])
    [σ_x (box x)]
    (where x #{fresh-location σ})
-   (where σ_x #{runtime-env-set σ (x v)})]
+   (where σ_x #{runtime-env-set σ (x vc)})]
   [(apply-primop [σ (unbox (box x))])
-   [σ v]
-   (where v #{runtime-env-ref σ x})]
+   [σ vc]
+   (where vc #{runtime-env-ref σ x})]
   [(apply-primop [σ (+ integer_0 integer_1)])
-   [σ v]
-   (where v ,(+ (term integer_0) (term integer_1)))]
+   [σ vc]
+   (where vc ,(+ (term integer_0) (term integer_1)))]
   [(apply-primop [σ (- integer_0 integer_1)])
-   [σ v]
-   (where v ,(- (term integer_0) (term integer_1)))]
+   [σ vc]
+   (where vc ,(- (term integer_0) (term integer_1)))]
   [(apply-primop [σ (* integer_0 integer_1)])
-   [σ v]
-   (where v ,(* (term integer_0) (term integer_1)))]
+   [σ vc]
+   (where vc ,(* (term integer_0) (term integer_1)))]
   [(apply-primop [σ (= integer_0 integer_1)])
-   [σ v]
-   (where v ,(= (term integer_0) (term integer_1)))]
-  [(apply-primop [σ (set-box! (box x) v)])
-   [σ_x v]
-   (where σ_x #{runtime-env-update σ (x v)})])
+   [σ vc]
+   (where vc ,(= (term integer_0) (term integer_1)))]
+  [(apply-primop [σ (set-box! (box x) vc)])
+   [σ_x vc]
+   (where σ_x #{runtime-env-update σ (x vc)})])
 
 (define-metafunction TAG
-  apply-check : [σ (check K v)] -> A
-  [(apply-check [σ (check K v)])
+  apply-check : [σ (check K vc)] -> A
+  [(apply-check [σ (check K vc)])
    A_next
-   (where A_next [σ v])
+   (where A_next [σ vc])
    (judgment-holds (value-check A_next K))]
-  [(apply-check [σ (check K v)])
-   (CheckError K v)])
+  [(apply-check [σ (check K vc)])
+   (CheckError K vc)])
 
 (define-metafunction TAG
-  runtime-env-set : σ (x v) -> σ
-  [(runtime-env-set σ (x v))
-   ,(cons (term (x v)) (term σ))])
+  runtime-env-set : σ (x vc) -> σ
+  [(runtime-env-set σ (x vc))
+   ,(cons (term (x vc)) (term σ))])
 
 (define-metafunction TAG
-  runtime-env-ref : σ x -> v
+  runtime-env-ref : σ x -> vc
   [(runtime-env-ref σ x)
    ,(or
       (for/first ([xv (in-list (term σ))]
@@ -782,12 +946,12 @@
       (raise-arguments-error 'runtime-env-ref "unbound variable" "var" (term x) "env" (term σ)))])
 
 (define-metafunction TAG
-  runtime-env-update : σ (x v) -> σ
-  [(runtime-env-update σ (x v))
+  runtime-env-update : σ (x vc) -> σ
+  [(runtime-env-update σ (x vc))
    ,(let* ([success? (box #f)]
            [σ+ (for/list ([xv (in-list (term σ))])
                  (if (equal? (term x) (car xv))
-                   (begin (set-box! success? #true) (term (x v)))
+                   (begin (set-box! success? #true) (term (x vc)))
                    xv))])
       (if (unbox success?)
         σ+
@@ -866,6 +1030,33 @@
       (fun f (x) 4)])
     (void))
 )
+
+(module+ test
+  (test-case "completion:basic"
+    (check-mf-apply* #:is-equal? α=?
+     [(completion# (:: 3 Int))
+      3]
+     [(completion# (:: #true Bool))
+      #true]
+     [(completion# (:: (fun f (x) (:: x Int)) (→ Int Int)))
+      (fun f (x) x)]
+     [(completion# (:: (cons (:: 1 Int) (:: (cons (:: 1 Int) (:: 2 Int)) (Pair Int Int))) (Pair Int (Pair Int Int))))
+      (cons 1 (cons 1 2))]
+     [(completion# (:: x Int))
+      x]
+     [(completion# (:: ((:: f (→ Int Int)) (:: 3 Int)) Int))
+      (check Int (f 3))]
+     [(completion# (:: (if (:: 1 Int) (:: 2 Int) (:: 3 Int)) Int))
+      (if 1 2 3)]
+     [(completion# (:: (let (x (:: 2 Int)) (:: x Int)) Int))
+      (let (x 2) x)]
+     [(completion# (:: (require (x Int 2) (:: x Int)) Int))
+      (let (x (check Int 2)) x)]
+     [(completion# (:: (unbox (:: (make-box (:: 1 Int)) (Box Int))) Int))
+      (check Int (unbox (make-box 1)))]
+     [(completion# (:: (+ (:: 1 Int) (:: 2 Int)) Int))
+      (+ 1 2)])
+    (void)))
 
 (module+ test
   (test-case "eval:basic"
