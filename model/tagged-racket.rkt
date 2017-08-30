@@ -82,7 +82,7 @@
   (Λc ::= (fun x (x) c))
   (vc ::= v Λc)
   (σ ::= ((x vc) ...))
-  (E ::= hole (E c) (vc E) (if E c c) (let (x E) c) (unop E) (binop E c) (binop vc E c) (cons vc E) (check K E))
+  (E ::= hole (E c) (vc E) (if E c c) (let (x E) c) (unop E) (binop E c) (binop vc E) (cons E c) (cons vc E) (check K E))
   (RuntimeError ::= (CheckError K vc))
   (A ::= [σ c] RuntimeError)
 
@@ -123,7 +123,6 @@
    (where c #{completion# t})
    (where A #{eval# c})
    (where K #{tag# τ})
-   (side-condition (printf "VAL CHECK ~a~n" (term (A K))))
    (where boolean #{value-check# A K})])
 
 (module+ test
@@ -525,7 +524,7 @@
     E-PrimOp
     (where A (apply-primop [σ (primop vc ...)]))]
    [-->
-    [σ (check K vc)]
+    [σ (in-hole E (check K vc))]
     #{maybe-in-hole E A}
     E-Check
     (where A #{apply-check [σ (check K vc)]})]))
@@ -1088,6 +1087,8 @@
      [(unload# (eval# (= 2 2)))
       #true]
      [(unload# (eval# (set-box! (make-box 3) 4)))
-      4])
+      4]
+     [(unload# (eval# ((fun f (b) (if b b (f #true))) #false)))
+      #true])
   (void)))
 
