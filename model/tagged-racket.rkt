@@ -157,6 +157,7 @@
    (judgment-holds (well-formed e))
    (where t #{type-check# e})
    (where τ #{type-annotation t})
+   (where K #{tag# τ})
    (where c_tag #{tagged-completion# t})
    (where c_dyn #{dynamic-completion# t})
    (where RuntimeError #{eval# c_tag})
@@ -168,7 +169,7 @@
 (module+ test
   (test-case "tag-vs-dyn"
     (check-true (term (theorem:tag-vs-dyn
-      ((:: (fun f (n) (+ n n)) (→ Nat Nat)) -4))))))
+      (require (x Nat -4) (+ x x)))))))
 
 ;; -----------------------------------------------------------------------------
 
@@ -369,6 +370,8 @@
   erase-types# : any -> any
   [(erase-types# (:: any τ))
    #{erase-types# any}]
+  [(erase-types# (require (x τ any_x) any))
+   (let (x #{erase-types# any_x}) #{erase-types# any})]
   [(erase-types# (any ...))
    (#{erase-types# any} ...)]
   [(erase-types# any)
@@ -525,22 +528,12 @@
    ---
    (dynamic-completion (let (x e_x) e) (let (x c_x) c))]
   [
-   (dynamic-completion e c)
-   (where (→ τ_dom _) #{primop-type unop})
-   (where K #{tag# τ_dom})
-   (where c_check ,(if (judgment-holds (eliminator unop))
-                     (term (check K c))
-                     (term c)))
+   (dynamic-completion e c) ...
+   (where (c_check ...) ,(for/list ([x (in-list (term (c ...)))]
+                                    [k (in-list (term #{primop-tags primop}))])
+                           (if k (term (check ,k ,x)) x)))
    ---
-   (dynamic-completion (unop e) (unop c_check))]
-  [
-   (dynamic-completion e_0 c_0)
-   (dynamic-completion e_1 c_1)
-   (where (→ τ_dom0 (→ τ_dom1 τ_cod)) #{primop-type binop})
-   (where c_check0 (check #{tag# τ_dom0} c_0))
-   (where c_check1 (check #{tag# τ_dom1} c_1)) ;; TODO don't check for set-box!
-   ---
-   (dynamic-completion (binop e_0 e_1) (binop c_check0 c_check1))])
+   (dynamic-completion (primop e ...) (primop c_check ...))])
 
 (define-judgment-form TAG
   #:mode (eliminator I)
@@ -612,7 +605,7 @@
 (define-metafunction TAG
   maybe-in-hole : E A -> A
   [(maybe-in-hole E RuntimeError)
-   Runtime-Error]
+   RuntimeError]
   [(maybe-in-hole E [σ c])
    [σ (in-hole E c)]])
 
@@ -1120,6 +1113,27 @@
    (∀ (α) (→ (Box α) α))])
 
 (define-metafunction TAG
+  primop-tags : primop -> (any ...)
+  [(primop-tags +)
+   (Int Int)]
+  [(primop-tags -)
+   (Int Int)]
+  [(primop-tags *)
+   (Int Int)]
+  [(primop-tags =)
+   (Int Int)]
+  [(primop-tags set-box!)
+   (Box #f)]
+  [(primop-tags car)
+   (Pair)]
+  [(primop-tags cdr)
+   (Pair)]
+  [(primop-tags make-box)
+   (#f)]
+  [(primop-tags unbox)
+   (Box)])
+
+(define-metafunction TAG
   apply-primop : [σ (primop vc ...)] -> A
   [(apply-primop [σ (car (cons vc_0 _))])
    [σ vc_0]]
@@ -1255,7 +1269,9 @@
      [(erase-types# (:: 3 Int))
       3]
      [(erase-types# (:: (fun f (x) (:: 4 Int)) (→ Int Int)))
-      (fun f (x) 4)])
+      (fun f (x) 4)]
+     [(erase-types# (require (x Int 3) x))
+      (let (x 3) x)])
     (void))
 
   (test-case "unify"
