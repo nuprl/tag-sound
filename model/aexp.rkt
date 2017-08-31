@@ -47,7 +47,7 @@
   ;;  and may yield either a result state or a runtime error
   (A ::= [σ c] RuntimeError)
   (σ ::= ((x v) ...))
-  (RuntimeError ::= (CheckError k v))
+  (RuntimeError ::= (AssertError k v))
   (E ::= hole (let (x E) c) (δ v ... E c ...) (assert k E))
 
   (x ::= variable-not-otherwise-mentioned)
@@ -84,7 +84,7 @@
       (redex-match? AEXP 4
         (term (eval (+ 2 2)))))
     (check-true
-      (redex-match? AEXP (CheckError int (box _))
+      (redex-match? AEXP (AssertError int (box _))
         (term (eval (+ 2 (make-box 2))))))))
 
 ;; -----------------------------------------------------------------------------
@@ -187,7 +187,7 @@
     (judgment-holds (well-tagged v k))]
    [-->
     [σ (in-hole E (assert k v))]
-    (CheckError k v)
+    (AssertError k v)
     E-AssertFailure
     (judgment-holds (not-well-tagged v k))]))
 
@@ -271,7 +271,7 @@
 ;;        (with a type soundness guarantee)
 
 ;; AEXP-TYPED adds a simple, optional type system to AEXP
-;; We will show that it provides benefits T0 and T1, but not T2
+;; It provides benefits T1 and T2, but not T3.
 
 (define-extended-language AEXP-TYPED
   AEXP
@@ -478,6 +478,25 @@
    #f])
 
 ;; -----------------------------------------------------------------------------
+;; well typed values, [σ v] ⊨ τ
+;; (this is important later)
+
+(define-judgment-form AEXP-TYPED
+  #:mode (well-typed-value I I)
+  #:contract (well-typed-value [σ v] τ)
+  [
+   ---
+   (well-typed-value [_ integer] Int)]
+  [
+   ---
+   (well-typed-value [_ natural] Nat)]
+  [
+   (where v (runtime-env-ref σ x))
+   (well-typed-value [σ v] τ)
+   ---
+   (well-typed-value [σ (box x)] (Box τ))])
+
+;; -----------------------------------------------------------------------------
 ;; compile-typed-unsound
 
 ;; This compiler is unsound because it assumes all annotations
@@ -491,6 +510,23 @@
    (judgment-holds (typed-unsound-completion t c))
    (where a (erase-types t))
    (judgment-holds (sound-completion a c))])
+
+(module+ test
+  (test-case "compile-typed-unsound"
+    (define t
+      (term (:: (dyn (x Nat -2) (:: (+ (:: x Nat) (:: x Nat)) Nat)) Nat)))
+    (define c
+      (term (let (x -2) (+ x x))))
+
+    (check-true
+      (redex-match? AEXP-TYPED t t))
+    (define a (term (erase-types ,t)))
+    (check-equal? a c)
+    (check-true (redex-match? AEXP-TYPED a a))
+    (check-true
+      (judgment-holds (sound-completion (erase-types ,t) ,c)))
+    (check-true (redex-match? AEXP-TYPED c (term (compile-typed-unsound ,t))))
+    (void)))
 
 (define-judgment-form AEXP-TYPED
   #:mode (typed-unsound-completion I O)
@@ -512,9 +548,9 @@
    (typed-unsound-completion (:: (δ t ...) τ) (δ c ...))]
   [
    (unsound-completion a_x c_x)
-   (typed-unsound-completion a c)
+   (typed-unsound-completion t c)
    ---
-   (typed-unsound-completion (:: (dyn (x τ_x a_x) a) τ) (let (x c_x) c))])
+   (typed-unsound-completion (:: (dyn (x τ_x a_x) t) τ) (let (x c_x) c))])
 
 ;; Similar to dynamic-completion, but does not add dynamic checks
 (define-judgment-form AEXP-TYPED
@@ -602,3 +638,29 @@
     (check-true (redex-match? AEXP-TYPED TypeError
       (term (type-check (+ 2 (make-box 2))))))))
 
+;; =============================================================================
+;; === Section 3
+;; =============================================================================
+
+;; A "classic" type soundness claim for AEXP-TYPED is:
+;;
+;;   If `a` has the static type `τ` and compiles to the core term `c`,
+;;   then evaluating `c` will result in one of two outcomes:
+;;   1. `c` reduces to a final state `[σ v]` 
+;;      and `[σ v] ⊨ τ`
+;;   2. `c` reduces to an assert error due to an untyped subterm
+;;
+;; Here is a counterexample to the theorem
+
+(define-metafunction AEXP-TYPED
+  counterexample:classic-soundness : a -> boolean
+  [(counterexample:classic-soundness a)
+   ,(not (judgment-holds (well-typed-value A_final τ)))
+   (where τ (type-annotation (type-check a)))
+   (where A_init (pre-eval-typed a))
+   (where (A_final _) (-->AEXP* A_init))])
+
+(module+ test
+  (test-case "classic-soundness-counterexample"
+    (check-true
+      (term (counterexample:classic-soundness (dyn (x Nat -2) (+ x x)))))))
