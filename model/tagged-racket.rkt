@@ -43,9 +43,10 @@
 ;; =============================================================================
 
 (define-language++ TAG #:alpha-equivalent? α=?
-;; τ = specification language
-  (τ ::= τ0 (∀ (α) τ))
-  (τ0 ::= α k0 (k1 τ) (k2 τ τ))
+;; τ = specification language, stratified to make things simple for me
+  (τ ::= τ1 (case-> τ1 ...))
+  (τ1 ::= τ0 (∀ (α) τ))
+  (τ0 ::= α k0 (k1 τ0) (k2 τ0 τ0))
   (k ::= k0 k1 k2)
   (k0 ::= Nat Int Bool)
   (k1 ::= Box)
@@ -167,7 +168,7 @@
 (module+ test
   (test-case "tag-vs-dyn"
     (check-true (term (theorem:tag-vs-dyn
-      ((:: (fun f (n) (+ n 1)) (→ Nat Nat)) -4))))))
+      ((:: (fun f (n) (+ n n)) (→ Nat Nat)) -4))))))
 
 ;; -----------------------------------------------------------------------------
 
@@ -280,8 +281,9 @@
   #:mode (type-check I I O)
   #:contract (type-check Γ e t)
   [
+   (where τ Int) ;,(if (negative? (term integer)) (term Int) (term Nat)))
    ---
-   (type-check Γ integer (:: integer Int))]
+   (type-check Γ integer (:: integer τ))]
   [
    ---
    (type-check Γ boolean (:: boolean Bool))]
@@ -374,6 +376,13 @@
 
 (define-metafunction TAG
   unify : τ τ -> τ
+  [(unify τ_0 (case-> τ_1 ...))
+   #{apply-substitution any_Σ τ_0}
+   (where any_Σ
+     ,(for/or ([τ1 (in-list (term (τ_1 ...)))])
+       (define x (term #{unifying-substitution () τ_0 ,τ1}))
+       (and (Σ? x) x)))
+   (side-condition (unless (term any_Σ) (raise-arguments-error 'unify "unification failed" "τ0" (term τ_0) "τ1" (term (case-> τ_1 ...)))))]
   [(unify τ_0 τ_1)
    #{apply-substitution any_Σ τ_0}
    (where any_Σ #{unifying-substitution () τ_0 τ_1})
@@ -517,8 +526,8 @@
    (dynamic-completion (let (x e_x) e) (let (x c_x) c))]
   [
    (dynamic-completion e c)
-   (where (→ _ τ_cod) #{primop-type unop})
-   (where K #{tag# τ_cod})
+   (where (→ τ_dom _) #{primop-type unop})
+   (where K #{tag# τ_dom})
    (where c_check ,(if (judgment-holds (eliminator unop))
                      (term (check K c))
                      (term c)))
@@ -984,8 +993,7 @@
                        (term #{unifying-substitution Σ+error_0 τ_cod0 τ_cod1})
                        (term Σ+error_0)))]
   [(unifying-substitution Σ τ_0 τ_1)
-   ,(format "~a =/= ~a in ~a" (term τ_0) (term τ_1) (term Σ))
-   ])
+   ,(format "~a =/= ~a in ~a" (term τ_0) (term τ_1) (term Σ))])
 
 (define-metafunction TAG
   apply-type-environment : Γ τ -> τ
@@ -1047,6 +1055,28 @@
   [(substitution-update Σ α τ)
    ,(raise-arguments-error 'substitution-update "unbound variable" "var" (term α) "Σ" (term Σ))])
 
+(define-judgment-form TAG
+  #:mode (type-compatible I I)
+  #:contract (type-compatible τ τ)
+  [
+   (type-subtype τ_0 τ_1)
+   ---
+   (type-compatible τ_0 τ_1)]
+  [
+   (type-subtype τ_1 τ_0)
+   ---
+   (type-compatible τ_0 τ_1)])
+
+(define-judgment-form TAG
+  #:mode (type-subtype I I)
+  #:contract (type-subtype k0 k0)
+  [
+   ---
+   (type-subtype k0 k0)]
+  [
+   ---
+   (type-subtype Nat Int)])
+
 (define-metafunction TAG
   type-env-ref : Γ x -> τ
   [(type-env-ref Γ x)
@@ -1069,7 +1099,9 @@
 (define-metafunction TAG
   primop-type : primop -> τ
   [(primop-type +)
-   (→ Int (→ Int Int))]
+   (case->
+     (→ Nat (→ Nat Nat))
+     (→ Int (→ Int Int)))]
   [(primop-type -)
    (→ Int (→ Int Int))]
   [(primop-type *)
