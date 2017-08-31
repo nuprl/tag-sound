@@ -285,10 +285,10 @@
   (a ::= .... (dyn (x τ a) a))
 
   ;; Type-annotated source terms
-  (t ::= (:: v τ) (:: x τ) (:: (let (x t) t) τ) (:: (δ t ...) τ) (:: (dyn (x τ t) t) τ))
+  (t ::= (:: v τ) (:: x τ) (:: (let (x t) t) τ) (:: (δ t ...) τ) (:: (dyn (x τ a) t) τ))
 
   ;; The type checker can catch errors at compile-time
-  (TypeError ::= (Type τ e))
+  (TypeError ::= (Type a))
   (maybe-A ::= A TypeError)
   (maybe-t ::= t TypeError)
 
@@ -319,8 +319,8 @@
    (where TypeError (type-check a))]
   [(pre-eval-typed a)
    [() c]
-   (where TypeError (type-check a))
-   (where c (compile-typed t))])
+   (where t (type-check a))
+   (where c (compile-typed-unsound t))])
 
 ;; -----------------------------------------------------------------------------
 ;; The following "theorems" argue that AEXP-TYPED provides benefits T0 and T1
@@ -334,7 +334,7 @@
   [(theorem:T0-0 a)
    #true
    (where TypeError (pre-eval-typed a))
-   (where A (pre-eval a))
+   (where A_init (pre-eval a))
    (where (RuntimeError _) (-->AEXP* A_init))]
   [(theorem:T0-0 a)
    #false])
@@ -420,21 +420,185 @@
    t
    (judgment-holds (well-typed () a t))]
   [(type-check a)
-   TypeError
-   (judgment-holds (well-typed () a TypeError))])
+   (Type a)])
 
 (define-judgment-form AEXP-TYPED
   #:mode (well-typed I I O)
-  #:contract (well-typed Γ a maybe-t)
+  #:contract (well-typed Γ a t)
   [
-   ---
-   (well-typed Γ a (Type Int 3))])
-
-;; -----------------------------------------------------------------------------
-;; compile typed
+   --- T-Nat
+   (well-typed Γ natural (:: natural Nat))]
+  [
+   (side-condition ,(< (term integer) 0))
+   --- T-Int
+   (well-typed Γ integer (:: integer Int))]
+  [
+   (where τ (type-env-ref Γ x))
+   --- T-Var
+   (well-typed Γ x (:: x τ))]
+  [
+   (well-typed Γ a_x t_x)
+   (where τ_x (type-annotation t_x))
+   (where Γ_x (type-env-set Γ x τ_x))
+   (well-typed Γ_x a t)
+   (where τ (type-annotation t))
+   --- T-Let
+   (well-typed Γ (let (x a_x) a) (:: (let (x t_x) t) τ))]
+  [
+   (well-typed Γ a t) ...
+   (where (τ_arg ...) ((type-annotation t) ...))
+   (where τ (primop-codomain δ τ_arg ...))
+   --- T-Primop
+   (well-typed Γ (δ a ...) (:: (δ t ...) τ))]
+  [
+   (where Γ_x (type-env-set Γ x τ_x))
+   (well-typed Γ_x a t)
+   (where τ (type-annotation t))
+   --- T-Dyn
+   (well-typed Γ (dyn (x τ_x a_x) a) (:: (dyn (x τ_x a_x) t) τ))])
 
 (define-metafunction AEXP-TYPED
-  compile-typed : t -> c
-  [(compile-typed t)
-   ,(error 'die)])
+  primop-codomain : δ τ ... -> any
+  [(primop-codomain + Nat Nat)
+   Nat]
+  [(primop-codomain + Int Nat)
+   Int]
+  [(primop-codomain + Nat Int)
+   Int]
+  [(primop-codomain + Int Int)
+   Int]
+  [(primop-codomain make-box τ)
+   (Box τ)]
+  [(primop-codomain set-box! (Box τ_0) τ_1)
+   τ_1]
+  [(primop-codomain unbox (Box τ))
+   τ]
+  [(primop-codomain _ ...)
+   ;; type error, to prevent T-Primop from succeeding
+   #f])
+
+;; -----------------------------------------------------------------------------
+;; compile-typed-unsound
+
+;; This compiler is unsound because it assumes all annotations
+;;  on dynamically typed code (i.e. all `τ` in `dyn`-expressions)
+;;  are correct.
+
+(define-metafunction AEXP-TYPED
+  compile-typed-unsound : t -> c
+  [(compile-typed-unsound t)
+   c
+   (judgment-holds (typed-unsound-completion t c))
+   (where a (erase-types t))
+   (judgment-holds (sound-completion a c))])
+
+(define-judgment-form AEXP-TYPED
+  #:mode (typed-unsound-completion I O)
+  #:contract (typed-unsound-completion t c)
+  [
+   --- TUC-Val
+   (typed-unsound-completion (:: v τ) v)]
+  [
+   --- TUC-Var
+   (typed-unsound-completion (:: x τ) x)]
+  [
+   (typed-unsound-completion t_x c_x)
+   (typed-unsound-completion t c)
+   --- TUC-Let
+   (typed-unsound-completion (:: (let (x t_x) t) τ) (let (x c_x) c))]
+  [
+   (typed-unsound-completion t c) ...
+   ---
+   (typed-unsound-completion (:: (δ t ...) τ) (δ c ...))]
+  [
+   (unsound-completion a_x c_x)
+   (typed-unsound-completion a c)
+   ---
+   (typed-unsound-completion (:: (dyn (x τ_x a_x) a) τ) (let (x c_x) c))])
+
+;; Similar to dynamic-completion, but does not add dynamic checks
+(define-judgment-form AEXP-TYPED
+  #:mode (unsound-completion I O)
+  #:contract (unsound-completion a c)
+  [
+   ---
+   (unsound-completion v v)]
+  [
+   ---
+   (unsound-completion x x)]
+  [
+   (unsound-completion a_x c_x)
+   (unsound-completion a c)
+   ---
+   (unsound-completion (let (x a_x) a) (let (x c_x) c))]
+  [
+   (unsound-completion a c) ...
+   ---
+   (unsound-completion (δ a ...) (δ c ...))])
+
+;; -----------------------------------------------------------------------------
+;; helper functions, tests
+
+(define-metafunction AEXP-TYPED
+  type-env-ref : Γ x -> τ
+  [(type-env-ref ((x_first τ_first) ... (x τ) (x_rest τ_rest) ...) x)
+   τ])
+
+(define-metafunction AEXP-TYPED
+  type-env-set : Γ x τ -> Γ
+  [(type-env-set ((x_first τ_first) ... (x τ_old) (x_rest τ_rest) ...) x)
+   ((x_first τ_first) ... (x τ) (x_rest τ_rest) ...)]
+  [(type-env-set ((x_rest τ_rest) ...) x τ)
+   ((x τ) (x_rest τ_rest) ...)])
+
+(define-metafunction AEXP-TYPED
+  type-annotation : t -> τ
+  [(type-annotation (:: _ τ))
+   τ])
+
+(define-metafunction AEXP-TYPED
+  erase-types : any -> any
+  [(erase-types (:: any τ))
+   (erase-types any)]
+  [(erase-types (dyn (x τ any_x) any))
+   (let (x any_x) (erase-types any))]
+  [(erase-types (any ...))
+   ((erase-types any) ...)]
+  [(erase-types any)
+   any])
+
+(module+ test
+  (test-case "primop-codomain"
+    (check-equal?
+      (term (primop-codomain + Int Int))
+      (term Int))
+    (check-equal?
+      (term (primop-codomain + Nat Nat))
+      (term Nat))
+    (check-equal?
+      (term (primop-codomain make-box (Box Int)))
+      (term (Box (Box Int))))
+    (check-equal?
+      (term (primop-codomain set-box! (Box Int) Int))
+      (term Int))
+    (check-equal?
+      (term (primop-codomain unbox (Box (Box Int))))
+      (term (Box Int))))
+
+  (test-case "type-check"
+    (check-true (redex-match? AEXP-TYPED t
+      (term (type-check 2))))
+    (check-true (redex-match? AEXP-TYPED t
+      (term (type-check -2))))
+    (check-true (redex-match? AEXP-TYPED t
+      (term (type-check (let (x 4) x)))))
+    (check-true (redex-match? AEXP-TYPED t
+      (term (type-check (+ 2 2)))))
+    (check-true (redex-match? AEXP-TYPED t
+      (term (type-check (dyn (x Int (make-box 4)) (+ x 1))))))
+    (check-true (redex-match? AEXP-TYPED t
+      (term (type-check (make-box 2)))))
+
+    (check-true (redex-match? AEXP-TYPED TypeError
+      (term (type-check (+ 2 (make-box 2))))))))
 
