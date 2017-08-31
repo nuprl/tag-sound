@@ -124,14 +124,13 @@
 (define-metafunction TAG
   theorem:type-soundness : e -> boolean
   [(theorem:type-soundness e)
-   boolean
+   #{value-check# A K}
    (judgment-holds (well-formed e))
    (where t #{type-check# e})
    (where τ #{type-annotation t})
-   (where c #{completion# t})
-   (where A #{eval# c})
    (where K #{tag# τ})
-   (where boolean #{value-check# A K})])
+   (where c #{tagged-completion# t})
+   (where A #{eval# c})])
 
 (module+ test
   (test-case "type-soundness:basic"
@@ -142,6 +141,28 @@
              (if (= n 1) 1 (* n (factorial (- n 1))))) (→ Int Int))
        5))))
     (void)))
+
+;; Theorem: exists an expression where erasing the tags
+;;  gives a result, but keeping the tags gives a type error.
+(define-metafunction TAG
+  theorem:tag-vs-dyn : e -> boolean
+  [(theorem:tag-vs-dyn e)
+   #true 
+   (judgment-holds (well-formed e))
+   (where t #{type-check# e})
+   (where τ #{type-annotation t})
+   (where c_tag #{tagged-completion# t})
+   (where c_dyn #{dynamic-completion# t})
+   (where RuntimeError #{eval# c_tag})
+   (where A_dyn #{eval# c_dyn})
+   (where #false #{value-check# A_dyn K})]
+  [(theorem:tag-vs-dyn e)
+   #false])
+
+(module+ test
+  (test-case "tag-vs-dyn"
+    (check-true (term (theorem:tag-vs-dyn
+      ((:: (fun f (n) (+ n 1)) (→ Nat Nat)) -4))))))
 
 ;; -----------------------------------------------------------------------------
 
@@ -166,24 +187,24 @@
 ;; -----------------------------------------------------------------------------
 
 (define-metafunction TAG
-  completion# : t -> c
-  [(completion# t)
+  tagged-completion# : t -> c
+  [(tagged-completion# t)
    c
-   (judgment-holds (completion t c))
+   (judgment-holds (tagged-completion t c))
    #;(judgment-holds (sound-completion t c))]
-  [(completion# t)
-   ,(raise-argument-error 'completion# "completable, type-annotated term" (term t))])
+  [(tagged-completion# t)
+   ,(raise-argument-error 'tagged-completion# "failed to complete" (term t))])
 
 (module+ test
   (test-case "completion:basic"
     (check-mf-apply* #:is-equal? α=?
-     [(completion# (:: (+ (:: 2 Int) (:: 2 Int)) Int))
+     [(tagged-completion# (:: (+ (:: 2 Int) (:: 2 Int)) Int))
       (+ 2 2)]
-     [(completion# (:: (let (x (:: 2 Int)) (:: (+ (:: x Int) (:: 2 Int)) Int)) Int))
+     [(tagged-completion# (:: (let (x (:: 2 Int)) (:: (+ (:: x Int) (:: 2 Int)) Int)) Int))
       (let (x 2) (+ x 2))]
-     [(completion# (:: (let (f (:: (fun f (x) (:: x Int)) (→ Int Int))) (:: ((:: f (→ Int Int)) (:: 2 Int)) Int)) Int))
+     [(tagged-completion# (:: (let (f (:: (fun f (x) (:: x Int)) (→ Int Int))) (:: ((:: f (→ Int Int)) (:: 2 Int)) Int)) Int))
       (let (f (fun f (x) x)) (check Int (f 2)))]
-     [(completion# (:: (car (:: (cons (:: 1 Int) (:: 2 Int)) (Pair Int Int))) Int))
+     [(tagged-completion# (:: (car (:: (cons (:: 1 Int) (:: 2 Int)) (Pair Int Int))) Int))
       (check Int (car (cons 1 2)))])
     (void)))
 
@@ -371,128 +392,140 @@
 ;; === completion
 
 (define-judgment-form TAG
-  #:mode (completion I O)
-  #:contract (completion t c)
+  #:mode (tagged-completion I O)
+  #:contract (tagged-completion t c)
   [
    ---
-   (completion (:: (box x) _) (box x))]
+   (tagged-completion (:: (box x) _) (box x))]
   [
    ---
-   (completion (:: integer _) integer)]
+   (tagged-completion (:: integer _) integer)]
   [
    ---
-   (completion (:: boolean _) boolean)]
+   (tagged-completion (:: boolean _) boolean)]
   [
-   (completion t c)
+   (tagged-completion t c)
    ---
-   (completion (:: (fun x_f (x) t) _) (fun x_f (x) c))]
+   (tagged-completion (:: (fun x_f (x) t) _) (fun x_f (x) c))]
   [
-   (completion t_0 c_0)
-   (completion t_1 c_1)
+   (tagged-completion t_0 c_0)
+   (tagged-completion t_1 c_1)
    ---
-   (completion (:: (cons t_0 t_1) _) (cons c_0 c_1))]
+   (tagged-completion (:: (cons t_0 t_1) _) (cons c_0 c_1))]
   [
    ---
-   (completion (:: x _) x)]
+   (tagged-completion (:: x _) x)]
   [
-   (completion t_0 c_0)
-   (completion t_1 c_1)
+   (tagged-completion t_0 c_0)
+   (tagged-completion t_1 c_1)
    (where (→ τ_dom τ_cod) #{type-annotation t_0})
    (where K #{tag# τ_cod})
    ---
-   (completion (:: (t_0 t_1) _) (check K (c_0 c_1)))]
+   (tagged-completion (:: (t_0 t_1) _) (check K (c_0 c_1)))]
   [
-   (completion t_0 c_0)
-   (completion t_1 c_1)
-   (completion t_2 c_2)
+   (tagged-completion t_0 c_0)
+   (tagged-completion t_1 c_1)
+   (tagged-completion t_2 c_2)
    ---
-   (completion (:: (if t_0 t_1 t_2) _) (if c_0 c_1 c_2))]
+   (tagged-completion (:: (if t_0 t_1 t_2) _) (if c_0 c_1 c_2))]
   [
-   (completion t_x c_x)
-   (completion t c)
+   (tagged-completion t_x c_x)
+   (tagged-completion t c)
    ---
-   (completion (:: (let (x t_x) t) _) (let (x c_x) c))]
+   (tagged-completion (:: (let (x t_x) t) _) (let (x c_x) c))]
   [
-   (completion/untyped e_x c_x)
-   (completion t c)
+   (dynamic-completion e_x c_x)
+   (tagged-completion t c)
    (where K #{tag# τ_x})
    ---
-   (completion (:: (require (x τ_x e_x) t) _) (let (x (check K c_x)) c))]
+   (tagged-completion (:: (require (x τ_x e_x) t) _) (let (x (check K c_x)) c))]
   [
-   (completion t c)
+   (tagged-completion t c)
    (where K #{tag# τ_cod})
    (where c_check ,(if (judgment-holds (eliminator unop))
                      (term (check K (unop c)))
                      (term (unop c))))
    ---
-   (completion (:: (unop t) τ_cod) c_check)]
+   (tagged-completion (:: (unop t) τ_cod) c_check)]
   [
-   (completion t_0 c_0)
-   (completion t_1 c_1)
-   ;; TODO need to check sometimes?
+   (tagged-completion t_0 c_0)
+   (tagged-completion t_1 c_1)
+   ;; CLAIM: never need to check,
+   ;;  because primops only assume tags
+   ;;  and typed always makes it safe to assume tags
    ---
-   (completion (:: (binop t_0 t_1) _) (binop c_0 c_1))])
+   (tagged-completion (:: (binop t_0 t_1) _) (binop c_0 c_1))])
+
+(define-metafunction TAG
+  dynamic-completion# : t -> c
+  [(dynamic-completion# t)
+   c
+   (where e #{erase-types# t})
+   (judgment-holds (dynamic-completion e c))
+   #;(judgment-holds (sound-completion t c))]
+  [(dynamic-completion# t)
+   ,(raise-arguments-error 'dynamic-completion# "failed to complete" "term" (term t))])
 
 (define-judgment-form TAG
-  #:mode (completion/untyped I O)
-  #:contract (completion/untyped e c)
+  #:mode (dynamic-completion I O)
+  #:contract (dynamic-completion e c)
   [
    ---
-   (completion/untyped (box x) (box x))]
+   (dynamic-completion (box x) (box x))]
   [
    ---
-   (completion/untyped integer integer)]
+   (dynamic-completion integer integer)]
   [
    ---
-   (completion/untyped boolean boolean)]
+   (dynamic-completion boolean boolean)]
   [
    (where (fun x_f (x) e) Λ)
-   (completion/untyped e c)
+   (dynamic-completion e c)
    ---
-   (completion/untyped Λ (fun x_f (x) c))]
+   (dynamic-completion Λ (fun x_f (x) c))]
   [
-   (completion/untyped e_0 c_0)
-   (completion/untyped e_1 c_1)
+   (dynamic-completion e_0 c_0)
+   (dynamic-completion e_1 c_1)
    ---
-   (completion/untyped (cons e_0 e_1) (cons c_0 c_1))]
+   (dynamic-completion (cons e_0 e_1) (cons c_0 c_1))]
   [
    ---
-   (completion/untyped x x)]
+   (dynamic-completion x x)]
   [
-   (completion/untyped e_0 c_0)
-   (completion/untyped e_1 c_1)
+   (dynamic-completion e_0 c_0)
+   (dynamic-completion e_1 c_1)
    (where c_check (check → c_0))
    ;; TODO need to check arguments if e_0 typed
    ---
-   (completion/untyped (e_0 e_1) (c_check c_1))]
+   (dynamic-completion (e_0 e_1) (c_check c_1))]
   [
-   (completion/untyped e_0 c_0)
-   (completion/untyped e_1 c_1)
-   (completion/untyped e_2 c_2)
+   (dynamic-completion e_0 c_0)
+   (dynamic-completion e_1 c_1)
+   (dynamic-completion e_2 c_2)
    ---
-   (completion/untyped (if e_0 e_1 e_2) (if c_0 c_1 c_2))]
+   (dynamic-completion (if e_0 e_1 e_2) (if c_0 c_1 c_2))]
   [
-   (completion/untyped e_x c_x)
-   (completion/untyped e c)
+   (dynamic-completion e_x c_x)
+   (dynamic-completion e c)
    ---
-   (completion/untyped (let (x e_x) e) (let (x c_x) c))]
+   (dynamic-completion (let (x e_x) e) (let (x c_x) c))]
   [
-   (completion/untyped e c)
+   (dynamic-completion e c)
    (where (→ _ τ_cod) #{primop-type unop})
    (where K #{tag# τ_cod})
    (where c_check ,(if (judgment-holds (eliminator unop))
                      (term (check K c))
                      (term c)))
    ---
-   (completion/untyped (unop e) (unop c_check))]
+   (dynamic-completion (unop e) (unop c_check))]
   [
-   (completion/untyped e_0 c_0)
-   (completion/untyped e_1 c_1)
+   (dynamic-completion e_0 c_0)
+   (dynamic-completion e_1 c_1)
    (where (→ τ_dom0 (→ τ_dom1 τ_cod)) #{primop-type binop})
    (where c_check0 (check #{tag# τ_dom0} c_0))
    (where c_check1 (check #{tag# τ_dom1} c_1)) ;; TODO don't check for set-box!
    ---
-   (completion/untyped (binop e_0 e_1) (binop c_check0 c_check1))])
+   (dynamic-completion (binop e_0 e_1) (binop c_check0 c_check1))])
 
 (define-judgment-form TAG
   #:mode (eliminator I)
@@ -1198,27 +1231,27 @@
 (module+ test
   (test-case "completion:basic"
     (check-mf-apply* #:is-equal? α=?
-     [(completion# (:: 3 Int))
+     [(tagged-completion# (:: 3 Int))
       3]
-     [(completion# (:: #true Bool))
+     [(tagged-completion# (:: #true Bool))
       #true]
-     [(completion# (:: (fun f (x) (:: x Int)) (→ Int Int)))
+     [(tagged-completion# (:: (fun f (x) (:: x Int)) (→ Int Int)))
       (fun f (x) x)]
-     [(completion# (:: (cons (:: 1 Int) (:: (cons (:: 1 Int) (:: 2 Int)) (Pair Int Int))) (Pair Int (Pair Int Int))))
+     [(tagged-completion# (:: (cons (:: 1 Int) (:: (cons (:: 1 Int) (:: 2 Int)) (Pair Int Int))) (Pair Int (Pair Int Int))))
       (cons 1 (cons 1 2))]
-     [(completion# (:: x Int))
+     [(tagged-completion# (:: x Int))
       x]
-     [(completion# (:: ((:: f (→ Int Int)) (:: 3 Int)) Int))
+     [(tagged-completion# (:: ((:: f (→ Int Int)) (:: 3 Int)) Int))
       (check Int (f 3))]
-     [(completion# (:: (if (:: 1 Int) (:: 2 Int) (:: 3 Int)) Int))
+     [(tagged-completion# (:: (if (:: 1 Int) (:: 2 Int) (:: 3 Int)) Int))
       (if 1 2 3)]
-     [(completion# (:: (let (x (:: 2 Int)) (:: x Int)) Int))
+     [(tagged-completion# (:: (let (x (:: 2 Int)) (:: x Int)) Int))
       (let (x 2) x)]
-     [(completion# (:: (require (x Int 2) (:: x Int)) Int))
+     [(tagged-completion# (:: (require (x Int 2) (:: x Int)) Int))
       (let (x (check Int 2)) x)]
-     [(completion# (:: (unbox (:: (make-box (:: 1 Int)) (Box Int))) Int))
+     [(tagged-completion# (:: (unbox (:: (make-box (:: 1 Int)) (Box Int))) Int))
       (check Int (unbox (make-box 1)))]
-     [(completion# (:: (+ (:: 1 Int) (:: 2 Int)) Int))
+     [(tagged-completion# (:: (+ (:: 1 Int) (:: 2 Int)) Int))
       (+ 1 2)])
     (void)))
 
