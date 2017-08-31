@@ -53,6 +53,7 @@
   (K ::= k) ;; types we can check at runtime, O(1)
   (Γ ::= ((x τ) ...))
   (Σ ::= (subst ...)) ;; constraints
+  (Σ+error ::= Σ string) ;; constraints
   (subst ::= (α τ*))
   (τ* ::= (τ ...))
 
@@ -117,6 +118,10 @@
   (check-pred A?
     (term  (()
       (check Int ((fun factorial«46» (n«47») (if (= n«47» 1) 1 (* n«47» (check Int (factorial«46» (- n«47» 1)))))) 5)))))
+  (check-pred τ?
+    (term (→ (Pair Int Int) α)))
+  (check-pred τ?
+    (term (→ (Pair α_0 α_1) α_0)))
 )
 
 ;; =============================================================================
@@ -370,8 +375,9 @@
 (define-metafunction TAG
   unify : τ τ -> τ
   [(unify τ_0 τ_1)
-   #{apply-substitution Σ_+ τ_0}
-   (where Σ_+ #{unifying-substitution () τ_0 τ_1})])
+   #{apply-substitution any_Σ τ_0}
+   (where any_Σ #{unifying-substitution () τ_0 τ_1})
+   (side-condition (unless (Σ? (term any_Σ)) (raise-arguments-error 'unify "unification failed" "τ0" (term τ_0) "τ1" (term τ_1) "reason" (term any_Σ))))])
 
 (define-metafunction TAG
   apply-substitution : Σ τ -> τ
@@ -956,25 +962,30 @@
 ;; === misc / helpers / util
 
 (define-metafunction TAG
-  unifying-substitution : Σ τ τ -> Σ
+  unifying-substitution : Σ τ τ -> Σ+error
   [(unifying-substitution Σ α τ_1)
    #{substitution-update Σ α τ_1}]
   [(unifying-substitution Σ τ_0 α)
    #{substitution-update Σ α τ_0}]
+  [(unifying-substitution Σ k0 k0)
+   Σ]
   [(unifying-substitution Σ (k1 τ_0) (k1 τ_1))
    #{unifying-substitution Σ τ_0 τ_1}]
-  [(unifying-substitution Σ (k2 τ_dom0 τ_cod1) (k2 τ_dom1 τ_cod1))
-   Σ_1
-   (where Σ_0 #{unifying-substitution Σ τ_dom0 τ_dom1})
-   (where Σ_1 #{unifying-substitution Σ_0 τ_cod0 τ_cod1})]
   [(unifying-substitution Σ (∀ (α) τ_0) τ_1)
    #{unifying-substitution Σ_0 τ_0 τ_1}
    (where Σ_0 #{substitution-add Σ α})]
   [(unifying-substitution Σ τ_0 (∀ (α) τ_1))
    #{unifying-substitution Σ_1 τ_0 τ_1}
    (where Σ_1 #{substitution-add Σ α})]
+  [(unifying-substitution Σ (k2 τ_dom0 τ_cod0) (k2 τ_dom1 τ_cod1))
+   Σ+error_1
+   (where Σ+error_0 #{unifying-substitution Σ τ_dom0 τ_dom1})
+   (where Σ+error_1 ,(if (Σ? (term Σ+error_0))
+                       (term #{unifying-substitution Σ+error_0 τ_cod0 τ_cod1})
+                       (term Σ+error_0)))]
   [(unifying-substitution Σ τ_0 τ_1)
-   ,(raise-arguments-error 'unify "cannot unify types" "τ0" (term τ_0) "τ1" (term τ_1))])
+   ,(format "~a =/= ~a in ~a" (term τ_0) (term τ_1) (term Σ))
+   ])
 
 (define-metafunction TAG
   apply-type-environment : Γ τ -> τ
