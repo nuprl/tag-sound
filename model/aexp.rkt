@@ -944,4 +944,182 @@
 ;; - Idea 2 is to monitor higher-order values.
 ;;   For AEXP, this means we guard typed boxes against dynamically typed code
 
-;; To implement monitors, we need .....
+;; A monitor is a new kind of value that protects an existing value.
+;; In general, need one monitor for each "higher-order" value in the language.
+;; In AEXP, the only higher-order value is the box.
+
+(define-judgment-form AEXP
+  #:mode (higher-order-value I)
+  #:contract (higher-order-value v)
+  [
+   ---
+   (higher-order-value (box _))])
+
+(module+ test
+  (test-case "higher-order-value"
+    (check-true (judgment-holds (higher-order-value (box x))))
+    (check-false (judgment-holds (higher-order-value 2)))))
+
+;; To implement monitors:
+;; 1. extend the value forms
+;; 2. extend the core language
+;; 3. extend the reduction relation with new rules for the new monitors
+;; 4. extend the compiler to make monitors instead of checks
+
+;; -----------------------------------------------------------------------------
+
+(define-extended-language AEXP-MONITORED
+  AEXP-TAGGED
+  (v ::= .... (mon τ (box x)))
+  (c ::= .... (mon τ c))
+  (E ::= .... (mon τ E)))
+
+(define -->AEXP-MONITORED
+  (extend-reduction-relation -->AEXP-TAGGED
+   ;; extends 'TAGGED' to inherit (check ....)
+   AEXP-MONITORED
+   [-->
+    [σ (in-hole E (mon τ v))]
+    [σ (in-hole E (check K v))]
+    E-MonCheck
+    (where K (tag-of τ))]
+   [-->
+    [σ (in-hole E (set-box! (mon (Box τ) (box x)) v))]
+    [σ (in-hole E (set-box! (box x) (mon τ v)))]
+    E-MonSet]
+   [-->
+    [σ (in-hole E (unbox (mon (Box τ) (box x))))]
+    [σ (in-hole E (mon τ (unbox (box x))))]
+    E-MonUnbox]))
+
+(define-metafunction AEXP-MONITORED
+  -->AEXP-MONITORED* : A -> (A natural)
+  [(-->AEXP-MONITORED* A)
+   ,(reflexive-transitive-closure/count-steps -->AEXP-MONITORED (term A))])
+
+(module+ test
+  (test-case "-->AEXP-MONITORED*"
+    (check-true
+      (redex-match? AEXP-MONITORED (mon τ v) (term (mon Nat 2))))
+    (check-false
+      (redex-match? AEXP-MONITORED v (term (mon Nat 2))))
+    (check-true
+      (redex-match? AEXP-MONITORED A (term [() (check Nat 2)])))
+    (check-equal?
+      (term (-->AEXP-MONITORED* [() (mon Nat 2)]))
+      (term ([() 2] 2)))
+    (check-equal?
+      (term (-->AEXP-MONITORED* [() (let (y (check Nat 2)) (+ 2 y))]))
+      (term ([() 4] 3)))
+    (check-equal?
+      (term (-->AEXP-MONITORED* [() (let (y (mon Nat 2)) (+ 2 y))]))
+      (term ([() 4] 4)))
+    (check-equal?
+      (term (-->AEXP-MONITORED* [() (let (x 2) (let (y (mon Nat 2)) (+ x y)))]))
+      (term ([() 4] 5)))))
+
+;; -----------------------------------------------------------------------------
+
+(define-metafunction AEXP-MONITORED
+  eval-monitored : a -> any
+  [(eval-monitored a)
+   (unload-monitored A_final)
+   (where A_init (pre-eval-monitored a))
+   (where (A_final _) (-->AEXP-MONITORED* A_init))]
+  [(eval-monitored a)
+   TypeError
+   (where TypeError (pre-eval-monitored a))])
+
+(define-metafunction AEXP-MONITORED
+  pre-eval-monitored : a -> maybe-A
+  [(pre-eval-monitored a)
+   TypeError
+   (where TypeError (type-check a))]
+  [(pre-eval-monitored a)
+   [() c]
+   (where t (type-check a))
+   (where c (compile-monitored t))])
+
+(define-metafunction AEXP-MONITORED
+  unload-monitored : A -> any
+  [(unload-monitored RuntimeError)
+   RuntimeError]
+  [(unload-monitored [σ integer])
+   integer]
+  [(unload-monitored [σ (box x)])
+   (box (unload-monitored σ x))]
+  [(unload-monitored [σ (mon τ v)])
+   (mon τ (unload-monitored [σ v]))])
+
+(module+ test
+  (test-case "eval-monitored"
+    (check-equal?
+      (term (eval-monitored (+ 2 2)))
+      (term 4))
+    (check-equal?
+      (term (eval-monitored (let (x 2) (dyn (y Nat 2) (+ x y)))))
+      (term 4))
+    (check-equal?
+      (term (eval-monitored
+        (let (b (make-box 1))
+          (dyn (y Nat (set-box! b 2))
+            (let (z (unbox b))
+              (+ z y))))))
+      (term 4))))
+
+;; -----------------------------------------------------------------------------
+
+(define-metafunction AEXP-MONITORED
+  compile-monitored : t -> c
+  [(compile-monitored t)
+   c
+   (judgment-holds (monitored-completion t c))
+   (where a (erase-types t))
+   (judgment-holds (sound-completion-monitored a c))])
+
+;; Similar to tagged-completion, but simpler.
+;; Only `dyn` forms need a monitor;
+;;  everything else --- including primop applications --- is just structural recursion.
+(define-judgment-form AEXP-MONITORED
+  #:mode (monitored-completion I O)
+  #:contract (monitored-completion t c)
+  [
+   ---
+   (monitored-completion (:: v _) v)]
+  [
+   ---
+   (monitored-completion (:: x _) x)]
+  [
+   (monitored-completion t_x c_x)
+   (monitored-completion t c)
+   ---
+   (monitored-completion (:: (let (x t_x) t) _) (let (x c_x) c))]
+  [
+   (monitored-completion t c) ...
+   ---
+   (monitored-completion (:: (δ t ...) τ) (δ c ...))]
+  [
+   (dynamic-completion a_x c_x)
+   (where c_mon (mon τ_x c_x))
+   (monitored-completion t c)
+   ---
+   (monitored-completion (:: (dyn (x τ_x a_x) t) _) (let (x c_mon) c))])
+
+(define-judgment-form AEXP-MONITORED
+  #:mode (sound-completion-monitored I I)
+  #:contract (sound-completion-monitored a c)
+  [
+   (where a_c (erase-monitors (erase-asserts c)))
+   (side-condition ,(α=? (term a) (term a_c)))
+   ---
+   (sound-completion-monitored a c)])
+
+(define-metafunction AEXP-MONITORED
+  erase-monitors : any -> any
+  [(erase-monitors (mon τ any))
+   (erase-monitors any)]
+  [(erase-monitors (any ...))
+   ((erase-monitors any) ...)]
+  [(erase-monitors any)
+   any])
+
