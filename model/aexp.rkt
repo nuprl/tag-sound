@@ -8,7 +8,7 @@
 ;; 3. AEXP is not type sound
 ;; 4. How to enforce tag soundness, AEXP-TAGGED
 ;; 5. How to enforce type soundness, AEXP-SOUND
-;; 6. Soundness vs. performance
+;; 6. Discussion
 ;; (Search for "Section N" to jump to a section of the outline)
 
 ;; -----------------------------------------------------------------------------
@@ -826,6 +826,14 @@
 ;; -----------------------------------------------------------------------------
 ;; theorems about AEXP-TAGGED
 
+;; AEXP-TAGGED satisfies a notion of tag soundness:
+;;
+;;  If `a` is well typed at `τ` and compiles to `c`, then either:
+;;  - `a` reduces to `[σ v]` such that `[σ v] ⊨ K`
+;;  - `a` reduces to an Assert error in dynamically typed code
+;;  - `a` reduces to a Check error because of a failed tag check
+;;    TODO can we say more about how these tag checks might fail?
+
 ;; Claim: exists a term that
 ;; - reduces to an ill-tagged value when unsound
 ;; - reduces to a Check error when tag-sound
@@ -906,8 +914,34 @@
    any])
 
 ;; =============================================================================
-;; === Section 4
+;; === Section 5
 ;; =============================================================================
 
-;; Classic soundness -> generalized soundness -> monitors
+;; AEXP-TAGGED is tag-sound, but not type sound.
+;; Proof: there is a term with static type `τ` that reduces to a `[σ v]`
+;;  such that `[σ v] ⊨ τ` is NOT true.
 
+(define-metafunction AEXP-TAGGED
+  counterexample:generalized-soundness : a -> boolean
+  [(counterexample:generalized-soundness a)
+   ,(not (judgment-holds (well-typed-value [σ v] τ)))
+   (where τ (type-annotation (type-check a)))
+   (where A_init (pre-eval-tagged a))
+   (where ([σ v] _) (-->AEXP-TAGGED* A_init))])
+
+(module+ test
+  (check-true
+    (term (counterexample:generalized-soundness
+      (dyn (x (Box Nat) (make-box (make-box -1))) x)))))
+
+;; How to get type soundness?
+;; - For the AEXP language, we could do "deep tag checks"
+;;   on every value in σ every time control enters typed code.
+;;   This will break down if the language adds "infinite" values like functions
+;;    or streams.
+;;   Also, checking the entire heap every time control changes from untyped-to-typed
+;;    will hurt performance.
+;; - Idea 2 is to monitor higher-order values.
+;;   For AEXP, this means we guard typed boxes against dynamically typed code
+
+;; To implement monitors, we need .....
