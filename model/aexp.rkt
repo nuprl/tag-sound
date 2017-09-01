@@ -651,7 +651,7 @@
       (term (counterexample:classic-soundness (dyn (x Nat -2) (+ x x)))))))
 
 ;; =============================================================================
-;; === Section 3
+;; === Section 4
 ;; =============================================================================
 
 ;; "Classic" soundness does not hold for the "unsound" compiler because
@@ -826,7 +826,59 @@
 ;; -----------------------------------------------------------------------------
 ;; theorems about AEXP-TAGGED
 
-;; TBA
+;; Claim: exists a term that
+;; - reduces to an ill-tagged value when unsound
+;; - reduces to a Check error when tag-sound
+(define-metafunction AEXP-TAGGED
+  example:tagged-is-not-unsound : a -> boolean
+  [(example:tagged-is-not-unsound a)
+   ,(not (judgment-holds (well-typed-value A_final τ)))
+   (where τ (type-annotation (type-check a)))
+   (where A_unsound (pre-eval-typed a))
+   (where (A_final _) (-->AEXP* A_unsound))
+   (where c_dyn (compile (erase-types a)))
+   (where (A_dyn _) (-->AEXP* [() c_dyn]))
+   (where A_tagged (pre-eval-tagged a))
+   (where ((Check _ _) _) (-->AEXP-TAGGED* A_tagged))])
+
+(module+ test
+  (test-case "tagged-is-better-than-unsound"
+    (check-true
+      (term (example:tagged-is-not-unsound (dyn (x Nat -2) (+ x x)))))))
+
+;; Claim: for all AEXP term with no dynamic typing and no unbox operations,
+;;  tagged evaluation and unsound evaluation take the same number of steps.
+(define-metafunction AEXP-TAGGED
+  example:tagged-sometimes-fast : a -> boolean
+  [(example:tagged-sometimes-fast a)
+   ,(= (term natural_unsound) (term natural_tagged))
+   (where A_unsound (pre-eval-typed a))
+   (where A_tagged (pre-eval-tagged a))
+   (where (A_final natural_unsound) (-->AEXP* A_unsound))
+   (where (A_final natural_tagged) (-->AEXP-TAGGED* A_tagged))])
+
+(module+ test
+  (test-case "tagged-sometimes-fast"
+    (check-true
+      (term (example:tagged-sometimes-fast (+ 2 2))))
+    (check-true
+      (term (example:tagged-sometimes-fast (let (x 1) (let (y 2) (+ x (+ y y)))))))))
+
+;; Claim: for all AEXP terms with at least one `dyn` or `unbox`,
+;;  tagged evaluation is slower than unsound
+(define-metafunction AEXP-TAGGED
+  example:tagged-sometimes-slow : a -> boolean
+  [(example:tagged-sometimes-slow a)
+   ,(< (term natural_unsound) (term natural_tagged))
+   (where A_unsound (pre-eval-typed a))
+   (where A_tagged (pre-eval-tagged a))
+   (where (A_final natural_unsound) (-->AEXP* A_unsound))
+   (where (A_final natural_tagged) (-->AEXP-TAGGED* A_tagged))])
+
+(module+ test
+  (test-case "tagged-sometimes-slow"
+    (check-true
+      (term (example:tagged-sometimes-slow (unbox (make-box 2)))))))
 
 ;; -----------------------------------------------------------------------------
 ;; helpers, other tests
