@@ -7,9 +7,11 @@
 ;; 2. Adding an optional type system, AEXP-TYPED
 ;; 3. AEXP is not type sound
 ;; 4. How to enforce tag soundness, AEXP-TAGGED
-;; 5. How to enforce type soundness, AEXP-SOUND
-;; 6. Discussion
-;; (Search for "Section N" to jump to a section of the outline)
+;; 5. Claims about tag soundness
+;; 6. How to enforce type soundness, AEXP-MONITORED
+;; 7. Claims about AEXP-MONITORED
+;; 7. Discussion
+;; (Search for "=== Section N" to jump to a section of the outline)
 
 ;; -----------------------------------------------------------------------------
 
@@ -824,7 +826,33 @@
     (void)))
 
 ;; -----------------------------------------------------------------------------
-;; theorems about AEXP-TAGGED
+;; helpers, other tests
+
+(define-judgment-form AEXP-TAGGED
+  #:mode (well-tagged-value I I)
+  #:contract (well-tagged-value v K)
+  [
+   ---
+   (well-tagged-value natural Nat)]
+  [
+   ---
+   (well-tagged-value integer Int)]
+  [
+   ---
+   (well-tagged-value (box _) Box)])
+
+(define-metafunction AEXP-TAGGED
+  erase-checks : any -> any
+  [(erase-checks (check K c))
+   (erase-checks c)]
+  [(erase-checks (any ...))
+   ((erase-checks any) ...)]
+  [(erase-checks any)
+   any])
+
+;; =============================================================================
+;; === Section 5
+;; =============================================================================
 
 ;; AEXP-TAGGED satisfies a notion of tag soundness:
 ;;
@@ -853,6 +881,23 @@
   (test-case "tagged-is-better-than-unsound"
     (check-true
       (term (example:tagged-is-not-unsound (dyn (x Nat -2) (+ x x)))))))
+
+;; AEXP-TAGGED is tag-sound, but not type sound.
+;; Proof: there is a term with static type `τ` that reduces to a `[σ v]`
+;;  such that `[σ v] ⊨ τ` is NOT true.
+
+(define-metafunction AEXP-TAGGED
+  counterexample:generalized-soundness : a -> boolean
+  [(counterexample:generalized-soundness a)
+   ,(not (judgment-holds (well-typed-value [σ v] τ)))
+   (where τ (type-annotation (type-check a)))
+   (where A_init (pre-eval-tagged a))
+   (where ([σ v] _) (-->AEXP-TAGGED* A_init))])
+
+(module+ test
+  (check-true
+    (term (counterexample:generalized-soundness
+      (dyn (x (Box Nat) (make-box (make-box -1))) x)))))
 
 ;; Claim: for all AEXP term with no dynamic typing and no unbox operations,
 ;;  tagged evaluation and unsound evaluation take the same number of steps.
@@ -888,51 +933,9 @@
     (check-true
       (term (example:tagged-sometimes-slow (unbox (make-box 2)))))))
 
-;; -----------------------------------------------------------------------------
-;; helpers, other tests
-
-(define-judgment-form AEXP-TAGGED
-  #:mode (well-tagged-value I I)
-  #:contract (well-tagged-value v K)
-  [
-   ---
-   (well-tagged-value natural Nat)]
-  [
-   ---
-   (well-tagged-value integer Int)]
-  [
-   ---
-   (well-tagged-value (box _) Box)])
-
-(define-metafunction AEXP-TAGGED
-  erase-checks : any -> any
-  [(erase-checks (check K c))
-   (erase-checks c)]
-  [(erase-checks (any ...))
-   ((erase-checks any) ...)]
-  [(erase-checks any)
-   any])
-
 ;; =============================================================================
-;; === Section 5
+;; === Section 6
 ;; =============================================================================
-
-;; AEXP-TAGGED is tag-sound, but not type sound.
-;; Proof: there is a term with static type `τ` that reduces to a `[σ v]`
-;;  such that `[σ v] ⊨ τ` is NOT true.
-
-(define-metafunction AEXP-TAGGED
-  counterexample:generalized-soundness : a -> boolean
-  [(counterexample:generalized-soundness a)
-   ,(not (judgment-holds (well-typed-value [σ v] τ)))
-   (where τ (type-annotation (type-check a)))
-   (where A_init (pre-eval-tagged a))
-   (where ([σ v] _) (-->AEXP-TAGGED* A_init))])
-
-(module+ test
-  (check-true
-    (term (counterexample:generalized-soundness
-      (dyn (x (Box Nat) (make-box (make-box -1))) x)))))
 
 ;; How to get type soundness?
 ;; - For the AEXP language, we could do "deep tag checks"
@@ -970,19 +973,24 @@
 
 (define-extended-language AEXP-MONITORED
   AEXP-TAGGED
-  (v ::= .... (mon τ (box x)))
   (c ::= .... (mon τ c))
   (E ::= .... (mon τ E)))
+
+(module+ test
+  (check α=?
+    (term (let (x 1) x))
+    (term (let (y 1) y))))
 
 (define -->AEXP-MONITORED
   (extend-reduction-relation -->AEXP-TAGGED
    ;; extends 'TAGGED' to inherit (check ....)
    AEXP-MONITORED
    [-->
-    [σ (in-hole E (mon τ v))]
-    [σ (in-hole E (check K v))]
-    E-MonCheck
-    (where K (tag-of τ))]
+    [σ (in-hole E (let (x c_x) c))]
+    [σ c_subst]
+    E-LetMon
+    (where (mon (Box τ) (box x_loc)) c_x)
+    (where c_subst (substitute c x c_x))]
    [-->
     [σ (in-hole E (set-box! (mon (Box τ) (box x)) v))]
     [σ (in-hole E (set-box! (box x) (mon τ v)))]
@@ -999,24 +1007,20 @@
 
 (module+ test
   (test-case "-->AEXP-MONITORED*"
-    (check-true
-      (redex-match? AEXP-MONITORED (mon τ v) (term (mon Nat 2))))
     (check-false
       (redex-match? AEXP-MONITORED v (term (mon Nat 2))))
     (check-true
       (redex-match? AEXP-MONITORED A (term [() (check Nat 2)])))
     (check-equal?
-      (term (-->AEXP-MONITORED* [() (mon Nat 2)]))
-      (term ([() 2] 2)))
-    (check-equal?
       (term (-->AEXP-MONITORED* [() (let (y (check Nat 2)) (+ 2 y))]))
       (term ([() 4] 3)))
     (check-equal?
-      (term (-->AEXP-MONITORED* [() (let (y (mon Nat 2)) (+ 2 y))]))
-      (term ([() 4] 4)))
+      ;; only monitor boxes
+      (term (-->AEXP-MONITORED* [() (mon Nat 2)]))
+      (term ([() (mon Nat 2)] 0)))
     (check-equal?
-      (term (-->AEXP-MONITORED* [() (let (x 2) (let (y (mon Nat 2)) (+ x y)))]))
-      (term ([() 4] 5)))))
+      (term (-->AEXP-MONITORED* [() (let (y (check Nat 2)) (+ 2 y))]))
+      (term ([() 4] 3)))))
 
 ;; -----------------------------------------------------------------------------
 
@@ -1065,7 +1069,11 @@
           (dyn (y Nat (set-box! b 2))
             (let (z (unbox b))
               (+ z y))))))
-      (term 4))))
+      (term 4))
+    (check-true (redex-match? AEXP-MONITORED (Check _ _)
+      (term (eval-monitored
+        (dyn (y (Box Nat) (make-box -2))
+          42)))))))
 
 ;; -----------------------------------------------------------------------------
 
@@ -1074,12 +1082,11 @@
   [(compile-monitored t)
    c
    (judgment-holds (monitored-completion t c))
-   (where a (erase-types t))
-   (judgment-holds (sound-completion-monitored a c))])
+   ;; TODO hard to define sound completion, because adding lots more checks
+   #;(where a (erase-types t))
+   #;(judgment-holds (sound-completion-monitored a c))])
 
-;; Similar to tagged-completion, but simpler.
-;; Only `dyn` forms need a monitor;
-;;  everything else --- including primop applications --- is just structural recursion.
+;; The interesting case here is for `dyn`, see below.
 (define-judgment-form AEXP-MONITORED
   #:mode (monitored-completion I O)
   #:contract (monitored-completion t c)
@@ -1100,10 +1107,26 @@
    (monitored-completion (:: (δ t ...) τ) (δ c ...))]
   [
    (dynamic-completion a_x c_x)
-   (where c_mon (mon τ_x c_x))
+   ;; compile the type annotation into a DEEP run-time check
+   (where E_mon (type->check τ_x))
+   (where c_mon (in-hole E_mon c_x))
    (monitored-completion t c)
    ---
    (monitored-completion (:: (dyn (x τ_x a_x) t) _) (let (x c_mon) c))])
+
+;; Compile a type into a context that checks and enforces the type
+;; - for tag-types, just check
+;; - for higher-order types, check the value and wrap in a monitor
+(define-metafunction AEXP-MONITORED
+  type->check : τ -> E
+  [(type->check K)
+   (check K hole)]
+  [(type->check (Box τ))
+   (mon (Box τ)
+     (let (b hole)
+       (let (ignore (set-box! (check Box b) (in-hole E_v (unbox b))))
+         b)))
+   (where E_v (type->check τ))])
 
 (define-judgment-form AEXP-MONITORED
   #:mode (sound-completion-monitored I I)
@@ -1122,4 +1145,105 @@
    ((erase-monitors any) ...)]
   [(erase-monitors any)
    any])
+
+(module+ test
+  (test-case "type->check"
+    (check-equal?
+      (term (type->check Nat))
+      (term (check Nat hole)))
+    (check-equal?
+      (term (type->check Int))
+      (term (check Int hole)))
+    (let ([E (term (type->check (Box Nat)))])
+      (check-true
+        (redex-match? AEXP-MONITORED E E))
+      (check-true
+        (redex-match? AEXP-MONITORED c (term (in-hole ,E (box z)))))
+      (check α=?
+        (term (in-hole ,E (box z)))
+        (term (in-hole (mon (Box Nat)
+                (let (b hole)
+                  (let (ignore (set-box! (check Box b) (check Nat (unbox b))))
+                    b))) (box z))))))
+
+  (test-case "compile-monitored"
+    (check-true (redex-match? AEXP-MONITORED c
+      (term (compile-monitored
+        (:: (let (x (:: 2 Nat))
+          (:: (dyn (y Nat 2)
+            (:: (+ (:: x Nat) (:: y Nat)) Nat)) Nat)) Nat)))))
+    (void)))
+
+;; =============================================================================
+;; === Section 6
+;; =============================================================================
+
+;; AEXP-MONITORED has a type soundness
+;;
+;;  If `a` is well typed at `τ` and compiles to `c`, then either:
+;;  - `a` reduces to `[σ v]` such that `[σ v] ⊨ τ`
+;;  - `a` reduces to an Assert error in dynamically typed code
+;;  - `a` reduces to a Check error because of a failed tag check
+
+(define-metafunction AEXP-MONITORED
+  theorem:mon-soundness : a -> boolean
+  [(theorem:mon-soundness a)
+   #true
+   (where A_init (pre-eval-monitored a))
+   (where (RuntimeError _) (-->AEXP-MONITORED* A_init))]
+  [(theorem:mon-soundness a)
+   ,(judgment-holds (well-typed-value A_final τ))
+   (where τ (type-annotation (type-check a)))
+   (where A_init (pre-eval-monitored a))
+   (where (A_final _) (-->AEXP-MONITORED* A_init))])
+
+(module+ test
+  (test-case "mon-soundness"
+    (check-true
+      (term (theorem:mon-soundness
+        (dyn (x Nat -2) (+ x x)))))
+    (check-true
+      (term (theorem:mon-soundness
+        (dyn (x (Box Nat) (make-box (make-box -1)))
+          x))))))
+
+;; Claim: exist terms (with no dyn)
+;;  where monitored evaluation is faster than tagged
+(define-metafunction AEXP-MONITORED
+  example:monitored-sometimes-fast : a -> boolean
+  [(example:monitored-sometimes-fast a)
+   ,(< (term natural_monitored) (term natural_tagged))
+   (where A_monitored (pre-eval-monitored a))
+   (where A_tagged (pre-eval-tagged a))
+   (where (A_final natural_monitored) (-->AEXP-MONITORED* A_monitored))
+   (where (A_final natural_tagged) (-->AEXP-TAGGED* A_tagged))])
+
+(module+ test
+  (test-case "monitored-sometimes-fast"
+    (check-true
+      (term (example:monitored-sometimes-fast (unbox (make-box 2)))))))
+
+;; Claim: exist terms (with dyn)
+;;  where monitored evaluation is slower
+(define-metafunction AEXP-MONITORED
+  example:monitored-sometimes-slow : a -> boolean
+  [(example:monitored-sometimes-slow a)
+   ,(< (term natural_tagged) (term natural_monitored))
+   (where A_monitored (pre-eval-monitored a))
+   (where A_tagged (pre-eval-tagged a))
+   (where (A_final natural_monitored) (-->AEXP-MONITORED* A_monitored))
+   (where (A_final2 natural_tagged) (-->AEXP-TAGGED* A_tagged))])
+
+(module+ test
+  (test-case "monitored-sometimes-slow"
+    (check-true
+      (term (example:monitored-sometimes-slow
+        (dyn (x (Box Nat) (make-box 2))
+          (+ 2 (unbox x))))))))
+
+;; =============================================================================
+;; === Section 7
+;; =============================================================================
+
+;; Summary / Discussion
 
