@@ -4,10 +4,10 @@
 
 ;; Outline:
 ;; 1. AEXP is a dynamically typed language
-;; 2. Adding an optional type system
+;; 2. Adding an optional type system, AEXP-TYPED
 ;; 3. AEXP is not type sound
-;; 4. How to enforce tag soundness (AEXP-TAGGED)
-;; 5. How to enforce type soundness (AEXP-TYPED)
+;; 4. How to enforce tag soundness, AEXP-TAGGED
+;; 5. How to enforce type soundness, AEXP-SOUND
 ;; 6. Soundness vs. performance
 ;; (Search for "Section N" to jump to a section of the outline)
 
@@ -47,7 +47,7 @@
   ;;  and may yield either a result state or a runtime error
   (A ::= [σ c] RuntimeError)
   (σ ::= ((x v) ...))
-  (RuntimeError ::= (AssertError k v))
+  (RuntimeError ::= (Assert k v))
   (E ::= hole (let (x E) c) (δ v ... E c ...) (assert k E))
 
   (x ::= variable-not-otherwise-mentioned)
@@ -84,7 +84,7 @@
       (redex-match? AEXP 4
         (term (eval (+ 2 2)))))
     (check-true
-      (redex-match? AEXP (AssertError int (box _))
+      (redex-match? AEXP (Assert int (box _))
         (term (eval (+ 2 (make-box 2))))))))
 
 ;; -----------------------------------------------------------------------------
@@ -142,7 +142,8 @@
   #:mode (sound-completion I I)
   #:contract (sound-completion a c)
   [
-   (where a (erase-asserts c))
+   (where a_c (erase-asserts c))
+   (side-condition ,(α=? (term a) (term a_c)))
    ---
    (sound-completion a c)])
 
@@ -184,29 +185,18 @@
     [σ (in-hole E (assert k v))]
     [σ (in-hole E v)]
     E-AssertSuccess
-    (judgment-holds (well-tagged v k))]
+    (judgment-holds (do-assert v k))]
    [-->
     [σ (in-hole E (assert k v))]
-    (AssertError k v)
+    (Assert k v)
     E-AssertFailure
-    (judgment-holds (not-well-tagged v k))]))
+    (side-condition (not (judgment-holds (do-assert v k))))]))
 
 ;; Apply reduction relation `-->AEXP` to a term, count the number of steps
 (define-metafunction AEXP
   -->AEXP* : A -> (A natural)
   [(-->AEXP* A)
-   ,(let loop ([curr-A (term A)]
-               [num-steps 0])
-      (define next-A* (apply-reduction-relation -->AEXP curr-A))
-      (cond
-       [(null? next-A*)
-        (list curr-A num-steps)]
-       [(null? (cdr next-A*))
-        (loop (car next-A*) (+ num-steps 1))]
-       [else
-        (raise-arguments-error '-->AEXP* "non-deterministic reduction"
-          "current-term" curr-A
-          "next-terms" next-A*)]))])
+   ,(reflexive-transitive-closure/count-steps -->AEXP (term A))])
 
 (define-metafunction AEXP
   apply-primop : δ σ v ... -> [σ v]
@@ -241,22 +231,28 @@
    v])
 
 (define-judgment-form AEXP
-  #:mode (well-tagged I I)
-  #:contract (well-tagged v k)
+  #:mode (do-assert I I)
+  #:contract (do-assert v k)
   [
    ---
-   (well-tagged integer int)]
+   (do-assert integer int)]
   [
    ---
-   (well-tagged (box _) box)])
+   (do-assert (box _) box)])
 
-(define-judgment-form AEXP
-  #:mode (not-well-tagged I I)
-  #:contract (not-well-tagged v k)
-  [
-   (side-condition ,(not (judgment-holds (well-tagged v k))))
-   ---
-   (not-well-tagged v k)])
+(define-syntax-rule (reflexive-transitive-closure/count-steps --> t)
+  (let loop ([curr-A t]
+             [num-steps 0])
+    (define next-A* (apply-reduction-relation --> curr-A))
+    (cond
+     [(null? next-A*)
+      (list curr-A num-steps)]
+     [(null? (cdr next-A*))
+      (loop (car next-A*) (+ num-steps 1))]
+     [else
+      (raise-arguments-error (string->symbol (format "~a*" (object-name -->))) "non-deterministic reduction"
+        "current-term" curr-A
+        "next-terms" next-A*)])))
 
 ;; =============================================================================
 ;; === Section 2
@@ -321,6 +317,15 @@
    [() c]
    (where t (type-check a))
    (where c (compile-typed-unsound t))])
+
+(module+ test
+  (test-case "eval-typed"
+    (check-equal?
+      (term (eval-typed (+ 2 2)))
+      (term 4))
+    (check-equal?
+      (term (eval-typed (let (x 2) (dyn (y Nat 2) (+ x y)))))
+      (term 4))))
 
 ;; -----------------------------------------------------------------------------
 ;; The following "theorems" argue that AEXP-TYPED provides benefits T0 and T1
@@ -547,30 +552,10 @@
    ---
    (typed-unsound-completion (:: (δ t ...) τ) (δ c ...))]
   [
-   (unsound-completion a_x c_x)
+   (dynamic-completion a_x c_x)
    (typed-unsound-completion t c)
    ---
    (typed-unsound-completion (:: (dyn (x τ_x a_x) t) τ) (let (x c_x) c))])
-
-;; Similar to dynamic-completion, but does not add dynamic checks
-(define-judgment-form AEXP-TYPED
-  #:mode (unsound-completion I O)
-  #:contract (unsound-completion a c)
-  [
-   ---
-   (unsound-completion v v)]
-  [
-   ---
-   (unsound-completion x x)]
-  [
-   (unsound-completion a_x c_x)
-   (unsound-completion a c)
-   ---
-   (unsound-completion (let (x a_x) a) (let (x c_x) c))]
-  [
-   (unsound-completion a c) ...
-   ---
-   (unsound-completion (δ a ...) (δ c ...))])
 
 ;; -----------------------------------------------------------------------------
 ;; helper functions, tests
@@ -664,3 +649,213 @@
   (test-case "classic-soundness-counterexample"
     (check-true
       (term (counterexample:classic-soundness (dyn (x Nat -2) (+ x x)))))))
+
+;; =============================================================================
+;; === Section 3
+;; =============================================================================
+
+;; "Classic" soundness does not hold for the "unsound" compiler because
+;;  that compiler assumes the type annotations on `dyn` terms are correct.
+;; This is a bad assumption.
+;;
+;; How to remove the assumption?
+;; 1. Remove all dynamically typed code
+;; 2. Add run-time checks
+;;
+;; How to add run-time checks?
+;; - One idea, use `assert` from the core language.
+;;   This doesn't work because we have a type `Nat`
+;;    that doesn't correspond to a machine tag `k`
+;; - Second idea, add a generalized kind of tag so there is one tag
+;;   for each logical type.
+;;
+;; This section explores the "generalized tag" idea,
+;;  shows it satisfies a kind of soundness,
+;;  and shows that the soundness is NOT classic type soundness.
+
+(define-extended-language AEXP-TAGGED
+  AEXP-TYPED
+
+  (K ::= Int Nat Box)
+
+  (c ::= .... (check K c))
+  (E ::= .... (check K E))
+  (RuntimeError ::= .... (Check K v)))
+
+(define-metafunction AEXP-TAGGED
+  eval-tagged : a -> any
+  [(eval-tagged a)
+   (unload A_final)
+   (where A_init (pre-eval-tagged a))
+   (where (A_final natural_num-steps) (-->AEXP-TAGGED* A_init))]
+  [(eval-tagged a)
+   TypeError
+   (where TypeError (pre-eval-tagged a))])
+
+(define-metafunction AEXP-TAGGED
+  pre-eval-tagged : a -> maybe-A
+  [(pre-eval-tagged a)
+   TypeError
+   (where TypeError (type-check a))]
+  [(pre-eval-tagged a)
+   [() c]
+   (where t (type-check a))
+   (where c (compile-tagged t))])
+
+(define -->AEXP-TAGGED
+  (extend-reduction-relation -->AEXP
+   AEXP-TAGGED
+   [-->
+    [σ (in-hole E (check K v))]
+    [σ (in-hole E v)]
+    E-CheckSuccess
+    (judgment-holds (well-tagged-value v K))]
+   [-->
+    [σ (in-hole E (check K v))]
+    (Check K v)
+    E-CheckFailure
+    (side-condition (not (judgment-holds (well-tagged-value v K))))]))
+
+(define-metafunction AEXP-TAGGED
+  -->AEXP-TAGGED* : A -> (A natural)
+  [(-->AEXP-TAGGED* A)
+   ,(reflexive-transitive-closure/count-steps -->AEXP-TAGGED (term A))])
+
+(module+ test
+  (test-case "eval-tagged"
+    (check-equal?
+      (term (eval-tagged (+ 2 2)))
+      (term 4))
+    (check-equal?
+      (term (eval-tagged (let (x 2) (dyn (y Nat 2) (+ x y)))))
+      (term 4))))
+
+;; -----------------------------------------------------------------------------
+;; compile-tagged
+
+;; This compiler preserves tag soundness by defending
+;;  typed expressions from possibly-untyped code.
+;; 1. Check `dyn`-expressions
+;;   `(dyn (x τ a) t)` ===> `(let (x (check K a)) t)`
+;; 2. Check the results of unbox, since dynamically typed code may
+;;    have created or written to the box
+;;   `(unbox t)` ===> `(check K (unbox t))`
+;; The general principle is to add a tag check at every point
+;;  where dynamically-typed code might enter typed code.
+
+(define-metafunction AEXP-TAGGED
+  compile-tagged : t -> c
+  [(compile-tagged t)
+   c
+   (judgment-holds (tagged-completion t c))
+   (where a (erase-types t))
+   (judgment-holds (sound-completion-tagged a c))])
+
+;; Need a new copy of this metafunction because `c` has new meaning
+(define-judgment-form AEXP-TAGGED
+  #:mode (sound-completion-tagged I I)
+  #:contract (sound-completion-tagged a c)
+  [
+   (where a_c (erase-checks (erase-asserts c)))
+   (side-condition ,(α=? (term a) (term a_c)))
+   ---
+   (sound-completion-tagged a c)])
+
+(define-judgment-form AEXP-TAGGED
+  #:mode (tagged-completion I O)
+  #:contract (tagged-completion t c)
+  [
+   ---
+   (tagged-completion (:: v _) v)]
+  [
+   ---
+   (tagged-completion (:: x _) x)]
+  [
+   (tagged-completion t_x c_x)
+   (tagged-completion t c)
+   ---
+   (tagged-completion (:: (let (x t_x) t) _) (let (x c_x) c))]
+  [
+   (eliminator? δ)
+   (tagged-completion t c) ...
+   (where K (tag-of τ))
+   ---
+   (tagged-completion (:: (δ t ...) τ) (check K (δ c ...)))]
+  [
+   (side-condition ,(not (judgment-holds (eliminator? δ))))
+   (tagged-completion t c) ...
+   ---
+   (tagged-completion (:: (δ t ...) τ) (δ c ...))]
+  [
+   (dynamic-completion a_x c_x)
+   (where K (tag-of τ_x))
+   (where c_check (check K c_x))
+   (tagged-completion t c)
+   ---
+   (tagged-completion (:: (dyn (x τ_x a_x) t) _) (let (x c_check) c))])
+
+(define-judgment-form AEXP-TAGGED
+  #:mode (eliminator? I)
+  #:contract (eliminator? δ)
+  [
+   ---
+   (eliminator? unbox)])
+
+(define-metafunction AEXP-TAGGED
+  tag-of : τ -> K
+  [(tag-of K)
+   K]
+  [(tag-of (Box _))
+   Box])
+
+(module+ test
+  (test-case "compile-tagged"
+    (define t (term (:: (let (x (:: 2 Nat))
+                      (:: (dyn (y Nat 2)
+                        (:: (+ (:: x Nat) (:: y Nat)) Nat)) Nat)) Nat)))
+    (check-true
+      (redex-match? AEXP-TAGGED t t))
+    (define a (term (erase-types ,t)))
+    (check-true
+      (redex-match? AEXP-TAGGED a a))
+    (define c (term (compile-tagged ,t)))
+    (check-true
+      (redex-match? AEXP-TAGGED c c))
+    (void)))
+
+;; -----------------------------------------------------------------------------
+;; theorems about AEXP-TAGGED
+
+;; TBA
+
+;; -----------------------------------------------------------------------------
+;; helpers, other tests
+
+(define-judgment-form AEXP-TAGGED
+  #:mode (well-tagged-value I I)
+  #:contract (well-tagged-value v K)
+  [
+   ---
+   (well-tagged-value natural Nat)]
+  [
+   ---
+   (well-tagged-value integer Int)]
+  [
+   ---
+   (well-tagged-value (box _) Box)])
+
+(define-metafunction AEXP-TAGGED
+  erase-checks : any -> any
+  [(erase-checks (check K c))
+   (erase-checks c)]
+  [(erase-checks (any ...))
+   ((erase-checks any) ...)]
+  [(erase-checks any)
+   any])
+
+;; =============================================================================
+;; === Section 4
+;; =============================================================================
+
+;; Classic soundness -> generalized soundness -> monitors
+
