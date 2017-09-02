@@ -179,10 +179,26 @@
     E-Let
     (where c_x (substitute c x v))]
    [-->
-    [σ (in-hole E (δ v ...))]
-    [σ_res (in-hole E v_res)]
-    E-Delta
-    (where [σ_res v_res] (apply-primop δ σ v ...))]
+    [σ (in-hole E (+ integer_0 integer_1))]
+    [σ (in-hole E v_res)]
+    E-Primop-+
+    (where v_res ,(+ (term integer_0) (term integer_1)))]
+   [-->
+    [σ (in-hole E (make-box v))]
+    [σ_res (in-hole E (box x))]
+    E-Primop-make-box
+    (fresh x)
+    (where σ_res (runtime-env-set σ x v))]
+   [-->
+    [σ (in-hole E (unbox (box x)))]
+    [σ (in-hole E v_res)]
+    E-Primop-unbox
+    (where v_res (runtime-env-ref σ x))]
+   [-->
+    [σ (in-hole E (set-box! (box x) v))]
+    [σ_res (in-hole E v)]
+    E-Primop-set-box!
+    (where σ_res (runtime-env-set σ x v))]
    [-->
     [σ (in-hole E (assert k v))]
     [σ (in-hole E v)]
@@ -199,21 +215,6 @@
   -->AEXP* : A -> (A natural)
   [(-->AEXP* A)
    ,(reflexive-transitive-closure/count-steps -->AEXP (term A))])
-
-(define-metafunction AEXP
-  apply-primop : δ σ v ... -> [σ v]
-  [(apply-primop + σ integer_0 integer_1)
-   [σ ,(+ (term integer_0) (term integer_1))]]
-  [(apply-primop make-box σ v)
-   [σ_res (box x)]
-   (where x (fresh-location σ))
-   (where σ_res (runtime-env-set σ x v))]
-  [(apply-primop set-box! σ (box x) v)
-   [σ_res v]
-   (where σ_res (runtime-env-set σ x v))]
-  [(apply-primop unbox σ (box x))
-   [σ v]
-   (where v (runtime-env-ref σ x))])
 
 (define-metafunction AEXP
   fresh-location : σ -> x
@@ -966,31 +967,21 @@
 ;; To implement monitors:
 ;; 1. extend the value forms
 ;; 2. extend the core language
-;; 3. extend the reduction relation with new rules for the new monitors
-;; 4. extend the compiler to make monitors instead of checks
+;; 3. extend the primitive operations to monitors
+;; 4. extend the compiler to enforce types with monitors
 
 ;; -----------------------------------------------------------------------------
 
 (define-extended-language AEXP-MONITORED
   AEXP-TAGGED
+  (v ::= .... (mon (Box τ) (box x)))
   (c ::= .... (mon τ c))
   (E ::= .... (mon τ E)))
 
-(module+ test
-  (check α=?
-    (term (let (x 1) x))
-    (term (let (y 1) y))))
-
 (define -->AEXP-MONITORED
   (extend-reduction-relation -->AEXP-TAGGED
-   ;; extends 'TAGGED' to inherit (check ....)
+   ;; extends 'TAGGED' to inherit the `check` forms
    AEXP-MONITORED
-   [-->
-    [σ (in-hole E (let (x c_x) c))]
-    [σ c_subst]
-    E-LetMon
-    (where (mon (Box τ) (box x_loc)) c_x)
-    (where c_subst (substitute c x c_x))]
    [-->
     [σ (in-hole E (set-box! (mon (Box τ) (box x)) v))]
     [σ (in-hole E (set-box! (box x) (mon τ v)))]
