@@ -16,7 +16,6 @@
 ;; -----------------------------------------------------------------------------
 
 (require
-  racket/set
   redex/reduction-semantics)
 
 (module+ test
