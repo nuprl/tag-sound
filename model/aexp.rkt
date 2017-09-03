@@ -2,14 +2,21 @@
 
 ;; "Between soundness and unsoundness, and what it means for performance."
 
+;; This model presents a small, compiled language for arithmetic
+;;  and 4 compilers for the language. The compilers implement:
+;; - dynamic typing (AEXP)
+;; - unsound gradual typing (AEXP-TYPED)
+;; - tag-sound gradual typing (AEXP-TAGGED)
+;; - sound gradual typing (AEXP-MONITORED)
+
 ;; Outline:
-;; 1. AEXP is a dynamically typed language
-;; 2. Adding an optional type system, AEXP-TYPED
-;; 3. AEXP is not type sound
-;; 4. How to enforce tag soundness, AEXP-TAGGED
+;; 1. AEXP, a dynamically typed language
+;; 2. AEXP-TYPED, adding an optional type system
+;; 3. Claims about (the lack of) type soundness
+;; 4. AEXP-TAGGED, enforcing type tags
 ;; 5. Claims about tag soundness
-;; 6. How to enforce type soundness, AEXP-MONITORED
-;; 7. Claims about AEXP-MONITORED
+;; 6. AEXP-MONITORED, enforcing type soundness
+;; 7. Claims about monitors and soundness
 ;; 7. Discussion
 ;; (Search for "=== Section N" to jump to a section of the outline)
 
@@ -25,27 +32,35 @@
 ;; === Section 1
 ;; =============================================================================
 
-;; AEXP is a dynamically typed language for arithmetic expressions.
+;; AEXP is a dynamically typed, compiled language for arithmetic expressions.
 (define-language AEXP
-  (a ::= v x (let (x a) a) (δ a ...))
-
-  ;; Values are integers and locations
+  ;; Values are integers and locations.
   (v ::= integer (box x))
 
   ;; Primitive operations work on the bit-level representation of values
-  ;; These are unsafe, evaluation might get stuck.
+  ;; These are unsafe; the reduction relation for δ is partial.
   (δ ::= + make-box set-box! unbox)
 
-  ;; To avoid stuck states, AEXP has a target language with a general
-  ;;  form for dynamic checks.
-  ;; (A smart compiler could add the fewest checks necessary.)
+  ;; Expressions / term language / surface language.
+  ;; Has `let` for sequencing.
+  (a ::= v x (let (x a) a) (δ a ...))
+
+  ;; Core language.
+  ;; The `assert` form is for implementing dynamic typing.
   (c ::= v x (let (x c) c) (δ c ...) (assert k c))
 
-  ;; The `assert` form checks "machine tags"
+  ;; Machine tags `k`, one tag for each "type" of input a δ function might
+  ;;  recieve.
+  ;; If `f ∈ δ` and `(f x)` is undefined unless `x` has tag `T`,
+  ;;  then `T` must be in `k`.
+  ;; Otherwise we probably cannot define an `eval` that doesn't get stuck.
   (k ::= int box)
 
-  ;; Evaluation is defined on compiled terms,
-  ;;  and may yield either a result state or a runtime error
+  ;; Machine states for the reduction relation have:
+  ;; - an environment `σ` mapping locations to values
+  ;; - a core term `c`
+  ;; Reduction can end in a `RuntimeError`, for now the only runtime error
+  ;;  is an assert failure.
   (A ::= [σ c] RuntimeError)
   (σ ::= ((x v) ...))
   (RuntimeError ::= (Assert k v))
@@ -79,29 +94,47 @@
    [() c]
    (where c (compile a))])
 
+(define-metafunction AEXP
+  unload : A -> any
+  [(unload RuntimeError)
+   RuntimeError]
+  [(unload [σ integer])
+   integer]
+  [(unload [σ (box x)])
+   (box (unload [σ v]))
+   (where v (runtime-env-ref σ x))])
+
 (module+ test
   (test-case "eval"
     (check-true
       (redex-match? AEXP 4
         (term (eval (+ 2 2)))))
     (check-true
+      (redex-match? AEXP (box 4)
+        (term (eval (let (b (make-box 0))
+                      (let (dontcare (set-box! b 4))
+                        b))))))
+    (check-true
       (redex-match? AEXP (Assert int (box _))
         (term (eval (+ 2 (make-box 2))))))))
 
 ;; -----------------------------------------------------------------------------
 ;; the `compile` metafunction translates source terms to core terms
-;; by adding checks to enforce primitive operations assumptions
+;; by adding checks to enforce primitive operations' assumptions
 
 (define-metafunction AEXP
   compile : a -> c
   [(compile a)
    c
    (judgment-holds (dynamic-completion a c))
-   (judgment-holds (sound-completion a c))])
+   (judgment-holds (valid-completion a c))])
 
-;; "completion" is a reference to Henglein.
+;; The term "completion" is a reference to Henglein.
 ;; The completion of a source term is the same term with added dynamic checks.
-;; `dynamic-completion` adds checks to protect `+` `unbox` and `set-box!`
+;; `dynamic-completion` adds checks to protect `+` `unbox` and `set-box!`:
+;; - `+` requires 2 integers
+;; - `unbox` requires 1 box
+;; - `set-box!` requires 1 box and 1 "anything else"
 (define-judgment-form AEXP
   #:mode (dynamic-completion I O)
   #:contract (dynamic-completion a c)
@@ -139,17 +172,17 @@
    ---
    (dynamic-completion (unbox a_0) (unbox c_0+))])
 
+;; Translation validation for completions.
+;; Core term `c` is a completion of source term `a` 
+;;  if `c` only adds asserts.
 (define-judgment-form AEXP
-  #:mode (sound-completion I I)
-  #:contract (sound-completion a c)
+  #:mode (valid-completion I I)
+  #:contract (valid-completion a c)
   [
    (where a_c (erase-asserts c))
    (side-condition ,(α=? (term a) (term a_c)))
    ---
-   (sound-completion a c)])
-
-;; -----------------------------------------------------------------------------
-;; helper functions
+   (valid-completion a c)])
 
 (define-metafunction AEXP
   erase-asserts : any -> any
@@ -160,23 +193,27 @@
   [(erase-asserts any)
    any])
 
-(define-metafunction AEXP
-  unload : A -> any
-  [(unload RuntimeError)
-   RuntimeError]
-  [(unload [σ integer])
-   integer]
-  [(unload [σ (box x)])
-   (box (unload σ x))])
+(module+ test
+  (test-case "compile"
+    (check-true
+      (redex-match? AEXP (+ (assert int (unbox (assert box (make-box 2)))) (assert int 2))
+        (term (compile (+ (unbox (make-box 2)) 2)))))))
+
+;; -----------------------------------------------------------------------------
+;; reduction relation
 
 (define -->AEXP
   (reduction-relation AEXP
    #:domain A
+
+   ;; `let`-substitution
    [-->
     [σ (in-hole E (let (x v) c))]
     [σ (in-hole E c_x)]
     E-Let
     (where c_x (substitute c x v))]
+
+   ;; primitive operations
    [-->
     [σ (in-hole E (+ integer_0 integer_1))]
     [σ (in-hole E v_res)]
@@ -198,16 +235,26 @@
     [σ_res (in-hole E v)]
     E-Primop-set-box!
     (where σ_res (runtime-env-set σ x v))]
+
+   ;; `assert` statements
    [-->
-    [σ (in-hole E (assert k v))]
+    [σ (in-hole E (assert int integer))]
+    [σ (in-hole E integer)]
+    E-AssertIntSuccess]
+   [-->
+    [σ (in-hole E (assert box integer))]
+    (Assert box integer)
+    E-AssertIntFailure]
+   [-->
+    [σ (in-hole E (assert box v))]
     [σ (in-hole E v)]
-    E-AssertSuccess
-    (judgment-holds (do-assert v k))]
+    E-AssertBoxSuccess
+    (where (box _) v)]
    [-->
-    [σ (in-hole E (assert k v))]
-    (Assert k v)
-    E-AssertFailure
-    (side-condition (not (judgment-holds (do-assert v k))))]))
+    [σ (in-hole E (assert int v))]
+    (Assert int v)
+    E-AssertBoxFailure
+    (where (box _) v)]))
 
 ;; Apply reduction relation `-->AEXP` to a term, count the number of steps
 (define-metafunction AEXP
@@ -216,31 +263,16 @@
    ,(reflexive-transitive-closure/count-steps -->AEXP (term A))])
 
 (define-metafunction AEXP
-  fresh-location : σ -> x
-  [(fresh-location σ)
-   ,(variable-not-in (term σ) 'loc)])
+  runtime-env-set : any x any -> any
+  [(runtime-env-set ((x_first any_first) ... (x any_old) (x_rest any_rest) ...) x any)
+   ((x_first any_first) ... (x any) (x_rest any_rest) ...)]
+  [(runtime-env-set ((x_rest any_rest) ...) x any)
+   ((x any) (x_rest any_rest) ...)])
 
 (define-metafunction AEXP
-  runtime-env-set : σ x v -> σ
-  [(runtime-env-set ((x_first v_first) ... (x v_old) (x_rest v_rest) ...) x v)
-   ((x_first v_first) ... (x v) (x_rest v_rest) ...)]
-  [(runtime-env-set ((x_rest v_rest) ...) x v)
-   ((x v) (x_rest v_rest) ...)])
-
-(define-metafunction AEXP
-  runtime-env-ref : σ x -> v
-  [(runtime-env-ref ((x_first v_first) ... (x v) (x_rest v_rest) ...) x)
-   v])
-
-(define-judgment-form AEXP
-  #:mode (do-assert I I)
-  #:contract (do-assert v k)
-  [
-   ---
-   (do-assert integer int)]
-  [
-   ---
-   (do-assert (box _) box)])
+  runtime-env-ref : any x -> any
+  [(runtime-env-ref ((x_first any_first) ... (x any) (x_rest any_rest) ...) x)
+   any])
 
 (define-syntax-rule (reflexive-transitive-closure/count-steps --> t)
   (let loop ([curr-A t]
@@ -256,24 +288,53 @@
         "current-term" curr-A
         "next-terms" next-A*)])))
 
+(module+ test
+  (test-case "-->AEXP"
+    (check-true
+      (redex-match? AEXP [() 4]
+        (car (apply-reduction-relation -->AEXP (term [() (+ 2 2)])))))
+    (check-true
+      (redex-match? AEXP [() 4]
+        (car (apply-reduction-relation -->AEXP (term [() (let (x 4) x)])))))
+    (check-true
+      (redex-match? AEXP (Assert box 4)
+        (car (apply-reduction-relation -->AEXP (term [() (assert box 4)])))))))
+
 ;; =============================================================================
 ;; === Section 2
 ;; =============================================================================
 
 ;; AEXP is a simple language, but a static type system can offer some benefits:
-;; + [T0] detect errors at compile-time instead of at run-time
-;;        (furthermore, rule out a class of runtime errors)
-;; + [T1] remove the need for some "asserts"
-;;        (i.e. programs run faster)
-;; + [T2] help programmers reason about code
-;;        (with a type soundness guarantee)
+;; + detect errors at compile-time instead of at run-time
+;;   (furthermore, rule out a class of runtime errors)
+;; + remove the need for some "asserts"
+;;   (i.e. programs run faster)
+;; + help programmers reason about code
+;;   (with a type soundness guarantee)
 
-;; AEXP-TYPED adds a simple, optional type system to AEXP
-;; It provides benefits T1 and T2, but not T3.
+;; AEXP-TYPED adds a simple, _optional_ type system to AEXP.
+;; The type system can:
+;; + catch errors statically
+;; + help the compiler remove asserts
+;;
+;; but the optional type system can make static assumptions that are not
+;;  true; therefore it:
+;; - cannot help programmers reason about their code
+;; - might validate a program that gets stuck
+
+;; -----------------------------------------------------------------------------
+;; language
+
+;; Extends AEXP with:
+;; - static types
+;; - a form for "importing" dynamically typed terms
 
 (define-extended-language AEXP-TYPED
   AEXP
 
+  ;; Static types for locations, integers, and natural numbers.
+  ;; The point of `Nat` is that it is a simple type that does not
+  ;;  correspond to a machine tag.
   (τ ::= (Box τ) Int Nat)
   (Γ ::= ((x τ) ...))
 
@@ -282,10 +343,10 @@
   ;;  except the bound expression is evaluated in scope of previous definitions.
   (a ::= .... (dyn (x τ a) a))
 
-  ;; Type-annotated source terms
+  ;; Type-annotated terms
   (t ::= (:: v τ) (:: x τ) (:: (let (x t) t) τ) (:: (δ t ...) τ) (:: (dyn (x τ a) t) τ))
 
-  ;; The type checker can catch errors at compile-time
+  ;; Compile-time errors
   (TypeError ::= (Type a))
   (maybe-A ::= A TypeError)
   (maybe-t ::= t TypeError)
@@ -322,101 +383,12 @@
 
 (module+ test
   (test-case "eval-typed"
-    (check-equal?
-      (term (eval-typed (+ 2 2)))
-      (term 4))
-    (check-equal?
-      (term (eval-typed (let (x 2) (dyn (y Nat 2) (+ x y)))))
-      (term 4))))
-
-;; -----------------------------------------------------------------------------
-;; The following "theorems" argue that AEXP-TYPED provides benefits T0 and T1
-
-;; Claim: there exists an AEXP term that
-;; 1. evaluates to a RuntimeError
-;; 2. fails to type check
-;; Consequence: the type system can catch errors ahead of time
-(define-metafunction AEXP-TYPED
-  theorem:T0-0 : a -> boolean
-  [(theorem:T0-0 a)
-   #true
-   (where TypeError (pre-eval-typed a))
-   (where A_init (pre-eval a))
-   (where (RuntimeError _) (-->AEXP* A_init))]
-  [(theorem:T0-0 a)
-   #false])
-
-(module+ test
-  (test-case "theorem:T0-0"
     (check-true
-      (term (theorem:T0-0 (+ 2 (make-box 2)))))))
-
-;; Claim: if a term type-checks, then it reduces without error
-(define-metafunction AEXP-TYPED
-  theorem:T0-1 : a -> boolean
-  [(theorem:T0-1 a)
-   #true
-   (where TypeError (pre-eval-typed a))]
-  [(theorem:T0-1 a)
-   #true
-   (where A_init (pre-eval-typed a))
-   (judgment-holds (fully-typed a))
-   (where (A_final _) (-->AEXP* A_init))])
-
-(define-judgment-form AEXP-TYPED
-  #:mode (fully-typed I)
-  #:contract (fully-typed a)
-  [
-   ---
-   (fully-typed v)]
-  [
-   ---
-   (fully-typed x)]
-  [
-   (fully-typed a_x)
-   (fully-typed a)
-   ---
-   (fully-typed (let (x a_x) a))]
-  [
-   (fully-typed a) ...
-   ---
-   (fully-typed (δ a ...))])
-
-(module+ test
-  (test-case "theorem:T0-1"
-    ;; TODO more tests
+      (redex-match? AEXP-TYPED 4
+        (term (eval-typed (+ 2 2)))))
     (check-true
-      (term (theorem:T0-1 (+ 2 2))))))
-
-;; Claim: for all AEXP terms `a`, if:
-;; Premise 1. `(pre-eval a)` and `(pre-eval-typed a)` are defined
-;; Premise 2. `(-->AEXP* (pre-eval a))` and `(-->AEXP* (pre-eval-typed a))`
-;;            reduce without error,
-;; then:
-;; 1. the typed version evaluates in fewer steps
-(define-metafunction AEXP-TYPED
-  theorem:T1 : a -> boolean
-  [(theorem:T1 a)
-   ,(<= (term natural_typed) (term natural_dyn))
-   (where A_typed (pre-eval-typed a))
-   (where A_dyn (pre-eval a))
-   (where (A_final natural_typed) (-->AEXP* A_typed))
-   (where (A_final natural_dyn) (-->AEXP* A_dyn))]
-  [(theorem:T1 a)
-   #true
-   (where A_typed (pre-eval-typed a))
-   (where (RuntimeError _) (-->AEXP* A_typed))]
-  [(theorem:T1 a)
-   #true
-   (where TypeError (pre-eval-typed a))]
-  [(theorem:T1 a)
-   #true
-   (where (RuntimeError _) (-->AEXP* A_dyn))])
-
-(module+ test
-  (test-case "theorem:T1"
-    (check-true
-      (term (theorem:T1 (+ 2 2))))))
+      (redex-match? AEXP-TYPED 4
+        (term (eval-typed (let (x 2) (dyn (y Nat 2) (+ x y)))))))))
 
 ;; -----------------------------------------------------------------------------
 ;; static type checking
@@ -428,6 +400,22 @@
    (judgment-holds (well-typed () a t))]
   [(type-check a)
    (Type a)])
+
+;; well typed values, [σ v] ⊨ τ
+(define-judgment-form AEXP-TYPED
+  #:mode (well-typed-value I I)
+  #:contract (well-typed-value [σ v] τ)
+  [
+   ---
+   (well-typed-value [_ integer] Int)]
+  [
+   ---
+   (well-typed-value [_ natural] Nat)]
+  [
+   (where v (runtime-env-ref σ x))
+   (well-typed-value [σ v] τ)
+   ---
+   (well-typed-value [σ (box x)] (Box τ))])
 
 (define-judgment-form AEXP-TYPED
   #:mode (well-typed I I O)
@@ -464,6 +452,32 @@
    --- T-Dyn
    (well-typed Γ (dyn (x τ_x a_x) a) (:: (dyn (x τ_x a_x) t) τ))])
 
+(module+ test
+  (test-case "type-check"
+    (check-true (redex-match? AEXP-TYPED t
+      (term (type-check 2))))
+    (check-true (redex-match? AEXP-TYPED t
+      (term (type-check -2))))
+    (check-true (redex-match? AEXP-TYPED t
+      (term (type-check (let (x 4) x)))))
+    (check-true (redex-match? AEXP-TYPED t
+      (term (type-check (+ 2 2)))))
+    (check-true (redex-match? AEXP-TYPED t
+      (term (type-check (dyn (x Int (make-box 4)) (+ x 1))))))
+    (check-true (redex-match? AEXP-TYPED t
+      (term (type-check (make-box 2)))))
+
+    (check-true (redex-match? AEXP-TYPED TypeError
+      (term (type-check (+ 2 (make-box 2)))))))
+
+  (test-case "well-typed-value"
+    (check-true
+      (judgment-holds (well-typed-value [() 4] Int)))
+    (check-true
+      (judgment-holds (well-typed-value [((x 3)) (box x)] (Box Nat))))
+    (check-false
+      (judgment-holds (well-typed-value [((x -4)) (box x)] (Box Nat))))))
+
 (define-metafunction AEXP-TYPED
   primop-codomain : δ τ ... -> any
   [(primop-codomain + Nat Nat)
@@ -484,24 +498,40 @@
    ;; type error, to prevent T-Primop from succeeding
    #f])
 
-;; -----------------------------------------------------------------------------
-;; well typed values, [σ v] ⊨ τ
-;; (this is important later)
+(module+ test
+  (test-case "primop-codomain"
+    (check-true
+      (redex-match? AEXP-TYPED Int
+        (term (primop-codomain + Int Int))))
+    (check-true
+      (redex-match? AEXP-TYPED Nat
+        (term (primop-codomain + Nat Nat))))
+    (check-true
+      (redex-match? AEXP-TYPED (Box (Box Int))
+        (term (primop-codomain make-box (Box Int)))))
+    (check-true
+      (redex-match? AEXP-TYPED Int
+        (term (primop-codomain set-box! (Box Int) Int))))
+    (check-true
+      (redex-match? AEXP-TYPED (Box Int)
+        (term (primop-codomain unbox (Box (Box Int))))))))
 
-(define-judgment-form AEXP-TYPED
-  #:mode (well-typed-value I I)
-  #:contract (well-typed-value [σ v] τ)
-  [
-   ---
-   (well-typed-value [_ integer] Int)]
-  [
-   ---
-   (well-typed-value [_ natural] Nat)]
-  [
-   (where v (runtime-env-ref σ x))
-   (well-typed-value [σ v] τ)
-   ---
-   (well-typed-value [σ (box x)] (Box τ))])
+(define-metafunction AEXP-TYPED
+  type-env-ref : Γ x -> τ
+  [(type-env-ref ((x_first τ_first) ... (x τ) (x_rest τ_rest) ...) x)
+   τ])
+
+(define-metafunction AEXP-TYPED
+  type-env-set : Γ x τ -> Γ
+  [(type-env-set ((x_first τ_first) ... (x τ_old) (x_rest τ_rest) ...) x)
+   ((x_first τ_first) ... (x τ) (x_rest τ_rest) ...)]
+  [(type-env-set ((x_rest τ_rest) ...) x τ)
+   ((x τ) (x_rest τ_rest) ...)])
+
+(define-metafunction AEXP-TYPED
+  type-annotation : t -> τ
+  [(type-annotation (:: _ τ))
+   τ])
 
 ;; -----------------------------------------------------------------------------
 ;; compile-typed-unsound
@@ -516,24 +546,7 @@
    c
    (judgment-holds (typed-unsound-completion t c))
    (where a (erase-types t))
-   (judgment-holds (sound-completion a c))])
-
-(module+ test
-  (test-case "compile-typed-unsound"
-    (define t
-      (term (:: (dyn (x Nat -2) (:: (+ (:: x Nat) (:: x Nat)) Nat)) Nat)))
-    (define c
-      (term (let (x -2) (+ x x))))
-
-    (check-true
-      (redex-match? AEXP-TYPED t t))
-    (define a (term (erase-types ,t)))
-    (check-equal? a c)
-    (check-true (redex-match? AEXP-TYPED a a))
-    (check-true
-      (judgment-holds (sound-completion (erase-types ,t) ,c)))
-    (check-true (redex-match? AEXP-TYPED c (term (compile-typed-unsound ,t))))
-    (void)))
+   (judgment-holds (valid-completion a c))])
 
 (define-judgment-form AEXP-TYPED
   #:mode (typed-unsound-completion I O)
@@ -559,26 +572,6 @@
    ---
    (typed-unsound-completion (:: (dyn (x τ_x a_x) t) τ) (let (x c_x) c))])
 
-;; -----------------------------------------------------------------------------
-;; helper functions, tests
-
-(define-metafunction AEXP-TYPED
-  type-env-ref : Γ x -> τ
-  [(type-env-ref ((x_first τ_first) ... (x τ) (x_rest τ_rest) ...) x)
-   τ])
-
-(define-metafunction AEXP-TYPED
-  type-env-set : Γ x τ -> Γ
-  [(type-env-set ((x_first τ_first) ... (x τ_old) (x_rest τ_rest) ...) x)
-   ((x_first τ_first) ... (x τ) (x_rest τ_rest) ...)]
-  [(type-env-set ((x_rest τ_rest) ...) x τ)
-   ((x τ) (x_rest τ_rest) ...)])
-
-(define-metafunction AEXP-TYPED
-  type-annotation : t -> τ
-  [(type-annotation (:: _ τ))
-   τ])
-
 (define-metafunction AEXP-TYPED
   erase-types : any -> any
   [(erase-types (:: any τ))
@@ -591,39 +584,21 @@
    any])
 
 (module+ test
-  (test-case "primop-codomain"
-    (check-equal?
-      (term (primop-codomain + Int Int))
-      (term Int))
-    (check-equal?
-      (term (primop-codomain + Nat Nat))
-      (term Nat))
-    (check-equal?
-      (term (primop-codomain make-box (Box Int)))
-      (term (Box (Box Int))))
-    (check-equal?
-      (term (primop-codomain set-box! (Box Int) Int))
-      (term Int))
-    (check-equal?
-      (term (primop-codomain unbox (Box (Box Int))))
-      (term (Box Int))))
+  (test-case "compile-typed-unsound"
+    (define t
+      (term (:: (dyn (x Nat -2) (:: (+ (:: x Nat) (:: x Nat)) Nat)) Nat)))
+    (define c
+      (term (let (x -2) (+ x x))))
 
-  (test-case "type-check"
-    (check-true (redex-match? AEXP-TYPED t
-      (term (type-check 2))))
-    (check-true (redex-match? AEXP-TYPED t
-      (term (type-check -2))))
-    (check-true (redex-match? AEXP-TYPED t
-      (term (type-check (let (x 4) x)))))
-    (check-true (redex-match? AEXP-TYPED t
-      (term (type-check (+ 2 2)))))
-    (check-true (redex-match? AEXP-TYPED t
-      (term (type-check (dyn (x Int (make-box 4)) (+ x 1))))))
-    (check-true (redex-match? AEXP-TYPED t
-      (term (type-check (make-box 2)))))
-
-    (check-true (redex-match? AEXP-TYPED TypeError
-      (term (type-check (+ 2 (make-box 2))))))))
+    (check-true
+      (redex-match? AEXP-TYPED t t))
+    (define a (term (erase-types ,t)))
+    (check-equal? a c)
+    (check-true (redex-match? AEXP-TYPED a a))
+    (check-true
+      (judgment-holds (valid-completion (erase-types ,t) ,c)))
+    (check-true (redex-match? AEXP-TYPED c (term (compile-typed-unsound ,t))))
+    (void)))
 
 ;; =============================================================================
 ;; === Section 3
@@ -637,8 +612,7 @@
 ;;      and `[σ v] ⊨ τ`
 ;;   2. `c` reduces to an assert error due to an untyped subterm
 ;;
-;; Here is a counterexample to the theorem
-
+;; Here is a counterexample to the theorem:
 (define-metafunction AEXP-TYPED
   counterexample:classic-soundness : a -> boolean
   [(counterexample:classic-soundness a)
@@ -652,28 +626,140 @@
     (check-true
       (term (counterexample:classic-soundness (dyn (x Nat -2) (+ x x)))))))
 
+;; Furthermore, there are terms that can crash the evaluator
+(module+ test
+  (test-case "segfault"
+    (check-exn exn:fail:redex? ;; specifically, crashes `unload`
+      (λ () (term (eval-typed (dyn (x (Box Nat) 2) (unbox x))))))))
+
+;; -----------------------------------------------------------------------------
+;; AEXP-TYPED can catch errors at compile-time
+
+;; Claim: there exists an AEXP term that
+;; 1. evaluates to a RuntimeError
+;; 2. fails to type check
+;; Consequence: the type system can catch errors ahead of time
+(define-metafunction AEXP-TYPED
+  theorem:T0-0 : a -> boolean
+  [(theorem:T0-0 a)
+   #true
+   (where TypeError (pre-eval-typed a))
+   (where A_init (pre-eval a))
+   (where (RuntimeError _) (-->AEXP* A_init))]
+  [(theorem:T0-0 a)
+   #false])
+
+(module+ test
+  (test-case "theorem:T0-0"
+    (check-true
+      (term (theorem:T0-0 (+ 2 (make-box 2)))))))
+
+;; -----------------------------------------------------------------------------
+;; AEXP-TYPED is sound for fully-typed terms
+
+;; Claim: if a fully-typed term type-checks, then it reduces without error
+(define-metafunction AEXP-TYPED
+  theorem:T0-1 : a -> boolean
+  [(theorem:T0-1 a)
+   #true
+   (where TypeError (pre-eval-typed a))]
+  [(theorem:T0-1 a)
+   #true
+   (where A_init (pre-eval-typed a))
+   (judgment-holds (fully-typed a))
+   (where (A_final _) (-->AEXP* A_init))])
+
+(define-judgment-form AEXP-TYPED
+  #:mode (fully-typed I)
+  #:contract (fully-typed a)
+  [
+   ---
+   (fully-typed v)]
+  [
+   ---
+   (fully-typed x)]
+  [
+   (fully-typed a_x)
+   (fully-typed a)
+   ---
+   (fully-typed (let (x a_x) a))]
+  [
+   (fully-typed a) ...
+   ---
+   (fully-typed (δ a ...))])
+
+(module+ test
+  (test-case "theorem:T0-1"
+    ;; TODO more tests
+    (check-true
+      (term (theorem:T0-1 (+ 2 2))))))
+
+;; -----------------------------------------------------------------------------
+;; AEXP-TYPED terms run with fewer asserts than AEXP terms
+
+;; Claim: for all AEXP terms `a`, if:
+;; Premise 1. `(pre-eval a)` and `(pre-eval-typed a)` are defined
+;; Premise 2. `(-->AEXP* (pre-eval a))` and `(-->AEXP* (pre-eval-typed a))`
+;;            reduce without error,
+;; then:
+;; 1. the typed version evaluates in fewer steps
+(define-metafunction AEXP-TYPED
+  theorem:T1 : a -> boolean
+  [(theorem:T1 a)
+   ,(<= (term natural_typed) (term natural_dyn))
+   (where A_typed (pre-eval-typed a))
+   (where A_dyn (pre-eval a))
+   (where (A_final natural_typed) (-->AEXP* A_typed))
+   (where (A_final natural_dyn) (-->AEXP* A_dyn))]
+  [(theorem:T1 a)
+   #true
+   (where A_typed (pre-eval-typed a))
+   (where (RuntimeError _) (-->AEXP* A_typed))]
+  [(theorem:T1 a)
+   #true
+   (where TypeError (pre-eval-typed a))]
+  [(theorem:T1 a)
+   #true
+   (where (RuntimeError _) (-->AEXP* A_dyn))])
+
+(module+ test
+  (test-case "theorem:T1"
+    (check-true
+      (term (theorem:T1 (+ 2 2))))))
+
 ;; =============================================================================
 ;; === Section 4
 ;; =============================================================================
 
-;; "Classic" soundness does not hold for the "unsound" compiler because
+;; "Classic" soundness does not hold for AEXP-TYPED because
 ;;  that compiler assumes the type annotations on `dyn` terms are correct.
 ;; This is a bad assumption.
 ;;
-;; How to remove the assumption?
+;; How to remove the assumption? Two ideas:
 ;; 1. Remove all dynamically typed code
 ;; 2. Add run-time checks
 ;;
-;; How to add run-time checks?
-;; - One idea, use `assert` from the core language.
-;;   This doesn't work because we have a type `Nat`
-;;    that doesn't correspond to a machine tag `k`
-;; - Second idea, add a generalized kind of tag so there is one tag
-;;   for each logical type.
+;; Idea 1 is bad for us. So, how to add run-time checks?
 ;;
-;; This section explores the "generalized tag" idea,
-;;  shows it satisfies a kind of soundness,
-;;  and shows that the soundness is NOT classic type soundness.
+;; We could try using `assert` from the core language.
+;; This doesn't exactly work because we have a type `Nat`
+;;  that doesn't correspond to a machine tag `k`
+;;
+;; So we need generalize the idea of "machine tag" so that every logical
+;;  type has a matching tag.
+;; (Need to connect static types to run-time checks.
+;;  If `e : τ` and `e` reduces to `v`, need a context `C[.]` such that
+;;   `C[v] --> #true` if and only if `v : τ`.)
+
+;; -----------------------------------------------------------------------------
+;; language
+
+;; Extends AEXP-TYPED with:
+;; - tags for each type
+;; - a `check` form, just like `assert`
+;;
+;; Technical note: we could encode `check` using assert by extending `k`,
+;;  but this is clearer.
 
 (define-extended-language AEXP-TAGGED
   AEXP-TYPED
@@ -684,10 +770,13 @@
   (E ::= .... (check K E))
   (RuntimeError ::= .... (Check K v)))
 
+;; -----------------------------------------------------------------------------
+;; evaluation
+
 (define-metafunction AEXP-TAGGED
   eval-tagged : a -> any
   [(eval-tagged a)
-   (unload A_final)
+   (unload-tagged A_final)
    (where A_init (pre-eval-tagged a))
    (where (A_final natural_num-steps) (-->AEXP-TAGGED* A_init))]
   [(eval-tagged a)
@@ -703,6 +792,33 @@
    [() c]
    (where t (type-check a))
    (where c (compile-tagged t))])
+
+(define-metafunction AEXP-TAGGED
+  unload-tagged : A -> any
+  [(unload-tagged RuntimeError)
+   RuntimeError]
+  [(unload-tagged [σ integer])
+   integer]
+  [(unload-tagged [σ (box x)])
+   (box (unload-tagged [σ v]))
+   (where v (runtime-env-ref σ x))])
+
+(module+ test
+  (test-case "eval-tagged"
+    (check-true
+      (redex-match? AEXP-TAGGED 4
+        (term (eval-tagged (+ 2 2)))))
+    (check-true
+      (redex-match? AEXP-TAGGED 4
+        (term (eval-tagged (let (x 2) (dyn (y Nat 2) (+ x y)))))))
+    (check-true
+      (redex-match? AEXP-TAGGED (Check Box 4)
+        (term (eval-tagged (dyn (y (Box Nat) 4) 0)))))))
+
+;; -----------------------------------------------------------------------------
+;; reduction
+
+;; Add new rules for `check`
 
 (define -->AEXP-TAGGED
   (extend-reduction-relation -->AEXP
@@ -723,27 +839,22 @@
   [(-->AEXP-TAGGED* A)
    ,(reflexive-transitive-closure/count-steps -->AEXP-TAGGED (term A))])
 
-(module+ test
-  (test-case "eval-tagged"
-    (check-equal?
-      (term (eval-tagged (+ 2 2)))
-      (term 4))
-    (check-equal?
-      (term (eval-tagged (let (x 2) (dyn (y Nat 2) (+ x y)))))
-      (term 4))))
-
 ;; -----------------------------------------------------------------------------
 ;; compile-tagged
 
 ;; This compiler preserves tag soundness by defending
-;;  typed expressions from possibly-untyped code.
+;;  typed expressions with checks.
 ;; 1. Check `dyn`-expressions
 ;;   `(dyn (x τ a) t)` ===> `(let (x (check K a)) t)`
 ;; 2. Check the results of unbox, since dynamically typed code may
 ;;    have created or written to the box
 ;;   `(unbox t)` ===> `(check K (unbox t))`
 ;; The general principle is to add a tag check at every point
-;;  where dynamically-typed code might enter typed code.
+;;  where dynamically-typed code _might_ enter typed code.
+;;
+;; Note, this is similar to dynamic typing in AEXP.
+;; Instead of checking the _input_ to primitive operations,
+;;  here we check the _output_ of expressions that might produce untyped values.
 
 (define-metafunction AEXP-TAGGED
   compile-tagged : t -> c
@@ -751,17 +862,7 @@
    c
    (judgment-holds (tagged-completion t c))
    (where a (erase-types t))
-   (judgment-holds (sound-completion-tagged a c))])
-
-;; Need a new copy of this metafunction because `c` has new meaning
-(define-judgment-form AEXP-TAGGED
-  #:mode (sound-completion-tagged I I)
-  #:contract (sound-completion-tagged a c)
-  [
-   (where a_c (erase-checks (erase-asserts c)))
-   (side-condition ,(α=? (term a) (term a_c)))
-   ---
-   (sound-completion-tagged a c)])
+   (judgment-holds (valid-completion-tagged a c))])
 
 (define-judgment-form AEXP-TAGGED
   #:mode (tagged-completion I O)
@@ -810,6 +911,25 @@
   [(tag-of (Box _))
    Box])
 
+;; A valid completion for AEXP-TAGGED can add `assert` and `check` forms.
+(define-judgment-form AEXP-TAGGED
+  #:mode (valid-completion-tagged I I)
+  #:contract (valid-completion-tagged a c)
+  [
+   (where a_c (erase-checks (erase-asserts c)))
+   (side-condition ,(α=? (term a) (term a_c)))
+   ---
+   (valid-completion-tagged a c)])
+
+(define-metafunction AEXP-TAGGED
+  erase-checks : any -> any
+  [(erase-checks (check K c))
+   (erase-checks c)]
+  [(erase-checks (any ...))
+   ((erase-checks any) ...)]
+  [(erase-checks any)
+   any])
+
 (module+ test
   (test-case "compile-tagged"
     (define t (term (:: (let (x (:: 2 Nat))
@@ -826,7 +946,6 @@
     (void)))
 
 ;; -----------------------------------------------------------------------------
-;; helpers, other tests
 
 (define-judgment-form AEXP-TAGGED
   #:mode (well-tagged-value I I)
@@ -841,26 +960,17 @@
    ---
    (well-tagged-value (box _) Box)])
 
-(define-metafunction AEXP-TAGGED
-  erase-checks : any -> any
-  [(erase-checks (check K c))
-   (erase-checks c)]
-  [(erase-checks (any ...))
-   ((erase-checks any) ...)]
-  [(erase-checks any)
-   any])
-
 ;; =============================================================================
 ;; === Section 5
 ;; =============================================================================
 
 ;; AEXP-TAGGED satisfies a notion of tag soundness:
 ;;
-;;  If `a` is well typed at `τ` and compiles to `c`, then either:
-;;  - `a` reduces to `[σ v]` such that `[σ v] ⊨ K`
-;;  - `a` reduces to an Assert error in dynamically typed code
-;;  - `a` reduces to a Check error because of a failed tag check
-;;    TODO can we say more about how these tag checks might fail?
+;;   If `a` is well typed at `τ` and compiles to `c`, then either:
+;;   - `a` reduces to `[σ v]` such that `[σ v] ⊨ K`
+;;     (where `K` is the tag of `τ`)
+;;   - `a` reduces to an Assert error in dynamically typed code
+;;   - `a` reduces to a Check error because of a failed tag check
 
 ;; Claim: exists a term that
 ;; - reduces to an ill-tagged value when unsound
@@ -882,8 +992,10 @@
     (check-true
       (term (example:tagged-is-not-unsound (dyn (x Nat -2) (+ x x)))))))
 
-;; AEXP-TAGGED is tag-sound, but not type sound.
-;; Proof: there is a term with static type `τ` that reduces to a `[σ v]`
+;; -----------------------------------------------------------------------------
+
+;; AEXP-TAGGED does not satisfy type soundness.
+;; There is a term with static type `τ` that reduces to a `[σ v]`
 ;;  such that `[σ v] ⊨ τ` is NOT true.
 
 (define-metafunction AEXP-TAGGED
@@ -898,6 +1010,9 @@
   (check-true
     (term (counterexample:generalized-soundness
       (dyn (x (Box Nat) (make-box (make-box -1))) x)))))
+
+;; -----------------------------------------------------------------------------
+;; AEXP-TAGGED can be as fast as AEXP-TYPED
 
 ;; Claim: for all AEXP term with no dynamic typing and no unbox operations,
 ;;  tagged evaluation and unsound evaluation take the same number of steps.
@@ -916,6 +1031,9 @@
       (term (example:tagged-sometimes-fast (+ 2 2))))
     (check-true
       (term (example:tagged-sometimes-fast (let (x 1) (let (y 2) (+ x (+ y y)))))))))
+
+;; -----------------------------------------------------------------------------
+;; AEXP-TAGGED can be slower than AEXP-TYPED
 
 ;; Claim: for all AEXP terms with at least one `dyn` or `unbox`,
 ;;  tagged evaluation is slower than unsound
@@ -970,6 +1088,7 @@
 ;; 4. extend the compiler to enforce types with monitors
 
 ;; -----------------------------------------------------------------------------
+;; language
 
 (define-extended-language AEXP-MONITORED
   AEXP-TAGGED
@@ -977,9 +1096,15 @@
   (c ::= .... (mon τ c))
   (E ::= .... (mon τ E)))
 
+;; -----------------------------------------------------------------------------
+;; reduction
+
+;; Extend AEXP-TAGGED:
+;; - define primitive operations on monitors
+;; - define assertions on monitors
+
 (define -->AEXP-MONITORED
   (extend-reduction-relation -->AEXP-TAGGED
-   ;; extends 'TAGGED' to inherit the `check` forms
    AEXP-MONITORED
    [-->
     [σ (in-hole E (set-box! (mon (Box τ) (box x)) v))]
@@ -988,7 +1113,24 @@
    [-->
     [σ (in-hole E (unbox (mon (Box τ) (box x))))]
     [σ (in-hole E (mon τ (unbox (box x))))]
-    E-MonUnbox]))
+    E-MonUnbox]
+
+   [-->
+    [σ (in-hole E (mon τ integer))]
+    [σ (in-hole E (check K integer))]
+    E-Mon
+    (where K (tag-of τ))]
+
+   [-->
+    [σ (in-hole E (assert box v))]
+    [σ (in-hole E v)]
+    E-AssertMonSuccess
+    (where (mon (Box _) (box _)) v)]
+   [-->
+    [σ (in-hole E (assert int v))]
+    (Assert int v)
+    E-AssertMonFailure
+    (where (mon (Box _) (box _)) v)]))
 
 (define-metafunction AEXP-MONITORED
   -->AEXP-MONITORED* : A -> (A natural)
@@ -998,21 +1140,23 @@
 (module+ test
   (test-case "-->AEXP-MONITORED*"
     (check-false
-      (redex-match? AEXP-MONITORED v (term (mon Nat 2))))
+      (redex-match? AEXP-MONITORED v
+        (term (mon Nat 2))))
     (check-true
-      (redex-match? AEXP-MONITORED A (term [() (check Nat 2)])))
-    (check-equal?
-      (term (-->AEXP-MONITORED* [() (let (y (check Nat 2)) (+ 2 y))]))
-      (term ([() 4] 3)))
-    (check-equal?
-      ;; only monitor boxes
-      (term (-->AEXP-MONITORED* [() (mon Nat 2)]))
-      (term ([() (mon Nat 2)] 0)))
-    (check-equal?
-      (term (-->AEXP-MONITORED* [() (let (y (check Nat 2)) (+ 2 y))]))
-      (term ([() 4] 3)))))
+      (redex-match? AEXP-MONITORED A
+        (term [() (check Nat 2)])))
+    (check-true
+      (redex-match? AEXP-MONITORED ([() 4] 3)
+        (term (-->AEXP-MONITORED* [() (let (y (check Nat 2)) (+ 2 y))]))))
+    (check-true
+      (redex-match? AEXP-MONITORED ([() 2] 2)
+        (term (-->AEXP-MONITORED* [() (mon Nat 2)]))))
+    (check-true
+      (redex-match? AEXP-MONITORED ([() 4] 3)
+        (term (-->AEXP-MONITORED* [() (let (y (check Nat 2)) (+ 2 y))]))))))
 
 ;; -----------------------------------------------------------------------------
+;; evaluation
 
 (define-metafunction AEXP-MONITORED
   eval-monitored : a -> any
@@ -1047,34 +1191,51 @@
 
 (module+ test
   (test-case "eval-monitored"
-    (check-equal?
-      (term (eval-monitored (+ 2 2)))
-      (term 4))
-    (check-equal?
-      (term (eval-monitored (let (x 2) (dyn (y Nat 2) (+ x y)))))
-      (term 4))
-    (check-equal?
-      (term (eval-monitored
-        (let (b (make-box 1))
-          (dyn (y Nat (set-box! b 2))
-            (let (z (unbox b))
-              (+ z y))))))
-      (term 4))
-    (check-true (redex-match? AEXP-MONITORED (Check _ _)
-      (term (eval-monitored
-        (dyn (y (Box Nat) (make-box -2))
-          42)))))))
+    (check-true
+      (redex-match? AEXP-MONITORED 4
+        (term (eval-monitored (+ 2 2)))))
+    (check-true
+      (redex-match? AEXP-MONITORED 4
+        (term (eval-monitored (let (x 2) (dyn (y Nat 2) (+ x y)))))))
+    (check-true
+      (redex-match? AEXP-MONITORED 4
+        (term (eval-monitored
+          (let (b (make-box 1))
+            (dyn (y Nat (set-box! b 2))
+              (let (z (unbox b))
+                (+ z y))))))))
+    (check-true
+      (redex-match? AEXP-MONITORED (Check _ _)
+        (term (eval-monitored
+          (dyn (y (Box Nat) (make-box -2))
+            42)))))
+    (check-true
+      (redex-match? AEXP-MONITORED (Check _ _)
+        (term (eval-monitored
+          (let (bb (make-box (make-box 1)))
+            (dyn (qq Int (set-box! bb 2))
+              (set-box! (unbox bb) 4)))))))))
 
 ;; -----------------------------------------------------------------------------
+;; monitored completion
+
+;; The purpose of a monitor is to protect typed values.
+;; A value `(mon τ v)` says:
+;; - `v` currently has type `τ`
+;; - primitive operations acting on `v` need to preserve `τ`-ness
+;;
+;; So, need to:
+;; - monitor all boxes that escape into untyped code
+;; - monitor all boxes coming in from untyped code
 
 (define-metafunction AEXP-MONITORED
   compile-monitored : t -> c
   [(compile-monitored t)
    c
    (judgment-holds (monitored-completion t c))
-   ;; TODO hard to define sound completion, because adding lots more checks
+   ;; TODO hard to define valid completion, because adding lots more checks
    #;(where a (erase-types t))
-   #;(judgment-holds (sound-completion-monitored a c))])
+   #;(judgment-holds (valid-completion-monitored a c))])
 
 ;; The interesting case here is for `dyn`, see below.
 (define-judgment-form AEXP-MONITORED
@@ -1094,7 +1255,20 @@
   [
    (monitored-completion t c) ...
    ---
-   (monitored-completion (:: (δ t ...) τ) (δ c ...))]
+   (monitored-completion (:: (+ t ...) τ) (+ c ...))]
+  [
+   (monitored-completion t c)
+   (where c_mon (mon τ (make-box c)))
+   ---
+   (monitored-completion (:: (make-box t) τ) c_mon)]
+  [
+   (monitored-completion t c)
+   ---
+   (monitored-completion (:: (unbox t) τ) (unbox c))]
+  [
+   (monitored-completion t c) ...
+   ---
+   (monitored-completion (:: (set-box! t ...) τ) (+ c ...))]
   [
    (dynamic-completion a_x c_x)
    ;; compile the type annotation into a DEEP run-time check
@@ -1118,32 +1292,33 @@
          b)))
    (where E_v (type->check τ))])
 
-(define-judgment-form AEXP-MONITORED
-  #:mode (sound-completion-monitored I I)
-  #:contract (sound-completion-monitored a c)
-  [
-   (where a_c (erase-monitors (erase-asserts c)))
-   (side-condition ,(α=? (term a) (term a_c)))
-   ---
-   (sound-completion-monitored a c)])
-
-(define-metafunction AEXP-MONITORED
-  erase-monitors : any -> any
-  [(erase-monitors (mon τ any))
-   (erase-monitors any)]
-  [(erase-monitors (any ...))
-   ((erase-monitors any) ...)]
-  [(erase-monitors any)
-   any])
+;; TODO how to define this?
+;(define-judgment-form AEXP-MONITORED
+;  #:mode (valid-completion-monitored I I)
+;  #:contract (valid-completion-monitored a c)
+;  [
+;   (where a_c (erase-monitors (erase-asserts c)))
+;   (side-condition ,(α=? (term a) (term a_c)))
+;   ---
+;   (valid-completion-monitored a c)])
+;
+;(define-metafunction AEXP-MONITORED
+;  erase-monitors : any -> any
+;  [(erase-monitors (mon τ any))
+;   (erase-monitors any)]
+;  [(erase-monitors (any ...))
+;   ((erase-monitors any) ...)]
+;  [(erase-monitors any)
+;   any])
 
 (module+ test
   (test-case "type->check"
-    (check-equal?
-      (term (type->check Nat))
-      (term (check Nat hole)))
-    (check-equal?
-      (term (type->check Int))
-      (term (check Int hole)))
+    (check-true
+      (redex-match? AEXP-MONITORED (check Nat hole)
+        (term (type->check Nat))))
+    (check-true
+      (redex-match? AEXP-MONITORED (check Int hole)
+        (term (type->check Int))))
     (let ([E (term (type->check (Box Nat)))])
       (check-true
         (redex-match? AEXP-MONITORED E E))
@@ -1195,23 +1370,16 @@
     (check-true
       (term (theorem:mon-soundness
         (dyn (x (Box Nat) (make-box (make-box -1)))
-          x))))))
-
-;; Claim: exist terms (with no dyn)
-;;  where monitored evaluation is faster than tagged
-(define-metafunction AEXP-MONITORED
-  example:monitored-sometimes-fast : a -> boolean
-  [(example:monitored-sometimes-fast a)
-   ,(< (term natural_monitored) (term natural_tagged))
-   (where A_monitored (pre-eval-monitored a))
-   (where A_tagged (pre-eval-tagged a))
-   (where (A_final natural_monitored) (-->AEXP-MONITORED* A_monitored))
-   (where (A_final natural_tagged) (-->AEXP-TAGGED* A_tagged))])
-
-(module+ test
-  (test-case "monitored-sometimes-fast"
+          x))))
     (check-true
-      (term (example:monitored-sometimes-fast (unbox (make-box 2)))))))
+      (term (theorem:mon-soundness
+        (let (x (Box Nat) (box 3))
+          (dyn (v Int (set-box! x -1))
+            (unbox x))))))))
+
+;; -----------------------------------------------------------------------------
+;; AEXP-MONITORED is never faster than AEXP-TAGGED
+;;  monitors add indirection cost just as tags at check-cost.
 
 ;; Claim: exist terms (with dyn)
 ;;  where monitored evaluation is slower
@@ -1234,6 +1402,37 @@
 ;; =============================================================================
 ;; === Section 7
 ;; =============================================================================
-
 ;; Summary / Discussion
 
+;; Type soundness costs performance.
+;; Here's a ranking, 1=best 4=worst
+;;
+;; | Language | Types | Perf. |
+;; |----------+-------+-------|
+;; | AEXP     |     3 |     2 |
+;; | TYPED    |     4 |     1 |
+;; | TAGGED   |     2 |     3 |
+;; | MONTORED |     1 |     4 |
+;;
+;; TYPED has 4 for "Types" because it is unsound (misleading to the programmer)
+;; "Perf." for AEXP vs. TAGGED is unclear in the model, but generally:
+;; - AEXP only checks when absolutely necessary (i.e. just before segfault would occur)
+;; - AEXP never checks type boundaries
+;; - type-tag checks are more expensive than machine-tag checks
+
+
+;; Other Notes:
+
+;; * `monitored-completion` deeply checks values coming from untyped code;
+;;   when a `box` crosses over, we check its contents recursively.
+;;   The effect is that `(mon τ v)` iff `v : τ`.
+;;   This isn't necessary.
+;;   We could let `(mon τ v)` without checking `v`,
+;;    and lazily check e.g. `(unbox (mon (Box Nat) (box (box -2))))`
+;;    installs a monitor on its argument.
+;;
+;;   Not sure how this would look / improve things.
+
+;; * Is it easier to remove checks from monitored code than from tagged code?
+
+;; 
