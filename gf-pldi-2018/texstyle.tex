@@ -83,11 +83,16 @@ showstringspaces=false            %
 \newcommand{\fresh}[1]{\emph{fresh}(#1)}
 \newcommand{\respath}{\textsc{Res}}
 
+\newcommand{\integers}{\mathbb{Z}}
+
 \newcommand{\assign}{:\!=}
 
 \newcommand{\tint}{\mathsf{Int}}
+\newcommand{\tbox}{\mathsf{Box}}
 \newcommand{\tlist}{\mathsf{List}}
 \newcommand{\tarrow}{\rightarrow}
+\newcommand{\tunion}{\bigcup}
+\newcommand{\tall}{\forall}
 
 \newcommand{\kproc}{\texttt{proc}}
 \newcommand{\kref}{\texttt{ref}}
@@ -100,8 +105,16 @@ showstringspaces=false            %
 \newcommand{\vlam}[2]{\lambda #1.\, #2}
 \newcommand{\efst}[1]{\mathsf{fst}\,#1}
 
+\newcommand{\vrel}[2]{#1 \models #2}
+\newcommand{\vstate}[2]{[#1~#2]}
+\newcommand{\vstategen}{\vstate{\sigma}{v}}
+
 \newcommand{\tfun}[5]{\mathbf{fun} #1 (#2 : #3) \rightarrow #4\,.\,#5}
 \newcommand{\ufun}[3]{\mathbf{fun} #1 (#2)\,.\,#3}
+
+%% value relation
+
+
 
 %% -----------------------------------------------------------------------------
 

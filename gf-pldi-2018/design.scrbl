@@ -56,3 +56,34 @@ The benefit is more undefined primop apps, can use to reason about the program.
 @section{Model, Theorems}
 
 TBA
+
+Types (sloppy now, will want to hierarchize later)
+
+@exact|{$$
+\begin{array}{l c l}
+ \tau & = & \tint
+       \mid \tlist\,\tau
+       \mid \tarrow\,\tau\,\tau
+       \mid \tall \alpha.\,\tau
+       \mid \tunion \tau \ldots
+\end{array}
+$$}|
+
+Value relation (how to tag check)
+
+@exact|{
+\fbox{$\vrel{\vstategen}{\tau}$}
+
+\begin{mathpar}
+  \inferrule*{
+    v \in \integers
+  }{
+    \vrel{\vstategen}{\tint}
+  }
+
+  \inferrule*{
+    ???
+  }{
+    \vrel{\vstategen}{\tlist\,\tau}
+  }
+\end{mathpar}}|
