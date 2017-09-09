@@ -612,6 +612,8 @@
 ;;      and `[σ v] ⊨ τ`
 ;;   2. `c` reduces to an assert error due to an untyped subterm
 ;;
+;; This theorem does not hold; AEXP-TYPED is not sound in the classic sense
+;;  because it allows untyped terms.
 ;; Here is a counterexample to the theorem:
 (define-metafunction AEXP-TYPED
   counterexample:classic-soundness : a -> boolean
@@ -1292,7 +1294,9 @@
          b)))
    (where E_v (type->check τ))])
 
-;; TODO how to define this?
+;; TODO hard to define,
+;;   trouble is monitors get compiled to "checks"
+;;   and it's a little hard to see "this check enforces this type"
 ;(define-judgment-form AEXP-MONITORED
 ;  #:mode (valid-completion-monitored I I)
 ;  #:contract (valid-completion-monitored a c)
