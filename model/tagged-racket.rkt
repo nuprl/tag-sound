@@ -14,16 +14,17 @@
 ;; Soundness = tag soundness
 
 ;; TODO
-;; - sound completion
-;; - functions as values (why does source language have values??? what is v)
-;; - what is strip-\forall for???
+;; - type-check polymorphic function application (or, do polymorphism in general)
 ;; - POLYMORPHISM
 ;;   - don't need to check \alpha, ever
 ;;   - because [v \models \alpha] never happens (bc \alpha is free)
 ;;   - and typed functions using an \alpha make NO assumptions
 ;;     so need NO protective checks
 ;;   - kinda cool but also trivial
+;;   - tagged-completion currently UNDEF for (→ _ α)
 ;; - support Nat types .... see primop-type
+;; - clean up this model, make minimal + readable
+;; - make ∀ a binding form
 ;; - blame for dynamic checks
 ;; - remove unnecessary checks
 ;; - optimize
@@ -66,36 +67,41 @@
   (subst ::= (α τ*))
   (τ* ::= (τ ...))
 
-;; v = values
-  (v ::= (box x) integer boolean (cons v v))
-
 ;; e = implicitly typed source language, allows untyped terms
 ;;     needs explicit types for functions
 ;;      and embedded untyped terms
-  (e ::= v Λ x (e e) (if e e e)
+  (e ::= (box x) integer boolean (fun x (x) e)
+         (:: (fun x (x) e) τ) ;; types not allowed in untyped code
+         x
+         (e e)
+         (if e e e)
          (let (x e) e)
-         (:: Λ τ) ;; not allowed in untyped code
-         (require (x τ e) e) ;; not allowed in untyped code
-         (unop e) (binop e e) (cons e e))
-  (Λ ::= (fun x (x) e))
+         (require (x τ e) e) ;; types not allowed in untyped code
+         (unop e)
+         (binop e e)
+         (cons e e))
   (primop ::= unop binop)
   (unop ::= car cdr make-box unbox)
   (binop ::= + * - = set-box!)
 
 ;; t = explicitly typed intermediate language, still allows untyped (source) terms
-  (t ::= (:: v τ) (:: Λt τ) (:: x τ) (:: (t t) τ) (:: (if t t t) τ)
+  (t ::= (:: (box x) τ)
+         (:: integer τ)
+         (:: boolean τ)
          (:: (fun x (x) t) τ)
+         (:: x τ)
+         (:: (t t) τ)
+         (:: (if t t t) τ)
          (:: (let (x t) t) τ)
          (:: (require (x τ e) t) τ)
          (:: (unop t) τ)
          (:: (binop t t) τ)
          (:: (cons t t) τ))
-  (Λt ::= (fun x (x) t))
 
 ;; c = type-erased, explicitly checked core language
-  (c ::= v Λc x (c c) (if c c c) (let (x c) c) (unop c) (binop c c) (cons c c) (check K c))
+  (c ::= vc x (c c) (if c c c) (let (x c) c) (unop c) (binop c c) (cons c c) (check K c))
   (Λc ::= (fun x (x) c))
-  (vc ::= v Λc)
+  (vc ::= Λc (box x) integer boolean (cons vc vc))
   (σ ::= (csub ...))
   (csub ::= (x vc))
   (E ::= hole (E c) (vc E) (if E c c) (let (x E) c) (unop E) (binop E c) (binop vc E) (cons E c) (cons vc E) (check K E))
@@ -107,14 +113,15 @@
   (x α ::= variable-not-otherwise-mentioned)
 #:binding-forms
   ;;(∀ (α) τ #:refers-to α)
-  (let (x e) e_1 #:refers-to x)
-  (require (x τ e) e_1 #:refers-to x)
   (fun x_f (x) e #:refers-to (shadow x_f x))
   (fun x_f (x) t #:refers-to (shadow x_f x))
   (fun x_f (x) c #:refers-to (shadow x_f x))
+  (let (x e) e_1 #:refers-to x)
   (let (x t) t_1 #:refers-to x)
+  (let (x c) c_1 #:refers-to x)
+  (require (x τ e) e_1 #:refers-to x)
   (require (x τ_x e) t_1 #:refers-to x)
-  (let (x c) c_1 #:refers-to x))
+)
 
 (module+ test
   (check-pred c?
@@ -135,9 +142,19 @@
 
 ;; =============================================================================
 
+;; Key property, tag soundness.
+;;
+;;  If `e` has the static type `τ`, then running `e` has 3 possibilities:
+;;  - `e` diverges
+;;  - `e` reduces to a CheckError, due to either
+;;    * a partial primitive
+;;    * or a boundary between typed and untyped code
+;;  - `e` reduces to a value `v`
+;;    with the same type-tag as `τ`
+
 (define-metafunction TAG
-  theorem:type-soundness : e -> boolean
-  [(theorem:type-soundness e)
+  theorem:tag-soundness : e -> boolean
+  [(theorem:tag-soundness e)
    #{value-check# A K}
    (judgment-holds (well-formed e))
    (where t #{type-check# e})
@@ -147,36 +164,38 @@
    (where A #{eval# c})])
 
 (module+ test
-  (test-case "type-soundness:basic"
-    (check-true (term (theorem:type-soundness
+  (test-case "tag-soundness:basic"
+    (check-true (term (theorem:tag-soundness
       (+ 2 2))))
-    (check-true (term (theorem:type-soundness
+    (check-true (term (theorem:tag-soundness
       ((:: (fun factorial (n)
              (if (= n 1) 1 (* n (factorial (- n 1))))) (→ Int Int))
        5))))
     (void)))
 
+;; -----------------------------------------------------------------------------
+
 ;; Theorem: exists an expression where erasing the tags
 ;;  gives a result, but keeping the tags gives a type error.
 (define-metafunction TAG
-  theorem:tag-vs-dyn : e -> boolean
-  [(theorem:tag-vs-dyn e)
+  theorem:tag-is-not-unsound : e -> boolean
+  [(theorem:tag-is-not-unsound e)
    #true 
    (judgment-holds (well-formed e))
    (where t #{type-check# e})
    (where τ #{type-annotation t})
    (where K #{tag# τ})
    (where c_tag #{tagged-completion# t})
+   (where (CheckError _ _) #{eval# c_tag})
    (where c_dyn #{dynamic-completion# t})
-   (where RuntimeError #{eval# c_tag})
    (where A_dyn #{eval# c_dyn})
    (where #false #{value-check# A_dyn K})]
-  [(theorem:tag-vs-dyn e)
+  [(theorem:tag-is-not-unsound e)
    #false])
 
 (module+ test
-  (test-case "tag-vs-dyn"
-    (check-true (term (theorem:tag-vs-dyn
+  (test-case "tag-is-not-unsound"
+    (check-true (term (theorem:tag-is-not-unsound
       (require (x Nat -4) (+ x x)))))))
 
 ;; -----------------------------------------------------------------------------
@@ -184,9 +203,10 @@
 (define-metafunction TAG
   type-check# : e -> t
   [(type-check# e)
-   t
-   (judgment-holds (type-check () e t))
-   (judgment-holds (sound-elaboration e t))]
+   ,(if (judgment-holds (sound-elaboration e t))
+      (term t)
+      (raise-arguments-error 'type-check "bad typed elaboration" "term" (term e) "elaboration" (term t)))
+   (judgment-holds (type-check () e t))]
   [(type-check# e)
    ,(raise-argument-error 'type-check# "well-typed expression" (term e))])
 
@@ -264,10 +284,7 @@
 (define-metafunction TAG
   value-check# : A K -> boolean
   [(value-check# A K)
-   #true
-   (judgment-holds (value-check A K))]
-  [(value-check# A K)
-   #false])
+   ,(judgment-holds (value-check A K))])
 
 (module+ test
   (test-case "value-check:basic"
@@ -298,14 +315,13 @@
    ---
    (type-check Γ boolean (:: boolean Bool))]
   [
-   (where (fun x_f (x) e) Λ)
    (where Γ_f #{type-env-set Γ (x_f (→ τ_0 τ_1))})
    (where Γ_x #{type-env-set Γ_f (x τ_0)})
    (type-check Γ_x e t)
    (where τ_1 #{type-annotation t})
    (where t_Λ (:: (fun x_f (x) t) (→ τ_0 τ_1)))
    ---
-   (type-check Γ (:: Λ (→ τ_0 τ_1)) t_Λ)]
+   (type-check Γ (:: (fun x_f (x) e) (→ τ_0 τ_1)) t_Λ)]
   [
    (where τ #{type-env-ref Γ x})
    ---
@@ -407,7 +423,9 @@
    (where Γ #{substitution-resolve Σ})
    (where τ #{strip-∀ τ_α})])
 
-;; TODO remove this
+;; TODO remove this, should be able to:
+;; - make ∀ a binding form
+;; - use `substitute` to define `apply-type-environment`
 (define-metafunction TAG
   strip-∀ : τ -> τ
   [(strip-∀ (∀ (α) τ))
@@ -506,10 +524,9 @@
    ---
    (dynamic-completion boolean boolean)]
   [
-   (where (fun x_f (x) e) Λ)
    (dynamic-completion e c)
    ---
-   (dynamic-completion Λ (fun x_f (x) c))]
+   (dynamic-completion (fun x_f (x) e) (fun x_f (x) c))]
   [
    (dynamic-completion e_0 c_0)
    (dynamic-completion e_1 c_1)
@@ -621,7 +638,7 @@
    [-->
     [σ (in-hole E (primop vc ...))]
     #{maybe-in-hole E A}
-    E-PrimOp
+    E-Primop
     (where A (apply-primop [σ (primop vc ...)]))]
    [-->
     [σ (in-hole E (check K vc))]
@@ -687,6 +704,7 @@
    (tag-of (→ _ _) →)])
 
 ;; =============================================================================
+;; === Less Interesting Stuff
 ;; =============================================================================
 
 ;; =============================================================================
@@ -779,11 +797,10 @@
    ---
    (free-variables boolean ())]
   [
-   (where (fun x_f (x) e) Λ)
    (free-variables e x*_Λ)
    (where x* ,(set-subtract (term x*_Λ) (term (x_f x))))
    ---
-   (free-variables Λ x*)]
+   (free-variables (fun x_f (x) e) x*)]
   [
    (free-variables e_0 x*_0)
    (free-variables e_1 x*_1)
@@ -814,9 +831,9 @@
    ---
    (free-variables (let (x e_0) e_1) x*)]
   [
-   (free-variables Λ x*)
+   (free-variables (fun x_f (x) e) x*)
    ---
-   (free-variables (:: Λ τ) x*)]
+   (free-variables (:: (fun x_f (x) e) τ) x*)]
   [
    (free-variables e_0 x*_0)
    (free-variables e_1 x*_pre1)
@@ -879,7 +896,7 @@
   [
    (side-condition #false)
    ---
-   (enough-annotations/typed Λ)]
+   (enough-annotations/typed (fun x_f (x) e))]
   [
    (enough-annotations/typed e_0)
    (enough-annotations/typed e_1)
@@ -905,10 +922,9 @@
    ---
    (enough-annotations/typed (let (x e_0) e_1))]
   [
-   (where (fun x_f (x) e) Λ)
    (enough-annotations/typed e)
    ---
-   (enough-annotations/typed (:: Λ τ))]
+   (enough-annotations/typed (:: (fun x_f (x) e) τ))]
   [
    (enough-annotations/untyped e_0)
    (enough-annotations/typed e_1)
@@ -937,10 +953,9 @@
    ---
    (enough-annotations/untyped boolean)]
   [
-   (where (fun x_f (x) e) Λ)
    (enough-annotations/untyped e)
    ---
-   (enough-annotations/untyped Λ)]
+   (enough-annotations/untyped (fun x_f (x) e))]
   [
    (enough-annotations/untyped e_0)
    (enough-annotations/untyped e_1)
