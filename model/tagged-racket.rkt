@@ -14,7 +14,15 @@
 ;; Soundness = tag soundness
 
 ;; TODO
-;; - sound completion (let vs require)
+;; - sound completion
+;; - functions as values (why does source language have values??? what is v)
+;; - what is strip-\forall for???
+;; - POLYMORPHISM
+;;   - don't need to check \alpha, ever
+;;   - because [v \models \alpha] never happens (bc \alpha is free)
+;;   - and typed functions using an \alpha make NO assumptions
+;;     so need NO protective checks
+;;   - kinda cool but also trivial
 ;; - support Nat types .... see primop-type
 ;; - blame for dynamic checks
 ;; - remove unnecessary checks
@@ -196,9 +204,10 @@
 (define-metafunction TAG
   tagged-completion# : t -> c
   [(tagged-completion# t)
-   c
-   (judgment-holds (tagged-completion t c))
-   #;(judgment-holds (sound-completion t c))]
+   ,(if (judgment-holds (sound-completion t c))
+      (term c)
+      (raise-arguments-error 'tagged-completion# "unsound completion" "term" (term t) "completion" (term c)))
+   (judgment-holds (tagged-completion t c))]
   [(tagged-completion# t)
    ,(raise-argument-error 'tagged-completion# "failed to complete" (term t))])
 
@@ -480,7 +489,7 @@
    c
    (where e #{erase-types# t})
    (judgment-holds (dynamic-completion e c))
-   #;(judgment-holds (sound-completion t c))]
+   (judgment-holds (sound-completion t c))]
   [(dynamic-completion# t)
    ,(raise-arguments-error 'dynamic-completion# "failed to complete" "term" (term t))])
 
@@ -552,12 +561,20 @@
   #:mode (sound-completion I I)
   #:contract (sound-completion t c)
   [
-   (where any_0 #{erase-types# t})
+   (where any_0 #{erase-require# #{erase-types# t}})
    (where any_1 #{erase-checks# c})
    (side-condition ,(α=? (term any_0) (term any_1)))
-   (side-condition #false) ;; TODO completion is converting "require" to "let"
    ---
    (sound-completion t c)])
+
+(define-metafunction TAG
+  erase-require# : any -> any
+  [(erase-require# (require (x τ any_x) any_t))
+   (let (x #{erase-require# any_x}) #{erase-require# any_t})]
+  [(erase-require# (any ...))
+   (#{erase-require# any} ...)]
+  [(erase-require# any)
+   any])
 
 (define-metafunction TAG
   erase-checks# : any -> any
@@ -567,6 +584,16 @@
    (#{erase-checks# any} ...)]
   [(erase-checks# any)
    any])
+
+(module+ test
+  (test-case "erase-require#"
+    (check-mf-apply* #:is-equal? α=?
+     ((erase-require# 1)
+      1)
+     ((erase-require# (let (x 4) x))
+      (let (x 4) x))
+     ((erase-require# (require (x Int 4) x))
+      (let (x 4) x)))))
 
 ;; =============================================================================
 ;; === eval
@@ -1288,7 +1315,7 @@
 )
 
 (module+ test
-  (test-case "completion:basic"
+  (test-case "completion:basic:II"
     (check-mf-apply* #:is-equal? α=?
      [(tagged-completion# (:: 3 Int))
       3]
