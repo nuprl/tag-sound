@@ -23,6 +23,9 @@
          (∪ τ τ τ ...) (∩ τ τ τ ...))
   (Γ ::= ((x τ) ...))
 
+  ;; TODO add modules
+  ;; TODO one term syntax
+
   (t ::= (:: integer τ)
          (:: (box t) τ)
          (:: (cons t t) τ)
