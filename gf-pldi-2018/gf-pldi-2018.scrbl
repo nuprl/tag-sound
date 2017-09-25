@@ -1,6 +1,7 @@
 #lang gf-pldi-2018 @sigplan @anonymous
 
 @title{Between Soundness and Unsoundness and What it Means for Performance}
+@;@title{An Unexpectedly Negative Result}
 
 @(define NEU
    @affiliation[
