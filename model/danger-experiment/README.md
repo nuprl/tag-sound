@@ -55,5 +55,5 @@ Before / After table
 | benchmark | # exports | success? | perf % increase | bytes % increase |
 |-----------+---
 | fsm       |           | yes | 
-| 
+| suffixtree |   | yes | 128622 tagged, 4150 typed, 4635 danger
 | zombie    |           | no - world | 
