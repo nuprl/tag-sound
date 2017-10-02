@@ -56,4 +56,5 @@ Before / After table
 |-----------+---
 | fsm       |           | yes | 
 | suffixtree |   | yes | 128622 tagged, 4150 typed, 4635 danger
+| sieve | | yes | 9589 danger, 9888 pre-danger, 9585 typed
 | zombie    |           | no - world | 
