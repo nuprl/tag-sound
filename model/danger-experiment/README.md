@@ -60,3 +60,4 @@ Before / After table
 | morsecode | | yes | 484 danger, 410 typed
 | zombie    |           | no - world | 
 | snake | | yes | danger2 831, typed 669, tagged\list 788 835 |
+| synth | | yes | danger2 (288 268 271 277 279), typed (242 285 280 272 262)
