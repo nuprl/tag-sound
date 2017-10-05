@@ -1,9 +1,16 @@
 #lang gf-pldi-2018
 @title[#:tag "sec:introduction"]{Introduction}
 
-@; TODO
-@; - where to insert checks --- function? read? context?
-@; - at least one non-machine base type e.g. Natural
+Expressiveness, soundness, performance.
+Three essential components of a gradual typing system, all three in tension.
+Typed Racket has pretty good expressiveness and soundness, but not-so-good performance.
+What to do?
+Performance tuning is a viable approach.
+Changing expressiveness is not viable;
+ there's a performance problem if only (mutable) arrays can cross type boundaries.
+Soundness tuning is also viable, and the subject of this paper.
+
+Review.
 
 A gradual typing system lets programmers trade the proof obligations
  of static typing for the run-time overhead of dynamic typing.
@@ -57,10 +64,13 @@ These evaluations suggest that exchanging type soundness for tag soundness
 This paper provides an answer; contributions:
 @itemlist[
 @item{
-  design principles for tag-sound gradual typing,
+  clear definition of tag soudness
 }
 @item{
-  performance evaluation of tag-soundness for Racket (Tagged Racket),
+  two strategies for tag soundness
+}
+@item{
+  performance evaluation
 }
 ]
 
