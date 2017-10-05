@@ -17,7 +17,7 @@
 ;; 5. Claims about tag soundness
 ;; 6. AEXP-MONITORED, enforcing type soundness
 ;; 7. Claims about monitors and soundness
-;; 7. Discussion
+;; 8. Discussion
 ;; (Search for "=== Section N" to jump to a section of the outline)
 
 ;; -----------------------------------------------------------------------------
@@ -1344,7 +1344,7 @@
     (void)))
 
 ;; =============================================================================
-;; === Section 6
+;; === Section 7
 ;; =============================================================================
 
 ;; AEXP-MONITORED has a type soundness
@@ -1404,7 +1404,7 @@
           (+ 2 (unbox x))))))))
 
 ;; =============================================================================
-;; === Section 7
+;; === Section 8
 ;; =============================================================================
 ;; Summary / Discussion
 
