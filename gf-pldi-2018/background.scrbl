@@ -5,6 +5,15 @@
 
 @title[#:tag "sec:background"]{Sound Gradual Typing is Dead Slow}
 
+Gradual typing idea is simple, controlled channels of communication
+ with untyped code.
+Sadly, many ways to communicate.
+Sadly, adding control adds runtime overhead.
+
+In principle, one thing to do = check untyped input.
+But input comes from many places.
+
+@; this is easy to explain
 
 A gradual typing system delays some type checking until run-time.
 What becomes of type soundness?

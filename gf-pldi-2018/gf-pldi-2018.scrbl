@@ -39,6 +39,7 @@
 @include-section{background.scrbl}
 @include-section{design.scrbl}
 @include-section{evaluation.scrbl}
+@include-section{reduce-checks-improve-errors.scrbl}
 @include-section{conclusion.scrbl}
 
 @generate-bibliography[]

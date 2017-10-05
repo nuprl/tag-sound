@@ -1,6 +1,6 @@
 #lang gf-pldi-2018
 
-@title[#:tag "sec:design"]{Tag-Sound Gradual Typing}
+@title[#:tag "sec:design"]{Between Soundness and Unsoundness}
 
 @; TODO express as section
 
