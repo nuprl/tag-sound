@@ -1,11 +1,15 @@
 #lang mf-apply racket/base
 
 (provide
+  well-formed-type
+  well-formed-program
 )
 
 (require
   "lang.rkt"
   "metafunctions.rkt"
+  (only-in racket/list
+    check-duplicates)
   racket/set
   redex/reduction-semantics)
 
@@ -26,9 +30,49 @@
   #:mode (all-unions-discriminative I)
   #:contract (all-unions-discriminative τ)
   [
-   ;; TODO
    ---
-   (all-unions-discriminative τ)])
+   (all-unions-discriminative Int)]
+  [
+   ---
+   (all-unions-discriminative Nat)]
+  [
+   (all-unions-discriminative τ_dom)
+   (all-unions-discriminative τ_cod)
+   ---
+   (all-unions-discriminative (→ τ_dom τ_cod))]
+  [
+   (all-unions-discriminative τ)
+   ---
+   (all-unions-discriminative (Vectorof τ))]
+  [
+   (all-unions-discriminative τ)
+   ---
+   (all-unions-discriminative (Listof τ))]
+  [
+   (discriminative-union (U τ ...))
+   (all-unions-discriminative τ) ...
+   ---
+   (all-unions-discriminative (U τ ...))]
+  [
+   (all-unions-discriminative τ)
+   ---
+   (all-unions-discriminative (∀ (α) τ))]
+  [
+   (all-unions-discriminative τ)
+   ---
+   (all-unions-discriminative (μ (α) τ))]
+  [
+   ---
+   (all-unions-discriminative α)])
+
+(define-judgment-form μTR
+  #:mode (discriminative-union I)
+  #:contract (discriminative-union (U τ ...))
+  [
+   (where (κ ...) (#{type->tag τ} ...))
+   (side-condition ,(check-duplicates (term (κ ...))))
+   ---
+   (discriminative-union (U τ ...))])
 
 (define-judgment-form μTR
   #:mode (all-recursive-types-contractive I)
