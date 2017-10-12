@@ -117,7 +117,7 @@
   [(runtime-env->untyped-runtime-env x_mod ρτ)
    ρλ
    (where ((x v τ) ...) ρτ)
-   (where ρλ ((x #{apply-monitor# x_mod v τ}) ...))])
+   (where ρλ ((x #{apply-monitor#/fail x_mod v τ}) ...))])
 
 (define-metafunction μTR
   runtime-env->typed-runtime-env : x ρ τ* -> ρτ
@@ -130,7 +130,7 @@
    ρτ
    (where ((x v) ...) ρλ)
    (where (τ ...) τ*)
-   (where ρτ ((x #{apply-monitor# x_mod v τ} τ) ...))])
+   (where ρτ ((x #{apply-monitor#/fail x_mod v τ} τ) ...))])
 
 (define-judgment-form μTR
   #:mode (apply-monitor I I I O)
@@ -160,12 +160,20 @@
    (apply-monitor x_mod v τ v_mon)])
 
 (define-metafunction μTR
+  apply-monitor#/fail : x v τ -> v
+  [(apply-monitor#/fail x v τ)
+   v_mon
+   (judgment-holds (apply-monitor x v τ v_mon))]
+  [(apply-monitor#/fail x v τ)
+   ,(raise-arguments-error 'apply-monitor "ill-typed value" "value" (term v) "type" (term τ) "value from" (term x))])
+
+(define-metafunction μTR
   apply-monitor# : x v τ -> any
   [(apply-monitor# x v τ)
    v_mon
    (judgment-holds (apply-monitor x v τ v_mon))]
   [(apply-monitor# x v τ)
-   ,(raise-arguments-error 'apply-monitor "ill-typed value" "value" (term v) "type" (term τ) "value from" (term x))])
+   #false])
 
 (define-metafunction μTR
   assert-below : τ τ -> τ
@@ -259,8 +267,121 @@
   (reduction-relation μTR
    #:domain A
    [-->
-     Σ
-     BadIndex]
+     (v σ S)
+     A_next
+     E-Return
+     (where (x_curr τ_expected E S_-) S)
+     (where x_ctx #{current-modname S})
+     (where any_+ #{apply-monitor# x_curr v_+ τ_expected})
+     (where A_next ,(if (term any_+)
+                      (term ((in-hole E v) σ S_-))
+                      (term (BE x_ctx τ_expected x_curr v))))]
+   [-->
+     ((in-hole E (Λ v_arg)) σ S)
+     ((in-hole E e_body+) σ S)
+     E-Beta
+     (where (fun x_f (x_arg) e_body) Λ)
+     (where e_body+ (substitute (substitute e_body x_f Λ) x_arg v_arg))]
+   [-->
+     ((in-hole E ((mon-fun x_mod τ v_f) v_arg)) σ S)
+     ((v_f v_arg+) σ S_+)
+     E-BetaMon
+     (where (→ τ_dom τ_cod) τ)
+     (where x_curr #{current-modname S})
+     (where v_arg+ #{apply-monitor# x_curr v_arg τ_dom})
+     (where S_+ #{stack-push S x_mod τ_cod E})]
+   [-->
+     ((in-hole E (v_0 v_1)) σ S)
+     NotFunction
+     E-BetaFail
+     (judgment-holds (not-fun-value v_0))]
+   [-->
+     ((in-hole E (ifz v e_0 e_1)) σ S)
+     ((in-hole E e_next) σ S)
+     E-If
+     (where e_next ,(if (zero? (term v)) (term e_0) (term e_1)))]
+   [-->
+     ((in-hole E (+ v_0 v_1)) σ S)
+     A_next
+     E-+
+     (where A_next
+       ,(cond
+         [(not (integer? (term v_0)))
+          (term (TE v_0 Int))]
+         [(not (integer? (term v_1)))
+          (term (TE v_1 Int))]
+         [else
+          (term ((in-hole E ,(+ (term v_0) (term v_1))) σ S))]))]
+   [-->
+     ((in-hole E (- v_0 v_1)) σ S)
+     A_next
+     E--
+     (where A_next
+       ,(cond
+         [(not (integer? (term v_0)))
+          (term (TE v_0 Int))]
+         [(not (integer? (term v_1)))
+          (term (TE v_1 Int))]
+         [else
+          (term ((in-hole E ,(- (term v_0) (term v_1))) σ S))]))]
+   [-->
+     ((in-hole E (* v_0 v_1)) σ S)
+     A_next
+     E-*
+     (where A_next
+       ,(cond
+         [(not (integer? (term v_0)))
+          (term (TE v_0 Int))]
+         [(not (integer? (term v_1)))
+          (term (TE v_1 Int))]
+         [else
+          (term ((in-hole E ,(* (term v_0) (term v_1))) σ S))]))]
+   [-->
+     ((in-hole E (% v_0 v_1)) σ S)
+     A_next
+     E-%
+     (where A_next
+       ,(cond
+         [(not (integer? (term v_0)))
+          (term (TE v_0 Int))]
+         [(not (integer? (term v_1)))
+          (term (TE v_1 Int))]
+         [else
+          (term ((in-hole E ,(quotient (term v_0) (term v_1))) σ S))]))]
+   ;[-->
+   ;; TODO change vectors to boxes
+   ;  vector-ref vector-set!
+   ;]
+
+   [-->
+     ((in-hole E (first v_0)) σ S)
+     A_next
+     E-first
+     (where A_next
+       ,(cond
+         [(equal? (term v_0) (term nil))
+          (term EmptyList)]
+         [(not (pair? (term v_0)))
+          (term (TE v_0 Pair))]
+         [else
+          (term ((in-hole E ,(car (term v_0))) σ S))]))]
+   [-->
+     ((in-hole E (rest v_0)) σ S)
+     A_next
+     E-rest
+     (where A_next
+       ,(cond
+         [(equal? (term v_0) (term nil))
+          (term EmptyList)]
+         [(not (pair? (term v_0)))
+          (term (TE v_0 Pair))]
+         [else
+          (term ((in-hole E ,(cdr (term v_0))) σ S))]))]
+
+   #;
+   [-->
+     (e σ S)
+     (e σ S)]
   ))
 
 (define step-expression*
@@ -288,7 +409,7 @@
     )
 
    (check-exn exn:fail:contract?
-     (λ () (term (apply-monitor# m 4 (Listof Int)))))
+     (λ () (term (apply-monitor#/fail m 4 (Listof Int)))))
   )
 
   (test-case "runtime-env->untyped-runtime-env"

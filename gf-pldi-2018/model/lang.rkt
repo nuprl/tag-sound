@@ -81,15 +81,15 @@
   ;; The module is for error-soundness,
   ;;  to prove that typed modules do not commit type errors
 
-  (S ::= x (x τ S))
+  (S ::= x (x τ E S))
   ;; A type boundary call stack is either:
   ;; - a module name
   ;; - a triple: (module-name return-type stack)
   ;; Purpose:
   ;;  A plain "module name" stack just describes the current evaluation context,
   ;;   in particular, whether the source code was statically typed.
-  ;;  A triple names the new current module, its expected return type, and the
-  ;;   stack to return to.
+  ;;  A quad names the new current module, its expected return type,
+  ;;   the context to return to, and the stack to return to.
   ;; Call stacks are important for stating & proving type soundness.
 
   (P-ENV ::= (MODULE-BINDING ...))
@@ -112,6 +112,7 @@
   ;; Type context, for checking expressions
 
   (E ::= hole (vector v ... E e ...) (cons E e) (cons v E)
+         (E e) (v E)
          (ifz E e e) (+ E e) (+ v E) (- E e) (- v E) (* E e) (* v E) (% E e) (% v E)
          (vector-ref E e) (vector-ref v E) (vector-set! E e e) (vector-set! v E e) (vector-set! v v E)
          (first E) (rest E))
@@ -119,8 +120,8 @@
 
   (A ::= Σ Error)
   (Error ::= BoundaryError TypeError)
-  (TypeError ::= (TE v τ))
-  (BoundaryError ::= DivisionByZero BadIndex EmptyList (BE x any x v))
+  (TypeError ::= (TE v any))
+  (BoundaryError ::= DivisionByZero BadIndex EmptyList NotFunction (BE x any x v))
   ;; Evaluation can produce either a final value or an error,
   ;;  errors can be due to ill-typed values in untyped code,
   ;;  or boundary errors.

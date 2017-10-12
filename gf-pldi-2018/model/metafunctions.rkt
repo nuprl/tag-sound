@@ -10,6 +10,10 @@
   loc-env-set
   loc-env-update
   substitute*
+
+  current-modname
+
+  stack-push
 )
 
 (require
@@ -113,6 +117,18 @@
       "term" (term any_thing)
       "binding" (term any_bad)
       "other bindings" (term (any_rest ...)))])
+
+(define-metafunction μTR
+  current-modname : S -> x
+  [(current-modname x_modname)
+   x_modname]
+  [(current-modname (x_modname _ ...))
+   x_modname])
+
+(define-metafunction μTR
+  stack-push : S x τ E -> S
+  [(stack-push S x τ E)
+   (x τ E S)])
 
 ;; =============================================================================
 

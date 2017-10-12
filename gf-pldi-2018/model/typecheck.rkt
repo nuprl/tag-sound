@@ -8,6 +8,7 @@
   flat-value
   vector-value
   fun-value
+  not-fun-value
 )
 
 (require
@@ -100,6 +101,14 @@
   [
    ---
    (fun-value (mon-fun x τ v))])
+
+(define-judgment-form μTR
+  #:mode (not-fun-value I)
+  #:contract (not-fun-value v)
+  [
+   (side-condition ,(not (judgment-holds (fun-value v))))
+   ---
+   (not-fun-value v)])
 
 ;; =============================================================================
 
