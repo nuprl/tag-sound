@@ -229,3 +229,14 @@
    ---
    (well-formed-module MODULE)])
 
+
+(define-judgment-form μTR
+  #:mode (well-formed-expression I)
+  #:contract (well-formed-expression e)
+  [
+   ;; closed
+   ;; no checks
+   ;; no monitors?!
+   ---
+   (well-formed-expression e)])
+

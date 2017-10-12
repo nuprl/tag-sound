@@ -2,7 +2,9 @@
 
 (provide
   μTR
-  α=?)
+  α=?
+  type->tag
+  tag-of)
 
 (require
   redex/reduction-semantics
@@ -35,7 +37,7 @@
   ;;  and ends with a sequence of provided definitions
   (REQUIRE-λ ::= (require x x ...))
   ;; An untyped require is a module name followed by a seqence of identifiers
-  (REQUIRE-τ ::= (require/typed x [x τ] ...))
+  (REQUIRE-τ ::= (require x [x τ] ...))
   ;; A typed require is a module named followed by a sequence of type-annotated identifiers.
   (DEFINE-λ ::= (define x e))
   ;; An untyped definition is an idenfier and an expression
@@ -53,7 +55,7 @@
   ;;  (3) add auxliary technical structures
   ;;  Tailor variable names to the "importance" of things.
 
-  (e ::= integer (fun x (x) e) (vector e ...) (cons e e) nil
+  (e ::= integer x (fun x (x) e) (vector e ...) (cons e e) nil
          (ifz e e e)
          (+ e e) (- e e) (* e e) (% e e) (vector-ref e e) (vector-set! e e e) (first e) (rest e))
   ;; Expressions come in three flavors:
@@ -65,19 +67,30 @@
   ;;  mutable values
 
   (v ::= integer Λ (vector v ...) (cons v v) nil
-         (mon-fun τ v) (mon-vector τ v))
+         (mon-fun x τ v) (mon-vector x τ v))
   (Λ ::= (fun x (x) e))
   ;; Value forms, including `monitor` values.
   ;; The monitors protect typed functions and vectors.
   ;;  (The type-sound evaluator will use monitors. The tag-sound will not.)
 
-  (Σ ::= (e ρ Σ*))
-  ;; The expression evaluator is a perversion of the CEK machine, states are a tuple of:
+  (Σ ::= (e σ S))
+  ;; Evaluation states consist of:
   ;; - `e` the current expression being reduced
-  ;; - `ρ` the current runtime environment
-  ;; - `Ψ` the current module environemnt
-  ;; - `Σ*` a stack of "next states", the first Σ on the stack is expecting the value of `e`
-  (Σ* ::= (Σ ...))
+  ;; - `σ` the current store
+  ;; - `S` is the current context, the type-boundary call stack
+  ;; The module is for error-soundness,
+  ;;  to prove that typed modules do not commit type errors
+
+  (S ::= x (x τ S))
+  ;; A type boundary call stack is either:
+  ;; - a module name
+  ;; - a triple: (module-name return-type stack)
+  ;; Purpose:
+  ;;  A plain "module name" stack just describes the current evaluation context,
+  ;;   in particular, whether the source code was statically typed.
+  ;;  A triple names the new current module, its expected return type, and the
+  ;;   stack to return to.
+  ;; Call stacks are important for stating & proving type soundness.
 
   (P-ENV ::= (MODULE-BINDING ...))
   (MODULE-BINDING ::= (x ρ))
@@ -92,6 +105,9 @@
   ;; A runtime environment binds identifiers to (typed) values
   ;; Types are preserved to protect typed values used by untyped modules.
 
+  (σ ::= ((l v) ...))
+  ;; Store, maps locations to values
+
   (Γ ::= ((x τ) ...))
   ;; Type context, for checking expressions
 
@@ -102,17 +118,56 @@
   ;; Left-to-right eager evaluation contexts
 
   (A ::= Σ Error)
-  (Error ::= ValueError TypeError)
-  (ValueError ::= DivisionByZero BadIndex EmptyList)
+  (Error ::= BoundaryError TypeError)
   (TypeError ::= (TE v τ))
+  (BoundaryError ::= DivisionByZero BadIndex EmptyList (BE x any x v))
   ;; Evaluation can produce either a final value or an error,
-  ;;  errors can be due to bad values, or to ill-typed values.
-  ;; Type soundness restricts the possible errors.
+  ;;  errors can be due to ill-typed values in untyped code,
+  ;;  or boundary errors.
+  ;; A boundary error is either:
+  ;; - between a module and the runtime
+  ;; - between two modules
 
-  (α x ::= variable-not-otherwise-mentioned)
+  (α l x ::= variable-not-otherwise-mentioned)
   (α* ::= (α ...))
   (x* ::= (x ...))
   (τ* ::= (τ ...))
 #:binding-forms
   (fun x_f (x) e #:refers-to (shadow x_f x)))
+
+;; -----------------------------------------------------------------------------
+
+(define-judgment-form μTR
+  #:mode (tag-of I O)
+  #:contract (tag-of τ κ)
+  [
+   ---
+   (tag-of κ κ)]
+  [
+   ---
+   (tag-of (→ τ_0 τ_1) →)]
+  [
+   ---
+   (tag-of (Vectorof τ) Vector)]
+  [
+   ---
+   (tag-of (Listof τ) List)]
+  [
+   (tag-of τ κ) ...
+   ---
+   (tag-of (U τ ...) (U κ ...))]
+  [
+   (tag-of τ κ)
+   ---
+   (tag-of (∀ (α) τ) κ)]
+  [
+   (tag-of τ κ)
+   ---
+   (tag-of (μ (α) τ) κ)])
+
+(define-metafunction μTR
+  type->tag : τ -> κ
+  [(type->tag τ)
+   κ
+   (judgment-holds (tag-of τ κ))])
 

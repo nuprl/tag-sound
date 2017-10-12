@@ -22,6 +22,9 @@
   #:mode (<: I I)
   #:contract (<: τ τ)
   [
+   ---
+   (<: Nat Int)]
+  [
    --- Sub-Refl
    (<: τ τ)])
 
@@ -86,7 +89,7 @@
    (vector-value (vector v ...))]
   [
    ---
-   (vector-value (mon-vector τ v))])
+   (vector-value (mon-vector x τ v))])
 
 (define-judgment-form μTR
   #:mode (fun-value I)
@@ -96,7 +99,7 @@
    (fun-value Λ)]
   [
    ---
-   (fun-value (mon-fun τ v))])
+   (fun-value (mon-fun x τ v))])
 
 ;; =============================================================================
 
@@ -145,8 +148,8 @@
     (check-judgment-holds*
      (vector-value (vector 0 0))
      (vector-value (vector))
-     (vector-value (mon-vector (Vectorof Int) (vector)))
-     (vector-value (mon-vector (Vectorof Nat) (vector nil))))
+     (vector-value (mon-vector lbl (Vectorof Int) (vector)))
+     (vector-value (mon-vector lbl (Vectorof Nat) (vector nil))))
 
     (check-not-judgment-holds*
      (vector-value (fun f (x) 3))
@@ -156,7 +159,7 @@
   (test-case "fun-value"
     (check-judgment-holds*
      (fun-value (fun f (x) x))
-     (fun-value (mon-fun (→ Int Int) (fun f (x) (cons 0 nil)))))
+     (fun-value (mon-fun lbl (→ Int Int) (fun f (x) (cons 0 nil)))))
 
     (check-not-judgment-holds*
      (fun-value -2)
