@@ -11,8 +11,6 @@
   loc-env-update
   substitute*
 
-  current-modname
-
   stack-push
 )
 
@@ -90,18 +88,18 @@
                       (raise-arguments-error 'loc-env-ref "unbound identifier" "id" x "store" (term σ))))])
 
 (define-metafunction μTR
-  loc-env-set : σ x v -> σ
-  [(loc-env-set σ x v)
-   #{env-set σ (x v)}
+  loc-env-set : σ x v* -> σ
+  [(loc-env-set σ x v*)
+   #{env-set σ (x v*)}
    (where #false #{env-ref σ x #false})]
-  [(loc-env-set σ x v)
+  [(loc-env-set σ x v*)
    ,(raise-arguments-error 'loc-env-set "identifier already bound in store"
-      "id" (term x) "store" (term σ) "the value" (term v))])
+      "id" (term x) "store" (term σ) "the value" (term v*))])
 
 (define-metafunction μTR
-  loc-env-update : σ x v -> σ
-  [(loc-env-update σ x v)
-   #{env-update σ (x v) any_fail}
+  loc-env-update : σ x v* -> σ
+  [(loc-env-update σ x v*)
+   #{env-update σ (x v*) any_fail}
    (where any_fail ,(λ (x)
                       (raise-arguments-error 'loc-env-update "unbound identifier, cannot update" "id" x "store" (term σ))))])
 
@@ -119,16 +117,9 @@
       "other bindings" (term (any_rest ...)))])
 
 (define-metafunction μTR
-  current-modname : S -> x
-  [(current-modname x_modname)
-   x_modname]
-  [(current-modname (x_modname _ ...))
-   x_modname])
-
-(define-metafunction μTR
-  stack-push : S x τ E -> S
-  [(stack-push S x τ E)
-   (x τ E S)])
+  stack-push : S FRAME -> S
+  [(stack-push S FRAME)
+   (FRAME S)])
 
 ;; =============================================================================
 
@@ -192,31 +183,31 @@
 
   (test-case "loc-env-ref"
     (check-mf-apply*
-     [(loc-env-ref ((x 3)) x)
-      (x 3)]
-     [(loc-env-ref ((x 3) (y 4)) y)
-      (y 4)])
+     [(loc-env-ref ((x (3))) x)
+      (x (3))]
+     [(loc-env-ref ((x (3)) (y (4))) y)
+      (y (4))])
 
     (check-exn exn:fail:contract?
       (λ () (term #{loc-env-ref () x}))))
 
   (test-case "loc-env-set"
     (check-mf-apply*
-     [(loc-env-set () x 0)
-      ((x 0))]
-     [(loc-env-set ((x 1) (y 2)) z 3)
-      ((z 3) (x 1) (y 2))])
+     [(loc-env-set () x (0))
+      ((x (0)))]
+     [(loc-env-set ((x (1)) (y (2))) z (3))
+      ((z (3)) (x (1)) (y (2)))])
 
     (check-exn exn:fail:contract?
-      (λ () (term (loc-env-set ((x 0)) x 1)))))
+      (λ () (term (loc-env-set ((x (0))) x (1))))))
 
   (test-case "loc-env-update"
     (check-mf-apply*
-     [(loc-env-update ((x 0)) x 1)
-      ((x 1))])
+     [(loc-env-update ((x (0))) x (1))
+      ((x (1)))])
 
     (check-exn exn:fail:contract?
-      (λ () (term (loc-env-update ((x 0)) y 1)))))
+      (λ () (term (loc-env-update ((x (0))) y (1))))))
 
   (test-case "substitute*"
     (check-mf-apply*

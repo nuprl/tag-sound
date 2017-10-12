@@ -9,6 +9,7 @@
   vector-value
   fun-value
   not-fun-value
+  not-vector-value
 )
 
 (require
@@ -87,10 +88,18 @@
   #:contract (vector-value v)
   [
    ---
-   (vector-value (vector v ...))]
+   (vector-value (vector x_loc))]
   [
    ---
    (vector-value (mon-vector x τ v))])
+
+(define-judgment-form μTR
+  #:mode (not-vector-value I)
+  #:contract (not-vector-value v)
+  [
+   (side-condition ,(not (judgment-holds (vector-value v))))
+   ---
+   (not-vector-value v)])
 
 (define-judgment-form μTR
   #:mode (fun-value I)
@@ -126,14 +135,14 @@
      (well-tagged-value 1 Nat)
      (well-tagged-value 1 Int)
      (well-tagged-value 1 (U Int Vector))
-     (well-tagged-value (vector 1 2 3) Vector)
+     (well-tagged-value (vector aaa) Vector)
      (well-tagged-value (fun f (x) x) →)
      (well-tagged-value (cons 1 (cons 3 nil)) List))
 
     (check-not-judgment-holds*
      (well-tagged-value 1 Vector)
      (well-tagged-value (fun f (x) x) List)
-     (well-tagged-value (vector 8 8) List))
+     (well-tagged-value (vector aa) List))
 
     (check-judgment-holds*
      (not-well-tagged-value 1 Vector))
@@ -151,14 +160,13 @@
     (check-not-judgment-holds*
      (flat-value (cons 3 nil))
      (flat-value (fun f (x) x))
-     (flat-value (vector 3))))
+     (flat-value (vector a))))
 
   (test-case "vector-value"
     (check-judgment-holds*
-     (vector-value (vector 0 0))
-     (vector-value (vector))
-     (vector-value (mon-vector lbl (Vectorof Int) (vector)))
-     (vector-value (mon-vector lbl (Vectorof Nat) (vector nil))))
+     (vector-value (vector aaa))
+     (vector-value (mon-vector lbl (Vectorof Int) (vector aaa)))
+     (vector-value (mon-vector lbl (Vectorof Nat) (vector aaa))))
 
     (check-not-judgment-holds*
      (vector-value (fun f (x) 3))
@@ -173,5 +181,5 @@
     (check-not-judgment-holds*
      (fun-value -2)
      (fun-value 2)
-     (fun-value (vector 0 0))))
+     (fun-value (vector aaa))))
 )

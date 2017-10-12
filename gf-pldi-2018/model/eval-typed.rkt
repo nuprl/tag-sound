@@ -193,17 +193,17 @@
   [(eval-untyped-define* x_modname σ ρλ (DEFINE-λ_first DEFINE-λ_rest ...))
    #{eval-untyped-define* x_modname σ_+ ρλ_+ (DEFINE-λ_rest ...)}
    (where (define x e) DEFINE-λ_first)
-   (where [σ_+ v] #{eval-value x_modname σ ρλ e})
+   (where [v σ_+] #{eval-value x_modname σ ρλ e})
    (where ρλ_+ #{env-set ρλ (x v)})])
 
 (define-metafunction μTR
   eval-typed-define* : x σ ρτ (DEFINE-τ ...) -> [σ ρτ]
   [(eval-typed-define* x_modname σ ρτ ())
    [σ ρτ]]
-  [(eval-typed-define* x σ ρτ (DEFINE-τ_first DEFINE-τ_rest ...))
+  [(eval-typed-define* x_modname σ ρτ (DEFINE-τ_first DEFINE-τ_rest ...))
    #{eval-typed-define* x_modname σ_+ ρτ_+ (DEFINE-τ_rest ...)}
    (where (define x τ e) DEFINE-τ_first)
-   (where [σ_+ v] #{eval-value x_modname σ ρτ e})
+   (where [v σ_+] #{eval-value x_modname σ ρτ e})
    (where ρτ_+ #{env-set ρτ (x v τ)})])
 
 ;; -----------------------------------------------------------------------------
@@ -233,9 +233,9 @@
 ;; -----------------------------------------------------------------------------
 
 (define-metafunction μTR
-  eval-value : x σ ρ e -> [σ v]
+  eval-value : x σ ρ e -> [v σ]
   [(eval-value x_modname σ ρ e)
-   [σ_final v_final]
+   [v_final σ_final]
    (where Σ_0 #{load-expression x_modname σ ρ e})
    (where A ,(step-expression* (term Σ_0)))
    (where (v_final σ_final x_modname) #{unload-answer A})])
@@ -245,7 +245,7 @@
 (define-metafunction μTR
   load-expression : x σ ρ e -> Σ
   [(load-expression x_modname σ ρ e)
-   (e_ρ σ x_modname)
+   (e_ρ σ x_modname ())
    (where e_ρ (substitute* e ρ))])
 
 (define-metafunction μTR
@@ -254,138 +254,208 @@
    ,(raise-arguments-error 'unload-answer "evaluation error" "message" (term Error))]
   [(unload-answer Σ)
    (v σ x)
-   (where (v σ x) Σ)]
+   (where (v σ x ()) Σ)]
   [(unload-answer Σ)
    ,(raise-arguments-error 'unload-answer
       "evaluation finished with non-empty stack"
       "stack" (term S)
       "value" (term v)
-      "store" (term σ))
-   (where (v σ S) Σ)])
+      "store" (term σ)
+      "module" (term x))
+   (where (v σ x S) Σ)])
 
 (define step-expression
   (reduction-relation μTR
    #:domain A
    [-->
-     (v σ S)
+     (v σ x_mod S)
      A_next
-     E-Return
-     (where (x_curr τ_expected E S_-) S)
-     (where x_ctx #{current-modname S})
-     (where any_+ #{apply-monitor# x_curr v_+ τ_expected})
-     (where A_next ,(if (term any_+)
-                      (term ((in-hole E v) σ S_-))
-                      (term (BE x_ctx τ_expected x_curr v))))]
+     E-Return ;; this rule is special --- no context!
+     (side-condition (not (null? (term S))))
+     (where A_next #{do-return v σ x_mod S})]
    [-->
-     ((in-hole E (Λ v_arg)) σ S)
-     ((in-hole E e_body+) σ S)
-     E-Beta
-     (where (fun x_f (x_arg) e_body) Λ)
-     (where e_body+ (substitute (substitute e_body x_f Λ) x_arg v_arg))]
+     ((in-hole E (v_0 v_1)) σ x_mod S)
+     A_next
+     E-Call
+     (where A_next #{do-call E v_0 v_1 σ x_mod S})]
    [-->
-     ((in-hole E ((mon-fun x_mod τ v_f) v_arg)) σ S)
-     ((v_f v_arg+) σ S_+)
-     E-BetaMon
-     (where (→ τ_dom τ_cod) τ)
-     (where x_curr #{current-modname S})
-     (where v_arg+ #{apply-monitor# x_curr v_arg τ_dom})
-     (where S_+ #{stack-push S x_mod τ_cod E})]
-   [-->
-     ((in-hole E (v_0 v_1)) σ S)
-     NotFunction
-     E-BetaFail
-     (judgment-holds (not-fun-value v_0))]
-   [-->
-     ((in-hole E (ifz v e_0 e_1)) σ S)
-     ((in-hole E e_next) σ S)
+     ((in-hole E (ifz v e_0 e_1)) σ x_mod S)
+     ((in-hole E e_next) σ x_mod S)
      E-If
      (where e_next ,(if (zero? (term v)) (term e_0) (term e_1)))]
    [-->
-     ((in-hole E (+ v_0 v_1)) σ S)
+     ((in-hole E (+ v_0 v_1)) σ x_mod S)
      A_next
      E-+
-     (where A_next
-       ,(cond
-         [(not (integer? (term v_0)))
-          (term (TE v_0 Int))]
-         [(not (integer? (term v_1)))
-          (term (TE v_1 Int))]
-         [else
-          (term ((in-hole E ,(+ (term v_0) (term v_1))) σ S))]))]
+     (where A_next #{primop-arith + E v_0 v_1 σ x_mod S})]
    [-->
-     ((in-hole E (- v_0 v_1)) σ S)
+     ((in-hole E (- v_0 v_1)) σ x_mod S)
      A_next
      E--
-     (where A_next
-       ,(cond
-         [(not (integer? (term v_0)))
-          (term (TE v_0 Int))]
-         [(not (integer? (term v_1)))
-          (term (TE v_1 Int))]
-         [else
-          (term ((in-hole E ,(- (term v_0) (term v_1))) σ S))]))]
+     (where A_next #{primop-arith - E v_0 v_1 σ x_mod S})]
    [-->
-     ((in-hole E (* v_0 v_1)) σ S)
+     ((in-hole E (* v_0 v_1)) σ x_mod S)
      A_next
      E-*
-     (where A_next
-       ,(cond
-         [(not (integer? (term v_0)))
-          (term (TE v_0 Int))]
-         [(not (integer? (term v_1)))
-          (term (TE v_1 Int))]
-         [else
-          (term ((in-hole E ,(* (term v_0) (term v_1))) σ S))]))]
+     (where A_next #{primop-arith * E v_0 v_1 σ x_mod S})]
    [-->
-     ((in-hole E (% v_0 v_1)) σ S)
+     ((in-hole E (% v_0 v_1)) σ x_mod S)
      A_next
      E-%
-     (where A_next
-       ,(cond
-         [(not (integer? (term v_0)))
-          (term (TE v_0 Int))]
-         [(not (integer? (term v_1)))
-          (term (TE v_1 Int))]
-         [else
-          (term ((in-hole E ,(quotient (term v_0) (term v_1))) σ S))]))]
-   ;[-->
-   ;; TODO change vectors to boxes
-   ;  vector-ref vector-set!
-   ;]
-
+     (where A_next #{primop-arith % E v_0 v_1 σ x_mod S})]
    [-->
-     ((in-hole E (first v_0)) σ S)
+     ((in-hole E (vector v ...)) σ x_mod S)
+     ((in-hole E (vector x_loc)) σ_+ x_mod S)
+     E-MakeVector
+     (fresh x_loc)
+     (where σ_+ #{loc-env-set σ x_loc (v ...)})]
+   [-->
+     ((in-hole E (vector-ref v_0 v_1)) σ x_mod S)
+     A_next
+     E-VectorRef
+     (where A_next #{primop-ref E v_0 v_1 σ x_mod S})]
+   [-->
+     ((in-hole E (vector-set! v_0 v_1 v_2)) σ x_mod S)
+     A_next
+     E-VectorSet
+     (where A_next #{primop-set E v_0 v_1 v_2 σ x_mod S})]
+   [-->
+     ((in-hole E (first v_0)) σ x_mod S)
      A_next
      E-first
-     (where A_next
-       ,(cond
-         [(equal? (term v_0) (term nil))
-          (term EmptyList)]
-         [(not (pair? (term v_0)))
-          (term (TE v_0 Pair))]
-         [else
-          (term ((in-hole E ,(car (term v_0))) σ S))]))]
+     (where A_next #{primop-first E v_0 σ x_mod S})]
    [-->
-     ((in-hole E (rest v_0)) σ S)
+     ((in-hole E (rest v_0)) σ x_mod S)
      A_next
      E-rest
-     (where A_next
-       ,(cond
-         [(equal? (term v_0) (term nil))
-          (term EmptyList)]
-         [(not (pair? (term v_0)))
-          (term (TE v_0 Pair))]
-         [else
-          (term ((in-hole E ,(cdr (term v_0))) σ S))]))]
-
-   #;
-   [-->
-     (e σ S)
-     (e σ S)]
-  ))
+     (where A_next #{primop-rest E v_0 σ x_mod S})]))
 
 (define step-expression*
   (make--->* step-expression))
+
+(define-metafunction μTR
+  do-return : v σ x S -> A
+  [(do-return v σ x ())
+   ,(raise-arguments-error 'do-return "cannot return, empty stack"
+      "value" (term v)
+      "module" (term x)
+      "store" (term σ))]
+  [(do-return v σ x_server ((x_client E_next τ_expected) S_next))
+   ,(if (term any_+)
+      (term ((in-hole E_next v) σ x_client S_next))
+      (term (BE x_client τ_expected x_server v)))
+   (where any_+ #{apply-monitor# x_server v τ_expected})])
+
+(define-metafunction μTR
+  do-call : E v v σ x S -> A
+  [(do-call E Λ v_arg σ x S)
+   ((in-hole E e_body+) σ x S)
+   (where (fun x_f (x_arg) e_body) Λ)
+   (where e_body+ (substitute (substitute e_body x_f Λ) x_arg v_arg))]
+  [(do-call E (mon-fun x_f τ v_f) v_arg σ x_arg S)
+   ((v_f v_arg+) σ S_+)
+   (where (→ τ_dom τ_cod) τ)
+   (where v_arg+ #{apply-monitor# x_arg v_arg τ_dom})
+   (where S_+ #{stack-push S (x_arg E τ_cod)})]
+  [(do-call E v_0 v_1 σ x S)
+   NotFunction
+   (judgment-holds (not-fun-value v_0))])
+
+(define-metafunction μTR
+  primop-arith : any E v v σ x_mod S -> A
+  [(primop-arith + E integer_0 integer_1 σ x_mod S)
+   ((in-hole E ,(+ (term integer_0) (term integer_1))) σ x_mod S)]
+  [(primop-arith - E integer_0 integer_1 σ x_mod S)
+   ((in-hole E ,(- (term integer_0) (term integer_1))) σ x_mod S)]
+  [(primop-arith * E integer_0 integer_1 σ x_mod S)
+   ((in-hole E ,(* (term integer_0) (term integer_1))) σ x_mod S)]
+  [(primop-arith % E integer_0 integer_1 σ x_mod S)
+   DivisionByZero
+   (where 0 integer_1)]
+  [(primop-arith % E integer_0 integer_1 σ x_mod S)
+   ((in-hole E ,(quotient (term integer_0) (term integer_1))) σ x_mod S)]
+  [(primop-arith any_symbol E any integer σ x_mod S)
+   (TE any "integer?")]
+  [(primop-arith any_symbol E integer any σ x_mod S)
+   (TE any "integer?")])
+
+(define-metafunction μTR
+  primop-first : E v σ x S -> A
+  [(primop-first E nil σ x_mod S)
+   EmptyList]
+  [(primop-first E (cons v_0 _) σ x_mod S)
+   [(in-hole E v_0) σ x_mod S]]
+  [(primop-first E v σ x_mod S)
+   (TE v "pair?")])
+
+(define-metafunction μTR
+  primop-rest : E v σ x S -> A
+  [(primop-rest E nil σ x_mod S)
+   EmptyList]
+  [(primop-rest E (cons _ v_1) σ x_mod S)
+   ((in-hole E v_1) σ x_mod S)]
+  [(primop-rest E v σ x_mod S)
+   (TE v "pair?")])
+
+(define-metafunction μTR
+  primop-ref : E v v σ x S -> A
+  [(primop-ref E (vector x_loc) integer_index σ x_mod S)
+   ,(if (term any_v)
+      (term ((in-hole E any_v) σ x_mod S))
+      (term BadIndex))
+   (where (_ v*) #{loc-env-ref σ x_loc})
+   (where any_v #{term-ref v* integer_index})]
+  [(primop-ref E (mon-vector x_server (Vectorof τ) v_0) v_1 σ x_client S)
+   (e_+ σ x_server S_+)
+   (where e_+ (vector-ref v_0 v_1))
+   (where S_+ #{stack-push S (x_client E τ)})]
+  [(primop-ref E v_0 v_1 σ x_mod S)
+   (TE v_0 "vector?")
+   (judgment-holds (not-vector-value v_0))])
+
+(define-metafunction μTR
+  primop-set : E v v v σ x S -> A
+  [(primop-set E (vector x_loc) integer_index v_2 σ x_mod S)
+   ,(if (term any_set)
+      (term ((in-hole E v_2) #{loc-env-update σ x_loc any_set} x_mod S))
+      (term BadIndex))
+   (where (_ v*) #{loc-env-ref σ x_loc})
+   (where any_set #{term-set v* integer_index v_2})]
+  [(primop-set E (mon-vector x_server (Vectorof τ) v_0) v_1 v_2 σ x_client S)
+   ;; Technically this is crossing a type boundary (and therefore should do a stack frame)
+   ;;  but `apply-monitor` does all the necessary checking.
+   ,(if (term any_mon)
+      (term ((in-hole E (vector-set! v_0 v_1 any_mon)) σ x_client S))
+      (term (BE x_server τ x_client v_2)))
+   (where any_mon #{apply-monitor# x_client v_2 τ})]
+  [(primop-set E v_0 v_1 v_2 σ x S)
+   (TE v_0 "vector?")
+   (judgment-holds (not-vector-value v_0))])
+
+(define-metafunction μTR
+  term-ref : v* any -> any
+  [(term-ref () integer)
+   #f]
+  [(term-ref (v_first v_rest ...) 0)
+   v_first]
+  [(term-ref (v_first v_rest ...) natural_k)
+   (term-ref (v_rest ...) ,(- (term natural_k) 1))]
+  [(term-ref v* _)
+   #f])
+
+(define-metafunction μTR
+  term-set : v* any any -> any
+  [(term-set () natural any)
+   #f]
+  [(term-set (v_first v_rest ...) 0 any_val)
+   (any_val v_rest ...)]
+  [(term-set (v_first v_rest ...) natural any_val)
+   ,(if (term any_acc)
+      (cons (term v_first) (term any_acc))
+      (term BadIndex))
+   (where any_acc #{term-set (v_rest ...) ,(- (term natural) 1) any_val})]
+  [(term-set v* any_index any_val)
+   #f])
 
 ;; =============================================================================
 
@@ -400,10 +470,10 @@
       nil]
      [(apply-monitor# m (cons 1 (cons 2 (cons 3 nil))) (Listof Int))
       (cons 1 (cons 2 (cons 3 nil)))]
-     [(apply-monitor# m (vector 1) (Vectorof Nat))
-      (mon-vector m (Vectorof Nat) (vector 1))]
-     [(apply-monitor# m (cons (vector 1) (cons (vector 2) nil)) (Listof (Vectorof Int)))
-      (cons (mon-vector m (Vectorof Int) (vector 1)) (cons (mon-vector m (Vectorof Int) (vector 2)) nil))]
+     [(apply-monitor# m (vector x) (Vectorof Nat))
+      (mon-vector m (Vectorof Nat) (vector x))]
+     [(apply-monitor# m (cons (vector x) (cons (vector y) nil)) (Listof (Vectorof Int)))
+      (cons (mon-vector m (Vectorof Int) (vector x)) (cons (mon-vector m (Vectorof Int) (vector y)) nil))]
      [(apply-monitor# m (fun f (x) (+ x x)) (→ Int Int))
       (mon-fun m (→ Int Int) (fun f (x) (+ x x)))]
     )
@@ -416,21 +486,21 @@
     (check-mf-apply*
      ((runtime-env->untyped-runtime-env m0 ())
       ())
-     ((runtime-env->untyped-runtime-env m0 ((x 0) (y 1) (z (vector 2))))
-      ((x 0) (y 1) (z (vector 2))))
-     ((runtime-env->untyped-runtime-env m0 ((x 0 Nat) (z (vector 2) (Vectorof Int))))
-      ((x 0) (z (mon-vector m0 (Vectorof Int) (vector 2)))))
+     ((runtime-env->untyped-runtime-env m0 ((x 0) (y 1) (z (vector qq))))
+      ((x 0) (y 1) (z (vector qq))))
+     ((runtime-env->untyped-runtime-env m0 ((x 0 Nat) (z (vector q) (Vectorof Int))))
+      ((x 0) (z (mon-vector m0 (Vectorof Int) (vector q)))))
     )
   )
 
   (test-case "runtime-env->typed-runtime-env"
     (check-mf-apply*
-     ((runtime-env->typed-runtime-env m0 ((x 4) (y 1) (z (vector 2))) (Nat Int (Vectorof Int)))
-      ((x 4 Nat) (y 1 Int) (z (mon-vector m0 (Vectorof Int) (vector 2)) (Vectorof Int))))
-     ((runtime-env->typed-runtime-env m0 ((x 4) (z (vector nil))) (Nat (Vectorof Int)))
-      ((x 4 Nat) (z (mon-vector m0 (Vectorof Int) (vector nil)) (Vectorof Int))))
-     ((runtime-env->typed-runtime-env m0 ((x 4 Int) (z (vector 2) (Vectorof Int))) (Int (Vectorof Int)))
-      ((x 4 Int) (z (vector 2) (Vectorof Int))))
+     ((runtime-env->typed-runtime-env m0 ((x 4) (y 1) (z (vector q))) (Nat Int (Vectorof Int)))
+      ((x 4 Nat) (y 1 Int) (z (mon-vector m0 (Vectorof Int) (vector q)) (Vectorof Int))))
+     ((runtime-env->typed-runtime-env m0 ((x 4) (z (vector q))) (Nat (Vectorof Int)))
+      ((x 4 Nat) (z (mon-vector m0 (Vectorof Int) (vector q)) (Vectorof Int))))
+     ((runtime-env->typed-runtime-env m0 ((x 4 Int) (z (vector q) (Vectorof Int))) (Int (Vectorof Int)))
+      ((x 4 Int) (z (vector q) (Vectorof Int))))
     )
   )
 
@@ -489,24 +559,18 @@
       (λ () (term (assert-below Int Nat))))
   )
 
-  (test-case "eval-untyped-define*"
-  )
-
-  (test-case "eval-typed-define*"
-  )
-
   (test-case "eval-untyped-provide"
     (check-mf-apply*
-     ((eval-untyped-provide ((x 4) (y (vector 1))) (provide x y))
-      ((x 4) (y (vector 1))))
+     ((eval-untyped-provide ((x 4) (y (vector zzz))) (provide x y))
+      ((x 4) (y (vector zzz))))
      ((eval-untyped-provide ((x 4) (y (cons 1 nil))) (provide x))
       ((x 4))))
   )
 
   (test-case "eval-typed-provide"
     (check-mf-apply*
-     ((eval-typed-provide ((x 4 Nat) (y (vector 1) (Vectorof Nat))) (provide x y))
-      ((x 4 Nat) (y (vector 1) (Vectorof Nat))))
+     ((eval-typed-provide ((x 4 Nat) (y (vector qq) (Vectorof Nat))) (provide x y))
+      ((x 4 Nat) (y (vector qq) (Vectorof Nat))))
      ((eval-typed-provide ((x 4 Nat) (y (cons 1 nil) (Listof Int))) (provide x))
       ((x 4 Nat))))
   )
@@ -527,16 +591,180 @@
     (check-exn exn:fail:contract?
       (λ () (term (eval-provide ((x 4)) (provide y))))))
 
-  (test-case "eval-value"
+  (test-case "term-ref"
+    (check-mf-apply*
+     ((term-ref (1) 0)
+      1)
+     ((term-ref (1 2 3) 0)
+      1)
+     ((term-ref (1 2 3) 2)
+      3)
+     ((term-ref (1 2 3) 4)
+      #f)
+     ((term-ref () 0)
+      #f)
+     ((term-ref (1) AAA)
+      #f)))
+
+  (test-case "term-set"
+    (check-mf-apply*
+     ((term-set (1) 0 2)
+      (2))
+     ((term-set (1 2 3) 0 2)
+      (2 2 3))
+     ((term-set (1 2 3) 2 A)
+      (1 2 A))
+     ((term-set () 2 2)
+      #f)
+     ((term-set () q 3)
+      #f)))
+
+  (test-case "do-return"
+    (check-mf-apply*
+     ((do-return 4 () m0 ((m1 hole Int) ()))
+      (4 () m1 ()))
+    )
+  )
+
+  (test-case "do-call"
+    (check-mf-apply*
+     ((do-call hole (fun f (x) x) 42 () m0 ())
+      (42 () m0 ()))
+    )
+  )
+
+  (test-case "primop-arith"
+    (check-mf-apply*
+     ((primop-arith + hole 2 2 () m0 ())
+      (4 () m0 ()))
+     ((primop-arith - hole 3 2 () m0 ())
+      (1 () m0 ()))
+     ((primop-arith * hole 3 3 () m0 ())
+      (9 () m0 ()))
+     ((primop-arith % hole 12 4 () m0 ())
+      (3 () m0 ()))
+     ((primop-arith % hole 5 2 () m0 ())
+      (2 () m0 ()))
+    )
+  )
+
+  (test-case "primop-first"
+    (check-mf-apply*
+     ((primop-first hole nil () m0 ())
+      EmptyList)
+     ((primop-first hole (cons 1 nil) () m0 ())
+      (1 () m0 ()))
+     ((primop-first (+ hole 2) (cons 1 nil) () m0 ())
+      ((+ 1 2) () m0 ()))
+    )
+  )
+
+  (test-case "primop-rest"
+    (check-mf-apply*
+     ((primop-rest hole nil () m0 ())
+      EmptyList)
+     ((primop-rest hole (cons 0 nil) () m0 ())
+      (nil () m0 ()))
+     ((primop-rest (+ hole 2) (cons 0 nil) ((a (2))) m0 ())
+      ((+ nil 2) ((a (2))) m0 ()))
+    )
+  )
+
+  (test-case "primop-ref"
+    (check-mf-apply*
+     ((primop-ref hole (vector qqq) 0 ((qqq (1 2 3))) m0 ())
+      (1 ((qqq (1 2 3))) m0 ()))
+     ((primop-ref (+ hole 1) (vector qqq) 0 ((qqq (1 2 3))) m0 ())
+      ((+ 1 1) ((qqq (1 2 3))) m0 ()))
+     ((primop-ref hole (vector qqq) 8 ((qqq (1 2 3))) m0 ())
+      BadIndex)
+     ((primop-ref hole (mon-vector m0 (Vectorof Int) (vector qqq)) 0 ((qqq (1 2 3))) m1 ())
+      ((vector-ref (vector qqq) 0) ((qqq (1 2 3))) m0 ((m1 hole Int) ())))
+    )
+  )
+
+  (test-case "primop-set"
+    (check-mf-apply*
+     ((primop-set hole (vector qqq) 0 5 ((qqq (1 2 3))) m0 ())
+      (5 ((qqq (5 2 3))) m0 ()))
+     ((primop-set hole (vector qqq) 0 5 ((qqq (1 2 3))) m0 ((m1 hole Int) ()))
+      (5 ((qqq (5 2 3))) m0 ((m1 hole Int) ())))
+     ((primop-set hole (vector qqq) 0 5 ((qqq ())) m0 ())
+      BadIndex)
+     ((primop-set hole (mon-vector m0 (Vectorof Int) (vector qqq)) 0 5 ((qqq (1))) m1 ())
+      ((vector-set! (vector qqq) 0 5) ((qqq (1))) m1 ()))
+     ((primop-set (+ hole 1) (mon-vector m0 (Vectorof Int) (vector qqq)) 0 5 ((qqq (1))) m1 ())
+      ((+ (vector-set! (vector qqq) 0 5) 1) ((qqq (1))) m1 ()))
+     ((primop-set hole (mon-vector m0 (Vectorof Int) (vector qqq)) 0 nil ((qqq (1))) m1 ())
+      (BE m0 Int m1 nil))
+     ((primop-set hole 1 2 3 () m0 ())
+      (TE 1 "vector?"))
+    )
   )
 
   (test-case "load-expression"
+    (check-mf-apply*
+     ((load-expression m0 () () (+ 2 2))
+      ((+ 2 2) () m0 ()))
+     ((load-expression m1 ((qqq (1))) ((x 3)) (+ 2 2))
+      ((+ 2 2) ((qqq (1))) m1 ()))
+     ((load-expression m1 ((qqq (1))) ((x 3)) (+ x 2))
+      ((+ 3 2) ((qqq (1))) m1 ()))
+    )
   )
 
   (test-case "unload-answer"
-  )
+    (check-mf-apply*
+     ((unload-answer ((vector q) ((q (1))) m0 ()))
+      ((vector q) ((q (1))) m0))
+    )
+
+    (check-exn exn:fail:contract?
+      (λ () (term (unload-answer BadIndex))))
+
+    (check-exn exn:fail:contract?
+      (λ () (term (unload-answer (0 () m0 ((m1 hole Int) ())))))))
 
   (test-case "step-expression"
+    (check-equal?
+      (apply-reduction-relation step-expression (term ((+ 2 2) () mod ())))
+      '((4 () mod ())))
+  )
+
+  (test-case "eval-value"
+    (check-mf-apply*
+     ((eval-value mod0 () () (+ 2 2))
+      (4 ()))
+     ((eval-value mod0 () () (+ (+ 2 2) (+ 2 2)))
+      (8 ()))
+     ((eval-value mod0 ((q (1))) ((a 7)) (+ 2 2))
+      (4 ((q (1)))))
+     ((eval-value mod0 ((q (1))) ((a 7)) (+ a a))
+      (14 ((q (1)))))
+    )
+  )
+
+  (test-case "eval-untyped-define*"
+    (check-mf-apply*
+     ((eval-untyped-define* m0 () () ((define x 1) (define y 2) (define z 3)))
+      (() ((z 3) (y 2) (x 1))))
+    )
+  )
+
+  (test-case "eval-typed-define*"
+    (check-mf-apply*
+     ((eval-typed-define* m0 () () ((define x Nat 1) (define y Nat 2) (define z Int 3)))
+      (() ((z 3 Int) (y 2 Nat) (x 1 Nat))))
+    )
+  )
+
+  (test-case "eval-program"
+    (check-mf-apply*
+     ((eval-program [(module-λ mu (define x 4) (provide x))])
+      (() ((mu ((x 4))))))
+     ((eval-program [(module-τ mt (define x Int 4) (provide x))])
+      (() ((mt ((x 4 Int))))))
+    )
   )
 
 )

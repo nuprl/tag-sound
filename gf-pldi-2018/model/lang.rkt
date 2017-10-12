@@ -66,31 +66,28 @@
   ;;  partial primops due to type and value errors,
   ;;  mutable values
 
-  (v ::= integer Λ (vector v ...) (cons v v) nil
+  (v ::= integer Λ (vector x) (cons v v) nil
          (mon-fun x τ v) (mon-vector x τ v))
   (Λ ::= (fun x (x) e))
   ;; Value forms, including `monitor` values.
   ;; The monitors protect typed functions and vectors.
   ;;  (The type-sound evaluator will use monitors. The tag-sound will not.)
 
-  (Σ ::= (e σ S))
+  (Σ ::= (e σ x S))
   ;; Evaluation states consist of:
   ;; - `e` the current expression being reduced
   ;; - `σ` the current store
+  ;; - `x` the current module name (important to check if typed/untyped)
   ;; - `S` is the current context, the type-boundary call stack
   ;; The module is for error-soundness,
   ;;  to prove that typed modules do not commit type errors
 
-  (S ::= x (x τ E S))
-  ;; A type boundary call stack is either:
-  ;; - a module name
-  ;; - a triple: (module-name return-type stack)
-  ;; Purpose:
-  ;;  A plain "module name" stack just describes the current evaluation context,
-  ;;   in particular, whether the source code was statically typed.
-  ;;  A quad names the new current module, its expected return type,
-  ;;   the context to return to, and the stack to return to.
-  ;; Call stacks are important for stating & proving type soundness.
+  (S ::= () (FRAME S))
+  (FRAME ::= (x E τ))
+  ;; A type boundary call stack is made of frames.
+  ;; A frame is a context to return to.
+  ;;  The context always has a name and an expected type.
+  ;;  (If there is no expected type, then you didn't cross a boundary.)
 
   (P-ENV ::= (MODULE-BINDING ...))
   (MODULE-BINDING ::= (x ρ))
@@ -105,8 +102,8 @@
   ;; A runtime environment binds identifiers to (typed) values
   ;; Types are preserved to protect typed values used by untyped modules.
 
-  (σ ::= ((l v) ...))
-  ;; Store, maps locations to values
+  (σ ::= ((l v*) ...))
+  ;; Store, maps locations to vectors
 
   (Γ ::= ((x τ) ...))
   ;; Type context, for checking expressions
@@ -120,8 +117,9 @@
 
   (A ::= Σ Error)
   (Error ::= BoundaryError TypeError)
-  (TypeError ::= (TE v any))
-  (BoundaryError ::= DivisionByZero BadIndex EmptyList NotFunction (BE x any x v))
+  (TypeError ::= (TE v EXPECTED))
+  (BoundaryError ::= DivisionByZero BadIndex EmptyList NotFunction (BE x EXPECTED x v))
+  (EXPECTED ::= τ κ string)
   ;; Evaluation can produce either a final value or an error,
   ;;  errors can be due to ill-typed values in untyped code,
   ;;  or boundary errors.
@@ -133,6 +131,7 @@
   (α* ::= (α ...))
   (x* ::= (x ...))
   (τ* ::= (τ ...))
+  (v* ::= (v ...))
 #:binding-forms
   (fun x_f (x) e #:refers-to (shadow x_f x)))
 
