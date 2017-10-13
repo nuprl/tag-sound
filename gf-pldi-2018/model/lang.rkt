@@ -58,7 +58,8 @@
   (e ::= integer x (fun x (x) e) (vector e ...) (cons e e) nil
          (e e) (ifz e e e)
          (+ e e) (- e e) (* e e) (% e e) (vector-ref e e) (vector-set! e e e) (first e) (rest e)
-         (mon-fun x τ e) (mon-vector x τ e))
+         (mon-fun x τ e) (mon-vector x τ e)
+         (!! [x κ e] e))
   ;; Expressions come in three flavors:
   ;; - value constructors (for integers, functions, vectors, lists)
   ;; - control flow (if)
@@ -119,7 +120,8 @@
          (E e) (v E)
          (ifz E e e) (+ E e) (+ v E) (- E e) (- v E) (* E e) (* v E) (% E e) (% v E)
          (vector-ref E e) (vector-ref v E) (vector-set! E e e) (vector-set! v E e) (vector-set! v v E)
-         (first E) (rest E))
+         (first E) (rest E)
+         (!! (x κ E) e))
   ;; Left-to-right eager evaluation contexts
 
   (A ::= Σ Error)
@@ -140,7 +142,8 @@
   (τ* ::= (τ ...))
   (v* ::= (v ...))
 #:binding-forms
-  (fun x_f (x) e #:refers-to (shadow x_f x)))
+  (fun x_f (x) e #:refers-to (shadow x_f x))
+  (!! (x κ e_0) e #:refers-to x))
 
 ;; -----------------------------------------------------------------------------
 

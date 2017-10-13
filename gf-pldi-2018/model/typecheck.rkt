@@ -5,11 +5,18 @@
   subtype?
   not-well-tagged-value
   well-tagged-value
+
   flat-value
+
+  higher-order-value
+  not-higher-order-value
+
   vector-value
   fun-value
   not-fun-value
   not-vector-value
+
+  well-typed-program
 )
 
 (require
@@ -84,6 +91,27 @@
    (flat-value nil)])
 
 (define-judgment-form μTR
+  #:mode (higher-order-value I)
+  #:contract (higher-order-value v)
+  [
+   (fun-value v)
+   ---
+   (higher-order-value v)]
+  [
+   (vector-value v)
+   ---
+   (higher-order-value v)])
+
+(define-judgment-form μTR
+  #:mode (not-higher-order-value I)
+  #:contract (not-higher-order-value v)
+  [
+   (not-fun-value v)
+   (not-vector-value v)
+   ---
+   (not-higher-order-value v)])
+
+(define-judgment-form μTR
   #:mode (vector-value I)
   #:contract (vector-value v)
   [
@@ -118,6 +146,18 @@
    (side-condition ,(not (judgment-holds (fun-value v))))
    ---
    (not-fun-value v)])
+
+;; -----------------------------------------------------------------------------
+
+(define-metafunction μTR
+  well-typed-program : P -> P-TYPE
+  [(well-typed-program P)
+   yolo])
+   ;#{well-typed-program/env () P}])
+
+;; well-typed-program/env
+;; well-typed-module
+;; well-typed-expression
 
 ;; =============================================================================
 

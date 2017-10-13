@@ -121,6 +121,7 @@
   [(runtime-env->untyped-runtime-env x_mod ρτ)
    ρλ
    (where ((x v τ) ...) ρτ)
+   ;; protect typed values in untyped code
    (where ρλ ((x #{apply-monitor#/fail x_mod v τ}) ...))])
 
 (define-metafunction μTR
@@ -195,17 +196,6 @@
    (judgment-holds (apply-monitor x v τ v_mon))]
   [(apply-monitor# x v τ)
    #false])
-
-(define-metafunction μTR
-  assert-below : τ τ -> τ
-  [(assert-below τ_0 τ_1)
-   τ_0
-   (judgment-holds (<: τ_0 τ_1))]
-  [(assert-below τ_0 τ_1)
-   ,(raise-arguments-error 'assert-below (format "supertype of ~a" (term τ_0))
-      "given" (term τ_1))])
-
-;; -----------------------------------------------------------------------------
 
 (define-metafunction μTR
   eval-untyped-define* : x σ ρλ (DEFINE-λ ...) -> [σ ρλ]
@@ -301,6 +291,16 @@
      E-%
      (where A_next #{primop-arith % E v_0 v_1 σ x_mod S})]
    [-->
+     ((in-hole E (first v_0)) σ x_mod S)
+     A_next
+     E-first
+     (where A_next #{primop-first E v_0 σ x_mod S})]
+   [-->
+     ((in-hole E (rest v_0)) σ x_mod S)
+     A_next
+     E-rest
+     (where A_next #{primop-rest E v_0 σ x_mod S})]
+   [-->
      ((in-hole E (vector v ...)) σ x_mod S)
      ((in-hole E (vector x_loc)) σ_+ x_mod S)
      E-MakeVector
@@ -315,17 +315,7 @@
      ((in-hole E (vector-set! v_0 v_1 v_2)) σ x_mod S)
      A_next
      E-VectorSet
-     (where A_next #{primop-set E v_0 v_1 v_2 σ x_mod S})]
-   [-->
-     ((in-hole E (first v_0)) σ x_mod S)
-     A_next
-     E-first
-     (where A_next #{primop-first E v_0 σ x_mod S})]
-   [-->
-     ((in-hole E (rest v_0)) σ x_mod S)
-     A_next
-     E-rest
-     (where A_next #{primop-rest E v_0 σ x_mod S})]))
+     (where A_next #{primop-set E v_0 v_1 v_2 σ x_mod S})]))
 
 (define step-expression*
   (make--->* step-expression))
@@ -431,31 +421,6 @@
    (TE v_0 "vector?")
    (judgment-holds (not-vector-value v_0))])
 
-(define-metafunction μTR
-  term-ref : v* any -> any
-  [(term-ref () integer)
-   #f]
-  [(term-ref (v_first v_rest ...) 0)
-   v_first]
-  [(term-ref (v_first v_rest ...) natural_k)
-   (term-ref (v_rest ...) ,(- (term natural_k) 1))]
-  [(term-ref v* _)
-   #f])
-
-(define-metafunction μTR
-  term-set : v* any any -> any
-  [(term-set () natural any)
-   #f]
-  [(term-set (v_first v_rest ...) 0 any_val)
-   (any_val v_rest ...)]
-  [(term-set (v_first v_rest ...) natural any_val)
-   ,(if (term any_acc)
-      (cons (term v_first) (term any_acc))
-      (term BadIndex))
-   (where any_acc #{term-set (v_rest ...) ,(- (term natural) 1) any_val})]
-  [(term-set v* any_index any_val)
-   #f])
-
 ;; =============================================================================
 
 (module+ test
@@ -504,8 +469,6 @@
   )
 
   (test-case "eval-untyped-require*"
-    (check-true (redex-match? μTR P-ENV (term ((m0 ((n 4)))))))
-    (check-true (redex-match? μTR REQUIRE-λ (term (require m0 n))))
 
     (check-mf-apply*
      ((eval-untyped-require* () ())
@@ -546,45 +509,6 @@
     (check-exn exn:fail:contract?
       (λ () (term (eval-typed-require* ((m0 ((num 4)))) ((require m0 (num (Vectorof Int))))))))
   )
-
-  (test-case "assert-below"
-    (check-mf-apply*
-     [(assert-below Int Int)
-      Int]
-     [(assert-below Nat Int)
-      Nat])
-
-    (check-exn exn:fail:contract?
-      (λ () (term (assert-below Int Nat))))
-  )
-
-  (test-case "term-ref"
-    (check-mf-apply*
-     ((term-ref (1) 0)
-      1)
-     ((term-ref (1 2 3) 0)
-      1)
-     ((term-ref (1 2 3) 2)
-      3)
-     ((term-ref (1 2 3) 4)
-      #f)
-     ((term-ref () 0)
-      #f)
-     ((term-ref (1) AAA)
-      #f)))
-
-  (test-case "term-set"
-    (check-mf-apply*
-     ((term-set (1) 0 2)
-      (2))
-     ((term-set (1 2 3) 0 2)
-      (2 2 3))
-     ((term-set (1 2 3) 2 A)
-      (1 2 A))
-     ((term-set () 2 2)
-      #f)
-     ((term-set () q 3)
-      #f)))
 
   (test-case "do-return"
     (check-mf-apply*
@@ -708,20 +632,6 @@
       (4 ((q (1)))))
      ((eval-value mod0 ((q (1))) ((a 7)) (+ a a))
       (14 ((q (1)))))
-    )
-  )
-
-  (test-case "eval-untyped-define*"
-    (check-mf-apply*
-     ((eval-untyped-define* m0 () () ((define x 1) (define y 2) (define z 3)))
-      (() ((z 3) (y 2) (x 1))))
-    )
-  )
-
-  (test-case "eval-typed-define*"
-    (check-mf-apply*
-     ((eval-typed-define* m0 () () ((define x Nat 1) (define y Nat 2) (define z Int 3)))
-      (() ((z 3 Int) (y 2 Nat) (x 1 Nat))))
     )
   )
 
@@ -903,11 +813,6 @@
            (provide)))))))
   )
 
-  (test-case "valss"
-    (check-true (redex-match? μTR e (term
-      (fun f (x) (+ x 2))
-    ))))
-
   (test-case "eval-program:bad-ann"
     (check-exn #rx"BE"
       (λ () (term (eval-program
@@ -981,5 +886,20 @@
           (require M0 (nats (Listof Nat)))
           (provide)))))))
   )
+
+  (test-case "eval-untyped-define*"
+    (check-mf-apply*
+     ((eval-untyped-define* m0 () () ((define x 1) (define y 2) (define z 3)))
+      (() ((z 3) (y 2) (x 1))))
+    )
+  )
+
+  (test-case "eval-typed-define*"
+    (check-mf-apply*
+     ((eval-typed-define* m0 () () ((define x Nat 1) (define y Nat 2) (define z Int 3)))
+      (() ((z 3 Int) (y 2 Nat) (x 1 Nat))))
+    )
+  )
+
 )
 
