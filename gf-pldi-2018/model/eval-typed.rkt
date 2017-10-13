@@ -8,6 +8,7 @@
 )
 
 (require
+  "eval-common.rkt"
   "lang.rkt"
   "grammar.rkt"
   "metafunctions.rkt"
@@ -130,10 +131,27 @@
    (where (τ_expected ...) τ*)
    (where ρτ_sub ((x v #{assert-below τ_expected τ_actual}) ...))]
   [(runtime-env->typed-runtime-env x_mod ρλ τ*)
-   ρτ
-   (where ((x v) ...) ρλ)
-   (where (τ ...) τ*)
-   (where ρτ ((x #{apply-monitor#/fail x_mod v τ} τ) ...))])
+   ,(let loop ([xv* (term ρλ)]
+               [t* (term τ*)]
+               [acc '()])
+      (cond
+       [(and (null? xv*) (null? t*))
+        (reverse acc)]
+       [(or (null? xv*) (null? t*))
+        (raise-arguments-error 'runtime-env->typed-runtime-env
+          "unequal number of types and values .. this can't be happening"
+          "runtime-env" (term ρλ)
+          "types" (term τ*))]
+       [else
+        (define x (car (car xv*)))
+        (define v (cadr (car xv*)))
+        (define t (car t*))
+        (define v_mon (term #{apply-monitor# x_mod ,v ,t}))
+        (if v_mon
+          (loop (cdr xv*) (cdr t*) (cons (term (,x ,v_mon ,t)) acc))
+          (raise-arguments-error 'runtime-env->typed-runtime-env
+            "require-error"
+            "message" (term (BE x_mod ,t unknown-module ,v))))]))])
 
 (define-judgment-form μTR
   #:mode (apply-monitor I I I O)
@@ -208,30 +226,6 @@
    (where (define x τ e) DEFINE-τ_first)
    (where [v σ_+] #{eval-value x_modname σ ρτ e})
    (where ρτ_+ #{env-set ρτ (x v τ)})])
-
-;; -----------------------------------------------------------------------------
-
-(define-metafunction μTR
-  eval-untyped-provide : ρλ PROVIDE -> ρλ
-  [(eval-untyped-provide ρλ PROVIDE)
-   #{eval-provide ρλ PROVIDE}])
-
-(define-metafunction μTR
-  eval-typed-provide : ρτ PROVIDE -> ρτ
-  [(eval-typed-provide ρτ PROVIDE)
-   #{eval-provide ρτ PROVIDE}])
-
-;; eval-provide
-;; Filter a runtime environment, remove all identifiers that are not in the
-;;  given list of provides.
-;; Error if an identifier is provided, but not defined in the runtime environment
-(define-metafunction μTR
-  eval-provide : ρ PROVIDE -> ρ
-  [(eval-provide ρ (provide x_provide ...))
-   (#{runtime-env-ref ρ x_provide any_fail} ...)
-   (where any_fail ,(λ (x)
-                      (raise-arguments-error 'provide "provided identifier not defined in module"
-                       "id" x)))])
 
 ;; -----------------------------------------------------------------------------
 
@@ -564,38 +558,6 @@
       (λ () (term (assert-below Int Nat))))
   )
 
-  (test-case "eval-untyped-provide"
-    (check-mf-apply*
-     ((eval-untyped-provide ((x 4) (y (vector zzz))) (provide x y))
-      ((x 4) (y (vector zzz))))
-     ((eval-untyped-provide ((x 4) (y (cons 1 nil))) (provide x))
-      ((x 4))))
-  )
-
-  (test-case "eval-typed-provide"
-    (check-mf-apply*
-     ((eval-typed-provide ((x 4 Nat) (y (vector qq) (Vectorof Nat))) (provide x y))
-      ((x 4 Nat) (y (vector qq) (Vectorof Nat))))
-     ((eval-typed-provide ((x 4 Nat) (y (cons 1 nil) (Listof Int))) (provide x))
-      ((x 4 Nat))))
-  )
-
-  (test-case "eval-provide"
-    (check-mf-apply*
-      ((eval-provide () (provide))
-       ())
-      ((eval-provide ((x 4) (y 5)) (provide x y))
-        ((x 4) (y 5)))
-      ((eval-provide ((x 4) (y 5)) (provide y x))
-       ((y 5) (x 4)))
-      ((eval-provide ((x 4) (y 5)) (provide y))
-       ((y 5)))
-      ((eval-provide ((x 4 Nat) (y 5 Int)) (provide x y))
-       ((x 4 Nat) (y 5 Int))))
-
-    (check-exn exn:fail:contract?
-      (λ () (term (eval-provide ((x 4)) (provide y))))))
-
   (test-case "term-ref"
     (check-mf-apply*
      ((term-ref (1) 0)
@@ -763,13 +725,6 @@
     )
   )
 
-  ;(test-case "redex-match"
-  ;  (check-true
-  ;    (redex-match? μTR DEFINE-τ (term
-  ;    ))
-  ;  )
-  ;)
-
   (test-case "eval-program:I"
     (check-mf-apply*
      ((eval-program [(module-λ mu (define x 4) (provide x))])
@@ -891,16 +846,6 @@
            (define x (vector-set! (vector 0) 4 5))
            (provide))))))))
 
-(test-case "rm"
-  (check-true (redex-match? μTR σ (term
-    ((x_loc (0))))))
-  (check-true (redex-match? μTR ρ (term
-    ((v (mon-vector M0 (Vectorof Int) (vector x_loc)))))))
-  (check-true (redex-match? μTR e (term
-    (vector-set! v 0 nil))))
-  (check-true (redex-match? μTR e (term
-    (mon-vector M0 (Vectorof Int) (vector x_loc))))))
-
   (test-case "eval-program:BE"
     (check-exn #rx"BE"
       (λ () (term
@@ -924,7 +869,7 @@
            (define x Nat (vector-ref v 0))
            (provide)))))))
 
-    (check-exn #rx"apply-monitor"
+    (check-exn #rx"BE"
       (λ () (term
         (eval-program
          ((module-λ M0
@@ -1022,5 +967,19 @@
           (define v Nil (f nil))
           (provide v))))
        (M1 (v nil Nil)))))
+
+  (test-case "deep-typecheck"
+    ;; Typed modules "deeply check" untyped imports
+    ;;  ... to keep type soundness
+
+    (check-exn #rx"BE"
+      (λ () (term (eval-program
+        ((module-λ M0
+          (define nats (cons 1 (cons 2 (cons -3 nil))))
+          (provide nats))
+         (module-τ M1
+          (require M0 (nats (Listof Nat)))
+          (provide)))))))
+  )
 )
 
