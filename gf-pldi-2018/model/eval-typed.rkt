@@ -1,5 +1,8 @@
 #lang mf-apply racket/base
 
+;; Typed Racket semantics,
+;;  ....
+
 (provide
   eval-program
 )
@@ -342,7 +345,7 @@
       "store" (term σ))]
   [(do-return v σ x_server ((x_client E_next τ_expected) S_next))
    ,(if (term any_+)
-      (term ((in-hole E_next v) σ x_client S_next))
+      (term ((in-hole E_next any_+) σ x_client S_next))
       (term (BE x_client τ_expected x_server v)))
    (where any_+ #{apply-monitor# x_server v τ_expected})])
 
@@ -353,9 +356,11 @@
    (where (fun x_f (x_arg) e_body) Λ)
    (where e_body+ (substitute (substitute e_body x_f Λ) x_arg v_arg))]
   [(do-call E (mon-fun x_f τ v_f) v_arg σ x_arg S)
-   ((v_f v_arg+) σ S_+)
+   ,(if (term any_v+)
+      (term ((v_f any_v+) σ x_f S_+))
+      (term (BE x_f τ_dom v_arg τ_cod)))
    (where (→ τ_dom τ_cod) τ)
-   (where v_arg+ #{apply-monitor# x_arg v_arg τ_dom})
+   (where any_v+ #{apply-monitor# x_arg v_arg τ_dom})
    (where S_+ #{stack-push S (x_arg E τ_cod)})]
   [(do-call E v_0 v_1 σ x S)
    (TE v_0 "procedure?")
@@ -930,8 +935,7 @@
            (define x Int 42)
            (provide)))))))
 
-    ;; TODO
-    #;(check-exn #rx"BE"
+    (check-exn #rx"BE"
       (λ () (term
         (eval-program
          ((module-τ M0
@@ -942,8 +946,7 @@
            (define x (f -1))
            (provide)))))))
 
-    ;; TODO
-    #;(check-exn #rx"BE"
+    (check-exn #rx"BE"
       (λ () (term
         (eval-program
          ((module-λ M0
@@ -953,7 +956,71 @@
            (require M0 (f (→ Int Int)))
            (define x Int (f 3))
            (provide)))))))
-
   )
+
+  (test-case "valss"
+    (check-true (redex-match? μTR e (term
+      (fun f (x) (+ x 2))
+    ))))
+
+  (test-case "eval-program:bad-ann"
+    (check-exn #rx"BE"
+      (λ () (term (eval-program
+        ((module-λ M0
+          (define f (fun a (x) (fun b (y) (fun c (z) (+ (+ a b) c)))))
+          (provide f))
+         (module-τ M1
+          (require M0 (f (→ Int (→ Int Int))))
+          (define f2 (→ Int Int) (f 2))
+          (define f23 Int (f2 3))
+          (provide f23)))))))
+
+    (check-exn #rx"BE"
+      (λ () (term (eval-program
+        ((module-λ M0
+          (define f (fun a (x) (fun b (y) (fun c (z) (+ (+ a b) c)))))
+          (provide f))
+         (module-τ M1
+          (require M0 (f (→ Int (→ Int Int))))
+          (provide f))
+         (module-λ M2
+          (require M1 f)
+          (define f2 (f 2))
+          (define f23 (f2 3))
+          (provide)))))))
+
+    (check-exn #rx"TE"
+      (λ () (term (eval-program
+        ((module-λ M0
+          (define f (fun a (x) (vector-ref x 0)))
+          (provide f))
+         (module-τ M1
+          (require M0 (f (→ Nat Nat)))
+          (define v Nat (f 4))
+          (provide)))))))
+  )
+
+  (test-case "no-mon-between-typed"
+    ;; If typed code imports a typed function,
+    ;;  only do a subtyping check.
+    ;; Do not monitor the typed function in typed code.
+    ;; (Safe assuming type checker is correct)
+
+    (check-mf-apply* #:is-equal? (λ (P-ENV M+x:v)
+                                   (define M (car M+x:v))
+                                   (define x:v (cadr M+x:v))
+                                   (define x (car x:v))
+                                   (define ρ (cadr (term #{program-env-ref ,(cadr P-ENV) ,M})))
+                                   (define actual (term #{runtime-env-ref ,ρ ,x}))
+                                   (equal? actual x:v))
+      ((eval-program
+        ((module-τ M0
+          (define f (→ Nat Nat) (fun a (b) b))
+          (provide f))
+         (module-τ M1
+          (require M0 (f (→ Nat Nat)))
+          (define v Nil (f nil))
+          (provide v))))
+       (M1 (v nil Nil)))))
 )
 
