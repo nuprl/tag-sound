@@ -358,7 +358,7 @@
    (where v_arg+ #{apply-monitor# x_arg v_arg τ_dom})
    (where S_+ #{stack-push S (x_arg E τ_cod)})]
   [(do-call E v_0 v_1 σ x S)
-   NotFunction
+   (TE v_0 "procedure?")
    (judgment-holds (not-fun-value v_0))])
 
 (define-metafunction μTR
@@ -758,14 +758,202 @@
     )
   )
 
-  (test-case "eval-program"
+  ;(test-case "redex-match"
+  ;  (check-true
+  ;    (redex-match? μTR DEFINE-τ (term
+  ;    ))
+  ;  )
+  ;)
+
+  (test-case "eval-program:I"
     (check-mf-apply*
      ((eval-program [(module-λ mu (define x 4) (provide x))])
       (() ((mu ((x 4))))))
      ((eval-program [(module-τ mt (define x Int 4) (provide x))])
       (() ((mt ((x 4 Int))))))
+     ((eval-program
+       ((module-λ M
+         (define x (+ 2 2))
+         (provide x))))
+      (() ((M ((x 4))))))
+     ((eval-program
+       ((module-λ M
+         (define x 2)
+         (define y (+ x x))
+         (provide x y))))
+      (() ((M ((x 2) (y 4))))))
+     ((eval-program
+       ((module-λ M
+         (define x (fun a (b) (+ b 1)))
+         (define y (x 4))
+         (provide y))))
+      (() ((M ((y 5))))))
+     ((eval-program
+       ((module-τ M
+         (define fact (→ Nat Nat) (fun fact (n) (ifz n 1 (* n (fact (- n 1))))))
+         (define f0 Nat (fact 0))
+         (define f1 Nat (fact 1))
+         (define f2 Nat (fact 2))
+         (define f3 Nat (fact 3))
+         (define f4 Nat (fact 4))
+         (provide f0 f1 f2 f3 f4))))
+      (() ((M ((f0 1 Nat) (f1 1 Nat) (f2 2 Nat) (f3 6 Nat) (f4 24 Nat))))))
+     ((eval-program
+       ((module-τ M
+         (define v (Vectorof Int) (vector 1 2 (+ 2 1)))
+         (define x Int (vector-ref v 2))
+         (define dontcare Int (vector-set! v 0 0))
+         (define y Int (vector-ref v 0))
+         (provide x y))))
+      (((x_loc (0 2 3))) ((M ((x 3 Int) (y 0 Int))))))
+     ((eval-program
+       ((module-τ M
+         (define second (→ (Listof Int) Int) (fun f (xs) (first (rest xs))))
+         (define v Int (second (cons 1 (cons 2 nil))))
+         (provide v))))
+      (() ((M ((v 2 Int))))))
     )
   )
 
+  (test-case "eval-program:TE"
+    (check-exn #rx"TE"
+      (λ () (term
+        (eval-program
+         ((module-τ M
+           (define x Int (+ 1 nil))
+           (provide)))))))
+    (check-exn #rx"TE"
+      (λ () (term
+        (eval-program
+         ((module-λ M
+           (define x (+ 1 nil))
+           (provide)))))))
+    (check-exn #rx"TE"
+      (λ () (term
+        (eval-program
+         ((module-τ M
+           (define x Int (first 4))
+           (provide)))))))
+    (check-exn #rx"TE"
+      (λ () (term
+        (eval-program
+         ((module-λ M
+           (define x (vector-ref 4 4))
+           (provide)))))))
+    (check-exn #rx"TE"
+      (λ () (term
+        (eval-program
+         ((module-λ M
+           (define x (4 4))
+           (provide)))))))
+  )
+
+  (test-case "eval-program:RuntimeError"
+    (check-exn #rx"DivisionByZero"
+      (λ () (term
+        (eval-program
+         ((module-τ M
+           (define x Int (% 1 0))
+           (provide)))))))
+    (check-exn #rx"DivisionByZero"
+      (λ () (term
+        (eval-program
+         ((module-λ M
+           (define x (% 1 0))
+           (provide)))))))
+    (check-exn #rx"EmptyList"
+      (λ () (term
+        (eval-program
+         ((module-τ M
+           (define x Int (first nil))
+           (provide)))))))
+    (check-exn #rx"EmptyList"
+      (λ () (term
+        (eval-program
+         ((module-λ M
+           (define x (rest nil))
+           (provide)))))))
+    (check-exn #rx"BadIndex"
+      (λ () (term
+        (eval-program
+         ((module-τ M
+           (define x Int (vector-ref (vector 1) 999))
+           (provide)))))))
+    (check-exn #rx"BadIndex"
+      (λ () (term
+        (eval-program
+         ((module-λ M
+           (define x (vector-set! (vector 0) 4 5))
+           (provide))))))))
+
+(test-case "rm"
+  (check-true (redex-match? μTR σ (term
+    ((x_loc (0))))))
+  (check-true (redex-match? μTR ρ (term
+    ((v (mon-vector M0 (Vectorof Int) (vector x_loc)))))))
+  (check-true (redex-match? μTR e (term
+    (vector-set! v 0 nil))))
+  (check-true (redex-match? μTR e (term
+    (mon-vector M0 (Vectorof Int) (vector x_loc))))))
+
+  (test-case "eval-program:BE"
+    (check-exn #rx"BE"
+      (λ () (term
+        (eval-program
+         ((module-τ M0
+           (define v (Vectorof Int) (vector 0))
+           (provide v))
+          (module-λ M1
+           (require M0 v)
+           (define x (vector-set! v 0 nil))
+           (provide)))))))
+
+    (check-exn #rx"BE"
+      (λ () (term
+        (eval-program
+         ((module-λ M0
+           (define v (vector -1))
+           (provide v))
+          (module-τ M1
+           (require M0 (v (Vectorof Nat)))
+           (define x Nat (vector-ref v 0))
+           (provide)))))))
+
+    (check-exn #rx"apply-monitor"
+      (λ () (term
+        (eval-program
+         ((module-λ M0
+           (define v -1)
+           (provide v))
+          (module-τ M1
+           (require M0 (v Nat))
+           (define x Int 42)
+           (provide)))))))
+
+    ;; TODO
+    #;(check-exn #rx"BE"
+      (λ () (term
+        (eval-program
+         ((module-τ M0
+           (define f (→ Nat Nat) (fun f (x) (+ x 2)))
+           (provide f))
+          (module-λ M1
+           (require M0 f)
+           (define x (f -1))
+           (provide)))))))
+
+    ;; TODO
+    #;(check-exn #rx"BE"
+      (λ () (term
+        (eval-program
+         ((module-λ M0
+           (define f (fun f (x) nil))
+           (provide f))
+          (module-τ M1
+           (require M0 (f (→ Int Int)))
+           (define x Int (f 3))
+           (provide)))))))
+
+  )
 )
 

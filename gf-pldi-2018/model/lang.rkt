@@ -56,8 +56,9 @@
   ;;  Tailor variable names to the "importance" of things.
 
   (e ::= integer x (fun x (x) e) (vector e ...) (cons e e) nil
-         (ifz e e e)
-         (+ e e) (- e e) (* e e) (% e e) (vector-ref e e) (vector-set! e e e) (first e) (rest e))
+         (e e) (ifz e e e)
+         (+ e e) (- e e) (* e e) (% e e) (vector-ref e e) (vector-set! e e e) (first e) (rest e)
+         (mon-fun x τ e) (mon-vector x τ e))
   ;; Expressions come in three flavors:
   ;; - value constructors (for integers, functions, vectors, lists)
   ;; - control flow (if)
@@ -105,8 +106,14 @@
   (σ ::= ((l v*) ...))
   ;; Store, maps locations to vectors
 
+  (P-TYPE ::= (M-TYPE ...))
+  (M-TYPE ::= (x Γ))
+  ;; A program type context records names and types.
+  ;; For each typed module, records the types.
+  ;; Ignores untyped modules (we could record names but no big deal).
+
   (Γ ::= ((x τ) ...))
-  ;; Type context, for checking expressions
+  ;; Local type context, for checking expressions
 
   (E ::= hole (vector v ... E e ...) (cons E e) (cons v E)
          (E e) (v E)
@@ -118,7 +125,7 @@
   (A ::= Σ Error)
   (Error ::= BoundaryError TypeError)
   (TypeError ::= (TE v EXPECTED))
-  (BoundaryError ::= DivisionByZero BadIndex EmptyList NotFunction (BE x EXPECTED x v))
+  (BoundaryError ::= DivisionByZero BadIndex EmptyList (BE x EXPECTED x v))
   (EXPECTED ::= τ κ string)
   ;; Evaluation can produce either a final value or an error,
   ;;  errors can be due to ill-typed values in untyped code,
