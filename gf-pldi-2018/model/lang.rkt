@@ -85,7 +85,7 @@
   ;;  to prove that typed modules do not commit type errors
 
   (S ::= () (FRAME S))
-  (FRAME ::= (x E τ))
+  (FRAME ::= (x E κ) (x E τ))
   ;; A type boundary call stack is made of frames.
   ;; A frame is a context to return to.
   ;;  The context always has a name and an expected type.
@@ -120,8 +120,7 @@
          (E e) (v E)
          (ifz E e e) (+ E e) (+ v E) (- E e) (- v E) (* E e) (* v E) (% E e) (% v E)
          (vector-ref E e) (vector-ref v E) (vector-set! E e e) (vector-set! v E e) (vector-set! v v E)
-         (first E) (rest E)
-         (!! (x κ E) e))
+         (first E) (rest E))
   ;; Left-to-right eager evaluation contexts
 
   (A ::= Σ Error)

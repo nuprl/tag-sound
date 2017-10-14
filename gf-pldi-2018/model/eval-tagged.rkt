@@ -3,6 +3,10 @@
 ;; Tagged Racket semantics,
 ;;  ....
 
+;; Diff from eval-untyped
+;; - tag-check on require
+;; - tag-check where checks appear (assumes rewritten program)
+
 (provide
   eval-program
 )
@@ -237,10 +241,17 @@
   (reduction-relation μTR
    #:domain A
    [-->
-     ((in-hole E (!! [x κ v] e)) σ x_mod S)
-     A_next
+     ((in-hole E (!! [x κ e_x] e_body)) σ x_mod S)
+     (e_x σ x_mod (FRAME S))
      E-Check
-     (where A_next #{do-check E x κ v e σ x_mod S})]
+     (fresh x_f)
+     (where FRAME (x_mod (in-hole E ((fun x_f (x) e_body) hole)) κ))]
+   [-->
+     (v σ x_mod S)
+     A_next
+     E-Return
+     (side-condition (not (null? (term S))))
+     (where A_next #{do-return v σ x_mod S})]
    [-->
      ((in-hole E (v_0 v_1)) σ x_mod S)
      A_next
@@ -300,6 +311,19 @@
 
 (define step-expression*
   (make--->* step-expression))
+
+(define-metafunction μTR
+  do-return : v σ x S -> A
+  [(do-return v σ x ())
+   ,(raise-arguments-error 'do-return "cannot return, empty stack"
+      "value" (term v)
+      "module" (term x)
+      "store" (term σ))]
+  [(do-return v σ x_server ((x_client E_next κ_expected) S_next))
+   ((in-hole E_next v) σ x_client S_next)
+   (judgment-holds (tag-check v κ_expected))]
+  [(do-return v σ x_server ((x_client E_next κ_expected) S_next))
+   (BE x_client κ_expected x_server v)])
 
 (define-metafunction μTR
   do-check : E x κ v e σ x S -> A
