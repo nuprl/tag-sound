@@ -25,6 +25,12 @@ To frame the discussion, consider the following programs.
 
 TBA
 
+@section{A Theory of Macro-Level Gradual Typing}
+
+Static typing like normal,
+ runtime environment can have monitored values,
+ special runtime typing for progress and preservation, get conventional type soundness.
+
 
 @section{Typed Racket, Generalized Soundness}
 
