@@ -18,6 +18,9 @@
 
   well-typed-program
   well-typed-state
+  well-typed-expression
+
+  runtime-env-models
 )
 
 (require
@@ -151,6 +154,42 @@
 ;; -----------------------------------------------------------------------------
 
 (define-judgment-form μTR
+  #:mode (runtime-env-models I I I)
+  #:contract (runtime-env-models ρ Γ x*)
+  [
+   (same-domain ρλ Γ)
+   (well-typed-runtime-env Γ ρλ x*)
+   ---
+   (runtime-env-models ρλ Γ x*)]
+  [
+   (same-domain ρτ Γ)
+   (well-typed-runtime-env Γ ρτ x*)
+   ---
+   (runtime-env-models ρτ Γ x*)])
+
+(define-judgment-form μTR
+  #:mode (well-typed-runtime-env I I I)
+  #:contract (well-typed-runtime-env Γ ρ x*)
+  [
+   ---
+   (well-typed-runtime-env Γ () x*)]
+  [
+   (where [_ τ_1] #{type-env-ref Γ x_0})
+   (<: τ_0 τ_1)
+   (well-typed-expression Γ v_0 τ_0 x*)
+   (well-typed-runtime-env Γ (x:v:τ ...) x*)
+   ---
+   (well-typed-runtime-env Γ ((x_0 v_0 τ_0) x:v:τ ...) x*)]
+  [
+   (where [_ τ] #{type-env-ref Γ x_0})
+   (well-typed-expression Γ v_0 τ x*)
+   (well-typed-runtime-env Γ (x:v ...) x*)
+   ---
+   (well-typed-runtime-env Γ ((x_0 v_0) x:v ...) x*)])
+
+;; -----------------------------------------------------------------------------
+
+(define-judgment-form μTR
   #:mode (well-typed-state I I I)
   #:contract (well-typed-state Σ τ x*)
   [
@@ -196,6 +235,14 @@
    (well-typed-expression Γ_x e_body τ_cod x*)
    ---
    (well-typed-expression Γ (fun x_f (x_arg) e_body) τ x*)]
+  [
+   (<: τ_fun τ)
+   (where (→ τ_dom τ_cod) τ)
+   (where Γ_f #{type-env-set Γ x_fun τ_fun})
+   (where Γ_x #{type-env-set Γ_f x_arg τ_dom})
+   (well-typed-expression Γ_x e_body τ_cod x*)
+   ---
+   (well-typed-expression Γ (fun x_fun τ_fun (x_arg) e_body) τ x*)]
   [
    (typed-module x_mod x*)
    (well-typed-expression Γ v τ x*)
@@ -327,6 +374,9 @@
    (infer-expression-type Γ (cons e_0 _) (Listof τ))]
   [
    ---
+   (infer-expression-type Γ (fun x_fun τ (x_arg) e_body) τ)]
+  [
+   ---
    (infer-expression-type Γ (mon-fun _ τ _) τ)]
   [
    ---
@@ -352,6 +402,10 @@
    (well-dyn-expression Γ_x e x*)
    ---
    (well-dyn-expression Γ (fun x_fun (x_arg) e) x*)]
+  [
+   (side-condition ,(raise-user-error 'well-dyn-expression "unsound: typed function in untyped code ~a" (term (fun x_fun τ (x_arg) e))))
+   ---
+   (well-dyn-expression Γ (fun x_fun τ (x_arg) e) x*)]
   [
    ---
    (well-dyn-expression Γ nil x*)]
@@ -439,11 +493,12 @@
    ---
    (well-dyn-expression Γ (rest e) x*)])
 
-(define-metafunction μTR
-  well-typed-program : P -> P-TYPE
-  [(well-typed-program P)
-   yolo])
-   ;#{well-typed-program/env () P}])
+(define-judgment-form μTR
+  #:mode (well-typed-program I I)
+  #:contract (well-typed-program any P)
+  [
+   ---
+   (well-typed-program () P)])
 
 ;; well-typed-program/env
 ;; well-typed-module
@@ -621,6 +676,22 @@
        ((+ 2 nil) () Mu
         ((Mt (+ 1 hole) Int) ()))
        Int (Mt))
+    )
+  )
+
+  (test-case "runtime-env-models"
+    (check-judgment-holds*
+     (runtime-env-models () () ())
+     (runtime-env-models ((x 4)) ((x Nat)) ())
+     (runtime-env-models ((x (cons 1 nil))) ((x (Listof Int))) ())
+     (runtime-env-models ((x 2) (y (fun f (x) (+ x x)))) ((x Int) (y (→ Int Int))) ())
+    )
+
+    (check-not-judgment-holds*
+     (runtime-env-models () ((x Int)) ())
+     (runtime-env-models ((x 2)) () ())
+     (runtime-env-models ((x 2)) ((x (Listof Int))) ())
+     (runtime-env-models ((x (fun f (x) 3))) ((x Nat)) ())
     )
   )
 )

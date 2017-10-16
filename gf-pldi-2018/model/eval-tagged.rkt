@@ -406,6 +406,25 @@
    (TE v_0 "vector?")
    (judgment-holds (not-vector-value v_0))])
 
+;; -----------------------------------------------------------------------------
+
+;; Tag soundness:
+;; - for all `x,e,Γ,τ` such that `Γ ⊢ e : τ`
+;; - for all `ρ` such that `ρ ⊨ Γ`
+;; evaluation ends in one of three possibilities:
+;; 1. [e () x ()] -->* [v σ' x ()]
+;;    and `Γ ⊢ v : K`
+;; 2. [e () x ()] diverges
+;; 3. [e () x ()] -->* [e' σ' x' S'] --> RuntimeError
+;;    and `x'` is untyped
+;; 4. [e () x ()] -->* [v' σ' x' S'] --> BoundaryError
+;;    and x' is untyped
+;;    and S' = [(x'' E K') S'']
+;;    and x'' is typed
+;;    and `¬ Γ ⊢ v : K'`
+
+;; (Very simple? Yeah should be simple. Now work it out make sure it works.)
+
 ;; =============================================================================
 
 (module+ test

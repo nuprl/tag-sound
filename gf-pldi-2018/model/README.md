@@ -16,7 +16,9 @@ TODO
 - count runtime time checks ?
 - be careful! don't mix typing with evaluation
 - stop using "typed modules" list, make module names have (id typed?)
-
+- decide about "stacks" vs. nested checks
+  ... should be possible to state soundness (RuntimeError) using checks,
+      is it worth the awkwardness? Matthias seems to think so but need to ask.
 
 Summary
 ---

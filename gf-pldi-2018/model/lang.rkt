@@ -6,7 +6,9 @@
   type->tag
   tag-of
   frame->type
-  frame->tag)
+  frame->tag
+
+  lambda-strip-type)
 
 (require
   redex/reduction-semantics
@@ -74,7 +76,7 @@
 
   (v ::= integer Λ (vector x) (cons v v) nil
          (mon-fun x τ v) (mon-vector x τ v))
-  (Λ ::= (fun x (x) e))
+  (Λ ::= (fun x (x) e) (fun x τ (x) e))
   ;; Value forms, including `monitor` values.
   ;; The monitors protect typed functions and vectors.
   ;;  (The type-sound evaluator will use monitors. The tag-sound will not.)
@@ -132,7 +134,8 @@
   (A ::= Σ Error)
   (Error ::= BoundaryError TypeError)
   (TypeError ::= (TE v EXPECTED))
-  (BoundaryError ::= DivisionByZero BadIndex EmptyList (BE x EXPECTED x v))
+  (BoundaryError ::= RuntimeError (BE x EXPECTED x v))
+  (RuntimeError ::= DivisionByZero BadIndex EmptyList)
   (EXPECTED ::= τ κ string)
   ;; Evaluation can produce either a final value or an error,
   ;;  errors can be due to ill-typed values in untyped code,
@@ -147,6 +150,7 @@
   (τ* ::= (τ ...))
   (v* ::= (v ...))
 #:binding-forms
+  (fun x_f τ (x) e #:refers-to (shadow x_f x))
   (fun x_f (x) e #:refers-to (shadow x_f x))
   (!! (x κ e_0) e #:refers-to x))
 
@@ -195,3 +199,11 @@
   frame->tag : FRAME -> κ
   [(frame->tag (_ _ κ))
    κ])
+
+(define-metafunction μTR
+  lambda-strip-type : Λ -> Λ
+  [(lambda-strip-type (fun x_f τ (x_arg) e_body))
+   (fun x_f (x_arg) e_body)]
+  [(lambda-strip-type (fun x_f (x_arg) e_body))
+   (fun x_f (x_arg) e_body)])
+

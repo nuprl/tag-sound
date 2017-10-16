@@ -21,6 +21,10 @@
   untyped-module
 
   unload-store
+
+  same-domain
+
+  typed-module-name*
 )
 
 (require
@@ -273,6 +277,29 @@
    ---
    (untyped-module x x*)])
 
+(define-judgment-form μTR
+  #:mode (same-domain I I)
+  #:contract (same-domain any any)
+  [
+   (where any_keys0 ,(map car (term any_0)))
+   (where any_keys1 ,(map car (term any_1)))
+   (side-condition ,(set=? (term any_keys0) (term any_keys1)))
+   ---
+   (same-domain any_0 any_1)])
+
+(define-metafunction μTR
+  typed-module-name* : P-ENV -> x*
+  [(typed-module-name* ())
+   ()]
+  [(typed-module-name* (MODULE-BINDING_0 MODULE-BINDING_rest ...))
+   x*_rest
+   (where (_ ρλ) MODULE-BINDING_0)
+   (where x*_rest #{typed-module-name* (MODULE-BINDING_rest ...)})]
+  [(typed-module-name* (MODULE-BINDING_0 MODULE-BINDING_rest ...))
+   (x_first x_rest ...)
+   (where (x_first ρτ) MODULE-BINDING_0)
+   (where (x_rest ...) #{typed-module-name* (MODULE-BINDING_rest ...)})])
+
 ;; =============================================================================
 
 (module+ test
@@ -438,4 +465,16 @@
       (+ 2 2))
      ((unload-store (+ (vector a) (vector b)) ((a (1)) (b (4 3 2))))
       (+ (vector 1) (vector 4 3 2)))))
+
+  (test-case "typed-module-name*"
+    (check-mf-apply*
+     ((typed-module-name* ())
+      ())
+     ((typed-module-name* ((A ((x 3 Int)))))
+      (A))
+     ((typed-module-name* ((B ((x 3)))))
+      ())
+     ((typed-module-name* ((A ((x 3 Int))) (B ((y 4))) (C ((z (vector q) (Vectorof Nat))))))
+      (A C))))
+
 )

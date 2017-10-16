@@ -5,6 +5,8 @@
 
 (provide
   eval-program
+  typed-eval-program
+  ;; eventually, maybe just one semantics / endpoint??
 )
 
 (require
@@ -18,6 +20,14 @@
   redex-abbrevs)
 
 ;; =============================================================================
+
+(define-metafunction μTR
+  typed-eval-program : PROGRAM -> [σ P-ENV]
+  [(typed-eval-program PROGRAM)
+   #{typed-eval-program/env () () PROGRAM}
+   (judgment-holds (well-typed-program () PROGRAM))]
+  [(typed-eval-program PROGRAM)
+   ,(raise-argument-error 'typed-eval-program "well-typed-program?" (term PROGRAM))])
 
 ;; Fold over the modules in a program,
 ;;  accumulate a program environment.
@@ -34,6 +44,14 @@
    #{eval-program/env σ_+ P-ENV_+ (MODULE_1 ...)}
    (where [σ_+ P-ENV_+] (eval-module σ P-ENV MODULE_0))])
 
+(define-metafunction μTR
+  typed-eval-program/env : σ P-ENV PROGRAM -> [σ P-ENV]
+  [(typed-eval-program/env σ P-ENV ())
+   [σ P-ENV]]
+  [(typed-eval-program/env σ P-ENV (MODULE_0 MODULE_1 ...))
+   #{typed-eval-program/env σ_+ P-ENV_+ (MODULE_1 ...)}
+   (where [σ_+ P-ENV_+] #{typed-eval-module σ P-ENV MODULE_0})])
+
 ;; -----------------------------------------------------------------------------
 
 ;; To evaluate a module:
@@ -49,12 +67,31 @@
    (where [σ_body ρλ_body] #{eval-untyped-define* x_modname σ ρλ_init (DEFINE-λ ...)})
    (where ρλ_public #{eval-untyped-provide ρλ_body PROVIDE})
    (where P-ENV_final #{env-set P-ENV (x_modname ρλ_public)})]
-   ;; TODO env-set
   [(eval-module σ P-ENV MODULE_τ)
    [σ_body P-ENV_final]
    (where (module-τ x_modname REQUIRE-τ ... DEFINE-τ ... PROVIDE) MODULE_τ)
    (where ρτ_init #{eval-typed-require* P-ENV (REQUIRE-τ ...)})
    (where [σ_body ρτ_body] #{eval-typed-define* x_modname σ ρτ_init (DEFINE-τ ...)})
+   (where ρτ_public #{eval-typed-provide ρτ_body PROVIDE})
+   (where P-ENV_final #{env-set P-ENV (x_modname ρτ_public)})])
+
+;; TODO lots of duplication here ... eventually want to revise tests, make it always typed
+(define-metafunction μTR
+  typed-eval-module : σ P-ENV MODULE -> [σ P-ENV]
+  [(typed-eval-module σ P-ENV MODULE_λ)
+   [σ_body P-ENV_final]
+   (where (module-λ x_modname REQUIRE-λ ... DEFINE-λ ... PROVIDE) MODULE_λ)
+   (where ρλ_init #{eval-untyped-require* P-ENV (REQUIRE-λ ...)})
+   (where x*_tmods #{typed-module-name* P-ENV})
+   (where [σ_body ρλ_body] #{typed-eval-untyped-define* x_modname x*_tmods σ ρλ_init (DEFINE-λ ...)})
+   (where ρλ_public #{eval-untyped-provide ρλ_body PROVIDE})
+   (where P-ENV_final #{env-set P-ENV (x_modname ρλ_public)})]
+  [(typed-eval-module σ P-ENV MODULE_τ)
+   [σ_body P-ENV_final]
+   (where (module-τ x_modname REQUIRE-τ ... DEFINE-τ ... PROVIDE) MODULE_τ)
+   (where ρτ_init #{eval-typed-require* P-ENV (REQUIRE-τ ...)})
+   (where x*_tmods #{typed-module-name* P-ENV})
+   (where [σ_body ρτ_body] #{typed-eval-typed-define* x_modname x*_tmods σ ρτ_init (DEFINE-τ ...)})
    (where ρτ_public #{eval-typed-provide ρτ_body PROVIDE})
    (where P-ENV_final #{env-set P-ENV (x_modname ρτ_public)})])
 
@@ -217,6 +254,26 @@
    (where [v σ_+] #{eval-value x_modname σ ρτ e})
    (where ρτ_+ #{env-set ρτ (x v τ)})])
 
+(define-metafunction μTR
+  typed-eval-untyped-define* : x σ ρλ (DEFINE-λ ...) -> [σ ρλ]
+  [(typed-eval-untyped-define* x_modname σ ρλ ())
+   [σ ρλ]]
+  [(typed-eval-untyped-define* x_modname σ ρλ (DEFINE-λ_first DEFINE-λ_rest ...))
+   #{typed-eval-untyped-define* x_modname σ_+ ρλ_+ (DEFINE-λ_rest ...)}
+   (where (define x e) DEFINE-λ_first)
+   (where [v σ_+] #{typed-eval-value x_modname σ ρλ e})
+   (where ρλ_+ #{env-set ρλ (x v)})])
+
+(define-metafunction μTR
+  typed-eval-typed-define* : x x* σ ρτ (DEFINE-τ ...) -> [σ ρτ]
+  [(typed-eval-typed-define* x_modname x* σ ρτ ())
+   [σ ρτ]]
+  [(typed-eval-typed-define* x_modname x* σ ρτ (DEFINE-τ_first DEFINE-τ_rest ...))
+   #{typed-eval-typed-define* x_modname x* σ_+ ρτ_+ (DEFINE-τ_rest ...)}
+   (where (define x τ e) DEFINE-τ_first)
+   (where [v σ_+] #{typed-eval-value x_modname x* σ ρτ e})
+   (where ρτ_+ #{env-set ρτ (x v τ)})])
+
 ;; -----------------------------------------------------------------------------
 
 (define-metafunction μTR
@@ -251,65 +308,12 @@
       "module" (term x))
    (where (v σ x S) Σ)])
 
-;; -----------------------------------------------------------------------------
-
 (define-metafunction μTR
-  typed-eval-value : x x* σ ρ e τ -> [v σ]
-  [(typed-eval-value x_modname x*_tmods σ ρ e τ)
-   [v_final σ_final]
-   (where Γ #{runtime-env->type-context ρ})
-   (judgment-holds (well-typed-expression Γ e τ x*))
-   (where Σ_0 #{load-expression x_modname σ ρ e})
-   (where A #{step-expression*/type (term Σ_0) (term τ) (term x*_tmods)})
-   (where [v_final σ_final x_modname] #{unload-answer A})])
-
-(define-metafunction μTR
-  step-expression*/type : A τ x* -> A
-  [(step-expression*/type Σ τ x*_tmods)
-   ,(cond
-    [(null? (term any_A*))
-     (term Σ)]
-    [(null? (cdr (term any_A*)))
-     (term (step-expression*/type ,(car (term any_A*)) τ x*_tmods))]
-    [else
-     (raise-arguments-error 'step-expression*/type
-       "expression stepped to multiple results"
-       "state" (term Σ)
-       "target type" (term τ)
-       "typed modules" (term x*))])
-   (judgment-holds (well-typed-state Σ τ x*_tmods))
-   (where any_A* ,(apply-reduction-relation step-expression (term Σ)))
-  [(step-expression*/type Error τ x*)
-   Error])
-
-(define-metafunction μTR
-  runtime-env->type-context : ρ -> Γ
-  [(runtime-env->type-context ρτ)
-   ((x τ) ...)
-   (where ((x v τ) ...) ρτ)]
-  [(runtime-env->type-context ρλ)
-   ((x #{infer-value-type v}) ...)
-   (where ((x v) ...) ρλ)])
-
-(define-metafunction μTR
-  infer-value-type : v -> τ
-  [(infer-value-type natural)
-   Nat]
-  [(infer-value-type integer)
-   Int]
-  [(infer-value-type (cons v_hd nil))
-   (Listof τ)
-   (where τ (infer-value-type v_hd))]
-  [(infer-value-type (cons v_hd v_tl))
-   (Listof τ)
-   (where τ (infer-value-type v_hd))
-   (where (Listof τ) (infer-value-type v_tl))]
-  [(infer-value-type (mon-vector _ τ _))
-   τ]
-  [(infer-value-type (mon-fun _ τ _))
-   τ]
-  [(infer-value-type v)
-   ,(raise-argument-error 'infer-value-type "failed to infer type" "value" (term v))])
+  unload-answer/store : A -> e
+  [(unload-answer/store A)
+   e_sub
+   (where (v σ x) #{unload-answer A})
+   (where e_sub #{unload-store v σ})])
 
 ;; -----------------------------------------------------------------------------
 
@@ -395,11 +399,23 @@
       (term (BE x_client τ_expected x_server v)))
    (where any_+ #{apply-monitor# x_server v τ_expected})])
 
+(define-judgment-form μTR
+  #:mode (bad-return-state I I)
+  #:contract (bad-return-state Σ x*)
+  [
+   (untyped-module x x*)
+   (where (x_r E_r τ_r) FRAME)
+   (typed-module x_r x*)
+   (where κ #{type->tag τ_r})
+   (not-well-tagged-value v κ)
+   ---
+   (bad-return-state (v σ x (FRAME S)) x*)])
+
 (define-metafunction μTR
   do-call : E v v σ x S -> A
   [(do-call E Λ v_arg σ x S)
    ((in-hole E e_body+) σ x S)
-   (where (fun x_f (x_arg) e_body) Λ)
+   (where (fun x_f (x_arg) e_body) #{lambda-strip-type Λ})
    (where e_body+ (substitute (substitute e_body x_f Λ) x_arg v_arg))]
   [(do-call E (mon-fun x_f τ v_f) v_arg σ x_arg S)
    ,(if (term any_v+)
@@ -482,6 +498,106 @@
   [(primop-set E v_0 v_1 v_2 σ x S)
    (TE v_0 "vector?")
    (judgment-holds (not-vector-value v_0))])
+
+;; -----------------------------------------------------------------------------
+
+;; Type soundness:
+;; - for all `x,e,Γ,τ` such that `Γ ⊢ e : τ`
+;; - for all `ρ` such that `ρ ⊨ Γ`
+;; evaluation ends in one of three possibilities:
+;; 1. [e ()] -->* [v σ']
+;;    and `Γ ⊢ v : τ`
+;; 2. [e ()] diverges
+;; 3. [e ()] -->* [e' σ'] --> RuntimeError
+;;    and `e' = E[(check τ E''[e''])]`
+;;    and e'' --> RuntimeError
+;; 4. [e ()] -->* [E[(check τ v')] σ'] --> BoundaryError
+;;    and untyped context
+;;    and `¬ Γ ⊢ v' : τ'`
+
+;; Proof by progress and preservation using weaker **pair**
+;;  of typing rules, ⊢T ⊢D
+
+(define-metafunction μTR
+  theorem:type-soundness : x x* σ Γ ρ e τ -> any
+  [(theorem:type-soundness x x* σ Γ ρ e τ)
+   any_result
+   (side-condition
+     (unless (judgment-holds (typed-module x x*))
+       (raise-arguments-error 'type-soundness "bad premise: expected a typed module"
+         "module" (term x)
+         "typed modules" (term x*)
+         "store" (term σ)
+         "type env" (term Γ)
+         "runtime env" (term ρ)
+         "expression" (term e)
+         "type" (term τ))))
+   (side-condition
+     (unless (judgment-holds (runtime-env-models ρ Γ x*))
+       (raise-arguments-error 'type-soundness "bad premise: runtime env does not model type context"
+         "type env" (term Γ)
+         "runtime env" (term ρ)
+         "module" (term x)
+         "store" (term σ)
+         "expression" (term e)
+         "type" (term τ))))
+   (side-condition
+     (unless (judgment-holds (well-typed-expression Γ e τ x*))
+       (raise-arguments-error 'type-soundness "bad premise: expression is not well-typed"
+         "expression" (term e)
+         "expected type" (term τ)
+         "type context" (term Γ)
+         "module" (term x)
+         "runtime env" (term ρ)
+         "store" (term σ))))
+   (where [A Σ_prev] #{typed-eval-value x x* σ ρ e τ})
+   (where any_result
+     ,(cond
+       [(redex-match? μTR TypeError (term A))
+        (if (judgment-holds (untyped-module x x*))
+          (term A)
+          (raise-arguments-error 'type-soundness "unsound: got type error in typed context"
+            "state" (term Σ_prev)
+            "error" (term A)))]
+       [(redex-match? μTR BoundaryError (term A))
+        (if (or (redex-match? μTR RuntimeError (term A))
+                (judgment-holds (bad-return-state Σ_prev x*)))
+          (term A)
+          (raise-arguments-error 'type-soundness "unsound: got boundary error, but OK to return"
+            "error" (term A)
+            "state" (term Σ_prev)))]
+       [else
+        (if (judgment-holds (well-typed-state A τ x*))
+          (term #{unload-answer/store A})
+          (raise-arguments-error 'type-soundness "unsound: evaluation gave ill-typed value"
+            "state" (term A)))]))])
+
+(define-metafunction μTR
+  typed-eval-value : x x* σ ρ e τ -> [A Σ]
+  [(typed-eval-value x_modname x*_tmods σ ρ e τ)
+   #{step-expression*/type Σ_0 τ x*_tmods}
+   (where Σ_0 #{load-expression x_modname σ ρ e})])
+
+(define-metafunction μTR
+  step-expression*/type : Σ τ x* -> [A Σ]
+  [(step-expression*/type Σ τ x*_tmods)
+   ,(cond
+    [(null? (term any_A*))
+     ;; already finished
+     (term [Σ Σ])]
+    [(null? (cdr (term any_A*)))
+     (define A (car (term any_A*)))
+     (if (redex-match? μTR Error A)
+       (term [,A Σ])
+       (term (step-expression*/type ,A τ x*_tmods)))]
+    [else
+     (raise-arguments-error 'step-expression*/type
+       "expression stepped to multiple results"
+       "state" (term Σ)
+       "target type" (term τ)
+       "typed modules" (term x*))])
+   (judgment-holds (well-typed-state Σ τ x*_tmods))
+   (where any_A* ,(apply-reduction-relation step-expression (term Σ)))])
 
 ;; =============================================================================
 
@@ -963,38 +1079,26 @@
     )
   )
 
-  (test-case "runtime-env->type-context"
+  (test-case "type-soundness"
     (check-mf-apply*
-     ((runtime-env->type-context ())
-      ())
-     ((runtime-env->type-context ((x 1 Nat) (y 2 Int) (z (fun f (x) x) (→ Nat Nat))))
-      ((x Nat) (y Int) (z (→ Nat Nat))))
-     ((runtime-env->type-context ((x 1) (y 2) (z (mon-fun M (→ Nat (Vectorof Nat)) (fun f (x) x)))))
-      ((x Nat) (y Nat) (z (→ Nat (Vectorof Nat)))))))
+     ((theorem:type-soundness M (M) () () () (+ 2 2) Nat)
+      4)
+     ((theorem:type-soundness M (M) () ((x Nat)) ((x 42)) (+ x 2) Nat)
+      44)
+     ((theorem:type-soundness M (M) () ((fact (→ Int Int))) ((fact (fun f (→ Int Int) (n) (ifz n 1 (* n (f (- n 1))))))) (fact 5) Int)
+      120)
+    )
 
-  (test-case "infer-value-type"
-    (check-mf-apply*
-     ((infer-value-type 3)
-      Nat)
-     ((infer-value-type -3)
-      Int)
-     ((infer-value-type (cons 1 (cons 2 nil)))
-      (Listof Nat))
-     ((infer-value-type (mon-vector M (Vectorof Nat) (vector 1 2 3)))
-      (Vectorof Nat))
-     ((infer-value-type (mon-vector M (Vectorof Nat) (vector -3)))
-      (Vectorof Nat))
-     ((infer-value-type (mon-fun M (→ Nat Nat) (fun f (x) (+ x 3))))
-      (→ Nat Nat)))
+    (check-exn exn:fail:contract?
+      (λ () (term (theorem:type-soundness M (M) () ((x Nat)) ((x -4)) (+ x 1) Nat))))
 
-   (check-exn exn:fail:contract?
-     (λ () (term (infer-value-type nil))))
+    (check-exn exn:fail:contract?
+      (λ () (term (theorem:type-soundness M (M) () () () (- 4 3) Nat))))
 
-   (check-exn exn:fail:contract?
-     (λ () (term (infer-value-type (vector 1)))))
+    (check-exn exn:fail:contract?
+      (λ () (term (theorem:type-soundness M () () () () (+ 1 1) Int))))
+  )
 
-   (check-exn exn:fail:contract?
-     (λ () (term (infer-value-type (fun f (x) x))))))
 
 )
 
