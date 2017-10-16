@@ -9,6 +9,22 @@ Performance data for Tagged Racket
 - 
 
 
+### Have 2017-10-15
+
+| benchmark | 6.10.1 | tag
+|----
+| fsm | 4 | 4 |
+| gregor | 2 | 2 |
+| kcfa | 4 | 0 |
+| morsecode | 2 | 4 |
+| sieve | 2 | 4 |
+| snake | 2 | 2 |
+| suffixtree | 2 | 2 |
+| synth | 4 | 2 |
+| tetris | 2 | 2 |
+| zombie | 2 | 4 |
+| zordoz | 0 | 0 |
+
 
 ### Notes / Conclusions
 
