@@ -60,7 +60,10 @@
   (e ::= v x (vector e ...) (cons e e)
          (e e) (ifz e e e)
          (+ e e) (- e e) (* e e) (% e e) (vector-ref e e) (vector-set! e e e) (first e) (rest e)
-         (!! [x κ e] e))
+         (!! [x κ e] e)
+         ;; The `mon` are not really expressions, just there
+         ;;  so the typechecker doesn't need to carry a `σ` environment
+         (mon-fun x τ e) (mon-vector x τ e))
   ;; Expressions come in three flavors:
   ;; - value constructors (for integers, functions, vectors, lists)
   ;; - control flow (if)
@@ -114,11 +117,10 @@
   ;; For each typed module, records the types.
   ;; Ignores untyped modules (we could record names but no big deal).
 
-  (Γ ::= ((x τ) ...))
-  ;; Local type context, for checking expressions
-
-  (?Γ ::= ((x ?τ) ...))
+  (Γ ::= ((x ?τ) ...))
   (?τ ::= Dyn τ)
+  ;; Local type context, for checking expressions
+  ;; ... needs dyn because typechecking flips between typed and untyped code
 
   (E ::= hole (vector v ... E e ...) (cons E e) (cons v E)
          (E e) (v E)

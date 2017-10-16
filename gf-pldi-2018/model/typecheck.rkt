@@ -155,21 +155,24 @@
   #:contract (well-typed-state Σ τ x*)
   [
    (typed-module x_mod x*) ;; No rule for empty stack and untyped module
-   (well-typed-expression () e τ x*)
+   (where e_sub #{unload-store e σ})
+   (well-typed-expression () e_sub τ x*)
    ---
    (well-typed-state (e σ x_mod ()) τ x*)]
   [
    (typed-module x_mod x*)
    (where τ_e (frame->type FRAME))
    (where τ (stack-outermost-type S τ_e))
-   (well-typed-expression () e τ_e x*)
+   (where e_sub (unload-store e σ))
+   (well-typed-expression () e_sub τ_e x*)
    ---
    (well-typed-state (e σ x_mod (FRAME S)) τ x*)]
   [
    (untyped-module x_mod x*)
    (where τ_e (frame->type FRAME))
    (where τ (stack-outermost-type S τ_e))
-   (well-dyn-expression () e x*)
+   (where e_sub (unload-store e σ))
+   (well-dyn-expression () e_sub x*)
    ---
    (well-typed-state (e σ x_mod (FRAME S)) τ x*)])
 
@@ -296,7 +299,7 @@
    (well-typed-expression Γ e τ x*)
    ---
    (well-typed-expression Γ (rest e) τ x*)]
-  ;; ignore !!
+  ;; ignore the `!!` form
 )
 
 ;; Simple type inference, doesn't even do a good job.
@@ -311,7 +314,7 @@
    ---
    (infer-expression-type Γ integer Int)]
   [
-   (where τ #{type-env-ref Γ x})
+   (where [_ τ] #{type-env-ref Γ x})
    ---
    (infer-expression-type Γ x τ)]
   [
@@ -329,111 +332,118 @@
    ---
    (infer-expression-type Γ (mon-vector _ τ _) τ)])
 
+(define-metafunction μTR
+  infer-expression-type# : Γ e -> τ
+  [(infer-expression-type# Γ e)
+   τ
+   (judgment-holds (infer-expression-type Γ e τ))]
+  [(infer-expression-type# Γ e)
+   ,(raise-arguments-error 'infer-expression-type "failed to infer type" "expression" (term e) "type env" (term Γ))])
+
 (define-judgment-form μTR
   #:mode (well-dyn-expression I I I)
-  #:contract (well-dyn-expression ?Γ e x*)
+  #:contract (well-dyn-expression Γ e x*)
   [
    ---
-   (well-dyn-expression ?Γ integer x*)]
+   (well-dyn-expression Γ integer x*)]
   [
-   (where ?Γ_f #{type-env-set ?Γ x_fun Dyn})
-   (where ?Γ_x #{type-env-set ?Γ_f x_arg Dyn})
-   (well-dyn-expression ?Γ_x e x*)
+   (where Γ_f #{type-env-set Γ x_fun Dyn})
+   (where Γ_x #{type-env-set Γ_f x_arg Dyn})
+   (well-dyn-expression Γ_x e x*)
    ---
-   (well-dyn-expression ?Γ (fun x_fun (x_arg) e) x*)]
+   (well-dyn-expression Γ (fun x_fun (x_arg) e) x*)]
   [
    ---
-   (well-dyn-expression ?Γ nil x*)]
-  [
-   (typed-module x_mod x*)
-   (well-typed-expression ?Γ v τ x*)
-   ---
-   (well-dyn-expression ?Γ (mon-fun x_mod τ v) x*)]
-  [
-   (untyped-module x_mod x*)
-   (well-dyn-expression ?Γ v x*)
-   ---
-   (well-dyn-expression ?Γ (mon-fun x_mod τ v) x*)]
+   (well-dyn-expression Γ nil x*)]
   [
    (typed-module x_mod x*)
-   (well-typed-expression ?Γ v τ x*)
+   (well-typed-expression Γ v τ x*)
    ---
-   (well-dyn-expression ?Γ (mon-vector x_mod τ v) x*)]
+   (well-dyn-expression Γ (mon-fun x_mod τ v) x*)]
   [
    (untyped-module x_mod x*)
-   (well-dyn-expression ?Γ v x*)
+   (well-dyn-expression Γ v x*)
    ---
-   (well-dyn-expression ?Γ (mon-vector x_mod τ v) x*)]
+   (well-dyn-expression Γ (mon-fun x_mod τ v) x*)]
   [
-   (where _ #{type-env-ref ?Γ x})
+   (typed-module x_mod x*)
+   (well-typed-expression Γ e τ x*)
    ---
-   (well-dyn-expression ?Γ x x*)]
+   (well-dyn-expression Γ (mon-vector x_mod τ e) x*)]
   [
-   (well-dyn-expression ?Γ e x*) ...
+   (untyped-module x_mod x*)
+   (well-dyn-expression Γ e x*)
    ---
-   (well-dyn-expression ?Γ (vector e ...) x*)]
+   (well-dyn-expression Γ (mon-vector x_mod τ e) x*)]
   [
-   (well-dyn-expression ?Γ e_hd x*)
-   (well-dyn-expression ?Γ e_tl x*)
+   (where _ #{type-env-ref Γ x})
    ---
-   (well-dyn-expression ?Γ (cons e_hd e_tl) x*)]
+   (well-dyn-expression Γ x x*)]
   [
-   (well-dyn-expression ?Γ e_fun x*)
-   (well-dyn-expression ?Γ e_arg x*)
+   (well-dyn-expression Γ e x*) ...
    ---
-   (well-dyn-expression ?Γ (e_fun e_arg) x*)]
+   (well-dyn-expression Γ (vector e ...) x*)]
   [
-   (well-dyn-expression ?Γ e_0 x*)
-   (well-dyn-expression ?Γ e_1 x*)
-   (well-dyn-expression ?Γ e_2 x*)
+   (well-dyn-expression Γ e_hd x*)
+   (well-dyn-expression Γ e_tl x*)
    ---
-   (well-dyn-expression ?Γ (ifz e_0 e_1 e_2) x*)]
+   (well-dyn-expression Γ (cons e_hd e_tl) x*)]
   [
-   (well-dyn-expression ?Γ e_0 x*)
-   (well-dyn-expression ?Γ e_1 x*)
+   (well-dyn-expression Γ e_fun x*)
+   (well-dyn-expression Γ e_arg x*)
    ---
-   (well-dyn-expression ?Γ (+ e_0 e_1) x*)]
+   (well-dyn-expression Γ (e_fun e_arg) x*)]
   [
-   (well-dyn-expression ?Γ e_0 x*)
-   (well-dyn-expression ?Γ e_1 x*)
+   (well-dyn-expression Γ e_0 x*)
+   (well-dyn-expression Γ e_1 x*)
+   (well-dyn-expression Γ e_2 x*)
    ---
-   (well-dyn-expression ?Γ (- e_0 e_1) x*)]
+   (well-dyn-expression Γ (ifz e_0 e_1 e_2) x*)]
   [
-   (well-dyn-expression ?Γ e_0 x*)
-   (well-dyn-expression ?Γ e_1 x*)
+   (well-dyn-expression Γ e_0 x*)
+   (well-dyn-expression Γ e_1 x*)
    ---
-   (well-dyn-expression ?Γ (* e_0 e_1) x*)]
+   (well-dyn-expression Γ (+ e_0 e_1) x*)]
   [
-   (well-dyn-expression ?Γ e_0 x*)
-   (well-dyn-expression ?Γ e_1 x*)
+   (well-dyn-expression Γ e_0 x*)
+   (well-dyn-expression Γ e_1 x*)
    ---
-   (well-dyn-expression ?Γ (% e_0 e_1) x*)]
+   (well-dyn-expression Γ (- e_0 e_1) x*)]
   [
-   (well-dyn-expression ?Γ e_vec x*)
-   (well-dyn-expression ?Γ e_i x*)
+   (well-dyn-expression Γ e_0 x*)
+   (well-dyn-expression Γ e_1 x*)
    ---
-   (well-dyn-expression ?Γ (vector-ref e_vec e_i) x*)]
+   (well-dyn-expression Γ (* e_0 e_1) x*)]
   [
-   (well-dyn-expression ?Γ e_vec x*)
-   (well-dyn-expression ?Γ e_i x*)
-   (well-dyn-expression ?Γ e_arg x*)
+   (well-dyn-expression Γ e_0 x*)
+   (well-dyn-expression Γ e_1 x*)
    ---
-   (well-dyn-expression ?Γ (vector-set! e_vec e_i e_arg) x*)]
+   (well-dyn-expression Γ (% e_0 e_1) x*)]
   [
-   (well-dyn-expression ?Γ e x*)
+   (well-dyn-expression Γ e_vec x*)
+   (well-dyn-expression Γ e_i x*)
    ---
-   (well-dyn-expression ?Γ (first e) x*)]
+   (well-dyn-expression Γ (vector-ref e_vec e_i) x*)]
   [
-   (well-dyn-expression ?Γ e x*)
+   (well-dyn-expression Γ e_vec x*)
+   (well-dyn-expression Γ e_i x*)
+   (well-dyn-expression Γ e_arg x*)
    ---
-   (well-dyn-expression ?Γ (rest e) x*)])
+   (well-dyn-expression Γ (vector-set! e_vec e_i e_arg) x*)]
+  [
+   (well-dyn-expression Γ e x*)
+   ---
+   (well-dyn-expression Γ (first e) x*)]
+  [
+   (well-dyn-expression Γ e x*)
+   ---
+   (well-dyn-expression Γ (rest e) x*)])
 
 (define-metafunction μTR
   well-typed-program : P -> P-TYPE
   [(well-typed-program P)
    yolo])
    ;#{well-typed-program/env () P}])
-
 
 ;; well-typed-program/env
 ;; well-typed-module
@@ -505,4 +515,112 @@
      (fun-value -2)
      (fun-value 2)
      (fun-value (vector aaa))))
+
+  (test-case "well-typed-expression"
+    (check-judgment-holds*
+     (well-typed-expression () 2 Nat ())
+     (well-typed-expression () 2 Int ())
+     (well-typed-expression () -2 Int ())
+     (well-typed-expression ((x Nat)) x Nat ())
+     (well-typed-expression ((x (Listof Int))) x (Listof Int) ())
+     (well-typed-expression () (fun f (x) x) (→ Nat Nat) ())
+     (well-typed-expression () (fun f (a) (fun g (b) (+ a b))) (→ Int (→ Int Int)) ())
+     (well-typed-expression () (mon-fun Mt (→ Nat Nat) (fun f (x) 3)) (→ Nat Nat) (Mt))
+     (well-typed-expression () (mon-fun Mu (→ Nat Nat) (fun f (x) nil)) (→ Nat Nat) ())
+     (well-typed-expression () (mon-vector Mt (Vectorof Nat) (vector 1)) (Vectorof Nat) (Mt))
+     (well-typed-expression () (mon-vector Mu (Vectorof Nat) (vector 1)) (Vectorof Nat) (Mu))
+     (well-typed-expression () (vector -1 1) (Vectorof Int) ())
+     (well-typed-expression ((hd Int) (tl Int)) (cons hd (cons tl nil)) (Listof Int) ())
+     (well-typed-expression ((f (→ Int (→ Int (Listof Int))))) (f 4) (→ Int (Listof Int)) ())
+     (well-typed-expression () (ifz 2 3 -4) Int ())
+     (well-typed-expression () (+ 2 2) Int ())
+     (well-typed-expression () (+ 2 2) Nat ())
+     (well-typed-expression () (- -2 -2) Int ())
+     (well-typed-expression () (- 2 2) Int ())
+     (well-typed-expression () (* 2 2) Int ())
+     (well-typed-expression () (* 2 2) Nat ())
+     (well-typed-expression () (% 2 2) Int ())
+     (well-typed-expression () (% 2 2) Nat ())
+     (well-typed-expression () (vector-ref (vector 0) 10) Int ())
+     (well-typed-expression () (vector-set! (vector 0) 1 2) Int ())
+     (well-typed-expression () (first nil) Int ())
+     (well-typed-expression () (rest nil) (Listof (Listof Int)) ())
+
+     (well-typed-expression () (vector 1 2) (Vectorof Nat) (M))
+    )
+
+    (check-not-judgment-holds*
+     (well-typed-expression () -2 Nat ())
+     (well-typed-expression () (ifz (vector 0) 3 -4) Int ())
+    )
+  )
+
+  (test-case "infer-expression-type"
+    (check-mf-apply*
+     ((infer-expression-type# () 1)
+      Nat)
+     ((infer-expression-type# () -3)
+      Int)
+     ((infer-expression-type# ((x Nat)) x)
+      Nat)
+     ((infer-expression-type# () (vector 1 2 3))
+      (Vectorof Nat))
+     ((infer-expression-type# () (cons 1 nil))
+      (Listof Nat))
+     ((infer-expression-type# () (mon-fun M (→ (Listof Nat) Int) (fun f (x) 0)))
+      (→ (Listof Nat) Int))
+     ((infer-expression-type# () (mon-vector M (Vectorof (→ Nat Nat)) (vector)))
+      (Vectorof (→ Nat Nat)))))
+
+  (test-case "well-dyn-expression"
+
+    (check-judgment-holds*
+     (well-dyn-expression () 4 ())
+     (well-dyn-expression () (fun f (x) x) ())
+     (well-dyn-expression () nil ())
+     (well-dyn-expression () (mon-fun M (→ Nat Nat) (fun f (x) x)) (M))
+     (well-dyn-expression () (mon-fun M (→ Nat Nat) (fun f (x) x)) ())
+     (well-dyn-expression () (mon-vector M (Vectorof Nat) (vector 1 2)) (M))
+     (well-dyn-expression () (mon-vector M (Vectorof Nat) (vector -1 2)) ())
+     (well-dyn-expression ((x Nat)) x ())
+     (well-dyn-expression () (vector 1 2 3) ())
+     (well-dyn-expression () (cons 1 nil) ())
+     (well-dyn-expression ((f (→ Int Int)) (x Int)) (f x) ())
+     (well-dyn-expression () (ifz 1 2 3) ())
+     (well-dyn-expression () (+ 2 2) ())
+     (well-dyn-expression () (- 2 2) ())
+     (well-dyn-expression () (* 2 2) ())
+     (well-dyn-expression () (% 2 2) ())
+     (well-dyn-expression () (vector-ref (vector 1) 0) ())
+     (well-dyn-expression () (vector-set! (vector 1) 2 3) ())
+     (well-dyn-expression () (first nil) ())
+     (well-dyn-expression () (rest nil) ())
+
+     (well-dyn-expression () (+ nil 1) ())
+     (well-dyn-expression () (ifz (vector 0) 3 -4) ())
+   )
+
+   (check-not-judgment-holds*
+     (well-dyn-expression () (mon-vector M (Vectorof Nat) (vector -1 2)) (M))
+   )
+  )
+
+  (test-case "well-typed-state"
+
+    (check-judgment-holds*
+     (well-typed-state (2 () M ()) Int (M))
+     (well-typed-state ((fun f (x) x) () M ()) (→ Nat Nat) (M))
+     (well-typed-state ((vector x) ((x (1 2 3))) M ()) (Vectorof Nat) (M))
+
+     (well-typed-state
+       ((vector 2) () Mt
+        ((Mu (+ 1 hole) (Vectorof Int)) ((Mt hole Nat) ())))
+       Nat (Mt))
+
+     (well-typed-state
+       ((+ 2 nil) () Mu
+        ((Mt (+ 1 hole) Int) ()))
+       Int (Mt))
+    )
+  )
 )

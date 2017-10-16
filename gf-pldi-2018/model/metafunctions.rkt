@@ -19,6 +19,8 @@
 
   typed-module
   untyped-module
+
+  unload-store
 )
 
 (require
@@ -118,18 +120,18 @@
                       (raise-arguments-error 'type-env-ref "unbound identifier" "id" x "type context" (term Γ))))])
 
 (define-metafunction μTR
-  type-env-set : Γ x τ -> Γ
-  [(type-env-set Γ x τ)
-   #{env-set Γ (x τ)}
+  type-env-set : Γ x ?τ -> Γ
+  [(type-env-set Γ x ?τ)
+   #{env-set Γ (x ?τ)}
    (where #false #{env-ref Γ x #false})]
-  [(type-env-set Γ x τ)
+  [(type-env-set Γ x ?τ)
    ,(raise-arguments-error 'type-env-set "identifier already bound in store"
-      "id" (term x) "type context" (term Γ) "the type" (term τ))])
+      "id" (term x) "type context" (term Γ) "the type" (term ?τ))])
 
 (define-metafunction μTR
-  type-env-update : Γ x τ -> Γ
-  [(type-env-update Γ x τ)
-   #{env-update Γ (x τ) any_fail}
+  type-env-update : Γ x ?τ -> Γ
+  [(type-env-update Γ x ?τ)
+   #{env-update Γ (x ?τ) any_fail}
    (where any_fail ,(λ (x)
                       (raise-arguments-error 'type-env-update "unbound identifier, cannot update" "id" x "type env" (term Γ))))])
 
@@ -145,6 +147,102 @@
       "term" (term any_thing)
       "binding" (term any_bad)
       "other bindings" (term (any_rest ...)))])
+
+(define-metafunction μTR
+  unload-store : e σ -> e
+  [(unload-store e ())
+   e]
+  [(unload-store e σ)
+   e_sub
+   (judgment-holds (unload-store-of e σ e_sub))])
+
+(define-judgment-form μTR
+  #:mode (unload-store-of I I O)
+  #:contract (unload-store-of e σ e)
+  [
+   ---
+   (unload-store-of integer σ integer)]
+  [
+   (where (fun x_f (x) e) Λ)
+   (unload-store-of e σ e_sub)
+   (where Λ_sub (fun x_f (x) e_sub))
+   ---
+   (unload-store-of Λ σ Λ_sub)]
+  [
+   (where [_ (v ...)] #{loc-env-ref σ x})
+   (unload-store-of v σ v_sub) ...
+   ---
+   (unload-store-of (vector x) σ (vector v_sub ...))]
+  [
+   (unload-store-of e σ e_sub) ...
+   ---
+   (unload-store-of (vector e ...) σ (vector e_sub ...))]
+  [
+   (unload-store-of e_0 σ e_0sub)
+   (unload-store-of e_1 σ e_1sub)
+   ---
+   (unload-store-of (cons e_0 e_1) σ (cons e_0sub e_1sub))]
+  [
+   ---
+   (unload-store-of nil σ nil)]
+  [
+   (unload-store-of v σ v_sub)
+   ---
+   (unload-store-of (mon-fun x τ v) σ (mon-fun x τ v_sub))]
+  [
+   (unload-store-of v σ v_sub)
+   ---
+   (unload-store-of (mon-vector x τ v) σ (mon-vector x τ v_sub))]
+  [
+   (unload-store-of e_fun σ e_fun-sub)
+   (unload-store-of e_arg σ e_arg-sub)
+   ---
+   (unload-store-of (e_fun e_arg) σ (e_fun-sub e_arg-sub))]
+  [
+   (unload-store-of e_0 σ e_0+)
+   (unload-store-of e_1 σ e_1+)
+   (unload-store-of e_2 σ e_2+)
+   ---
+   (unload-store-of (ifz e_0 e_1 e_2) σ (ifz e_0+ e_1+ e_2+))]
+  [
+   (unload-store-of e_0 σ e_0+)
+   (unload-store-of e_1 σ e_1+)
+   ---
+   (unload-store-of (+ e_0 e_1) σ (+ e_0+ e_1+))]
+  [
+   (unload-store-of e_0 σ e_0+)
+   (unload-store-of e_1 σ e_1+)
+   ---
+   (unload-store-of (- e_0 e_1) σ (- e_0+ e_1+))]
+  [
+   (unload-store-of e_0 σ e_0+)
+   (unload-store-of e_1 σ e_1+)
+   ---
+   (unload-store-of (* e_0 e_1) σ (* e_0+ e_1+))]
+  [
+   (unload-store-of e_0 σ e_0+)
+   (unload-store-of e_1 σ e_1+)
+   ---
+   (unload-store-of (% e_0 e_1) σ (% e_0+ e_1+))]
+  [
+   (unload-store-of e_vec σ e_vec+)
+   (unload-store-of e_i σ e_i+)
+   ---
+   (unload-store-of (vector-ref e_vec e_i) σ (vector-ref e_vec+ e_i+))]
+  [
+   (unload-store-of e_vec σ e_vec+)
+   (unload-store-of e_i σ e_i+)
+   (unload-store-of e_val σ e_val+)
+   ---
+   (unload-store-of (vector-set! e_vec e_i e_val) σ (vector-set! e_vec+ e_i+ e_val+))]
+  [
+   (unload-store-of e σ e_+)
+   ---
+   (unload-store-of (first e) σ (first e_+))]
+  [
+   (unload-store-of e σ e_+)
+   ---
+   (unload-store-of (rest e) σ (rest e_+))])
 
 (define-metafunction μTR
   stack-push : S FRAME -> S
@@ -278,10 +376,10 @@
      [(type-env-set () x Int)
       ((x Int))]
      [(type-env-set ((x Int) (y Int)) z (Vectorof Int))
-      ((z Int) (x Int) (y Int))])
+      ((z (Vectorof Int)) (x Int) (y Int))])
 
     (check-exn exn:fail:contract?
-      (λ () (term (type-env-set ((x (0))) x (1))))))
+      (λ () (term (type-env-set ((x Int)) x Int)))))
 
   (test-case "type-env-update"
     (check-mf-apply*
@@ -324,4 +422,20 @@
      (untyped-module M (M))
      (untyped-module M0 (M1 M0 M2)))
   )
+
+  (test-case "asdfasdfsfafdsf"
+    (check-true (redex-match? μTR e (term
+      (vector x)
+    )))
+    (check-true (redex-match? μTR σ (term
+      ((x (1 2 3)))))))
+
+  (test-case "unload-store"
+    (check-mf-apply*
+     ((unload-store (vector x) ((x (1 2 3))))
+      (vector 1 2 3))
+     ((unload-store (+ 2 2) ())
+      (+ 2 2))
+     ((unload-store (+ (vector a) (vector b)) ((a (1)) (b (4 3 2))))
+      (+ (vector 1) (vector 4 3 2)))))
 )
