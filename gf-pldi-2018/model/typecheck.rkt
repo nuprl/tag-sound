@@ -17,6 +17,7 @@
   not-vector-value
 
   well-typed-program
+  well-typed-state
 )
 
 (require
@@ -149,15 +150,297 @@
 
 ;; -----------------------------------------------------------------------------
 
+(define-judgment-form μTR
+  #:mode (well-typed-state I I I)
+  #:contract (well-typed-state Σ τ x*)
+  [
+   (typed-module x_mod x*) ;; No rule for empty stack and untyped module
+   (well-typed-expression () e τ x*)
+   ---
+   (well-typed-state (e σ x_mod ()) τ x*)]
+  [
+   (typed-module x_mod x*)
+   (where τ_e (frame->type FRAME))
+   (where τ (stack-outermost-type S τ_e))
+   (well-typed-expression () e τ_e x*)
+   ---
+   (well-typed-state (e σ x_mod (FRAME S)) τ x*)]
+  [
+   (untyped-module x_mod x*)
+   (where τ_e (frame->type FRAME))
+   (where τ (stack-outermost-type S τ_e))
+   (well-dyn-expression () e x*)
+   ---
+   (well-typed-state (e σ x_mod (FRAME S)) τ x*)])
+
+(define-judgment-form μTR
+  #:mode (well-typed-expression I I I I)
+  #:contract (well-typed-expression Γ e τ x*)
+  [
+   ---
+   (well-typed-expression Γ natural Nat _)]
+  [
+   ---
+   (well-typed-expression Γ integer Int _)]
+  [
+   (where [_ τ] #{type-env-ref Γ x})
+   ---
+   (well-typed-expression Γ x τ _)]
+  [
+   (where (→ τ_dom τ_cod) τ)
+   (where Γ_f #{type-env-set Γ x_f τ})
+   (where Γ_x #{type-env-set Γ_f x_arg τ_dom})
+   (well-typed-expression Γ_x e_body τ_cod x*)
+   ---
+   (well-typed-expression Γ (fun x_f (x_arg) e_body) τ x*)]
+  [
+   (typed-module x_mod x*)
+   (well-typed-expression Γ v τ x*)
+   ---
+   (well-typed-expression Γ (mon-fun x_mod τ v) τ x*)]
+  [
+   (untyped-module x_mod x*)
+   (well-dyn-expression Γ v x*)
+   ---
+   (well-typed-expression Γ (mon-fun x_mod τ v) τ x*)]
+  [
+   (typed-module x_mod x*)
+   (well-typed-expression Γ e τ x*)
+   ---
+   (well-typed-expression Γ (mon-vector x_mod τ e) τ x*)]
+  [
+   (untyped-module x_mod x*)
+   (well-dyn-expression Γ e x*)
+   ---
+   (well-typed-expression Γ (mon-vector x_mod τ e) τ x*)]
+  [
+   (where (Vectorof τ_elem) τ)
+   (well-typed-expression Γ e τ_elem x*) ...
+   ---
+   (well-typed-expression Γ (vector e ...) τ x*)]
+  [
+   (where (Listof τ_elem) τ)
+   (well-typed-expression Γ e_0 τ_elem x*)
+   (well-typed-expression Γ e_1 τ x*)
+   ---
+   (well-typed-expression Γ (cons e_0 e_1) τ x*)]
+  [
+   (where (Listof τ_elem) τ)
+   ---
+   (well-typed-expression Γ nil τ _)]
+  [
+   (infer-expression-type Γ e_fun τ)
+   (where (→ τ_dom τ_cod) τ)
+   (well-typed-expression Γ e_fun τ x*)
+   (well-typed-expression Γ e_arg τ_dom x*)
+   ---
+   (well-typed-expression Γ (e_fun e_arg) τ_cod x*)]
+  [
+   (well-typed-expression Γ e_0 Int x*)
+   (well-typed-expression Γ e_1 τ x*)
+   (well-typed-expression Γ e_2 τ x*)
+   ---
+   (well-typed-expression Γ (ifz e_0 e_1 e_2) τ x*)]
+  [
+   (well-typed-expression Γ e_0 Int x*)
+   (well-typed-expression Γ e_1 Int x*)
+   ---
+   (well-typed-expression Γ (+ e_0 e_1) Int x*)]
+  [
+   (well-typed-expression Γ e_0 Nat x*)
+   (well-typed-expression Γ e_1 Nat x*)
+   ---
+   (well-typed-expression Γ (+ e_0 e_1) Nat x*)]
+  [
+   (well-typed-expression Γ e_0 Int x*)
+   (well-typed-expression Γ e_1 Int x*)
+   ---
+   (well-typed-expression Γ (- e_0 e_1) Int x*)]
+  [
+   (well-typed-expression Γ e_0 Int x*)
+   (well-typed-expression Γ e_1 Int x*)
+   ---
+   (well-typed-expression Γ (* e_0 e_1) Int x*)]
+  [
+   (well-typed-expression Γ e_0 Nat x*)
+   (well-typed-expression Γ e_1 Nat x*)
+   ---
+   (well-typed-expression Γ (* e_0 e_1) Nat x*)]
+  [
+   (well-typed-expression Γ e_0 Int x*)
+   (well-typed-expression Γ e_1 Int x*)
+   ---
+   (well-typed-expression Γ (% e_0 e_1) Int x*)]
+  [
+   (well-typed-expression Γ e_0 Nat x*)
+   (well-typed-expression Γ e_1 Nat x*)
+   ---
+   (well-typed-expression Γ (% e_0 e_1) Nat x*)]
+  [
+   (well-typed-expression Γ e_vec (Vectorof τ) x*)
+   (well-typed-expression Γ e_i Int x*)
+   ---
+   (well-typed-expression Γ (vector-ref e_vec e_i) τ x*)]
+  [
+   (well-typed-expression Γ e_vec (Vectorof τ) x*)
+   (well-typed-expression Γ e_i Int x*)
+   (well-typed-expression Γ e_val τ x*)
+   ---
+   (well-typed-expression Γ (vector-set! e_vec e_i e_val) τ x*)]
+  [
+   (well-typed-expression Γ e (Listof τ) x*)
+   ---
+   (well-typed-expression Γ (first e) τ x*)]
+  [
+   (where (Listof τ_elem) τ)
+   (well-typed-expression Γ e τ x*)
+   ---
+   (well-typed-expression Γ (rest e) τ x*)]
+  ;; ignore !!
+)
+
+;; Simple type inference, doesn't even do a good job.
+(define-judgment-form μTR
+  #:mode (infer-expression-type I I O)
+  #:contract (infer-expression-type Γ e τ)
+  [
+   ---
+   (infer-expression-type Γ natural Nat)]
+  [
+   (side-condition ,(< (term integer) 0))
+   ---
+   (infer-expression-type Γ integer Int)]
+  [
+   (where τ #{type-env-ref Γ x})
+   ---
+   (infer-expression-type Γ x τ)]
+  [
+   (infer-expression-type Γ e τ)
+   ---
+   (infer-expression-type Γ (vector e _ ...) (Vectorof τ))]
+  [
+   (infer-expression-type Γ e_0 τ)
+   ---
+   (infer-expression-type Γ (cons e_0 _) (Listof τ))]
+  [
+   ---
+   (infer-expression-type Γ (mon-fun _ τ _) τ)]
+  [
+   ---
+   (infer-expression-type Γ (mon-vector _ τ _) τ)])
+
+(define-judgment-form μTR
+  #:mode (well-dyn-expression I I I)
+  #:contract (well-dyn-expression ?Γ e x*)
+  [
+   ---
+   (well-dyn-expression ?Γ integer x*)]
+  [
+   (where ?Γ_f #{type-env-set ?Γ x_fun Dyn})
+   (where ?Γ_x #{type-env-set ?Γ_f x_arg Dyn})
+   (well-dyn-expression ?Γ_x e x*)
+   ---
+   (well-dyn-expression ?Γ (fun x_fun (x_arg) e) x*)]
+  [
+   ---
+   (well-dyn-expression ?Γ nil x*)]
+  [
+   (typed-module x_mod x*)
+   (well-typed-expression ?Γ v τ x*)
+   ---
+   (well-dyn-expression ?Γ (mon-fun x_mod τ v) x*)]
+  [
+   (untyped-module x_mod x*)
+   (well-dyn-expression ?Γ v x*)
+   ---
+   (well-dyn-expression ?Γ (mon-fun x_mod τ v) x*)]
+  [
+   (typed-module x_mod x*)
+   (well-typed-expression ?Γ v τ x*)
+   ---
+   (well-dyn-expression ?Γ (mon-vector x_mod τ v) x*)]
+  [
+   (untyped-module x_mod x*)
+   (well-dyn-expression ?Γ v x*)
+   ---
+   (well-dyn-expression ?Γ (mon-vector x_mod τ v) x*)]
+  [
+   (where _ #{type-env-ref ?Γ x})
+   ---
+   (well-dyn-expression ?Γ x x*)]
+  [
+   (well-dyn-expression ?Γ e x*) ...
+   ---
+   (well-dyn-expression ?Γ (vector e ...) x*)]
+  [
+   (well-dyn-expression ?Γ e_hd x*)
+   (well-dyn-expression ?Γ e_tl x*)
+   ---
+   (well-dyn-expression ?Γ (cons e_hd e_tl) x*)]
+  [
+   (well-dyn-expression ?Γ e_fun x*)
+   (well-dyn-expression ?Γ e_arg x*)
+   ---
+   (well-dyn-expression ?Γ (e_fun e_arg) x*)]
+  [
+   (well-dyn-expression ?Γ e_0 x*)
+   (well-dyn-expression ?Γ e_1 x*)
+   (well-dyn-expression ?Γ e_2 x*)
+   ---
+   (well-dyn-expression ?Γ (ifz e_0 e_1 e_2) x*)]
+  [
+   (well-dyn-expression ?Γ e_0 x*)
+   (well-dyn-expression ?Γ e_1 x*)
+   ---
+   (well-dyn-expression ?Γ (+ e_0 e_1) x*)]
+  [
+   (well-dyn-expression ?Γ e_0 x*)
+   (well-dyn-expression ?Γ e_1 x*)
+   ---
+   (well-dyn-expression ?Γ (- e_0 e_1) x*)]
+  [
+   (well-dyn-expression ?Γ e_0 x*)
+   (well-dyn-expression ?Γ e_1 x*)
+   ---
+   (well-dyn-expression ?Γ (* e_0 e_1) x*)]
+  [
+   (well-dyn-expression ?Γ e_0 x*)
+   (well-dyn-expression ?Γ e_1 x*)
+   ---
+   (well-dyn-expression ?Γ (% e_0 e_1) x*)]
+  [
+   (well-dyn-expression ?Γ e_vec x*)
+   (well-dyn-expression ?Γ e_i x*)
+   ---
+   (well-dyn-expression ?Γ (vector-ref e_vec e_i) x*)]
+  [
+   (well-dyn-expression ?Γ e_vec x*)
+   (well-dyn-expression ?Γ e_i x*)
+   (well-dyn-expression ?Γ e_arg x*)
+   ---
+   (well-dyn-expression ?Γ (vector-set! e_vec e_i e_arg) x*)]
+  [
+   (well-dyn-expression ?Γ e x*)
+   ---
+   (well-dyn-expression ?Γ (first e) x*)]
+  [
+   (well-dyn-expression ?Γ e x*)
+   ---
+   (well-dyn-expression ?Γ (rest e) x*)])
+
 (define-metafunction μTR
   well-typed-program : P -> P-TYPE
   [(well-typed-program P)
    yolo])
    ;#{well-typed-program/env () P}])
 
+
 ;; well-typed-program/env
 ;; well-typed-module
 ;; well-typed-expression
+
+
+;; -----------------------------------------------------------------------------
 
 ;; =============================================================================
 

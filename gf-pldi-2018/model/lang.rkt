@@ -4,7 +4,9 @@
   μTR
   α=?
   type->tag
-  tag-of)
+  tag-of
+  frame->type
+  frame->tag)
 
 (require
   redex/reduction-semantics
@@ -55,10 +57,9 @@
   ;;  (3) add auxliary technical structures
   ;;  Tailor variable names to the "importance" of things.
 
-  (e ::= integer x (fun x (x) e) (vector e ...) (cons e e) nil
+  (e ::= v x (vector e ...) (cons e e)
          (e e) (ifz e e e)
          (+ e e) (- e e) (* e e) (% e e) (vector-ref e e) (vector-set! e e e) (first e) (rest e)
-         (mon-fun x τ e) (mon-vector x τ e)
          (!! [x κ e] e))
   ;; Expressions come in three flavors:
   ;; - value constructors (for integers, functions, vectors, lists)
@@ -115,6 +116,9 @@
 
   (Γ ::= ((x τ) ...))
   ;; Local type context, for checking expressions
+
+  (?Γ ::= ((x ?τ) ...))
+  (?τ ::= Dyn τ)
 
   (E ::= hole (vector v ... E e ...) (cons E e) (cons v E)
          (E e) (v E)
@@ -180,3 +184,12 @@
    κ
    (judgment-holds (tag-of τ κ))])
 
+(define-metafunction μTR
+  frame->type : FRAME -> τ
+  [(frame->type (_ _ τ))
+   τ])
+
+(define-metafunction μTR
+  frame->tag : FRAME -> κ
+  [(frame->tag (_ _ κ))
+   κ])

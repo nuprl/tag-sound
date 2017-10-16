@@ -251,6 +251,68 @@
       "module" (term x))
    (where (v σ x S) Σ)])
 
+;; -----------------------------------------------------------------------------
+
+(define-metafunction μTR
+  typed-eval-value : x x* σ ρ e τ -> [v σ]
+  [(typed-eval-value x_modname x*_tmods σ ρ e τ)
+   [v_final σ_final]
+   (where Γ #{runtime-env->type-context ρ})
+   (judgment-holds (well-typed-expression Γ e τ x*))
+   (where Σ_0 #{load-expression x_modname σ ρ e})
+   (where A #{step-expression*/type (term Σ_0) (term τ) (term x*_tmods)})
+   (where [v_final σ_final x_modname] #{unload-answer A})])
+
+(define-metafunction μTR
+  step-expression*/type : A τ x* -> A
+  [(step-expression*/type Σ τ x*_tmods)
+   ,(cond
+    [(null? (term any_A*))
+     (term Σ)]
+    [(null? (cdr (term any_A*)))
+     (term (step-expression*/type ,(car (term any_A*)) τ x*_tmods))]
+    [else
+     (raise-arguments-error 'step-expression*/type
+       "expression stepped to multiple results"
+       "state" (term Σ)
+       "target type" (term τ)
+       "typed modules" (term x*))])
+   (judgment-holds (well-typed-state Σ τ x*_tmods))
+   (where any_A* ,(apply-reduction-relation step-expression (term Σ)))
+  [(step-expression*/type Error τ x*)
+   Error])
+
+(define-metafunction μTR
+  runtime-env->type-context : ρ -> Γ
+  [(runtime-env->type-context ρτ)
+   ((x τ) ...)
+   (where ((x v τ) ...) ρτ)]
+  [(runtime-env->type-context ρλ)
+   ((x #{infer-value-type v}) ...)
+   (where ((x v) ...) ρλ)])
+
+(define-metafunction μTR
+  infer-value-type : v -> τ
+  [(infer-value-type natural)
+   Nat]
+  [(infer-value-type integer)
+   Int]
+  [(infer-value-type (cons v_hd nil))
+   (Listof τ)
+   (where τ (infer-value-type v_hd))]
+  [(infer-value-type (cons v_hd v_tl))
+   (Listof τ)
+   (where τ (infer-value-type v_hd))
+   (where (Listof τ) (infer-value-type v_tl))]
+  [(infer-value-type (mon-vector _ τ _))
+   τ]
+  [(infer-value-type (mon-fun _ τ _))
+   τ]
+  [(infer-value-type v)
+   ,(raise-argument-error 'infer-value-type "failed to infer type" "value" (term v))])
+
+;; -----------------------------------------------------------------------------
+
 (define step-expression
   (reduction-relation μTR
    #:domain A
@@ -900,6 +962,39 @@
       (() ((z 3 Int) (y 2 Nat) (x 1 Nat))))
     )
   )
+
+  (test-case "runtime-env->type-context"
+    (check-mf-apply*
+     ((runtime-env->type-context ())
+      ())
+     ((runtime-env->type-context ((x 1 Nat) (y 2 Int) (z (fun f (x) x) (→ Nat Nat))))
+      ((x Nat) (y Int) (z (→ Nat Nat))))
+     ((runtime-env->type-context ((x 1) (y 2) (z (mon-fun M (→ Nat (Vectorof Nat)) (fun f (x) x)))))
+      ((x Nat) (y Nat) (z (→ Nat (Vectorof Nat)))))))
+
+  (test-case "infer-value-type"
+    (check-mf-apply*
+     ((infer-value-type 3)
+      Nat)
+     ((infer-value-type -3)
+      Int)
+     ((infer-value-type (cons 1 (cons 2 nil)))
+      (Listof Nat))
+     ((infer-value-type (mon-vector M (Vectorof Nat) (vector 1 2 3)))
+      (Vectorof Nat))
+     ((infer-value-type (mon-vector M (Vectorof Nat) (vector -3)))
+      (Vectorof Nat))
+     ((infer-value-type (mon-fun M (→ Nat Nat) (fun f (x) (+ x 3))))
+      (→ Nat Nat)))
+
+   (check-exn exn:fail:contract?
+     (λ () (term (infer-value-type nil))))
+
+   (check-exn exn:fail:contract?
+     (λ () (term (infer-value-type (vector 1)))))
+
+   (check-exn exn:fail:contract?
+     (λ () (term (infer-value-type (fun f (x) x))))))
 
 )
 

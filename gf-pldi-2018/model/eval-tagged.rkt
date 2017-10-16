@@ -3,7 +3,9 @@
 ;; Tagged Racket semantics,
 ;;  ....
 
-;; Diff from eval-untyped
+;; - soundenss : expect a 'well-tagged-value' at the end
+
+;; TODO diff from eval-untyped
 ;; - tag-check on require
 ;; - tag-check where checks appear (assumes rewritten program)
 

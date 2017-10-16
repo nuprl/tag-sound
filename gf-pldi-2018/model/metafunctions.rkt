@@ -9,9 +9,16 @@
   loc-env-ref
   loc-env-set
   loc-env-update
+  type-env-ref
+  type-env-set
+  type-env-update
   substitute*
 
   stack-push
+  stack-outermost-type
+
+  typed-module
+  untyped-module
 )
 
 (require
@@ -104,6 +111,29 @@
                       (raise-arguments-error 'loc-env-update "unbound identifier, cannot update" "id" x "store" (term σ))))])
 
 (define-metafunction μTR
+  type-env-ref : Γ x -> any
+  [(type-env-ref Γ x)
+   #{env-ref Γ x any_fail}
+   (where any_fail ,(λ (x)
+                      (raise-arguments-error 'type-env-ref "unbound identifier" "id" x "type context" (term Γ))))])
+
+(define-metafunction μTR
+  type-env-set : Γ x τ -> Γ
+  [(type-env-set Γ x τ)
+   #{env-set Γ (x τ)}
+   (where #false #{env-ref Γ x #false})]
+  [(type-env-set Γ x τ)
+   ,(raise-arguments-error 'type-env-set "identifier already bound in store"
+      "id" (term x) "type context" (term Γ) "the type" (term τ))])
+
+(define-metafunction μTR
+  type-env-update : Γ x τ -> Γ
+  [(type-env-update Γ x τ)
+   #{env-update Γ (x τ) any_fail}
+   (where any_fail ,(λ (x)
+                      (raise-arguments-error 'type-env-update "unbound identifier, cannot update" "id" x "type env" (term Γ))))])
+
+(define-metafunction μTR
   substitute* : any (any ...) -> any
   [(substitute* any_thing ())
    any_thing]
@@ -120,6 +150,30 @@
   stack-push : S FRAME -> S
   [(stack-push S FRAME)
    (FRAME S)])
+
+(define-metafunction μTR
+  stack-outermost-type : S τ -> τ
+  [(stack-outermost-type () τ)
+   τ]
+  [(stack-outermost-type (FRAME S) _)
+   (stack-outermost-type S τ_F)
+   (where τ_F #{frame->type FRAME})])
+
+(define-judgment-form μTR
+  #:mode (typed-module I I)
+  #:contract (typed-module x x*)
+  [
+   (where (x_left ... x x_right ...) x*)
+   ---
+   (typed-module x x*)])
+
+(define-judgment-form μTR
+  #:mode (untyped-module I I)
+  #:contract (untyped-module x x*)
+  [
+   (side-condition ,(not (member (term x) (term x*))))
+   ---
+   (untyped-module x x*)])
 
 ;; =============================================================================
 
@@ -209,6 +263,34 @@
     (check-exn exn:fail:contract?
       (λ () (term (loc-env-update ((x (0))) y (1))))))
 
+  (test-case "type-env-ref"
+    (check-mf-apply*
+     [(type-env-ref ((x Int)) x)
+      (x Int)]
+     [(type-env-ref ((x Int) (y Int)) y)
+      (y Int)])
+
+    (check-exn exn:fail:contract?
+      (λ () (term #{type-env-ref () x}))))
+
+  (test-case "type-env-set"
+    (check-mf-apply*
+     [(type-env-set () x Int)
+      ((x Int))]
+     [(type-env-set ((x Int) (y Int)) z (Vectorof Int))
+      ((z Int) (x Int) (y Int))])
+
+    (check-exn exn:fail:contract?
+      (λ () (term (type-env-set ((x (0))) x (1))))))
+
+  (test-case "type-env-update"
+    (check-mf-apply*
+     [(type-env-update ((x Int)) x Nat)
+      ((x Nat))])
+
+    (check-exn exn:fail:contract?
+      (λ () (term (type-env-update ((x Int)) y Nat)))))
+
   (test-case "substitute*"
     (check-mf-apply*
      [(substitute* (+ x y) ((x 1) (y 2)))
@@ -216,4 +298,30 @@
      [(substitute* (+ a a) ())
       (+ a a)]))
 
+  (test-case "stack-outermost-type"
+    (check-mf-apply*
+     ((stack-outermost-type () Int)
+      Int)
+     ((stack-outermost-type () Nat)
+      Nat)
+     ((stack-outermost-type ((A hole Int) ((B hole Nat) ())) (Vectorof Int))
+      Nat)))
+
+  (test-case "typed-module"
+    (check-judgment-holds*
+     (typed-module M0 (M0 M1 M2))
+     (typed-module M2 (M0 M1 M2)))
+
+    (check-judgment-holds*
+     (untyped-module M ())
+     (untyped-module M0 (M1 M2)))
+
+    (check-not-judgment-holds*
+     (typed-module M (M0 M1 M2))
+     (typed-module M3 (M0 M1 M2)))
+
+    (check-not-judgment-holds*
+     (untyped-module M (M))
+     (untyped-module M0 (M1 M0 M2)))
+  )
 )
