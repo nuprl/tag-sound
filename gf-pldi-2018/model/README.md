@@ -16,6 +16,7 @@ TODO
 - count runtime time checks ?
 - be careful! don't mix typing with evaluation
 - stop using "typed modules" list, make module names have (id typed?)
+- allow mutually recursive defines
 
 Summary
 ---

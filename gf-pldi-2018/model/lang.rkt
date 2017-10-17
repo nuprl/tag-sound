@@ -1,9 +1,12 @@
 #lang racket/base
 
+;; TODO more restrictions on TST ?
+
 (provide
   μTR
   α=?
-  UN TY)
+  UN
+  TY)
 
 (require
   redex/reduction-semantics
@@ -13,7 +16,8 @@
 
 (define-language++ μTR #:alpha-equivalent? α=?
   (τ ::= Int Nat (→ τ τ) (Vectorof τ) (Listof τ)
-         (U τ ...) (∀ (α) τ) (μ (α) τ) α)
+         (U τ ...) (∀ (α) τ) (μ (α) τ) α
+         TST)
   ;; Types,
   ;; - simple types with non-trivial subtyping
   ;; - parameterized types with covariant, contravariant, and invariant positions
@@ -28,108 +32,91 @@
 
   (PROGRAM ::= (MODULE ...))
   ;; A program is a sequence of modules.
-  (MODULE ::= (module x L REQUIRE-λ ... DEFINE-λ ... PROVIDE)
-              (module x L REQUIRE-τ ... DEFINE-τ ... PROVIDE))
-  ;; A module is either typed or untyped,
-  ;;  begins with a sequence of requires from other modules,
+  (TYPED-MODULE ::= (module M typed TYPED-REQUIRE ... TYPED-DEFINE ... TYPED-PROVIDE))
+  (UNTYPED-MODULE ::= (module M untyped UNTYPED-REQUIRE ... UNTYPED-DEFINE ... UNTYPED-PROVIDE))
+  (MODULE ::= TYPED-MODULE UNTYPED-MODULE)
+  ;; A module is either "typed" or "untyped",
+  ;;  begins with a sequence of requires,
   ;;  contains a sequence of definitions,
-  ;;  and ends with a sequence of provided definitions
+  ;;  and ends with a provide
 
-  (L ::= boolean)
-  (REQUIRE-λ ::= (require x x ...))
+  (L ::= untyped typed)
+  ;; "L" is for language.
+
+  (UNTYPED-REQUIRE ::= (require x x ...))
   ;; An untyped require is a module name followed by a seqence of identifiers
-  (REQUIRE-τ ::= (require x [x τ] ...))
+  (TYPED-REQUIRE ::= (require x Γ))
   ;; A typed require is a module named followed by a sequence of type-annotated identifiers.
-  (DEFINE-λ ::= (define x e))
+  (UNTYPED-DEFINE ::= (define x e))
   ;; An untyped definition is an idenfier and an expression
-  (DEFINE-τ ::= (define x τ e))
+  (TYPED-DEFINE ::= (define x τ e))
   ;; A typed definition is an identifier, an expected type annotation, and an expression
-  (PROVIDE ::= (provide x ...))
+  (UNTYPED-PROVIDE ::= PROVIDE)
+  (TYPED-PROVIDE ::= PROVIDE)
   ;; A provide form is a sequence of identifiers to export
-  ;;
-  ;; Purpose: simulate macro-level gradual typing,
-  ;;  where typed code can statically assert that untyped values match a type
 
-  ;; TODO maybe change order, goal is to
-  ;;  (1) explain all syntax
-  ;;  (2) get into evaluation
-  ;;  (3) add auxliary technical structures
-  ;;  Tailor variable names to the "importance" of things.
+  (REQUIRE ::= UNTYPED-REQUIRE TYPED-REQUIRE)
+  (DEFINE ::= UNTYPED-DEFINE TYPED-DEFINE)
+  (PROVIDE ::= (provide x ...))
 
   (e ::= v x (vector e ...) (cons e e)
-         (e e) (ifz e e e)
-         (+ e e) (- e e) (* e e) (% e e) (vector-ref e e) (vector-set! e e e) (first e) (rest e)
+         (e e)
+         (ifz e e e)
+         (+ e e) (- e e) (* e e) (% e e)
+         (vector-ref e e) (vector-set! e e e) (first e) (rest e)
 
          (!! [x κ e] e) ;; TODO use 'let' or 'lambda'
 
-         (check τ e) (protect τ e)
-
-         ;; The `mon` are not really expressions, just there
-         ;;  so the typechecker doesn't need to carry a `σ` environment
-         ;; Which is dumb, typechecker should carry
-         (mon-fun x τ e) (mon-vector x τ e))
+         (check τ e) (protect τ e))
   ;; Expressions come in three flavors:
   ;; - value constructors (for integers, functions, vectors, lists)
   ;; - control flow (if)
   ;; - destructors
+  ;; - internal forms for gradual type checking (check protect)
   ;; Purpose: recursive functions,
   ;;  partial primops due to type and value errors,
   ;;  mutable values
 
   (v ::= integer Λ (vector x) (cons v v) nil
-         (mon-fun x τ v) (mon-vector x τ v))
+         (mon-fun τ v) (mon-vector τ v))
   (Λ ::= (fun x (x) e) (fun x τ (x) e))
   ;; Value forms, including `monitor` values.
   ;; The monitors protect typed functions and vectors.
   ;;  (The type-sound evaluator will use monitors. The tag-sound will not.)
 
-  (Σ ::= (e σ x S))
+  (Σ ::= (e σ))
   ;; Evaluation states consist of:
   ;; - `e` the current expression being reduced
   ;; - `σ` the current store
-  ;; - `x` the current module name (important to check if typed/untyped)
-  ;; - `S` is the current context, the type-boundary call stack
-  ;; The module is for error-soundness,
-  ;;  to prove that typed modules do not commit type errors
 
-  (S ::= () (FRAME S))
-  (FRAME ::= (x E κ) (x E τ))
-  ;; A type boundary call stack is made of frames.
-  ;; A frame is a context to return to.
-  ;;  The context always has a name and an expected type.
-  ;;  (If there is no expected type, then you didn't cross a boundary.)
+  (VAL-ENV ::= (M:ρ ...))
+  (M:ρ ::= (M ρ))
+  ;; A toplevel value environment binds names to runtime environments,
+  ;;  think: "evaluating the modules produced these values for its definitions"
 
-  (P-ENV ::= (MODULE-BINDING ...))
-  (MODULE-BINDING ::= (x ρ))
-  ;; A program environment binds names to runtime environments,
-  ;;  think: "evaluating the module produced these values for its definitions"
-
-  (ρ ::= ρλ ρτ)
-  (ρλ ::= (x:v ...))
-  (ρτ ::= (x:v:τ ...))
+  (ρ ::= (x:v ...))
   (x:v ::= (x v))
-  (x:v:τ ::= (x v τ))
   ;; A runtime environment binds identifiers to (typed) values
   ;; Types are preserved to protect typed values used by untyped modules.
 
   (σ ::= ((l v*) ...))
-  ;; Store, maps locations to vectors
+  ;; Store, or heap. Maps locations to vectors
 
-  (P-TYPE ::= (M-TYPE ...))
-  (M-TYPE ::= (x Γ))
-  ;; A program type context records names and types.
+  (TYPE-ENV ::= (M:Γ ...))
+  (M:Γ ::= (x Γ))
+  ;; A toplevel type environment records names and types.
   ;; For each typed module, records the types.
   ;; Ignores untyped modules (we could record names but no big deal).
 
-  (Γ ::= ((x ?τ) ...))
-  (?τ ::= Dyn τ)
+  (Γ ::= (x:τ ...))
+  (x:τ ::= (x τ))
   ;; Local type context, for checking expressions
-  ;; ... needs dyn because typechecking flips between typed and untyped code
+  ;; ... needs TST because expression typing flips between typed and untyped code
 
   (E ::= hole (vector v ... E e ...) (cons E e) (cons v E)
          (E e) (v E)
-         (ifz E e e) (+ E e) (+ v E) (- E e) (- v E) (* E e) (* v E) (% E e) (% v E)
-         (vector-ref E e) (vector-ref v E) (vector-set! E e e) (vector-set! v E e) (vector-set! v v E)
+         (ifz E e e) (+ v ... E e ...) (- v ... E e ...) (* v ... E e ...) (% v ... E e ...)
+         (vector-ref v ... E e ...) (vector-set! v ... E e ...)
          (first E) (rest E)
          (check τ E) (protect τ E))
   ;; Left-to-right eager evaluation contexts
@@ -137,8 +124,8 @@
   (A ::= Σ Error)
   (Error ::= BoundaryError TypeError)
   (TypeError ::= (TE v EXPECTED))
-  (BoundaryError ::= RuntimeError (BE x EXPECTED x v))
-  (RuntimeError ::= DivisionByZero BadIndex EmptyList)
+  (BoundaryError ::= ValueError (BE x EXPECTED x v))
+  (ValueError ::= DivisionByZero BadIndex EmptyList)
   (EXPECTED ::= τ κ string)
   ;; Evaluation can produce either a final value or an error,
   ;;  errors can be due to ill-typed values in untyped code,
@@ -147,7 +134,7 @@
   ;; - between a module and the runtime
   ;; - between two modules
 
-  (α l x ::= variable-not-otherwise-mentioned)
+  (α l x M ::= variable-not-otherwise-mentioned)
   (α* ::= (α ...))
   (x* ::= (x ...))
   (τ* ::= (τ ...))
@@ -161,5 +148,5 @@
 
 ;; -----------------------------------------------------------------------------
 
-(define-term UN #false)
-(define-term TY #true)
+(define-term UN untyped)
+(define-term TY typed)

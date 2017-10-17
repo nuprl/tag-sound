@@ -18,6 +18,7 @@
   local-type-env-ref
   local-type-env-set
   local-type-env-update
+  local-type-env-extend
 
   toplevel-type-env-ref
   toplevel-type-env-set
@@ -28,6 +29,11 @@
   store-update
 
   mu-fold
+  coerce-sequence
+  coerce-arrow-type
+  coerce-vector-type
+  coerce-list-type
+  not-TST
 
   unload-store
 
@@ -188,6 +194,11 @@
      ,(λ (x)
         (raise-arguments-error 'type-env-update "unbound identifier, cannot update"
           "id" x "local-type-env" (term Γ))))])
+
+(define-metafunction μTR
+  local-type-env-extend : Γ Γ -> Γ
+  [(local-type-env-extend Γ_0 Γ_1)
+   #{env-set* Γ_0 Γ_1}])
 
 (define-metafunction μTR
   toplevel-type-env-ref : TYPE-ENV x -> any
@@ -456,6 +467,42 @@
    (substitute τ_body α τ)
    (where (μ (α) τ_body) τ)])
 
+(define-metafunction μTR
+  coerce-sequence : τ -> τ*
+  [(coerce-sequence (U τ ...))
+   (τ ...)]
+  [(coerce-sequence τ)
+   (τ)])
+
+(define-metafunction μTR
+  coerce-arrow-type : τ -> any
+  [(coerce-arrow-type (→ τ_dom τ_cod))
+   (→ τ_dom τ_cod)]
+  [(coerce-arrow-type _)
+   #f])
+
+(define-metafunction μTR
+  coerce-vector-type : τ -> any
+  [(coerce-vector-type (Vectorof τ))
+   (Vectorof τ)]
+  [(coerce-vector-type _)
+   #f])
+
+(define-metafunction μTR
+  coerce-list-type : τ -> any
+  [(coerce-list-type (Listof τ))
+   (Listof τ)]
+  [(coerce-list-type _)
+   #f])
+
+(define-judgment-form μTR
+  #:mode (not-TST I)
+  #:contract (not-TST τ)
+  [
+   (side-condition ,(not (equal? (term TST) (term τ))))
+   ---
+   (not-TST τ)])
+
 ;; =============================================================================
 
 (module+ test
@@ -560,7 +607,10 @@
      [(local-type-env-update ((x Int)) x Nat)
       ((x Nat))])
     (check-exn exn:fail:contract?
-      (λ () (term (local-type-env-update ((x Int)) y Nat)))))
+      (λ () (term (local-type-env-update ((x Int)) y Nat))))
+    (check-mf-apply*
+      ((local-type-env-extend ((x Int)) ((y Int)))
+       ((y Int) (x Int)))))
 
   (test-case "toplevel-type-env"
     (check-mf-apply*
@@ -655,5 +705,39 @@
       (U Int (Listof (μ (α) (U Int (Listof α))))))
     )
   )
+
+  (test-case "coerce-sequence"
+    (check-mf-apply*
+     ((coerce-sequence (U Int Nat))
+      (Int Nat))
+     ((coerce-sequence Int)
+      (Int))))
+
+  (test-case "coerce-arrow-type"
+    (check-mf-apply*
+     ((coerce-arrow-type (→ Nat Nat))
+      (→ Nat Nat))
+     ((coerce-arrow-type Nat)
+      #f)))
+
+  (test-case "coerce-vector-type"
+    (check-mf-apply*
+     ((coerce-vector-type (Vectorof Int))
+      (Vectorof Int))
+     ((coerce-vector-type Nat)
+      #false)))
+
+  (test-case "coerce-list-type"
+    (check-mf-apply*
+     ((coerce-list-type (Listof Int))
+      (Listof Int))
+     ((coerce-list-type Nat)
+      #f)))
+
+  (test-case "not-TST"
+    (check-judgment-holds*
+     (not-TST Nat))
+    (check-not-judgment-holds*
+     (not-TST TST)))
 
 )
