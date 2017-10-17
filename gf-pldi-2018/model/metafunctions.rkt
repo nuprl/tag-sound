@@ -2,36 +2,39 @@
 
 (provide
   set-union*
-  env-set
-  env-set*
-  program-env-ref
-  runtime-env-ref
-  loc-env-ref
-  loc-env-set
-  loc-env-update
-  type-env-ref
-  type-env-set
-  type-env-update
   substitute*
 
-  stack-push
-  stack-outermost-type
+  env-set
+  env-set*
+
+  local-value-env-ref
+  local-value-env-set
+  local-value-env-update
+
+  toplevel-value-env-ref
+  toplevel-value-env-set
+  toplevel-value-env-update
+
+  local-type-env-ref
+  local-type-env-set
+  local-type-env-update
+
+  toplevel-type-env-ref
+  toplevel-type-env-set
+  toplevel-type-env-update
+
+  store-ref
+  store-set
+  store-update
 
   mu-fold
-
-  typed-module
-  untyped-module
 
   unload-store
 
   same-domain
 
-  typed-module-name*
-
   type->tag
   tag-of
-  frame->type
-  frame->tag
 
   lambda-strip-type
 
@@ -49,6 +52,21 @@
   (for/fold ([acc '()])
             ([x* (in-list x**)])
     (set-union acc x*)))
+
+(define-metafunction μTR
+  substitute* : any (any ...) -> any
+  [(substitute* any_thing ())
+   any_thing]
+  [(substitute* any_thing (any_first any_rest ...))
+   (substitute* (substitute any_thing any_key any_val) (any_rest ...))
+   (where (any_key any_val _ ...) any_first)]
+  [(substitute* any_thing (any_bad any_rest ...))
+   ,(raise-arguments-error 'substitute* "bad environment binding"
+      "term" (term any_thing)
+      "binding" (term any_bad)
+      "other bindings" (term (any_rest ...)))])
+
+;; -----------------------------------------------------------------------------
 
 (define-metafunction μTR
   env-set : any any -> any
@@ -88,80 +106,144 @@
        [else
         (loop (cdr env) (term #{env-set ,acc ,(car env)}))]))])
 
-(define-metafunction μTR
-  program-env-ref : P-ENV x -> MODULE-BINDING
-  [(program-env-ref P-ENV x)
-   #{env-ref P-ENV x any_fail}
-   (where any_fail ,(λ (x)
-                      (raise-arguments-error 'program-env-ref "unbound identifier" "id" x "env" (term P-ENV))))])
+;; -----------------------------------------------------------------------------
 
 (define-metafunction μTR
-  runtime-env-ref : ρ x any ... -> any
-  [(runtime-env-ref ρ x any_fail)
-   #{env-ref ρ x any_fail}]
-  [(runtime-env-ref ρ x)
+  local-value-env-ref : ρ x -> any
+  [(local-value-env-ref ρ x)
    #{env-ref ρ x any_fail}
-   (where any_fail ,(λ (x)
-                      (raise-arguments-error 'runtime-env-ref "unbound identifier" "id" x "env" (term ρ))))])
+   (where any_fail
+     ,(λ (x)
+        (raise-arguments-error 'local-value-env-ref "unbound identifier"
+          "id" x "type context" (term ρ))))])
 
 (define-metafunction μTR
-  loc-env-ref : σ x -> any
-  [(loc-env-ref σ x)
+  local-value-env-set : ρ x v -> ρ
+  [(local-value-env-set ρ x v)
+   #{env-set ρ (x v)}
+   (where #false #{env-ref ρ x #false})]
+  [(local-value-env-set ρ x v)
+   ,(raise-arguments-error 'local-value-env-set "identifier already bound"
+      "id" (term x) "local-value-env" (term ρ) "value" (term v))])
+
+(define-metafunction μTR
+  local-value-env-update : ρ x v -> ρ
+  [(local-value-env-update ρ x v)
+   #{env-update ρ (x v) any_fail}
+   (where any_fail
+     ,(λ (x)
+        (raise-arguments-error 'local-value-env-update "unbound identifier, cannot update"
+          "id" x "loval-value-env" (term ρ))))])
+
+(define-metafunction μTR
+  toplevel-value-env-ref : VAL-ENV M -> any
+  [(toplevel-value-env-ref VAL-ENV M)
+   #{env-ref VAL-ENV M any_fail}
+   (where any_fail
+     ,(λ (x)
+        (raise-arguments-error 'toplevel-value-env-ref "unbound identifier"
+          "id" x "toplevel-value-env" (term VAL-ENV))))])
+
+(define-metafunction μTR
+  toplevel-value-env-set : VAL-ENV M ρ -> VAL-ENV
+  [(toplevel-value-env-set VAL-ENV M ρ)
+   #{env-set VAL-ENV (M ρ)}
+   (where #false #{env-ref VAL-ENV M #false})]
+  [(toplevel-value-env-set VAL-ENV M ρ)
+   ,(raise-arguments-error 'toplevel-value-env-set "identifier already bound"
+      "id" (term M) "toplevel-value-env" (term VAL-ENV) "value" (term ρ))])
+
+(define-metafunction μTR
+  toplevel-value-env-update : VAL-ENV M ρ -> VAL-ENV
+  [(toplevel-value-env-update VAL-ENV M ρ)
+   #{env-update VAL-ENV (M ρ) any_fail}
+   (where any_fail
+     ,(λ (x)
+        (raise-arguments-error 'toplevel-value-env-update "unbound identifier, cannot update"
+          "id" x "toplevel-value-env" (term VAL-ENV))))])
+
+(define-metafunction μTR
+  local-type-env-ref : Γ x -> any
+  [(local-type-env-ref Γ x)
+   #{env-ref Γ x any_fail}
+   (where any_fail
+     ,(λ (x)
+        (raise-arguments-error 'local-type-env-ref "unbound identifier"
+          "id" x "local-type-env" (term Γ))))])
+
+(define-metafunction μTR
+  local-type-env-set : Γ x τ -> Γ
+  [(local-type-env-set Γ x τ)
+   #{env-set Γ (x τ)}
+   (where #false #{env-ref Γ x #false})]
+  [(local-type-env-set Γ x τ)
+   ,(raise-arguments-error 'local-type-env-set "identifier already bound"
+      "id" (term x) "local-type-env" (term Γ) "type" (term τ))])
+
+(define-metafunction μTR
+  local-type-env-update : Γ x τ -> Γ
+  [(local-type-env-update Γ x τ)
+   #{env-update Γ (x τ) any_fail}
+   (where any_fail
+     ,(λ (x)
+        (raise-arguments-error 'type-env-update "unbound identifier, cannot update"
+          "id" x "local-type-env" (term Γ))))])
+
+(define-metafunction μTR
+  toplevel-type-env-ref : TYPE-ENV x -> any
+  [(toplevel-type-env-ref TYPE-ENV x)
+   #{env-ref TYPE-ENV x any_fail}
+   (where any_fail
+     ,(λ (x)
+        (raise-arguments-error 'toplevel-type-env-ref "unbound identifier"
+          "id" x "toplevel-type-env" (term TYPE-ENV))))])
+
+(define-metafunction μTR
+  toplevel-type-env-set : TYPE-ENV M Γ -> TYPE-ENV
+  [(toplevel-type-env-set TYPE-ENV M Γ)
+   #{env-set TYPE-ENV (M Γ)}
+   (where #false #{env-ref TYPE-ENV M #false})]
+  [(toplevel-type-env-set TYPE-ENV M Γ)
+   ,(raise-arguments-error 'topleveltype-env-set "identifier already bound"
+      "id" (term M) "toplevel-type-env" (term TYPE-ENV) "value" (term Γ))])
+
+(define-metafunction μTR
+  toplevel-type-env-update : TYPE-ENV M Γ -> TYPE-ENV
+  [(toplevel-type-env-update TYPE-ENV M Γ)
+   #{env-update TYPE-ENV (M Γ) any_fail}
+   (where any_fail
+     ,(λ (x)
+        (raise-arguments-error 'toplevel-type-env-update "unbound identifier, cannot update"
+          "id" x "toplevel-type-env" (term Γ))))])
+
+(define-metafunction μTR
+  store-ref : σ x -> any
+  [(store-ref σ x)
    #{env-ref σ x any_fail}
-   (where any_fail ,(λ (x)
-                      (raise-arguments-error 'loc-env-ref "unbound identifier" "id" x "store" (term σ))))])
+   (where any_fail
+     ,(λ (x)
+        (raise-arguments-error 'store-ref "unbound identifier"
+          "id" x "store" (term σ))))])
 
 (define-metafunction μTR
-  loc-env-set : σ x v* -> σ
-  [(loc-env-set σ x v*)
+  store-set : σ x v* -> σ
+  [(store-set σ x v*)
    #{env-set σ (x v*)}
    (where #false #{env-ref σ x #false})]
-  [(loc-env-set σ x v*)
-   ,(raise-arguments-error 'loc-env-set "identifier already bound in store"
-      "id" (term x) "store" (term σ) "the value" (term v*))])
+  [(store-set σ x v*)
+   ,(raise-arguments-error 'store-set "identifier already bound"
+      "id" (term x) "toplevel-type-env" (term σ) "value" (term v*))])
 
 (define-metafunction μTR
-  loc-env-update : σ x v* -> σ
-  [(loc-env-update σ x v*)
+  store-update : σ x v* -> σ
+  [(store-update σ x v*)
    #{env-update σ (x v*) any_fail}
-   (where any_fail ,(λ (x)
-                      (raise-arguments-error 'loc-env-update "unbound identifier, cannot update" "id" x "store" (term σ))))])
+   (where any_fail
+     ,(λ (x)
+        (raise-arguments-error 'store-update "unbound identifier, cannot update"
+          "id" x "store" (term σ))))])
 
-(define-metafunction μTR
-  type-env-ref : Γ x -> any
-  [(type-env-ref Γ x)
-   #{env-ref Γ x any_fail}
-   (where any_fail ,(λ (x)
-                      (raise-arguments-error 'type-env-ref "unbound identifier" "id" x "type context" (term Γ))))])
-
-(define-metafunction μTR
-  type-env-set : Γ x ?τ -> Γ
-  [(type-env-set Γ x ?τ)
-   #{env-set Γ (x ?τ)}
-   (where #false #{env-ref Γ x #false})]
-  [(type-env-set Γ x ?τ)
-   ,(raise-arguments-error 'type-env-set "identifier already bound in store"
-      "id" (term x) "type context" (term Γ) "the type" (term ?τ))])
-
-(define-metafunction μTR
-  type-env-update : Γ x ?τ -> Γ
-  [(type-env-update Γ x ?τ)
-   #{env-update Γ (x ?τ) any_fail}
-   (where any_fail ,(λ (x)
-                      (raise-arguments-error 'type-env-update "unbound identifier, cannot update" "id" x "type env" (term Γ))))])
-
-(define-metafunction μTR
-  substitute* : any (any ...) -> any
-  [(substitute* any_thing ())
-   any_thing]
-  [(substitute* any_thing (any_first any_rest ...))
-   (substitute* (substitute any_thing any_key any_val) (any_rest ...))
-   (where (any_key any_val _ ...) any_first)]
-  [(substitute* any_thing (any_bad any_rest ...))
-   ,(raise-arguments-error 'substitute* "bad environment binding"
-      "term" (term any_thing)
-      "binding" (term any_bad)
-      "other bindings" (term (any_rest ...)))])
+;; -----------------------------------------------------------------------------
 
 (define-metafunction μTR
   unload-store : e σ -> e
@@ -184,7 +266,7 @@
    ---
    (unload-store-of Λ σ Λ_sub)]
   [
-   (where [_ (v ...)] #{loc-env-ref σ x})
+   (where [_ (v ...)] #{store-ref σ x})
    (unload-store-of v σ v_sub) ...
    ---
    (unload-store-of (vector x) σ (vector v_sub ...))]
@@ -259,35 +341,6 @@
    ---
    (unload-store-of (rest e) σ (rest e_+))])
 
-(define-metafunction μTR
-  stack-push : S FRAME -> S
-  [(stack-push S FRAME)
-   (FRAME S)])
-
-(define-metafunction μTR
-  stack-outermost-type : S τ -> τ
-  [(stack-outermost-type () τ)
-   τ]
-  [(stack-outermost-type (FRAME S) _)
-   (stack-outermost-type S τ_F)
-   (where τ_F #{frame->type FRAME})])
-
-(define-judgment-form μTR
-  #:mode (typed-module I I)
-  #:contract (typed-module x x*)
-  [
-   (where (x_left ... x x_right ...) x*)
-   ---
-   (typed-module x x*)])
-
-(define-judgment-form μTR
-  #:mode (untyped-module I I)
-  #:contract (untyped-module x x*)
-  [
-   (side-condition ,(not (member (term x) (term x*))))
-   ---
-   (untyped-module x x*)])
-
 (define-judgment-form μTR
   #:mode (same-domain I I)
   #:contract (same-domain any any)
@@ -297,19 +350,6 @@
    (side-condition ,(set=? (term any_keys0) (term any_keys1)))
    ---
    (same-domain any_0 any_1)])
-
-(define-metafunction μTR
-  typed-module-name* : P-ENV -> x*
-  [(typed-module-name* ())
-   ()]
-  [(typed-module-name* (MODULE-BINDING_0 MODULE-BINDING_rest ...))
-   x*_rest
-   (where (_ ρλ) MODULE-BINDING_0)
-   (where x*_rest #{typed-module-name* (MODULE-BINDING_rest ...)})]
-  [(typed-module-name* (MODULE-BINDING_0 MODULE-BINDING_rest ...))
-   (x_first x_rest ...)
-   (where (x_first ρτ) MODULE-BINDING_0)
-   (where (x_rest ...) #{typed-module-name* (MODULE-BINDING_rest ...)})])
 
 (define-judgment-form μTR
   #:mode (tag-of I O)
@@ -344,16 +384,6 @@
   [(type->tag τ)
    κ
    (judgment-holds (tag-of τ κ))])
-
-(define-metafunction μTR
-  frame->type : FRAME -> τ
-  [(frame->type (_ _ τ))
-   τ])
-
-(define-metafunction μTR
-  frame->tag : FRAME -> κ
-  [(frame->tag (_ _ κ))
-   κ])
 
 (define-metafunction μTR
   lambda-strip-type : Λ -> Λ
@@ -407,12 +437,18 @@
 (define-metafunction μTR
   untyped-context? : E L -> boolean
   [(untyped-context? E L)
-   ,(not (term #{lang-of-hole E L}))])
+   #true
+   (where untyped #{lang-of-hole E L})]
+  [(untyped-context? E L)
+   #false])
 
 (define-metafunction μTR
   typed-context? : E L -> boolean
   [(typed-context? E L)
-   #{lang-of-hole E L}])
+   #true
+   (where typed #{lang-of-hole E L})]
+  [(typed-context? E L)
+   #false])
 
 (define-metafunction μTR
   mu-fold : (μ (α) τ) -> τ
@@ -463,78 +499,110 @@
      [(env-update ((x 2)) (y 0) ,(λ (z) (format "unbound ~a" z)))
       "unbound y"]))
 
-  (test-case "program-env-ref"
+  (test-case "local-value-env"
     (check-mf-apply*
-     [(program-env-ref ((yo ())) yo)
-      (yo ())]
-     ;; TODO
-  ))
-
-  (test-case "runtime-env-ref"
-    (check-mf-apply*
-     [(runtime-env-ref ((x 3) (y 4)) x)
-      (x 3)]
-     [(runtime-env-ref ((x 3) (y 4)) y)
-      (y 4)])
-
+     [(local-value-env-ref ((x 4)) x)
+      (x 4)]
+     [(local-value-env-ref ((x 3) (y 1)) y)
+      (y 1)])
     (check-exn exn:fail:contract?
-      (λ () (term (runtime-env-ref ((x 3)) y)))))
-
-  (test-case "loc-env-ref"
+      (λ () (term #{local-value-env-ref () x})))
     (check-mf-apply*
-     [(loc-env-ref ((x (3))) x)
-      (x (3))]
-     [(loc-env-ref ((x (3)) (y (4))) y)
-      (y (4))])
-
+     [(local-value-env-set () x 3)
+      ((x 3))]
+     [(local-value-env-set ((x 1) (y -4)) z 66)
+      ((z 66) (x 1) (y -4))])
     (check-exn exn:fail:contract?
-      (λ () (term #{loc-env-ref () x}))))
-
-  (test-case "loc-env-set"
+      (λ () (term (local-value-env-set ((x 4)) x 5))))
     (check-mf-apply*
-     [(loc-env-set () x (0))
-      ((x (0)))]
-     [(loc-env-set ((x (1)) (y (2))) z (3))
-      ((z (3)) (x (1)) (y (2)))])
-
+     [(local-value-env-update ((x 4)) x 5)
+      ((x 5))])
     (check-exn exn:fail:contract?
-      (λ () (term (loc-env-set ((x (0))) x (1))))))
+      (λ () (term (local-value-env-update ((x 5)) y 1)))))
 
-  (test-case "loc-env-update"
+  (test-case "toplevel-value-env"
     (check-mf-apply*
-     [(loc-env-update ((x (0))) x (1))
-      ((x (1)))])
-
+     [(toplevel-value-env-ref ((M0 ())) M0)
+      (M0 ())]
+     [(toplevel-value-env-ref ((M0 ((x 3))) (M1 ((y 4)))) M1)
+      (M1 ((y 4)))])
     (check-exn exn:fail:contract?
-      (λ () (term (loc-env-update ((x (0))) y (1))))))
-
-  (test-case "type-env-ref"
+      (λ () (term #{toplevel-value-env-ref () x})))
     (check-mf-apply*
-     [(type-env-ref ((x Int)) x)
+     [(toplevel-value-env-set () M0 ((x 4) (y 3)))
+      ((M0 ((x 4) (y 3))))]
+     [(toplevel-value-env-set ((M0 ((x 4)))) M1 ((y 5)))
+      ((M1 ((y 5))) (M0 ((x 4))))])
+    (check-exn exn:fail:contract?
+      (λ () (term (toplevel-value-env-set ((M0 ())) M0 ()))))
+    (check-mf-apply*
+     [(toplevel-value-env-update ((M0 ((x 0)))) M0 ((x 1)))
+      ((M0 ((x 1))))])
+    (check-exn exn:fail:contract?
+      (λ () (term (toplevel-value-env-update ((M0 ())) M1 ())))))
+
+  (test-case "local-type-env"
+    (check-mf-apply*
+     [(local-type-env-ref ((x Int)) x)
       (x Int)]
-     [(type-env-ref ((x Int) (y Int)) y)
+     [(local-type-env-ref ((x Int) (y Int)) y)
       (y Int)])
-
     (check-exn exn:fail:contract?
-      (λ () (term #{type-env-ref () x}))))
-
-  (test-case "type-env-set"
+      (λ () (term #{local-type-env-ref () x})))
     (check-mf-apply*
-     [(type-env-set () x Int)
+     [(local-type-env-set () x Int)
       ((x Int))]
-     [(type-env-set ((x Int) (y Int)) z (Vectorof Int))
+     [(local-type-env-set ((x Int) (y Int)) z (Vectorof Int))
       ((z (Vectorof Int)) (x Int) (y Int))])
-
     (check-exn exn:fail:contract?
-      (λ () (term (type-env-set ((x Int)) x Int)))))
-
-  (test-case "type-env-update"
+      (λ () (term (local-type-env-set ((x Int)) x Int))))
     (check-mf-apply*
-     [(type-env-update ((x Int)) x Nat)
+     [(local-type-env-update ((x Int)) x Nat)
       ((x Nat))])
-
     (check-exn exn:fail:contract?
-      (λ () (term (type-env-update ((x Int)) y Nat)))))
+      (λ () (term (local-type-env-update ((x Int)) y Nat)))))
+
+  (test-case "toplevel-type-env"
+    (check-mf-apply*
+     [(toplevel-type-env-ref ((M0 ((x Int)))) M0)
+      (M0 ((x Int)))]
+     [(toplevel-type-env-ref ((M0 ((x Int))) (M1 ((y Int)))) M1)
+      (M1 ((y Int)))])
+    (check-exn exn:fail:contract?
+      (λ () (term #{toplevel-type-env-ref () M0})))
+    (check-mf-apply*
+     [(toplevel-type-env-set () M0 ((x Int)))
+      ((M0 ((x Int))))]
+     [(toplevel-type-env-set ((M0 ((x Int) (y Int)))) M1 ())
+      ((M1 ()) (M0 ((x Int) (y Int))))])
+    (check-exn exn:fail:contract?
+      (λ () (term (toplevel-type-env-set ((M0 ())) M0 ()))))
+    (check-mf-apply*
+     [(toplevel-type-env-update ((M0 ())) M0 ((x Int)))
+      ((M0 ((x Int))))])
+    (check-exn exn:fail:contract?
+      (λ () (term (toplevel-type-env-update ((M0 ((x Int)))) M1 ())))))
+
+  (test-case "store"
+    (check-mf-apply*
+     [(store-ref ((x (1))) x)
+      (x (1))]
+     [(store-ref ((x (1)) (y (2))) y)
+      (y (2))])
+    (check-exn exn:fail:contract?
+      (λ () (term #{store-ref () x})))
+    (check-mf-apply*
+     [(store-set () x (1 2))
+      ((x (1 2)))]
+     [(store-set ((x (1)) (y (2))) z (1 2 3))
+      ((z (1 2 3)) (x (1)) (y (2)))])
+    (check-exn exn:fail:contract?
+      (λ () (term (store-set ((x (1))) x (2)))))
+    (check-mf-apply*
+     [(store-update ((x (2))) x (3))
+      ((x (3)))])
+    (check-exn exn:fail:contract?
+      (λ () (term (store-update ((x (4))) y (4))))))
 
   (test-case "substitute*"
     (check-mf-apply*
@@ -542,40 +610,6 @@
       (+ 1 2)]
      [(substitute* (+ a a) ())
       (+ a a)]))
-
-  (test-case "stack-outermost-type"
-    (check-mf-apply*
-     ((stack-outermost-type () Int)
-      Int)
-     ((stack-outermost-type () Nat)
-      Nat)
-     ((stack-outermost-type ((A hole Int) ((B hole Nat) ())) (Vectorof Int))
-      Nat)))
-
-  (test-case "typed-module"
-    (check-judgment-holds*
-     (typed-module M0 (M0 M1 M2))
-     (typed-module M2 (M0 M1 M2)))
-
-    (check-judgment-holds*
-     (untyped-module M ())
-     (untyped-module M0 (M1 M2)))
-
-    (check-not-judgment-holds*
-     (typed-module M (M0 M1 M2))
-     (typed-module M3 (M0 M1 M2)))
-
-    (check-not-judgment-holds*
-     (untyped-module M (M))
-     (untyped-module M0 (M1 M0 M2)))
-  )
-
-  (test-case "asdfasdfsfafdsf"
-    (check-true (redex-match? μTR e (term
-      (vector x)
-    )))
-    (check-true (redex-match? μTR σ (term
-      ((x (1 2 3)))))))
 
   (test-case "unload-store"
     (check-mf-apply*
@@ -585,17 +619,6 @@
       (+ 2 2))
      ((unload-store (+ (vector a) (vector b)) ((a (1)) (b (4 3 2))))
       (+ (vector 1) (vector 4 3 2)))))
-
-  (test-case "typed-module-name*"
-    (check-mf-apply*
-     ((typed-module-name* ())
-      ())
-     ((typed-module-name* ((A ((x 3 Int)))))
-      (A))
-     ((typed-module-name* ((B ((x 3)))))
-      ())
-     ((typed-module-name* ((A ((x 3 Int))) (B ((y 4))) (C ((z (vector q) (Vectorof Nat))))))
-      (A C))))
 
   (test-case "untyped-context?"
     (check-mf-apply*
