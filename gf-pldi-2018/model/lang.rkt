@@ -3,12 +3,7 @@
 (provide
   μTR
   α=?
-  type->tag
-  tag-of
-  frame->type
-  frame->tag
-
-  lambda-strip-type)
+  UN TY)
 
 (require
   redex/reduction-semantics
@@ -33,12 +28,14 @@
 
   (PROGRAM ::= (MODULE ...))
   ;; A program is a sequence of modules.
-  (MODULE ::= (module-λ x REQUIRE-λ ... DEFINE-λ ... PROVIDE)
-              (module-τ x REQUIRE-τ ... DEFINE-τ ... PROVIDE))
+  (MODULE ::= (module x L REQUIRE-λ ... DEFINE-λ ... PROVIDE)
+              (module x L REQUIRE-τ ... DEFINE-τ ... PROVIDE))
   ;; A module is either typed or untyped,
   ;;  begins with a sequence of requires from other modules,
   ;;  contains a sequence of definitions,
   ;;  and ends with a sequence of provided definitions
+
+  (L ::= boolean)
   (REQUIRE-λ ::= (require x x ...))
   ;; An untyped require is a module name followed by a seqence of identifiers
   (REQUIRE-τ ::= (require x [x τ] ...))
@@ -62,9 +59,14 @@
   (e ::= v x (vector e ...) (cons e e)
          (e e) (ifz e e e)
          (+ e e) (- e e) (* e e) (% e e) (vector-ref e e) (vector-set! e e e) (first e) (rest e)
-         (!! [x κ e] e)
+
+         (!! [x κ e] e) ;; TODO use 'let' or 'lambda'
+
+         (check τ e) (protect τ e)
+
          ;; The `mon` are not really expressions, just there
          ;;  so the typechecker doesn't need to carry a `σ` environment
+         ;; Which is dumb, typechecker should carry
          (mon-fun x τ e) (mon-vector x τ e))
   ;; Expressions come in three flavors:
   ;; - value constructors (for integers, functions, vectors, lists)
@@ -128,7 +130,8 @@
          (E e) (v E)
          (ifz E e e) (+ E e) (+ v E) (- E e) (- v E) (* E e) (* v E) (% E e) (% v E)
          (vector-ref E e) (vector-ref v E) (vector-set! E e e) (vector-set! v E e) (vector-set! v v E)
-         (first E) (rest E))
+         (first E) (rest E)
+         (check τ E) (protect τ E))
   ;; Left-to-right eager evaluation contexts
 
   (A ::= Σ Error)
@@ -156,54 +159,5 @@
 
 ;; -----------------------------------------------------------------------------
 
-(define-judgment-form μTR
-  #:mode (tag-of I O)
-  #:contract (tag-of τ κ)
-  [
-   ---
-   (tag-of κ κ)]
-  [
-   ---
-   (tag-of (→ τ_0 τ_1) →)]
-  [
-   ---
-   (tag-of (Vectorof τ) Vector)]
-  [
-   ---
-   (tag-of (Listof τ) List)]
-  [
-   (tag-of τ κ) ...
-   ---
-   (tag-of (U τ ...) (U κ ...))]
-  [
-   (tag-of τ κ)
-   ---
-   (tag-of (∀ (α) τ) κ)]
-  [
-   (tag-of τ κ)
-   ---
-   (tag-of (μ (α) τ) κ)])
-
-(define-metafunction μTR
-  type->tag : τ -> κ
-  [(type->tag τ)
-   κ
-   (judgment-holds (tag-of τ κ))])
-
-(define-metafunction μTR
-  frame->type : FRAME -> τ
-  [(frame->type (_ _ τ))
-   τ])
-
-(define-metafunction μTR
-  frame->tag : FRAME -> κ
-  [(frame->tag (_ _ κ))
-   κ])
-
-(define-metafunction μTR
-  lambda-strip-type : Λ -> Λ
-  [(lambda-strip-type (fun x_f τ (x_arg) e_body))
-   (fun x_f (x_arg) e_body)]
-  [(lambda-strip-type (fun x_f (x_arg) e_body))
-   (fun x_f (x_arg) e_body)])
-
+(define-term UN #false)
+(define-term TY #true)

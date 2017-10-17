@@ -25,7 +25,16 @@
   same-domain
 
   typed-module-name*
-)
+
+  type->tag
+  tag-of
+  frame->type
+  frame->tag
+
+  lambda-strip-type
+
+  typed-context?
+  untyped-context?)
 
 (require
   "lang.rkt"
@@ -300,6 +309,109 @@
    (where (x_first ρτ) MODULE-BINDING_0)
    (where (x_rest ...) #{typed-module-name* (MODULE-BINDING_rest ...)})])
 
+(define-judgment-form μTR
+  #:mode (tag-of I O)
+  #:contract (tag-of τ κ)
+  [
+   ---
+   (tag-of κ κ)]
+  [
+   ---
+   (tag-of (→ τ_0 τ_1) →)]
+  [
+   ---
+   (tag-of (Vectorof τ) Vector)]
+  [
+   ---
+   (tag-of (Listof τ) List)]
+  [
+   (tag-of τ κ) ...
+   ---
+   (tag-of (U τ ...) (U κ ...))]
+  [
+   (tag-of τ κ)
+   ---
+   (tag-of (∀ (α) τ) κ)]
+  [
+   (tag-of τ κ)
+   ---
+   (tag-of (μ (α) τ) κ)])
+
+(define-metafunction μTR
+  type->tag : τ -> κ
+  [(type->tag τ)
+   κ
+   (judgment-holds (tag-of τ κ))])
+
+(define-metafunction μTR
+  frame->type : FRAME -> τ
+  [(frame->type (_ _ τ))
+   τ])
+
+(define-metafunction μTR
+  frame->tag : FRAME -> κ
+  [(frame->tag (_ _ κ))
+   κ])
+
+(define-metafunction μTR
+  lambda-strip-type : Λ -> Λ
+  [(lambda-strip-type (fun x_f τ (x_arg) e_body))
+   (fun x_f (x_arg) e_body)]
+  [(lambda-strip-type (fun x_f (x_arg) e_body))
+   (fun x_f (x_arg) e_body)])
+
+;; It's just a fold
+(define-metafunction μTR
+  lang-of-hole : E L -> L
+  [(lang-of-hole hole L)
+   L]
+  [(lang-of-hole (vector v ... E e ...) L)
+   (lang-of-hole E L)]
+  [(lang-of-hole (cons E e) L)
+   (lang-of-hole E L)]
+  [(lang-of-hole (cons v E) L)
+   (lang-of-hole E L)]
+  [(lang-of-hole (E e) L)
+   (lang-of-hole E L)]
+  [(lang-of-hole (v E) L)
+   (lang-of-hole E L)]
+  [(lang-of-hole (ifz E e e) L)
+   (lang-of-hole E L)]
+  [(lang-of-hole (+ v ... E e ...) L)
+   (lang-of-hole E L)]
+  [(lang-of-hole (- v ... E e ...) L)
+   (lang-of-hole E L)]
+  [(lang-of-hole (* v ... E e ...) L)
+   (lang-of-hole E L)]
+  [(lang-of-hole (% v ... E e ...) L)
+   (lang-of-hole E L)]
+  [(lang-of-hole (vector-ref v ... E e ...) L)
+   (lang-of-hole E L)]
+  [(lang-of-hole (vector-set! v ... E e ...) L)
+   (lang-of-hole E L)]
+  [(lang-of-hole (first E) L)
+   (lang-of-hole E L)]
+  [(lang-of-hole (rest E) L)
+   (lang-of-hole E L)]
+  [(lang-of-hole (check τ E) L)
+   (lang-of-hole E UN)
+   (where L TY)]
+  [(lang-of-hole (protect τ E) L)
+   (lang-of-hole E TY)
+   (where L UN)]
+  [(lang-of-hole E L)
+   ,(raise-arguments-error 'lang-of-hole "invalid context" "ctx" (term E) "lang" (term L))])
+
+(define-metafunction μTR
+  untyped-context? : E L -> boolean
+  [(untyped-context? E L)
+   ,(not (term #{lang-of-hole E L}))])
+
+(define-metafunction μTR
+  typed-context? : E L -> boolean
+  [(typed-context? E L)
+   #{lang-of-hole E L}])
+
 ;; =============================================================================
 
 (module+ test
@@ -476,5 +588,32 @@
       ())
      ((typed-module-name* ((A ((x 3 Int))) (B ((y 4))) (C ((z (vector q) (Vectorof Nat))))))
       (A C))))
+
+  (test-case "untyped-context?"
+    (check-mf-apply*
+     ((untyped-context? (+ 2 hole) UN)
+      #true)
+     ((untyped-context? (+ hole 2) TY)
+      #false)
+     ((untyped-context? (check Int hole) TY)
+      #true)
+    )
+  )
+
+  (test-case "typed-context?"
+    (check-mf-apply*
+     ((typed-context? (+ 2 hole) TY)
+      #true)
+     ((typed-context? (+ hole 2) UN)
+      #false)
+     ((typed-context? (protect Int hole) UN)
+      #true)
+    )
+
+    (check-exn exn:fail:contract?
+      (λ () (term #{typed-context? (check Int hole) UN})))
+    (check-exn exn:fail:contract?
+      (λ () (term #{typed-context? (protect Int hole) TY})))
+  )
 
 )
