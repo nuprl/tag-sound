@@ -153,6 +153,8 @@
   (τ* ::= (τ ...))
   (v* ::= (v ...))
 #:binding-forms
+  (∀ (α) τ #:refers-to α)
+  (μ (α) τ #:refers-to α)
   (fun x_f τ (x) e #:refers-to (shadow x_f x))
   (fun x_f (x) e #:refers-to (shadow x_f x))
   (!! (x κ e_0) e #:refers-to x))

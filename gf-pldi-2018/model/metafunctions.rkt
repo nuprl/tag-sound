@@ -17,6 +17,8 @@
   stack-push
   stack-outermost-type
 
+  mu-fold
+
   typed-module
   untyped-module
 
@@ -412,6 +414,12 @@
   [(typed-context? E L)
    #{lang-of-hole E L}])
 
+(define-metafunction μTR
+  mu-fold : (μ (α) τ) -> τ
+  [(mu-fold τ)
+   (substitute τ_body α τ)
+   (where (μ (α) τ_body) τ)])
+
 ;; =============================================================================
 
 (module+ test
@@ -614,6 +622,15 @@
       (λ () (term #{typed-context? (check Int hole) UN})))
     (check-exn exn:fail:contract?
       (λ () (term #{typed-context? (protect Int hole) TY})))
+  )
+
+  (test-case "mu-fold"
+    (check-mf-apply*
+     ((mu-fold (μ (α) (→ Int α)))
+      (→ Int (μ (α) (→ Int α))))
+     ((mu-fold (μ (α) (U Int (Listof α))))
+      (U Int (Listof (μ (α) (U Int (Listof α))))))
+    )
   )
 
 )

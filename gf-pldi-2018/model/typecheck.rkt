@@ -35,16 +35,76 @@
   #:mode (<: I I)
   #:contract (<: τ τ)
   [
-   ---
+   --- Sub-Nat
    (<: Nat Int)]
   [
    --- Sub-Refl
-   (<: τ τ)])
+   (<: τ τ)]
+  [
+   (<: τ_0 τ_1)
+   --- Sub-List
+   (<: (Listof τ_0) (Listof τ_1))]
+  [
+   (<: τ_dom1 τ_dom0)
+   (<: τ_cod0 τ_cod1)
+   --- Sub-Fun
+   (<: (→ τ_dom0 τ_cod0) (→ τ_dom1 τ_cod1))]
+  [
+   (subtype* #{coerce-sequence τ} (τ_u ...))
+   --- Sub-Union
+   (<: τ (U τ_u ...))]
+  [
+   (where τ_0sub (substitute τ_0 α_0 α_0))
+   (where τ_1sub (substitute τ_1 α_1 α_0))
+   (<: τ_0sub τ_1sub)
+   --- Sub-Forall-R
+   (<: (∀ (α_0) τ_0) (∀ (α_1) τ_1))]
+  [
+   (<: (mu-fold (μ (α) τ_0)) τ_1)
+   --- Sub-Mu-L
+   (<: (μ (α) τ_0) τ_1)]
+  [
+   (<: τ_0 (mu-fold (μ (α) τ_1)))
+   --- Sub-Mu-R
+   (<: τ_0 (μ (α) τ_1))])
 
 (define-metafunction μTR
   subtype? : τ τ -> boolean
   [(subtype? τ_0 τ_1)
    ,(judgment-holds (<: τ_0 τ_1))])
+
+(define-judgment-form μTR
+  #:mode (subtype* I I)
+  #:contract (subtype* τ* τ*)
+  [
+   ---
+   (subtype* () τ*)]
+  [
+   (exists-subtype τ_0 τ*)
+   (subtype* (τ_0rest ...) τ*)
+   ---
+   (subtype* (τ_0 τ_0rest ...) τ*)])
+
+(define-judgment-form μTR
+  #:mode (exists-subtype I I)
+  #:contract (exists-subtype τ τ*)
+  [
+   (<: τ τ_1)
+   --- Sub-First
+   (exists-subtype τ (τ_1 τ_1rest ...))]
+  [
+   (exists-subtype τ (τ_1rest ...))
+   ---
+   (exists-subtype τ (τ_1 τ_1rest ...))])
+
+(define-metafunction μTR
+  coerce-sequence : τ -> τ*
+  [(coerce-sequence (U τ ...))
+   (τ ...)]
+  [(coerce-sequence τ)
+   (τ)])
+
+;; -----------------------------------------------------------------------------
 
 (define-judgment-form μTR
   #:mode (well-tagged-value I I)
@@ -494,16 +554,18 @@
    (well-dyn-expression Γ (rest e) x*)])
 
 (define-judgment-form μTR
-  #:mode (well-typed-program I I)
-  #:contract (well-typed-program any P)
+  #:mode (well-typed-program I)
+  #:contract (well-typed-program P)
   [
    ---
-   (well-typed-program () P)])
+   (well-typed-program P)])
 
-;; well-typed-program/env
-;; well-typed-module
-;; well-typed-expression
-
+;; (well-typed-module N M N)
+;; (require->type-context N R Γ)
+;; (well-typed-definition Γ D)
+;; (well-typed-expression Γ e τ)
+;; (valid-provide Γ P)
+;; (well-typed-state σ e ?τ)
 
 ;; -----------------------------------------------------------------------------
 
@@ -512,10 +574,40 @@
 (module+ test
   (require rackunit redex-abbrevs)
 
+  (test-case "coerce-sequence"
+    (check-mf-apply*
+     ((coerce-sequence (U Int Nat))
+      (Int Nat))
+     ((coerce-sequence Int)
+      (Int))))
+
   (test-case "subtype?"
     (check-mf-apply*
      [(subtype? Int Int)
-      #true])
+      #true]
+     [(subtype? (Listof Int) (Listof Int))
+      #true]
+     [(subtype? (Listof Nat) (Listof Int))
+      #true]
+     [(subtype? (→ Int Nat) (→ Nat Int))
+      #true]
+     [(subtype? Int (U Int Nat))
+      #true]
+     [(subtype? Nat (U Int Nat))
+      #true]
+     [(subtype? (U Int Nat) (U Nat Int))
+      #true]
+     [(subtype? (∀ (α) (Listof α)) (∀ (α) (Listof α)))
+      #true]
+     [(subtype? (∀ (α) (Listof (→ α Nat))) (∀ (α) (Listof (→ α Int))))
+      #true]
+     [(subtype? (Listof Nat) (μ (α) (U Nat (Listof α))))
+      #true]
+     [(subtype? (Listof (Listof Nat)) (μ (α) (U Nat (Listof α))))
+      #true]
+     [(subtype? (Listof (Listof (Listof Nat))) (μ (α) (U Nat (Listof α))))
+      #true]
+    )
   )
 
   (test-case "well-tagged"
