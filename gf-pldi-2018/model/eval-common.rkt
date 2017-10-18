@@ -21,14 +21,14 @@
 ;; -----------------------------------------------------------------------------
 
 (define-metafunction μTR
-  eval-untyped-provide : ρλ PROVIDE -> ρλ
-  [(eval-untyped-provide ρλ PROVIDE)
-   #{eval-provide ρλ PROVIDE}])
+  eval-untyped-provide : ρ UNTYPED-PROVIDE -> ρ
+  [(eval-untyped-provide ρ UNTYPED-PROVIDE)
+   #{eval-provide ρ UNTYPED-PROVIDE}])
 
 (define-metafunction μTR
-  eval-typed-provide : ρτ PROVIDE -> ρτ
-  [(eval-typed-provide ρτ PROVIDE)
-   #{eval-provide ρτ PROVIDE}])
+  eval-typed-provide : ρ TYPED-PROVIDE -> ρ
+  [(eval-typed-provide ρ TYPED-PROVIDE)
+   #{eval-provide ρ TYPED-PROVIDE}])
 
 ;; eval-provide
 ;; Filter a runtime environment, remove all identifiers that are not in the
@@ -37,7 +37,7 @@
 (define-metafunction μTR
   eval-provide : ρ PROVIDE -> ρ
   [(eval-provide ρ (provide x_provide ...))
-   (#{runtime-env-ref ρ x_provide any_fail} ...)
+   (#{unsafe-env-ref ρ x_provide any_fail} ...)
    (where any_fail ,(λ (x)
                       (raise-arguments-error 'provide "provided identifier not defined in module"
                        "id" x)))])
@@ -102,10 +102,10 @@
 
   (test-case "eval-typed-provide"
     (check-mf-apply*
-     ((eval-typed-provide ((x 4 Nat) (y (vector qq) (Vectorof Nat))) (provide x y))
-      ((x 4 Nat) (y (vector qq) (Vectorof Nat))))
-     ((eval-typed-provide ((x 4 Nat) (y (cons 1 nil) (Listof Int))) (provide x))
-      ((x 4 Nat))))
+     ((eval-typed-provide ((x 4) (y (vector qq))) (provide x y))
+      ((x 4) (y (vector qq))))
+     ((eval-typed-provide ((x 4) (y (cons 1 nil))) (provide x))
+      ((x 4))))
   )
 
   (test-case "eval-provide"
@@ -118,8 +118,8 @@
        ((y 5) (x 4)))
       ((eval-provide ((x 4) (y 5)) (provide y))
        ((y 5)))
-      ((eval-provide ((x 4 Nat) (y 5 Int)) (provide x y))
-       ((x 4 Nat) (y 5 Int))))
+      ((eval-provide ((x 4) (y 5)) (provide x y))
+       ((x 4) (y 5))))
 
     (check-exn exn:fail:contract?
       (λ () (term (eval-provide ((x 4)) (provide y))))))

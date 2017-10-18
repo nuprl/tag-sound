@@ -4,8 +4,10 @@
   set-union*
   substitute*
 
-  env-set
-  env-set*
+  (rename-out
+   [env-ref unsafe-env-ref]
+   [env-set unsafe-env-set]
+   [env-set* unsafe-env-set*])
 
   local-value-env-ref
   local-value-env-set
@@ -198,7 +200,9 @@
 (define-metafunction μTR
   local-type-env-extend : Γ Γ -> Γ
   [(local-type-env-extend Γ_0 Γ_1)
-   #{env-set* Γ_0 Γ_1}])
+   (x:τ_0 ... x:τ_1 ...)
+   (where (x:τ_0 ...) Γ_0)
+   (where (x:τ_1 ...) Γ_1)])
 
 (define-metafunction μTR
   toplevel-type-env-ref : TYPE-ENV x -> any
@@ -610,7 +614,7 @@
       (λ () (term (local-type-env-update ((x Int)) y Nat))))
     (check-mf-apply*
       ((local-type-env-extend ((x Int)) ((y Int)))
-       ((y Int) (x Int)))))
+       ((x Int) (y Int)))))
 
   (test-case "toplevel-type-env"
     (check-mf-apply*
