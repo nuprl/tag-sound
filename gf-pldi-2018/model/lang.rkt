@@ -59,7 +59,7 @@
   (DEFINE ::= UNTYPED-DEFINE TYPED-DEFINE)
   (PROVIDE ::= (provide x ...))
 
-  (e ::= v x (vector e ...) (cons e e)
+  (e ::= v x (vector τ e ...) (vector e ...) (cons e e)
          (e e)
          (ifz e e e)
          (+ e e) (- e e) (* e e) (% e e)
@@ -68,6 +68,7 @@
          (!! [x κ e] e) ;; TODO use 'let' or 'lambda'
 
          (check τ e) (protect τ e))
+  (BINOP ::= + - * %)
   ;; Expressions come in three flavors:
   ;; - value constructors (for integers, functions, vectors, lists)
   ;; - control flow (if)
@@ -77,19 +78,21 @@
   ;;  partial primops due to type and value errors,
   ;;  mutable values
 
-  (v ::= integer Λ (vector x) (cons v v) nil
+  (v ::= integer Λ (vector τ loc) (vector loc) (cons v v) nil
          (mon-fun τ v) (mon-vector τ v))
   (Λ ::= (fun x (x) e) (fun x τ (x) e))
   ;; Value forms, including `monitor` values.
   ;; The monitors protect typed functions and vectors.
   ;;  (The type-sound evaluator will use monitors. The tag-sound will not.)
 
-  (Σ ::= (e σ))
+  (Σ ::= (L σ e))
   ;; Evaluation states consist of:
-  ;; - `e` the current expression being reduced
+  ;; - `L` the outermost language
   ;; - `σ` the current store
+  ;; - `e` the current expression being reduced
 
   (VAL-ENV ::= (M:ρ ...))
+  ;; ... namespace ?
   (M:ρ ::= (M ρ))
   ;; A toplevel value environment binds names to runtime environments,
   ;;  think: "evaluating the modules produced these values for its definitions"
@@ -99,8 +102,8 @@
   ;; A runtime environment binds identifiers to (typed) values
   ;; Types are preserved to protect typed values used by untyped modules.
 
-  (σ ::= ((l v*) ...))
-  ;; Store, or heap. Maps locations to vectors
+  (σ ::= ((loc v*) ...))
+  ;; Store, or heap. Maps locations to vector contents
 
   (TYPE-ENV ::= (M:Γ ...))
   (M:Γ ::= (x Γ))
@@ -113,7 +116,7 @@
   ;; Local type context, for checking expressions
   ;; ... needs TST because expression typing flips between typed and untyped code
 
-  (E ::= hole (vector v ... E e ...) (cons E e) (cons v E)
+  (E ::= hole (vector τ v ... E e ...) (vector v ... E e ...) (cons E e) (cons v E)
          (E e) (v E)
          (ifz E e e) (+ v ... E e ...) (- v ... E e ...) (* v ... E e ...) (% v ... E e ...)
          (vector-ref v ... E e ...) (vector-set! v ... E e ...)
@@ -124,7 +127,7 @@
   (A ::= Σ Error)
   (Error ::= BoundaryError TypeError)
   (TypeError ::= (TE v EXPECTED))
-  (BoundaryError ::= ValueError (BE x EXPECTED x v))
+  (BoundaryError ::= ValueError (BE EXPECTED v))
   (ValueError ::= DivisionByZero BadIndex EmptyList)
   (EXPECTED ::= τ κ string)
   ;; Evaluation can produce either a final value or an error,
@@ -134,7 +137,7 @@
   ;; - between a module and the runtime
   ;; - between two modules
 
-  (α l x M ::= variable-not-otherwise-mentioned)
+  (α loc x M ::= variable-not-otherwise-mentioned)
   (α* ::= (α ...))
   (x* ::= (x ...))
   (τ* ::= (τ ...))
