@@ -97,7 +97,7 @@
 ;; Usually call `apply-monitor`, but skip the boundary for typed functions and vectors
 (define-metafunction μTR
   check-value : v τ -> v
-  [(check-value v_fun)
+  [(check-value v_fun τ)
    v_fun
    (where (fun _ τ_fun (_) _) v_fun)
    (side-condition
@@ -106,7 +106,7 @@
          "value" (term v_fun)
          "actual type" (term τ_fun)
          "import type" (term τ))))]
-  [(check-value v_vec)
+  [(check-value v_vec τ)
    v_vec
    (where (vector τ_vec _) v_vec)
    (side-condition
@@ -115,7 +115,7 @@
          "value" (term v_vec)
          "actual type" (term τ_vec)
          "import type" (term τ))))]
-  [(check-value v)
+  [(check-value v τ)
    #{apply-monitor#/fail v τ}])
 
 (define-metafunction μTR
@@ -144,9 +144,9 @@
   [(local-value-env->provided ρ (provide))
    ()]
   [(local-value-env->provided ρ (provide x_0 x_rest ...))
-   (x:τ_0 x:τ_rest ...)
-   (where x:τ_0 #{local-value-env-ref ρ x_0})
-   (where (x:τ_rest ...) #{local-value-env->provided ρ (provide x_rest ...)})])
+   (x:v_0 x:v_rest ...)
+   (where x:v_0 #{local-value-env-ref ρ x_0})
+   (where (x:v_rest ...) #{local-value-env->provided ρ (provide x_rest ...)})])
 
 ;; -----------------------------------------------------------------------------
 
@@ -528,102 +528,6 @@
    (where e_sub #{unload-store v σ})])
 
 ;; -----------------------------------------------------------------------------
-;
-;(define-metafunction μTR
-;  eval-untyped-require* : VAL-ENV (REQUIRE-λ ...) -> ρλ
-;  [(eval-untyped-require* VAL-ENV ())
-;   ()]
-;  [(eval-untyped-require* VAL-ENV (REQUIRE-λ_first REQUIRE-λ_rest ...))
-;   #{env-set* ρλ_rest ρλ_first}
-;   (where ρλ_first #{eval-untyped-require VAL-ENV REQUIRE-λ_first})
-;   (where ρλ_rest #{eval-untyped-require* VAL-ENV (REQUIRE-λ_rest ...)})])
-;
-;(define-metafunction μTR
-;  eval-typed-require* : VAL-ENV (REQUIRE-τ ...) -> ρτ
-;  [(eval-typed-require* VAL-ENV ())
-;   ()]
-;  [(eval-typed-require* VAL-ENV (REQUIRE-τ_first REQUIRE-τ_rest ...))
-;   #{env-set* ρτ_rest ρτ_first}
-;   (where ρτ_first #{eval-typed-require VAL-ENV REQUIRE-τ_first})
-;   (where ρτ_rest #{eval-typed-require* VAL-ENV (REQUIRE-τ_rest ...)})])
-;
-;(define-metafunction μTR
-;  eval-untyped-require : VAL-ENV REQUIRE-λ -> ρλ
-;  [(eval-untyped-require VAL-ENV REQUIRE-λ)
-;   ρλ
-;   (where (require x_mod x_require ...) REQUIRE-λ)
-;   (where (x_mod ρ_mod) (program-env-ref VAL-ENV x_mod))
-;   (where any_fail ,(λ (x)
-;                      (raise-arguments-error 'eval-untyped-require
-;                        "required identifier not provided by module"
-;                        "id" x "module" (term x_mod) "env" (term ρ_mod))))
-;   (where ρ_mixed (#{runtime-env-ref ρ_mod x_require any_fail} ...))
-;   (where ρλ #{runtime-env->untyped-runtime-env x_mod ρ_mixed})]
-;  [(eval-untyped-require VAL-ENV REQUIRE-λ)
-;   ,(raise-arguments-error 'eval-untyped-require
-;      "required module does not exist"
-;      "module" (term x) "env" (term VAL-ENV))
-;   (where (require x_mod _ ...) REQUIRE-λ)])
-;
-;(define-metafunction μTR
-;  eval-typed-require : VAL-ENV REQUIRE-τ -> ρτ
-;  [(eval-typed-require VAL-ENV REQUIRE-τ)
-;   ρτ
-;   (where (require x_mod [x_require τ_require] ...) REQUIRE-τ)
-;   (where (x_mod ρ_mod) (program-env-ref VAL-ENV x_mod))
-;   (where any_fail ,(λ (x)
-;                      (raise-arguments-error 'eval-typed-require
-;                        "required identifier not provided by module"
-;                        "id" x "module" (term x_mod) "env" (term ρ_mod))))
-;   (where ρ_mixed (#{runtime-env-ref ρ_mod x_require any_fail} ...))
-;   (where ρτ #{runtime-env->typed-runtime-env x_mod ρ_mixed (τ_require ...)})]
-;  [(eval-typed-require VAL-ENV REQUIRE-τ)
-;   ,(raise-arguments-error 'eval-typed-require
-;      "required module does not exist"
-;      "module" (term x) "env" (term VAL-ENV))
-;   (where (require x_mod _ ...) REQUIRE-τ)])
-;
-;(define-metafunction μTR
-;  runtime-env->untyped-runtime-env : x ρ -> ρλ
-;  [(runtime-env->untyped-runtime-env x_mod ρλ)
-;   ρλ]
-;  [(runtime-env->untyped-runtime-env x_mod ρτ)
-;   ρλ
-;   (where ((x v τ) ...) ρτ)
-;   ;; protect typed values in untyped code
-;   (where ρλ ((x #{apply-monitor#/fail x_mod v τ}) ...))])
-;
-;(define-metafunction μTR
-;  runtime-env->typed-runtime-env : x ρ τ* -> ρτ
-;  [(runtime-env->typed-runtime-env x_mod ρτ τ*)
-;   ρτ_sub
-;   (where ((x v τ_actual) ...) ρτ)
-;   (where (τ_expected ...) τ*)
-;   (where ρτ_sub ((x v #{assert-below τ_expected τ_actual}) ...))]
-;  [(runtime-env->typed-runtime-env x_mod ρλ τ*)
-;   ,(let loop ([xv* (term ρλ)]
-;               [t* (term τ*)]
-;               [acc '()])
-;      (cond
-;       [(and (null? xv*) (null? t*))
-;        (reverse acc)]
-;       [(or (null? xv*) (null? t*))
-;        (raise-arguments-error 'runtime-env->typed-runtime-env
-;          "unequal number of types and values .. this can't be happening"
-;          "runtime-env" (term ρλ)
-;          "types" (term τ*))]
-;       [else
-;        (define x (car (car xv*)))
-;        (define v (cadr (car xv*)))
-;        (define t (car t*))
-;        (define v_mon (term #{apply-monitor# x_mod ,v ,t}))
-;        (if v_mon
-;          (loop (cdr xv*) (cdr t*) (cons (term (,x ,v_mon ,t)) acc))
-;          (raise-arguments-error 'runtime-env->typed-runtime-env
-;            "require-error"
-;            "message" (term (BE x_mod ,t unknown-module ,v))))]))])
-
-;; -----------------------------------------------------------------------------
 
 (define-judgment-form μTR
   #:mode (apply-monitor I I O)
@@ -670,53 +574,100 @@
 
 ;; =============================================================================
 
-;(module+ test
-;  (require rackunit)
-;
-;  (test-case "apply-monitor"
-;    (check-mf-apply*
-;     [(apply-monitor# m 4 Int)
-;      4]
-;     [(apply-monitor# m nil (Listof (Vectorof Int)))
-;      nil]
-;     [(apply-monitor# m (cons 1 (cons 2 (cons 3 nil))) (Listof Int))
-;      (cons 1 (cons 2 (cons 3 nil)))]
-;     [(apply-monitor# m (vector x) (Vectorof Nat))
-;      (mon-vector m (Vectorof Nat) (vector x))]
-;     [(apply-monitor# m (cons (vector x) (cons (vector y) nil)) (Listof (Vectorof Int)))
-;      (cons (mon-vector m (Vectorof Int) (vector x)) (cons (mon-vector m (Vectorof Int) (vector y)) nil))]
-;     [(apply-monitor# m (fun f (x) (+ x x)) (→ Int Int))
-;      (mon-fun m (→ Int Int) (fun f (x) (+ x x)))]
-;    )
-;
-;   (check-exn exn:fail:contract?
-;     (λ () (term (apply-monitor#/fail m 4 (Listof Int)))))
-;  )
-;
-;  (test-case "runtime-env->untyped-runtime-env"
-;    (check-mf-apply*
-;     ((runtime-env->untyped-runtime-env m0 ())
-;      ())
-;     ((runtime-env->untyped-runtime-env m0 ((x 0) (y 1) (z (vector qq))))
-;      ((x 0) (y 1) (z (vector qq))))
-;     ((runtime-env->untyped-runtime-env m0 ((x 0 Nat) (z (vector q) (Vectorof Int))))
-;      ((x 0) (z (mon-vector m0 (Vectorof Int) (vector q)))))
-;    )
-;  )
-;
-;  (test-case "runtime-env->typed-runtime-env"
-;    (check-mf-apply*
-;     ((runtime-env->typed-runtime-env m0 ((x 4) (y 1) (z (vector q))) (Nat Int (Vectorof Int)))
-;      ((x 4 Nat) (y 1 Int) (z (mon-vector m0 (Vectorof Int) (vector q)) (Vectorof Int))))
-;     ((runtime-env->typed-runtime-env m0 ((x 4) (z (vector q))) (Nat (Vectorof Int)))
-;      ((x 4 Nat) (z (mon-vector m0 (Vectorof Int) (vector q)) (Vectorof Int))))
-;     ((runtime-env->typed-runtime-env m0 ((x 4 Int) (z (vector q) (Vectorof Int))) (Int (Vectorof Int)))
-;      ((x 4 Int) (z (vector q) (Vectorof Int))))
-;    )
-;  )
-;
-;  (test-case "eval-untyped-require*"
-;
+(module+ test
+  (require rackunit)
+
+  (test-case "apply-monitor"
+    (check-mf-apply*
+     [(apply-monitor# 4 Int)
+      4]
+     [(apply-monitor# nil (Listof (Vectorof Int)))
+      nil]
+     [(apply-monitor# (cons 1 (cons 2 (cons 3 nil))) (Listof Int))
+      (cons 1 (cons 2 (cons 3 nil)))]
+     [(apply-monitor# (vector x) (Vectorof Nat))
+      (mon-vector (Vectorof Nat) (vector x))]
+     [(apply-monitor# (vector (Vectorof Nat) x) (Vectorof Nat))
+      (mon-vector (Vectorof Nat) (vector (Vectorof Nat) x))]
+     [(apply-monitor# (cons (vector (Vectorof Int) x) (cons (vector y) nil)) (Listof (Vectorof Int)))
+      (cons (mon-vector (Vectorof Int) (vector (Vectorof Int) x))
+            (cons (mon-vector (Vectorof Int) (vector y)) nil))]
+     [(apply-monitor# (fun f (x) (+ x x)) (→ Int Int))
+      (mon-fun (→ Int Int) (fun f (x) (+ x x)))]
+     [(apply-monitor# (fun f (→ Int Int) (x) (+ x x)) (→ Int Int))
+      (mon-fun (→ Int Int) (fun f (→ Int Int) (x) (+ x x)))]
+    )
+
+   (check-exn exn:fail:contract?
+     (λ () (term (apply-monitor#/fail 4 (Listof Int)))))
+  )
+
+  (test-case "local-value-env->provided"
+    (check-mf-apply*
+     ((local-value-env->provided () (provide))
+      ())
+     ((local-value-env->provided ((x 66)) (provide x))
+      ((x 66)))
+     ((local-value-env->provided ((x 1) (y -3)) (provide x y))
+      ((x 1) (y -3)))
+     ((local-value-env->provided ((x 2) (y -88)) (provide x))
+      ((x 2)))
+     ((local-value-env->provided ((x 6) (y 5)) (provide y))
+      ((y 5))))
+  )
+
+  (test-case "protect-value"
+    (check-mf-apply*
+     ((protect-value 4)
+      4)
+     ((protect-value (fun f (x) 4))
+      (fun f (x) 4))
+     ((protect-value (vector asd))
+      (vector asd))
+     ((protect-value (vector (Vectorof Int) asd))
+      (mon-vector (Vectorof Int) (vector (Vectorof Int) asd)))
+     ((protect-value (fun f (→ Nat Nat) (x) (+ x 4)))
+      (mon-fun (→ Nat Nat) (fun f (→ Nat Nat) (x) (+ x 4))))
+    )
+  )
+
+  (test-case "check-value"
+    (check-mf-apply*
+     ((check-value 4 Int)
+      4)
+     ((check-value (vector q) (Vectorof Int))
+      (mon-vector (Vectorof Int) (vector q)))
+     ((check-value (fun f (x) x) (→ (Vectorof Int) (Vectorof Int)))
+      (mon-fun (→ (Vectorof Int) (Vectorof Int)) (fun f (x) x)))
+     ((check-value (fun f (→ (Vectorof Int) (Vectorof Int)) (x) x) (→ (Vectorof Int) (Vectorof Int)))
+      (fun f (→ (Vectorof Int) (Vectorof Int)) (x) x))
+     ((check-value (vector (Vectorof Int) aaa) (Vectorof Int))
+      (vector (Vectorof Int) aaa)))
+
+    (check-exn exn:fail:contract? ;; import at wrong type
+      (λ () (term #{check-value (vector (Vectorof Int) asdf) (Vectorof Nat)})))
+    (check-exn exn:fail:contract? ;; import at wrong type
+      (λ () (term #{check-value (vector (Vectorof Nat) asdf) (Vectorof Int)})))
+    (check-exn exn:fail:contract?
+      (λ () (term #{check-value 4 (Listof Int)})))
+  )
+
+  (test-case "import/untyped"
+    (check-mf-apply*
+     ((import/untyped (a b c) ((a 1) (b 2) (c 3) (d 4)))
+      ((a 1) (b 2) (c 3)))
+    )
+  )
+
+  (test-case "import/typed"
+    (check-mf-apply*
+     ((import/typed ((a Int) (b Int) (c Int)) ((a 1) (b 2) (c 3) (d 4)))
+      ((a 1) (b 2) (c 3)))
+    )
+  )
+
+;  #;(test-case "require->local-value-env"
+;    ;; require->local-value-env
 ;    (check-mf-apply*
 ;     ((eval-untyped-require* () ())
 ;      ())
@@ -731,12 +682,6 @@
 ;     ((eval-untyped-require* ((m0 ((num 4))) (m1 ((f (fun g (x) x) (→ Int Int))))) ((require m0 num) (require m1 f)))
 ;      ((num 4) (f (mon-fun m1 (→ Int Int) (fun g (x) x)))))
 ;    )
-;
-;    (check-exn exn:fail:contract?
-;      (λ () (term (eval-untyped-require* () ((require m x))))))
-;  )
-;
-;  (test-case "eval-typed-require*"
 ;    (check-mf-apply*
 ;     ((eval-typed-require* () ())
 ;      ())
@@ -754,61 +699,72 @@
 ;    )
 ;
 ;    (check-exn exn:fail:contract?
+;      (λ () (term (eval-untyped-require* () ((require m x))))))
+;
+;    (check-exn exn:fail:contract?
 ;      (λ () (term (eval-typed-require* ((m0 ((num 4)))) ((require m0 (num (Vectorof Int))))))))
 ;  )
 ;
-;  (test-case "do-return"
+;  (test-case "make-answer"
+;  )
+;
+;  #;(test-case "do-check"
 ;    (check-mf-apply*
 ;     ((do-return 4 () m0 ((m1 hole Int) ()))
 ;      (4 () m1 ()))
 ;    )
 ;  )
 ;
-;  (test-case "do-call"
+;  (test-case "do-protect"
 ;    (check-mf-apply*
 ;     ((do-call hole (fun f (x) x) 42 () m0 ())
 ;      (42 () m0 ()))
 ;    )
 ;  )
 ;
-;  (test-case "do-arith/untyped"
+;  #;(test-case "do-return"
 ;    (check-mf-apply*
-;     ((do-arith/untyped + hole 2 2 () m0 ())
-;      (4 () m0 ()))
-;     ((do-arith/untyped - hole 3 2 () m0 ())
-;      (1 () m0 ()))
-;     ((do-arith/untyped * hole 3 3 () m0 ())
-;      (9 () m0 ()))
-;     ((do-arith/untyped % hole 12 4 () m0 ())
-;      (3 () m0 ()))
-;     ((do-arith/untyped % hole 5 2 () m0 ())
-;      (2 () m0 ()))
+;     ((do-return 4 () m0 ((m1 hole Int) ()))
+;      (4 () m1 ()))
 ;    )
 ;  )
 ;
-;  (test-case "primop-first"
+;  #;(test-case "do-apply/typed"
 ;    (check-mf-apply*
-;     ((primop-first hole nil () m0 ())
-;      EmptyList)
-;     ((primop-first hole (cons 1 nil) () m0 ())
-;      (1 () m0 ()))
-;     ((primop-first (+ hole 2) (cons 1 nil) () m0 ())
-;      ((+ 1 2) () m0 ()))
+;     ((do-return 4 () m0 ((m1 hole Int) ()))
+;      (4 () m1 ()))
 ;    )
 ;  )
 ;
-;  (test-case "primop-rest"
+;  #;(test-case "do-apply/untyped"
 ;    (check-mf-apply*
-;     ((primop-rest hole nil () m0 ())
-;      EmptyList)
-;     ((primop-rest hole (cons 0 nil) () m0 ())
-;      (nil () m0 ()))
-;     ((primop-rest (+ hole 2) (cons 0 nil) ((a (2))) m0 ())
-;      ((+ nil 2) ((a (2))) m0 ()))
+;     ((do-return 4 () m0 ((m1 hole Int) ()))
+;      (4 () m1 ()))
 ;    )
 ;  )
 ;
-;  (test-case "primop-ref"
+;  #;(test-case "do-apply"
+;    (check-mf-apply*
+;     ((do-return 4 () m0 ((m1 hole Int) ()))
+;      (4 () m1 ()))
+;    )
+;  )
+;
+;  #;(test-case "do-ref/typed"
+;    (check-mf-apply*
+;     ((do-return 4 () m0 ((m1 hole Int) ()))
+;      (4 () m1 ()))
+;    )
+;  )
+;
+;  #;(test-case "do-ref/untyped"
+;    (check-mf-apply*
+;     ((do-return 4 () m0 ((m1 hole Int) ()))
+;      (4 () m1 ()))
+;    )
+;  )
+;
+;  #;(test-case "do-ref"
 ;    (check-mf-apply*
 ;     ((primop-ref hole (vector qqq) 0 ((qqq (1 2 3))) m0 ())
 ;      (1 ((qqq (1 2 3))) m0 ()))
@@ -821,7 +777,21 @@
 ;    )
 ;  )
 ;
-;  (test-case "primop-set"
+;  #;(test-case "do-set/typed"
+;    (check-mf-apply*
+;     ((do-return 4 () m0 ((m1 hole Int) ()))
+;      (4 () m1 ()))
+;    )
+;  )
+;
+;  #;(test-case "do-set/untyped"
+;    (check-mf-apply*
+;     ((do-return 4 () m0 ((m1 hole Int) ()))
+;      (4 () m1 ()))
+;    )
+;  )
+;
+;  #;(test-case "do-set"
 ;    (check-mf-apply*
 ;     ((primop-set hole (vector qqq) 0 5 ((qqq (1 2 3))) m0 ())
 ;      (5 ((qqq (5 2 3))) m0 ()))
@@ -837,6 +807,99 @@
 ;      (BE m0 Int m1 nil))
 ;     ((primop-set hole 1 2 3 () m0 ())
 ;      (TE 1 "vector?"))
+;    )
+;  )
+;
+;  #;(test-case "do-ifz/untyped"
+;    (check-mf-apply*
+;     ((do-return 4 () m0 ((m1 hole Int) ()))
+;      (4 () m1 ()))
+;    )
+;  )
+;
+;  #;(test-case "do-arith/untyped"
+;    (check-mf-apply*
+;     ((do-return 4 () m0 ((m1 hole Int) ()))
+;      (4 () m1 ()))
+;    )
+;  )
+;
+;  #;(test-case "do-arith/typed"
+;    (check-mf-apply*
+;     ((do-return 4 () m0 ((m1 hole Int) ()))
+;      (4 () m1 ()))
+;    )
+;  )
+;  #;(test-case "do-arith"
+;    (check-mf-apply*
+;     ((do-return 4 () m0 ((m1 hole Int) ()))
+;      (4 () m1 ()))
+;    )
+;    (check-mf-apply*
+;     ((do-arith/untyped + hole 2 2 () m0 ())
+;      (4 () m0 ()))
+;     ((do-arith/untyped - hole 3 2 () m0 ())
+;      (1 () m0 ()))
+;     ((do-arith/untyped * hole 3 3 () m0 ())
+;      (9 () m0 ()))
+;     ((do-arith/untyped % hole 12 4 () m0 ())
+;      (3 () m0 ()))
+;     ((do-arith/untyped % hole 5 2 () m0 ())
+;      (2 () m0 ()))
+;    )
+;  )
+;
+;  #;(test-case "do-first/untyped"
+;    (check-mf-apply*
+;     ((do-return 4 () m0 ((m1 hole Int) ()))
+;      (4 () m1 ()))
+;    )
+;  )
+;
+;  #;(test-case "do-first/typed"
+;    (check-mf-apply*
+;     ((do-return 4 () m0 ((m1 hole Int) ()))
+;      (4 () m1 ()))
+;    )
+;  )
+;
+;  #;(test-case "do-first"
+;    (check-mf-apply*
+;     ((do-return 4 () m0 ((m1 hole Int) ()))
+;      (4 () m1 ()))
+;    )
+;    (check-mf-apply*
+;     ((primop-first hole nil () m0 ())
+;      EmptyList)
+;     ((primop-first hole (cons 1 nil) () m0 ())
+;      (1 () m0 ()))
+;     ((primop-first (+ hole 2) (cons 1 nil) () m0 ())
+;      ((+ 1 2) () m0 ()))
+;    )
+;  )
+;
+;  #;(test-case "do-rest/untyped"
+;    (check-mf-apply*
+;     ((do-return 4 () m0 ((m1 hole Int) ()))
+;      (4 () m1 ()))
+;    )
+;  )
+;
+;  #;(test-case "do-rest/typed"
+;    (check-mf-apply*
+;     ((do-return 4 () m0 ((m1 hole Int) ()))
+;      (4 () m1 ()))
+;    )
+;  )
+;
+;  #;(test-case "do-rest"
+;    (check-mf-apply*
+;     ((primop-rest hole nil () m0 ())
+;      EmptyList)
+;     ((primop-rest hole (cons 0 nil) () m0 ())
+;      (nil () m0 ()))
+;     ((primop-rest (+ hole 2) (cons 0 nil) ((a (2))) m0 ())
+;      ((+ nil 2) ((a (2))) m0 ()))
 ;    )
 ;  )
 ;
@@ -863,10 +926,7 @@
 ;    (check-exn exn:fail:contract?
 ;      (λ () (term (unload-answer (0 () m0 ((m1 hole Int) ())))))))
 ;
-;  (test-case "step-expression"
-;    (check-equal?
-;      (apply-reduction-relation step-expression (term ((+ 2 2) () mod ())))
-;      '((4 () mod ())))
+;  (test-case "unload-answer/store"
 ;  )
 ;
 ;  (test-case "eval-value"
@@ -1147,63 +1207,13 @@
 ;      (() ((z 3 Int) (y 2 Nat) (x 1 Nat))))
 ;    )
 ;  )
-;
-;  (test-case "type-soundness"
-;    (check-mf-apply*
-;     ((theorem:type-soundness M (M) () () () (+ 2 2) Nat)
-;      4)
-;     ((theorem:type-soundness M (M) () ((x Nat)) ((x 42)) (+ x 2) Nat)
-;      44)
-;     ((theorem:type-soundness M (M) () ((fact (→ Int Int))) ((fact (fun f (→ Int Int) (n) (ifz n 1 (* n (f (- n 1))))))) (fact 5) Int)
-;      120)
-;    )
-;
-;    (check-exn exn:fail:contract?
-;      (λ () (term (theorem:type-soundness M (M) () ((x Nat)) ((x -4)) (+ x 1) Nat))))
-;
-;    (check-exn exn:fail:contract?
-;      (λ () (term (theorem:type-soundness M (M) () () () (- 4 3) Nat))))
-;
-;    (check-exn exn:fail:contract?
-;      (λ () (term (theorem:type-soundness M () () () () (+ 1 1) Int))))
-;  )
-;
-;
-;)
-;
-;#;(
-;  (test-case "well-typed-state"
-;
-;    (check-judgment-holds*
-;     (well-typed-state (2 () M ()) Int (M))
-;     (well-typed-state ((fun f (x) x) () M ()) (→ Nat Nat) (M))
-;     (well-typed-state ((vector x) ((x (1 2 3))) M ()) (Vectorof Nat) (M))
-;
-;     (well-typed-state
-;       ((vector 2) () Mt
-;        ((Mu (+ 1 hole) (Vectorof Int)) ((Mt hole Nat) ())))
-;       Nat (Mt))
-;
-;     (well-typed-state
-;       ((+ 2 nil) () Mu
-;        ((Mt (+ 1 hole) Int) ()))
-;       Int (Mt))
-;    )
-;  )
-;
-;  (test-case "runtime-env-models"
-;    (check-judgment-holds*
-;     (runtime-env-models () () ())
-;     (runtime-env-models ((x 4)) ((x Nat)) ())
-;     (runtime-env-models ((x (cons 1 nil))) ((x (Listof Int))) ())
-;     (runtime-env-models ((x 2) (y (fun f (x) (+ x x)))) ((x Int) (y (→ Int Int))) ())
-;    )
-;
-;    (check-not-judgment-holds*
-;     (runtime-env-models () ((x Int)) ())
-;     (runtime-env-models ((x 2)) () ())
-;     (runtime-env-models ((x 2)) ((x (Listof Int))) ())
-;     (runtime-env-models ((x (fun f (x) 3))) ((x Nat)) ())
-;    )
-;  )
-;)
+
+  (test-case "eval-program#")
+  (test-case "eval-program")
+  (test-case "eval-module*")
+  (test-case "eval-module")
+  (test-case "eval-define*")
+  (test-case "eval-define")
+  (test-case "eval-expression")
+)
+
