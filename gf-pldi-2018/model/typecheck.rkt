@@ -14,12 +14,14 @@
   higher-order-value
   not-higher-order-value
 
-  vector-value
   fun-value
-  list-value
   not-fun-value
-  not-vector-value
+  list-value
   not-list-value
+  vector-value
+  not-vector-value
+  integer-value
+  not-integer-value
 
   well-typed-program
   well-typed-expression
@@ -524,6 +526,21 @@
    (side-condition ,(not (judgment-holds (list-value v))))
    ---
    (not-list-value v)])
+
+(define-judgment-form μTR
+  #:mode (integer-value I)
+  #:contract (integer-value v)
+  [
+   ---
+   (integer-value integer)])
+
+(define-judgment-form μTR
+  #:mode (not-integer-value I)
+  #:contract (not-integer-value v)
+  [
+   (side-condition ,(not (judgment-holds (integer-value v))))
+   ---
+   (not-integer-value v)])
 
 (define-judgment-form μTR
   #:mode (fun-value I)

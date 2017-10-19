@@ -191,6 +191,18 @@
    ---
    (eval-expression σ ρ L e σ_+ v_+)])
 
+(define-metafunction μTR
+  eval-expression# : σ ρ L e -> [σ v]
+  [(eval-expression# σ ρ L e)
+   (σ_+ v_+)
+   (judgment-holds (eval-expression σ ρ L e σ_+ v_+))]
+  [(eval-expression# σ ρ L e)
+   ,(raise-arguments-error 'eval-expression "undefined for arguments"
+     "store" (term σ)
+     "local-value-env" (term ρ)
+     "context" (term L)
+     "expression" (term e))])
+
 ;; -----------------------------------------------------------------------------
 
 (define single-step
@@ -225,7 +237,13 @@
    [-->
      (L σ (in-hole E (vector v ...)))
      (L σ_+ (in-hole E (vector loc)))
-     E-MakeVector
+     E-MakeVectorU
+     (fresh loc)
+     (where σ_+ #{store-set σ loc (v ...)})]
+   [-->
+     (L σ (in-hole E (vector τ v ...)))
+     (L σ_+ (in-hole E (vector τ loc)))
+     E-MakeVectorT
      (fresh loc)
      (where σ_+ #{store-set σ loc (v ...)})]
    [-->
@@ -350,11 +368,15 @@
 
 (define-metafunction μTR
   do-apply : L σ E v v L -> A
-  [(do-apply L σ E v_0 v_1 _)
+  [(do-apply L σ E Λ v_arg _)
    (L σ (in-hole E e_body+))
    (where (fun x_f (x_arg) e_body) Λ)
    (where e_body+ (substitute (substitute e_body x_f Λ) x_arg v_arg))]
-  [(do-apply L σ E (mon-fun x_f τ v_f) v_arg L_hole)
+  [(do-apply L σ E Λ v_arg _)
+   (L σ (in-hole E e_body+))
+   (where (fun x_f _ (x_arg) e_body) Λ)
+   (where e_body+ (substitute (substitute e_body x_f Λ) x_arg v_arg))]
+  [(do-apply L σ E (mon-fun τ v_f) v_arg L_hole)
    #{make-answer L σ E_+ #{apply-monitor# v_arg τ_dom}}
    (where (→ τ_dom τ_cod) #{coerce-arrow-type τ})
    (where E_+
@@ -377,19 +399,25 @@
   [(do-ref/untyped _ _ _ v _)
    (TE v "vector?")
    (judgment-holds (not-vector-value v))]
+  [(do-ref/untyped _ _ _ _ v)
+   (TE v "integer?")
+   (judgment-holds (not-integer-value v))]
   [(do-ref/untyped L σ E v_0 v_1)
-   #{do-ref L E σ v_0 v_1 L_hole}
+   #{do-ref L σ E v_0 v_1 L_hole}
    (where L_hole UN)])
 
 (define-metafunction μTR
   do-ref : L σ E v v L -> A
   [(do-ref L σ E (vector loc) integer_index _)
-   #{make-answer L E σ #{term-ref v* integer_index}}
+   #{make-answer L σ E #{term-ref v* integer_index}}
+   (where (_ v*) #{store-ref σ loc})]
+  [(do-ref L σ E (vector _ loc) integer_index _)
+   #{make-answer L σ E #{term-ref v* integer_index}}
    (where (_ v*) #{store-ref σ loc})]
   [(do-ref L σ E (mon-vector τ v_0) v_1 L_hole)
-   #{make-answer E_+ σ any_+}
+   (L σ e_+)
    (where (Vectorof τ_elem) #{coerce-vector-type τ})
-   (where E_+
+   (where e_+
      ,(cond
        [(equal? (term UN) (term L_hole))
         (term (in-hole E (protect τ_elem (vector-ref v_0 v_1))))]
@@ -401,29 +429,37 @@
 (define-metafunction μTR
   do-set/typed : L σ E v v v -> A
   [(do-set/typed L σ E v_0 v_1 v_2)
-   #{do-set L σ E v_0 v_1 v_2 L_hole}
-   (where L_hole TY)])
+   #{do-set L σ E v_0 v_1 v_2}])
 
 (define-metafunction μTR
   do-set/untyped : L σ E v v v -> A
   [(do-set/untyped _ _ _ v _ _)
-   (TE v "vector?")]
+   (TE v "vector?")
+   (judgment-holds (not-vector-value v))]
+  [(do-set/untyped _ _ _ _ v _)
+   (TE v "integer?")
+   (judgment-holds (not-integer-value v))]
   [(do-set/untyped L σ E v_0 v_1 v_2)
-   #{do-set L σ E v_0 v_1 v_2 L_hole}
-   (where L_hole UN)])
+   #{do-set L σ E v_0 v_1 v_2}])
 
 (define-metafunction μTR
-  do-set : L σ E v v v L -> A
-  [(do-set L σ E (vector loc) v_1 v_2 _)
-   ,(if (term any_set)
-      (term (L #{store-update σ loc any_set} (in-hole E v_2)))
-      (term BadIndex))
+  do-set : L σ E v v v -> A
+  [(do-set L σ E (vector loc) v_1 v_2)
+   ,(if (redex-match? μTR Error (term any_set))
+      (term any_set)
+      (term (L #{store-update σ loc any_set} (in-hole E v_2))))
    (where (_ v*) #{store-ref σ loc})
-   (where any-set #{term-set v* integer_index v_2})]
-  [(do-set L σ E (mon-vector τ v_0) v_1 v_2 L_hole)
-   #{make-answer L σ E_+ #{apply-monitor# v_2 τ}}
-   (where (Vectorof τ_elem) τ)
-   (where E_+ (in-hole E (vector-set v_0 v_1 hole)))])
+   (where any_set #{term-set v* v_1 v_2})]
+  [(do-set L σ E (vector _ loc) v_1 v_2)
+   ,(if (redex-match? μTR Error (term any_set))
+      (term any_set)
+      (term (L #{store-update σ loc any_set} (in-hole E v_2))))
+   (where (_ v*) #{store-ref σ loc})
+   (where any_set #{term-set v* v_1 v_2})]
+  [(do-set L σ E (mon-vector τ v_0) v_1 v_2)
+   #{make-answer L σ E_+ #{apply-monitor# v_2 τ_elem}}
+   (where (Vectorof τ_elem) #{coerce-vector-type τ})
+   (where E_+ (in-hole E (vector-set! v_0 v_1 hole)))])
 
 (define-metafunction μTR
   do-ifz/untyped : L σ E v e e -> A
@@ -444,26 +480,26 @@
   [(do-arith/untyped _ _ _ _ _ v)
    (TE v "integer?")
    (side-condition (not (integer? (term v))))]
-  [(do-arith/untyped BINOP L σ E v v)
-   #{do-arith BINOP L σ E v v}])
+  [(do-arith/untyped BINOP L σ E v_0 v_1)
+   #{do-arith BINOP L σ E v_0 v_1}])
 
 (define-metafunction μTR
   do-arith/typed : BINOP L σ E v v -> A
-  [(do-arith/typed BINOP L σ E v v)
-   #{do-arith BINOP L σ E v v}])
+  [(do-arith/typed BINOP L σ E v_0 v_1)
+   #{do-arith BINOP L σ E v_0 v_1}])
 
 (define-metafunction μTR
   do-arith : BINOP L σ E v v -> A
-  [(do-arith + E σ integer_0 integer_1)
+  [(do-arith + L σ E integer_0 integer_1)
    (L σ (in-hole E ,(+ (term integer_0) (term integer_1))))]
-  [(do-arith - E σ integer_0 integer_1)
+  [(do-arith - L σ E integer_0 integer_1)
    (L σ (in-hole E ,(- (term integer_0) (term integer_1))))]
-  [(do-arith * E σ integer_0 integer_1)
+  [(do-arith * L σ E integer_0 integer_1)
    (L σ (in-hole E ,(* (term integer_0) (term integer_1))))]
-  [(do-arith % E σ integer_0 integer_1)
+  [(do-arith % L σ E integer_0 integer_1)
    DivisionByZero
    (side-condition (zero? (term integer_1)))]
-  [(do-arith % E σ integer_0 integer_1)
+  [(do-arith % L σ E integer_0 integer_1)
    (L σ (in-hole E ,(quotient (term integer_0) (term integer_1))))
    (side-condition (not (zero? (term integer_1))))])
 
@@ -508,8 +544,8 @@
    (L σ (in-hole E v_1))])
 
 (define-metafunction μTR
-  load-expression : L σ E ρ e -> Σ
-  [(load-expression L σ E ρ e)
+  load-expression : L σ ρ e -> Σ
+  [(load-expression L σ ρ e)
    (L σ (substitute* e ρ))])
 
 (define-metafunction μTR
@@ -524,7 +560,7 @@
   unload-answer/store : A -> e
   [(unload-answer/store A)
    e_sub
-   (where (L σ v) #{unload-answer A})
+   (where (σ v) #{unload-answer A})
    (where e_sub #{unload-store v σ})])
 
 ;; -----------------------------------------------------------------------------
@@ -570,7 +606,7 @@
    v_mon
    (judgment-holds (apply-monitor v τ v_mon))]
   [(apply-monitor# v τ)
-   #false])
+   (BE τ v)])
 
 ;; =============================================================================
 
@@ -666,365 +702,380 @@
     )
   )
 
-;  #;(test-case "require->local-value-env"
-;    ;; require->local-value-env
-;    (check-mf-apply*
-;     ((eval-untyped-require* () ())
-;      ())
-;     ((eval-untyped-require* ((m0 ((n 4)))) ((require m0 n)))
-;      ((n 4)))
-;     ((eval-untyped-require* ((m0 ((num 4) (y 5)))) ((require m0 num)))
-;      ((num 4)))
-;     ((eval-untyped-require* ((m0 ((num 4))) (m1 ((f (fun g (x) x))))) ((require m0 num)))
-;      ((num 4)))
-;     ((eval-untyped-require* ((m0 ((num 4))) (m1 ((f (fun g (x) x))))) ((require m0 num) (require m1 f)))
-;      ((num 4) (f (fun g (x) x))))
-;     ((eval-untyped-require* ((m0 ((num 4))) (m1 ((f (fun g (x) x) (→ Int Int))))) ((require m0 num) (require m1 f)))
-;      ((num 4) (f (mon-fun m1 (→ Int Int) (fun g (x) x)))))
-;    )
-;    (check-mf-apply*
-;     ((eval-typed-require* () ())
-;      ())
-;     ((eval-typed-require* ((m0 ((num 4 Nat)))) ((require m0 [num Nat])))
-;      ((num 4 Nat)))
-;     ((eval-typed-require* ((m0 ((num 4) (y 5)))) ((require m0 [num Nat])))
-;      ((num 4 Nat)))
-;     ((eval-typed-require* ((m0 ((num 4))) (m1 ((f (fun g (x) x))))) ((require m0 [num Nat])))
-;      ((num 4 Nat)))
-;     ((eval-typed-require* ((m0 ((num 4))) (m1 ((f (fun g (x) x)))))
-;                           ((require m0 (num Int)) (require m1 (f (→ (Vectorof Int) (Vectorof Int))))))
-;      ((num 4 Int) (f (mon-fun m1 (→ (Vectorof Int) (Vectorof Int)) (fun g (x) x)) (→ (Vectorof Int) (Vectorof Int)))))
-;     ((eval-typed-require* ((m0 ((num 4))) (m1 ((f (fun g (x) x) (→ Int Int))))) ((require m0 (num Int)) (require m1 (f (→ Int Int)))))
-;      ((num 4 Int) (f (fun g (x) x) (→ Int Int))))
-;    )
-;
-;    (check-exn exn:fail:contract?
-;      (λ () (term (eval-untyped-require* () ((require m x))))))
-;
-;    (check-exn exn:fail:contract?
-;      (λ () (term (eval-typed-require* ((m0 ((num 4)))) ((require m0 (num (Vectorof Int))))))))
-;  )
-;
-;  (test-case "make-answer"
-;  )
-;
-;  #;(test-case "do-check"
-;    (check-mf-apply*
-;     ((do-return 4 () m0 ((m1 hole Int) ()))
-;      (4 () m1 ()))
-;    )
-;  )
-;
-;  (test-case "do-protect"
-;    (check-mf-apply*
-;     ((do-call hole (fun f (x) x) 42 () m0 ())
-;      (42 () m0 ()))
-;    )
-;  )
-;
-;  #;(test-case "do-return"
-;    (check-mf-apply*
-;     ((do-return 4 () m0 ((m1 hole Int) ()))
-;      (4 () m1 ()))
-;    )
-;  )
-;
-;  #;(test-case "do-apply/typed"
-;    (check-mf-apply*
-;     ((do-return 4 () m0 ((m1 hole Int) ()))
-;      (4 () m1 ()))
-;    )
-;  )
-;
-;  #;(test-case "do-apply/untyped"
-;    (check-mf-apply*
-;     ((do-return 4 () m0 ((m1 hole Int) ()))
-;      (4 () m1 ()))
-;    )
-;  )
-;
-;  #;(test-case "do-apply"
-;    (check-mf-apply*
-;     ((do-return 4 () m0 ((m1 hole Int) ()))
-;      (4 () m1 ()))
-;    )
-;  )
-;
-;  #;(test-case "do-ref/typed"
-;    (check-mf-apply*
-;     ((do-return 4 () m0 ((m1 hole Int) ()))
-;      (4 () m1 ()))
-;    )
-;  )
-;
-;  #;(test-case "do-ref/untyped"
-;    (check-mf-apply*
-;     ((do-return 4 () m0 ((m1 hole Int) ()))
-;      (4 () m1 ()))
-;    )
-;  )
-;
-;  #;(test-case "do-ref"
-;    (check-mf-apply*
-;     ((primop-ref hole (vector qqq) 0 ((qqq (1 2 3))) m0 ())
-;      (1 ((qqq (1 2 3))) m0 ()))
-;     ((primop-ref (+ hole 1) (vector qqq) 0 ((qqq (1 2 3))) m0 ())
-;      ((+ 1 1) ((qqq (1 2 3))) m0 ()))
-;     ((primop-ref hole (vector qqq) 8 ((qqq (1 2 3))) m0 ())
-;      BadIndex)
-;     ((primop-ref hole (mon-vector m0 (Vectorof Int) (vector qqq)) 0 ((qqq (1 2 3))) m1 ())
-;      ((vector-ref (vector qqq) 0) ((qqq (1 2 3))) m0 ((m1 hole Int) ())))
-;    )
-;  )
-;
-;  #;(test-case "do-set/typed"
-;    (check-mf-apply*
-;     ((do-return 4 () m0 ((m1 hole Int) ()))
-;      (4 () m1 ()))
-;    )
-;  )
-;
-;  #;(test-case "do-set/untyped"
-;    (check-mf-apply*
-;     ((do-return 4 () m0 ((m1 hole Int) ()))
-;      (4 () m1 ()))
-;    )
-;  )
-;
-;  #;(test-case "do-set"
-;    (check-mf-apply*
-;     ((primop-set hole (vector qqq) 0 5 ((qqq (1 2 3))) m0 ())
-;      (5 ((qqq (5 2 3))) m0 ()))
-;     ((primop-set hole (vector qqq) 0 5 ((qqq (1 2 3))) m0 ((m1 hole Int) ()))
-;      (5 ((qqq (5 2 3))) m0 ((m1 hole Int) ())))
-;     ((primop-set hole (vector qqq) 0 5 ((qqq ())) m0 ())
-;      BadIndex)
-;     ((primop-set hole (mon-vector m0 (Vectorof Int) (vector qqq)) 0 5 ((qqq (1))) m1 ())
-;      ((vector-set! (vector qqq) 0 5) ((qqq (1))) m1 ()))
-;     ((primop-set (+ hole 1) (mon-vector m0 (Vectorof Int) (vector qqq)) 0 5 ((qqq (1))) m1 ())
-;      ((+ (vector-set! (vector qqq) 0 5) 1) ((qqq (1))) m1 ()))
-;     ((primop-set hole (mon-vector m0 (Vectorof Int) (vector qqq)) 0 nil ((qqq (1))) m1 ())
-;      (BE m0 Int m1 nil))
-;     ((primop-set hole 1 2 3 () m0 ())
-;      (TE 1 "vector?"))
-;    )
-;  )
-;
-;  #;(test-case "do-ifz/untyped"
-;    (check-mf-apply*
-;     ((do-return 4 () m0 ((m1 hole Int) ()))
-;      (4 () m1 ()))
-;    )
-;  )
-;
-;  #;(test-case "do-arith/untyped"
-;    (check-mf-apply*
-;     ((do-return 4 () m0 ((m1 hole Int) ()))
-;      (4 () m1 ()))
-;    )
-;  )
-;
-;  #;(test-case "do-arith/typed"
-;    (check-mf-apply*
-;     ((do-return 4 () m0 ((m1 hole Int) ()))
-;      (4 () m1 ()))
-;    )
-;  )
-;  #;(test-case "do-arith"
-;    (check-mf-apply*
-;     ((do-return 4 () m0 ((m1 hole Int) ()))
-;      (4 () m1 ()))
-;    )
-;    (check-mf-apply*
-;     ((do-arith/untyped + hole 2 2 () m0 ())
-;      (4 () m0 ()))
-;     ((do-arith/untyped - hole 3 2 () m0 ())
-;      (1 () m0 ()))
-;     ((do-arith/untyped * hole 3 3 () m0 ())
-;      (9 () m0 ()))
-;     ((do-arith/untyped % hole 12 4 () m0 ())
-;      (3 () m0 ()))
-;     ((do-arith/untyped % hole 5 2 () m0 ())
-;      (2 () m0 ()))
-;    )
-;  )
-;
-;  #;(test-case "do-first/untyped"
-;    (check-mf-apply*
-;     ((do-return 4 () m0 ((m1 hole Int) ()))
-;      (4 () m1 ()))
-;    )
-;  )
-;
-;  #;(test-case "do-first/typed"
-;    (check-mf-apply*
-;     ((do-return 4 () m0 ((m1 hole Int) ()))
-;      (4 () m1 ()))
-;    )
-;  )
-;
-;  #;(test-case "do-first"
-;    (check-mf-apply*
-;     ((do-return 4 () m0 ((m1 hole Int) ()))
-;      (4 () m1 ()))
-;    )
-;    (check-mf-apply*
-;     ((primop-first hole nil () m0 ())
-;      EmptyList)
-;     ((primop-first hole (cons 1 nil) () m0 ())
-;      (1 () m0 ()))
-;     ((primop-first (+ hole 2) (cons 1 nil) () m0 ())
-;      ((+ 1 2) () m0 ()))
-;    )
-;  )
-;
-;  #;(test-case "do-rest/untyped"
-;    (check-mf-apply*
-;     ((do-return 4 () m0 ((m1 hole Int) ()))
-;      (4 () m1 ()))
-;    )
-;  )
-;
-;  #;(test-case "do-rest/typed"
-;    (check-mf-apply*
-;     ((do-return 4 () m0 ((m1 hole Int) ()))
-;      (4 () m1 ()))
-;    )
-;  )
-;
-;  #;(test-case "do-rest"
-;    (check-mf-apply*
-;     ((primop-rest hole nil () m0 ())
-;      EmptyList)
-;     ((primop-rest hole (cons 0 nil) () m0 ())
-;      (nil () m0 ()))
-;     ((primop-rest (+ hole 2) (cons 0 nil) ((a (2))) m0 ())
-;      ((+ nil 2) ((a (2))) m0 ()))
-;    )
-;  )
-;
-;  (test-case "load-expression"
-;    (check-mf-apply*
-;     ((load-expression m0 () () (+ 2 2))
-;      ((+ 2 2) () m0 ()))
-;     ((load-expression m1 ((qqq (1))) ((x 3)) (+ 2 2))
-;      ((+ 2 2) ((qqq (1))) m1 ()))
-;     ((load-expression m1 ((qqq (1))) ((x 3)) (+ x 2))
-;      ((+ 3 2) ((qqq (1))) m1 ()))
-;    )
-;  )
-;
-;  (test-case "unload-answer"
-;    (check-mf-apply*
-;     ((unload-answer ((vector q) ((q (1))) m0 ()))
-;      ((vector q) ((q (1))) m0))
-;    )
-;
-;    (check-exn exn:fail:contract?
-;      (λ () (term (unload-answer BadIndex))))
-;
-;    (check-exn exn:fail:contract?
-;      (λ () (term (unload-answer (0 () m0 ((m1 hole Int) ())))))))
-;
-;  (test-case "unload-answer/store"
-;  )
-;
-;  (test-case "eval-value"
-;    (check-mf-apply*
-;     ((eval-value mod0 () () (+ 2 2))
-;      (4 ()))
-;     ((eval-value mod0 () () (+ (+ 2 2) (+ 2 2)))
-;      (8 ()))
-;     ((eval-value mod0 ((q (1))) ((a 7)) (+ 2 2))
-;      (4 ((q (1)))))
-;     ((eval-value mod0 ((q (1))) ((a 7)) (+ a a))
-;      (14 ((q (1)))))
-;    )
-;  )
-;
-;  (test-case "eval-program:I"
-;    (check-mf-apply*
-;     ((eval-program [(module-λ mu (define x 4) (provide x))])
-;      (() ((mu ((x 4))))))
-;     ((eval-program [(module-τ mt (define x Int 4) (provide x))])
-;      (() ((mt ((x 4 Int))))))
-;     ((eval-program
-;       ((module-λ M
-;         (define x (+ 2 2))
-;         (provide x))))
-;      (() ((M ((x 4))))))
-;     ((eval-program
-;       ((module-λ M
-;         (define x 2)
-;         (define y (+ x x))
-;         (provide x y))))
-;      (() ((M ((x 2) (y 4))))))
-;     ((eval-program
-;       ((module-λ M
-;         (define x (fun a (b) (+ b 1)))
-;         (define y (x 4))
-;         (provide y))))
-;      (() ((M ((y 5))))))
-;     ((eval-program
-;       ((module-τ M
-;         (define fact (→ Nat Nat) (fun fact (n) (ifz n 1 (* n (fact (- n 1))))))
-;         (define f0 Nat (fact 0))
-;         (define f1 Nat (fact 1))
-;         (define f2 Nat (fact 2))
-;         (define f3 Nat (fact 3))
-;         (define f4 Nat (fact 4))
-;         (provide f0 f1 f2 f3 f4))))
-;      (() ((M ((f0 1 Nat) (f1 1 Nat) (f2 2 Nat) (f3 6 Nat) (f4 24 Nat))))))
-;     ((eval-program
-;       ((module-τ M
-;         (define v (Vectorof Int) (vector 1 2 (+ 2 1)))
-;         (define x Int (vector-ref v 2))
-;         (define dontcare Int (vector-set! v 0 0))
-;         (define y Int (vector-ref v 0))
-;         (provide x y))))
-;      (((x_loc (0 2 3))) ((M ((x 3 Int) (y 0 Int))))))
-;     ((eval-program
-;       ((module-τ M
-;         (define second (→ (Listof Int) Int) (fun f (xs) (first (rest xs))))
-;         (define v Int (second (cons 1 (cons 2 nil))))
-;         (provide v))))
-;      (() ((M ((v 2 Int))))))
-;    )
-;  )
-;
-;  (test-case "eval-program:TE"
-;    (check-exn #rx"TE"
-;      (λ () (term
-;        (eval-program
-;         ((module-τ M
-;           (define x Int (+ 1 nil))
-;           (provide)))))))
-;    (check-exn #rx"TE"
-;      (λ () (term
-;        (eval-program
-;         ((module-λ M
-;           (define x (+ 1 nil))
-;           (provide)))))))
-;    (check-exn #rx"TE"
-;      (λ () (term
-;        (eval-program
-;         ((module-τ M
-;           (define x Int (first 4))
-;           (provide)))))))
-;    (check-exn #rx"TE"
-;      (λ () (term
-;        (eval-program
-;         ((module-λ M
-;           (define x (vector-ref 4 4))
-;           (provide)))))))
-;    (check-exn #rx"TE"
-;      (λ () (term
-;        (eval-program
-;         ((module-λ M
-;           (define x (4 4))
-;           (provide)))))))
-;  )
-;
+  (test-case "require->local-value-env"
+    (check-mf-apply*
+     ((require->local-value-env () ())
+      ())
+     ((require->local-value-env ((M0 ((n 4)))) ((require M0 n)))
+      ((n 4)))
+     ((require->local-value-env ((m0 ((num 4) (y 5)))) ((require m0 num)))
+      ((num 4)))
+     ((require->local-value-env ((m0 ((num 4))) (m1 ((f (fun g (x) x)))))
+                                ((require m0 num)))
+      ((num 4)))
+     ((require->local-value-env ((m0 ((num 4))) (m1 ((f (fun g (x) x)))))
+                                ((require m0 num) (require m1 f)))
+      ((num 4) (f (fun g (x) x))))
+     ((require->local-value-env ((m0 ((num 4))) (m1 ((f (fun g (x) x)))))
+                                ((require m0 num) (require m1 f)))
+      ((num 4) (f (fun g (x) x))))
+     ((require->local-value-env ((m0 ((num 4))) (m1 ((f (fun g (→ Int Int) (x) x)))))
+                                ((require m0 num) (require m1 f)))
+      ((num 4) (f (mon-fun (→ Int Int) (fun g (→ Int Int) (x) x)))))
+     ((require->local-value-env ((m0 ((num 4)))) ((require m0 ([num Nat]))))
+      ((num 4)))
+     ((require->local-value-env ((m0 ((num 4) (y 5)))) ((require m0 ([num Nat]))))
+      ((num 4)))
+     ((require->local-value-env ((m0 ((num 4))) (m1 ((f (fun g (x) x)))))
+                                ((require m0 ([num Nat]))))
+      ((num 4)))
+     ((require->local-value-env ((m0 ((num 4))) (m1 ((f (fun g (x) x)))))
+                                ((require m0 ((num Int))) (require m1 ((f (→ (Vectorof Int) (Vectorof Int)))))))
+      ((num 4) (f (mon-fun (→ (Vectorof Int) (Vectorof Int)) (fun g (x) x)))))
+     ((require->local-value-env ((m0 ((num 4))) (m1 ((f (fun g (→ Int Int) (x) x)))))
+                                ((require m0 ((num Int))) (require m1 ((f (→ Int Int))))))
+      ((num 4) (f (fun g (→ Int Int) (x) x))))
+    )
+
+    (check-exn exn:fail:contract?
+      (λ () (term (require->local-value-env () ((require m x))))))
+
+    (check-exn exn:fail:contract?
+      (λ () (term (require->local-value-env ((m0 ((num 4)))) ((require m0 ((num (Vectorof Int)))))))))
+  )
+
+  (test-case "make-answer"
+    (check-mf-apply*
+     ((make-answer UN () hole 2)
+      (UN () 2))
+     ((make-answer TY () hole (TE 2 "pair?"))
+      (TE 2 "pair?"))))
+
+  (test-case "do-check"
+    (check-mf-apply*
+     ((do-check TY () hole 3 Int)
+      (TY () 3))
+     ((do-check TY () hole 3 (Vectorof Int))
+      (BE (Vectorof Int) 3))
+     ((do-check TY ((qq (0))) hole (vector qq) (Vectorof Nat))
+      (TY ((qq (0))) (mon-vector (Vectorof Nat) (vector qq))))))
+
+  (test-case "do-protect"
+    (check-mf-apply*
+     ((do-protect TY () hole 3 Int)
+      (TY () 3))
+     ((do-protect TY () hole 3 (Vectorof Int))
+      (BE (Vectorof Int) 3))
+     ((do-protect TY ((qq (0))) hole (vector qq) (Vectorof Nat))
+      (TY ((qq (0))) (mon-vector (Vectorof Nat) (vector qq))))))
+
+  (test-case "do-return"
+    (check-mf-apply*
+     ((do-return UN () hole 4 Int)
+      (UN () 4))
+     ((do-return TY () hole 4 (Vectorof Int))
+      (BE (Vectorof Int) 4))
+     ((do-return UN () hole (fun f (x) x) (→ Nat Nat))
+      (UN () (mon-fun (→ Nat Nat) (fun f (x) x))))))
+
+  (test-case "do-apply/typed"
+    (check-mf-apply*
+     ((do-apply/untyped UN () hole 4 5)
+      (TE 4 "procedure?"))
+     ((do-apply/untyped TY () (check Int hole) (fun f (x) (+ x x)) 5)
+      (TY () (check Int (+ 5 5))))
+    )
+  )
+
+  (test-case "do-apply/untyped"
+    (check-mf-apply*
+     ((do-apply/typed TY ((a (1))) hole (fun f (x) (+ x x)) 5)
+      (TY ((a (1))) (+ 5 5)))
+     ((do-apply/typed TY () hole (mon-fun (→ Nat Nat) (fun f (x) (+ x x))) 5)
+      (TY () (check Nat ((fun f (x) (+ x x)) 5))))
+    )
+  )
+
+  (test-case "do-apply"
+    (check-mf-apply*
+     ((do-apply UN () hole (fun f (x) (+ x x)) 5 UN)
+      (UN () (+ 5 5)))
+    )
+  )
+
+  (test-case "do-ref/typed"
+    (check-mf-apply*
+     ((do-ref/typed TY ((qq (1 2))) hole (vector qq) 0)
+      (TY ((qq (1 2))) 1))
+     ((do-ref/typed TY ((qq (1 2))) hole (vector (Vectorof Int) qq) 1)
+      (TY ((qq (1 2))) 2))
+     ((do-ref/typed TY ((qq ())) hole (vector qq) 3)
+      BadIndex)
+    )
+  )
+
+  (test-case "do-ref/untyped"
+    (check-mf-apply*
+     ((do-ref/untyped UN ((qq (1 2))) hole (vector qq) 0)
+      (UN ((qq (1 2))) 1))
+     ((do-ref/untyped UN () hole 4 5)
+      (TE 4 "vector?"))
+    )
+  )
+
+  (test-case "do-ref"
+    (check-mf-apply*
+     ((do-ref TY ((qq (2))) hole (vector qq) 0 UN)
+      (TY ((qq (2))) 2))
+     ((do-ref TY ((qq (2))) hole (mon-vector (Vectorof Nat) (vector qq)) 0 UN)
+      (TY ((qq (2))) (protect Nat (vector-ref (vector qq) 0))))
+     ((do-ref TY ((qq (2))) hole (mon-vector (Vectorof Nat) (vector qq)) 0 TY)
+      (TY ((qq (2))) (check Nat (vector-ref (vector qq) 0))))
+    )
+  )
+
+  (test-case "do-set/typed"
+    (check-mf-apply*
+     ((do-set/typed TY ((qq (1 2))) hole (vector (Vectorof Nat) qq) 0 2)
+      (TY ((qq (2 2))) 2))
+     ((do-set/typed TY ((qq (1 2))) hole (mon-vector (Vectorof Nat) (vector qq)) 0 2)
+      (TY ((qq (1 2))) (vector-set! (vector qq) 0 2)))
+     ((do-set/typed TY ((x ()) (qq ((vector z))) (z (1))) hole (mon-vector (Vectorof (Vectorof Nat)) (vector qq)) 0 (vector x))
+      (TY ((x ()) (qq ((vector z))) (z (1))) (vector-set! (vector qq) 0 (mon-vector (Vectorof Nat) (vector x)))))
+    )
+  )
+
+  (test-case "do-set/untyped"
+    (check-mf-apply*
+     ((do-set/untyped UN () hole 4 5 6)
+      (TE 4 "vector?"))
+     ((do-set/untyped UN ((qq (0))) hole (vector qq) (vector qq) 6)
+      (TE (vector qq) "integer?"))
+     ((do-set/untyped UN ((qq (0 0))) hole (vector qq) 0 1)
+      (UN ((qq (1 0))) 1))
+    )
+  )
+
+  (test-case "do-set"
+    (check-mf-apply*
+     ((do-set UN ((qq (5))) hole (vector qq) 0 1)
+      (UN ((qq (1))) 1))
+     ((do-set TY ((qq (5))) hole (vector (Vectorof Int) qq) 0 1)
+      (TY ((qq (1))) 1))
+     ((do-set TY ((qq (5))) hole (mon-vector (Vectorof Int) (vector qq)) 0 (fun f (x) 1))
+      (BE Int (fun f (x) 1)))
+     ((do-set TY ((qq ((fun f (x) 0)))) hole (mon-vector (Vectorof (→ Nat Nat)) (vector qq)) 0 (fun f (x) 1))
+      (TY ((qq ((fun f (x) 0)))) (vector-set! (vector qq) 0 (mon-fun (→ Nat Nat) (fun f (x) 1)))))
+    )
+  )
+
+  (test-case "do-ifz/untyped"
+    (check-mf-apply*
+     ((do-ifz/untyped UN () hole 1 2 3)
+      (UN () 3))
+     ((do-ifz/untyped UN () hole 0 1 2)
+      (UN () 1))))
+
+  (test-case "do-arith/untyped"
+    (check-mf-apply*
+     ((do-arith/untyped + UN () hole nil 0)
+      (TE nil "integer?"))
+     ((do-arith/untyped + UN () hole 0 nil)
+      (TE nil "integer?"))
+     ((do-arith/untyped + UN () hole 3 2)
+      (UN () 5))
+    )
+  )
+
+  (test-case "do-arith/typed"
+    (check-mf-apply*
+     ((do-arith/typed * TY () hole 7 6)
+      (TY () 42))))
+
+  (test-case "do-arith"
+    (check-mf-apply*
+     ((do-arith + UN () hole 3 3)
+      (UN () 6))
+     ((do-arith - UN () hole 1 3)
+      (UN () -2))
+     ((do-arith * UN () hole 3 3)
+      (UN () 9))
+     ((do-arith % UN () hole 6 3)
+      (UN () 2))
+     ((do-arith % UN () hole 1 3)
+      (UN () 0))
+     ((do-arith % UN () hole 1 0)
+      DivisionByZero)))
+
+  (test-case "do-first/untyped"
+    (check-mf-apply*
+     ((do-first/untyped UN () hole 3)
+      (TE 3 "pair?"))
+     ((do-first/untyped UN () hole (cons 3 nil))
+      (UN () 3))))
+
+  (test-case "do-first/typed"
+    (check-mf-apply*
+     ((do-first/typed TY () hole (cons 3 nil))
+      (TY () 3))))
+
+  (test-case "do-first"
+    (check-mf-apply*
+     ((do-first UN () hole nil)
+      EmptyList)
+     ((do-first UN () hole (cons 2 nil))
+      (UN () 2))
+     ((do-first UN () hole (cons 2 (cons 3 nil)))
+      (UN () 2))))
+
+  (test-case "do-rest/untyped"
+    (check-mf-apply*
+     ((do-rest/untyped UN () hole 3)
+      (TE 3 "pair?"))
+     ((do-rest/untyped UN () hole (cons 3 nil))
+      (UN () nil))))
+
+  (test-case "do-rest/typed"
+    (check-mf-apply*
+     ((do-rest/typed TY () hole (cons 3 nil))
+      (TY () nil))))
+
+  (test-case "do-rest"
+    (check-mf-apply*
+     ((do-rest UN () hole nil)
+      EmptyList)
+     ((do-rest UN () hole (cons 2 nil))
+      (UN () nil))
+     ((do-rest UN () hole (cons 2 (cons 3 nil)))
+      (UN () (cons 3 nil)))))
+
+  (test-case "load-expression"
+    (check-mf-apply*
+     ((load-expression UN () () (+ 2 2))
+      (UN () (+ 2 2)))
+     ((load-expression TY ((q (0))) () (+ 2 2))
+      (TY ((q (0))) (+ 2 2)))
+     ((load-expression UN ((q (0))) ((a 4) (b (vector (Vectorof Integer) q))) (+ a b))
+      (UN ((q (0))) (+ 4 (vector (Vectorof Integer) q))))))
+
+  (test-case "unload-answer"
+    (check-mf-apply*
+     ((unload-answer (UN () 3))
+      (() 3)))
+
+    (check-exn exn:fail:contract?
+      (λ () (term (unload-answer BadIndex)))))
+
+  (test-case "unload-answer/store"
+    (check-mf-apply*
+     ((unload-answer/store (UN () 3))
+      3)
+     ((unload-answer/store (UN ((q (0))) 3))
+      3)
+     ((unload-answer/store (UN ((q (0))) (vector q)))
+      (vector 0))))
+
+  (test-case "eval-value"
+    (check-mf-apply*
+     ((eval-expression# () () UN (+ 2 2))
+      (() 4))
+     ((eval-expression# () () TY (+ (+ 2 2) (+ 2 2)))
+      (() 8))
+     ((eval-expression# ((q (1))) ((a 7)) UN (+ 2 2))
+      (((q (1))) 4))
+     ((eval-expression# ((q (1))) ((a 7)) UN (+ a a))
+      (((q (1))) 14)))
+
+    (check-exn exn:fail:contract?
+      (λ () (term (eval-expression# () () UN (+ nil 2)))))
+
+    (check-exn exn:fail:redex?
+      (λ () (term (eval-expression# () () TY (+ nil 2)))))
+  )
+
+  (test-case "eval-program:I"
+    (check-mf-apply*
+     ((eval-program# [(module M UN (define x 4) (provide x))])
+      (() ((M ((x 4))))))
+     ((eval-program# [(module mt TY (define x Int 4) (provide x))])
+      (() ((mt ((x 4))))))
+     ((eval-program#
+       ((module M UN
+         (define x (+ 2 2))
+         (provide x))))
+      (() ((M ((x 4))))))
+     ((eval-program#
+       ((module M UN
+         (define x 2)
+         (define y (+ x x))
+         (provide x y))))
+      (() ((M ((x 2) (y 4))))))
+     ((eval-program#
+       ((module M UN
+         (define x (fun a (b) (+ b 1)))
+         (define y (x 4))
+         (provide y))))
+      (() ((M ((y 5))))))
+     ((eval-program#
+       ((module M TY
+         (define fact (→ Nat Nat) (fun fact (→ Nat Nat) (n) (ifz n 1 (* n (fact (- n 1))))))
+         (define f0 Nat (fact 0))
+         (define f1 Nat (fact 1))
+         (define f2 Nat (fact 2))
+         (define f3 Nat (fact 3))
+         (define f4 Nat (fact 4))
+         (provide f0 f1 f2 f3 f4))))
+      (() ((M ((f0 1) (f1 1) (f2 2) (f3 6) (f4 24))))))
+     ((eval-program#
+       ((module M TY
+         (define v (Vectorof Int) (vector (Vectorof Int) 1 2 (+ 2 1)))
+         (define x Int (vector-ref v 2))
+         (define dontcare Int (vector-set! v 0 0))
+         (define y Int (vector-ref v 0))
+         (provide x y))))
+      (((loc (0 2 3))) ((M ((x 3) (y 0))))))
+     ((eval-program#
+       ((module M TY
+         (define second (→ (Listof Int) Int) (fun f (→ (Listof Int) Int) (xs) (first (rest xs))))
+         (define v Int (second (cons 1 (cons 2 nil))))
+         (provide v))))
+      (() ((M ((v 2))))))
+    )
+  )
+
+  (test-case "eval-program:TE"
+    (check-exn exn:fail:redex?
+      (λ () (term
+        (eval-program#
+         ((module M TY
+           (define x Int (+ 1 nil))
+           (provide)))))))
+    (check-exn #rx"TE"
+      (λ () (term
+        (eval-program#
+         ((module M UN
+           (define x (+ 1 nil))
+           (provide)))))))
+    (check-exn exn:fail:redex?
+      (λ () (term
+        (eval-program#
+         ((module M TY
+           (define x Int (first 4))
+           (provide)))))))
+    (check-exn #rx"TE"
+      (λ () (term
+        (eval-program#
+         ((module M UN
+           (define x (vector-ref 4 4))
+           (provide)))))))
+    (check-exn #rx"TE"
+      (λ () (term
+        (eval-program#
+         ((module M UN
+           (define x (4 4))
+           (provide)))))))
+  )
+
 ;  (test-case "eval-program:ValueError"
 ;    (check-exn #rx"DivisionByZero"
 ;      (λ () (term

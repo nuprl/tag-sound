@@ -295,13 +295,15 @@
    ---
    (unload-store-of (vector τ x) σ (vector τ v_sub ...))]
   [
+   (unload-store-of e_0 σ e_sub0)
    (unload-store-of e σ e_sub) ...
    ---
-   (unload-store-of (vector e ...) σ (vector e_sub ...))]
+   (unload-store-of (vector e_0 e ...) σ (vector e_sub0 e_sub ...))]
   [
+   (unload-store-of e_0 σ e_sub0)
    (unload-store-of e σ e_sub) ...
    ---
-   (unload-store-of (vector τ e ...) σ (vector τ e_sub ...))]
+   (unload-store-of (vector τ e_0 e ...) σ (vector τ e_sub0 e_sub ...))]
   [
    (unload-store-of e_0 σ e_0sub)
    (unload-store-of e_1 σ e_1sub)

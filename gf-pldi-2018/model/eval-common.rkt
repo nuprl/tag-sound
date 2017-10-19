@@ -54,18 +54,18 @@
 (define-metafunction μTR
   term-ref : v* any -> any
   [(term-ref () integer)
-   #f]
+   BadIndex]
   [(term-ref (v_first v_rest ...) 0)
    v_first]
   [(term-ref (v_first v_rest ...) natural_k)
    (term-ref (v_rest ...) ,(- (term natural_k) 1))]
   [(term-ref v* _)
-   #f])
+   BadIndex])
 
 (define-metafunction μTR
   term-set : v* any any -> any
   [(term-set () natural any)
-   #f]
+   BadIndex]
   [(term-set (v_first v_rest ...) 0 any_val)
    (any_val v_rest ...)]
   [(term-set (v_first v_rest ...) natural any_val)
@@ -74,7 +74,7 @@
       (term BadIndex))
    (where any_acc #{term-set (v_rest ...) ,(- (term natural) 1) any_val})]
   [(term-set v* any_index any_val)
-   #f])
+   BadIndex])
 
 ;; =============================================================================
 
@@ -133,11 +133,11 @@
      ((term-ref (1 2 3) 2)
       3)
      ((term-ref (1 2 3) 4)
-      #f)
+      BadIndex)
      ((term-ref () 0)
-      #f)
+      BadIndex)
      ((term-ref (1) AAA)
-      #f)))
+      BadIndex)))
 
   (test-case "term-set"
     (check-mf-apply*
@@ -148,8 +148,8 @@
      ((term-set (1 2 3) 2 A)
       (1 2 A))
      ((term-set () 2 2)
-      #f)
+      BadIndex)
      ((term-set () q 3)
-      #f)))
+      BadIndex)))
 
 )
