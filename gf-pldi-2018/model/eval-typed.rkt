@@ -5,8 +5,6 @@
 ;; This is ONLY the semantics.
 ;; No types involved, no theorems involved.
 ;; Just "how things should run".
-;;
-;; Therefore needs to export a lot of stuff to state/do the theorems.
 
 (provide
   eval-program
@@ -75,33 +73,71 @@
    ()]
   [(require->local-value-env VAL-ENV (TYPED-REQUIRE_0 TYPED-REQUIRE_rest ...))
    #{local-value-env-append ρ_expected ρ_rest}
-   (side-condition (error 'require "NEED TO KNOW: M IS TYPED"))
    (where (require M Γ_expected) TYPED-REQUIRE_0)
    (where (M ρ_actual) #{toplevel-value-env-ref VAL-ENV M})
-   #;(TODO) ]
-  [(require->local-value-env VAL-ENV (TYPED-REQUIRE_0 TYPED-REQUIRE_rest ...))
+   (where ρ_expected #{import/typed Γ_expected ρ_actual})
+   (where ρ_rest #{require->local-value-env VAL-ENV (TYPED-REQUIRE_rest ...)})]
+  [(require->local-value-env VAL-ENV (UNTYPED-REQUIRE_0 UNTYPED-REQUIRE_rest ...))
    #{local-value-env-append ρ_expected ρ_rest}
-   (side-condition (error 'require "NEED TO KNOW: M IS UNTYPED"))
-   #;(TODO) ]
-  [(require->local-value-env VAL-ENV (UNTYPED-REQUIRE_0 UNTYPED-REQUIRE_rest ...))
-   ()
-   (side-condition (error 'require "NEED TO KNOW: M IS TYPED"))]
-  [(require->local-value-env VAL-ENV (UNTYPED-REQUIRE_0 UNTYPED-REQUIRE_rest ...))
-   ()
-   (side-condition (error 'require "NEED TO KNOW: M UNTYPED"))])
+   (where (require M x ...) UNTYPED-REQUIRE_0)
+   (where (M ρ_actual) #{toplevel-value-env-ref VAL-ENV M})
+   (where ρ_expected #{import/untyped (x ...) ρ_actual})
+   (where ρ_rest #{require->local-value-env VAL-ENV (UNTYPED-REQUIRE_rest ...)})])
 
-;;; TODO TODO TODO
-;  [(require->local-type-env TYPE-ENV (UNTYPED-REQUIRE_0 UNTYPED-REQUIRE_rest ...))
-;   #{local-type-env-append Γ_expected Γ_rest}
-;   (where (require M x ...) UNTYPED-REQUIRE_0)
-;   (where Γ_expected ((x TST) ...))
-;   (where (M Γ_actual) #{toplevel-type-env-ref TYPE-ENV M})
-;   (side-condition
-;     (unless (judgment-holds (valid-require Γ_expected Γ_actual))
-;       (raise-arguments-error 'require->local-type-env "invalid require"
-;         "require" (term UNTYPED-REQUIRE_0)
-;         "toplevel-type-env" (term TYPE-ENV))))
-;   (where Γ_rest #{require->local-type-env TYPE-ENV (UNTYPED-REQUIRE_rest ...)})]
+(define-metafunction μTR
+  import/typed : Γ ρ -> ρ
+  [(import/typed () ρ)
+   ()]
+  [(import/typed ((x τ) x:τ_rest ...) ρ)
+   #{local-value-env-set ρ_rest x v_+}
+   (where (_ v) #{local-value-env-ref ρ x})
+   (where v_+ #{check-value v τ})
+   (where ρ_rest #{import/typed (x:τ_rest ...) ρ})])
+
+;; Usually call `apply-monitor`, but skip the boundary for typed functions and vectors
+(define-metafunction μTR
+  check-value : v τ -> v
+  [(check-value v_fun)
+   v_fun
+   (where (fun _ τ_fun (_) _) v_fun)
+   (side-condition
+     (unless (judgment-holds (<: τ_fun τ))
+       (raise-arguments-error 'check-value "cannot import typed value at incompatible type"
+         "value" (term v_fun)
+         "actual type" (term τ_fun)
+         "import type" (term τ))))]
+  [(check-value v_vec)
+   v_vec
+   (where (vector τ_vec _) v_vec)
+   (side-condition
+     (unless (judgment-holds (<: τ_vec τ))
+       (raise-arguments-error 'check-value "cannot import typed value at incompatible type"
+         "value" (term v_vec)
+         "actual type" (term τ_vec)
+         "import type" (term τ))))]
+  [(check-value v)
+   #{apply-monitor#/fail v τ}])
+
+(define-metafunction μTR
+  import/untyped : x* ρ -> ρ
+  [(import/untyped () ρ)
+   ()]
+  [(import/untyped (x x_rest ...) ρ)
+   #{local-value-env-set ρ_rest x v_+}
+   (where (_ v) #{local-value-env-ref ρ x})
+   (where v_+ #{protect-value v})
+   (where ρ_rest #{import/untyped (x_rest ...) ρ})])
+
+(define-metafunction μTR
+  protect-value : v -> v
+  [(protect-value v_fun)
+   #{apply-monitor#/fail v_fun τ_fun}
+   (where (fun _ τ_fun (_) _) v_fun)]
+  [(protect-value v_vec)
+   #{apply-monitor#/fail v_vec τ_vec}
+   (where (vector τ_vec _) v_vec)]
+  [(protect-value v)
+   v])
 
 (define-metafunction μTR
   local-value-env->provided : ρ PROVIDE -> ρ

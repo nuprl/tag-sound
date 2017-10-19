@@ -16,8 +16,10 @@
 
   vector-value
   fun-value
+  list-value
   not-fun-value
   not-vector-value
+  not-list-value
 
   well-typed-program
   well-typed-expression
@@ -59,7 +61,7 @@
    (where (module M _ REQUIRE ... DEFINE ... PROVIDE) MODULE)
    (where Γ_req #{require->local-type-env TYPE-ENV (REQUIRE ...)})
    (where Γ_def #{define->local-type-env (DEFINE ...)})
-   (where Γ #{local-type-env-extend Γ_req Γ_def})
+   (where Γ #{local-type-env-append Γ_req Γ_def})
    (well-typed-define Γ DEFINE) ...
    (where Γ_provide #{local-type-env->provided Γ PROVIDE})
    (where TYPE-ENV_+ #{toplevel-type-env-set TYPE-ENV M Γ_provide})
@@ -95,17 +97,19 @@
    ---
    (well-typed-expression Γ x τ)]
   [
+   (<: τ τ_fun)
    (where (→ τ_dom τ_cod) #{coerce-arrow-type τ})
    (where Γ_f #{local-type-env-set Γ x_f τ})
    (where Γ_x #{local-type-env-set Γ_f x_arg τ_dom})
    (well-typed-expression Γ_x e_body τ_cod)
    ---
-   (well-typed-expression Γ (fun x_f τ (x_arg) e_body) τ)]
+   (well-typed-expression Γ (fun x_f τ_fun (x_arg) e_body) τ)]
   [
+   (<: τ_vec τ)
    (where (Vectorof τ_elem) #{coerce-vector-type τ})
    (well-typed-expression Γ e τ_elem) ...
    ---
-   (well-typed-expression Γ (vector e ...) τ)]
+   (well-typed-expression Γ (vector τ_vec e ...) τ)]
   [
    (where (Listof τ_elem) #{coerce-list-type τ})
    (well-typed-expression Γ e_0 τ_elem)
@@ -281,7 +285,7 @@
   [(require->local-type-env TYPE-ENV ())
    ()]
   [(require->local-type-env TYPE-ENV (TYPED-REQUIRE_0 TYPED-REQUIRE_rest ...))
-   #{local-type-env-extend Γ_expected Γ_rest}
+   #{local-type-env-append Γ_expected Γ_rest}
    (where (require M Γ_expected) TYPED-REQUIRE_0)
    (where (M Γ_actual) #{toplevel-type-env-ref TYPE-ENV M})
    (side-condition
@@ -291,7 +295,7 @@
          "toplevel-type-env" (term TYPE-ENV))))
    (where Γ_rest #{require->local-type-env TYPE-ENV (TYPED-REQUIRE_rest ...)})]
   [(require->local-type-env TYPE-ENV (UNTYPED-REQUIRE_0 UNTYPED-REQUIRE_rest ...))
-   #{local-type-env-extend Γ_expected Γ_rest}
+   #{local-type-env-append Γ_expected Γ_rest}
    (where (require M x ...) UNTYPED-REQUIRE_0)
    (where Γ_expected ((x TST) ...))
    (where (M Γ_actual) #{toplevel-type-env-ref TYPE-ENV M})
@@ -489,6 +493,9 @@
    (vector-value (vector x_loc))]
   [
    ---
+   (vector-value (vector τ x_loc))]
+  [
+   ---
    (vector-value (mon-vector τ v))])
 
 (define-judgment-form μTR
@@ -498,6 +505,25 @@
    (side-condition ,(not (judgment-holds (vector-value v))))
    ---
    (not-vector-value v)])
+
+(define-judgment-form μTR
+  #:mode (list-value I)
+  #:contract (list-value v)
+  [
+   ---
+   (list-value nil)]
+  [
+   (list-value v_1)
+   ---
+   (list-value (cons _ v_1))])
+
+(define-judgment-form μTR
+  #:mode (not-list-value I)
+  #:contract (not-list-value v)
+  [
+   (side-condition ,(not (judgment-holds (list-value v))))
+   ---
+   (not-list-value v)])
 
 (define-judgment-form μTR
   #:mode (fun-value I)
@@ -535,16 +561,15 @@
    ---
    (infer-expression-type Γ x τ)]
   [
-   (infer-expression-type Γ e τ)
    ---
-   (infer-expression-type Γ (vector e _ ...) (Vectorof τ))]
+   (infer-expression-type Γ (vector τ_vec e _ ...) τ_vec)]
   [
    (infer-expression-type Γ e_0 τ)
    ---
    (infer-expression-type Γ (cons e_0 _) (Listof τ))]
   [
    ---
-   (infer-expression-type Γ (fun x_fun τ (x_arg) e_body) τ)]
+   (infer-expression-type Γ (fun x_fun τ_fun (x_arg) e_body) τ_fun)]
   [
    ---
    (infer-expression-type Γ (mon-fun τ _) τ)]
@@ -630,7 +655,7 @@
     (check-judgment-holds*
      (vector-value (vector aaa))
      (vector-value (mon-vector (Vectorof Int) (vector aaa)))
-     (vector-value (mon-vector (Vectorof Nat) (vector aaa))))
+     (vector-value (mon-vector (Vectorof Nat) (vector (Vectorof Nat) aaa))))
 
     (check-not-judgment-holds*
      (vector-value (fun f (x) 3))
@@ -656,7 +681,7 @@
      (well-typed-expression ((x (Listof Int))) x (Listof Int))
      (well-typed-expression () (fun f (→ Nat Nat) (x) x) (→ Nat Nat))
      (well-typed-expression () (fun f (→ Int (→ Int Int)) (a) (fun g (→ Int Int) (b) (+ a b))) (→ Int (→ Int Int)))
-     (well-typed-expression () (vector -1 1) (Vectorof Int))
+     (well-typed-expression () (vector (Vectorof Int) -1 1) (Vectorof Int))
      (well-typed-expression ((hd Int) (tl Int)) (cons hd (cons tl nil)) (Listof Int))
      (well-typed-expression ((f (→ Int (→ Int (Listof Int))))) (f 4) (→ Int (Listof Int)))
      (well-typed-expression () (ifz 2 3 -4) Int)
@@ -668,17 +693,17 @@
      (well-typed-expression () (* 2 2) Nat)
      (well-typed-expression () (% 2 2) Int)
      (well-typed-expression () (% 2 2) Nat)
-     (well-typed-expression () (vector-ref (vector 0) 10) Int)
-     (well-typed-expression () (vector-set! (vector 0) 1 2) Int)
+     (well-typed-expression () (vector-ref (vector (Vectorof Int) 0) 10) Int)
+     (well-typed-expression () (vector-set! (vector (Vectorof Int) 0) 1 2) Int)
      (well-typed-expression () (first nil) Int)
      (well-typed-expression () (rest nil) (Listof (Listof Int)))
 
-     (well-typed-expression () (vector 1 2) (Vectorof Nat))
+     (well-typed-expression () (vector (Vectorof Nat) 1 2) (Vectorof Nat))
     )
 
     (check-not-judgment-holds*
      (well-typed-expression () -2 Nat)
-     (well-typed-expression () (ifz (vector 0) 3 -4) Int)
+     (well-typed-expression () (ifz (vector (Vectorof Int) 0) 3 -4) Int)
     )
   )
 
@@ -690,13 +715,15 @@
       Int)
      ((infer-expression-type# ((x Nat)) x)
       Nat)
-     ((infer-expression-type# () (vector 1 2 3))
+     ((infer-expression-type# () (vector (Vectorof Nat) 1 2 3))
       (Vectorof Nat))
+     ((infer-expression-type# () (vector (Vectorof Int) 1 2 3))
+      (Vectorof Int))
      ((infer-expression-type# () (cons 1 nil))
       (Listof Nat))
      ((infer-expression-type# () (mon-fun (→ (Listof Nat) Int) (fun f (x) 0)))
       (→ (Listof Nat) Int))
-     ((infer-expression-type# () (mon-vector (Vectorof (→ Nat Nat)) (vector zz)))
+     ((infer-expression-type# () (mon-vector (Vectorof (→ Nat Nat)) (vector (Vectorof (→ Nat Nat)) zz)))
       (Vectorof (→ Nat Nat)))))
 
   (test-case "well-dyn-expression"
@@ -834,7 +861,7 @@
 
      (well-typed-program
        ((module M typed
-         (define v (Vectorof Int) (vector 1 2 (+ 2 1)))
+         (define v (Vectorof Int) (vector (Vectorof Int) 1 2 (+ 2 1)))
          (define x Int (vector-ref v 2))
          (define dontcare Int (vector-set! v 0 0))
          (define y Int (vector-ref v 0))
@@ -871,7 +898,7 @@
         (define x (rest nil))
         (provide))
        (module M4 typed
-        (define x Int (vector-ref (vector 1) 999))
+        (define x Int (vector-ref (vector (Vectorof Int) 1) 999))
         (provide))
        (module M5 untyped
         (define x (vector-set! (vector 0) 4 5))
@@ -879,7 +906,7 @@
 
      (well-typed-program
       ((module M0 typed
-        (define v (Vectorof Int) (vector 0))
+        (define v (Vectorof Int) (vector (Vectorof Int) 0))
         (provide v))
        (module M1 untyped
         (require M0 v)

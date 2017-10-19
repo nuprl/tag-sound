@@ -290,9 +290,18 @@
    ---
    (unload-store-of (vector x) σ (vector v_sub ...))]
   [
+   (where [_ (v ...)] #{store-ref σ x})
+   (unload-store-of v σ v_sub) ...
+   ---
+   (unload-store-of (vector τ x) σ (vector τ v_sub ...))]
+  [
    (unload-store-of e σ e_sub) ...
    ---
    (unload-store-of (vector e ...) σ (vector e_sub ...))]
+  [
+   (unload-store-of e σ e_sub) ...
+   ---
+   (unload-store-of (vector τ e ...) σ (vector τ e_sub ...))]
   [
    (unload-store-of e_0 σ e_0sub)
    (unload-store-of e_1 σ e_1sub)
@@ -417,6 +426,8 @@
   [(lang-of-hole hole L)
    L]
   [(lang-of-hole (vector v ... E e ...) L)
+   (lang-of-hole E L)]
+  [(lang-of-hole (vector τ v ... E e ...) L)
    (lang-of-hole E L)]
   [(lang-of-hole (cons E e) L)
    (lang-of-hole E L)]
@@ -674,10 +685,14 @@
      [(substitute* (+ a a) ())
       (+ a a)]))
 
-  (test-case "unload-store"
+  #;(test-case "unload-store"
     (check-mf-apply*
      ((unload-store (vector x) ((x (1 2 3))))
       (vector 1 2 3))
+     ((unload-store (vector Int x) ((x (1 2 3))))
+      (vector Int 1 2 3))
+     ((unload-store (vector Int 42) ())
+      (vector Int 42))
      ((unload-store (+ 2 2) ())
       (+ 2 2))
      ((unload-store (+ (vector a) (vector b)) ((a (1)) (b (4 3 2))))

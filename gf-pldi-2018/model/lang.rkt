@@ -43,9 +43,9 @@
   (L ::= untyped typed)
   ;; "L" is for language.
 
-  (UNTYPED-REQUIRE ::= (require x x ...))
+  (UNTYPED-REQUIRE ::= (require M x ...))
   ;; An untyped require is a module name followed by a seqence of identifiers
-  (TYPED-REQUIRE ::= (require x Γ))
+  (TYPED-REQUIRE ::= (require M Γ))
   ;; A typed require is a module named followed by a sequence of type-annotated identifiers.
   (UNTYPED-DEFINE ::= (define x e))
   ;; An untyped definition is an idenfier and an expression
