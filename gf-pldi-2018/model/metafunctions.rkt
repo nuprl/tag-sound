@@ -12,6 +12,7 @@
   local-value-env-ref
   local-value-env-set
   local-value-env-update
+  local-value-env-append
 
   toplevel-value-env-ref
   toplevel-value-env-set
@@ -20,7 +21,7 @@
   local-type-env-ref
   local-type-env-set
   local-type-env-update
-  local-type-env-extend
+  local-type-env-append
 
   toplevel-type-env-ref
   toplevel-type-env-set
@@ -46,8 +47,8 @@
 
   lambda-strip-type
 
-  typed-context?
-  untyped-context?)
+  typed-context
+  untyped-context)
 
 (require
   "lang.rkt"
@@ -144,6 +145,11 @@
           "id" x "loval-value-env" (term ρ))))])
 
 (define-metafunction μTR
+  local-value-env-append : ρ ρ -> ρ
+  [(local-value-env-append ρ_0 ρ_1)
+   ,(append (term ρ_0) (term ρ_1))])
+
+(define-metafunction μTR
   toplevel-value-env-ref : VAL-ENV M -> any
   [(toplevel-value-env-ref VAL-ENV M)
    #{env-ref VAL-ENV M any_fail}
@@ -198,11 +204,9 @@
           "id" x "local-type-env" (term Γ))))])
 
 (define-metafunction μTR
-  local-type-env-extend : Γ Γ -> Γ
-  [(local-type-env-extend Γ_0 Γ_1)
-   (x:τ_0 ... x:τ_1 ...)
-   (where (x:τ_0 ...) Γ_0)
-   (where (x:τ_1 ...) Γ_1)])
+  local-type-env-append : Γ Γ -> Γ
+  [(local-type-env-append Γ_0 Γ_1)
+   ,(append (term Γ_0) (term Γ_1))])
 
 (define-metafunction μTR
   toplevel-type-env-ref : TYPE-ENV x -> any
@@ -449,21 +453,23 @@
   [(lang-of-hole E L)
    ,(raise-arguments-error 'lang-of-hole "invalid context" "ctx" (term E) "lang" (term L))])
 
-(define-metafunction μTR
-  untyped-context? : E L -> boolean
-  [(untyped-context? E L)
-   #true
-   (where untyped #{lang-of-hole E L})]
-  [(untyped-context? E L)
-   #false])
+(define-judgment-form μTR
+  #:mode (untyped-context I I)
+  #:contract (untyped-context E L)
+  [
+   (where L_hole #{lang-of-hole E L})
+   (where L_hole UN)
+   ---
+   (untyped-context E L)])
 
-(define-metafunction μTR
-  typed-context? : E L -> boolean
-  [(typed-context? E L)
-   #true
-   (where typed #{lang-of-hole E L})]
-  [(typed-context? E L)
-   #false])
+(define-judgment-form μTR
+  #:mode (typed-context I I)
+  #:contract (typed-context E L)
+  [
+   (where L_hole #{lang-of-hole E L})
+   (where L_hole TY)
+   ---
+   (typed-context E L)])
 
 (define-metafunction μTR
   mu-fold : (μ (α) τ) -> τ
@@ -569,7 +575,10 @@
      [(local-value-env-update ((x 4)) x 5)
       ((x 5))])
     (check-exn exn:fail:contract?
-      (λ () (term (local-value-env-update ((x 5)) y 1)))))
+      (λ () (term (local-value-env-update ((x 5)) y 1))))
+    (check-mf-apply*
+      ((local-value-env-append ((x 3)) ((y 4)))
+       ((x 3) (y 4)))))
 
   (test-case "toplevel-value-env"
     (check-mf-apply*
@@ -613,7 +622,7 @@
     (check-exn exn:fail:contract?
       (λ () (term (local-type-env-update ((x Int)) y Nat))))
     (check-mf-apply*
-      ((local-type-env-extend ((x Int)) ((y Int)))
+      ((local-type-env-append ((x Int)) ((y Int)))
        ((x Int) (y Int)))))
 
   (test-case "toplevel-type-env"
@@ -674,31 +683,30 @@
      ((unload-store (+ (vector a) (vector b)) ((a (1)) (b (4 3 2))))
       (+ (vector 1) (vector 4 3 2)))))
 
-  (test-case "untyped-context?"
-    (check-mf-apply*
-     ((untyped-context? (+ 2 hole) UN)
-      #true)
-     ((untyped-context? (+ hole 2) TY)
-      #false)
-     ((untyped-context? (check Int hole) TY)
-      #true)
+  (test-case "untyped-context"
+    (check-judgment-holds*
+     (untyped-context (+ 2 hole) UN)
+     (untyped-context (check Int hole) TY)
+    )
+    (check-not-judgment-holds*
+     (untyped-context (+ hole 2) TY)
     )
   )
 
-  (test-case "typed-context?"
-    (check-mf-apply*
-     ((typed-context? (+ 2 hole) TY)
-      #true)
-     ((typed-context? (+ hole 2) UN)
-      #false)
-     ((typed-context? (protect Int hole) UN)
-      #true)
+  (test-case "typed-context"
+    (check-judgment-holds*
+     (typed-context (+ 2 hole) TY)
+     (typed-context (protect Int hole) UN)
+    )
+
+    (check-not-judgment-holds*
+     (typed-context (+ hole 2) UN)
     )
 
     (check-exn exn:fail:contract?
-      (λ () (term #{typed-context? (check Int hole) UN})))
+      (λ () (judgment-holds (typed-context (check Int hole) UN))))
     (check-exn exn:fail:contract?
-      (λ () (term #{typed-context? (protect Int hole) TY})))
+      (λ () (judgment-holds (typed-context (protect Int hole) TY))))
   )
 
   (test-case "mu-fold"
