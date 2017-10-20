@@ -14,9 +14,8 @@ proofs of type and tag soundness
 
 TODO
 - count runtime time checks ?
-- be careful! don't mix typing with evaluation
-- stop using "typed modules" list, make module names have (id typed?)
-- allow mutually recursive defines
+- 
+
 
 Summary
 ---
@@ -26,9 +25,13 @@ Summary
 - `metafunctions.rkt` helpers
 - `grammar.rkt` well-formed program, type, expression etc.
 - `typecheck.rkt` static type checking
+- `eval-common.rkt` helpers for evaluation
 - `eval-typed.rkt` Typed Racket evaluation, with monitors. Type-sound.
 - `eval-tagged.rkt` Tagged Racket evaluation. Tag-sound.
 - `eval-untyped.rkt` type-erased evaluation. TST-sound.
+- `sound-typed.rkt` Typed Racket evaluation, with monitors. Type-sound.
+- `sound-tagged.rkt` Tagged Racket evaluation. Tag-sound.
+- `sound-untyped.rkt` type-erased evaluation. TST-sound.
 
 
 Notes

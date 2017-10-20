@@ -36,13 +36,22 @@
 ;; =============================================================================
 
 (define-judgment-form μTR
-  #:mode (well-typed-program I)
-  #:contract (well-typed-program PROGRAM)
+  #:mode (well-typed-program I O)
+  #:contract (well-typed-program PROGRAM TYPE-ENV)
   [
    (where (MODULE ...) PROGRAM)
-   (well-typed-module* () (MODULE ...) TYPE-ENV_n)
+   (well-typed-module* () (MODULE ...) TYPE-ENV_N)
+   (where TYPE-ENV ,(reverse (term TYPE-ENV_N)))
    ---
-   (well-typed-program PROGRAM)])
+   (well-typed-program PROGRAM TYPE-ENV)])
+
+(define-metafunction μTR
+  well-typed-program# : PROGRAM -> any
+  [(well-typed-program# PROGRAM)
+   TYPE-ENV
+   (judgment-holds (well-typed-program PROGRAM TYPE-ENV))]
+  [(well-typed-program# PROGRAM)
+   #false])
 
 (define-judgment-form μTR
   #:mode (well-typed-module* I I O)
@@ -836,36 +845,41 @@
       ((x TST) (y TST)))))
 
   (test-case "well-typed-program:I"
-    (check-judgment-holds*
+    (check-mf-apply*
 
-     (well-typed-program
-      ((module mu untyped
-        (define x 4)
-        (provide x))))
+     ((well-typed-program#
+       ((module mu UN
+         (define x 4)
+         (provide x))))
+      ((mu ((x TST)))))
 
-     (well-typed-program
-      ((module mt typed
-        (define x Int 4)
-        (provide x))))
+     ((well-typed-program#
+       ((module mt TY
+         (define x Int 4)
+         (provide x))))
+      ((mt ((x Int)))))
 
-     (well-typed-program
-       ((module M untyped
+     ((well-typed-program#
+       ((module M UN
          (define x (+ 2 2))
          (provide x))))
+      ((M ((x TST)))))
 
-     (well-typed-program
-       ((module M untyped
+     ((well-typed-program#
+       ((module M UN
          (define x 2)
          (define y (+ x x))
          (provide x y))))
+      ((M ((x TST) (y TST)))))
 
-     (well-typed-program
-       ((module M untyped
+     ((well-typed-program#
+       ((module M UN
          (define x (fun a (b) (+ b 1)))
          (define y (x 4))
          (provide y))))
+      ((M ((y TST)))))
 
-     (well-typed-program
+     ((well-typed-program#
        ((module M typed
          (define fact (→ Int Int)
            (fun fact (→ Int Int) (n) (ifz n 1 (* n (fact (- n 1))))))
@@ -875,22 +889,25 @@
          (define f3 Int (fact 3))
          (define f4 Int (fact 4))
          (provide f0 f1 f2 f3 f4))))
+      ((M ((f0 Int) (f1 Int) (f2 Int) (f3 Int) (f4 Int)))))
 
-     (well-typed-program
+     ((well-typed-program#
        ((module M typed
          (define v (Vectorof Int) (vector (Vectorof Int) 1 2 (+ 2 1)))
          (define x Int (vector-ref v 2))
          (define dontcare Int (vector-set! v 0 0))
          (define y Int (vector-ref v 0))
          (provide x y))))
+      ((M ((x Int) (y Int)))))
 
-     (well-typed-program
+     ((well-typed-program#
        ((module M typed
          (define second (→ (Listof Int) Int) (fun f (→ (Listof Int) Int) (xs) (first (rest xs))))
          (define v Int (second (cons 1 (cons 2 nil))))
          (provide v))))
+      ((M ((v Int)))))
 
-     (well-typed-program
+     ((well-typed-program#
        ((module M0 untyped
          (define x (+ 1 nil))
          (provide))
@@ -900,8 +917,9 @@
         (module M2 untyped
          (define x (4 4))
          (provide))))
+      ((M0 ()) (M1 ()) (M2 ())))
 
-     (well-typed-program
+     ((well-typed-program#
       ((module M0 typed
         (define x Int (% 1 0))
         (provide))
@@ -920,8 +938,9 @@
        (module M5 untyped
         (define x (vector-set! (vector 0) 4 5))
         (provide))))
+      ((M0 ()) (M1 ()) (M2 ()) (M3 ()) (M4 ()) (M5 ())))
 
-     (well-typed-program
+     ((well-typed-program#
       ((module M0 typed
         (define v (Vectorof Int) (vector (Vectorof Int) 0))
         (provide v))
@@ -929,8 +948,9 @@
         (require M0 v)
         (define x (vector-set! v 0 nil))
         (provide))))
+      ((M0 ((v (Vectorof Int)))) (M1 ())))
 
-     (well-typed-program
+     ((well-typed-program#
       ((module M0 untyped
         (define v (vector -1))
         (provide v))
@@ -938,8 +958,9 @@
         (require M0 ((v (Vectorof Nat))))
         (define x Nat (vector-ref v 0))
         (provide))))
+      ((M0 ((v TST))) (M1 ())))
 
-     (well-typed-program
+     ((well-typed-program#
       ((module M0 untyped
         (define v -1)
         (provide v))
@@ -947,8 +968,9 @@
         (require M0 ((v Nat)))
         (define x Int 42)
         (provide))))
+      ((M0 ((v TST))) (M1 ())))
 
-     (well-typed-program
+     ((well-typed-program#
       ((module M0 typed
         (define f (→ Nat Nat) (fun f (→ Nat Nat) (x) (+ x 2)))
         (provide f))
@@ -956,8 +978,9 @@
         (require M0 f)
         (define x (f -1))
         (provide))))
+      ((M0 ((f (→ Nat Nat)))) (M1 ())))
 
-     (well-typed-program
+     ((well-typed-program#
       ((module M0 untyped
         (define f (fun f (x) nil))
         (provide f))
@@ -965,8 +988,9 @@
         (require M0 ((f (→ Int Int))))
         (define x Int (f 3))
         (provide))))
+      ((M0 ((f TST))) (M1 ())))
 
-     (well-typed-program
+     ((well-typed-program#
       ((module M0 untyped
         (define f (fun a (x) (fun b (y) (fun c (z) (+ (+ a b) c)))))
         (provide f))
@@ -975,8 +999,9 @@
         (define f2 (→ Int Int) (f 2))
         (define f23 Int (f2 3))
         (provide f23))))
+      ((M0 ((f TST))) (M1 ((f23 Int)))))
 
-     (well-typed-program
+     ((well-typed-program#
       ((module M0 untyped
         (define f (fun a (x) (fun b (y) (fun c (z) (+ (+ a b) c)))))
         (provide f))
@@ -988,8 +1013,9 @@
         (define f2 (f 2))
         (define f23 (f2 3))
         (provide))))
+      ((M0 ((f TST))) (M1 ((f (→ Int (→ Int Int))))) (M2 ())))
 
-     (well-typed-program
+     ((well-typed-program#
       ((module M0 untyped
         (define f (fun a (x) (vector-ref x 0)))
         (provide f))
@@ -997,17 +1023,19 @@
         (require M0 ((f (→ Nat Nat))))
         (define v Nat (f 4))
         (provide))))
+      ((M0 ((f TST))) (M1 ())))
     )
 
-    (check-not-judgment-holds*
-     (well-typed-program
+    (check-mf-apply*
+     ((well-typed-program#
       ((module M typed
         (define x Int (first 4))
         (provide))))
-
-     (well-typed-program
+      #f)
+     ((well-typed-program#
        ((module M typed
          (define x Int (+ 1 nil))
-         (provide)))))
+         (provide))))
+      #f))
   )
 )
