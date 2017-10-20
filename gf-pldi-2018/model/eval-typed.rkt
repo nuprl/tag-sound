@@ -35,7 +35,8 @@
   #:contract (eval-program PROGRAM σ VAL-ENV)
   [
    (where (MODULE ...) PROGRAM)
-   (eval-module* () () (MODULE ...) σ VAL-ENV)
+   (eval-module* () () (MODULE ...) σ VAL-ENV_N)
+   (where VAL-ENV ,(reverse (term VAL-ENV_N)))
    ---
    (eval-program PROGRAM σ VAL-ENV)])
 
@@ -1208,28 +1209,23 @@
           (provide)))))))
   )
 
-  ;(test-case "no-mon-between-typed"
-  ;  ;; If typed code imports a typed function,
-  ;  ;;  only do a subtyping check.
-  ;  ;; Do not monitor the typed function in typed code.
-  ;  ;; (Safe assuming type checker is correct)
+  (test-case "no-mon-between-typed"
+    ;; If typed code imports a typed function,
+    ;;  only do a subtyping check.
+    ;; Do not monitor the typed function in typed code.
+    ;; (Safe assuming type checker is correct)
 
-  ;  (check-mf-apply* #:is-equal? (λ (VAL-ENV M+x:v)
-  ;                                 (define M (car M+x:v))
-  ;                                 (define x:v (cadr M+x:v))
-  ;                                 (define x (car x:v))
-  ;                                 (define ρ (cadr (term #{toplevel-value-env-ref ,(cadr VAL-ENV) ,M})))
-  ;                                 (define actual (term #{local-value-env-ref ,ρ ,x}))
-  ;                                 (equal? actual x:v))
-  ;    ((eval-program#
-  ;      ((module M0 TY
-  ;        (define f (→ Nat Nat) (fun a (→ Nat Nat) (b) b))
-  ;        (provide f))
-  ;       (module M1 TY
-  ;        (require M0 ((f (→ Nat Nat))))
-  ;        (define v Nil (f nil))
-  ;        (provide v))))
-  ;     (M1 (v nil Nil)))))
+    (check-mf-apply*
+      ((eval-program#
+        ((module M0 TY
+          (define f (→ Nat Nat) (fun a (→ Nat Nat) (b) b))
+          (provide f))
+         (module M1 TY
+          (require M0 ((f (→ Nat Nat))))
+          (define v Nil (f nil))
+          (provide v))))
+       (() ((M0 ((f (fun a (→ Nat Nat) (b) b))))
+            (M1 ((v nil))))))))
 
   (test-case "deep-typecheck"
     ;; Typed modules "deeply check" untyped imports
