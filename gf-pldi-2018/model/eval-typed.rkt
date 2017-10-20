@@ -102,7 +102,7 @@
    (where (fun _ τ_fun (_) _) v_fun)
    (side-condition
      (unless (judgment-holds (<: τ_fun τ))
-       (raise-arguments-error 'check-value "cannot import typed value at incompatible type"
+       (raise-arguments-error 'check-value "BE: cannot import typed value at incompatible type"
          "value" (term v_fun)
          "actual type" (term τ_fun)
          "import type" (term τ))))]
@@ -111,7 +111,7 @@
    (where (vector τ_vec _) v_vec)
    (side-condition
      (unless (judgment-holds (<: τ_vec τ))
-       (raise-arguments-error 'check-value "cannot import typed value at incompatible type"
+       (raise-arguments-error 'check-value "BE: cannot import typed value at incompatible type"
          "value" (term v_vec)
          "actual type" (term τ_vec)
          "import type" (term τ))))]
@@ -598,7 +598,7 @@
    v_mon
    (judgment-holds (apply-monitor v τ v_mon))]
   [(apply-monitor#/fail v τ)
-   ,(raise-arguments-error 'apply-monitor "ill-typed value" "value" (term v) "type" (term τ))])
+   ,(raise-arguments-error 'apply-monitor "BE ill-typed value" "value" (term v) "type" (term τ))])
 
 (define-metafunction μTR
   apply-monitor# : v τ -> any
@@ -1076,195 +1076,174 @@
            (provide)))))))
   )
 
-;  (test-case "eval-program:ValueError"
-;    (check-exn #rx"DivisionByZero"
-;      (λ () (term
-;        (eval-program
-;         ((module-τ M
-;           (define x Int (% 1 0))
-;           (provide)))))))
-;    (check-exn #rx"DivisionByZero"
-;      (λ () (term
-;        (eval-program
-;         ((module-λ M
-;           (define x (% 1 0))
-;           (provide)))))))
-;    (check-exn #rx"EmptyList"
-;      (λ () (term
-;        (eval-program
-;         ((module-τ M
-;           (define x Int (first nil))
-;           (provide)))))))
-;    (check-exn #rx"EmptyList"
-;      (λ () (term
-;        (eval-program
-;         ((module-λ M
-;           (define x (rest nil))
-;           (provide)))))))
-;    (check-exn #rx"BadIndex"
-;      (λ () (term
-;        (eval-program
-;         ((module-τ M
-;           (define x Int (vector-ref (vector 1) 999))
-;           (provide)))))))
-;    (check-exn #rx"BadIndex"
-;      (λ () (term
-;        (eval-program
-;         ((module-λ M
-;           (define x (vector-set! (vector 0) 4 5))
-;           (provide))))))))
-;
-;  (test-case "eval-program:BE"
-;    (check-exn #rx"BE"
-;      (λ () (term
-;        (eval-program
-;         ((module-τ M0
-;           (define v (Vectorof Int) (vector 0))
-;           (provide v))
-;          (module-λ M1
-;           (require M0 v)
-;           (define x (vector-set! v 0 nil))
-;           (provide)))))))
-;
-;    (check-exn #rx"BE"
-;      (λ () (term
-;        (eval-program
-;         ((module-λ M0
-;           (define v (vector -1))
-;           (provide v))
-;          (module-τ M1
-;           (require M0 (v (Vectorof Nat)))
-;           (define x Nat (vector-ref v 0))
-;           (provide)))))))
-;
-;    (check-exn #rx"BE"
-;      (λ () (term
-;        (eval-program
-;         ((module-λ M0
-;           (define v -1)
-;           (provide v))
-;          (module-τ M1
-;           (require M0 (v Nat))
-;           (define x Int 42)
-;           (provide)))))))
-;
-;    (check-exn #rx"BE"
-;      (λ () (term
-;        (eval-program
-;         ((module-τ M0
-;           (define f (→ Nat Nat) (fun f (x) (+ x 2)))
-;           (provide f))
-;          (module-λ M1
-;           (require M0 f)
-;           (define x (f -1))
-;           (provide)))))))
-;
-;    (check-exn #rx"BE"
-;      (λ () (term
-;        (eval-program
-;         ((module-λ M0
-;           (define f (fun f (x) nil))
-;           (provide f))
-;          (module-τ M1
-;           (require M0 (f (→ Int Int)))
-;           (define x Int (f 3))
-;           (provide)))))))
-;  )
-;
-;  (test-case "eval-program:bad-ann"
-;    (check-exn #rx"BE"
-;      (λ () (term (eval-program
-;        ((module-λ M0
-;          (define f (fun a (x) (fun b (y) (fun c (z) (+ (+ a b) c)))))
-;          (provide f))
-;         (module-τ M1
-;          (require M0 (f (→ Int (→ Int Int))))
-;          (define f2 (→ Int Int) (f 2))
-;          (define f23 Int (f2 3))
-;          (provide f23)))))))
-;
-;    (check-exn #rx"BE"
-;      (λ () (term (eval-program
-;        ((module-λ M0
-;          (define f (fun a (x) (fun b (y) (fun c (z) (+ (+ a b) c)))))
-;          (provide f))
-;         (module-τ M1
-;          (require M0 (f (→ Int (→ Int Int))))
-;          (provide f))
-;         (module-λ M2
-;          (require M1 f)
-;          (define f2 (f 2))
-;          (define f23 (f2 3))
-;          (provide)))))))
-;
-;    (check-exn #rx"TE"
-;      (λ () (term (eval-program
-;        ((module-λ M0
-;          (define f (fun a (x) (vector-ref x 0)))
-;          (provide f))
-;         (module-τ M1
-;          (require M0 (f (→ Nat Nat)))
-;          (define v Nat (f 4))
-;          (provide)))))))
-;  )
-;
-;  (test-case "no-mon-between-typed"
-;    ;; If typed code imports a typed function,
-;    ;;  only do a subtyping check.
-;    ;; Do not monitor the typed function in typed code.
-;    ;; (Safe assuming type checker is correct)
-;
-;    (check-mf-apply* #:is-equal? (λ (VAL-ENV M+x:v)
-;                                   (define M (car M+x:v))
-;                                   (define x:v (cadr M+x:v))
-;                                   (define x (car x:v))
-;                                   (define ρ (cadr (term #{program-env-ref ,(cadr VAL-ENV) ,M})))
-;                                   (define actual (term #{runtime-env-ref ,ρ ,x}))
-;                                   (equal? actual x:v))
-;      ((eval-program
-;        ((module-τ M0
-;          (define f (→ Nat Nat) (fun a (b) b))
-;          (provide f))
-;         (module-τ M1
-;          (require M0 (f (→ Nat Nat)))
-;          (define v Nil (f nil))
-;          (provide v))))
-;       (M1 (v nil Nil)))))
-;
-;  (test-case "deep-typecheck"
-;    ;; Typed modules "deeply check" untyped imports
-;    ;;  ... to keep type soundness
-;
-;    (check-exn #rx"BE"
-;      (λ () (term (eval-program
-;        ((module-λ M0
-;          (define nats (cons 1 (cons 2 (cons -3 nil))))
-;          (provide nats))
-;         (module-τ M1
-;          (require M0 (nats (Listof Nat)))
-;          (provide)))))))
-;  )
-;
-;  (test-case "eval-untyped-define*"
-;    (check-mf-apply*
-;     ((eval-untyped-define* m0 () () ((define x 1) (define y 2) (define z 3)))
-;      (() ((z 3) (y 2) (x 1))))
-;    )
-;  )
-;
-;  (test-case "eval-typed-define*"
-;    (check-mf-apply*
-;     ((eval-typed-define* m0 () () ((define x Nat 1) (define y Nat 2) (define z Int 3)))
-;      (() ((z 3 Int) (y 2 Nat) (x 1 Nat))))
-;    )
-;  )
+  (test-case "eval-program:ValueError"
+    (check-exn #rx"DivisionByZero"
+      (λ () (term
+        (eval-program#
+         ((module M TY
+           (define x Int (% 1 0))
+           (provide)))))))
+    (check-exn #rx"DivisionByZero"
+      (λ () (term
+        (eval-program#
+         ((module M UN
+           (define x (% 1 0))
+           (provide)))))))
+    (check-exn #rx"EmptyList"
+      (λ () (term
+        (eval-program#
+         ((module M TY
+           (define x Int (first nil))
+           (provide)))))))
+    (check-exn #rx"EmptyList"
+      (λ () (term
+        (eval-program#
+         ((module M UN
+           (define x (rest nil))
+           (provide)))))))
+    (check-exn #rx"BadIndex"
+      (λ () (term
+        (eval-program#
+         ((module M TY
+           (define x Int (vector-ref (vector 1) 999))
+           (provide)))))))
+    (check-exn #rx"BadIndex"
+      (λ () (term
+        (eval-program#
+         ((module M UN
+           (define x (vector-set! (vector 0) 4 5))
+           (provide))))))))
 
-  (test-case "eval-program#")
-  (test-case "eval-program")
-  (test-case "eval-module*")
-  (test-case "eval-module")
-  (test-case "eval-define*")
-  (test-case "eval-define")
-  (test-case "eval-expression")
+  (test-case "eval-program:BE"
+    (check-exn #rx"BE"
+      (λ () (term
+        (eval-program#
+         ((module M0 TY
+           (define v (Vectorof Int) (vector (Vectorof Int) 0))
+           (provide v))
+          (module M1 UN
+           (require M0 v)
+           (define x (vector-set! v 0 nil))
+           (provide)))))))
+
+    (check-exn #rx"BE"
+      (λ () (term
+        (eval-program#
+         ((module M0 UN
+           (define v (vector -1))
+           (provide v))
+          (module M1 TY
+           (require M0 ((v (Vectorof Nat))))
+           (define x Nat (vector-ref v 0))
+           (provide)))))))
+
+    (check-exn #rx"BE"
+      (λ () (term
+        (eval-program#
+         ((module M0 UN
+           (define v -1)
+           (provide v))
+          (module M1 TY
+           (require M0 ((v Nat)))
+           (define x Int 42)
+           (provide)))))))
+
+    (check-exn #rx"BE"
+      (λ () (term
+        (eval-program#
+         ((module M0 TY
+           (define f (→ Nat Nat) (fun f (→ Nat Nat) (x) (+ x 2)))
+           (provide f))
+          (module M1 UN
+           (require M0 f)
+           (define x (f -1))
+           (provide)))))))
+
+    (check-exn #rx"BE"
+      (λ () (term
+        (eval-program#
+         ((module M0 UN
+           (define f (fun f (x) nil))
+           (provide f))
+          (module M1 TY
+           (require M0 ((f (→ Int Int))))
+           (define x Int (f 3))
+           (provide)))))))
+  )
+
+  (test-case "eval-program:bad-ann"
+    (check-exn #rx"BE"
+      (λ () (term (eval-program#
+        ((module M0 UN
+          (define f (fun a (x) (fun b (y) (fun c (z) (+ (+ a b) c)))))
+          (provide f))
+         (module M1 TY
+          (require M0 ((f (→ Int (→ Int Int)))))
+          (define f2 (→ Int Int) (f 2))
+          (define f23 Int (f2 3))
+          (provide f23)))))))
+
+    (check-exn #rx"BE"
+      (λ () (term (eval-program#
+        ((module M0 UN
+          (define f (fun a (x) (fun b (y) (fun c (z) (+ (+ a b) c)))))
+          (provide f))
+         (module M1 TY
+          (require M0 ((f (→ Int (→ Int Int)))))
+          (provide f))
+         (module M2 UN
+          (require M1 f)
+          (define f2 (f 2))
+          (define f23 (f2 3))
+          (provide)))))))
+
+    (check-exn #rx"TE"
+      (λ () (term (eval-program#
+        ((module M0 UN
+          (define f (fun a (x) (vector-ref x 0)))
+          (provide f))
+         (module M1 TY
+          (require M0 ((f (→ Nat Nat))))
+          (define v Nat (f 4))
+          (provide)))))))
+  )
+
+  ;(test-case "no-mon-between-typed"
+  ;  ;; If typed code imports a typed function,
+  ;  ;;  only do a subtyping check.
+  ;  ;; Do not monitor the typed function in typed code.
+  ;  ;; (Safe assuming type checker is correct)
+
+  ;  (check-mf-apply* #:is-equal? (λ (VAL-ENV M+x:v)
+  ;                                 (define M (car M+x:v))
+  ;                                 (define x:v (cadr M+x:v))
+  ;                                 (define x (car x:v))
+  ;                                 (define ρ (cadr (term #{toplevel-value-env-ref ,(cadr VAL-ENV) ,M})))
+  ;                                 (define actual (term #{local-value-env-ref ,ρ ,x}))
+  ;                                 (equal? actual x:v))
+  ;    ((eval-program#
+  ;      ((module M0 TY
+  ;        (define f (→ Nat Nat) (fun a (→ Nat Nat) (b) b))
+  ;        (provide f))
+  ;       (module M1 TY
+  ;        (require M0 ((f (→ Nat Nat))))
+  ;        (define v Nil (f nil))
+  ;        (provide v))))
+  ;     (M1 (v nil Nil)))))
+
+  (test-case "deep-typecheck"
+    ;; Typed modules "deeply check" untyped imports
+    ;;  ... to keep type soundness
+
+    (check-exn #rx"BE"
+      (λ () (term (eval-program#
+        ((module M0 UN
+          (define nats (cons 1 (cons 2 (cons -3 nil))))
+          (provide nats))
+         (module M1 TY
+          (require M0 ((nats (Listof Nat))))
+          (provide)))))))
+  )
+
 )
 
