@@ -38,7 +38,7 @@
   coerce-list-type
   not-TST
 
-  unload-store
+  unload-store/expression
 
   same-domain
 
@@ -265,10 +265,10 @@
 ;; -----------------------------------------------------------------------------
 
 (define-metafunction μTR
-  unload-store : e σ -> e
-  [(unload-store e ())
+  unload-store/expression : e σ -> e
+  [(unload-store/expression e ())
    e]
-  [(unload-store e σ)
+  [(unload-store/expression e σ)
    e_sub
    (judgment-holds (unload-store-of e σ e_sub))])
 
@@ -687,17 +687,17 @@
      [(substitute* (+ a a) ())
       (+ a a)]))
 
-  #;(test-case "unload-store"
+  (test-case "unload-store"
     (check-mf-apply*
-     ((unload-store (vector x) ((x (1 2 3))))
+     ((unload-store/expression (vector x) ((x (1 2 3))))
       (vector 1 2 3))
-     ((unload-store (vector Int x) ((x (1 2 3))))
+     ((unload-store/expression (vector Int x) ((x (1 2 3))))
       (vector Int 1 2 3))
-     ((unload-store (vector Int 42) ())
+     ((unload-store/expression (vector Int 42) ())
       (vector Int 42))
-     ((unload-store (+ 2 2) ())
+     ((unload-store/expression (+ 2 2) ())
       (+ 2 2))
-     ((unload-store (+ (vector a) (vector b)) ((a (1)) (b (4 3 2))))
+     ((unload-store/expression (+ (vector a) (vector b)) ((a (1)) (b (4 3 2))))
       (+ (vector 1) (vector 4 3 2)))))
 
   (test-case "untyped-context"
@@ -768,5 +768,16 @@
      (not-TST Nat))
     (check-not-judgment-holds*
      (not-TST TST)))
+
+  (test-case "same-domain"
+    (check-mf-apply*
+     ((same-domain ((a) (b) (c)) ((a) (b) (c)))
+      #true)
+     ((same-domain ((a) (b) (c)) ((b) (a) (c)))
+      #true)
+     ((same-domain ((a) (b) (c)) ((c)))
+      #false)
+     ((same-domain ((a 1) (b 2)) ((a Int) (b Nat)))
+      #true)))
 
 )

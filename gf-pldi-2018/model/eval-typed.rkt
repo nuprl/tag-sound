@@ -8,6 +8,9 @@
 
 (provide
   eval-program
+  single-step
+
+  load-expression
 )
 
 (require
@@ -562,7 +565,7 @@
   [(unload-answer/store A)
    e_sub
    (where (σ v) #{unload-answer A})
-   (where e_sub #{unload-store v σ})])
+   (where e_sub #{unload-store/expression v σ})])
 
 ;; -----------------------------------------------------------------------------
 

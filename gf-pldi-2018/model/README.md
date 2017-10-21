@@ -14,7 +14,13 @@ proofs of type and tag soundness
 
 TODO
 - count runtime time checks ?
-- 
+- stop using `untyped-context`, stop using `L` tag,
+  - make Et and Eu frames, a frame is 1 level of evaluation context
+  - E ::= (Et | Eu) *
+  - reduction matches E[Et[e]] E[Eu[e]]
+- maybe have surface & core languages,
+  because they really are different,
+  source doesn't allow monitors
 
 
 Summary

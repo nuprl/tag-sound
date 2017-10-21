@@ -25,6 +25,7 @@
 
   well-typed-program
   well-typed-expression
+  infer-expression-type ;; really not sure about this one
 )
 
 (require
