@@ -135,237 +135,251 @@
   #:mode (well-typed-config I I)
   #:contract (well-typed-config Σ τ)
   [
-   (WT () #{unload-store/expression e σ} TST)
+   (WT σ () e TST)
    ---
    (well-typed-config (UN σ e) TST)]
   [
-   (WT () #{unload-store/expression e σ} τ)
+   (WT σ () e τ)
    ---
    (well-typed-config (TY σ e) τ)])
 
 ;; "well-typed-expression" is the obvious name,
 ;;  but already using that for the static typing system
 (define-judgment-form μTR
-  #:mode (WT I I I)
-  #:contract (WT Γ e τ)
+  #:mode (WT I I I I)
+  #:contract (WT σ Γ e τ)
   [
    --- T-NatT
-   (WT Γ natural Nat)]
+   (WT σ Γ natural Nat)]
   [
    --- T-NatU
-   (WT Γ natural TST)]
+   (WT σ Γ natural TST)]
   [
    --- T-IntT
-   (WT Γ integer Int)]
+   (WT σ Γ integer Int)]
   [
    --- T-IntU
-   (WT Γ integer TST)]
+   (WT σ Γ integer TST)]
   [
    (where [_ τ_0] #{local-type-env-ref Γ x})
    (<: τ_0 τ)
    --- T-VarT
-   (WT Γ x τ)]
+   (WT σ Γ x τ)]
   [
    (where [_ TST] #{local-type-env-ref Γ x})
    --- T-VarU
-   (WT Γ x TST)]
+   (WT σ Γ x TST)]
   [
    (<: τ τ_fun)
    (where (→ τ_dom τ_cod) #{coerce-arrow-type τ})
    (where Γ_f #{local-type-env-set Γ x_f τ})
    (where Γ_x #{local-type-env-set Γ_f x_arg τ_dom})
-   (WT Γ_x e_body τ_cod)
+   (WT σ Γ_x e_body τ_cod)
    --- T-FunT
-   (WT Γ (fun x_f τ_fun (x_arg) e_body) τ)]
+   (WT σ Γ (fun x_f τ_fun (x_arg) e_body) τ)]
   [
    (where Γ_f #{local-type-env-set Γ x_f TST})
    (where Γ_x #{local-type-env-set Γ_f x_arg TST})
-   (WT Γ_x e_body TST)
+   (WT σ Γ_x e_body TST)
    --- T-FunU
-   (WT Γ (fun x_f (x_arg) e_body) TST)]
+   (WT σ Γ (fun x_f (x_arg) e_body) TST)]
   [
+   (where (vector τ x) v)
+   (WT σ Γ #{unload-store/expression v σ} τ)
+   --- T-VecValT
+   (WT σ Γ v τ)]
+  [
+   (where (vector x) v)
+   (WT σ Γ #{unload-store/expression v σ} TST)
+   --- T-VecValU
+   (WT σ Γ v TST)]
+  [
+   (not-VV σ (vector τ_vec e ...)) ;; TODO
    (<: τ_vec τ)
    (where (Vectorof τ_elem) #{coerce-vector-type τ})
-   (WT Γ e τ_elem) ...
+   (WT σ Γ e τ_elem) ...
    --- T-VecT
-   (WT Γ (vector τ_vec e ...) τ)]
+   (WT σ Γ (vector τ_vec e ...) τ)]
   [
-   (WT Γ e TST) ...
+   (not-VV σ (vector e ...)) ;; TODO
+   (WT σ Γ e TST) ...
    --- T-VecU
-   (WT Γ (vector e ...) TST)]
+   (WT σ Γ (vector e ...) TST)]
   [
    (where (Listof τ_elem) #{coerce-list-type τ})
-   (WT Γ e_0 τ_elem)
-   (WT Γ e_1 τ)
+   (WT σ Γ e_0 τ_elem)
+   (WT σ Γ e_1 τ)
    --- T-ConsT
-   (WT Γ (cons e_0 e_1) τ)]
+   (WT σ Γ (cons e_0 e_1) τ)]
   [
-   (WT Γ e_0 TST)
-   (WT Γ e_1 TST)
+   (WT σ Γ e_0 TST)
+   (WT σ Γ e_1 TST)
    --- T-ConsU
-   (WT Γ (cons e_0 e_1) TST)]
+   (WT σ Γ (cons e_0 e_1) TST)]
   [
    (where (Listof τ_elem) #{coerce-list-type τ})
    --- T-NilT
-   (WT Γ nil τ)]
+   (WT σ Γ nil τ)]
   [
    --- T-NilU
-   (WT Γ nil TST)]
+   (WT σ Γ nil TST)]
   [
    (infer-expression-type Γ e_fun τ)
    (where (→ τ_dom τ_cod) #{coerce-arrow-type τ})
-   (WT Γ e_fun τ)
-   (WT Γ e_arg τ_dom)
+   (WT σ Γ e_fun τ)
+   (WT σ Γ e_arg τ_dom)
    --- T-AppT
-   (WT Γ (e_fun e_arg) τ_cod)]
+   (WT σ Γ (e_fun e_arg) τ_cod)]
   [
-   (WT Γ e_fun TST)
-   (WT Γ e_arg TST)
+   (WT σ Γ e_fun TST)
+   (WT σ Γ e_arg TST)
    --- T-AppU
-   (WT Γ (e_fun e_arg) TST)]
+   (WT σ Γ (e_fun e_arg) TST)]
   [
-   (WT Γ e_0 Int)
-   (WT Γ e_1 τ)
-   (WT Γ e_2 τ)
+   (WT σ Γ e_0 Int)
+   (WT σ Γ e_1 τ)
+   (WT σ Γ e_2 τ)
    --- T-IfzT
-   (WT Γ (ifz e_0 e_1 e_2) τ)]
+   (WT σ Γ (ifz e_0 e_1 e_2) τ)]
   [
-   (WT Γ e_0 TST)
-   (WT Γ e_1 TST)
-   (WT Γ e_2 TST)
+   (WT σ Γ e_0 TST)
+   (WT σ Γ e_1 TST)
+   (WT σ Γ e_2 TST)
    --- T-IfzU
-   (WT Γ (ifz e_0 e_1 e_2) TST)]
+   (WT σ Γ (ifz e_0 e_1 e_2) TST)]
   [
-   (WT Γ e_0 Int)
-   (WT Γ e_1 Int)
+   (WT σ Γ e_0 Int)
+   (WT σ Γ e_1 Int)
    --- T-PlusT0
-   (WT Γ (+ e_0 e_1) Int)]
+   (WT σ Γ (+ e_0 e_1) Int)]
   [
-   (WT Γ e_0 Nat)
-   (WT Γ e_1 Nat)
+   (WT σ Γ e_0 Nat)
+   (WT σ Γ e_1 Nat)
    --- T-PlusT1
-   (WT Γ (+ e_0 e_1) Nat)]
+   (WT σ Γ (+ e_0 e_1) Nat)]
   [
-   (WT Γ e_0 TST)
-   (WT Γ e_1 TST)
+   (WT σ Γ e_0 TST)
+   (WT σ Γ e_1 TST)
    --- T-PlusU
-   (WT Γ (+ e_0 e_1) TST)]
+   (WT σ Γ (+ e_0 e_1) TST)]
   [
-   (WT Γ e_0 Int)
-   (WT Γ e_1 Int)
+   (WT σ Γ e_0 Int)
+   (WT σ Γ e_1 Int)
    --- T-MinusT
-   (WT Γ (- e_0 e_1) Int)]
+   (WT σ Γ (- e_0 e_1) Int)]
   [
-   (WT Γ e_0 TST)
-   (WT Γ e_1 TST)
+   (WT σ Γ e_0 TST)
+   (WT σ Γ e_1 TST)
    --- T-MinusU
-   (WT Γ (- e_0 e_1) TST)]
+   (WT σ Γ (- e_0 e_1) TST)]
   [
-   (WT Γ e_0 Int)
-   (WT Γ e_1 Int)
+   (WT σ Γ e_0 Int)
+   (WT σ Γ e_1 Int)
    --- T-TimesT0
-   (WT Γ (* e_0 e_1) Int)]
+   (WT σ Γ (* e_0 e_1) Int)]
   [
-   (WT Γ e_0 Nat)
-   (WT Γ e_1 Nat)
+   (WT σ Γ e_0 Nat)
+   (WT σ Γ e_1 Nat)
    --- T-TimesT1
-   (WT Γ (* e_0 e_1) Nat)]
+   (WT σ Γ (* e_0 e_1) Nat)]
   [
-   (WT Γ e_0 TST)
-   (WT Γ e_1 TST)
+   (WT σ Γ e_0 TST)
+   (WT σ Γ e_1 TST)
    --- T-TimesU
-   (WT Γ (* e_0 e_1) TST)]
+   (WT σ Γ (* e_0 e_1) TST)]
   [
-   (WT Γ e_0 Int)
-   (WT Γ e_1 Int)
+   (WT σ Γ e_0 Int)
+   (WT σ Γ e_1 Int)
    --- T-DivideT0
-   (WT Γ (% e_0 e_1) Int)]
+   (WT σ Γ (% e_0 e_1) Int)]
   [
-   (WT Γ e_0 Nat)
-   (WT Γ e_1 Nat)
+   (WT σ Γ e_0 Nat)
+   (WT σ Γ e_1 Nat)
    --- T-DivideT1
-   (WT Γ (% e_0 e_1) Nat)]
+   (WT σ Γ (% e_0 e_1) Nat)]
   [
-   (WT Γ e_0 TST)
-   (WT Γ e_1 TST)
+   (WT σ Γ e_0 TST)
+   (WT σ Γ e_1 TST)
    --- T-DivideU
-   (WT Γ (% e_0 e_1) TST)]
+   (WT σ Γ (% e_0 e_1) TST)]
   [
-   (WT Γ e_vec (Vectorof τ))
-   (WT Γ e_i Int)
+   (WT σ Γ e_vec (Vectorof τ))
+   (WT σ Γ e_i Int)
    --- T-RefT
-   (WT Γ (vector-ref e_vec e_i) τ)]
+   (WT σ Γ (vector-ref e_vec e_i) τ)]
   [
-   (WT Γ e_vec TST)
-   (WT Γ e_i TST)
+   (WT σ Γ e_vec TST)
+   (WT σ Γ e_i TST)
    --- T-RefU
-   (WT Γ (vector-ref e_vec e_i) TST)]
+   (WT σ Γ (vector-ref e_vec e_i) TST)]
   [
-   (WT Γ e_vec (Vectorof τ))
-   (WT Γ e_i Int)
-   (WT Γ e_val τ)
+   (WT σ Γ e_vec (Vectorof τ))
+   (WT σ Γ e_i Int)
+   (WT σ Γ e_val τ)
    --- T-SetT
-   (WT Γ (vector-set! e_vec e_i e_val) τ)]
+   (WT σ Γ (vector-set! e_vec e_i e_val) τ)]
   [
-   (WT Γ e_vec TST)
-   (WT Γ e_i TST)
-   (WT Γ e_val TST)
+   (WT σ Γ e_vec TST)
+   (WT σ Γ e_i TST)
+   (WT σ Γ e_val TST)
    --- T-SetU
-   (WT Γ (vector-set! e_vec e_i e_val) TST)]
+   (WT σ Γ (vector-set! e_vec e_i e_val) TST)]
   [
-   (WT Γ e (Listof τ))
+   (WT σ Γ e (Listof τ))
    --- T-FirstT
-   (WT Γ (first e) τ)]
+   (WT σ Γ (first e) τ)]
   [
-   (WT Γ e TST)
+   (WT σ Γ e TST)
    --- T-FirstU
-   (WT Γ (first e) TST)]
+   (WT σ Γ (first e) TST)]
   [
    (where (Listof τ_elem) τ)
-   (WT Γ e τ)
+   (WT σ Γ e τ)
    --- T-RestT
-   (WT Γ (rest e) τ)]
+   (WT σ Γ (rest e) τ)]
   [
-   (WT Γ e TST)
+   (WT σ Γ e TST)
    --- T-RestU
-   (WT Γ (rest e) TST)]
+   (WT σ Γ (rest e) TST)]
   [
-   (WT Γ e τ)
+   (WT σ Γ e τ)
    --- T-Union
-   (WT Γ e (U τ_0 ... τ τ_1 ...))]
+   (WT σ Γ e (U τ_0 ... τ τ_1 ...))]
   [
-   (WT Γ e #{mu-fold (μ (α) τ)})
+   (WT σ Γ e #{mu-fold (μ (α) τ)})
    --- T-Rec
-   (WT Γ e (μ (α) τ))]
+   (WT σ Γ e (μ (α) τ))]
   [
-   (WT Γ e τ) ;; thank you redex
+   (WT σ Γ e τ) ;; thank you redex
    --- T-Forall
-   (WT Γ e (∀ (α) τ))]
+   (WT σ Γ e (∀ (α) τ))]
   [
+   (side-condition ,(not (equal? (term TST) (term τ))))
    (side-condition ,(raise-user-error 'T-MonFunT "got monitor in typed code ~a" (term (mon-fun τ_mon v))))
    --- T-MonFunT
-   (WT Γ (mon-fun τ_mon v) τ)]
+   (WT σ Γ (mon-fun τ_mon v) τ)]
   [
-   (WT Γ v τ_mon)
+   (WT σ Γ v τ_mon)
    --- T-MonFunU
-   (WT Γ (mon-fun τ_mon v) TST)]
+   (WT σ Γ (mon-fun τ_mon v) TST)]
   [
+   (side-condition ,(not (equal? (term TST) (term τ))))
    (side-condition ,(raise-user-error 'T-MonVectorT "got monitor in typed code ~a" (term (mon-vector τ_mon v))))
    --- T-MonVectorT
-   (WT Γ (mon-vector τ_mon v) τ)]
+   (WT σ Γ (mon-vector τ_mon v) τ)]
   [
-   (WT Γ v τ_mon)
+   (WT σ Γ v τ_mon)
    --- T-MonVectorU
-   (WT Γ (mon-vector τ_mon v) TST)]
+   (WT σ Γ (mon-vector τ_mon v) TST)]
   [
    (<: τ_chk τ)
-   (WT Γ e TST)
+   (WT σ Γ e TST)
    --- T-Check
-   (WT Γ (check τ_chk e) τ)]
+   (WT σ Γ (check τ_chk e) τ)]
   [
-   (WT Γ e τ_pro)
+   (WT σ Γ e τ_pro)
    --- T-Protect
-   (WT Γ (protect τ_pro e) TST)])
+   (WT σ Γ (protect τ_pro e) TST)])
 
 (define-judgment-form μTR
   #:mode (local-value-env-models I I I)
@@ -384,17 +398,112 @@
    (local-value-env-models-aux σ () Γ)]
   [
    (where (x_0 τ) #{local-type-env-ref Γ x_0})
-   (WT Γ v_0 τ)
+   (WT σ Γ v_0 τ)
    (local-value-env-models-aux σ (x:v_rest ...) Γ)
    ---
    (local-value-env-models-aux σ ((x_0 v_0) x:v_rest ...) Γ)])
+
+(define-judgment-form μTR
+  #:mode (not-VV I I)
+  #:contract (not-VV σ e)
+  [
+   (side-condition ,(not (judgment-holds (VV σ e))))
+   ---
+   (not-VV σ e)])
+
+(define-judgment-form μTR
+  #:mode (VV I I)
+  #:contract (VV σ e)
+  [
+   (where (x _) #{unsafe-env-ref σ x #false})
+   ---
+   (VV σ (vector x))]
+  [
+   (where (x _) #{unsafe-env-ref σ x #false})
+   ---
+   (VV σ (vector τ x))])
 
 ;; =============================================================================
 
 (module+ test
   (require rackunit)
 
+  (test-case "not-VV"
+    (check-judgment-holds*
+     (not-VV () (vector (Vectorof Int) 1 2))
+    ))
+
   (test-case "WT"
+    (check-judgment-holds*
+     (WT () () 4 Nat)
+     (WT () () 4 TST)
+     (WT () () -4 Int)
+     (WT () () -4 TST)
+     (WT () ((x Int)) x Int)
+     (WT () ((x TST)) x TST)
+     (WT () () (fun f (→ Nat Nat) (x) x) (→ Nat Nat))
+     (WT () () (fun f (x) x) TST)
+     (WT () () (vector (Vectorof Int) 1 2) (Vectorof Int))
+     (WT () () (vector 1 2) TST)
+     (WT () () (cons 1 nil) (Listof Nat))
+     (WT () () (cons 1 nil) TST)
+     (WT () () nil (Listof Nat))
+     (WT () () nil TST)
+     (WT () ((f (→ Int Int))) (f -6) Int)
+     (WT () ((f TST)) (f f) TST)
+     (WT () () (3 3) TST)
+     (WT () () (ifz 0 1 2) Nat)
+     (WT () () (ifz nil nil nil) TST)
+     (WT () () (+ -1 2) Int)
+     (WT () () (+ 3 2) Nat)
+     (WT () () (+ 4 4) TST)
+     (WT () () (+ nil nil) TST)
+     (WT () () (- 3 3) Int)
+     (WT () () (- 3 3) TST)
+     (WT () () (- 3 nil) TST)
+     (WT () () (* 3 -3) Int)
+     (WT () () (* 3 3) Nat)
+     (WT () () (* 3 3) TST)
+     (WT () () (* nil 4) TST)
+     (WT () () (% -6 2) Int)
+     (WT () () (% 6 2) Nat)
+     (WT () () (% 6 2) TST)
+     (WT () () (% nil nil) TST)
+     (WT () () (vector-ref (vector (Vectorof Int) 2 3) 0) Int)
+     (WT () () (vector-ref (vector 3) 0) TST)
+     (WT () () (vector-set! (vector (Vectorof Int) 2 3) 0 -3) Int)
+     (WT () () (vector-set! (vector 2) 0 nil) TST)
+     (WT () () (first nil) Nat)
+     (WT () () (first (cons 1 nil)) Int)
+     (WT () () (first 3) TST)
+     (WT () () (rest nil) (Listof Int))
+     (WT () () (rest (cons 1 nil)) (Listof Int))
+     (WT () () (rest 4) TST)
+     (WT () () 4 (U Nat (→ Nat Nat)))
+     (WT () () (fun f (∀ (α) (→ α α)) (x) x) (∀ (α) (→ α α)))
+;;     (WT () () (mon-fun (→ Nat Nat) (fun f (x) 3)) (→ Nat Nat)) ;; TODO is this legal???
+     (WT () () (mon-fun (→ Nat Nat) (fun f (→ Nat Nat) (x) 3)) TST)
+;;     (WT ((qq (1 2))) () (mon-vector (Vectorof Int) (vector qq)) (Vectorof Int)) ;; TODO
+     (WT ((qq (2))) () (mon-vector (Vectorof Int) (vector (Vectorof Int) qq)) TST)
+     (WT () () (check Int (+ 3 3)) Int)
+     (WT () () (protect Int (+ 3 3)) TST)
+    )
+
+    (check-not-judgment-holds*
+     (WT () () -4 Nat)
+     (WT () () nil Int)
+     (WT () ((x Int)) x TST)
+     (WT () () (fun f (x) x) (→ Nat Nat)) ;; missing type annotation
+     (WT () () (vector 1 2) (Vectorof Nat))
+     (WT () ((f (→ Int Int))) (f -6) TST)
+     (WT () () (ifz nil 1 2) Nat)
+     (WT () () (- 3 0) Nat)
+     (WT () () (* -3 -3) Nat)
+     (WT () () (vector-ref (vector 3) 0) Int)
+     (WT () () (vector-set! (vector Nat 2 3) 0 -3) Int)
+     (WT () () (check Int (+ 3 3)) TST)
+     (WT () () (protect Int (+ 3 3)) Int)
+    )
   )
 
   (test-case "local-value-env-models"
