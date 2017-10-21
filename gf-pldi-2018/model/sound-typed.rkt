@@ -354,8 +354,8 @@
    --- T-Forall
    (WT σ Γ e (∀ (α) τ))]
   [
-   (side-condition ,(not (equal? (term TST) (term τ))))
-   (side-condition ,(raise-user-error 'T-MonFunT "got monitor in typed code ~a" (term (mon-fun τ_mon v))))
+   (<: τ_mon τ) ;; (<: _ TST) undefined
+   (WT σ Γ v TST)
    --- T-MonFunT
    (WT σ Γ (mon-fun τ_mon v) τ)]
   [
@@ -363,8 +363,8 @@
    --- T-MonFunU
    (WT σ Γ (mon-fun τ_mon v) TST)]
   [
-   (side-condition ,(not (equal? (term TST) (term τ))))
-   (side-condition ,(raise-user-error 'T-MonVectorT "got monitor in typed code ~a" (term (mon-vector τ_mon v))))
+   (<: τ_mon τ) ;; (<: _ TST) undefined
+   (WT σ Γ v TST)
    --- T-MonVectorT
    (WT σ Γ (mon-vector τ_mon v) τ)]
   [
@@ -430,8 +430,7 @@
 
   (test-case "not-VV"
     (check-judgment-holds*
-     (not-VV () (vector (Vectorof Int) 1 2))
-    ))
+     (not-VV () (vector (Vectorof Int) 1 2))))
 
   (test-case "WT"
     (check-judgment-holds*
@@ -481,9 +480,9 @@
      (WT () () (rest 4) TST)
      (WT () () 4 (U Nat (→ Nat Nat)))
      (WT () () (fun f (∀ (α) (→ α α)) (x) x) (∀ (α) (→ α α)))
-;;     (WT () () (mon-fun (→ Nat Nat) (fun f (x) 3)) (→ Nat Nat)) ;; TODO is this legal???
+     (WT () () (mon-fun (→ Nat Nat) (fun f (x) 3)) (→ Nat Nat))
      (WT () () (mon-fun (→ Nat Nat) (fun f (→ Nat Nat) (x) 3)) TST)
-;;     (WT ((qq (1 2))) () (mon-vector (Vectorof Int) (vector qq)) (Vectorof Int)) ;; TODO
+     (WT ((qq (1 2))) () (mon-vector (Vectorof Int) (vector qq)) (Vectorof Int))
      (WT ((qq (2))) () (mon-vector (Vectorof Int) (vector (Vectorof Int) qq)) TST)
      (WT () () (check Int (+ 3 3)) Int)
      (WT () () (protect Int (+ 3 3)) TST)

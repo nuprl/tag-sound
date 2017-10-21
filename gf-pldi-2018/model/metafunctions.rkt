@@ -501,6 +501,8 @@
   coerce-arrow-type : τ -> any
   [(coerce-arrow-type (→ τ_dom τ_cod))
    (→ τ_dom τ_cod)]
+  [(coerce-arrow-type (∀ (α) τ))
+   #{coerce-arrow-type τ}]
   [(coerce-arrow-type _)
    #f])
 
