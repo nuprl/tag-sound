@@ -10,6 +10,10 @@
 
   term-ref
   term-set
+
+  load-expression
+  unload-answer
+  unload-answer/store
 )
 
 (require
@@ -75,6 +79,26 @@
    (where any_acc #{term-set (v_rest ...) ,(- (term natural) 1) any_val})]
   [(term-set v* any_index any_val)
    BadIndex])
+
+(define-metafunction μTR
+  load-expression : L σ ρ e -> Σ
+  [(load-expression L σ ρ e)
+   (L σ (substitute* e ρ))])
+
+(define-metafunction μTR
+  unload-answer : A -> [σ v]
+  [(unload-answer Error)
+   ,(raise-arguments-error 'unload-answer "evaluation error" "message" (term Error))]
+  [(unload-answer Σ)
+   (σ v)
+   (where (L σ v) Σ)])
+
+(define-metafunction μTR
+  unload-answer/store : A -> e
+  [(unload-answer/store A)
+   e_sub
+   (where (σ v) #{unload-answer A})
+   (where e_sub #{unload-store/expression v σ})])
 
 ;; =============================================================================
 
@@ -151,5 +175,31 @@
       BadIndex)
      ((term-set () q 3)
       BadIndex)))
+
+  (test-case "load-expression"
+    (check-mf-apply*
+     ((load-expression UN () () (+ 2 2))
+      (UN () (+ 2 2)))
+     ((load-expression TY ((q (0))) () (+ 2 2))
+      (TY ((q (0))) (+ 2 2)))
+     ((load-expression UN ((q (0))) ((a 4) (b (vector (Vectorof Integer) q))) (+ a b))
+      (UN ((q (0))) (+ 4 (vector (Vectorof Integer) q))))))
+
+  (test-case "unload-answer"
+    (check-mf-apply*
+     ((unload-answer (UN () 3))
+      (() 3)))
+
+    (check-exn exn:fail:contract?
+      (λ () (term (unload-answer BadIndex)))))
+
+  (test-case "unload-answer/store"
+    (check-mf-apply*
+     ((unload-answer/store (UN () 3))
+      3)
+     ((unload-answer/store (UN ((q (0))) 3))
+      3)
+     ((unload-answer/store (UN ((q (0))) (vector q)))
+      (vector 0))))
 
 )

@@ -27,11 +27,15 @@
   well-typed-module
   well-dyn-expression
   well-typed-expression
+  well-typed-expression/TST
   infer-expression-type ;; really not sure about this one
 
   require->local-type-env
   define->local-type-env
   local-type-env->provided
+
+  tagged-completion
+  well-tagged-expression
 )
 
 (require
@@ -297,6 +301,19 @@
    (well-dyn-expression Γ e)
    ---
    (well-dyn-expression Γ (rest e))])
+
+(define-judgment-form μTR
+  #:mode (well-typed-expression/TST I I I)
+  #:contract (well-typed-expression/TST Γ e τ)
+  [
+   (well-dyn-expression Γ e)
+   ---
+   (well-typed-expression/TST Γ e TST)]
+  [
+   (not-TST τ)
+   (well-typed-expression Γ e τ)
+   ---
+   (well-typed-expression/TST Γ e τ)])
 
 (define-metafunction μTR
   require->local-type-env : TYPE-ENV (REQUIRE ...) -> Γ
@@ -617,6 +634,22 @@
    (judgment-holds (infer-expression-type Γ e τ))]
   [(infer-expression-type# Γ e)
    ,(raise-arguments-error 'infer-expression-type "failed to infer type" "expression" (term e) "type env" (term Γ))])
+
+(define-judgment-form μTR
+  #:mode (tagged-completion I I I O)
+  #:contract (tagged-completion Γ e κ e)
+  [
+   ;; TODO
+   ---
+   (tagged-completion Γ e κ 42)])
+
+(define-judgment-form μTR
+  #:mode (well-tagged-expression I I I)
+  #:contract (well-tagged-expression Γ e κ)
+  [
+   ;; TODO
+   ---
+   (well-tagged-expression Γ e κ)])
 
 ;; =============================================================================
 

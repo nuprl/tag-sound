@@ -1,7 +1,4 @@
 #lang mf-apply racket/base
-;; TODO keep up the intensity!
-;; I think everything here is correct, or close to it. Just need to test!
-;; Then move on to the tagged system.
 
 ;; Soundness for Typed Racket semantics
 ;; i.e. theorems connecting the typechecker to the reduction semantics
@@ -191,19 +188,6 @@
    (where A #{sound-step* Σ_0 τ})
    ---
    (sound-eval-expression Γ σ ρ L e τ A)])
-
-(define-judgment-form μTR
-  #:mode (well-typed-expression/TST I I I)
-  #:contract (well-typed-expression/TST Γ e τ)
-  [
-   (well-dyn-expression Γ e)
-   ---
-   (well-typed-expression/TST Γ e TST)]
-  [
-   (not-TST τ)
-   (well-typed-expression Γ e τ)
-   ---
-   (well-typed-expression/TST Γ e τ)])
 
 (define-metafunction μTR
   sound-step* : Σ τ -> A

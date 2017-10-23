@@ -522,7 +522,11 @@
 
 (define-judgment-form μTR
   #:mode (not-TST I)
-  #:contract (not-TST τ)
+  #:contract (not-TST any)
+  [
+   (side-condition ,(not (equal? (term TST) (term κ))))
+   ---
+   (not-TST κ)]
   [
    (side-condition ,(not (equal? (term TST) (term τ))))
    ---

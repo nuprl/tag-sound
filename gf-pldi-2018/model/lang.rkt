@@ -23,7 +23,8 @@
   ;; - parameterized types with covariant, contravariant, and invariant positions
   ;; - unions, universals, and recursives because they have non-obvious tags
 
-  (κ ::= Int Nat → Vector List (U κ ...))
+  (κ ::= Int Nat → Vector List (U κ ...)
+         TST)
   ;; Tags,
   ;; - one for each base type
   ;; - one for each value constructor
@@ -112,7 +113,7 @@
   ;; Ignores untyped modules (we could record names but no big deal).
 
   (Γ ::= (x:τ ...))
-  (x:τ ::= (x τ))
+  (x:τ ::= (x τ) (x κ))
   ;; Local type context, for checking expressions
   ;; ... needs TST because expression typing flips between typed and untyped code
 
