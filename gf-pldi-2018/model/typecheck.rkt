@@ -635,21 +635,123 @@
   [(infer-expression-type# Γ e)
    ,(raise-arguments-error 'infer-expression-type "failed to infer type" "expression" (term e) "type env" (term Γ))])
 
+;; TODO really should check Nat vs. TST for C-Nat
 (define-judgment-form μTR
   #:mode (tagged-completion I I I O)
   #:contract (tagged-completion Γ e κ e)
   [
-   ;; TODO
+   (or-TST Nat κ)
+   --- C-Nat
+   (tagged-completion Γ natural κ natural)]
+  [
+   (or-TST Int κ)
+   --- C-Int
+   (tagged-completion Γ integer κ integer)]
+  [
+   (or-TST → κ_fun)
+   (where (fun x_fun τ_fun (x_arg) e_body) Λ)
+   (where (→ τ_dom τ_cod) #{coerce-arrow-type τ_fun})
+   (where κ_dom #{type->tag τ_dom})
+   (where κ_cod #{type->tag τ_cod})
+   (where Γ_fun #{local-type-env-set Γ x_fun τ_fun})
+   (where Γ_x #{local-type-env-set Γ_fun x_arg τ_dom})
+   (tagged-completion Γ_x e_body κ_cod e_+)
+   (where τ_fun+ #{weaken-arrow-domain τ_fun})
+   (where Λ_+ (fun x_fun τ_fun+ (x_arg)
+                (tag? κ_cod ;; maybe not necessary
+                  ((fun x_fun τ_fun (x_arg) e_+)
+                   (tag? κ_dom x_arg)))))
+   --- C-Fun
+   (tagged-completion Γ Λ κ_fun Λ_+)]
+  [
+   (or-TST Vector κ_vec)
+   (tagged-completion Γ e TST e_+) ...
+   --- C-Vec
+   (tagged-completion Γ (vector τ e ...) κ_vec (vector τ e_+ ...))]
+  [
+   (or-TST List κ_cons)
+   (tagged-completion Γ e_0 TST e_0+)
+   (tagged-completion Γ e_1 List e_1+)
    ---
-   (tagged-completion Γ e κ 42)])
+   (tagged-completion Γ (cons e_0 e_1) κ_cons (cons e_0+ e_1+))]
+  [
+   (or-TST List κ_nil)
+   ---
+   (tagged-completion Γ nil κ_nil nil)]
+  [
+   (where (_ τ) #{local-type-env-ref Γ x})
+   (tag-of τ κ)
+   (or-TST κ κ_x)
+   ---
+   (tagged-completion Γ x κ_x x)]
+  [
+   (tagged-completion Γ e_0 → e_0+)
+   (tagged-completion Γ e_1 TST e_1+)
+   (where e_+ (tag? κ (e_0+ e_1+)))
+   ---
+   (tagged-completion Γ (e_0 e_1) κ e_+)]
+  [
+   (tagged-completion Γ e_0 Int e_0+)
+   (tagged-completion Γ e_1 κ e_1+)
+   (tagged-completion Γ e_2 κ e_2+)
+   ---
+   (tagged-completion Γ (ifz e_0 e_1 e_2) κ (ifz e_0+ e_1+ e_2+))]
+  [
+   (tagged-completion Γ e_0 κ e_0+)
+   (tagged-completion Γ e_1 κ e_1+)
+   ---
+   (tagged-completion Γ (BINOP e_0 e_1) κ (BINOP e_0+ e_1+))]
+  [
+   (tagged-completion Γ e_0 Vector e_0+)
+   (tagged-completion Γ e_1 Int e_1+)
+   (where e_+ (tag? κ (vector-ref e_0+ e_1+)))
+   ---
+   (tagged-completion Γ (vector-ref e_0 e_1) κ e_+)]
+  [
+   (tagged-completion Γ e_0 Vector e_0+)
+   (tagged-completion Γ e_1 Int e_1+)
+   (tagged-completion Γ e_2 κ e_2+)
+   ---
+   (tagged-completion Γ (vector-set! e_0 e_1 e_2) κ (vector-set! e_0+ e_1+ e_2+))]
+  [
+   (tagged-completion Γ e Pair e_+)
+   ---
+   (tagged-completion Γ (first e) κ (tag? κ (first e_+)))]
+  [
+   (or-TST List κ)
+   (tagged-completion Γ e List e_+)
+   ---
+   (tagged-completion Γ (rest e) κ (rest e_+))])
 
+(define-metafunction μTR
+  tagged-completion# : Γ e κ -> e
+  [(tagged-completion# Γ e κ)
+   e_+
+   (judgment-holds (tagged-completion Γ e κ e_+))]
+  [(tagged-completion# Γ e κ)
+   ,(raise-arguments-error 'tagged-completion "failed to complete"
+     "expr" (term e)
+     "tag" (term κ)
+     "type env" (term Γ))])
+
+;; TODO the purpose of this judgment is to know that the tagged completion is
+;;  correct. Ok. So what do we need to do ......
 (define-judgment-form μTR
   #:mode (well-tagged-expression I I I)
   #:contract (well-tagged-expression Γ e κ)
   [
-   ;; TODO
    ---
-   (well-tagged-expression Γ e κ)])
+   (well-tagged-expression Γ natural Nat)]
+  [
+   ---
+   (well-tagged-expression Γ integer Int)]
+  [
+   ---
+   (well-tagged-expression Γ (fun x_fun τ_fun (x_arg) e) →)]
+  #;[
+   ---
+   (well-tagged-expression )]
+)
 
 ;; =============================================================================
 
@@ -1077,5 +1179,33 @@
          (define x Int (+ 1 nil))
          (provide))))
       #f))
+  )
+
+  (test-case "tagged-completion"
+    (check-mf-apply* #:is-equal? α=?
+     ((tagged-completion# () (+ 2 2) Int)
+      (+ 2 2))
+     ((tagged-completion# () (fun f (→ Int Int) (x) (+ x 1)) →)
+      (fun f (→ TST Int) (x) (tag? Int ((fun f (→ Int Int) (x) (+ x 1)) (tag? Int x)))))
+     ((tagged-completion# ((f (→ Int Int))) (f 3) Int)
+      (tag? Int (f 3)))
+     ((tagged-completion# ((f (→ Int (Vectorof Int)))) (f 3) Vector)
+      (tag? Vector (f 3)))
+     ;; TODO a few more
+    )
+  )
+
+  (test-case "well-tagged-expression"
+    (check-judgment-holds*
+     (well-tagged-expression () (+ 2 2) Int)
+     (well-tagged-expression () (first (cons 1 nil)) TST)
+     (well-tagged-expression () (tag? Int (first (cons 1 nil))) Int)
+     (well-tagged-expression () ((fun f (→ Nat Nat) (x) (+ x 1)) 4) Nat)
+    )
+
+    (check-not-judgment-holds*
+     (well-tagged-expression () (first (cons 1 nil)) Int)
+     (well-tagged-expression () (rest (cons 1 nil)) List)
+    )
   )
 )

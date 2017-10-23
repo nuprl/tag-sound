@@ -65,9 +65,7 @@
          (ifz e e e)
          (+ e e) (- e e) (* e e) (% e e)
          (vector-ref e e) (vector-set! e e e) (first e) (rest e)
-
-         (!! [x κ e] e) ;; TODO use 'let' or 'lambda'
-
+         (tag? κ e)
          (check τ e) (protect τ e))
   (BINOP ::= + - * %)
   ;; Expressions come in three flavors:

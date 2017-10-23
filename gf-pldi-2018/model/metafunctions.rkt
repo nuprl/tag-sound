@@ -36,7 +36,11 @@
   coerce-arrow-type
   coerce-vector-type
   coerce-list-type
+
   not-TST
+  or-TST
+
+  weaken-arrow-domain
 
   unload-store/expression
 
@@ -407,7 +411,10 @@
   [
    (tag-of τ κ)
    ---
-   (tag-of (μ (α) τ) κ)])
+   (tag-of (μ (α) τ) κ)]
+  [
+   ---
+   (tag-of TST TST)])
 
 (define-metafunction μTR
   type->tag : τ -> κ
@@ -507,6 +514,18 @@
    #f])
 
 (define-metafunction μTR
+  weaken-arrow-domain : τ -> τ
+  [(weaken-arrow-domain (→ α τ_cod))
+   (→ α τ_cod)]
+  [(weaken-arrow-domain (→ τ_dom τ_cod))
+   (→ TST τ_cod)]
+  [(weaken-arrow-domain (∀ (α) τ))
+   (∀ (α) #{weaken-arrow-domain τ})]
+  [(weaken-arrow-domain τ)
+   ,(raise-arguments-error 'replace-arrow-domain "failed to weaken domain of type"
+     "type" (term τ))])
+
+(define-metafunction μTR
   coerce-vector-type : τ -> any
   [(coerce-vector-type (Vectorof τ))
    (Vectorof τ)]
@@ -531,6 +550,16 @@
    (side-condition ,(not (equal? (term TST) (term τ))))
    ---
    (not-TST τ)])
+
+(define-judgment-form μTR
+  #:mode (or-TST I I)
+  #:contract (or-TST κ κ)
+  [
+   ---
+   (or-TST _ TST)]
+  [
+   ---
+   (or-TST κ κ)])
 
 ;; =============================================================================
 
@@ -775,6 +804,13 @@
     (check-not-judgment-holds*
      (not-TST TST)))
 
+  (test-case "or-TST"
+    (check-judgment-holds*
+     (or-TST Nat TST)
+     (or-TST Nat Nat))
+    (check-not-judgment-holds*
+     (or-TST Nat Int)))
+
   (test-case "same-domain"
     (check-mf-apply*
      ((same-domain ((a) (b) (c)) ((a) (b) (c)))
@@ -785,5 +821,16 @@
       #false)
      ((same-domain ((a 1) (b 2)) ((a Int) (b Nat)))
       #true)))
+
+  (test-case "replace-arrow-domain"
+    (check-mf-apply* #:is-equal? α=?
+     ((weaken-arrow-domain (→ Int Int))
+      (→ TST Int))
+     ((weaken-arrow-domain (∀ (α) (→ Nat Nat)))
+      (∀ (α) (→ TST Nat)))
+     ((weaken-arrow-domain (∀ (α) (→ α α)))
+      (∀ (α) (→ α α)))
+    )
+  )
 
 )
