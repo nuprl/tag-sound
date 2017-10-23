@@ -14,6 +14,8 @@ proofs of type and tag soundness
 
 TODO
 - count runtime time checks ?
+- vector expressions (vector x) and vector-values are ambiguous,
+  use a `make-vector` to resolve
 - stop using `untyped-context`, stop using `L` tag,
   - make Et and Eu frames, a frame is 1 level of evaluation context
   - E ::= (Et | Eu) *

@@ -11,6 +11,8 @@
   single-step
 
   load-expression
+  require->local-value-env
+  local-value-env->provided
 )
 
 (require
@@ -65,7 +67,7 @@
    (eval-define* σ ρ (DEFINE ...) σ_+ ρ_+)
    (where ρ_provide #{local-value-env->provided ρ_+ PROVIDE})
    (where VAL-ENV_+ #{toplevel-value-env-set VAL-ENV M ρ_provide})
-   --- E-Module-Untyped
+   ---
    (eval-module σ VAL-ENV MODULE σ_+ VAL-ENV_+)])
 
 ;; -----------------------------------------------------------------------------

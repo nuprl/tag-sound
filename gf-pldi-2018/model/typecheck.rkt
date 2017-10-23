@@ -24,8 +24,14 @@
   not-integer-value
 
   well-typed-program
+  well-typed-module
+  well-dyn-expression
   well-typed-expression
   infer-expression-type ;; really not sure about this one
+
+  require->local-type-env
+  define->local-type-env
+  local-type-env->provided
 )
 
 (require

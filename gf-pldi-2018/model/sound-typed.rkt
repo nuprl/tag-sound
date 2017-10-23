@@ -1,4 +1,7 @@
 #lang mf-apply racket/base
+;; TODO keep up the intensity!
+;; I think everything here is correct, or close to it. Just need to test!
+;; Then move on to the tagged system.
 
 ;; Soundness for Typed Racket semantics
 ;; i.e. theorems connecting the typechecker to the reduction semantics
@@ -44,8 +47,6 @@
 ;;   * E[e] where E is typed context
 ;;     cannot possibly step to TypeError
 
-;; Just do expressions for now, everything else should follow.
-
 ;; -----------------------------------------------------------------------------
 
 (require
@@ -61,24 +62,148 @@
 
 ;; =============================================================================
 
+(define-judgment-form μTR
+  #:mode (sound-eval-program I)
+  #:contract (sound-eval-program PROGRAM)
+  [
+   (well-typed-program PROGRAM TYPE-ENV)
+   (sound-eval-module* () () () PROGRAM TYPE-ENV_N σ_N VAL-ENV_N)
+   (side-condition ,(equal? (term TYPE-ENV) (term TYPE-ENV_N)))
+   (toplevel-value-env-models σ_N VAL-ENV_N TYPE-ENV_N)
+   ---
+   (sound-eval-program PROGRAM)])
+
+(define-judgment-form μTR
+  #:mode (sound-eval-module* I I I I O O O)
+  #:contract (sound-eval-module* TYPE-ENV σ VAL-ENV (MODULE ...) TYPE-ENV σ VAL-ENV)
+  [
+   ---
+   (sound-eval-module* TYPE-ENV σ VAL-ENV () TYPE-ENV σ VAL-ENV)]
+  [
+   (where (MODULE_0 MODULE_rest ...) PROGRAM)
+   (sound-eval-module TYPE-ENV_0 σ_0 VAL-ENV_0 MODULE_0 TYPE-ENV_1 σ_1 VAL-ENV_1)
+   (sound-eval-module* TYPE-ENV_1 σ_1 VAL-ENV_1 (MODULE_rest ...) TYPE-ENV_N σ_N VAL-ENV_N)
+   ---
+   (sound-eval-module* TYPE-ENV_0 σ_0 VAL-ENV_0 PROGRAM TYPE-ENV_N σ_N VAL-ENV_N)])
+
+(define-judgment-form μTR
+  #:mode (sound-eval-module I I I I O O O)
+  #:contract (sound-eval-module TYPE-ENV σ VAL-ENV MODULE TYPE-ENV σ VAL-ENV)
+  [
+   (where (module M _ REQUIRE ... DEFINE ... PROVIDE) MODULE)
+   (where ρ #{require->local-value-env VAL-ENV (REQUIRE ...)})
+   (where Γ #{local-type-env-append #{require->local-type-env TYPE-ENV (REQUIRE ...)}
+                                    #{define->local-type-env (DEFINE ...)}})
+   (sound-eval-define* Γ σ ρ (DEFINE ...) σ_+ ρ_+)
+   (where Γ_provide #{local-type-env->provided Γ PROVIDE})
+   (where TYPE-ENV_+ #{toplevel-type-env-set TYPE-ENV M Γ_provide})
+   (where ρ_provide #{local-value-env->provided ρ_+ PROVIDE})
+   (where VAL-ENV_+ #{toplevel-value-env-set VAL-ENV M ρ_provide})
+   (well-typed-module TYPE-ENV_+ M _) ;; double-check
+   ---
+   (sound-eval-module TYPE-ENV σ VAL-ENV MODULE TYPE-ENV_+ σ_+ VAL-ENV_+)])
+
+(define-judgment-form μTR
+  #:mode (sound-eval-define* I I I I O O)
+  #:contract (sound-eval-define* Γ σ ρ (DEFINE ...) σ ρ)
+  [
+   ---
+   (sound-eval-define* Γ σ ρ () σ ρ)]
+  [
+   (sound-eval-define Γ σ ρ DEFINE_0 σ_1 ρ_1)
+   (sound-eval-define* Γ σ_1 ρ_1 (DEFINE_rest ...) σ_N ρ_N)
+   ---
+   (sound-eval-define* Γ σ ρ (DEFINE_0 DEFINE_rest ...) σ_N ρ_N)])
+
+(define-judgment-form μTR
+  #:mode (sound-eval-define I I I I O O)
+  #:contract (sound-eval-define Γ σ ρ DEFINE σ ρ)
+  [
+   (where (define x e) UNTYPED-DEFINE)
+   (where L UN)
+   (sound-eval-expression Γ σ ρ L e TST A_+)
+   (where (σ_+ v_+) #{unpack-answer A_+})
+   (where ρ_+ #{local-value-env-set ρ x v_+})
+   ---
+   (sound-eval-define Γ σ ρ UNTYPED-DEFINE σ_+ ρ_+)]
+  [
+   (where (define x τ e) TYPED-DEFINE)
+   (where L TY)
+   (sound-eval-expression Γ σ ρ L e τ A_+)
+   (where (σ_+ v_+) #{unpack-answer A_+})
+   (where ρ_+ #{local-value-env-set ρ x v_+})
+   ---
+   (sound-eval-define Γ σ ρ TYPED-DEFINE σ_+ ρ_+)])
+
+(define-metafunction μTR
+  unpack-answer : A -> [σ v]
+  [(unpack-answer Error)
+   ,(raise-arguments-error 'sound-eval-expression "not implemented for errors"
+     "answer" (term Error))]
+  [(unpack-answer [σ v])
+   [σ v]])
+
+(define-judgment-form μTR
+  #:mode (toplevel-value-env-models I I I)
+  #:contract (toplevel-value-env-models σ VAL-ENV TYPE-ENV)
+  [
+   (same-domain VAL-ENV TYPE-ENV)
+   (toplevel-value-env-models-aux σ VAL-ENV TYPE-ENV)
+   ---
+   (toplevel-value-env-models σ VAL-ENV TYPE-ENV)])
+
+(define-judgment-form μTR
+  #:mode (toplevel-value-env-models-aux I I I)
+  #:contract (toplevel-value-env-models-aux σ VAL-ENV TYPE-ENV)
+  [
+   ---
+   (toplevel-value-env-models-aux σ () TYPE-ENV)]
+  [
+   (where (_ Γ_0) #{toplevel-type-env-ref TYPE-ENV M_0})
+   (local-value-env-models σ ρ_0 Γ_0)
+   (toplevel-value-env-models-aux σ (M:ρ_rest ...) TYPE-ENV)
+   ---
+   (toplevel-value-env-models-aux σ ((M_0 ρ_0) M:ρ_rest ...) TYPE-ENV)])
+
 (define-metafunction μTR
   sound-eval-expression# : Γ σ ρ L e τ -> A
   [(sound-eval-expression# Γ σ ρ L e τ)
    A
-   (judgment-holds (sound-eval-expression Γ σ ρ L e τ A))])
+   (judgment-holds (sound-eval-expression Γ σ ρ L e τ A))]
+  [(sound-eval-expression# Γ σ ρ L e τ)
+   ,(raise-arguments-error 'sound-eval-expression "failed to eval"
+     "type env" (term Γ)
+     "store" (term σ)
+     "value env" (term ρ)
+     "lang" (term L)
+     "expr" (term e)
+     "type" (term τ))])
 
 (define-judgment-form μTR
   #:mode (sound-eval-expression I I I I I I O)
   #:contract (sound-eval-expression Γ σ ρ L e τ A)
   [
    ;; Check premises
-   (well-typed-expression Γ e τ)
+   (well-typed-expression/TST Γ e τ)
    (local-value-env-models σ ρ Γ)
    ;; Do checked evaluation
    (where Σ_0 #{load-expression L σ ρ e})
    (where A #{sound-step* Σ_0 τ})
    ---
    (sound-eval-expression Γ σ ρ L e τ A)])
+
+(define-judgment-form μTR
+  #:mode (well-typed-expression/TST I I I)
+  #:contract (well-typed-expression/TST Γ e τ)
+  [
+   (well-dyn-expression Γ e)
+   ---
+   (well-typed-expression/TST Γ e TST)]
+  [
+   (not-TST τ)
+   (well-typed-expression Γ e τ)
+   ---
+   (well-typed-expression/TST Γ e τ)])
 
 (define-metafunction μTR
   sound-step* : Σ τ -> A
@@ -102,6 +227,16 @@
    ---
    (sound-step Σ τ A boolean)])
 
+(define-metafunction μTR
+  sound-step# : Σ τ -> [A boolean]
+  [(sound-step# Σ τ)
+   (A boolean)
+   (judgment-holds (sound-step Σ τ A boolean))]
+  [(sound-step# Σ τ)
+   ,(raise-arguments-error 'sound-step "undefined for arguments"
+     "state" (term Σ)
+     "type" (term τ))])
+
 ;; Apply reduction relation, make sure get 1 thing out of it
 (define (do-single-step Σ)
   (define A* (apply-reduction-relation single-step Σ))
@@ -113,8 +248,12 @@
       "config" Σ
       "next configs" A*)]
    [else
-    (list (car A*) #false)]))
+    (define Σ+ (car A*))
+    (list Σ+ (not (redex-match? μTR Error Σ+)))]))
 
+;; TODO ignores first argument ... either remove or stop ignoring.
+;; (original idea was to check "no type errors from typed context",
+;;  but maybe we show that with a different theorem)
 (define-judgment-form μTR
   #:mode (well-typed-answer I I I)
   #:contract (well-typed-answer Σ A τ)
@@ -129,19 +268,21 @@
   [
    (well-typed-config Σ_+ τ)
    ---
-   (well-typed-answer Σ Σ_+ τ)])
+   (well-typed-answer _ Σ_+ τ)])
 
 (define-judgment-form μTR
   #:mode (well-typed-config I I)
   #:contract (well-typed-config Σ τ)
   [
+   (where L UN)
    (WT σ () e TST)
    ---
-   (well-typed-config (UN σ e) TST)]
+   (well-typed-config (L σ e) TST)]
   [
+   (where L TY)
    (WT σ () e τ)
    ---
-   (well-typed-config (TY σ e) τ)])
+   (well-typed-config (L σ e) τ)])
 
 ;; "well-typed-expression" is the obvious name,
 ;;  but already using that for the static typing system
@@ -506,18 +647,135 @@
   )
 
   (test-case "local-value-env-models"
+    (check-judgment-holds*
+     (local-value-env-models () () ())
+     (local-value-env-models () ((x 4)) ((x Int)))
+     (local-value-env-models () ((x 4) (y -1)) ((x Int) (y Int)))
+     (local-value-env-models () ((x 4) (y -1)) ((y Int) (x Int)))
+     (local-value-env-models () ((x nil)) ((x (Listof Nat))))
+     (local-value-env-models () ((x nil)) ((x TST)))
+     (local-value-env-models () ((x (fun f (z) z))) ((x TST)))
+     (local-value-env-models
+       ()
+       ((x (fun f (→ Nat Nat) (z) (+ z 3))))
+       ((x (→ Nat Nat))))
+     (local-value-env-models
+       ()
+       ((x (mon-fun (→ Nat Nat) (fun f (z) (+ z 3)))))
+       ((x (→ Nat Nat))))
+    )
+
+    (check-not-judgment-holds*
+     (local-value-env-models () () ((x Int)))
+     (local-value-env-models () ((x 4)) ((y Int)))
+     (local-value-env-models () ((x 4) (y -1)) ((x Int) (y Nat)))
+     (local-value-env-models () ((x (fun f (z) (+ z 3)))) ((x (→ Nat Nat))))
+    )
   )
 
   (test-case "well-typed-config"
+    (check-judgment-holds*
+     (well-typed-config (UN () (+ nil 2)) TST)
+     (well-typed-config (TY () (+ 2 2)) Nat)
+     (well-typed-config (TY ((qq (1 2))) (vector (Vectorof Nat) qq))
+                        (Vectorof Nat))
+     (well-typed-config (UN () (* 4 4)) TST)
+    )
+
+    (check-not-judgment-holds*
+     (well-typed-config (TY () (+ nil 2)) Int)
+     (well-typed-config (TY ((qq (1 -2))) (vector (Vectorof Nat) qq)) (Vectorof Nat))
+    )
+  )
+
+  (test-case "do-single-step"
+    (check-equal?
+      (do-single-step (term (UN () (* 4 4))))
+      (term ((UN () 16) #true)))
+    (check-equal?
+      (do-single-step (term (UN () 16)))
+      (term ((UN () 16) #false)))
   )
 
   (test-case "well-typed-answer"
+    (define-term my-config (TY () 42))
+    (check-true (redex-match? μTR Σ (term my-config)))
+    (check-judgment-holds*
+     (well-typed-answer my-config (BE Int nil) Int)
+     (well-typed-answer my-config DivisionByZero Int)
+     (well-typed-answer my-config EmptyList TST)
+     (well-typed-answer my-config (TE 4 (Listof Int)) TST)
+     (well-typed-answer my-config (TE 4 (Listof Int)) (Listof Int))
+     (well-typed-answer my-config (UN () (+ 2 2)) TST)
+     (well-typed-answer my-config (UN () (+ 2 nil)) TST)
+     (well-typed-answer my-config (TY () (+ 2 2)) Int)
+     (well-typed-answer my-config (UN () 16) TST)
+    )
+
+    (check-not-judgment-holds*
+     (well-typed-answer my-config (UN () (+ 2 2)) Int)
+    )
   )
 
   (test-case "sound-step"
+    (check-mf-apply*
+     ((sound-step# (TY () (+ 4 4)) Int)
+      ((TY () 8) #true))
+     ((sound-step# (TY () (check Int (+ 2 2))) Int)
+      ((TY () (check Int 4)) #true))
+     ((sound-step# (TY () (check Int (+ 2 nil))) Int)
+      ((TE nil "integer?") #false))
+     ((sound-step# (UN () (* 4 4)) TST)
+      ((UN () 16) #true))
+     ((sound-step# (UN () 16) TST)
+      ((UN () 16) #false))
+    )
   )
 
   (test-case "sound-eval-expression"
+    (check-mf-apply*
+     ((sound-eval-expression# () () () TY (+ 2 2) Int)
+      (TY () 4))
+     ((sound-eval-expression# () () () UN (* 4 4) TST)
+      (UN () 16))
+     ((sound-eval-expression# () () () UN (* 4 nil) TST)
+      (TE nil "integer?"))
+     ((sound-eval-expression# () () () UN (4 4) TST)
+      (TE 4 "procedure?"))
+     ((sound-eval-expression# ((f (→ Int Nat))) () ((f (mon-fun (→ Int Nat) (fun f (x) x)))) TY (f 42) Nat)
+      (TY () 42))
+     ((sound-eval-expression# ((f (→ Int Nat))) () ((f (mon-fun (→ Int Nat) (fun f (x) (cons 1 nil))))) TY (f 42) Nat)
+      (BE Nat (cons 1 nil)))
+     ((sound-eval-expression# ((f (→ Int Nat))) () ((f (mon-fun (→ Int Nat) (fun f (x) (x x))))) TY (f 42) Nat)
+      (TE 42 "procedure?"))
+    )
+
+    ;; `check` is not part of the source language
+    (check-exn exn:fail:contract?
+      (λ () (term (sound-eval-expression# () () () TY (check Int nil) Int))))
+  )
+
+  (test-case "sound-eval-program"
+    (check-judgment-holds*
+     (sound-eval-program
+      ((module M0 untyped
+        (define f (fun a (x) (fun b (y) (fun c (z) (+ (+ a b) c)))))
+        (provide f))
+       (module M1 typed
+        (require M0 ((f (→ Int (→ Int Int)))))
+        (provide f))
+       (module M2 untyped
+        (require M1 f)
+        (define f2 (f 2))
+        (define f23 (f2 3))
+        (provide))))
+    )
+  )
+
+  (test-case "toplevel-value-env-models"
+  )
+
+  (test-case ""
   )
 
 )
