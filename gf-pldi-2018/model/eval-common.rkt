@@ -26,6 +26,8 @@
   do-first/untyped
   do-rest/typed
   do-rest/untyped
+
+  not-VV
 )
 
 (require
@@ -222,10 +224,34 @@
   [(do-rest L σ E (cons _ v_1))
    (L σ (in-hole E v_1))])
 
+(define-judgment-form μTR
+  #:mode (not-VV I I)
+  #:contract (not-VV σ e)
+  [
+   (side-condition ,(not (judgment-holds (VV σ e))))
+   ---
+   (not-VV σ e)])
+
+(define-judgment-form μTR
+  #:mode (VV I I)
+  #:contract (VV σ e)
+  [
+   (where (x _) #{unsafe-env-ref σ x #false})
+   ---
+   (VV σ (vector x))]
+  [
+   (where (x _) #{unsafe-env-ref σ x #false})
+   ---
+   (VV σ (vector τ x))])
+
 ;; =============================================================================
 
 (module+ test
   (require rackunit redex-abbrevs)
+
+  (test-case "not-VV"
+    (check-judgment-holds*
+     (not-VV () (vector (Vectorof Int) 1 2))))
 
   (test-case "assert-below"
     (check-mf-apply*

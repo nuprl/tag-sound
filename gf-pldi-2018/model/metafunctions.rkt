@@ -385,6 +385,11 @@
    ---
    (same-domain any_0 any_1)])
 
+(define-metafunction μTR
+  same-domain# : any any -> boolean
+  [(same-domain# any_0 any_1)
+   ,(judgment-holds (same-domain any_0 any_1))])
+
 (define-judgment-form μTR
   #:mode (tag-of I O)
   #:contract (tag-of τ κ)
@@ -813,13 +818,13 @@
 
   (test-case "same-domain"
     (check-mf-apply*
-     ((same-domain ((a) (b) (c)) ((a) (b) (c)))
+     ((same-domain# ((a) (b) (c)) ((a) (b) (c)))
       #true)
-     ((same-domain ((a) (b) (c)) ((b) (a) (c)))
+     ((same-domain# ((a) (b) (c)) ((b) (a) (c)))
       #true)
-     ((same-domain ((a) (b) (c)) ((c)))
+     ((same-domain# ((a) (b) (c)) ((c)))
       #false)
-     ((same-domain ((a 1) (b 2)) ((a Int) (b Nat)))
+     ((same-domain# ((a 1) (b 2)) ((a Int) (b Nat)))
       #true)))
 
   (test-case "replace-arrow-domain"

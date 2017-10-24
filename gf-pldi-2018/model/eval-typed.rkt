@@ -946,7 +946,7 @@
     (check-exn #rx"BE"
       (λ () (term (eval-program#
         ((module M0 UN
-          (define f (fun a (x) (fun b (y) (fun c (z) (+ (+ a b) c)))))
+          (define f (fun a (x) (fun b (y) (fun c (z) (+ (+ x y) z)))))
           (provide f))
          (module M1 TY
           (require M0 ((f (→ Int (→ Int Int)))))

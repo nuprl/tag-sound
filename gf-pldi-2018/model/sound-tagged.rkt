@@ -1,5 +1,8 @@
 #lang mf-apply racket/base
 
+;; TODO
+;; - no check between typed (trusted codomain)
+
 ;; Soundness for Tagged Racket semantics
 ;; i.e. theorems connecting the typechecker to the reduction semantics
 
@@ -61,108 +64,107 @@
 
 ;; =============================================================================
 
-;(define-judgment-form μTR
-;  #:mode (sound-eval-program I)
-;  #:contract (sound-eval-program PROGRAM)
-;  [
-;   (well-typed-program PROGRAM TYPE-ENV)
-;   (sound-eval-module* () () () PROGRAM TYPE-ENV_N σ_N VAL-ENV_N)
-;   (side-condition ,(equal? (term TYPE-ENV) (term TYPE-ENV_N)))
-;   (toplevel-value-env-models σ_N VAL-ENV_N TYPE-ENV_N)
-;   ---
-;   (sound-eval-program PROGRAM)])
-;
-;(define-judgment-form μTR
-;  #:mode (sound-eval-module* I I I I O O O)
-;  #:contract (sound-eval-module* TYPE-ENV σ VAL-ENV (MODULE ...) TYPE-ENV σ VAL-ENV)
-;  [
-;   ---
-;   (sound-eval-module* TYPE-ENV σ VAL-ENV () TYPE-ENV σ VAL-ENV)]
-;  [
-;   (where (MODULE_0 MODULE_rest ...) PROGRAM)
-;   (sound-eval-module TYPE-ENV_0 σ_0 VAL-ENV_0 MODULE_0 TYPE-ENV_1 σ_1 VAL-ENV_1)
-;   (sound-eval-module* TYPE-ENV_1 σ_1 VAL-ENV_1 (MODULE_rest ...) TYPE-ENV_N σ_N VAL-ENV_N)
-;   ---
-;   (sound-eval-module* TYPE-ENV_0 σ_0 VAL-ENV_0 PROGRAM TYPE-ENV_N σ_N VAL-ENV_N)])
-;
-;(define-judgment-form μTR
-;  #:mode (sound-eval-module I I I I O O O)
-;  #:contract (sound-eval-module TYPE-ENV σ VAL-ENV MODULE TYPE-ENV σ VAL-ENV)
-;  [
-;   (where (module M _ REQUIRE ... DEFINE ... PROVIDE) MODULE)
-;   (where ρ #{require->local-value-env VAL-ENV (REQUIRE ...)})
-;   (where Γ #{local-type-env-append #{require->local-type-env TYPE-ENV (REQUIRE ...)}
-;                                    #{define->local-type-env (DEFINE ...)}})
-;   (sound-eval-define* Γ σ ρ (DEFINE ...) σ_+ ρ_+)
-;   (where Γ_provide #{local-type-env->provided Γ PROVIDE})
-;   (where TYPE-ENV_+ #{toplevel-type-env-set TYPE-ENV M Γ_provide})
-;   (where ρ_provide #{local-value-env->provided ρ_+ PROVIDE})
-;   (where VAL-ENV_+ #{toplevel-value-env-set VAL-ENV M ρ_provide})
-;   (well-typed-module TYPE-ENV_+ M _) ;; double-check
-;   ---
-;   (sound-eval-module TYPE-ENV σ VAL-ENV MODULE TYPE-ENV_+ σ_+ VAL-ENV_+)])
-;
-;(define-judgment-form μTR
-;  #:mode (sound-eval-define* I I I I O O)
-;  #:contract (sound-eval-define* Γ σ ρ (DEFINE ...) σ ρ)
-;  [
-;   ---
-;   (sound-eval-define* Γ σ ρ () σ ρ)]
-;  [
-;   (sound-eval-define Γ σ ρ DEFINE_0 σ_1 ρ_1)
-;   (sound-eval-define* Γ σ_1 ρ_1 (DEFINE_rest ...) σ_N ρ_N)
-;   ---
-;   (sound-eval-define* Γ σ ρ (DEFINE_0 DEFINE_rest ...) σ_N ρ_N)])
-;
-;(define-judgment-form μTR
-;  #:mode (sound-eval-define I I I I O O)
-;  #:contract (sound-eval-define Γ σ ρ DEFINE σ ρ)
-;  [
-;   (where (define x e) UNTYPED-DEFINE)
-;   (where L UN)
-;   (sound-eval-expression Γ σ ρ L e TST A_+)
-;   (where (σ_+ v_+) #{unpack-answer A_+})
-;   (where ρ_+ #{local-value-env-set ρ x v_+})
-;   ---
-;   (sound-eval-define Γ σ ρ UNTYPED-DEFINE σ_+ ρ_+)]
-;  [
-;   (where (define x τ e) TYPED-DEFINE)
-;   (where L TY)
-;   (sound-eval-expression Γ σ ρ L e τ A_+)
-;   (where (σ_+ v_+) #{unpack-answer A_+})
-;   (where ρ_+ #{local-value-env-set ρ x v_+})
-;   ---
-;   (sound-eval-define Γ σ ρ TYPED-DEFINE σ_+ ρ_+)])
-;
-;(define-metafunction μTR
-;  unpack-answer : A -> [σ v]
-;  [(unpack-answer Error)
-;   ,(raise-arguments-error 'sound-eval-expression "not implemented for errors"
-;     "answer" (term Error))]
-;  [(unpack-answer [σ v])
-;   [σ v]])
-;
-;(define-judgment-form μTR
-;  #:mode (toplevel-value-env-models I I I)
-;  #:contract (toplevel-value-env-models σ VAL-ENV TYPE-ENV)
-;  [
-;   (same-domain VAL-ENV TYPE-ENV)
-;   (toplevel-value-env-models-aux σ VAL-ENV TYPE-ENV)
-;   ---
-;   (toplevel-value-env-models σ VAL-ENV TYPE-ENV)])
-;
-;(define-judgment-form μTR
-;  #:mode (toplevel-value-env-models-aux I I I)
-;  #:contract (toplevel-value-env-models-aux σ VAL-ENV TYPE-ENV)
-;  [
-;   ---
-;   (toplevel-value-env-models-aux σ () TYPE-ENV)]
-;  [
-;   (where (_ Γ_0) #{toplevel-type-env-ref TYPE-ENV M_0})
-;   (local-value-env-models σ ρ_0 Γ_0)
-;   (toplevel-value-env-models-aux σ (M:ρ_rest ...) TYPE-ENV)
-;   ---
-;   (toplevel-value-env-models-aux σ ((M_0 ρ_0) M:ρ_rest ...) TYPE-ENV)])
+(define-judgment-form μTR
+  #:mode (sound-eval-program I)
+  #:contract (sound-eval-program PROGRAM)
+  [
+   (well-typed-program PROGRAM TYPE-ENV)
+   (sound-eval-module* () () () PROGRAM TYPE-ENV_N σ_N VAL-ENV_N)
+   (side-condition ,(equal? (term TYPE-ENV) (term TYPE-ENV_N)))
+   (toplevel-value-env-models σ_N VAL-ENV_N TYPE-ENV_N)
+   ---
+   (sound-eval-program PROGRAM)])
+
+(define-judgment-form μTR
+  #:mode (sound-eval-module* I I I I O O O)
+  #:contract (sound-eval-module* TYPE-ENV σ VAL-ENV (MODULE ...) TYPE-ENV σ VAL-ENV)
+  [
+   ---
+   (sound-eval-module* TYPE-ENV σ VAL-ENV () TYPE-ENV σ VAL-ENV)]
+  [
+   (where (MODULE_0 MODULE_rest ...) PROGRAM)
+   (sound-eval-module TYPE-ENV_0 σ_0 VAL-ENV_0 MODULE_0 TYPE-ENV_1 σ_1 VAL-ENV_1)
+   (sound-eval-module* TYPE-ENV_1 σ_1 VAL-ENV_1 (MODULE_rest ...) TYPE-ENV_N σ_N VAL-ENV_N)
+   ---
+   (sound-eval-module* TYPE-ENV_0 σ_0 VAL-ENV_0 PROGRAM TYPE-ENV_N σ_N VAL-ENV_N)])
+
+(define-judgment-form μTR
+  #:mode (sound-eval-module I I I I O O O)
+  #:contract (sound-eval-module TYPE-ENV σ VAL-ENV MODULE TYPE-ENV σ VAL-ENV)
+  [
+   (where (module M _ REQUIRE ... DEFINE ... PROVIDE) MODULE)
+   (where ρ #{require->local-value-env VAL-ENV (REQUIRE ...)})
+   (where Γ #{local-type-env-append #{require->local-type-env TYPE-ENV (REQUIRE ...)}
+                                    #{define->local-type-env (DEFINE ...)}})
+   (sound-eval-define* Γ σ ρ (DEFINE ...) σ_+ ρ_+)
+   (where Γ_provide #{local-type-env->provided Γ PROVIDE})
+   (where TYPE-ENV_+ #{toplevel-type-env-set TYPE-ENV M Γ_provide})
+   (where ρ_provide #{local-value-env->provided ρ_+ PROVIDE})
+   (where VAL-ENV_+ #{toplevel-value-env-set VAL-ENV M ρ_provide})
+   ---
+   (sound-eval-module TYPE-ENV σ VAL-ENV MODULE TYPE-ENV_+ σ_+ VAL-ENV_+)])
+
+(define-judgment-form μTR
+  #:mode (sound-eval-define* I I I I O O)
+  #:contract (sound-eval-define* Γ σ ρ (DEFINE ...) σ ρ)
+  [
+   ---
+   (sound-eval-define* Γ σ ρ () σ ρ)]
+  [
+   (sound-eval-define Γ σ ρ DEFINE_0 σ_1 ρ_1)
+   (sound-eval-define* Γ σ_1 ρ_1 (DEFINE_rest ...) σ_N ρ_N)
+   ---
+   (sound-eval-define* Γ σ ρ (DEFINE_0 DEFINE_rest ...) σ_N ρ_N)])
+
+(define-judgment-form μTR
+  #:mode (sound-eval-define I I I I O O)
+  #:contract (sound-eval-define Γ σ ρ DEFINE σ ρ)
+  [
+   (where (define x e) UNTYPED-DEFINE)
+   (where L UN)
+   (sound-eval-expression Γ σ ρ L e TST A_+)
+   (where (σ_+ v_+) #{unpack-answer A_+})
+   (where ρ_+ #{local-value-env-set ρ x v_+})
+   ---
+   (sound-eval-define Γ σ ρ UNTYPED-DEFINE σ_+ ρ_+)]
+  [
+   (where (define x τ e) TYPED-DEFINE)
+   (where L TY)
+   (sound-eval-expression Γ σ ρ L e τ A_+)
+   (where (σ_+ v_+) #{unpack-answer A_+})
+   (where ρ_+ #{local-value-env-set ρ x v_+})
+   ---
+   (sound-eval-define Γ σ ρ TYPED-DEFINE σ_+ ρ_+)])
+
+(define-metafunction μTR
+  unpack-answer : A -> [σ v]
+  [(unpack-answer Error)
+   ,(raise-arguments-error 'sound-eval-expression "not implemented for errors"
+     "answer" (term Error))]
+  [(unpack-answer [σ v])
+   [σ v]])
+
+(define-judgment-form μTR
+  #:mode (toplevel-value-env-models I I I)
+  #:contract (toplevel-value-env-models σ VAL-ENV TYPE-ENV)
+  [
+   (same-domain VAL-ENV TYPE-ENV)
+   (toplevel-value-env-models-aux σ VAL-ENV TYPE-ENV)
+   ---
+   (toplevel-value-env-models σ VAL-ENV TYPE-ENV)])
+
+(define-judgment-form μTR
+  #:mode (toplevel-value-env-models-aux I I I)
+  #:contract (toplevel-value-env-models-aux σ VAL-ENV TYPE-ENV)
+  [
+   ---
+   (toplevel-value-env-models-aux σ () TYPE-ENV)]
+  [
+   (where (_ Γ_0) #{toplevel-type-env-ref TYPE-ENV M_0})
+   (local-value-env-models σ ρ_0 Γ_0)
+   (toplevel-value-env-models-aux σ (M:ρ_rest ...) TYPE-ENV)
+   ---
+   (toplevel-value-env-models-aux σ ((M_0 ρ_0) M:ρ_rest ...) TYPE-ENV)])
 
 (define-metafunction μTR
   sound-eval-expression# : Γ σ ρ L e τ -> A
@@ -184,39 +186,14 @@
   [
    (well-typed-expression/TST Γ e τ)
    (where κ #{type->tag τ})
-   (tagged-completion/TST Γ e κ e_+)
-   (well-tagged-expression/TST Γ e_+ κ) ;; double-check
+   (tagged-completion Γ e κ e_+)
+   (well-tagged-expression Γ e_+ κ)
    (local-value-env-models σ ρ Γ)
    ;; Do checked evaluation
    (where Σ_0 #{load-expression L σ ρ e})
    (where A #{sound-step* Σ_0 κ})
    ---
    (sound-eval-expression Γ σ ρ L e τ A)])
-
-(define-judgment-form μTR
-  #:mode (tagged-completion/TST I I I O)
-  #:contract (tagged-completion/TST Γ e κ e)
-  [
-   ---
-   (tagged-completion/TST Γ e TST e)]
-  [
-   (not-TST κ)
-   (tagged-completion Γ e κ e_+)
-   ---
-   (tagged-completion/TST Γ e κ e_+)])
-
-(define-judgment-form μTR
-  #:mode (well-tagged-expression/TST I I I)
-  #:contract (well-tagged-expression/TST Γ e κ)
-  [
-   (well-dyn-expression Γ e)
-   ---
-   (well-tagged-expression/TST Γ e TST)]
-  [
-   (not-TST κ)
-   (well-tagged-expression Γ e κ)
-   ---
-   (well-tagged-expression/TST Γ e κ)])
 
 (define-metafunction μTR
   sound-step* : Σ κ -> A
@@ -286,252 +263,157 @@
   #:contract (well-tagged-config Σ κ)
   [
    (where L UN)
-   (WT σ () e TST)
+   (WK σ () e TST)
    ---
    (well-tagged-config (L σ e) TST)]
   [
    (where L TY)
-   (WT σ () e κ)
+   (WK σ () e κ)
    ---
    (well-tagged-config (L σ e) κ)])
 
-;; TODO needs a better name
-;; TODO needs implementation
 (define-judgment-form μTR
-  #:mode (WT I I I I)
-  #:contract (WT σ Γ e κ)
+  #:mode (WK I I I I)
+  #:contract (WK σ Γ e κ)
   [
-   --- T-NatT
-   (WT σ Γ natural Nat)]
+   (or-TST Nat κ)
+   --- T-Nat
+   (WK σ Γ natural κ)]
   [
-   --- T-NatU
-   (WT σ Γ natural TST)]
+   (or-TST Int κ)
+   --- T-Int
+   (WK σ Γ integer κ)]
   [
-   --- T-IntT
-   (WT σ Γ integer Int)]
+   (where (_ τ) #{local-type-env-ref Γ x})
+   (or-TST #{type->tag τ} κ)
+   --- T-Var
+   (WK σ Γ x κ)]
   [
-   --- T-IntU
-   (WT σ Γ integer TST)]
-  [
-   (where [_ τ_0] #{local-type-env-ref Γ x})
-   (<: τ_0 τ)
-   --- T-VarT
-   (WT σ Γ x τ)]
-  [
-   (where [_ TST] #{local-type-env-ref Γ x})
-   --- T-VarU
-   (WT σ Γ x TST)]
-  [
-   (<: τ τ_fun)
-   (where (→ τ_dom τ_cod) #{coerce-arrow-type τ})
-   (where Γ_f #{local-type-env-set Γ x_f τ})
-   (where Γ_x #{local-type-env-set Γ_f x_arg τ_dom})
-   (WT σ Γ_x e_body τ_cod)
+   (or-TST → κ)
+   (where (→ τ_dom τ_cod) #{coerce-arrow-type τ_fun})
+   (tag-of τ_cod κ_cod)
+   (where Γ_fun #{local-type-env-set Γ x_fun τ_fun})
+   (where Γ_x #{local-type-env-set Γ_fun x_arg τ_dom})
+   (WK σ Γ_x e κ_cod)
    --- T-FunT
-   (WT σ Γ (fun x_f τ_fun (x_arg) e_body) τ)]
+   (WK σ Γ (fun x_fun τ_fun (x_arg) e) κ)]
   [
-   (where Γ_f #{local-type-env-set Γ x_f TST})
+   (or-TST → κ)
+   (where Γ_f #{local-type-env-set Γ x_f (→ TST TST)})
    (where Γ_x #{local-type-env-set Γ_f x_arg TST})
-   (WT σ Γ_x e_body TST)
+   (WK σ Γ_x e_body TST)
    --- T-FunU
-   (WT σ Γ (fun x_f (x_arg) e_body) TST)]
+   (WK σ Γ (fun x_f (x_arg) e_body) κ)]
   [
    (where (vector τ x) v)
-   (WT σ Γ #{unload-store/expression v σ} τ)
+   (WK σ Γ #{unload-store/expression v σ} τ)
    --- T-VecValT
-   (WT σ Γ v τ)]
+   (WK σ Γ v κ)]
   [
    (where (vector x) v)
-   (WT σ Γ #{unload-store/expression v σ} TST)
+   (WK σ Γ #{unload-store/expression v σ} TST)
    --- T-VecValU
-   (WT σ Γ v TST)]
+   (WK σ Γ v κ)]
   [
-   (not-VV σ (vector τ_vec e ...)) ;; TODO
-   (<: τ_vec τ)
-   (where (Vectorof τ_elem) #{coerce-vector-type τ})
-   (WT σ Γ e τ_elem) ...
+   (not-VV σ (vector τ_vec e ...))
+   (or-TST #{type->tag τ_vec} κ)
+   (WK σ Γ e TST) ...
    --- T-VecT
-   (WT σ Γ (vector τ_vec e ...) τ)]
+   (WK σ Γ (vector τ_vec e ...) κ)]
   [
-   (not-VV σ (vector e ...)) ;; TODO
-   (WT σ Γ e TST) ...
+   (or-TST Vector κ)
+   (not-VV σ (vector e ...))
+   (WK σ Γ e TST) ...
    --- T-VecU
-   (WT σ Γ (vector e ...) TST)]
+   (WK σ Γ (vector e ...) κ)]
   [
-   (where (Listof τ_elem) #{coerce-list-type τ})
-   (WT σ Γ e_0 τ_elem)
-   (WT σ Γ e_1 τ)
-   --- T-ConsT
-   (WT σ Γ (cons e_0 e_1) τ)]
+   (or-TST List κ)
+   (WK σ Γ e_0 TST)
+   (WK σ Γ e_1 TST)
+   --- T-Cons
+   (WK σ Γ (cons e_0 e_1) κ)]
   [
-   (WT σ Γ e_0 TST)
-   (WT σ Γ e_1 TST)
-   --- T-ConsU
-   (WT σ Γ (cons e_0 e_1) TST)]
+   (or-TST List κ)
+   --- T-Nil
+   (WK σ Γ nil κ)]
   [
-   (where (Listof τ_elem) #{coerce-list-type τ})
-   --- T-NilT
-   (WT σ Γ nil τ)]
+   (WK σ Γ e_fun →)
+   (WK σ Γ e_arg TST)
+   --- T-App
+   (WK σ Γ (e_fun e_arg) TST)]
   [
-   --- T-NilU
-   (WT σ Γ nil TST)]
+   (WK σ Γ e_0 Int)
+   (WK σ Γ e_1 κ)
+   (WK σ Γ e_2 κ)
+   --- T-Ifz
+   (WK σ Γ (ifz e_0 e_1 e_2) κ)]
   [
-   (infer-expression-type Γ e_fun τ)
-   (where (→ τ_dom τ_cod) #{coerce-arrow-type τ})
-   (WT σ Γ e_fun τ)
-   (WT σ Γ e_arg τ_dom)
-   --- T-AppT
-   (WT σ Γ (e_fun e_arg) τ_cod)]
-  [
-   (WT σ Γ e_fun TST)
-   (WT σ Γ e_arg TST)
-   --- T-AppU
-   (WT σ Γ (e_fun e_arg) TST)]
-  [
-   (WT σ Γ e_0 Int)
-   (WT σ Γ e_1 τ)
-   (WT σ Γ e_2 τ)
-   --- T-IfzT
-   (WT σ Γ (ifz e_0 e_1 e_2) τ)]
-  [
-   (WT σ Γ e_0 TST)
-   (WT σ Γ e_1 TST)
-   (WT σ Γ e_2 TST)
-   --- T-IfzU
-   (WT σ Γ (ifz e_0 e_1 e_2) TST)]
-  [
-   (WT σ Γ e_0 Int)
-   (WT σ Γ e_1 Int)
+   (or-TST Int κ)
+   (WK σ Γ e_0 Int)
+   (WK σ Γ e_1 Int)
    --- T-PlusT0
-   (WT σ Γ (+ e_0 e_1) Int)]
+   (WK σ Γ (+ e_0 e_1) κ)]
   [
-   (WT σ Γ e_0 Nat)
-   (WT σ Γ e_1 Nat)
+   (WK σ Γ e_0 Nat)
+   (WK σ Γ e_1 Nat)
    --- T-PlusT1
-   (WT σ Γ (+ e_0 e_1) Nat)]
+   (WK σ Γ (+ e_0 e_1) Nat)]
   [
-   (WT σ Γ e_0 TST)
-   (WT σ Γ e_1 TST)
-   --- T-PlusU
-   (WT σ Γ (+ e_0 e_1) TST)]
-  [
-   (WT σ Γ e_0 Int)
-   (WT σ Γ e_1 Int)
+   (or-TST Int κ)
+   (WK σ Γ e_0 Int)
+   (WK σ Γ e_1 Int)
    --- T-MinusT
-   (WT σ Γ (- e_0 e_1) Int)]
+   (WK σ Γ (- e_0 e_1) κ)]
   [
-   (WT σ Γ e_0 TST)
-   (WT σ Γ e_1 TST)
-   --- T-MinusU
-   (WT σ Γ (- e_0 e_1) TST)]
-  [
-   (WT σ Γ e_0 Int)
-   (WT σ Γ e_1 Int)
+   (or-TST Int κ)
+   (WK σ Γ e_0 Int)
+   (WK σ Γ e_1 Int)
    --- T-TimesT0
-   (WT σ Γ (* e_0 e_1) Int)]
+   (WK σ Γ (* e_0 e_1) κ)]
   [
-   (WT σ Γ e_0 Nat)
-   (WT σ Γ e_1 Nat)
+   (WK σ Γ e_0 Nat)
+   (WK σ Γ e_1 Nat)
    --- T-TimesT1
-   (WT σ Γ (* e_0 e_1) Nat)]
+   (WK σ Γ (* e_0 e_1) Nat)]
   [
-   (WT σ Γ e_0 TST)
-   (WT σ Γ e_1 TST)
-   --- T-TimesU
-   (WT σ Γ (* e_0 e_1) TST)]
-  [
-   (WT σ Γ e_0 Int)
-   (WT σ Γ e_1 Int)
+   (or-TST Int κ)
+   (WK σ Γ e_0 Int)
+   (WK σ Γ e_1 Int)
    --- T-DivideT0
-   (WT σ Γ (% e_0 e_1) Int)]
+   (WK σ Γ (% e_0 e_1) κ)]
   [
-   (WT σ Γ e_0 Nat)
-   (WT σ Γ e_1 Nat)
+   (WK σ Γ e_0 Nat)
+   (WK σ Γ e_1 Nat)
    --- T-DivideT1
-   (WT σ Γ (% e_0 e_1) Nat)]
+   (WK σ Γ (% e_0 e_1) Nat)]
   [
-   (WT σ Γ e_0 TST)
-   (WT σ Γ e_1 TST)
-   --- T-DivideU
-   (WT σ Γ (% e_0 e_1) TST)]
+   (WK σ Γ e_vec Vector)
+   (WK σ Γ e_i Int)
+   --- T-Ref
+   (WK σ Γ (vector-ref e_vec e_i) TST)]
   [
-   (WT σ Γ e_vec (Vectorof τ))
-   (WT σ Γ e_i Int)
-   --- T-RefT
-   (WT σ Γ (vector-ref e_vec e_i) τ)]
+   (WK σ Γ e_vec Vector)
+   (WK σ Γ e_i Int)
+   (WK σ Γ e_val κ)
+   --- T-Set
+   (WK σ Γ (vector-set! e_vec e_i e_val) κ)]
   [
-   (WT σ Γ e_vec TST)
-   (WT σ Γ e_i TST)
-   --- T-RefU
-   (WT σ Γ (vector-ref e_vec e_i) TST)]
+   (WK σ Γ e List)
+   --- T-First
+   (WK σ Γ (first e) TST)]
   [
-   (WT σ Γ e_vec (Vectorof τ))
-   (WT σ Γ e_i Int)
-   (WT σ Γ e_val τ)
-   --- T-SetT
-   (WT σ Γ (vector-set! e_vec e_i e_val) τ)]
+   (or-TST List κ)
+   (WK σ Γ e List)
+   --- T-Rest
+   (WK σ Γ (rest e) κ)]
   [
-   (WT σ Γ e_vec TST)
-   (WT σ Γ e_i TST)
-   (WT σ Γ e_val TST)
-   --- T-SetU
-   (WT σ Γ (vector-set! e_vec e_i e_val) TST)]
-  [
-   (WT σ Γ e (Listof τ))
-   --- T-FirstT
-   (WT σ Γ (first e) τ)]
-  [
-   (WT σ Γ e TST)
-   --- T-FirstU
-   (WT σ Γ (first e) TST)]
-  [
-   (where (Listof τ_elem) τ)
-   (WT σ Γ e τ)
-   --- T-RestT
-   (WT σ Γ (rest e) τ)]
-  [
-   (WT σ Γ e TST)
-   --- T-RestU
-   (WT σ Γ (rest e) TST)]
-  [
-   (WT σ Γ e τ)
+   (WK σ Γ e κ)
    --- T-Union
-   (WT σ Γ e (U τ_0 ... τ τ_1 ...))]
+   (WK σ Γ e (U κ_0 ... κ κ_1 ...))]
   [
-   (WT σ Γ e #{mu-fold (μ (α) τ)})
-   --- T-Rec
-   (WT σ Γ e (μ (α) τ))]
-  [
-   (WT σ Γ e τ) ;; thank you redex
-   --- T-Forall
-   (WT σ Γ e (∀ (α) τ))]
-  [
-   (<: τ_mon τ) ;; (<: _ TST) undefined
-   (WT σ Γ v TST)
-   --- T-MonFunT
-   (WT σ Γ (mon-fun τ_mon v) τ)]
-  [
-   (WT σ Γ v τ_mon)
-   --- T-MonFunU
-   (WT σ Γ (mon-fun τ_mon v) TST)]
-  [
-   (<: τ_mon τ) ;; (<: _ TST) undefined
-   (WT σ Γ v TST)
-   --- T-MonVectorT
-   (WT σ Γ (mon-vector τ_mon v) τ)]
-  [
-   (WT σ Γ v τ_mon)
-   --- T-MonVectorU
-   (WT σ Γ (mon-vector τ_mon v) TST)]
-  [
-   (<: τ_chk τ)
-   (WT σ Γ e TST)
-   --- T-Check
-   (WT σ Γ (check τ_chk e) τ)]
-  [
-   (WT σ Γ e τ_pro)
-   --- T-Protect
-   (WT σ Γ (protect τ_pro e) TST)])
+   (WK σ Γ e TST)
+   --- T-Tag
+   (WK σ Γ (tag? κ e) κ)])
 
 (define-judgment-form μTR
   #:mode (local-value-env-models I I I)
@@ -550,7 +432,7 @@
    (local-value-env-models-aux σ () Γ)]
   [
    (where (x_0 κ) #{local-type-env-ref Γ x_0})
-   (WT σ Γ v_0 κ)
+   (WK σ Γ v_0 κ)
    (local-value-env-models-aux σ (x:v_rest ...) Γ)
    ---
    (local-value-env-models-aux σ ((x_0 v_0) x:v_rest ...) Γ)])
@@ -584,76 +466,76 @@
 ;    (check-judgment-holds*
 ;     (not-VV () (vector (Vectorof Int) 1 2))))
 ;
-;  (test-case "WT"
+;  (test-case "WK"
 ;    (check-judgment-holds*
-;     (WT () () 4 Nat)
-;     (WT () () 4 TST)
-;     (WT () () -4 Int)
-;     (WT () () -4 TST)
-;     (WT () ((x Int)) x Int)
-;     (WT () ((x TST)) x TST)
-;     (WT () () (fun f (→ Nat Nat) (x) x) (→ Nat Nat))
-;     (WT () () (fun f (x) x) TST)
-;     (WT () () (vector (Vectorof Int) 1 2) (Vectorof Int))
-;     (WT () () (vector 1 2) TST)
-;     (WT () () (cons 1 nil) (Listof Nat))
-;     (WT () () (cons 1 nil) TST)
-;     (WT () () nil (Listof Nat))
-;     (WT () () nil TST)
-;     (WT () ((f (→ Int Int))) (f -6) Int)
-;     (WT () ((f TST)) (f f) TST)
-;     (WT () () (3 3) TST)
-;     (WT () () (ifz 0 1 2) Nat)
-;     (WT () () (ifz nil nil nil) TST)
-;     (WT () () (+ -1 2) Int)
-;     (WT () () (+ 3 2) Nat)
-;     (WT () () (+ 4 4) TST)
-;     (WT () () (+ nil nil) TST)
-;     (WT () () (- 3 3) Int)
-;     (WT () () (- 3 3) TST)
-;     (WT () () (- 3 nil) TST)
-;     (WT () () (* 3 -3) Int)
-;     (WT () () (* 3 3) Nat)
-;     (WT () () (* 3 3) TST)
-;     (WT () () (* nil 4) TST)
-;     (WT () () (% -6 2) Int)
-;     (WT () () (% 6 2) Nat)
-;     (WT () () (% 6 2) TST)
-;     (WT () () (% nil nil) TST)
-;     (WT () () (vector-ref (vector (Vectorof Int) 2 3) 0) Int)
-;     (WT () () (vector-ref (vector 3) 0) TST)
-;     (WT () () (vector-set! (vector (Vectorof Int) 2 3) 0 -3) Int)
-;     (WT () () (vector-set! (vector 2) 0 nil) TST)
-;     (WT () () (first nil) Nat)
-;     (WT () () (first (cons 1 nil)) Int)
-;     (WT () () (first 3) TST)
-;     (WT () () (rest nil) (Listof Int))
-;     (WT () () (rest (cons 1 nil)) (Listof Int))
-;     (WT () () (rest 4) TST)
-;     (WT () () 4 (U Nat (→ Nat Nat)))
-;     (WT () () (fun f (∀ (α) (→ α α)) (x) x) (∀ (α) (→ α α)))
-;     (WT () () (mon-fun (→ Nat Nat) (fun f (x) 3)) (→ Nat Nat))
-;     (WT () () (mon-fun (→ Nat Nat) (fun f (→ Nat Nat) (x) 3)) TST)
-;     (WT ((qq (1 2))) () (mon-vector (Vectorof Int) (vector qq)) (Vectorof Int))
-;     (WT ((qq (2))) () (mon-vector (Vectorof Int) (vector (Vectorof Int) qq)) TST)
-;     (WT () () (check Int (+ 3 3)) Int)
-;     (WT () () (protect Int (+ 3 3)) TST)
+;     (WK () () 4 Nat)
+;     (WK () () 4 TST)
+;     (WK () () -4 Int)
+;     (WK () () -4 TST)
+;     (WK () ((x Int)) x Int)
+;     (WK () ((x TST)) x TST)
+;     (WK () () (fun f (→ Nat Nat) (x) x) (→ Nat Nat))
+;     (WK () () (fun f (x) x) TST)
+;     (WK () () (vector (Vectorof Int) 1 2) (Vectorof Int))
+;     (WK () () (vector 1 2) TST)
+;     (WK () () (cons 1 nil) (Listof Nat))
+;     (WK () () (cons 1 nil) TST)
+;     (WK () () nil (Listof Nat))
+;     (WK () () nil TST)
+;     (WK () ((f (→ Int Int))) (f -6) Int)
+;     (WK () ((f TST)) (f f) TST)
+;     (WK () () (3 3) TST)
+;     (WK () () (ifz 0 1 2) Nat)
+;     (WK () () (ifz nil nil nil) TST)
+;     (WK () () (+ -1 2) Int)
+;     (WK () () (+ 3 2) Nat)
+;     (WK () () (+ 4 4) TST)
+;     (WK () () (+ nil nil) TST)
+;     (WK () () (- 3 3) Int)
+;     (WK () () (- 3 3) TST)
+;     (WK () () (- 3 nil) TST)
+;     (WK () () (* 3 -3) Int)
+;     (WK () () (* 3 3) Nat)
+;     (WK () () (* 3 3) TST)
+;     (WK () () (* nil 4) TST)
+;     (WK () () (% -6 2) Int)
+;     (WK () () (% 6 2) Nat)
+;     (WK () () (% 6 2) TST)
+;     (WK () () (% nil nil) TST)
+;     (WK () () (vector-ref (vector (Vectorof Int) 2 3) 0) Int)
+;     (WK () () (vector-ref (vector 3) 0) TST)
+;     (WK () () (vector-set! (vector (Vectorof Int) 2 3) 0 -3) Int)
+;     (WK () () (vector-set! (vector 2) 0 nil) TST)
+;     (WK () () (first nil) Nat)
+;     (WK () () (first (cons 1 nil)) Int)
+;     (WK () () (first 3) TST)
+;     (WK () () (rest nil) (Listof Int))
+;     (WK () () (rest (cons 1 nil)) (Listof Int))
+;     (WK () () (rest 4) TST)
+;     (WK () () 4 (U Nat (→ Nat Nat)))
+;     (WK () () (fun f (∀ (α) (→ α α)) (x) x) (∀ (α) (→ α α)))
+;     (WK () () (mon-fun (→ Nat Nat) (fun f (x) 3)) (→ Nat Nat))
+;     (WK () () (mon-fun (→ Nat Nat) (fun f (→ Nat Nat) (x) 3)) TST)
+;     (WK ((qq (1 2))) () (mon-vector (Vectorof Int) (vector qq)) (Vectorof Int))
+;     (WK ((qq (2))) () (mon-vector (Vectorof Int) (vector (Vectorof Int) qq)) TST)
+;     (WK () () (check Int (+ 3 3)) Int)
+;     (WK () () (protect Int (+ 3 3)) TST)
 ;    )
 ;
 ;    (check-not-judgment-holds*
-;     (WT () () -4 Nat)
-;     (WT () () nil Int)
-;     (WT () ((x Int)) x TST)
-;     (WT () () (fun f (x) x) (→ Nat Nat)) ;; missing type annotation
-;     (WT () () (vector 1 2) (Vectorof Nat))
-;     (WT () ((f (→ Int Int))) (f -6) TST)
-;     (WT () () (ifz nil 1 2) Nat)
-;     (WT () () (- 3 0) Nat)
-;     (WT () () (* -3 -3) Nat)
-;     (WT () () (vector-ref (vector 3) 0) Int)
-;     (WT () () (vector-set! (vector Nat 2 3) 0 -3) Int)
-;     (WT () () (check Int (+ 3 3)) TST)
-;     (WT () () (protect Int (+ 3 3)) Int)
+;     (WK () () -4 Nat)
+;     (WK () () nil Int)
+;     (WK () ((x Int)) x TST)
+;     (WK () () (fun f (x) x) (→ Nat Nat)) ;; missing type annotation
+;     (WK () () (vector 1 2) (Vectorof Nat))
+;     (WK () ((f (→ Int Int))) (f -6) TST)
+;     (WK () () (ifz nil 1 2) Nat)
+;     (WK () () (- 3 0) Nat)
+;     (WK () () (* -3 -3) Nat)
+;     (WK () () (vector-ref (vector 3) 0) Int)
+;     (WK () () (vector-set! (vector Nat 2 3) 0 -3) Int)
+;     (WK () () (check Int (+ 3 3)) TST)
+;     (WK () () (protect Int (+ 3 3)) Int)
 ;    )
 ;  )
 ;
