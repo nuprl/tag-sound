@@ -697,10 +697,44 @@
    ---
    (tagged-completion Γ (ifz e_0 e_1 e_2) κ (ifz e_0+ e_1+ e_2+))]
   [
-   (tagged-completion Γ e_0 κ e_0+)
-   (tagged-completion Γ e_1 κ e_1+)
+   (tagged-completion Γ e_0 Nat e_0+)
+   (tagged-completion Γ e_1 Nat e_1+)
    ---
-   (tagged-completion Γ (BINOP e_0 e_1) κ (BINOP e_0+ e_1+))]
+   (tagged-completion Γ (+ e_0 e_1) Nat (+ e_0+ e_1+))]
+  [
+   (or-TST Int κ)
+   (tagged-completion Γ e_0 Int e_0+)
+   (tagged-completion Γ e_1 Int e_1+)
+   ---
+   (tagged-completion Γ (+ e_0 e_1) κ (+ e_0+ e_1+))]
+  [
+   (or-TST Int κ)
+   (tagged-completion Γ e_0 Int e_0+)
+   (tagged-completion Γ e_1 Int e_1+)
+   ---
+   (tagged-completion Γ (- e_0 e_1) κ (- e_0+ e_1+))]
+  [
+   (tagged-completion Γ e_0 Nat e_0+)
+   (tagged-completion Γ e_1 Nat e_1+)
+   ---
+   (tagged-completion Γ (* e_0 e_1) Nat (* e_0+ e_1+))]
+  [
+   (or-TST Int κ)
+   (tagged-completion Γ e_0 Int e_0+)
+   (tagged-completion Γ e_1 Int e_1+)
+   ---
+   (tagged-completion Γ (* e_0 e_1) κ (* e_0+ e_1+))]
+  [
+   (tagged-completion Γ e_0 Nat e_0+)
+   (tagged-completion Γ e_1 Nat e_1+)
+   ---
+   (tagged-completion Γ (% e_0 e_1) Nat (% e_0+ e_1+))]
+  [
+   (or-TST Int κ)
+   (tagged-completion Γ e_0 Int e_0+)
+   (tagged-completion Γ e_1 Int e_1+)
+   ---
+   (tagged-completion Γ (% e_0 e_1) κ (% e_0+ e_1+))]
   [
    (tagged-completion Γ e_0 Vector e_0+)
    (tagged-completion Γ e_1 Int e_1+)
@@ -740,18 +774,116 @@
   #:mode (well-tagged-expression I I I)
   #:contract (well-tagged-expression Γ e κ)
   [
+   (or-TST Nat κ)
    ---
-   (well-tagged-expression Γ natural Nat)]
+   (well-tagged-expression Γ natural κ)]
   [
+   (or-TST Int κ)
    ---
-   (well-tagged-expression Γ integer Int)]
+   (well-tagged-expression Γ integer κ)]
   [
+   (or-TST → κ)
+   (where (→ τ_dom τ_cod) #{coerce-arrow-type τ_fun})
+   (tag-of τ_cod κ_cod)
+   (where Γ_fun #{local-type-env-set Γ x_fun τ_fun})
+   (where Γ_x #{local-type-env-set Γ_fun x_arg τ_dom})
+   (well-tagged-expression Γ_x e κ_cod)
    ---
-   (well-tagged-expression Γ (fun x_fun τ_fun (x_arg) e) →)]
-  #;[
+   (well-tagged-expression Γ (fun x_fun τ_fun (x_arg) e) κ)]
+  [
+   (or-TST Vector κ)
+   (well-tagged-expression Γ e TST) ...
    ---
-   (well-tagged-expression )]
-)
+   (well-tagged-expression Γ (vector τ e ...) κ)]
+  [
+   (or-TST List κ)
+   (well-tagged-expression Γ e_0 TST)
+   (well-tagged-expression Γ e_1 List)
+   ---
+   (well-tagged-expression Γ (cons e_0 e_1) κ)]
+  [
+   (or-TST List κ)
+   ---
+   (well-tagged-expression Γ nil κ)]
+  [
+   (where (_ τ) #{local-type-env-ref Γ x})
+   (or-TST #{type->tag τ} κ)
+   ---
+   (well-tagged-expression Γ x κ)]
+  [
+   (well-tagged-expression Γ e_0 →)
+   (well-tagged-expression Γ e_1 TST)
+   ---
+   (well-tagged-expression Γ (e_0 e_1) TST)]
+  [
+   (well-tagged-expression Γ e_0 Int)
+   (well-tagged-expression Γ e_1 κ)
+   (well-tagged-expression Γ e_2 κ)
+   ---
+   (well-tagged-expression Γ (ifz e_0 e_1 e_2) κ)]
+  [
+   (well-tagged-expression Γ e_0 Nat)
+   (well-tagged-expression Γ e_1 Nat)
+   ---
+   (well-tagged-expression Γ (+ e_0 e_1) Nat)]
+  [
+   (or-TST Int κ)
+   (well-tagged-expression Γ e_0 Int)
+   (well-tagged-expression Γ e_1 Int)
+   ---
+   (well-tagged-expression Γ (+ e_0 e_1) κ)]
+  [
+   (or-TST Int κ)
+   (well-tagged-expression Γ e_0 Int)
+   (well-tagged-expression Γ e_1 Int)
+   ---
+   (well-tagged-expression Γ (- e_0 e_1) κ)]
+  [
+   (well-tagged-expression Γ e_0 Nat)
+   (well-tagged-expression Γ e_1 Nat)
+   ---
+   (well-tagged-expression Γ (* e_0 e_1) Nat)]
+  [
+   (or-TST Int κ)
+   (well-tagged-expression Γ e_0 Int)
+   (well-tagged-expression Γ e_1 Int)
+   ---
+   (well-tagged-expression Γ (* e_0 e_1) κ)]
+  [
+   (well-tagged-expression Γ e_0 Nat)
+   (well-tagged-expression Γ e_1 Nat)
+   ---
+   (well-tagged-expression Γ (% e_0 e_1) Nat)]
+  [
+   (or-TST Int κ)
+   (well-tagged-expression Γ e_0 Int)
+   (well-tagged-expression Γ e_1 Int)
+   ---
+   (well-tagged-expression Γ (% e_0 e_1) κ)]
+  [
+   (or-TST Vector κ)
+   (well-tagged-expression Γ e_0 Vector)
+   (well-tagged-expression Γ e_1 Int)
+   ---
+   (well-tagged-expression Γ (vector-ref e_0 e_1) κ)]
+  [
+   (well-tagged-expression Γ e_0 Vector)
+   (well-tagged-expression Γ e_1 Int)
+   (well-tagged-expression Γ e_2 κ)
+   ---
+   (well-tagged-expression Γ (vector-set! e_0 e_1 e_2) κ)]
+  [
+   (well-tagged-expression Γ e List)
+   ---
+   (well-tagged-expression Γ (first e) TST)]
+  [
+   (well-tagged-expression Γ e List)
+   ---
+   (well-tagged-expression Γ (rest e) TST)]
+  [
+   (well-tagged-expression Γ e TST)
+   ---
+   (well-tagged-expression Γ (tag? κ e) κ)])
 
 ;; =============================================================================
 
@@ -1198,9 +1330,11 @@
   (test-case "well-tagged-expression"
     (check-judgment-holds*
      (well-tagged-expression () (+ 2 2) Int)
+     (well-tagged-expression () 4 TST)
+     (well-tagged-expression ((x Nat)) (+ x 1) Nat)
      (well-tagged-expression () (first (cons 1 nil)) TST)
      (well-tagged-expression () (tag? Int (first (cons 1 nil))) Int)
-     (well-tagged-expression () ((fun f (→ Nat Nat) (x) (+ x 1)) 4) Nat)
+     (well-tagged-expression () ((fun f (→ Nat Nat) (x) (+ x 1)) 4) TST)
     )
 
     (check-not-judgment-holds*
