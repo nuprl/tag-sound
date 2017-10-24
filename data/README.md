@@ -13,14 +13,14 @@ Performance data for Tagged Racket
 
 | benchmark  | 6.10.1 | tag |
 |------------|
-| fsm        |      4 |   4 |
+| fsm        |      4 |   8 |
 | gregor     |      2 |   4 |
-| kcfa       |      4 |   6 |
+| kcfa       |      4 |   8 |
 | morsecode  |      2 |   4 |
-| sieve      |      2 |   4 |
+| sieve      |      2 |   8 |
 | snake      |      2 |   4 |
-| suffixtree |      2 |   2 |
-| synth      |      4 |   6 |
+| suffixtree |      2 |   8 |
+| synth      |      4 |   8 |
 | tetris     |      2 |   4 |
 | zombie     |      2 |   4 |
 | zordoz     |      0 |   0 |
