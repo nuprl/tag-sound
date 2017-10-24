@@ -1,9 +1,6 @@
 #lang mf-apply racket/base
 
 ;; Tagged Racket semantics,
-;;  ....
-
-;; - soundenss : expect a 'well-tagged-value' at the end
 
 ;; TODO diff from eval-untyped
 ;; - tag-check on require
@@ -11,6 +8,8 @@
 
 (provide
   single-step
+
+  require->local-value-env
 )
 
 (require
@@ -23,415 +22,375 @@
   redex/reduction-semantics
   redex-abbrevs)
 
-;;; =============================================================================
-;
-;;; Fold over the modules in a program,
-;;;  accumulate a program environment.
-;(define-metafunction μTR
-;  eval-program : PROGRAM -> [σ P-ENV]
-;  [(eval-program PROGRAM)
-;   #{eval-program/env () () PROGRAM}])
-;
-;(define-metafunction μTR
-;  eval-program/env : σ P-ENV PROGRAM -> [σ P-ENV]
-;  [(eval-program/env σ P-ENV ())
-;   [σ P-ENV]]
-;  [(eval-program/env σ P-ENV (MODULE_0 MODULE_1 ...))
-;   #{eval-program/env σ_+ P-ENV_+ (MODULE_1 ...)}
-;   (where [σ_+ P-ENV_+] (eval-module σ P-ENV MODULE_0))])
-;
-;;; -----------------------------------------------------------------------------
-;
-;;; To evaluate a module:
-;;; - use the requires and program environment to build a local context
-;;; - evaluate the definitions, extend the context
-;;; - use the provides to filter the context
-;(define-metafunction μTR
-;  eval-module : σ P-ENV MODULE -> [σ P-ENV]
-;  [(eval-module σ P-ENV MODULE_λ)
-;   [σ_body P-ENV_final]
-;   (where (module-λ x_modname REQUIRE-λ ... DEFINE-λ ... PROVIDE) MODULE_λ)
-;   (where ρλ_init #{eval-untyped-require* P-ENV (REQUIRE-λ ...)})
-;   (where [σ_body ρλ_body] #{eval-untyped-define* x_modname σ ρλ_init (DEFINE-λ ...)})
-;   (where ρλ_public #{eval-untyped-provide ρλ_body PROVIDE})
-;   (where P-ENV_final #{env-set P-ENV (x_modname ρλ_public)})]
-;  [(eval-module σ P-ENV MODULE_τ)
-;   [σ_body P-ENV_final]
-;   (where (module-τ x_modname REQUIRE-τ ... DEFINE-τ ... PROVIDE) MODULE_τ)
-;   (where ρτ_init #{eval-typed-require* P-ENV (REQUIRE-τ ...)})
-;   (where [σ_body ρτ_body] #{eval-typed-define* x_modname σ ρτ_init (DEFINE-τ ...)})
-;   (where ρτ_public #{eval-typed-provide ρτ_body PROVIDE})
-;   (where P-ENV_final #{env-set P-ENV (x_modname ρτ_public)})])
-;
-;;; -----------------------------------------------------------------------------
-;
-;(define-metafunction μTR
-;  eval-untyped-require* : P-ENV (REQUIRE-λ ...) -> ρλ
-;  [(eval-untyped-require* P-ENV ())
-;   ()]
-;  [(eval-untyped-require* P-ENV (REQUIRE-λ_first REQUIRE-λ_rest ...))
-;   #{env-set* ρλ_rest ρλ_first}
-;   (where ρλ_first #{eval-untyped-require P-ENV REQUIRE-λ_first})
-;   (where ρλ_rest #{eval-untyped-require* P-ENV (REQUIRE-λ_rest ...)})])
-;
-;(define-metafunction μTR
-;  eval-typed-require* : P-ENV (REQUIRE-τ ...) -> ρτ
-;  [(eval-typed-require* P-ENV ())
-;   ()]
-;  [(eval-typed-require* P-ENV (REQUIRE-τ_first REQUIRE-τ_rest ...))
-;   #{env-set* ρτ_rest ρτ_first}
-;   (where ρτ_first #{eval-typed-require P-ENV REQUIRE-τ_first})
-;   (where ρτ_rest #{eval-typed-require* P-ENV (REQUIRE-τ_rest ...)})])
-;
-;(define-metafunction μTR
-;  eval-untyped-require : P-ENV REQUIRE-λ -> ρλ
-;  [(eval-untyped-require P-ENV REQUIRE-λ)
-;   ρλ
-;   (where (require x_mod x_require ...) REQUIRE-λ)
-;   (where (x_mod ρ_mod) (program-env-ref P-ENV x_mod))
-;   (where any_fail ,(λ (x)
-;                      (raise-arguments-error 'eval-untyped-require
-;                        "required identifier not provided by module"
-;                        "id" x "module" (term x_mod) "env" (term ρ_mod))))
-;   (where ρ_mixed (#{runtime-env-ref ρ_mod x_require any_fail} ...))
-;   (where ρλ #{runtime-env->untyped-runtime-env x_mod ρ_mixed})]
-;  [(eval-untyped-require P-ENV REQUIRE-λ)
-;   ,(raise-arguments-error 'eval-untyped-require
-;      "required module does not exist"
-;      "module" (term x) "env" (term P-ENV))
-;   (where (require x_mod _ ...) REQUIRE-λ)])
-;
-;(define-metafunction μTR
-;  eval-typed-require : P-ENV REQUIRE-τ -> ρτ
-;  [(eval-typed-require P-ENV REQUIRE-τ)
-;   ρτ
-;   (where (require x_mod [x_require τ_require] ...) REQUIRE-τ)
-;   (where (x_mod ρ_mod) (program-env-ref P-ENV x_mod))
-;   (where any_fail ,(λ (x)
-;                      (raise-arguments-error 'eval-typed-require
-;                        "required identifier not provided by module"
-;                        "id" x "module" (term x_mod) "env" (term ρ_mod))))
-;   (where ρ_mixed (#{runtime-env-ref ρ_mod x_require any_fail} ...))
-;   (where ρτ #{runtime-env->typed-runtime-env x_mod ρ_mixed (τ_require ...)})]
-;  [(eval-typed-require P-ENV REQUIRE-τ)
-;   ,(raise-arguments-error 'eval-typed-require
-;      "required module does not exist"
-;      "module" (term x) "env" (term P-ENV))
-;   (where (require x_mod _ ...) REQUIRE-τ)])
-;
-;(define-metafunction μTR
-;  runtime-env->untyped-runtime-env : x ρ -> ρλ
-;  [(runtime-env->untyped-runtime-env x_mod ρλ)
-;   ρλ]
-;  [(runtime-env->untyped-runtime-env x_mod ρτ)
-;   ρλ
-;   (where ((x v τ) ...) ρτ)
-;   (where ρλ ((x v) ...))])
-;
-;(define-metafunction μTR
-;  runtime-env->typed-runtime-env : x ρ τ* -> ρτ
-;  [(runtime-env->typed-runtime-env x_mod ρτ τ*)
-;   ρτ_sub
-;   (where ((x v τ_actual) ...) ρτ)
-;   (where (τ_expected ...) τ*)
-;   (where ρτ_sub ((x v #{assert-below τ_expected τ_actual}) ...))]
-;  [(runtime-env->typed-runtime-env x_mod ρλ τ*)
-;   ;; TODO abstract this, between here and eval-typed
-;   ,(let loop ([xv* (term ρλ)]
-;               [t* (term τ*)]
-;               [acc '()])
-;      (cond
-;       [(and (null? xv*) (null? t*))
-;        (reverse acc)]
-;       [(or (null? xv*) (null? t*))
-;        (raise-arguments-error 'runtime-env->typed-runtime-env
-;          "unequal number of types and values .. this can't be happening"
-;          "runtime-env" (term ρλ)
-;          "types" (term τ*))]
-;       [else
-;        (define x (car (car xv*)))
-;        (define v (cadr (car xv*)))
-;        (define t (car t*))
-;        (if (judgment-holds (tag-check ,v ,t))
-;          (loop (cdr xv*) (cdr t*) (cons (term (,x ,v ,t)) acc))
-;          (raise-arguments-error 'runtime-env->typed-runtime-env
-;            "require-error"
-;            "message" (term (BE x_mod ,t unknown-module ,v))))]))])
-;
-;;; Check the given value against the tag of the given type,
-;;;  if the value is higher-order, return a "wrapped" value that remembers the type.
-;(define-judgment-form μTR
-;  #:mode (tag-check I I)
-;  #:contract (tag-check v any)
-;  [
-;   (well-tagged-value v κ)
-;   ---
-;   (tag-check v κ)]
-;  [
-;   (where κ #{type->tag τ})
-;   (well-tagged-value v κ)
-;   ---
-;   (tag-check v τ)])
-;
-;(define-metafunction μTR
-;  tag-check# : v any -> any
-;  [(tag-check# v any)
-;   #true
-;   (judgment-holds (tag-check v any))]
-;  [(tag-check# x v τ)
-;   #false])
-;
-;(define-metafunction μTR
-;  eval-untyped-define* : x σ ρλ (DEFINE-λ ...) -> [σ ρλ]
-;  [(eval-untyped-define* x_modname σ ρλ ())
-;   [σ ρλ]]
-;  [(eval-untyped-define* x_modname σ ρλ (DEFINE-λ_first DEFINE-λ_rest ...))
-;   #{eval-untyped-define* x_modname σ_+ ρλ_+ (DEFINE-λ_rest ...)}
-;   (where (define x e) DEFINE-λ_first)
-;   (where [v σ_+] #{eval-value x_modname σ ρλ e})
-;   (where ρλ_+ #{env-set ρλ (x v)})])
-;
-;(define-metafunction μTR
-;  eval-typed-define* : x σ ρτ (DEFINE-τ ...) -> [σ ρτ]
-;  [(eval-typed-define* x_modname σ ρτ ())
-;   [σ ρτ]]
-;  [(eval-typed-define* x_modname σ ρτ (DEFINE-τ_first DEFINE-τ_rest ...))
-;   #{eval-typed-define* x_modname σ_+ ρτ_+ (DEFINE-τ_rest ...)}
-;   (where (define x τ e) DEFINE-τ_first)
-;   (where [v σ_+] #{eval-value x_modname σ ρτ e})
-;   (where ρτ_+ #{env-set ρτ (x v τ)})])
-;
-;;; -----------------------------------------------------------------------------
-;
-;(define-metafunction μTR
-;  eval-value : x σ ρ e -> [v σ]
-;  [(eval-value x_modname σ ρ e)
-;   [v_final σ_final]
-;   (where Σ_0 #{load-expression x_modname σ ρ e})
-;   (where A ,(step-expression* (term Σ_0)))
-;   (where (v_final σ_final x_modname) #{unload-answer A})])
-;
-;;; NOTE ignores types in ρ
-;;;  maybe want to use the annotations to make better monitors?
-;(define-metafunction μTR
-;  load-expression : x σ ρ e -> Σ
-;  [(load-expression x_modname σ ρ e)
-;   (e_ρ σ x_modname ())
-;   (where e_ρ (substitute* e ρ))])
-;
-;(define-metafunction μTR
-;  unload-answer : A -> [v σ x]
-;  [(unload-answer Error)
-;   ,(raise-arguments-error 'unload-answer "evaluation error" "message" (term Error))]
-;  [(unload-answer Σ)
-;   (v σ x)
-;   (where (v σ x ()) Σ)]
-;  [(unload-answer Σ)
-;   ,(raise-arguments-error 'unload-answer
-;      "evaluation finished with non-empty stack"
-;      "stack" (term S)
-;      "value" (term v)
-;      "store" (term σ)
-;      "module" (term x))
-;   (where (v σ x S) Σ)])
-;
-;;; Notes:
-;;; - no E-Return rule
-;;; - yes E-Check rule
-;;; - no type-checks watsoever, expecting a "completed" program
-;(define step-expression
-;  (reduction-relation μTR
-;   #:domain A
-;   [-->
-;     ((in-hole E (!! [x κ e_x] e_body)) σ x_mod S)
-;     (e_x σ x_mod (FRAME S))
-;     E-Check
-;     (fresh x_f)
-;     (where FRAME (x_mod (in-hole E ((fun x_f (x) e_body) hole)) κ))]
-;   [-->
-;     (v σ x_mod S)
-;     A_next
-;     E-Return
-;     (side-condition (not (null? (term S))))
-;     (where A_next #{do-return v σ x_mod S})]
-;   [-->
-;     ((in-hole E (v_0 v_1)) σ x_mod S)
-;     A_next
-;     E-Call
-;     (where A_next #{do-call E v_0 v_1 σ x_mod S})]
-;   [-->
-;     ((in-hole E (ifz v e_0 e_1)) σ x_mod S)
-;     ((in-hole E e_next) σ x_mod S)
-;     E-If
-;     (where e_next ,(if (zero? (term v)) (term e_0) (term e_1)))]
-;   [-->
-;     ((in-hole E (+ v_0 v_1)) σ x_mod S)
-;     A_next
-;     E-+
-;     (where A_next #{primop-arith + E v_0 v_1 σ x_mod S})]
-;   [-->
-;     ((in-hole E (- v_0 v_1)) σ x_mod S)
-;     A_next
-;     E--
-;     (where A_next #{primop-arith - E v_0 v_1 σ x_mod S})]
-;   [-->
-;     ((in-hole E (* v_0 v_1)) σ x_mod S)
-;     A_next
-;     E-*
-;     (where A_next #{primop-arith * E v_0 v_1 σ x_mod S})]
-;   [-->
-;     ((in-hole E (% v_0 v_1)) σ x_mod S)
-;     A_next
-;     E-%
-;     (where A_next #{primop-arith % E v_0 v_1 σ x_mod S})]
-;   [-->
-;     ((in-hole E (first v_0)) σ x_mod S)
-;     A_next
-;     E-first
-;     (where A_next #{primop-first E v_0 σ x_mod S})]
-;   [-->
-;     ((in-hole E (rest v_0)) σ x_mod S)
-;     A_next
-;     E-rest
-;     (where A_next #{primop-rest E v_0 σ x_mod S})]
-;   [-->
-;     ((in-hole E (vector v ...)) σ x_mod S)
-;     ((in-hole E (vector x_loc)) σ_+ x_mod S)
-;     E-MakeVector
-;     (fresh x_loc)
-;     (where σ_+ #{loc-env-set σ x_loc (v ...)})]
-;   [-->
-;     ((in-hole E (vector-ref v_0 v_1)) σ x_mod S)
-;     A_next
-;     E-VectorRef
-;     (where A_next #{primop-ref E v_0 v_1 σ x_mod S})]
-;   [-->
-;     ((in-hole E (vector-set! v_0 v_1 v_2)) σ x_mod S)
-;     A_next
-;     E-VectorSet
-;     (where A_next #{primop-set E v_0 v_1 v_2 σ x_mod S})]))
-;
-;(define step-expression*
-;  (make--->* step-expression))
-;
-;(define-metafunction μTR
-;  do-return : v σ x S -> A
-;  [(do-return v σ x ())
-;   ,(raise-arguments-error 'do-return "cannot return, empty stack"
-;      "value" (term v)
-;      "module" (term x)
-;      "store" (term σ))]
-;  [(do-return v σ x_server ((x_client E_next κ_expected) S_next))
-;   ((in-hole E_next v) σ x_client S_next)
-;   (judgment-holds (tag-check v κ_expected))]
-;  [(do-return v σ x_server ((x_client E_next κ_expected) S_next))
-;   (BE x_client κ_expected x_server v)])
-;
-;(define-metafunction μTR
-;  do-check : E x κ v e σ x S -> A
-;  [(do-check E x_v κ v e_body σ x_mod S)
-;   ((in-hole E e_subst) σ x_mod S)
-;   (judgment-holds (tag-check v κ))
-;   (where e_subst (substitute e_body x_v v))]
-;  [(do-check E x_v κ v e_body σ x_mod S)
-;   (BE x_mod κ context v)])
-;
-;(define-metafunction μTR
-;  do-call : E v v σ x S -> A
-;  [(do-call E Λ v_arg σ x S)
-;   ((in-hole E e_body+) σ x S)
-;   (where (fun x_f (x_arg) e_body) Λ)
-;   (where e_body+ (substitute (substitute e_body x_f Λ) x_arg v_arg))]
-;  [(do-call E v_0 v_1 σ x S)
-;   (TE v_0 "procedure?")
-;   (judgment-holds (not-fun-value v_0))])
-;
-;(define-metafunction μTR
-;  primop-arith : any E v v σ x_mod S -> A
-;  [(primop-arith + E integer_0 integer_1 σ x_mod S)
-;   ((in-hole E ,(+ (term integer_0) (term integer_1))) σ x_mod S)]
-;  [(primop-arith - E integer_0 integer_1 σ x_mod S)
-;   ((in-hole E ,(- (term integer_0) (term integer_1))) σ x_mod S)]
-;  [(primop-arith * E integer_0 integer_1 σ x_mod S)
-;   ((in-hole E ,(* (term integer_0) (term integer_1))) σ x_mod S)]
-;  [(primop-arith % E integer_0 integer_1 σ x_mod S)
-;   DivisionByZero
-;   (where 0 integer_1)]
-;  [(primop-arith % E integer_0 integer_1 σ x_mod S)
-;   ((in-hole E ,(quotient (term integer_0) (term integer_1))) σ x_mod S)]
-;  [(primop-arith any_symbol E any integer σ x_mod S)
-;   (TE any "integer?")]
-;  [(primop-arith any_symbol E integer any σ x_mod S)
-;   (TE any "integer?")])
-;
-;(define-metafunction μTR
-;  primop-first : E v σ x S -> A
-;  [(primop-first E nil σ x_mod S)
-;   EmptyList]
-;  [(primop-first E (cons v_0 _) σ x_mod S)
-;   [(in-hole E v_0) σ x_mod S]]
-;  [(primop-first E v σ x_mod S)
-;   (TE v "pair?")])
-;
-;(define-metafunction μTR
-;  primop-rest : E v σ x S -> A
-;  [(primop-rest E nil σ x_mod S)
-;   EmptyList]
-;  [(primop-rest E (cons _ v_1) σ x_mod S)
-;   ((in-hole E v_1) σ x_mod S)]
-;  [(primop-rest E v σ x_mod S)
-;   (TE v "pair?")])
-;
-;(define-metafunction μTR
-;  primop-ref : E v v σ x S -> A
-; [(primop-ref E (vector x_loc) integer_index σ x_mod S)
-;   ,(if (term any_v)
-;      (term ((in-hole E any_v) σ x_mod S))
-;      (term BadIndex))
-;   (where (_ v*) #{loc-env-ref σ x_loc})
-;   (where any_v #{term-ref v* integer_index})]
-;  [(primop-ref E v_0 v_1 σ x_mod S)
-;   (TE v_0 "vector?")
-;   (judgment-holds (not-vector-value v_0))])
-;
-;(define-metafunction μTR
-;  primop-set : E v v v σ x S -> A
-;  [(primop-set E (vector x_loc) integer_index v_2 σ x_mod S)
-;   ,(if (term any_set)
-;      (term ((in-hole E v_2) #{loc-env-update σ x_loc any_set} x_mod S))
-;      (term BadIndex))
-;   (where (_ v*) #{loc-env-ref σ x_loc})
-;   (where any_set #{term-set v* integer_index v_2})]
-;  [(primop-set E v_0 v_1 v_2 σ x S)
-;   (TE v_0 "vector?")
-;   (judgment-holds (not-vector-value v_0))])
-;
-;;; -----------------------------------------------------------------------------
-;
-;;; Tag soundness:
-;;; - for all `x,e,Γ,τ` such that `Γ ⊢ e : τ`
-;;; - for all `ρ` such that `ρ ⊨ Γ`
-;;; evaluation ends in one of three possibilities:
-;;; 1. [e () x ()] -->* [v σ' x ()]
-;;;    and `Γ ⊢ v : K`
-;;; 2. [e () x ()] diverges
-;;; 3. [e () x ()] -->* [e' σ' x' S'] --> ValueError
-;;;    and `x'` is untyped
-;;; 4. [e () x ()] -->* [v' σ' x' S'] --> BoundaryError
-;;;    and x' is untyped
-;;;    and S' = [(x'' E K') S'']
-;;;    and x'' is typed
-;;;    and `¬ Γ ⊢ v : K'`
-;
-;;; (Very simple? Yeah should be simple. Now work it out make sure it works.)
+;; =============================================================================
 
+(define-metafunction μTR
+  eval-program# : PROGRAM -> [σ VAL-ENV]
+  [(eval-program# PROGRAM)
+   (σ VAL-ENV)
+   (judgment-holds (eval-program PROGRAM σ VAL-ENV))]
+  [(eval-program# PROGRAM)
+   ,(raise-arguments-error 'eval-program "failed to evaluate" "program" (term PROGRAM))])
+
+(define-judgment-form μTR
+  #:mode (eval-program I O O)
+  #:contract (eval-program PROGRAM σ VAL-ENV)
+  [
+   (where (MODULE ...) PROGRAM)
+   (eval-module* () () (MODULE ...) σ VAL-ENV_N)
+   (where VAL-ENV ,(reverse (term VAL-ENV_N)))
+   ---
+   (eval-program PROGRAM σ VAL-ENV)])
+
+(define-judgment-form μTR
+  #:mode (eval-module* I I I O O)
+  #:contract (eval-module* σ VAL-ENV (MODULE ...) σ VAL-ENV)
+  [
+   ---
+   (eval-module* σ VAL-ENV () σ VAL-ENV)]
+  [
+   (where (MODULE_0 MODULE_rest ...) PROGRAM)
+   (eval-module σ VAL-ENV MODULE_0 σ_1 VAL-ENV_1)
+   (eval-module* σ_1 VAL-ENV_1 (MODULE_rest ...) σ_N VAL-ENV_N)
+   ---
+   (eval-module* σ VAL-ENV PROGRAM σ_N VAL-ENV_N)])
+
+(define-judgment-form μTR
+  #:mode (eval-module I I I O O)
+  #:contract (eval-module σ VAL-ENV MODULE σ VAL-ENV)
+  [
+   (where (module M _ REQUIRE ... DEFINE ... PROVIDE) MODULE)
+   (where ρ #{require->local-value-env VAL-ENV (REQUIRE ...)})
+   (eval-define* σ ρ (DEFINE ...) σ_+ ρ_+)
+   (where ρ_provide #{local-value-env->provided ρ_+ PROVIDE})
+   (where VAL-ENV_+ #{toplevel-value-env-set VAL-ENV M ρ_provide})
+   ---
+   (eval-module σ VAL-ENV MODULE σ_+ VAL-ENV_+)])
+
+;; -----------------------------------------------------------------------------
+;; --- intermission, metafunctions for eval-module
+
+(define-metafunction μTR
+  require->local-value-env : VAL-ENV (REQUIRE ...) -> ρ
+  [(require->local-value-env VAL-ENV ())
+   ()]
+  [(require->local-value-env VAL-ENV (TYPED-REQUIRE_0 TYPED-REQUIRE_rest ...))
+   #{local-value-env-append ρ_expected ρ_rest}
+   (where (require M Γ_expected) TYPED-REQUIRE_0)
+   (where (M ρ_actual) #{toplevel-value-env-ref VAL-ENV M})
+   (where ρ_expected #{import/tagged Γ_expected ρ_actual})
+   (where ρ_rest #{require->local-value-env VAL-ENV (TYPED-REQUIRE_rest ...)})]
+  [(require->local-value-env VAL-ENV (UNTYPED-REQUIRE_0 UNTYPED-REQUIRE_rest ...))
+   #{local-value-env-append ρ_expected ρ_rest}
+   (where (require M x ...) UNTYPED-REQUIRE_0)
+   (where (M ρ_actual) #{toplevel-value-env-ref VAL-ENV M})
+   (where ρ_expected #{import/untyped (x ...) ρ_actual})
+   (where ρ_rest #{require->local-value-env VAL-ENV (UNTYPED-REQUIRE_rest ...)})])
+
+(define-metafunction μTR
+  import/tagged : Γ ρ -> ρ
+  [(import/tagged () ρ)
+   ()]
+  [(import/tagged ((x τ) x:τ_rest ...) ρ)
+   #{local-value-env-set ρ_rest x v}
+   (where (_ v) #{local-value-env-ref ρ x})
+   (where κ #{type->tag τ})
+   (where _ #{check-value/fail v κ})
+   (where ρ_rest #{import/tagged (x:τ_rest ...) ρ})])
+
+;; Usually call `apply-monitor`, but skip the boundary for typed functions and vectors
+(define-metafunction μTR
+  check-value/fail : v κ -> v
+  [(check-value/fail v κ)
+   v
+   (judgment-holds (well-tagged-value v κ))]
+  [(check-value/fail v κ)
+   ,(raise-argument-error 'check-value "BE ill-tagged value"
+     "value" (term v)
+     "tag" (term κ))])
+
+(define-metafunction μTR
+  check-value : v κ -> any
+  [(check-value v κ)
+   v
+   (judgment-holds (well-tagged-value v κ))]
+  [(check-value v κ)
+   (BE κ v)])
+
+(define-metafunction μTR
+  import/untyped : x* ρ -> ρ
+  [(import/untyped () ρ)
+   ()]
+  [(import/untyped (x x_rest ...) ρ)
+   #{local-value-env-set ρ_rest x v}
+   (where (_ v) #{local-value-env-ref ρ x})
+   ;; No need to protect-value
+   (where ρ_rest #{import/untyped (x_rest ...) ρ})])
+
+;; -----------------------------------------------------------------------------
+
+(define-judgment-form μTR
+  #:mode (eval-define* I I I O O)
+  #:contract (eval-define* σ ρ (DEFINE ...) σ ρ)
+  [
+   ---
+   (eval-define* σ ρ () σ ρ)]
+  [
+   (eval-define σ ρ DEFINE_0 σ_1 ρ_1)
+   (eval-define* σ_1 ρ_1 (DEFINE_rest ...) σ_N ρ_N)
+   ---
+   (eval-define* σ ρ (DEFINE_0 DEFINE_rest ...) σ_N ρ_N)])
+
+;; Ignore the type annotation, evaluate the expression, save in ρ
+(define-judgment-form μTR
+  #:mode (eval-define I I I O O)
+  #:contract (eval-define σ ρ DEFINE σ ρ)
+  [
+   (where (define x e) UNTYPED-DEFINE)
+   (where L UN)
+   (eval-expression σ ρ L e σ_+ v_+)
+   (where ρ_+ #{local-value-env-set ρ x v_+})
+   ---
+   (eval-define σ ρ UNTYPED-DEFINE σ_+ ρ_+)]
+  [
+   (where (define x τ e) TYPED-DEFINE)
+   (where L TY)
+   (eval-expression σ ρ L e σ_+ v_+)
+   (where ρ_+ #{local-value-env-set ρ x v_+})
+   ---
+   (eval-define σ ρ TYPED-DEFINE σ_+ ρ_+)])
+
+(define-judgment-form μTR
+  #:mode (eval-expression I I I I O O)
+  #:contract (eval-expression σ ρ L e σ v)
+  [
+   (where Σ_0 #{load-expression L σ ρ e})
+   (where A ,(step* (term Σ_0)))
+   (where (σ_+ v_+) #{unload-answer A})
+   ---
+   (eval-expression σ ρ L e σ_+ v_+)])
+
+(define-metafunction μTR
+  eval-expression# : σ ρ L e -> [σ v]
+  [(eval-expression# σ ρ L e)
+   (σ_+ v_+)
+   (judgment-holds (eval-expression σ ρ L e σ_+ v_+))]
+  [(eval-expression# σ ρ L e)
+   ,(raise-arguments-error 'eval-expression "undefined for arguments"
+     "store" (term σ)
+     "local-value-env" (term ρ)
+     "context" (term L)
+     "expression" (term e))])
+
+;; -----------------------------------------------------------------------------
 
 (define single-step
   (reduction-relation μTR
    #:domain A
-   [--> A A]))
+   [-->
+     (L σ (in-hole E (tag? κ v)))
+     A_next
+     E-Tag
+     (where A_next #{do-tag L σ E v κ})]
 
-;;; =============================================================================
+   [-->
+     (L σ (in-hole E (v_0 v_1)))
+     A_next
+     E-ApplyT
+     (judgment-holds (typed-context E L))
+     (where A_next #{do-apply/typed L σ E v_0 v_1})]
+   [-->
+     (L σ (in-hole E (v_0 v_1)))
+     A_next
+     E-ApplyU
+     (judgment-holds (untyped-context E L))
+     (where A_next #{do-apply/untyped L σ E v_0 v_1})]
+
+   [-->
+     (L σ (in-hole E (vector v ...)))
+     (L σ_+ (in-hole E (vector loc)))
+     E-MakeVectorU
+     (fresh loc)
+     (where σ_+ #{store-set σ loc (v ...)})]
+   [-->
+     (L σ (in-hole E (vector τ v ...)))
+     (L σ_+ (in-hole E (vector τ loc)))
+     E-MakeVectorT
+     (fresh loc)
+     (where σ_+ #{store-set σ loc (v ...)})]
+   [-->
+     (L σ (in-hole E (vector-ref v_0 v_1)))
+     A_next
+     E-VectorRefT
+     (judgment-holds (typed-context E L))
+     (where A_next #{do-ref/typed L σ E v_0 v_1})]
+   [-->
+     (L σ (in-hole E (vector-ref v_0 v_1)))
+     A_next
+     E-VectorRefU
+     (judgment-holds (untyped-context E L))
+     (where A_next #{do-ref/untyped L σ E v_0 v_1})]
+
+   [-->
+     (L σ (in-hole E (vector-set! v_0 v_1 v_2)))
+     A_next
+     E-VectorSetT
+     (judgment-holds (typed-context E L))
+     (where A_next #{do-set/typed L σ E v_0 v_1 v_2})]
+   [-->
+     (L σ (in-hole E (vector-set! v_0 v_1 v_2)))
+     A_next
+     E-VectorSetU
+     (judgment-holds (untyped-context E L))
+     (where A_next #{do-set/untyped L σ E v_0 v_1 v_2})]
+
+   [-->
+     (L σ (in-hole E (ifz v e_0 e_1)))
+     A_next
+     E-IfzT
+     (judgment-holds (typed-context E L))
+     (where A_next #{do-ifz/typed L σ E v e_0 e_1})]
+   [-->
+     (L σ (in-hole E (ifz v e_0 e_1)))
+     A_next
+     E-IfzU
+     (judgment-holds (untyped-context E L))
+     (where A_next #{do-ifz/untyped L σ E v e_0 e_1})]
+
+   [-->
+     (L σ (in-hole E (BINOP v_0 v_1)))
+     A_next
+     E-ArithT
+     (judgment-holds (typed-context E L))
+     (where A_next #{do-arith/typed BINOP L σ E v_0 v_1})]
+   [-->
+     (L σ (in-hole E (BINOP v_0 v_1)))
+     A_next
+     E-ArithU
+     (judgment-holds (untyped-context E L))
+     (where A_next #{do-arith/untyped BINOP L σ E v_0 v_1})]
+
+   [-->
+     (L σ (in-hole E (first v)))
+     A_next
+     E-firstT
+     (judgment-holds (typed-context E L))
+     (where A_next #{do-first/typed L σ E v})]
+   [-->
+     (L σ (in-hole E (first v)))
+     A_next
+     E-firstU
+     (judgment-holds (untyped-context E L))
+     (where A_next #{do-first/untyped L σ E v})]
+
+   [-->
+     (L σ (in-hole E (rest v)))
+     A_next
+     E-restT
+     (judgment-holds (typed-context E L))
+     (where A_next #{do-rest/typed L σ E v})]
+   [-->
+     (L σ (in-hole E (rest v)))
+     A_next
+     E-restU
+     (judgment-holds (untyped-context E L))
+     (where A_next #{do-rest/untyped L σ E v})]))
+
+(define step*
+  (make--->* single-step))
+
+;; -----------------------------------------------------------------------------
+
+(define-metafunction μTR
+  do-tag : L σ E v κ -> A
+  [(do-tag L σ E v κ)
+   #{make-answer L σ E #{check-value v κ}}])
+
+(define-metafunction μTR
+  do-apply/untyped : L σ E v v -> A
+  [(do-apply/untyped _ _ _ v _)
+   (TE v "procedure?")
+   (judgment-holds (not-fun-value v))]
+  [(do-apply/untyped L σ E v_0 v_1)
+   #{do-apply L σ E v_0 v_1 L_hole}
+   (where L_hole UN)])
+
+(define-metafunction μTR
+  do-apply/typed : L σ E v v -> A
+  [(do-apply/typed L σ E v_0 v_1)
+   #{do-apply L σ E v_0 v_1 L_hole}
+   (where L_hole TY)])
+
+(define-metafunction μTR
+  do-apply : L σ E v v L -> A
+  [(do-apply L σ E Λ v_arg _)
+   (L σ (in-hole E e_body+))
+   (where (fun x_f (x_arg) e_body) Λ)
+   (where e_body+ (substitute (substitute e_body x_f Λ) x_arg v_arg))]
+  [(do-apply L σ E Λ v_arg _)
+   (L σ (in-hole E e_body+))
+   (where (fun x_f _ (x_arg) e_body) Λ)
+   (where e_body+ (substitute (substitute e_body x_f Λ) x_arg v_arg))])
+
+(define-metafunction μTR
+  do-ref/typed : L σ E v v -> A
+  [(do-ref/typed L σ E v_0 v_1)
+   #{do-ref L σ E v_0 v_1 L_hole}
+   (where L_hole TY)])
+
+(define-metafunction μTR
+  do-ref/untyped : L σ E v v -> A
+  [(do-ref/untyped _ _ _ v _)
+   (TE v "vector?")
+   (judgment-holds (not-vector-value v))]
+  [(do-ref/untyped _ _ _ _ v)
+   (TE v "integer?")
+   (judgment-holds (not-integer-value v))]
+  [(do-ref/untyped L σ E v_0 v_1)
+   #{do-ref L σ E v_0 v_1 L_hole}
+   (where L_hole UN)])
+
+(define-metafunction μTR
+  do-ref : L σ E v v L -> A
+  [(do-ref L σ E (vector loc) integer_index _)
+   #{make-answer L σ E #{term-ref v* integer_index}}
+   (where (_ v*) #{store-ref σ loc})]
+  [(do-ref L σ E (vector _ loc) integer_index _)
+   #{make-answer L σ E #{term-ref v* integer_index}}
+   (where (_ v*) #{store-ref σ loc})])
+
+(define-metafunction μTR
+  do-set/typed : L σ E v v v -> A
+  [(do-set/typed L σ E v_0 v_1 v_2)
+   #{do-set L σ E v_0 v_1 v_2}])
+
+(define-metafunction μTR
+  do-set/untyped : L σ E v v v -> A
+  [(do-set/untyped _ _ _ v _ _)
+   (TE v "vector?")
+   (judgment-holds (not-vector-value v))]
+  [(do-set/untyped _ _ _ _ v _)
+   (TE v "integer?")
+   (judgment-holds (not-integer-value v))]
+  [(do-set/untyped L σ E v_0 v_1 v_2)
+   #{do-set L σ E v_0 v_1 v_2}])
+
+(define-metafunction μTR
+  do-set : L σ E v v v -> A
+  [(do-set L σ E (vector loc) v_1 v_2)
+   ,(if (redex-match? μTR Error (term any_set))
+      (term any_set)
+      (term (L #{store-update σ loc any_set} (in-hole E v_2))))
+   (where (_ v*) #{store-ref σ loc})
+   (where any_set #{term-set v* v_1 v_2})]
+  [(do-set L σ E (vector _ loc) v_1 v_2)
+   ,(if (redex-match? μTR Error (term any_set))
+      (term any_set)
+      (term (L #{store-update σ loc any_set} (in-hole E v_2))))
+   (where (_ v*) #{store-ref σ loc})
+   (where any_set #{term-set v* v_1 v_2})])
+
+;; =============================================================================
 ;
 ;(module+ test
 ;  (require rackunit)

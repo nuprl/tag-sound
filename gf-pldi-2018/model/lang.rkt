@@ -120,6 +120,7 @@
          (ifz E e e) (+ v ... E e ...) (- v ... E e ...) (* v ... E e ...) (% v ... E e ...)
          (vector-ref v ... E e ...) (vector-set! v ... E e ...)
          (first E) (rest E)
+         (tag? κ E)
          (check τ E) (protect τ E))
   ;; Left-to-right eager evaluation contexts
 

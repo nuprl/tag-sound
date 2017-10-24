@@ -475,11 +475,9 @@
    ---
    (well-tagged-value (cons v_0 v_1) List)]
   [
-   ;; TODO edit if performance is an issue
-   (where (κ_pre ... κ_mid κ_post ...) (κ ...))
-   (well-tagged-value v κ_mid)
+   (well-tagged-value v κ)
    ---
-   (well-tagged-value v (U κ ...))])
+   (well-tagged-value v (U κ_0 ... κ κ_1 ...))])
 
 (define-judgment-form μTR
   #:mode (not-well-tagged-value I I)
@@ -883,7 +881,11 @@
   [
    (well-tagged-expression Γ e TST)
    ---
-   (well-tagged-expression Γ (tag? κ e) κ)])
+   (well-tagged-expression Γ (tag? κ e) κ)]
+  [
+   (well-tagged-expression Γ e κ)
+   ---
+   (well-tagged-expression Γ e (U κ_0 ... κ κ_1 ...))])
 
 ;; =============================================================================
 
