@@ -224,6 +224,8 @@
   [(do-rest L σ E (cons _ v_1))
    (L σ (in-hole E v_1))])
 
+;; TODO remove `not-VV`, and just make vector values syntactically different
+;;  from constructors (make-vector ...) vs (vector ...)
 (define-judgment-form μTR
   #:mode (not-VV I I)
   #:contract (not-VV σ e)

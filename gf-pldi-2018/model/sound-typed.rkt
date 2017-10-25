@@ -6,9 +6,8 @@
 ;; Theorems:
 ;; - program soundness
 ;;   * if PROGRAM well-typed at TYPE-ENV
-;;   * then reduces to a VAL-ENV
-;;   * and VAL-ENV models TYPE-ENV
-;;   * (ignore the σ)
+;;   * then reduces to a VAL-ENV (or legal error)
+;;   * and VAL-ENV models TYPE-ENV (under store σ)
 ;; - module-soundness
 ;;   * if Γ ⊢ MODULE well-typed at Γ+
 ;;   * then for any ρ that models Γ
@@ -50,7 +49,6 @@
   "eval-common.rkt"
   "eval-typed.rkt"
   "lang.rkt"
-  "grammar.rkt"
   "metafunctions.rkt"
   "typecheck.rkt"
   racket/set
@@ -207,7 +205,7 @@
   [
    (well-typed-config Σ τ)
    (where (A boolean) ,(do-single-step (term Σ)))
-   (well-typed-answer Σ A τ)
+   (well-typed-answer A τ)
    ---
    (sound-step Σ τ A boolean)])
 
@@ -235,24 +233,19 @@
     (define Σ+ (car A*))
     (list Σ+ (not (redex-match? μTR Error Σ+)))]))
 
-;; TODO ignores first argument ... either remove or stop ignoring.
-;; (original idea was to check "no type errors from typed context",
-;;  but maybe we show that with a different theorem)
 (define-judgment-form μTR
-  #:mode (well-typed-answer I I I)
-  #:contract (well-typed-answer Σ A τ)
+  #:mode (well-typed-answer I I)
+  #:contract (well-typed-answer A τ)
   [
    ---
-   (well-typed-answer _ BoundaryError _)]
+   (well-typed-answer BoundaryError _)]
   [
-   ;; TODO for now this is just "okay" ..
-   ;;  need a theorem that typed contexts cannot throw type errors
    ---
-   (well-typed-answer _ TypeError _)]
+   (well-typed-answer TypeError _)]
   [
    (well-typed-config Σ_+ τ)
    ---
-   (well-typed-answer _ Σ_+ τ)])
+   (well-typed-answer Σ_+ τ)])
 
 (define-judgment-form μTR
   #:mode (well-typed-config I I)
@@ -319,14 +312,14 @@
    --- T-VecValU
    (WT σ Γ v TST)]
   [
-   (not-VV σ (vector τ_vec e ...)) ;; TODO
+   (not-VV σ (vector τ_vec e ...))
    (<: τ_vec τ)
    (where (Vectorof τ_elem) #{coerce-vector-type τ})
    (WT σ Γ e τ_elem) ...
    --- T-VecT
    (WT σ Γ (vector τ_vec e ...) τ)]
   [
-   (not-VV σ (vector e ...)) ;; TODO
+   (not-VV σ (vector e ...))
    (WT σ Γ e TST) ...
    --- T-VecU
    (WT σ Γ (vector e ...) TST)]
@@ -511,8 +504,8 @@
   #:contract (local-value-env-models σ ρ Γ)
   [
    ;(same-domain ρ Γ) ;; it's OK if Γ is missing some entries
-   ;; TODO cant be subset, because Γ includes all mutually recursive definitions
-   ;;  and these aren't available to ρ yet
+   ;; TODO can't require dom(ρ) = dom(Γ), because Γ has names for mutally-recursive
+   ;;      defines but ρ doesn't ... these aren't ready at runtime yet
    (local-value-env-models-aux σ ρ Γ)
    ---
    (local-value-env-models σ ρ Γ)])
@@ -665,22 +658,20 @@
   )
 
   (test-case "well-typed-answer"
-    (define-term my-config (TY () 42))
-    (check-true (redex-match? μTR Σ (term my-config)))
     (check-judgment-holds*
-     (well-typed-answer my-config (BE Int nil) Int)
-     (well-typed-answer my-config DivisionByZero Int)
-     (well-typed-answer my-config EmptyList TST)
-     (well-typed-answer my-config (TE 4 (Listof Int)) TST)
-     (well-typed-answer my-config (TE 4 (Listof Int)) (Listof Int))
-     (well-typed-answer my-config (UN () (+ 2 2)) TST)
-     (well-typed-answer my-config (UN () (+ 2 nil)) TST)
-     (well-typed-answer my-config (TY () (+ 2 2)) Int)
-     (well-typed-answer my-config (UN () 16) TST)
+     (well-typed-answer (BE Int nil) Int)
+     (well-typed-answer DivisionByZero Int)
+     (well-typed-answer EmptyList TST)
+     (well-typed-answer (TE 4 (Listof Int)) TST)
+     (well-typed-answer (TE 4 (Listof Int)) (Listof Int))
+     (well-typed-answer (UN () (+ 2 2)) TST)
+     (well-typed-answer (UN () (+ 2 nil)) TST)
+     (well-typed-answer (TY () (+ 2 2)) Int)
+     (well-typed-answer (UN () 16) TST)
     )
 
     (check-not-judgment-holds*
-     (well-typed-answer my-config (UN () (+ 2 2)) Int)
+     (well-typed-answer (UN () (+ 2 2)) Int)
     )
   )
 
@@ -742,9 +733,24 @@
   )
 
   (test-case "toplevel-value-env-models"
-  )
+    (check-judgment-holds*
+     (toplevel-value-env-models () () ())
+     (toplevel-value-env-models () ((M0 ())) ((M0 ())))
+     (toplevel-value-env-models ((q (1 2)) (w (1))) ((M0 ())) ((M0 ())))
+     (toplevel-value-env-models () ((M0 ((x 4)))) ((M0 ((x Int)))))
+     (toplevel-value-env-models ()
+                                ((M0 ((x 4))) (M1 ((y (cons 1 nil)))))
+                                ((M0 ((x Int))) (M1 ((y (Listof Nat))))))
+     (toplevel-value-env-models ((qq (0 1 2)))
+                                ((M0 ((x (mon-vector (Vectorof Nat) (vector qq))))))
+                                ((M0 ((x (Vectorof Nat))))))
+    )
 
-  (test-case ""
+    (check-not-judgment-holds*
+     (toplevel-value-env-models () ((M0 ())) ((M1 ())))
+     (toplevel-value-env-models () ((M0 ())) ())
+     (toplevel-value-env-models () ()        ((M1 ())))
+    )
   )
 
 )
