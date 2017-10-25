@@ -420,7 +420,10 @@
    (tag-of (μ (α) τ) κ)]
   [
    ---
-   (tag-of TST TST)])
+   (tag-of TST TST)]
+  [
+   ---
+   (tag-of α TST)])
 
 (define-metafunction μTR
   type->tag : τ -> κ
@@ -476,6 +479,8 @@
   [(lang-of-hole (protect τ E) L)
    (lang-of-hole E TY)
    (where L UN)]
+  [(lang-of-hole (tag? κ E) L)
+   (lang-of-hole E L)]
   [(lang-of-hole E L)
    ,(raise-arguments-error 'lang-of-hole "invalid context" "ctx" (term E) "lang" (term L))])
 
@@ -861,5 +866,14 @@
       (∀ (α) (→ α α)))
     )
   )
+
+  (test-case "type->tag"
+    (check-mf-apply*
+     ((type->tag α)
+      TST)
+     ((type->tag Int)
+      Int)
+     ((type->tag (Listof Int))
+      List)))
 
 )
