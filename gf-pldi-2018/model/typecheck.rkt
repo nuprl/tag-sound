@@ -635,7 +635,6 @@
   [(infer-expression-type# Γ e)
    ,(raise-arguments-error 'infer-expression-type "failed to infer type" "expression" (term e) "type env" (term Γ))])
 
-;; TODO really should check Nat vs. TST for C-Nat
 (define-judgment-form μTR
   #:mode (tagged-completion I I I O)
   #:contract (tagged-completion Γ e κ e)
@@ -658,9 +657,8 @@
    (tagged-completion Γ_x e_body κ_cod e_+)
    (where τ_fun+ #{weaken-arrow-domain τ_fun})
    (where Λ_+ (fun x_fun τ_fun+ (x_arg)
-                (tag? κ_cod ;; maybe not necessary
-                  ((fun x_fun τ_fun (x_arg) e_+)
-                   (tag? κ_dom x_arg)))))
+                ((fun x_fun τ_fun (x_arg) e_+)
+                 (tag? κ_dom x_arg))))
    --- C-Fun
    (tagged-completion Γ Λ κ_fun Λ_+)]
   [
@@ -748,14 +746,18 @@
    ---
    (tagged-completion Γ (vector-set! e_0 e_1 e_2) κ (vector-set! e_0+ e_1+ e_2+))]
   [
-   (tagged-completion Γ e Pair e_+)
+   (tagged-completion Γ e List e_+)
    ---
    (tagged-completion Γ (first e) κ (tag? κ (first e_+)))]
   [
    (or-TST List κ)
    (tagged-completion Γ e List e_+)
    ---
-   (tagged-completion Γ (rest e) κ (rest e_+))])
+   (tagged-completion Γ (rest e) κ (rest e_+))]
+  [
+   (tagged-completion Γ e κ e_+)
+   ---
+   (tagged-completion Γ e (U κ_0 ... κ κ_1 ...) e_+)])
 
 (define-metafunction μTR
   tagged-completion# : Γ e κ -> e
@@ -768,8 +770,6 @@
      "tag" (term κ)
      "type env" (term Γ))])
 
-;; TODO the purpose of this judgment is to know that the tagged completion is
-;;  correct. Ok. So what do we need to do ......
 (define-judgment-form μTR
   #:mode (well-tagged-expression I I I)
   #:contract (well-tagged-expression Γ e κ)
@@ -877,9 +877,10 @@
    ---
    (well-tagged-expression Γ (first e) TST)]
   [
+   (or-TST List κ)
    (well-tagged-expression Γ e List)
    ---
-   (well-tagged-expression Γ (rest e) TST)]
+   (well-tagged-expression Γ (rest e) κ)]
   [
    (well-tagged-expression Γ e TST)
    ---
@@ -1321,32 +1322,126 @@
 
   (test-case "tagged-completion"
     (check-mf-apply* #:is-equal? α=?
-     ((tagged-completion# () (+ 2 2) Int)
-      (+ 2 2))
+     ((tagged-completion# () 3 TST)
+      3)
+     ((tagged-completion# () 3 Nat)
+      3)
+     ((tagged-completion# () 3 Int)
+      3)
+     ((tagged-completion# () -7 TST)
+      -7)
      ((tagged-completion# () (fun f (→ Int Int) (x) (+ x 1)) →)
-      (fun f (→ TST Int) (x) (tag? Int ((fun f (→ Int Int) (x) (+ x 1)) (tag? Int x)))))
+      (fun f (→ TST Int) (x) ((fun f (→ Int Int) (x) (+ x 1)) (tag? Int x))))
+     ((tagged-completion# () (fun f (→ Int Int) (x) (+ x 1)) TST)
+      (fun f (→ TST Int) (x) ((fun f (→ Int Int) (x) (+ x 1)) (tag? Int x))))
+     ((tagged-completion# () (vector (Vectorof Int) 1 -2) Vector)
+      (vector (Vectorof Int) 1 -2))
+     ((tagged-completion# () (vector (Vectorof Int) 1 -2) TST)
+      (vector (Vectorof Int) 1 -2))
+     ((tagged-completion# () (cons 1 (cons -2 nil)) List)
+      (cons 1 (cons -2 nil)))
+     ((tagged-completion# () nil List)
+      nil)
+     ((tagged-completion# () nil TST)
+      nil)
+     ((tagged-completion# ((x Int)) x Int)
+      x)
+     ((tagged-completion# ((x Int)) x TST)
+      x)
+     ((tagged-completion# ((x TST)) x TST)
+      x)
+     ((tagged-completion# ((x (Listof TST))) x List)
+      x)
      ((tagged-completion# ((f (→ Int Int))) (f 3) Int)
       (tag? Int (f 3)))
      ((tagged-completion# ((f (→ Int (Vectorof Int)))) (f 3) Vector)
       (tag? Vector (f 3)))
-     ;; TODO a few more
+     ((tagged-completion# () ((fun f (→ Nat Nat) (x) (+ x 1)) 0) Nat)
+      (tag? Nat ((fun f (→ TST Nat) (x) ((fun f (→ Nat Nat) (x) (+ x 1)) (tag? Nat x))) 0)))
+     ((tagged-completion# () (ifz 0 1 2) Nat)
+      (ifz 0 1 2))
+     ((tagged-completion# ((xs (Listof Nat))) (ifz (first xs) 1 nil) (U Int List))
+      (ifz (tag? Int (first xs)) 1 nil))
+     ((tagged-completion# () (+ 2 2) Int)
+      (+ 2 2))
+     ((tagged-completion# () (+ 2 2) Nat)
+      (+ 2 2))
+     ((tagged-completion# () (- 2 2) Int)
+      (- 2 2))
+     ((tagged-completion# () (* 2 2) Nat)
+      (* 2 2))
+     ((tagged-completion# () (* 2 2) Int)
+      (* 2 2))
+     ((tagged-completion# () (* 2 2) TST)
+      (* 2 2))
+     ((tagged-completion# () (% 2 2) Nat)
+      (% 2 2))
+     ((tagged-completion# () (% 2 2) Int)
+      (% 2 2))
+     ((tagged-completion# ((xs (Listof Int))) (% 2 (first xs)) Int)
+      (% 2 (tag? Int (first xs))))
+     ((tagged-completion# () (vector-ref (vector (Vectorof Int) 1 2) 0) Nat)
+      (tag? Nat (vector-ref (vector (Vectorof Int) 1 2) 0)))
+     ((tagged-completion# () (vector-set! (vector (Vectorof Int) 1 2) 0 1) Nat)
+      (vector-set! (vector (Vectorof Int) 1 2) 0 1))
+     ((tagged-completion# () (first nil) Nat)
+      (tag? Nat (first nil)))
+     ((tagged-completion# () (rest nil) List)
+      (rest nil))
     )
+
+    (check-exn exn:fail:redex?
+      ;; No completion for untyped code
+      (λ () (term #{tagged-completion# () (fun f (x) x)})))
+
+    (check-exn exn:fail:contract?
+      (λ () (term #{tagged-completion# () (vector 1) Vector})))
+
+    (check-exn exn:fail:contract?
+      ;; Fails if bad tag
+      (λ () (term #{tagged-completion# () (fun f (→ Int Int) (x) (+ x 1)) Int})))
   )
 
   (test-case "well-tagged-expression"
     (check-judgment-holds*
-     (well-tagged-expression () (+ 2 2) Int)
+     (well-tagged-expression () 4 Nat)
      (well-tagged-expression () 4 TST)
-     (well-tagged-expression ((x Nat)) (+ x 1) Nat)
-     (well-tagged-expression () (first (cons 1 nil)) TST)
-     (well-tagged-expression () (tag? Int (first (cons 1 nil))) Int)
+     (well-tagged-expression () -4 Int)
+     (well-tagged-expression () -4 TST)
+     (well-tagged-expression () (vector (Vectorof Int) 1 2) Vector)
+     (well-tagged-expression () nil TST)
+     (well-tagged-expression () (cons 1 nil) List)
+     (well-tagged-expression ((x (Vectorof Int))) x Vector)
+     (well-tagged-expression () (fun f (→ Nat Nat) (x) (+ x 1)) →)
+     (well-tagged-expression () (fun f (→ Nat Nat) (x) (+ x 1)) TST)
      (well-tagged-expression () ((fun f (→ Nat Nat) (x) (+ x 1)) 4) TST)
+     (well-tagged-expression () (ifz 1 2 3) Nat)
+     (well-tagged-expression () (+ 2 2) Nat)
+     (well-tagged-expression () (+ 2 2) Int)
+     (well-tagged-expression ((x Nat)) (+ x 1) Nat)
+     (well-tagged-expression () (- 2 2) Int)
+     (well-tagged-expression () (* 2 2) Nat)
+     (well-tagged-expression () (* 2 2) Int)
+     (well-tagged-expression () (% 2 2) Nat)
+     (well-tagged-expression () (% 2 2) Int)
+     (well-tagged-expression () (vector-ref (vector (Vectorof Int) 1) 0) TST)
+     (well-tagged-expression () (vector-set! (vector (Vectorof Int) 1) 0 0) Nat)
+     (well-tagged-expression () (first (cons 1 nil)) TST)
+     (well-tagged-expression () (rest nil) List)
+     (well-tagged-expression () (tag? Int (first (cons 1 nil))) Int)
+     (well-tagged-expression ((x Int)) x (U Nat List Int))
     )
 
     (check-not-judgment-holds*
      (well-tagged-expression () (first (cons 1 nil)) Int)
-     (well-tagged-expression () (rest (cons 1 nil)) List)
+     (well-tagged-expression () (rest (cons 1 nil)) Int)
     )
+
+    (let* ([t0 (term (first xs))]
+           [env (term ((xs (Listof Int))))]
+           [t1 (term #{tagged-completion# ,env ,t0 Int})])
+      (check-false (judgment-holds (well-tagged-expression ,env ,t0 Int)))
+      (check-true (judgment-holds (well-tagged-expression ,env ,t1 Int))))
   )
 
   (test-case "well-typed-program:II"

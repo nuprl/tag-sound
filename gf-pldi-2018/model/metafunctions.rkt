@@ -41,6 +41,7 @@
   or-TST
 
   weaken-arrow-domain
+  weaken-arrow-codomain
 
   unload-store/expression
 
@@ -527,7 +528,19 @@
   [(weaken-arrow-domain (∀ (α) τ))
    (∀ (α) #{weaken-arrow-domain τ})]
   [(weaken-arrow-domain τ)
-   ,(raise-arguments-error 'replace-arrow-domain "failed to weaken domain of type"
+   ,(raise-arguments-error 'weaken-arrow-domain "failed to weaken domain of type"
+     "type" (term τ))])
+
+(define-metafunction μTR
+  weaken-arrow-codomain : τ -> τ
+  [(weaken-arrow-codomain (→ τ_dom α))
+   (→ τ_dom α)]
+  [(weaken-arrow-codomain (→ τ_dom τ_cod))
+   (→ τ_dom TST)]
+  [(weaken-arrow-codomain (∀ (α) τ))
+   (∀ (α) #{weaken-arrow-codomain τ})]
+  [(weaken-arrow-codomain τ)
+   ,(raise-arguments-error 'weaken-arrow-codomain "failed to weaken codomain of type"
      "type" (term τ))])
 
 (define-metafunction μTR
@@ -827,13 +840,24 @@
      ((same-domain# ((a 1) (b 2)) ((a Int) (b Nat)))
       #true)))
 
-  (test-case "replace-arrow-domain"
+  (test-case "weaken-arrow-domain"
     (check-mf-apply* #:is-equal? α=?
      ((weaken-arrow-domain (→ Int Int))
       (→ TST Int))
      ((weaken-arrow-domain (∀ (α) (→ Nat Nat)))
       (∀ (α) (→ TST Nat)))
      ((weaken-arrow-domain (∀ (α) (→ α α)))
+      (∀ (α) (→ α α)))
+    )
+  )
+
+  (test-case "weaken-arrow-codomain"
+    (check-mf-apply* #:is-equal? α=?
+     ((weaken-arrow-codomain (→ Int Int))
+      (→ Int TST))
+     ((weaken-arrow-codomain (∀ (α) (→ Nat Nat)))
+      (∀ (α) (→ Nat TST)))
+     ((weaken-arrow-codomain (∀ (α) (→ α α)))
       (∀ (α) (→ α α)))
     )
   )
