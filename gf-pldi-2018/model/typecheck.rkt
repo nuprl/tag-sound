@@ -36,6 +36,8 @@
 
   tagged-completion
   well-tagged-expression
+
+  well-typed-program#
 )
 
 (require
@@ -1048,7 +1050,9 @@
      (well-dyn-expression () (rest nil))
 
      (well-dyn-expression () (+ nil 1))
-     (well-dyn-expression () (ifz (vector 0) 3 -4)))
+     (well-dyn-expression () (ifz (vector 0) 3 -4))
+     (well-dyn-expression ((f TST)) (fun a (x) (fun b (y) (fun c (z) (+ (+ x y) z)))))
+    )
 
     (check-not-judgment-holds*
      (well-dyn-expression ((f (→ Int Int)) (x Int)) (f x))))
@@ -1344,4 +1348,11 @@
      (well-tagged-expression () (rest (cons 1 nil)) List)
     )
   )
+
+  (test-case "well-typed-program:II"
+    (check-pred values
+      (term #{well-typed-program#
+        ((module M0 untyped
+          (define f (fun a (x) (fun b (y) (fun c (z) (+ (+ x y) z)))))
+          (provide f)))})))
 )

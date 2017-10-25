@@ -96,7 +96,7 @@
    (where TYPE-ENV_+ #{toplevel-type-env-set TYPE-ENV M Γ_provide})
    (where ρ_provide #{local-value-env->provided ρ_+ PROVIDE})
    (where VAL-ENV_+ #{toplevel-value-env-set VAL-ENV M ρ_provide})
-   (well-typed-module TYPE-ENV_+ M _) ;; double-check
+   (well-typed-module TYPE-ENV MODULE TYPE-ENV_+) ;; double-check
    ---
    (sound-eval-module TYPE-ENV σ VAL-ENV MODULE TYPE-ENV_+ σ_+ VAL-ENV_+)])
 
@@ -118,7 +118,7 @@
   [
    (where (define x e) UNTYPED-DEFINE)
    (where L UN)
-   (sound-eval-expression Γ σ ρ L e TST A_+)
+   (where A_+ #{sound-eval-expression# Γ σ ρ L e TST}) ;; gives better error messages
    (where (σ_+ v_+) #{unpack-answer A_+})
    (where ρ_+ #{local-value-env-set ρ x v_+})
    ---
@@ -135,9 +135,9 @@
 (define-metafunction μTR
   unpack-answer : A -> [σ v]
   [(unpack-answer Error)
-   ,(raise-arguments-error 'sound-eval-expression "not implemented for errors"
-     "answer" (term Error))]
-  [(unpack-answer [σ v])
+   ,(raise-arguments-error 'sound-eval-expression "error during evaluation"
+     "message" (term Error))]
+  [(unpack-answer [L σ v])
    [σ v]])
 
 (define-judgment-form μTR
@@ -510,7 +510,9 @@
   #:mode (local-value-env-models I I I)
   #:contract (local-value-env-models σ ρ Γ)
   [
-   (same-domain ρ Γ) ;; it's OK if Γ is missing some entries
+   ;(same-domain ρ Γ) ;; it's OK if Γ is missing some entries
+   ;; TODO cant be subset, because Γ includes all mutually recursive definitions
+   ;;  and these aren't available to ρ yet
    (local-value-env-models-aux σ ρ Γ)
    ---
    (local-value-env-models σ ρ Γ)])
@@ -522,40 +524,16 @@
    ---
    (local-value-env-models-aux σ () Γ)]
   [
-   (where (x_0 τ) #{local-type-env-ref Γ x_0})
+   (where (x_0 τ) #{unsafe-env-ref Γ x_0 #false})
    (WT σ Γ v_0 τ)
    (local-value-env-models-aux σ (x:v_rest ...) Γ)
    ---
    (local-value-env-models-aux σ ((x_0 v_0) x:v_rest ...) Γ)])
 
-(define-judgment-form μTR
-  #:mode (not-VV I I)
-  #:contract (not-VV σ e)
-  [
-   (side-condition ,(not (judgment-holds (VV σ e))))
-   ---
-   (not-VV σ e)])
-
-(define-judgment-form μTR
-  #:mode (VV I I)
-  #:contract (VV σ e)
-  [
-   (where (x _) #{unsafe-env-ref σ x #false})
-   ---
-   (VV σ (vector x))]
-  [
-   (where (x _) #{unsafe-env-ref σ x #false})
-   ---
-   (VV σ (vector τ x))])
-
 ;; =============================================================================
 
 (module+ test
   (require rackunit)
-
-  (test-case "not-VV"
-    (check-judgment-holds*
-     (not-VV () (vector (Vectorof Int) 1 2))))
 
   (test-case "WT"
     (check-judgment-holds*
@@ -611,6 +589,11 @@
      (WT ((qq (2))) () (mon-vector (Vectorof Int) (vector (Vectorof Int) qq)) TST)
      (WT () () (check Int (+ 3 3)) Int)
      (WT () () (protect Int (+ 3 3)) TST)
+     (WT () () (mon-fun (→ Int (→ Int Int))
+                 (fun a (x)
+                   (fun b (y)
+                     (fun c (z) (+ (+ x y) z)))))
+               (→ Int (→ Int Int)))
     )
 
     (check-not-judgment-holds*
@@ -647,10 +630,10 @@
        ()
        ((x (mon-fun (→ Nat Nat) (fun f (z) (+ z 3)))))
        ((x (→ Nat Nat))))
+     (local-value-env-models () () ((x Int)))
     )
 
     (check-not-judgment-holds*
-     (local-value-env-models () () ((x Int)))
      (local-value-env-models () ((x 4)) ((y Int)))
      (local-value-env-models () ((x 4) (y -1)) ((x Int) (y Nat)))
      (local-value-env-models () ((x (fun f (z) (+ z 3)))) ((x (→ Nat Nat))))
@@ -739,11 +722,10 @@
       (λ () (term (sound-eval-expression# () () () TY (check Int nil) Int))))
   )
 
-  (test-case "sound-eval-program"
-    (check-judgment-holds*
-     (sound-eval-program
+  (test-case "sound-eval-program:I"
+    (define-term P
       ((module M0 untyped
-        (define f (fun a (x) (fun b (y) (fun c (z) (+ (+ a b) c)))))
+        (define f (fun a (x) (fun b (y) (fun c (z) (+ (+ x y) z)))))
         (provide f))
        (module M1 typed
         (require M0 ((f (→ Int (→ Int Int)))))
@@ -753,7 +735,10 @@
         (define f2 (f 2))
         (define f23 (f2 3))
         (provide))))
-    )
+    (check-pred values
+      (term #{well-typed-program# P}))
+    (check-exn #rx"BE"
+     (λ () (judgment-holds (sound-eval-program P))))
   )
 
   (test-case "toplevel-value-env-models"

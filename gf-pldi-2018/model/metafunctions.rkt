@@ -227,7 +227,7 @@
    #{env-set TYPE-ENV (M Γ)}
    (where #false #{env-ref TYPE-ENV M #false})]
   [(toplevel-type-env-set TYPE-ENV M Γ)
-   ,(raise-arguments-error 'topleveltype-env-set "identifier already bound"
+   ,(raise-arguments-error 'toplevel-type-env-set "identifier already bound"
       "id" (term M) "toplevel-type-env" (term TYPE-ENV) "value" (term Γ))])
 
 (define-metafunction μTR

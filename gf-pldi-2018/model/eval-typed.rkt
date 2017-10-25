@@ -137,10 +137,12 @@
   protect-value : v -> v
   [(protect-value v_fun)
    #{apply-monitor#/fail v_fun τ_fun}
-   (where (fun _ τ_fun (_) _) v_fun)]
+   (judgment-holds (fun-value v_fun))
+   (judgment-holds (infer-expression-type () v_fun τ_fun))]
   [(protect-value v_vec)
    #{apply-monitor#/fail v_vec τ_vec}
-   (where (vector τ_vec _) v_vec)]
+   (judgment-holds (vector-value v_vec))
+   (judgment-holds (infer-expression-type () v_vec τ_vec))]
   [(protect-value v)
    v])
 
