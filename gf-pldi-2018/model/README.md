@@ -14,15 +14,11 @@ proofs of type and tag soundness
 
 TODO
 - count runtime time checks ?
-- vector expressions (vector x) and vector-values are ambiguous,
-  use a `make-vector` to resolve
-- stop using `untyped-context`, stop using `L` tag,
-  - make Et and Eu frames, a frame is 1 level of evaluation context
-  - E ::= (Et | Eu) *
-  - reduction matches E[Et[e]] E[Eu[e]]
-- maybe have surface & core languages,
-  because they really are different,
-  source doesn't allow monitors
+- CURRENT STATUS
+  * go back, clean up language, revise aux files AGAIN --- do this quickly
+  * with revisions, 2 soundnesses are 2 ways of interpreting boundaries
+  * actually possible (easy) to prove no type errors in tagged code --- because
+    now the runtime knows what is tagged code instead of being hopelessly jumbled
 
 
 Summary
