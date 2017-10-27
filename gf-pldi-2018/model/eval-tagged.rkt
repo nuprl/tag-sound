@@ -2,14 +2,15 @@
 
 ;; Tagged Racket semantics,
 
-;; TODO diff from eval-untyped
-;; - tag-check on require
-;; - tag-check where checks appear (assumes rewritten program)
-
 (provide
-  single-step
+  eval-program
+  untyped-step
+  typed-step
+  untyped-step#
+  typed-step#
 
   require->local-value-env
+  local-value-env->provided
 )
 
 (require
@@ -68,7 +69,7 @@
    (eval-module σ VAL-ENV MODULE σ_+ VAL-ENV_+)])
 
 ;; -----------------------------------------------------------------------------
-;; --- intermission, metafunctions for eval-module
+;; --- metafunctions for eval-module
 
 (define-metafunction μTR
   require->local-value-env : VAL-ENV (REQUIRE ...) -> ρ
@@ -95,26 +96,30 @@
    #{local-value-env-set ρ_rest x v}
    (where (_ v) #{local-value-env-ref ρ x})
    (where κ #{type->tag τ})
-   (where _ #{tag-check/fail v κ})
+   (where _ #{tag-check/fail# v κ})
    (where ρ_rest #{import/tagged (x:τ_rest ...) ρ})])
 
 ;; Usually call `apply-monitor`, but skip the boundary for typed functions and vectors
 (define-metafunction μTR
-  tag-check/fail : v κ -> v
-  [(tag-check/fail v κ)
+  tag-check/fail# : v κ -> v
+  [(tag-check/fail# v TST)
+   v]
+  [(tag-check/fail# v κ)
    v
    (judgment-holds (well-tagged-value v κ))]
-  [(tag-check/fail v κ)
+  [(tag-check/fail# v κ)
    ,(raise-argument-error 'tag-check "BE ill-tagged value"
      "value" (term v)
      "tag" (term κ))])
 
 (define-metafunction μTR
-  tag-check : v κ -> any
-  [(tag-check v κ)
+  tag-check# : v κ -> any
+  [(tag-check# v TST)
+   v]
+  [(tag-check# v κ)
    v
    (judgment-holds (well-tagged-value v κ))]
-  [(tag-check v κ)
+  [(tag-check# v κ)
    (BE κ v)])
 
 (define-metafunction μTR
@@ -147,34 +152,47 @@
   #:contract (eval-define σ ρ DEFINE σ ρ)
   [
    (where (define x e) UNTYPED-DEFINE)
-   (where L UN)
-   (eval-expression σ ρ L e σ_+ v_+)
+   (eval-untyped-expression σ ρ e σ_+ v_+)
    (where ρ_+ #{local-value-env-set ρ x v_+})
    ---
    (eval-define σ ρ UNTYPED-DEFINE σ_+ ρ_+)]
   [
    (where (define x τ e) TYPED-DEFINE)
-   (where L TY)
-   (eval-expression σ ρ L e σ_+ v_+)
+   (eval-typed-expression σ ρ e σ_+ v_+)
    (where ρ_+ #{local-value-env-set ρ x v_+})
    ---
    (eval-define σ ρ TYPED-DEFINE σ_+ ρ_+)])
 
 (define-judgment-form μTR
-  #:mode (eval-expression I I I I O O)
-  #:contract (eval-expression σ ρ L e σ v)
+  #:mode (eval-typed-expression I I I O O)
+  #:contract (eval-typed-expression σ ρ e σ v)
   [
-   (where Σ_0 #{load-expression L σ ρ e})
-   (where A ,(step* (term Σ_0)))
+   (where Σ_0 #{load-expression σ ρ e})
+   (where A ,(typed-step* (term Σ_0)))
    (where (σ_+ v_+) #{unload-answer A})
    ---
-   (eval-expression σ ρ L e σ_+ v_+)])
+   (eval-typed-expression σ ρ e σ_+ v_+)])
+
+(define-judgment-form μTR
+  #:mode (eval-untyped-expression I I I O O)
+  #:contract (eval-untyped-expression σ ρ e σ v)
+  [
+   (where Σ_0 #{load-expression σ ρ e})
+   (where A ,(untyped-step* (term Σ_0)))
+   (where (σ_+ v_+) #{unload-answer A})
+   ---
+   (eval-untyped-expression σ ρ e σ_+ v_+)])
 
 (define-metafunction μTR
   eval-expression# : σ ρ L e -> [σ v]
   [(eval-expression# σ ρ L e)
    (σ_+ v_+)
-   (judgment-holds (eval-expression σ ρ L e σ_+ v_+))]
+   (where L UN)
+   (judgment-holds (eval-untyped-expression σ ρ e σ_+ v_+))]
+  [(eval-expression# σ ρ L e)
+   (σ_+ v_+)
+   (where L TY)
+   (judgment-holds (eval-typed-expression σ ρ e σ_+ v_+))]
   [(eval-expression# σ ρ L e)
    ,(raise-arguments-error 'eval-expression "undefined for arguments"
      "store" (term σ)
@@ -184,213 +202,226 @@
 
 ;; -----------------------------------------------------------------------------
 
-(define single-step
+;; TODO currently no rule for tag?. Need to add one?
+
+(define untyped-step
   (reduction-relation μTR
    #:domain A
    [-->
-     (L σ (in-hole E (tag? κ v)))
+     (σ (in-hole E (from-typed τ e)))
      A_next
-     E-Tag
-     (where A_next #{do-tag L σ E v κ})]
-
+     E-Boundary
+     (where A_next #{do-from-typed σ E e τ})]
    [-->
-     (L σ (in-hole E (v_0 v_1)))
+     (σ (in-hole E (v_0 v_1)))
+     A_next
+     E-Apply
+     (where A_next #{do-apply/untyped σ E v_0 v_1})]
+   [-->
+     (σ (in-hole E (make-vector v ...)))
+     (σ_+ (in-hole E (vector loc)))
+     E-MakeVector
+     (fresh loc)
+     (where σ_+ #{store-set σ loc (v ...)})]
+   [-->
+     (σ (in-hole E (vector-ref v_0 v_1)))
+     A_next
+     E-Ref
+     (where A_next #{do-ref/untyped σ E v_0 v_1})]
+   [-->
+     (σ (in-hole E (vector-set! v_0 v_1 v_2)))
+     A_next
+     E-Set
+     (where A_next #{do-set/untyped σ E v_0 v_1 v_2})]
+   [-->
+     (σ (in-hole E (ifz v e_0 e_1)))
+     A_next
+     E-Ifz
+     (where A_next #{do-ifz/untyped σ E v e_0 e_1})]
+   [-->
+     (σ (in-hole E (BINOP v_0 v_1)))
+     A_next
+     E-Arith
+     (where A_next #{do-arith/untyped BINOP σ E v_0 v_1})]
+   [-->
+     (σ (in-hole E (first v)))
+     A_next
+     E-first
+     (where A_next #{do-first/untyped σ E v})]
+   [-->
+     (σ (in-hole E (rest v)))
+     A_next
+     E-rest
+     (where A_next #{do-rest/untyped σ E v})]))
+
+(define typed-step
+  (reduction-relation μTR
+   #:domain A
+   [-->
+     (σ (in-hole E (from-untyped τ e)))
+     A_next
+     E-Boundary
+     (where A_next #{do-from-untyped σ E e τ})]
+   [-->
+     (σ (in-hole E (v_0 v_1)))
      A_next
      E-ApplyT
-     (judgment-holds (typed-context E L))
-     (where A_next #{do-apply/typed L σ E v_0 v_1})]
+     (where A_next #{do-apply/typed σ E v_0 v_1})]
    [-->
-     (L σ (in-hole E (v_0 v_1)))
-     A_next
-     E-ApplyU
-     (judgment-holds (untyped-context E L))
-     (where A_next #{do-apply/untyped L σ E v_0 v_1})]
-
-   [-->
-     (L σ (in-hole E (vector v ...)))
-     (L σ_+ (in-hole E (vector loc)))
-     E-MakeVectorU
-     (judgment-holds (not-VV σ (vector v ...)))
+     (σ (in-hole E (make-vector τ v ...)))
+     (σ_+ (in-hole E (vector τ loc)))
+     E-MakeVector
      (fresh loc)
      (where σ_+ #{store-set σ loc (v ...)})]
    [-->
-     (L σ (in-hole E (vector τ v ...)))
-     (L σ_+ (in-hole E (vector τ loc)))
-     E-MakeVectorT
-     (judgment-holds (not-VV σ (vector τ v ...)))
-     (fresh loc)
-     (where σ_+ #{store-set σ loc (v ...)})]
-   [-->
-     (L σ (in-hole E (vector-ref v_0 v_1)))
+     (σ (in-hole E (vector-ref v_0 v_1)))
      A_next
-     E-VectorRefT
-     (judgment-holds (typed-context E L))
-     (where A_next #{do-ref/typed L σ E v_0 v_1})]
+     E-Ref
+     (where A_next #{do-ref/typed σ E v_0 v_1})]
    [-->
-     (L σ (in-hole E (vector-ref v_0 v_1)))
+     (σ (in-hole E (vector-set! v_0 v_1 v_2)))
      A_next
-     E-VectorRefU
-     (judgment-holds (untyped-context E L))
-     (where A_next #{do-ref/untyped L σ E v_0 v_1})]
+     E-Set
+     (where A_next #{do-set/typed σ E v_0 v_1 v_2})]
+   [-->
+     (σ (in-hole E (ifz v e_0 e_1)))
+     A_next
+     E-Ifz
+     (where A_next #{do-ifz/typed σ E v e_0 e_1})]
+   [-->
+     (σ (in-hole E (BINOP v_0 v_1)))
+     A_next
+     E-Arith
+     (where A_next #{do-arith/typed BINOP σ E v_0 v_1})]
+   [-->
+     (σ (in-hole E (first v)))
+     A_next
+     E-first
+     (where A_next #{do-first/typed σ E v})]
+   [-->
+     (σ (in-hole E (rest v)))
+     A_next
+     E-rest
+     (where A_next #{do-rest/typed σ E v})]))
 
-   [-->
-     (L σ (in-hole E (vector-set! v_0 v_1 v_2)))
-     A_next
-     E-VectorSetT
-     (judgment-holds (typed-context E L))
-     (where A_next #{do-set/typed L σ E v_0 v_1 v_2})]
-   [-->
-     (L σ (in-hole E (vector-set! v_0 v_1 v_2)))
-     A_next
-     E-VectorSetU
-     (judgment-holds (untyped-context E L))
-     (where A_next #{do-set/untyped L σ E v_0 v_1 v_2})]
+(define-metafunction μTR
+  untyped-step# : Σ -> A
+  [(untyped-step# Σ)
+   ,(let ([A* (apply-reduction-relation untyped-step (term Σ))])
+     (cond
+      [(null? A*)
+       (term Σ)]
+      [(null? (cdr A*))
+       (car A*)]
+      [else
+       (raise-arguments-error 'untyped-step# "non-deterministic reduction"
+        "state" (term Σ)
+        "answers" A*)]))])
 
-   [-->
-     (L σ (in-hole E (ifz v e_0 e_1)))
-     A_next
-     E-IfzT
-     (judgment-holds (typed-context E L))
-     (where A_next #{do-ifz/typed L σ E v e_0 e_1})]
-   [-->
-     (L σ (in-hole E (ifz v e_0 e_1)))
-     A_next
-     E-IfzU
-     (judgment-holds (untyped-context E L))
-     (where A_next #{do-ifz/untyped L σ E v e_0 e_1})]
+(define-metafunction μTR
+  typed-step# : Σ -> A
+  [(typed-step# Σ)
+   ,(let ([A* (apply-reduction-relation typed-step (term Σ))])
+     (cond
+      [(null? A*)
+       (term Σ)]
+      [(null? (cdr A*))
+       (car A*)]
+      [else
+       (raise-arguments-error 'typed-step# "non-deterministic reduction"
+        "state" (term Σ)
+        "answers" A*)]))])
 
-   [-->
-     (L σ (in-hole E (BINOP v_0 v_1)))
-     A_next
-     E-ArithT
-     (judgment-holds (typed-context E L))
-     (where A_next #{do-arith/typed BINOP L σ E v_0 v_1})]
-   [-->
-     (L σ (in-hole E (BINOP v_0 v_1)))
-     A_next
-     E-ArithU
-     (judgment-holds (untyped-context E L))
-     (where A_next #{do-arith/untyped BINOP L σ E v_0 v_1})]
+(define untyped-step*
+  (make--->* untyped-step))
 
-   [-->
-     (L σ (in-hole E (first v)))
-     A_next
-     E-firstT
-     (judgment-holds (typed-context E L))
-     (where A_next #{do-first/typed L σ E v})]
-   [-->
-     (L σ (in-hole E (first v)))
-     A_next
-     E-firstU
-     (judgment-holds (untyped-context E L))
-     (where A_next #{do-first/untyped L σ E v})]
-
-   [-->
-     (L σ (in-hole E (rest v)))
-     A_next
-     E-restT
-     (judgment-holds (typed-context E L))
-     (where A_next #{do-rest/typed L σ E v})]
-   [-->
-     (L σ (in-hole E (rest v)))
-     A_next
-     E-restU
-     (judgment-holds (untyped-context E L))
-     (where A_next #{do-rest/untyped L σ E v})]))
-
-(define step*
-  (make--->* single-step))
+(define typed-step*
+  (make--->* typed-step))
 
 ;; -----------------------------------------------------------------------------
 
 (define-metafunction μTR
-  do-tag : L σ E v κ -> A
-  [(do-tag L σ E v κ)
-   #{make-answer L σ E #{tag-check v κ}}])
+  do-from-typed : σ E e τ -> A
+  [(do-from-typed σ E v τ)
+   #{make-answer σ E #{tag-check/fail# v κ}}
+   (where κ #{type->tag τ})]
+  [(do-from-typed σ E e τ)
+   (σ_+ (in-hole E (from-typed τ e_+)))
+   (where (σ_+ e_+) #{typed-step# (σ e)})]
+  [(do-from-typed σ E e τ)
+   Error
+   (where Error #{typed-step# (σ e)})])
 
 (define-metafunction μTR
-  do-apply/untyped : L σ E v v -> A
-  [(do-apply/untyped _ _ _ v _)
+  do-from-untyped : σ E e τ -> A
+  [(do-from-untyped σ E v τ)
+   #{make-answer σ E #{tag-check# v κ}}
+   (where κ #{type->tag τ})]
+  [(do-from-untyped σ E e τ)
+   (σ_+ (in-hole E (from-untyped τ e_+)))
+   (where (σ_+ e_+) #{untyped-step# (σ e)})]
+  [(do-from-untyped σ E e τ)
+   Error
+   (where Error #{untyped-step# (σ e)})])
+
+(define-metafunction μTR
+  do-apply/untyped : σ E v v -> A
+  [(do-apply/untyped _ _ v _)
    (TE v "procedure?")
    (judgment-holds (not-fun-value v))]
-  [(do-apply/untyped L σ E v_0 v_1)
-   #{do-apply L σ E v_0 v_1 L_hole}
-   (where L_hole UN)])
-
-(define-metafunction μTR
-  do-apply/typed : L σ E v v -> A
-  [(do-apply/typed L σ E v_0 v_1)
-   #{do-apply L σ E v_0 v_1 L_hole}
-   (where L_hole TY)])
-
-(define-metafunction μTR
-  do-apply : L σ E v v L -> A
-  [(do-apply L σ E Λ v_arg _)
-   (L σ (in-hole E e_body+))
+  [(do-apply/untyped σ E Λ v_arg)
+   (σ (in-hole E e_body+))
    (where (fun x_f (x_arg) e_body) Λ)
    (where e_body+ (substitute (substitute e_body x_f Λ) x_arg v_arg))]
-  [(do-apply L σ E Λ v_arg _)
-   (L σ (in-hole E e_body+))
-   (where (fun x_f _ (x_arg) e_body) Λ)
+  [(do-apply/untyped σ E Λ v_arg)
+   (σ (in-hole E (from-typed τ_cod e_body+)))
+   (where (fun x_f τ_f (x_arg) e_body) Λ)
+   (where (→ τ_dom τ_cod) #{coerce-arrow-type τ_f})
    (where e_body+ (substitute (substitute e_body x_f Λ) x_arg v_arg))])
 
 (define-metafunction μTR
-  do-ref/typed : L σ E v v -> A
-  [(do-ref/typed L σ E v_0 v_1)
-   #{do-ref L σ E v_0 v_1 L_hole}
-   (where L_hole TY)])
+  do-apply/typed : σ E v v -> A
+  [(do-apply/typed σ E Λ v_arg)
+   (σ (in-hole E (from-untyped TST e_body+)))
+   (where (fun x_f (x_arg) e_body) Λ)
+   (where e_body+ (substitute (substitute e_body x_f Λ) x_arg v_arg))]
+  [(do-apply/typed σ E Λ v_arg)
+   (σ (in-hole E e_body+))
+   (where (fun x_f τ_f (x_arg) e_body) Λ)
+   (where (→ τ_dom τ_cod) #{coerce-arrow-type τ_f})
+   (where e_body+ (substitute (substitute e_body x_f Λ) x_arg v_arg))])
 
 (define-metafunction μTR
-  do-ref/untyped : L σ E v v -> A
-  [(do-ref/untyped _ _ _ v _)
+  do-ref/typed : σ E v v -> A
+  [(do-ref/typed σ E v_0 v_1)
+   #{do-ref σ E v_0 v_1}])
+
+(define-metafunction μTR
+  do-ref/untyped : σ E v v -> A
+  [(do-ref/untyped _ _ v _)
    (TE v "vector?")
    (judgment-holds (not-vector-value v))]
-  [(do-ref/untyped _ _ _ _ v)
+  [(do-ref/untyped _ _ _ v)
    (TE v "integer?")
    (judgment-holds (not-integer-value v))]
-  [(do-ref/untyped L σ E v_0 v_1)
-   #{do-ref L σ E v_0 v_1 L_hole}
-   (where L_hole UN)])
+  [(do-ref/untyped σ E v_0 v_1)
+   #{do-ref σ E v_0 v_1}])
 
 (define-metafunction μTR
-  do-ref : L σ E v v L -> A
-  [(do-ref L σ E (vector loc) integer_index _)
-   #{make-answer L σ E #{term-ref v* integer_index}}
-   (where (_ v*) #{store-ref σ loc})]
-  [(do-ref L σ E (vector _ loc) integer_index _)
-   #{make-answer L σ E #{term-ref v* integer_index}}
-   (where (_ v*) #{store-ref σ loc})])
+  do-set/typed : σ E v v v -> A
+  [(do-set/typed σ E v_0 v_1 v_2)
+   #{do-set σ E v_0 v_1 v_2}])
 
 (define-metafunction μTR
-  do-set/typed : L σ E v v v -> A
-  [(do-set/typed L σ E v_0 v_1 v_2)
-   #{do-set L σ E v_0 v_1 v_2}])
-
-(define-metafunction μTR
-  do-set/untyped : L σ E v v v -> A
-  [(do-set/untyped _ _ _ v _ _)
+  do-set/untyped : σ E v v v -> A
+  [(do-set/untyped _ _ v _ _)
    (TE v "vector?")
    (judgment-holds (not-vector-value v))]
-  [(do-set/untyped _ _ _ _ v _)
+  [(do-set/untyped _ _ _ v _)
    (TE v "integer?")
    (judgment-holds (not-integer-value v))]
-  [(do-set/untyped L σ E v_0 v_1 v_2)
-   #{do-set L σ E v_0 v_1 v_2}])
-
-(define-metafunction μTR
-  do-set : L σ E v v v -> A
-  [(do-set L σ E (vector loc) v_1 v_2)
-   ,(if (redex-match? μTR Error (term any_set))
-      (term any_set)
-      (term (L #{store-update σ loc any_set} (in-hole E v_2))))
-   (where (_ v*) #{store-ref σ loc})
-   (where any_set #{term-set v* v_1 v_2})]
-  [(do-set L σ E (vector _ loc) v_1 v_2)
-   ,(if (redex-match? μTR Error (term any_set))
-      (term any_set)
-      (term (L #{store-update σ loc any_set} (in-hole E v_2))))
-   (where (_ v*) #{store-ref σ loc})
-   (where any_set #{term-set v* v_1 v_2})])
+  [(do-set/untyped σ E v_0 v_1 v_2)
+   #{do-set σ E v_0 v_1 v_2}])
 
 ;; =============================================================================
 
@@ -399,33 +430,33 @@
 
   (test-case "tag-check"
     (check-mf-apply*
-     ((tag-check 4 Int)
+     ((tag-check# 4 Int)
       4)
-     ((tag-check nil List)
+     ((tag-check# nil List)
       nil)
-     ((tag-check (cons 1 (cons 2 (cons 3 nil))) List)
+     ((tag-check# (cons 1 (cons 2 (cons 3 nil))) List)
       (cons 1 (cons 2 (cons 3 nil))))
-     ((tag-check (vector x) Vector)
+     ((tag-check# (vector x) Vector)
       (vector x))
-     ((tag-check (vector Int x) Vector)
+     ((tag-check# (vector Int x) Vector)
       (vector Int x))
-     ((tag-check (cons (vector x) (cons (vector y) nil)) List)
+     ((tag-check# (cons (vector x) (cons (vector y) nil)) List)
       (cons (vector x) (cons (vector y) nil)))
-     ((tag-check (fun f (x) (+ x x)) →)
+     ((tag-check# (fun f (x) (+ x x)) →)
       (fun f (x) (+ x x)))
-     ((tag-check (fun f (→ Int Int) (x) (+ x x)) →)
+     ((tag-check# (fun f (→ Int Int) (x) (+ x x)) →)
       (fun f (→ Int Int) (x) (+ x x)))
-     ((tag-check 4 Int)
+     ((tag-check# 4 Int)
       4)
-     ((tag-check (vector q) Vector)
+     ((tag-check# (vector q) Vector)
       (vector q))
-     ((tag-check (fun f (x) x) →)
+     ((tag-check# (fun f (x) x) →)
       (fun f (x) x))
-     ((tag-check (fun f (→ (Vectorof Int) (Vectorof Int)) (x) x) →)
+     ((tag-check# (fun f (→ (Vectorof Int) (Vectorof Int)) (x) x) →)
       (fun f (→ (Vectorof Int) (Vectorof Int)) (x) x))
-     ((tag-check (vector (Vectorof Int) aaa) Vector)
+     ((tag-check# (vector (Vectorof Int) aaa) Vector)
       (vector (Vectorof Int) aaa))
-     ((tag-check 4 List)
+     ((tag-check# 4 List)
       (BE List 4))))
 
   (test-case "import/untyped"
@@ -484,83 +515,80 @@
       (λ () (term (require->local-value-env ((m0 ((num 4)))) ((require m0 ((num (Vectorof Int)))))))))
   )
 
-  (test-case "do-tag"
+  (test-case "do-from-untyped"
     (check-mf-apply*
-     ((do-tag UN () hole 4 Int)
-      (UN () 4))
-     ((do-tag TY () hole 4 Vector)
-      (BE Vector 4))
-     ((do-tag UN () hole (fun f (x) x) →)
-      (UN () (fun f (x) x)))))
+     ((do-from-untyped () hole 3 Int)
+      (() 3))
+     ((do-from-untyped () hole 3 (Vectorof Int))
+      (BE Vector 3))
+     ((do-from-untyped ((qq (0))) hole (vector qq) (Vectorof Nat))
+      (((qq (0))) (vector qq)))
+     ((do-from-untyped ((qq (0))) hole (vector qq) (Vectorof (→ Nat Nat)))
+      (((qq (0))) (vector qq)))))
+
+  (test-case "do-from-typed"
+    (check-mf-apply*
+     ((do-from-typed () hole 3 Int)
+      (() 3))
+     ((do-from-typed ((qq (0))) hole (vector qq) (Vectorof Nat))
+      (((qq (0))) (vector qq)))
+     ((do-from-typed ((qq (0))) hole (vector qq) (Vectorof (→ Nat Nat)))
+      (((qq (0))) (vector qq))))
+
+    (check-exn exn:fail:contract?
+      (λ () (term #{do-from-typed () hole 3 (Vectorof Int)}))))
+
+
+  (test-case "do-apply/untyped"
+    (check-mf-apply* #:is-equal? α=?
+     ((do-apply/untyped () hole 4 5)
+      (TE 4 "procedure?"))
+     ((do-apply/untyped () hole (fun a (x) (fun b (y) (fun c (z) (+ (+ x y) z)))) 2)
+      (() (fun b (y) (fun c (z) (+ (+ 2 y) z)))))
+    )
+
+    (check-exn exn:fail:redex?
+      (λ () (term #{do-apply/untyped () (from-untyped Int hole) (fun f (x) (+ x x)) 5})))
+  )
 
   (test-case "do-apply/typed"
     (check-mf-apply*
-     ((do-apply/untyped UN () hole 4 5)
-      (TE 4 "procedure?"))
-     ((do-apply/untyped TY () (check Int hole) (fun f (x) (+ x x)) 5)
-      (TY () (check Int (+ 5 5))))
+     ((do-apply/typed ((a (1))) hole (fun f (→ Nat Nat) (x) (+ x x)) 5)
+      (((a (1))) (+ 5 5)))
     )
   )
 
-  (test-case "do-apply/untyped"
-    (check-mf-apply*
-     ((do-apply/typed TY ((a (1))) hole (fun f (x) (+ x x)) 5)
-      (TY ((a (1))) (+ 5 5)))))
-
-  (test-case "do-apply"
-    (check-mf-apply*
-     ((do-apply UN () hole (fun f (x) (+ x x)) 5 UN)
-      (UN () (+ 5 5)))))
-
   (test-case "do-ref/typed"
     (check-mf-apply*
-     ((do-ref/typed TY ((qq (1 2))) hole (vector qq) 0)
-      (TY ((qq (1 2))) 1))
-     ((do-ref/typed TY ((qq (1 2))) hole (vector (Vectorof Int) qq) 1)
-      (TY ((qq (1 2))) 2))
-     ((do-ref/typed TY ((qq ())) hole (vector qq) 3)
+     ((do-ref/typed ((qq (1 2))) hole (vector qq) 0)
+      (((qq (1 2))) 1))
+     ((do-ref/typed ((qq (1 2))) hole (vector (Vectorof Int) qq) 1)
+      (((qq (1 2))) 2))
+     ((do-ref/typed ((qq ())) hole (vector qq) 3)
       BadIndex)))
 
   (test-case "do-ref/untyped"
     (check-mf-apply*
-     ((do-ref/untyped UN ((qq (1 2))) hole (vector qq) 0)
-      (UN ((qq (1 2))) 1))
-     ((do-ref/untyped UN () hole 4 5)
+     ((do-ref/untyped ((qq (1 2))) hole (vector qq) 0)
+      (((qq (1 2))) 1))
+     ((do-ref/untyped () hole 4 5)
       (TE 4 "vector?"))))
-
-  (test-case "do-ref"
-    (check-mf-apply*
-     ((do-ref TY ((qq (2))) hole (vector qq) 0 UN)
-      (TY ((qq (2))) 2))))
 
   (test-case "do-set/typed"
     (check-mf-apply*
-     ((do-set/typed TY ((qq (1 2))) hole (vector (Vectorof Nat) qq) 0 2)
-      (TY ((qq (2 2))) 2))
-     ((do-set/typed TY ((qq (1 2))) hole (vector qq) 0 2)
-      (TY ((qq (2 2))) 2))))
+     ((do-set/typed ((qq (1 2))) hole (vector (Vectorof Nat) qq) 0 2)
+      (((qq (2 2))) 2))
+     ((do-set/typed ((qq (1 2))) hole (vector qq) 0 2)
+      (((qq (2 2))) 2))))
 
   (test-case "do-set/untyped"
     (check-mf-apply*
-     ((do-set/untyped UN () hole 4 5 6)
+     ((do-set/untyped () hole 4 5 6)
       (TE 4 "vector?"))
-     ((do-set/untyped UN ((qq (0))) hole (vector qq) (vector qq) 6)
+     ((do-set/untyped ((qq (0))) hole (vector qq) (vector qq) 6)
       (TE (vector qq) "integer?"))
-     ((do-set/untyped UN ((qq (0 0))) hole (vector qq) 0 1)
-      (UN ((qq (1 0))) 1))))
-
-  (test-case "do-set"
-    (check-mf-apply*
-     ((do-set UN ((qq (5))) hole (vector qq) 0 1)
-      (UN ((qq (1))) 1))
-     ((do-set TY ((qq (5))) hole (vector (Vectorof Int) qq) 0 1)
-      (TY ((qq (1))) 1))
-     ((do-set TY ((qq (5))) hole (vector qq) 0 (fun f (x) 1))
-      (TY ((qq ((fun f (x) 1)))) (fun f (x) 1)))
-     ((do-set TY ((qq ((fun f (x) 0)))) hole (vector qq) 0 (fun f (x) 1))
-      (TY ((qq ((fun f (x) 1)))) (fun f (x) 1)))
-    )
-  )
+     ((do-set/untyped ((qq (0 0))) hole (vector qq) 0 1)
+      (((qq (1 0))) 1))))
 
   (test-case "eval-value"
     (check-mf-apply*
@@ -615,7 +643,7 @@
       (() ((M ((f0 1) (f1 1) (f2 2) (f3 6) (f4 24))))))
      ((eval-program#
        ((module M TY
-         (define v (Vectorof Int) (vector (Vectorof Int) 1 2 (+ 2 1)))
+         (define v (Vectorof Int) (make-vector (Vectorof Int) 1 2 (+ 2 1)))
          (define x Int (vector-ref v 2))
          (define dontcare Int (vector-set! v 0 0))
          (define y Int (vector-ref v 0))
@@ -692,20 +720,20 @@
       (λ () (term
         (eval-program#
          ((module M TY
-           (define x Int (vector-ref (vector 1) 999))
+           (define x Int (vector-ref (make-vector (Vectorof Int) 1) 999))
            (provide)))))))
     (check-exn #rx"BadIndex"
       (λ () (term
         (eval-program#
          ((module M UN
-           (define x (vector-set! (vector 0) 4 5))
+           (define x (vector-set! (make-vector 0) 4 5))
            (provide))))))))
 
   (test-case "eval-program:BE"
     (check-mf-apply*
      ((eval-program#
        ((module M0 TY
-         (define v (Vectorof Int) (vector (Vectorof Int) 0))
+         (define v (Vectorof Int) (make-vector (Vectorof Int) 0))
          (provide v))
         (module M1 UN
          (require M0 v)
@@ -714,7 +742,7 @@
       (((loc (nil))) ((M0 ((v (vector (Vectorof Int) loc)))) (M1 ()))))
      ((eval-program#
        ((module M0 UN
-         (define v (vector -1))
+         (define v (make-vector -1))
          (provide v))
         (module M1 TY
          (require M0 ((v (Vectorof Nat))))
@@ -733,7 +761,7 @@
      ((eval-program#
        ;; WEIRD this is not an error because the semantics doesn't do the completion
        ((module M0 UN
-         (define v (vector -1))
+         (define v (make-vector -1))
          (provide v))
         (module M1 TY
          (require M0 ((v (Vectorof Nat))))
@@ -801,7 +829,7 @@
       (() ((M0 ((nats (cons 1 (cons 2 (cons -3 nil)))))) (M1 ()))))
     )
 
-    (check-exn exn:fail:redex?
+    (check-exn #rx"TE"
       (lambda () (term
                    (eval-program#
                      ((module M0 UN

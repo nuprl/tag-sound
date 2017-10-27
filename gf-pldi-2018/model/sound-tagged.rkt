@@ -26,6 +26,7 @@
   "eval-tagged.rkt"
   "lang.rkt"
   "metafunctions.rkt"
+  "tagcheck.rkt"
   "typecheck.rkt"
   racket/set
   redex/reduction-semantics
@@ -90,16 +91,14 @@
   #:contract (sound-eval-define Γ σ ρ DEFINE σ ρ)
   [
    (where (define x e) UNTYPED-DEFINE)
-   (where L UN)
-   (sound-eval-expression Γ σ ρ L e TST A_+)
+   (where A_+ #{sound-eval-untyped-expression# Γ σ ρ e})
    (where (σ_+ v_+) #{unpack-answer A_+})
    (where ρ_+ #{local-value-env-set ρ x v_+})
    ---
    (sound-eval-define Γ σ ρ UNTYPED-DEFINE σ_+ ρ_+)]
   [
    (where (define x τ e) TYPED-DEFINE)
-   (where L TY)
-   (sound-eval-expression Γ σ ρ L e τ A_+)
+   (where A_+ #{sound-eval-typed-expression# Γ σ ρ e τ})
    (where (σ_+ v_+) #{unpack-answer A_+})
    (where ρ_+ #{local-value-env-set ρ x v_+})
    ---
@@ -113,102 +112,95 @@
   [(unpack-answer [σ v])
    [σ v]])
 
-(define-judgment-form μTR
-  #:mode (toplevel-value-env-models I I I)
-  #:contract (toplevel-value-env-models σ VAL-ENV TYPE-ENV)
-  [
-   (same-domain VAL-ENV TYPE-ENV)
-   (toplevel-value-env-models-aux σ VAL-ENV TYPE-ENV)
-   ---
-   (toplevel-value-env-models σ VAL-ENV TYPE-ENV)])
-
-(define-judgment-form μTR
-  #:mode (toplevel-value-env-models-aux I I I)
-  #:contract (toplevel-value-env-models-aux σ VAL-ENV TYPE-ENV)
-  [
-   ---
-   (toplevel-value-env-models-aux σ () TYPE-ENV)]
-  [
-   (where (_ Γ_0) #{toplevel-type-env-ref TYPE-ENV M_0})
-   (local-value-env-models σ ρ_0 Γ_0)
-   (toplevel-value-env-models-aux σ (M:ρ_rest ...) TYPE-ENV)
-   ---
-   (toplevel-value-env-models-aux σ ((M_0 ρ_0) M:ρ_rest ...) TYPE-ENV)])
-
 (define-metafunction μTR
-  sound-eval-expression# : Γ σ ρ L e τ -> A
-  [(sound-eval-expression# Γ σ ρ L e τ)
+  sound-eval-untyped-expression# : Γ σ ρ e -> A
+  [(sound-eval-untyped-expression# Γ σ ρ e)
    A
-   (judgment-holds (sound-eval-expression Γ σ ρ L e τ A))]
-  [(sound-eval-expression# Γ σ ρ L e τ)
-   ,(raise-arguments-error 'sound-eval-expression "failed to eval"
+   (judgment-holds (sound-eval-untyped-expression Γ σ ρ e A))]
+  [(sound-eval-untyped-expression# Γ σ ρ e)
+   ,(raise-arguments-error 'sound-eval-untyped-expression "failed to eval"
      "type env" (term Γ)
      "store" (term σ)
      "value env" (term ρ)
-     "lang" (term L)
+     "expr" (term e))])
+
+(define-metafunction μTR
+  sound-eval-typed-expression# : Γ σ ρ e τ -> A
+  [(sound-eval-typed-expression# Γ σ ρ e τ)
+   A
+   (judgment-holds (sound-eval-typed-expression Γ σ ρ e τ A))]
+  [(sound-eval-typed-expression# Γ σ ρ e τ)
+   ,(raise-arguments-error 'sound-eval-typed-expression "failed to eval"
+     "type env" (term Γ)
+     "store" (term σ)
+     "value env" (term ρ)
      "expr" (term e)
      "type" (term τ))])
 
 (define-judgment-form μTR
-  #:mode (sound-eval-expression I I I I I I O)
-  #:contract (sound-eval-expression Γ σ ρ L e τ A)
+  #:mode (sound-eval-untyped-expression I I I I O)
+  #:contract (sound-eval-untyped-expression Γ σ ρ e A)
   [
-   (well-typed-expression/TST Γ e τ)
-   (where κ #{type->tag τ})
-   (tagged-completion Γ e κ e_+)
-   (well-tagged-expression Γ e_+ κ)
+   (well-dyn-expression Γ e)
    (local-value-env-models σ ρ Γ)
-   ;; Do checked evaluation
-   (where Σ_0 #{load-expression L σ ρ e})
-   (where A #{sound-step* Σ_0 κ})
+   (where Σ_0 #{load-expression σ ρ e})
+   (where (A τ) ,(sound-step* (term [Σ_0 TST])))
    ---
-   (sound-eval-expression Γ σ ρ L e τ A)])
-
-(define-metafunction μTR
-  sound-step* : Σ κ -> A
-  [(sound-step* Σ κ)
-   ,(if (term boolean_+)
-      (term #{sound-step* A_+ κ})
-      (term A_+))
-   (judgment-holds (sound-step Σ κ A_+ boolean_+))]
-  [(sound-step* A κ)
-   ,(raise-arguments-error 'sound-step* "undefined for arguments"
-      "config" (term A)
-      "tag" (term κ))])
+   (sound-eval-untyped-expression Γ σ ρ e A)])
 
 (define-judgment-form μTR
-  #:mode (sound-step I I O O)
-  #:contract (sound-step Σ κ A boolean)
+  #:mode (sound-eval-typed-expression I I I I I O)
+  #:contract (sound-eval-typed-expression Γ σ ρ e τ A)
   [
-   (well-tagged-config Σ κ)
-   (where (A boolean) ,(do-single-step (term Σ)))
-   (well-tagged-answer A κ)
+   (well-typed-expression Γ e τ)
+   (local-value-env-models σ ρ Γ)
+   (tag-of τ κ)
+   (tagged-completion Γ e κ e_+)
+   (well-tagged-expression Γ e_+ τ)
+   (where Σ_0 #{load-expression σ ρ e})
+   (where (A τ) ,(sound-step* (term [Σ_0 τ])))
    ---
-   (sound-step Σ κ A boolean)])
+   (sound-eval-typed-expression Γ σ ρ e τ A)])
+
+(define sound-step
+  (reduction-relation μTR
+    #:domain [A τ]
+    [-->
+      (Σ τ)
+      (A τ)
+      T-step
+      (judgment-holds (not-TST τ))
+      (judgment-holds (well-tagged-state Σ τ))
+      (where A #{typed-step# Σ})
+      (side-condition (not (equal? (term Σ) (term A))))
+      (judgment-holds (well-tagged-answer A τ))]
+    [-->
+      (Σ TST)
+      (A TST)
+      U-step
+      (judgment-holds (well-tagged-state Σ TST))
+      (where A #{untyped-step# Σ})
+      (side-condition (not (equal? (term Σ) (term A))))
+      (judgment-holds (well-tagged-answer A TST))]))
+
+(define sound-step*
+  (make--->* sound-step))
 
 (define-metafunction μTR
-  sound-step# : Σ κ -> [A boolean]
-  [(sound-step# Σ κ)
-   (A boolean)
-   (judgment-holds (sound-step Σ κ A boolean))]
-  [(sound-step# Σ κ)
-   ,(raise-arguments-error 'sound-step "undefined for arguments"
-     "state" (term Σ)
-     "tag" (term κ))])
-
-;; Apply reduction relation, make sure get 1 thing out of it
-(define (do-single-step Σ)
-  (define A* (apply-reduction-relation single-step Σ))
-  (cond
-   [(null? A*)
-    (list Σ #false)]
-   [(not (null? (cdr A*)))
-    (raise-arguments-error 'do-single-step "non-deterministic step"
-      "config" Σ
-      "next configs" A*)]
-   [else
-    (define Σ+ (car A*))
-    (list Σ+ (not (redex-match? μTR Error Σ+)))]))
+  sound-step# : Σ τ -> [A boolean]
+  [(sound-step# Σ τ)
+   ,(let ((x* (apply-reduction-relation sound-step (term (Σ τ)))))
+     (cond
+      [(null? x*)
+       (term (Σ #false))]
+      [(null? (cdr x*))
+       (define A (caar x*))
+       (list A (not (redex-match? μTR Error A)))]
+      [else
+       (raise-arguments-error 'sound-step# "non-deterministic"
+         "state" (term Σ)
+         "type" (term τ)
+         "results" x*)]))])
 
 (define-judgment-form μTR
   #:mode (well-tagged-answer I I)
@@ -220,23 +212,17 @@
    ---
    (well-tagged-answer TypeError _)]
   [
-   (well-tagged-config Σ_+ κ)
+   (well-tagged-state Σ_+ κ)
    ---
    (well-tagged-answer Σ_+ κ)])
 
 (define-judgment-form μTR
-  #:mode (well-tagged-config I I)
-  #:contract (well-tagged-config Σ κ)
+  #:mode (well-tagged-state I I)
+  #:contract (well-tagged-state Σ κ)
   [
-   (where L UN)
-   (WK σ () e TST)
-   ---
-   (well-tagged-config (L σ e) TST)]
-  [
-   (where L TY)
    (WK σ () e κ)
    ---
-   (well-tagged-config (L σ e) κ)])
+   (well-tagged-state (σ e) κ)])
 
 (define-judgment-form μTR
   #:mode (WK I I I I)
@@ -261,37 +247,37 @@
    (where Γ_fun #{local-type-env-set Γ x_fun τ_fun})
    (where Γ_x #{local-type-env-set Γ_fun x_arg τ_dom})
    (WK σ Γ_x e κ_cod)
-   --- T-FunT
+   --- T-FunT0
    (WK σ Γ (fun x_fun τ_fun (x_arg) e) κ)]
   [
    (or-TST → κ)
    (where Γ_f #{local-type-env-set Γ x_f (→ TST TST)})
    (where Γ_x #{local-type-env-set Γ_f x_arg TST})
    (WK σ Γ_x e_body TST)
-   --- T-FunU
+   --- T-FunU0
    (WK σ Γ (fun x_f (x_arg) e_body) κ)]
   [
-   (where (vector τ x) v)
-   (WK σ Γ #{unload-store/expression v σ} κ)
+   (or-TST Vector κ)
+   (where (_ (v_elem ...)) #{store-ref σ x})
+   (WK σ Γ v_elem TST) ...
    --- T-VecValT
-   (WK σ Γ v κ)]
+   (WK σ Γ (vector τ x) κ)]
   [
-   (where (vector x) v)
-   (WK σ Γ #{unload-store/expression v σ} TST)
+   (or-TST Vector κ)
+   (where (_ (v_elem ...)) #{store-ref σ x})
+   (WK σ Γ v_elem TST) ...
    --- T-VecValU
-   (WK σ Γ v κ)]
+   (WK σ Γ (vector x) κ)]
   [
-   (not-VV σ (vector τ_vec e ...))
    (or-TST #{type->tag τ_vec} κ)
    (WK σ Γ e TST) ...
    --- T-VecT
-   (WK σ Γ (vector τ_vec e ...) κ)]
+   (WK σ Γ (make-vector τ_vec e ...) κ)]
   [
    (or-TST Vector κ)
-   (not-VV σ (vector e ...))
    (WK σ Γ e TST) ...
    --- T-VecU
-   (WK σ Γ (vector e ...) κ)]
+   (WK σ Γ (make-vector e ...) κ)]
   [
    (or-TST List κ)
    (WK σ Γ e_0 TST)
@@ -303,33 +289,42 @@
    --- T-Nil
    (WK σ Γ nil κ)]
   [
-   (WK σ Γ e_fun →)
+   (WK σ Γ e_fun TST)
    (WK σ Γ e_arg TST)
    --- T-App
    (WK σ Γ (e_fun e_arg) TST)]
   [
-   (WK σ Γ e_0 Int)
+   (WK σ Γ e_0 TST)
    (WK σ Γ e_1 κ)
    (WK σ Γ e_2 κ)
    --- T-Ifz
    (WK σ Γ (ifz e_0 e_1 e_2) κ)]
   [
-   (or-TST Int κ)
    (WK σ Γ e_0 Int)
    (WK σ Γ e_1 Int)
    --- T-PlusT0
-   (WK σ Γ (+ e_0 e_1) κ)]
+   (WK σ Γ (+ e_0 e_1) Int)]
   [
    (WK σ Γ e_0 Nat)
    (WK σ Γ e_1 Nat)
    --- T-PlusT1
    (WK σ Γ (+ e_0 e_1) Nat)]
   [
+   (WK σ Γ e_0 TST)
+   (WK σ Γ e_1 TST)
+   --- T-PlusU
+   (WK σ Γ (+ e_0 e_1) TST)]
+  [
    (or-TST Int κ)
    (WK σ Γ e_0 Int)
    (WK σ Γ e_1 Int)
    --- T-MinusT
    (WK σ Γ (- e_0 e_1) κ)]
+  [
+   (WK σ Γ e_0 TST)
+   (WK σ Γ e_1 TST)
+   --- T-MinusU
+   (WK σ Γ (- e_0 e_1) TST)]
   [
    (or-TST Int κ)
    (WK σ Γ e_0 Int)
@@ -342,6 +337,11 @@
    --- T-TimesT1
    (WK σ Γ (* e_0 e_1) Nat)]
   [
+   (WK σ Γ e_0 TST)
+   (WK σ Γ e_1 TST)
+   --- T-TimesU
+   (WK σ Γ (* e_0 e_1) TST)]
+  [
    (or-TST Int κ)
    (WK σ Γ e_0 Int)
    (WK σ Γ e_1 Int)
@@ -352,6 +352,11 @@
    (WK σ Γ e_1 Nat)
    --- T-DivideT1
    (WK σ Γ (% e_0 e_1) Nat)]
+  [
+   (WK σ Γ e_0 TST)
+   (WK σ Γ e_1 TST)
+   --- T-DivU
+   (WK σ Γ (% e_0 e_1) TST)]
   [
    (WK σ Γ e_vec Vector)
    (WK σ Γ e_i Int)
@@ -364,12 +369,12 @@
    --- T-Set
    (WK σ Γ (vector-set! e_vec e_i e_val) κ)]
   [
-   (WK σ Γ e List)
+   (WK σ Γ e TST)
    --- T-First
    (WK σ Γ (first e) TST)]
   [
    (or-TST List κ)
-   (WK σ Γ e List)
+   (WK σ Γ e TST)
    --- T-Rest
    (WK σ Γ (rest e) κ)]
   [
@@ -379,7 +384,39 @@
   [
    (WK σ Γ e TST)
    --- T-Tag
-   (WK σ Γ (tag? κ e) κ)])
+   (WK σ Γ (check κ e) κ)]
+  [
+   (tag-of τ κ)
+   (WK σ Γ e TST)
+   ---
+   (WK σ Γ (from-untyped τ e) κ)]
+  [
+   (tag-of τ κ)
+   (WK σ Γ e κ)
+   ---
+   (WK σ Γ (from-typed τ e) κ)])
+
+(define-judgment-form μTR
+  #:mode (toplevel-value-env-models I I I)
+  #:contract (toplevel-value-env-models σ VAL-ENV TYPE-ENV)
+  [
+   (same-domain VAL-ENV TYPE-ENV)
+   (toplevel-value-env-models-aux σ VAL-ENV TYPE-ENV)
+   ---
+   (toplevel-value-env-models σ VAL-ENV TYPE-ENV)])
+
+(define-judgment-form μTR
+  #:mode (toplevel-value-env-models-aux I I I)
+  #:contract (toplevel-value-env-models-aux σ VAL-ENV TYPE-ENV)
+  [
+   ---
+   (toplevel-value-env-models-aux σ () TYPE-ENV)]
+  [
+   (where (_ Γ_0) #{toplevel-type-env-ref TYPE-ENV M_0})
+   (local-value-env-models σ ρ_0 Γ_0)
+   (toplevel-value-env-models-aux σ (M:ρ_rest ...) TYPE-ENV)
+   ---
+   (toplevel-value-env-models-aux σ ((M_0 ρ_0) M:ρ_rest ...) TYPE-ENV)])
 
 (define-judgment-form μTR
   #:mode (local-value-env-models I I I)
@@ -419,59 +456,62 @@
      (WK () ((x TST)) x TST)
      (WK () () (fun f (→ Nat Nat) (x) x) →)
      (WK () () (fun f (x) x) TST)
-     (WK () () (vector (Vectorof Int) 1 2) Vector)
-     (WK () () (vector 1 2) TST)
+     (WK ((q (1 2))) () (vector (Vectorof Int) q) Vector)
+     (WK ((q (1 2))) () (vector q) TST)
+     (WK () () (make-vector (Vectorof Int) 1 2) Vector)
+     (WK () () (make-vector 1 2) TST)
      (WK () () (cons 1 nil) List)
      (WK () () (cons 1 nil) TST)
      (WK () () nil List)
      (WK () () nil TST)
      (WK () ((f (→ Int Int))) (f -6) TST)
-     (WK () ((f (→ Int Int))) (tag? Int (f -6)) Int)
-;;TODO     (WK () ((f TST)) (f f) TST)
-;;TODO     (WK () () (3 3) TST)
+     (WK () ((f (→ Int Int))) (check Int (f -6)) Int)
+     (WK () ((f TST)) (f f) TST) ;; TODO how is this allowed but still sound?
+     (WK () () (3 3) TST)
      (WK () () (ifz 0 1 2) Nat)
-;;TODO     (WK () () (ifz nil nil nil) TST)
+     (WK () () (ifz nil nil nil) TST) ;; TODO soundness
      (WK () () (+ -1 2) Int)
      (WK () () (+ 3 2) Nat)
      (WK () () (+ 4 4) TST)
-;;TODO     (WK () () (+ nil nil) TST)
+     (WK () () (+ nil nil) TST)
      (WK () () (- 3 3) Int)
      (WK () () (- 3 3) TST)
-;;TODO     (WK () () (- 3 nil) TST)
+     (WK () () (- 3 nil) TST)
      (WK () () (* 3 -3) Int)
      (WK () () (* 3 3) Nat)
      (WK () () (* 3 3) TST)
-;;TODO     (WK () () (* nil 4) TST)
+     (WK () () (* nil 4) TST)
      (WK () () (% -6 2) Int)
      (WK () () (% 6 2) Nat)
      (WK () () (% 6 2) TST)
-;;TODO     (WK () () (% nil nil) TST)
-     (WK () () (vector-ref (vector (Vectorof Int) 2 3) 0) TST)
-     (WK () () (vector-ref (vector 3) 0) TST)
-     (WK () () (vector-set! (vector (Vectorof Int) 2 3) 0 -3) Int)
-;;TODO     (WK () () (vector-set! (vector 2) 0 nil) TST)
+     (WK () () (% nil nil) TST)
+     (WK () () (vector-ref (make-vector (Vectorof Int) 2 3) 0) TST)
+     (WK () () (vector-ref (make-vector 3) 0) TST)
+     (WK () () (vector-set! (make-vector (Vectorof Int) 2 3) 0 -3) Int)
+     (WK () () (vector-set! (make-vector 2) 0 nil) TST)
      (WK () () (first nil) TST)
      (WK () () (first (cons 1 nil)) TST)
-;;TODO     (WK () () (first 3) TST)
+     (WK () () (first 3) TST) ;; TODO soundness
      (WK () () (rest nil) List)
      (WK () () (rest (cons 1 nil)) List)
-;;TODO     (WK () () (rest 4) TST)
+     (WK () () (rest 4) TST) ;; TODO soundness
      (WK () () 4 (U Nat →))
      (WK () () (fun f (∀ (α) (→ α α)) (x) x) →)
      (WK () () (fun f (x) x) →)
-     (WK () () (vector 1 2) Vector)
+     (WK () () (make-vector 1 2) Vector)
+
+     (WK () () (ifz nil 1 2) Nat)
     )
 
     (check-not-judgment-holds*
      (WK () () -4 Nat)
      (WK () () nil Int)
      (WK () ((f (→ Int Int))) (f -6) Int)
-     (WK () () (ifz nil 1 2) Nat)
      (WK () () (- 3 0) Nat)
      (WK () () (* -3 -3) Nat)
-     (WK () () (vector-ref (vector 3) 0) Int)
-     (WK () () (vector-ref (vector (Vectorof Int) 3) 0) Int)
-     (WK () () (vector-set! (vector Nat 2 3) 0 -3) Int)
+     (WK () () (vector-ref (make-vector 3) 0) Int)
+     (WK () () (vector-ref (make-vector (Vectorof Int) 3) 0) Int)
+     (WK () () (vector-set! (make-vector Nat 2 3) 0 -3) Int)
      (WK () () (first (cons 1 nil)) Int)
     )
   )
@@ -490,7 +530,7 @@
        ((x (fun f (→ Nat Nat) (z) (+ z 3))))
        ((x (→ Nat Nat))))
      (local-value-env-models () () ((x Int)))
-;;TODO     (local-value-env-models () ((x (fun f (z) (+ z 3)))) ((x (→ Nat Nat))))
+     (local-value-env-models () ((x (fun f (z) (+ z 3)))) ((x (→ Nat Nat))))
     )
 
     (check-not-judgment-holds*
@@ -499,28 +539,34 @@
     )
   )
 
-  (test-case "well-tagged-config"
+  (test-case "well-tagged-state"
     (check-judgment-holds*
-;;TODO     (well-tagged-config (UN () (+ nil 2)) TST)
-     (well-tagged-config (TY () (+ 2 2)) Nat)
-     (well-tagged-config (TY ((qq (1 2))) (vector (Vectorof Nat) qq))
+     (well-tagged-state (() (+ nil 2)) TST)
+     (well-tagged-state (() (+ 2 2)) Nat)
+     (well-tagged-state (((qq (1 2))) (vector (Vectorof Nat) qq))
                         Vector)
-     (well-tagged-config (UN () (* 4 4)) TST)
+     (well-tagged-state (() (* 4 4)) TST)
     )
 
-;;TODO    (check-not-judgment-holds*
-;;TODO     (well-tagged-config (TY () (+ nil 2)) Int)
-;;TODO     (well-tagged-config (TY ((qq (1 -2))) (vector (Vectorof Nat) qq)) (Vectorof Nat))
-;;TODO    )
+    (check-not-judgment-holds*
+     (well-tagged-state (() (+ nil 2)) Int)
+     (well-tagged-state (((qq (1 -2))) (vector (Vectorof Nat) qq)) Nat)
+    )
   )
 
-  (test-case "do-single-step"
-    (check-equal?
-      (do-single-step (term (UN () (* 4 4))))
-      (term ((UN () 16) #true)))
-    (check-equal?
-      (do-single-step (term (UN () 16)))
-      (term ((UN () 16) #false)))
+  (test-case "sound-step"
+    (check-mf-apply*
+     ((sound-step# (() (+ 4 4)) Int)
+      ((() 8) #true))
+     ((sound-step# (() (from-untyped Int (+ 2 2))) Int)
+      ((() (from-untyped Int 4)) #true))
+     ((sound-step# (() (from-untyped Int (+ 2 nil))) Int)
+      ((TE nil "integer?") #false))
+     ((sound-step# (() (* 4 4)) TST)
+      ((() 16) #true))
+     ((sound-step# (() 16) TST)
+      ((() 16) #false))
+    )
   )
 
   (test-case "well-tagged-answer"
@@ -530,55 +576,53 @@
      (well-tagged-answer EmptyList TST)
      (well-tagged-answer (TE 4 (Listof Int)) TST)
      (well-tagged-answer (TE 4 List) List)
-     (well-tagged-answer (UN () (+ 2 2)) TST)
-;;TODO     (well-tagged-answer (UN () (+ 2 nil)) TST)
-     (well-tagged-answer (TY () (+ 2 2)) Int)
-     (well-tagged-answer (UN () 16) TST)
-    )
-
-    (check-not-judgment-holds*
-     (well-tagged-answer (UN () (+ 2 2)) Int)
+     (well-tagged-answer (() (+ 2 2)) TST)
+     (well-tagged-answer (() (+ 2 nil)) TST)
+     (well-tagged-answer (() (+ 2 2)) Int)
+     (well-tagged-answer (() 16) TST)
+     (well-tagged-answer (() (+ 2 2)) Int)
     )
   )
 
   (test-case "sound-step"
     (check-mf-apply*
-     ((sound-step# (TY () (+ 4 4)) Int)
-      ((TY () 8) #true))
-     ((sound-step# (TY () (tag? Int (+ 2 2))) Int)
-      ((TY () (tag? Int 4)) #true))
-;;TODO     ((sound-step# (UN () (tag? Int (+ 2 nil))) Int)
-;;TODO      ((TE nil "integer?") #false))
-     ((sound-step# (UN () (* 4 4)) TST)
-      ((UN () 16) #true))
-     ((sound-step# (UN () 16) TST)
-      ((UN () 16) #false))
+     ((sound-step# (() (+ 4 4)) Int)
+      ((() 8) #true))
+     ((sound-step# (() (check Int (+ 2 2))) Int)
+      ((() (check Int 4)) #true))
+     ((sound-step# (() (from-untyped Int (+ 2 nil))) Int)
+      ((TE nil "integer?") #false))
+     ((sound-step# (() (* 4 4)) TST)
+      ((() 16) #true))
+     ((sound-step# (() 16) TST)
+      ((() 16) #false))
     )
   )
 
   (test-case "sound-eval-expression"
     (check-mf-apply*
-     ((sound-eval-expression# () () () TY (+ 2 2) Int)
-      (TY () 4))
-     ((sound-eval-expression# () () () UN (* 4 4) TST)
-      (UN () 16))
-;;TODO     ((sound-eval-expression# () () () UN (* 4 nil) TST)
-;;TODO      (TE nil "integer?"))
-;;TODO     ((sound-eval-expression# () () () UN (4 4) TST)
-;;TODO      (TE 4 "procedure?"))
-;;TODO     ((sound-eval-expression# ((f (→ Int Nat))) () ((f (fun f (x) x))) TY (tag? Nat (f 42)) Nat)
-;;TODO      (TY () 42))
+     ((sound-eval-typed-expression# () () () (+ 2 2) Int)
+      (() 4))
+     ((sound-eval-untyped-expression# () () () (* 4 4))
+      (() 16))
+     ((sound-eval-untyped-expression# () () () (* 4 nil))
+      (TE nil "integer?"))
+     ((sound-eval-untyped-expression# () () () (4 4))
+      (TE 4 "procedure?"))
+     ;TODO;((sound-eval-typed-expression# ((f (→ Int Nat))) () ((f (fun f (x) x))) (check Nat (f 42)) Nat)
+     ;TODO; (() 42))
     )
 
-;     ((sound-eval-expression# ((f (→ Int Nat))) () ((f (fun f (x) x))) TY (f 42) Nat)
-;      (TY () 42))
+;; TODO
+;     ((sound-eval-expression# ((f (→ Int Nat))) () ((f (fun f (x) x))) (f 42) Nat)
+;      (() 42))
 
-    ;; `tag?` is not part of the source language
+    ;; `check` is not part of the source language
     (check-exn exn:fail:contract?
-      (λ () (term (sound-eval-expression# () () () TY (tag? Int nil) Int))))
+      (λ () (term #{sound-eval-typed-expression# () () () (check Int nil) Int})))
   )
 
-;;TODO
+;; TODO
   #;(test-case "sound-eval-program"
     (check-judgment-holds*
      (sound-eval-program

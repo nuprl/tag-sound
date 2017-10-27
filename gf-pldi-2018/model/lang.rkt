@@ -61,13 +61,12 @@
   (DEFINE ::= UNTYPED-DEFINE TYPED-DEFINE)
   (PROVIDE ::= (provide x ...))
 
-  (v ::= TYPED-VALUE UNTYPED-VALUE
-         (mon-fun τ v) (mon-vector τ v))
+  (v ::= TYPED-VALUE UNTYPED-VALUE)
   ;; Value forms may be typed values, untyped values, or monitored values.
   ;; Monitors are necessary for type soundness, they guard places where
   ;;  untyped values could slip into typed code.
 
-  (e ::= UNTYPED-EXPR TYPED-EXPR (check κ e))
+  (e ::= UNTYPED-EXPR TYPED-EXPR)
   ;; Expressions may be typed, untyped, or a tag-check
 
   (TYPED-EXPR ::= TYPED-VALUE x
@@ -77,12 +76,15 @@
                   (BINOP TYPED-EXPR TYPED-EXPR)
                   (vector-ref TYPED-EXPR TYPED-EXPR)
                   (vector-set! TYPED-EXPR TYPED-EXPR TYPED-EXPR)
-                  (from-untyped τ TYPED-EXPR))
+                  (first TYPED-EXPR) (rest TYPED-EXPR)
+                  (from-untyped τ UNTYPED-EXPR)
+                  (check κ TYPED-EXPR))
   (TYPED-VALUE ::= integer
                    (fun x τ (x) TYPED-EXPR)
                    (vector τ loc)
+                   nil
                    (cons TYPED-VALUE TYPED-VALUE)
-                   nil)
+                   (mon-fun τ UNTYPED-VALUE) (mon-vector τ UNTYPED-VALUE))
   ;; typed expressions have:
   ;; - type-annotated (higher-order) values
   ;; - boundaries to untyped code (`from-untyped`)
@@ -94,12 +96,15 @@
                     (BINOP UNTYPED-EXPR UNTYPED-EXPR)
                     (vector-ref UNTYPED-EXPR UNTYPED-EXPR)
                     (vector-set! UNTYPED-EXPR UNTYPED-EXPR UNTYPED-EXPR)
-                    (from-typed τ UNTYPED-EXPR))
+                    (first UNTYPED-EXPR) (rest UNTYPED-EXPR)
+                    (from-typed τ TYPED-EXPR)
+                    (check κ UNTYPED-EXPR))
   (UNTYPED-VALUE ::= integer
                      (fun x (x) UNTYPED-EXPR)
                      (vector loc)
+                     nil
                      (cons UNTYPED-VALUE UNTYPED-VALUE)
-                     nil)
+                     (mon-fun τ TYPED-VALUE) (mon-vector τ TYPED-VALUE))
   ;; untyped expressions have:
   ;; - untyped values
   ;; - boundaries to typed code
@@ -107,9 +112,7 @@
   (Λ ::= (fun x (x) UNTYPED-EXPR) (fun x τ (x) TYPED-EXPR))
   (BINOP ::= + - * %)
 
-  (UNTYPED-STATE ::= (untyped σ UNTYPED-EXPR))
-  (TYPED-STATE ::= (typed σ TYPED-EXPR))
-  (Σ ::= UNTYPED-STATE TYPED-STATE)
+  (Σ ::= (σ e))
   ;; Evaluation states consist of:
   ;; - `L` outermost language
   ;; - `σ` the current store
@@ -117,6 +120,7 @@
 
   (E ::= hole
          (make-vector v ... E e ...)
+         (make-vector τ v ... E e ...)
          (cons E e) (cons v E)
          (E e) (v E)
          (ifz E e e)
@@ -132,7 +136,7 @@
 
   (UNTYPED-A ::= UNTYPED-STATE Error)
   (TYPED-A ::= TYPED-STATE Error)
-  (A ::= UNTYPED-A TYPED-A)
+  (A ::= Σ Error)
   ;; Valid results of evaluation
 
   (Error ::= BoundaryError TypeError)
@@ -187,3 +191,27 @@
 
 (define (α=? t0 t1)
   (alpha-equivalent? μTR t0 t1))
+
+;; =============================================================================
+
+(module+ test
+  (require rackunit redex-abbrevs)
+
+  (test-case "redex-match"
+    (check-true (redex-match? μTR e (term
+          (from-untyped Int 2))))
+    (check-true (redex-match? μTR e (term
+         (mon-fun (→ Int (→ Int Int)) (fun a (x) (fun b (y) (fun c (z) (+ (+ x y) z))))))))
+    (check-true (redex-match? μTR e (term
+         ((mon-fun (→ Int (→ Int Int)) (fun a (x) (fun b (y) (fun c (z) (+ (+ x y) z)))))
+           (from-untyped Int 2)))))
+    (check-true (redex-match? μTR e (term
+       (from-typed (→ Int Int)
+         ((mon-fun (→ Int (→ Int Int)) (fun a (x) (fun b (y) (fun c (z) (+ (+ x y) z)))))
+           (from-untyped Int 2))))))
+    (check-true (redex-match? μTR A (term
+      (()
+       (from-typed (→ Int Int)
+         ((mon-fun (→ Int (→ Int Int)) (fun a (x) (fun b (y) (fun c (z) (+ (+ x y) z)))))
+           (from-untyped Int 2))))))))
+)

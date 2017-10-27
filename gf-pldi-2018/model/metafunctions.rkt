@@ -43,17 +43,12 @@
   weaken-arrow-domain
   weaken-arrow-codomain
 
-  unload-store/expression
-
   same-domain
 
   type->tag
   tag-of
 
-  lambda-strip-type
-
-  typed-context
-  untyped-context)
+  lambda-strip-type)
 
 (require
   "lang.rkt"
@@ -269,113 +264,6 @@
 
 ;; -----------------------------------------------------------------------------
 
-(define-metafunction μTR
-  unload-store/expression : e σ -> e
-  [(unload-store/expression e ())
-   e]
-  [(unload-store/expression e σ)
-   e_sub
-   (judgment-holds (unload-store-of e σ e_sub))])
-
-(define-judgment-form μTR
-  #:mode (unload-store-of I I O)
-  #:contract (unload-store-of e σ e)
-  [
-   ---
-   (unload-store-of integer σ integer)]
-  [
-   (where (fun x_f (x) e) Λ)
-   (unload-store-of e σ e_sub)
-   (where Λ_sub (fun x_f (x) e_sub))
-   ---
-   (unload-store-of Λ σ Λ_sub)]
-  [
-   (where [_ (v ...)] #{store-ref σ x})
-   (unload-store-of v σ v_sub) ...
-   ---
-   (unload-store-of (vector x) σ (vector v_sub ...))]
-  [
-   (where [_ (v ...)] #{store-ref σ x})
-   (unload-store-of v σ v_sub) ...
-   ---
-   (unload-store-of (vector τ x) σ (vector τ v_sub ...))]
-  [
-   (unload-store-of e_0 σ e_sub0)
-   (unload-store-of e σ e_sub) ...
-   ---
-   (unload-store-of (vector e_0 e ...) σ (vector e_sub0 e_sub ...))]
-  [
-   (unload-store-of e_0 σ e_sub0)
-   (unload-store-of e σ e_sub) ...
-   ---
-   (unload-store-of (vector τ e_0 e ...) σ (vector τ e_sub0 e_sub ...))]
-  [
-   (unload-store-of e_0 σ e_0sub)
-   (unload-store-of e_1 σ e_1sub)
-   ---
-   (unload-store-of (cons e_0 e_1) σ (cons e_0sub e_1sub))]
-  [
-   ---
-   (unload-store-of nil σ nil)]
-  [
-   (unload-store-of v σ v_sub)
-   ---
-   (unload-store-of (mon-fun x τ v) σ (mon-fun x τ v_sub))]
-  [
-   (unload-store-of v σ v_sub)
-   ---
-   (unload-store-of (mon-vector x τ v) σ (mon-vector x τ v_sub))]
-  [
-   (unload-store-of e_fun σ e_fun-sub)
-   (unload-store-of e_arg σ e_arg-sub)
-   ---
-   (unload-store-of (e_fun e_arg) σ (e_fun-sub e_arg-sub))]
-  [
-   (unload-store-of e_0 σ e_0+)
-   (unload-store-of e_1 σ e_1+)
-   (unload-store-of e_2 σ e_2+)
-   ---
-   (unload-store-of (ifz e_0 e_1 e_2) σ (ifz e_0+ e_1+ e_2+))]
-  [
-   (unload-store-of e_0 σ e_0+)
-   (unload-store-of e_1 σ e_1+)
-   ---
-   (unload-store-of (+ e_0 e_1) σ (+ e_0+ e_1+))]
-  [
-   (unload-store-of e_0 σ e_0+)
-   (unload-store-of e_1 σ e_1+)
-   ---
-   (unload-store-of (- e_0 e_1) σ (- e_0+ e_1+))]
-  [
-   (unload-store-of e_0 σ e_0+)
-   (unload-store-of e_1 σ e_1+)
-   ---
-   (unload-store-of (* e_0 e_1) σ (* e_0+ e_1+))]
-  [
-   (unload-store-of e_0 σ e_0+)
-   (unload-store-of e_1 σ e_1+)
-   ---
-   (unload-store-of (% e_0 e_1) σ (% e_0+ e_1+))]
-  [
-   (unload-store-of e_vec σ e_vec+)
-   (unload-store-of e_i σ e_i+)
-   ---
-   (unload-store-of (vector-ref e_vec e_i) σ (vector-ref e_vec+ e_i+))]
-  [
-   (unload-store-of e_vec σ e_vec+)
-   (unload-store-of e_i σ e_i+)
-   (unload-store-of e_val σ e_val+)
-   ---
-   (unload-store-of (vector-set! e_vec e_i e_val) σ (vector-set! e_vec+ e_i+ e_val+))]
-  [
-   (unload-store-of e σ e_+)
-   ---
-   (unload-store-of (first e) σ (first e_+))]
-  [
-   (unload-store-of e σ e_+)
-   ---
-   (unload-store-of (rest e) σ (rest e_+))])
-
 (define-judgment-form μTR
   #:mode (same-domain I I)
   #:contract (same-domain any any)
@@ -437,70 +325,6 @@
    (fun x_f (x_arg) e_body)]
   [(lambda-strip-type (fun x_f (x_arg) e_body))
    (fun x_f (x_arg) e_body)])
-
-;; It's just a fold
-(define-metafunction μTR
-  lang-of-hole : E L -> L
-  [(lang-of-hole hole L)
-   L]
-  [(lang-of-hole (vector v ... E e ...) L)
-   (lang-of-hole E L)]
-  [(lang-of-hole (vector τ v ... E e ...) L)
-   (lang-of-hole E L)]
-  [(lang-of-hole (cons E e) L)
-   (lang-of-hole E L)]
-  [(lang-of-hole (cons v E) L)
-   (lang-of-hole E L)]
-  [(lang-of-hole (E e) L)
-   (lang-of-hole E L)]
-  [(lang-of-hole (v E) L)
-   (lang-of-hole E L)]
-  [(lang-of-hole (ifz E e e) L)
-   (lang-of-hole E L)]
-  [(lang-of-hole (+ v ... E e ...) L)
-   (lang-of-hole E L)]
-  [(lang-of-hole (- v ... E e ...) L)
-   (lang-of-hole E L)]
-  [(lang-of-hole (* v ... E e ...) L)
-   (lang-of-hole E L)]
-  [(lang-of-hole (% v ... E e ...) L)
-   (lang-of-hole E L)]
-  [(lang-of-hole (vector-ref v ... E e ...) L)
-   (lang-of-hole E L)]
-  [(lang-of-hole (vector-set! v ... E e ...) L)
-   (lang-of-hole E L)]
-  [(lang-of-hole (first E) L)
-   (lang-of-hole E L)]
-  [(lang-of-hole (rest E) L)
-   (lang-of-hole E L)]
-  [(lang-of-hole (check τ E) L)
-   (lang-of-hole E UN)
-   (where L TY)]
-  [(lang-of-hole (protect τ E) L)
-   (lang-of-hole E TY)
-   (where L UN)]
-  [(lang-of-hole (tag? κ E) L)
-   (lang-of-hole E L)]
-  [(lang-of-hole E L)
-   ,(raise-arguments-error 'lang-of-hole "invalid context" "ctx" (term E) "lang" (term L))])
-
-(define-judgment-form μTR
-  #:mode (untyped-context I I)
-  #:contract (untyped-context E L)
-  [
-   (where L_hole #{lang-of-hole E L})
-   (where L_hole UN)
-   ---
-   (untyped-context E L)])
-
-(define-judgment-form μTR
-  #:mode (typed-context I I)
-  #:contract (typed-context E L)
-  [
-   (where L_hole #{lang-of-hole E L})
-   (where L_hole TY)
-   ---
-   (typed-context E L)])
 
 (define-metafunction μTR
   mu-fold : (μ (α) τ) -> τ
@@ -744,45 +568,6 @@
       (+ 1 2)]
      [(substitute* (+ a a) ())
       (+ a a)]))
-
-  (test-case "unload-store"
-    (check-mf-apply*
-     ((unload-store/expression (vector x) ((x (1 2 3))))
-      (vector 1 2 3))
-     ((unload-store/expression (vector Int x) ((x (1 2 3))))
-      (vector Int 1 2 3))
-     ((unload-store/expression (vector Int 42) ())
-      (vector Int 42))
-     ((unload-store/expression (+ 2 2) ())
-      (+ 2 2))
-     ((unload-store/expression (+ (vector a) (vector b)) ((a (1)) (b (4 3 2))))
-      (+ (vector 1) (vector 4 3 2)))))
-
-  (test-case "untyped-context"
-    (check-judgment-holds*
-     (untyped-context (+ 2 hole) UN)
-     (untyped-context (check Int hole) TY)
-    )
-    (check-not-judgment-holds*
-     (untyped-context (+ hole 2) TY)
-    )
-  )
-
-  (test-case "typed-context"
-    (check-judgment-holds*
-     (typed-context (+ 2 hole) TY)
-     (typed-context (protect Int hole) UN)
-    )
-
-    (check-not-judgment-holds*
-     (typed-context (+ hole 2) UN)
-    )
-
-    (check-exn exn:fail:contract?
-      (λ () (judgment-holds (typed-context (check Int hole) UN))))
-    (check-exn exn:fail:contract?
-      (λ () (judgment-holds (typed-context (protect Int hole) TY))))
-  )
 
   (test-case "mu-fold"
     (check-mf-apply*

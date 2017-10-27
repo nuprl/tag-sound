@@ -1,7 +1,6 @@
 #lang mf-apply racket/base
 
-;; Common typechecking functions
-;; ... static type checking for any kind of program, nevermind the semantics
+;; Static type checking
 
 (provide
   <:
@@ -33,9 +32,6 @@
   require->local-type-env
   define->local-type-env
   local-type-env->provided
-
-  tagged-completion
-  well-tagged-expression
 
   well-typed-program#
 )
@@ -110,15 +106,15 @@
   #:mode (well-typed-expression I I I)
   #:contract (well-typed-expression Γ e τ)
   [
-   ---
+   --- T-Nat
    (well-typed-expression Γ natural Nat)]
   [
-   ---
+   --- T-Int
    (well-typed-expression Γ integer Int)]
   [
    (where [_ τ_0] #{local-type-env-ref Γ x})
    (<: τ_0 τ)
-   ---
+   --- T-Var
    (well-typed-expression Γ x τ)]
   [
    (<: τ τ_fun)
@@ -126,184 +122,193 @@
    (where Γ_f #{local-type-env-set Γ x_f τ})
    (where Γ_x #{local-type-env-set Γ_f x_arg τ_dom})
    (well-typed-expression Γ_x e_body τ_cod)
-   ---
+   --- T-Fun
    (well-typed-expression Γ (fun x_f τ_fun (x_arg) e_body) τ)]
   [
-   (<: τ_vec τ)
-   (where (Vectorof τ_elem) #{coerce-vector-type τ})
-   (well-typed-expression Γ e τ_elem) ...
-   ---
-   (well-typed-expression Γ (vector τ_vec e ...) τ)]
+   (side-condition ,(raise-user-error 'well-typed-expression "found vector value in source code: ~a" (term (vector τ_vec x))))
+   --- T-Vector
+   (well-typed-expression Γ (vector τ_vec x) τ)]
   [
    (where (Listof τ_elem) #{coerce-list-type τ})
    (well-typed-expression Γ e_0 τ_elem)
    (well-typed-expression Γ e_1 τ)
-   ---
+   --- T-Cons
    (well-typed-expression Γ (cons e_0 e_1) τ)]
   [
    (where (Listof τ_elem) #{coerce-list-type τ})
-   ---
+   --- T-Nil
    (well-typed-expression Γ nil τ)]
   [
    (infer-expression-type Γ e_fun τ)
    (where (→ τ_dom τ_cod) #{coerce-arrow-type τ})
    (well-typed-expression Γ e_fun τ)
    (well-typed-expression Γ e_arg τ_dom)
-   ---
+   --- T-App
    (well-typed-expression Γ (e_fun e_arg) τ_cod)]
   [
    (well-typed-expression Γ e_0 Int)
    (well-typed-expression Γ e_1 τ)
    (well-typed-expression Γ e_2 τ)
-   ---
+   --- T-Ifz
    (well-typed-expression Γ (ifz e_0 e_1 e_2) τ)]
   [
    (well-typed-expression Γ e_0 Int)
    (well-typed-expression Γ e_1 Int)
-   ---
+   --- T-Plus0
    (well-typed-expression Γ (+ e_0 e_1) Int)]
   [
    (well-typed-expression Γ e_0 Nat)
    (well-typed-expression Γ e_1 Nat)
-   ---
+   --- T-Plus1
    (well-typed-expression Γ (+ e_0 e_1) Nat)]
   [
    (well-typed-expression Γ e_0 Int)
    (well-typed-expression Γ e_1 Int)
-   ---
+   --- T-Minus
    (well-typed-expression Γ (- e_0 e_1) Int)]
   [
    (well-typed-expression Γ e_0 Int)
    (well-typed-expression Γ e_1 Int)
-   ---
+   --- T-Times0
    (well-typed-expression Γ (* e_0 e_1) Int)]
   [
    (well-typed-expression Γ e_0 Nat)
    (well-typed-expression Γ e_1 Nat)
-   ---
+   --- T-Times1
    (well-typed-expression Γ (* e_0 e_1) Nat)]
   [
    (well-typed-expression Γ e_0 Int)
    (well-typed-expression Γ e_1 Int)
-   ---
+   --- T-Div0
    (well-typed-expression Γ (% e_0 e_1) Int)]
   [
    (well-typed-expression Γ e_0 Nat)
    (well-typed-expression Γ e_1 Nat)
-   ---
+   --- T-Div1
    (well-typed-expression Γ (% e_0 e_1) Nat)]
+  [
+   (<: τ_vec τ)
+   (where (Vectorof τ_elem) #{coerce-vector-type τ})
+   (well-typed-expression Γ e τ_elem) ...
+   --- T-MakeVector
+   (well-typed-expression Γ (make-vector τ_vec e ...) τ)]
   [
    (well-typed-expression Γ e_vec (Vectorof τ))
    (well-typed-expression Γ e_i Int)
-   ---
+   --- T-Ref
    (well-typed-expression Γ (vector-ref e_vec e_i) τ)]
   [
    (well-typed-expression Γ e_vec (Vectorof τ))
    (well-typed-expression Γ e_i Int)
    (well-typed-expression Γ e_val τ)
-   ---
+   --- T-Set
    (well-typed-expression Γ (vector-set! e_vec e_i e_val) τ)]
   [
    (well-typed-expression Γ e (Listof τ))
-   ---
+   --- T-First
    (well-typed-expression Γ (first e) τ)]
   [
    (where (Listof τ_elem) τ)
    (well-typed-expression Γ e τ)
-   ---
+   --- T-Rest
    (well-typed-expression Γ (rest e) τ)]
   [
    (well-typed-expression Γ e τ)
-   ---
+   --- T-Union
    (well-typed-expression Γ e (U τ_0 ... τ τ_1 ...))]
   [
    (well-typed-expression Γ e #{mu-fold (μ (α) τ)})
-   ---
+   --- T-Mu
    (well-typed-expression Γ e (μ (α) τ))]
   [
    (well-typed-expression Γ e τ)
-   ---
+   --- T-Forall
    (well-typed-expression Γ e (∀ (α) τ))])
 
 (define-judgment-form μTR
   #:mode (well-dyn-expression I I)
   #:contract (well-dyn-expression Γ e)
   [
-   ---
+   --- D-Int
    (well-dyn-expression Γ integer)]
   [
    (where Γ_f #{local-type-env-set Γ x_fun TST})
    (where Γ_x #{local-type-env-set Γ_f x_arg TST})
    (well-dyn-expression Γ_x e)
-   ---
+   --- D-Fun
    (well-dyn-expression Γ (fun x_fun (x_arg) e))]
   [
-   ---
+   --- D-Nil
    (well-dyn-expression Γ nil)]
   [
-   (where [_ TST] #{local-type-env-ref Γ x})
-   ---
-   (well-dyn-expression Γ x)]
+   (side-condition ,(raise-user-error 'well-dyn-expression "found vector value in source code: ~a" (term (vector x))))
+   --- D-Vec
+   (well-dyn-expression Γ (vector x))]
   [
-   (well-dyn-expression Γ e) ...
-   ---
-   (well-dyn-expression Γ (vector e ...))]
+   (where [_ TST] #{local-type-env-ref Γ x})
+   --- D-Var
+   (well-dyn-expression Γ x)]
   [
    (well-dyn-expression Γ e_hd)
    (well-dyn-expression Γ e_tl)
-   ---
+   --- D-Cons
    (well-dyn-expression Γ (cons e_hd e_tl))]
   [
    (well-dyn-expression Γ e_fun)
    (well-dyn-expression Γ e_arg)
-   ---
+   --- D-App
    (well-dyn-expression Γ (e_fun e_arg))]
   [
    (well-dyn-expression Γ e_0)
    (well-dyn-expression Γ e_1)
    (well-dyn-expression Γ e_2)
-   ---
+   --- D-Ifz
    (well-dyn-expression Γ (ifz e_0 e_1 e_2))]
   [
    (well-dyn-expression Γ e_0)
    (well-dyn-expression Γ e_1)
-   ---
+   --- D-Plus
    (well-dyn-expression Γ (+ e_0 e_1))]
   [
    (well-dyn-expression Γ e_0)
    (well-dyn-expression Γ e_1)
-   ---
+   --- D-Minus
    (well-dyn-expression Γ (- e_0 e_1))]
   [
    (well-dyn-expression Γ e_0)
    (well-dyn-expression Γ e_1)
-   ---
+   --- D-Times
    (well-dyn-expression Γ (* e_0 e_1))]
   [
    (well-dyn-expression Γ e_0)
    (well-dyn-expression Γ e_1)
-   ---
+   --- D-Div
    (well-dyn-expression Γ (% e_0 e_1))]
+  [
+   (well-dyn-expression Γ e) ...
+   --- D-MakeVector
+   (well-dyn-expression Γ (make-vector e ...))]
   [
    (well-dyn-expression Γ e_vec)
    (well-dyn-expression Γ e_i)
-   ---
+   --- D-Ref
    (well-dyn-expression Γ (vector-ref e_vec e_i))]
   [
    (well-dyn-expression Γ e_vec)
    (well-dyn-expression Γ e_i)
    (well-dyn-expression Γ e_arg)
-   ---
+   --- D-Set
    (well-dyn-expression Γ (vector-set! e_vec e_i e_arg))]
   [
    (well-dyn-expression Γ e)
-   ---
+   --- D-First
    (well-dyn-expression Γ (first e))]
   [
    (well-dyn-expression Γ e)
-   ---
+   --- D-Rest
    (well-dyn-expression Γ (rest e))])
 
+;; TODO needs a better name
 (define-judgment-form μTR
   #:mode (well-typed-expression/TST I I I)
   #:contract (well-typed-expression/TST Γ e τ)
@@ -343,6 +348,7 @@
          "toplevel-type-env" (term TYPE-ENV))))
    (where Γ_rest #{require->local-type-env TYPE-ENV (UNTYPED-REQUIRE_rest ...)})])
 
+;; TODO unused
 (define-judgment-form μTR
   #:mode (valid-require I I)
   #:contract (valid-require Γ Γ)
@@ -612,7 +618,11 @@
    (infer-expression-type Γ x τ)]
   [
    ---
-   (infer-expression-type Γ (vector τ_vec e _ ...) τ_vec)]
+   (infer-expression-type Γ (vector τ_vec loc) τ_vec)]
+  [
+   ;; TODO need this?
+   ---
+   (infer-expression-type Γ (make-vector τ_vec e ...) τ_vec)]
   [
    (infer-expression-type Γ e_0 τ)
    ---
@@ -634,261 +644,6 @@
    (judgment-holds (infer-expression-type Γ e τ))]
   [(infer-expression-type# Γ e)
    ,(raise-arguments-error 'infer-expression-type "failed to infer type" "expression" (term e) "type env" (term Γ))])
-
-(define-judgment-form μTR
-  #:mode (tagged-completion I I I O)
-  #:contract (tagged-completion Γ e κ e)
-  [
-   (or-TST Nat κ)
-   --- C-Nat
-   (tagged-completion Γ natural κ natural)]
-  [
-   (or-TST Int κ)
-   --- C-Int
-   (tagged-completion Γ integer κ integer)]
-  [
-   (or-TST → κ_fun)
-   (where (fun x_fun τ_fun (x_arg) e_body) Λ)
-   (where (→ τ_dom τ_cod) #{coerce-arrow-type τ_fun})
-   (where κ_dom #{type->tag τ_dom})
-   (where κ_cod #{type->tag τ_cod})
-   (where Γ_fun #{local-type-env-set Γ x_fun τ_fun})
-   (where Γ_x #{local-type-env-set Γ_fun x_arg τ_dom})
-   (tagged-completion Γ_x e_body κ_cod e_+)
-   (where τ_fun+ #{weaken-arrow-domain τ_fun})
-   (where Λ_+ (fun x_fun τ_fun+ (x_arg)
-                ((fun x_fun τ_fun (x_arg) e_+)
-                 (tag? κ_dom x_arg))))
-   --- C-Fun
-   (tagged-completion Γ Λ κ_fun Λ_+)]
-  [
-   (or-TST Vector κ_vec)
-   (tagged-completion Γ e TST e_+) ...
-   --- C-Vec
-   (tagged-completion Γ (vector τ e ...) κ_vec (vector τ e_+ ...))]
-  [
-   (or-TST List κ_cons)
-   (tagged-completion Γ e_0 TST e_0+)
-   (tagged-completion Γ e_1 List e_1+)
-   ---
-   (tagged-completion Γ (cons e_0 e_1) κ_cons (cons e_0+ e_1+))]
-  [
-   (or-TST List κ_nil)
-   ---
-   (tagged-completion Γ nil κ_nil nil)]
-  [
-   (where (_ τ) #{local-type-env-ref Γ x})
-   (tag-of τ κ)
-   (or-TST κ κ_x)
-   ---
-   (tagged-completion Γ x κ_x x)]
-  [
-   (tagged-completion Γ e_0 → e_0+)
-   (tagged-completion Γ e_1 TST e_1+)
-   (where e_+ (tag? κ (e_0+ e_1+)))
-   ---
-   (tagged-completion Γ (e_0 e_1) κ e_+)]
-  [
-   (tagged-completion Γ e_0 Int e_0+)
-   (tagged-completion Γ e_1 κ e_1+)
-   (tagged-completion Γ e_2 κ e_2+)
-   ---
-   (tagged-completion Γ (ifz e_0 e_1 e_2) κ (ifz e_0+ e_1+ e_2+))]
-  [
-   (tagged-completion Γ e_0 Nat e_0+)
-   (tagged-completion Γ e_1 Nat e_1+)
-   ---
-   (tagged-completion Γ (+ e_0 e_1) Nat (+ e_0+ e_1+))]
-  [
-   (or-TST Int κ)
-   (tagged-completion Γ e_0 Int e_0+)
-   (tagged-completion Γ e_1 Int e_1+)
-   ---
-   (tagged-completion Γ (+ e_0 e_1) κ (+ e_0+ e_1+))]
-  [
-   (or-TST Int κ)
-   (tagged-completion Γ e_0 Int e_0+)
-   (tagged-completion Γ e_1 Int e_1+)
-   ---
-   (tagged-completion Γ (- e_0 e_1) κ (- e_0+ e_1+))]
-  [
-   (tagged-completion Γ e_0 Nat e_0+)
-   (tagged-completion Γ e_1 Nat e_1+)
-   ---
-   (tagged-completion Γ (* e_0 e_1) Nat (* e_0+ e_1+))]
-  [
-   (or-TST Int κ)
-   (tagged-completion Γ e_0 Int e_0+)
-   (tagged-completion Γ e_1 Int e_1+)
-   ---
-   (tagged-completion Γ (* e_0 e_1) κ (* e_0+ e_1+))]
-  [
-   (tagged-completion Γ e_0 Nat e_0+)
-   (tagged-completion Γ e_1 Nat e_1+)
-   ---
-   (tagged-completion Γ (% e_0 e_1) Nat (% e_0+ e_1+))]
-  [
-   (or-TST Int κ)
-   (tagged-completion Γ e_0 Int e_0+)
-   (tagged-completion Γ e_1 Int e_1+)
-   ---
-   (tagged-completion Γ (% e_0 e_1) κ (% e_0+ e_1+))]
-  [
-   (tagged-completion Γ e_0 Vector e_0+)
-   (tagged-completion Γ e_1 Int e_1+)
-   (where e_+ (tag? κ (vector-ref e_0+ e_1+)))
-   ---
-   (tagged-completion Γ (vector-ref e_0 e_1) κ e_+)]
-  [
-   (tagged-completion Γ e_0 Vector e_0+)
-   (tagged-completion Γ e_1 Int e_1+)
-   (tagged-completion Γ e_2 κ e_2+)
-   ---
-   (tagged-completion Γ (vector-set! e_0 e_1 e_2) κ (vector-set! e_0+ e_1+ e_2+))]
-  [
-   (tagged-completion Γ e List e_+)
-   ---
-   (tagged-completion Γ (first e) κ (tag? κ (first e_+)))]
-  [
-   (or-TST List κ)
-   (tagged-completion Γ e List e_+)
-   ---
-   (tagged-completion Γ (rest e) κ (rest e_+))]
-  [
-   (tagged-completion Γ e κ e_+)
-   ---
-   (tagged-completion Γ e (U κ_0 ... κ κ_1 ...) e_+)])
-
-(define-metafunction μTR
-  tagged-completion# : Γ e κ -> e
-  [(tagged-completion# Γ e κ)
-   e_+
-   (judgment-holds (tagged-completion Γ e κ e_+))]
-  [(tagged-completion# Γ e κ)
-   ,(raise-arguments-error 'tagged-completion "failed to complete"
-     "expr" (term e)
-     "tag" (term κ)
-     "type env" (term Γ))])
-
-(define-judgment-form μTR
-  #:mode (well-tagged-expression I I I)
-  #:contract (well-tagged-expression Γ e κ)
-  [
-   (or-TST Nat κ)
-   ---
-   (well-tagged-expression Γ natural κ)]
-  [
-   (or-TST Int κ)
-   ---
-   (well-tagged-expression Γ integer κ)]
-  [
-   (or-TST → κ)
-   (where (→ τ_dom τ_cod) #{coerce-arrow-type τ_fun})
-   (tag-of τ_cod κ_cod)
-   (where Γ_fun #{local-type-env-set Γ x_fun τ_fun})
-   (where Γ_x #{local-type-env-set Γ_fun x_arg τ_dom})
-   (well-tagged-expression Γ_x e κ_cod)
-   ---
-   (well-tagged-expression Γ (fun x_fun τ_fun (x_arg) e) κ)]
-  [
-   (or-TST Vector κ)
-   (well-tagged-expression Γ e TST) ...
-   ---
-   (well-tagged-expression Γ (vector τ e ...) κ)]
-  [
-   (or-TST List κ)
-   (well-tagged-expression Γ e_0 TST)
-   (well-tagged-expression Γ e_1 List)
-   ---
-   (well-tagged-expression Γ (cons e_0 e_1) κ)]
-  [
-   (or-TST List κ)
-   ---
-   (well-tagged-expression Γ nil κ)]
-  [
-   (where (_ τ) #{local-type-env-ref Γ x})
-   (or-TST #{type->tag τ} κ)
-   ---
-   (well-tagged-expression Γ x κ)]
-  [
-   (well-tagged-expression Γ e_0 →)
-   (well-tagged-expression Γ e_1 TST)
-   ---
-   (well-tagged-expression Γ (e_0 e_1) TST)]
-  [
-   (well-tagged-expression Γ e_0 Int)
-   (well-tagged-expression Γ e_1 κ)
-   (well-tagged-expression Γ e_2 κ)
-   ---
-   (well-tagged-expression Γ (ifz e_0 e_1 e_2) κ)]
-  [
-   (well-tagged-expression Γ e_0 Nat)
-   (well-tagged-expression Γ e_1 Nat)
-   ---
-   (well-tagged-expression Γ (+ e_0 e_1) Nat)]
-  [
-   (or-TST Int κ)
-   (well-tagged-expression Γ e_0 Int)
-   (well-tagged-expression Γ e_1 Int)
-   ---
-   (well-tagged-expression Γ (+ e_0 e_1) κ)]
-  [
-   (or-TST Int κ)
-   (well-tagged-expression Γ e_0 Int)
-   (well-tagged-expression Γ e_1 Int)
-   ---
-   (well-tagged-expression Γ (- e_0 e_1) κ)]
-  [
-   (well-tagged-expression Γ e_0 Nat)
-   (well-tagged-expression Γ e_1 Nat)
-   ---
-   (well-tagged-expression Γ (* e_0 e_1) Nat)]
-  [
-   (or-TST Int κ)
-   (well-tagged-expression Γ e_0 Int)
-   (well-tagged-expression Γ e_1 Int)
-   ---
-   (well-tagged-expression Γ (* e_0 e_1) κ)]
-  [
-   (well-tagged-expression Γ e_0 Nat)
-   (well-tagged-expression Γ e_1 Nat)
-   ---
-   (well-tagged-expression Γ (% e_0 e_1) Nat)]
-  [
-   (or-TST Int κ)
-   (well-tagged-expression Γ e_0 Int)
-   (well-tagged-expression Γ e_1 Int)
-   ---
-   (well-tagged-expression Γ (% e_0 e_1) κ)]
-  [
-   (or-TST Vector κ)
-   (well-tagged-expression Γ e_0 Vector)
-   (well-tagged-expression Γ e_1 Int)
-   ---
-   (well-tagged-expression Γ (vector-ref e_0 e_1) κ)]
-  [
-   (well-tagged-expression Γ e_0 Vector)
-   (well-tagged-expression Γ e_1 Int)
-   (well-tagged-expression Γ e_2 κ)
-   ---
-   (well-tagged-expression Γ (vector-set! e_0 e_1 e_2) κ)]
-  [
-   (well-tagged-expression Γ e List)
-   ---
-   (well-tagged-expression Γ (first e) TST)]
-  [
-   (or-TST List κ)
-   (well-tagged-expression Γ e List)
-   ---
-   (well-tagged-expression Γ (rest e) κ)]
-  [
-   (well-tagged-expression Γ e TST)
-   ---
-   (well-tagged-expression Γ (tag? κ e) κ)]
-  [
-   (well-tagged-expression Γ e κ)
-   ---
-   (well-tagged-expression Γ e (U κ_0 ... κ κ_1 ...))])
 
 ;; =============================================================================
 
@@ -986,7 +741,7 @@
      (well-typed-expression ((x (Listof Int))) x (Listof Int))
      (well-typed-expression () (fun f (→ Nat Nat) (x) x) (→ Nat Nat))
      (well-typed-expression () (fun f (→ Int (→ Int Int)) (a) (fun g (→ Int Int) (b) (+ a b))) (→ Int (→ Int Int)))
-     (well-typed-expression () (vector (Vectorof Int) -1 1) (Vectorof Int))
+     (well-typed-expression () (make-vector (Vectorof Int) -1 1) (Vectorof Int))
      (well-typed-expression ((hd Int) (tl Int)) (cons hd (cons tl nil)) (Listof Int))
      (well-typed-expression ((f (→ Int (→ Int (Listof Int))))) (f 4) (→ Int (Listof Int)))
      (well-typed-expression () (ifz 2 3 -4) Int)
@@ -998,17 +753,17 @@
      (well-typed-expression () (* 2 2) Nat)
      (well-typed-expression () (% 2 2) Int)
      (well-typed-expression () (% 2 2) Nat)
-     (well-typed-expression () (vector-ref (vector (Vectorof Int) 0) 10) Int)
-     (well-typed-expression () (vector-set! (vector (Vectorof Int) 0) 1 2) Int)
+     (well-typed-expression () (vector-ref (make-vector (Vectorof Int) 0) 10) Int)
+     (well-typed-expression () (vector-set! (make-vector (Vectorof Int) 0) 1 2) Int)
      (well-typed-expression () (first nil) Int)
      (well-typed-expression () (rest nil) (Listof (Listof Int)))
 
-     (well-typed-expression () (vector (Vectorof Nat) 1 2) (Vectorof Nat))
+     (well-typed-expression () (make-vector (Vectorof Nat) 1 2) (Vectorof Nat))
     )
 
     (check-not-judgment-holds*
      (well-typed-expression () -2 Nat)
-     (well-typed-expression () (ifz (vector (Vectorof Int) 0) 3 -4) Int)
+     (well-typed-expression () (ifz (make-vector (Vectorof Int) 0) 3 -4) Int)
     )
   )
 
@@ -1020,9 +775,9 @@
       Int)
      ((infer-expression-type# ((x Nat)) x)
       Nat)
-     ((infer-expression-type# () (vector (Vectorof Nat) 1 2 3))
+     ((infer-expression-type# () (make-vector (Vectorof Nat) 1 2 3))
       (Vectorof Nat))
-     ((infer-expression-type# () (vector (Vectorof Int) 1 2 3))
+     ((infer-expression-type# () (make-vector (Vectorof Int) 1 2 3))
       (Vectorof Int))
      ((infer-expression-type# () (cons 1 nil))
       (Listof Nat))
@@ -1037,7 +792,7 @@
      (well-dyn-expression () (fun f (x) x))
      (well-dyn-expression () nil)
      (well-dyn-expression ((x TST)) x)
-     (well-dyn-expression () (vector 1 2 3))
+     (well-dyn-expression () (make-vector 1 2 3))
      (well-dyn-expression () (cons 1 nil))
      (well-dyn-expression ((f TST) (x TST)) (f x))
      (well-dyn-expression () (ifz 1 2 3))
@@ -1045,13 +800,13 @@
      (well-dyn-expression () (- 2 2))
      (well-dyn-expression () (* 2 2))
      (well-dyn-expression () (% 2 2))
-     (well-dyn-expression () (vector-ref (vector 1) 0))
-     (well-dyn-expression () (vector-set! (vector 1) 2 3))
+     (well-dyn-expression () (vector-ref (make-vector 1) 0))
+     (well-dyn-expression () (vector-set! (make-vector 1) 2 3))
      (well-dyn-expression () (first nil))
      (well-dyn-expression () (rest nil))
 
      (well-dyn-expression () (+ nil 1))
-     (well-dyn-expression () (ifz (vector 0) 3 -4))
+     (well-dyn-expression () (ifz (make-vector 0) 3 -4))
      (well-dyn-expression ((f TST)) (fun a (x) (fun b (y) (fun c (z) (+ (+ x y) z)))))
     )
 
@@ -1081,9 +836,9 @@
     (check-mf-apply*
      ((define->local-type-env ((define x 0) (define y 1)))
       ((x TST) (y TST)))
-     ((define->local-type-env ((define x (vector 1 2)) (define y (fun fn (a) 3))))
+     ((define->local-type-env ((define x (make-vector 1 2)) (define y (fun fn (a) 3))))
       ((x TST) (y TST)))
-     ((define->local-type-env ((define x Int (vector 1)) (define y (→ Nat Nat) (fun fn (a) 4))))
+     ((define->local-type-env ((define x Int (make-vector (Vectorof Int) 1)) (define y (→ Nat Nat) (fun fn (→ Nat Nat) (a) 4))))
       ((x Int) (y (→ Nat Nat))))))
 
   (test-case "valid-require"
@@ -1174,7 +929,7 @@
 
      ((well-typed-program#
        ((module M typed
-         (define v (Vectorof Int) (vector (Vectorof Int) 1 2 (+ 2 1)))
+         (define v (Vectorof Int) (make-vector (Vectorof Int) 1 2 (+ 2 1)))
          (define x Int (vector-ref v 2))
          (define dontcare Int (vector-set! v 0 0))
          (define y Int (vector-ref v 0))
@@ -1214,16 +969,16 @@
         (define x (rest nil))
         (provide))
        (module M4 typed
-        (define x Int (vector-ref (vector (Vectorof Int) 1) 999))
+        (define x Int (vector-ref (make-vector (Vectorof Int) 1) 999))
         (provide))
        (module M5 untyped
-        (define x (vector-set! (vector 0) 4 5))
+        (define x (vector-set! (make-vector 0) 4 5))
         (provide))))
       ((M0 ()) (M1 ()) (M2 ()) (M3 ()) (M4 ()) (M5 ())))
 
      ((well-typed-program#
       ((module M0 typed
-        (define v (Vectorof Int) (vector (Vectorof Int) 0))
+        (define v (Vectorof Int) (make-vector (Vectorof Int) 0))
         (provide v))
        (module M1 untyped
         (require M0 v)
@@ -1233,7 +988,7 @@
 
      ((well-typed-program#
       ((module M0 untyped
-        (define v (vector -1))
+        (define v (make-vector -1))
         (provide v))
        (module M1 typed
         (require M0 ((v (Vectorof Nat))))
@@ -1318,130 +1073,6 @@
          (define x Int (+ 1 nil))
          (provide))))
       #f))
-  )
-
-  (test-case "tagged-completion"
-    (check-mf-apply* #:is-equal? α=?
-     ((tagged-completion# () 3 TST)
-      3)
-     ((tagged-completion# () 3 Nat)
-      3)
-     ((tagged-completion# () 3 Int)
-      3)
-     ((tagged-completion# () -7 TST)
-      -7)
-     ((tagged-completion# () (fun f (→ Int Int) (x) (+ x 1)) →)
-      (fun f (→ TST Int) (x) ((fun f (→ Int Int) (x) (+ x 1)) (tag? Int x))))
-     ((tagged-completion# () (fun f (→ Int Int) (x) (+ x 1)) TST)
-      (fun f (→ TST Int) (x) ((fun f (→ Int Int) (x) (+ x 1)) (tag? Int x))))
-     ((tagged-completion# () (vector (Vectorof Int) 1 -2) Vector)
-      (vector (Vectorof Int) 1 -2))
-     ((tagged-completion# () (vector (Vectorof Int) 1 -2) TST)
-      (vector (Vectorof Int) 1 -2))
-     ((tagged-completion# () (cons 1 (cons -2 nil)) List)
-      (cons 1 (cons -2 nil)))
-     ((tagged-completion# () nil List)
-      nil)
-     ((tagged-completion# () nil TST)
-      nil)
-     ((tagged-completion# ((x Int)) x Int)
-      x)
-     ((tagged-completion# ((x Int)) x TST)
-      x)
-     ((tagged-completion# ((x TST)) x TST)
-      x)
-     ((tagged-completion# ((x (Listof TST))) x List)
-      x)
-     ((tagged-completion# ((f (→ Int Int))) (f 3) Int)
-      (tag? Int (f 3)))
-     ((tagged-completion# ((f (→ Int (Vectorof Int)))) (f 3) Vector)
-      (tag? Vector (f 3)))
-     ((tagged-completion# () ((fun f (→ Nat Nat) (x) (+ x 1)) 0) Nat)
-      (tag? Nat ((fun f (→ TST Nat) (x) ((fun f (→ Nat Nat) (x) (+ x 1)) (tag? Nat x))) 0)))
-     ((tagged-completion# () (ifz 0 1 2) Nat)
-      (ifz 0 1 2))
-     ((tagged-completion# ((xs (Listof Nat))) (ifz (first xs) 1 nil) (U Int List))
-      (ifz (tag? Int (first xs)) 1 nil))
-     ((tagged-completion# () (+ 2 2) Int)
-      (+ 2 2))
-     ((tagged-completion# () (+ 2 2) Nat)
-      (+ 2 2))
-     ((tagged-completion# () (- 2 2) Int)
-      (- 2 2))
-     ((tagged-completion# () (* 2 2) Nat)
-      (* 2 2))
-     ((tagged-completion# () (* 2 2) Int)
-      (* 2 2))
-     ((tagged-completion# () (* 2 2) TST)
-      (* 2 2))
-     ((tagged-completion# () (% 2 2) Nat)
-      (% 2 2))
-     ((tagged-completion# () (% 2 2) Int)
-      (% 2 2))
-     ((tagged-completion# ((xs (Listof Int))) (% 2 (first xs)) Int)
-      (% 2 (tag? Int (first xs))))
-     ((tagged-completion# () (vector-ref (vector (Vectorof Int) 1 2) 0) Nat)
-      (tag? Nat (vector-ref (vector (Vectorof Int) 1 2) 0)))
-     ((tagged-completion# () (vector-set! (vector (Vectorof Int) 1 2) 0 1) Nat)
-      (vector-set! (vector (Vectorof Int) 1 2) 0 1))
-     ((tagged-completion# () (first nil) Nat)
-      (tag? Nat (first nil)))
-     ((tagged-completion# () (rest nil) List)
-      (rest nil))
-    )
-
-    (check-exn exn:fail:redex?
-      ;; No completion for untyped code
-      (λ () (term #{tagged-completion# () (fun f (x) x)})))
-
-    (check-exn exn:fail:contract?
-      (λ () (term #{tagged-completion# () (vector 1) Vector})))
-
-    (check-exn exn:fail:contract?
-      ;; Fails if bad tag
-      (λ () (term #{tagged-completion# () (fun f (→ Int Int) (x) (+ x 1)) Int})))
-  )
-
-  (test-case "well-tagged-expression"
-    (check-judgment-holds*
-     (well-tagged-expression () 4 Nat)
-     (well-tagged-expression () 4 TST)
-     (well-tagged-expression () -4 Int)
-     (well-tagged-expression () -4 TST)
-     (well-tagged-expression () (vector (Vectorof Int) 1 2) Vector)
-     (well-tagged-expression () nil TST)
-     (well-tagged-expression () (cons 1 nil) List)
-     (well-tagged-expression ((x (Vectorof Int))) x Vector)
-     (well-tagged-expression () (fun f (→ Nat Nat) (x) (+ x 1)) →)
-     (well-tagged-expression () (fun f (→ Nat Nat) (x) (+ x 1)) TST)
-     (well-tagged-expression () ((fun f (→ Nat Nat) (x) (+ x 1)) 4) TST)
-     (well-tagged-expression () (ifz 1 2 3) Nat)
-     (well-tagged-expression () (+ 2 2) Nat)
-     (well-tagged-expression () (+ 2 2) Int)
-     (well-tagged-expression ((x Nat)) (+ x 1) Nat)
-     (well-tagged-expression () (- 2 2) Int)
-     (well-tagged-expression () (* 2 2) Nat)
-     (well-tagged-expression () (* 2 2) Int)
-     (well-tagged-expression () (% 2 2) Nat)
-     (well-tagged-expression () (% 2 2) Int)
-     (well-tagged-expression () (vector-ref (vector (Vectorof Int) 1) 0) TST)
-     (well-tagged-expression () (vector-set! (vector (Vectorof Int) 1) 0 0) Nat)
-     (well-tagged-expression () (first (cons 1 nil)) TST)
-     (well-tagged-expression () (rest nil) List)
-     (well-tagged-expression () (tag? Int (first (cons 1 nil))) Int)
-     (well-tagged-expression ((x Int)) x (U Nat List Int))
-    )
-
-    (check-not-judgment-holds*
-     (well-tagged-expression () (first (cons 1 nil)) Int)
-     (well-tagged-expression () (rest (cons 1 nil)) Int)
-    )
-
-    (let* ([t0 (term (first xs))]
-           [env (term ((xs (Listof Int))))]
-           [t1 (term #{tagged-completion# ,env ,t0 Int})])
-      (check-false (judgment-holds (well-tagged-expression ,env ,t0 Int)))
-      (check-true (judgment-holds (well-tagged-expression ,env ,t1 Int))))
   )
 
   (test-case "well-typed-program:II"

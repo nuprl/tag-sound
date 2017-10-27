@@ -13,7 +13,6 @@
 
   load-expression
   unload-answer
-  unload-answer/store
 
   local-value-env->provided
 
@@ -26,8 +25,8 @@
   do-first/untyped
   do-rest/typed
   do-rest/untyped
-
-  not-VV
+  do-ref
+  do-set
 )
 
 (require
@@ -95,24 +94,16 @@
    BadIndex])
 
 (define-metafunction μTR
-  load-expression : L σ ρ e -> Σ
-  [(load-expression L σ ρ e)
-   (L σ (substitute* e ρ))])
+  load-expression : σ ρ e -> Σ
+  [(load-expression σ ρ e)
+   (σ (substitute* e ρ))])
 
 (define-metafunction μTR
   unload-answer : A -> [σ v]
   [(unload-answer Error)
    ,(raise-arguments-error 'unload-answer "evaluation error" "message" (term Error))]
-  [(unload-answer Σ)
-   (σ v)
-   (where (L σ v) Σ)])
-
-(define-metafunction μTR
-  unload-answer/store : A -> e
-  [(unload-answer/store A)
-   e_sub
-   (where (σ v) #{unload-answer A})
-   (where e_sub #{unload-store/expression v σ})])
+  [(unload-answer (σ v))
+   (σ v)])
 
 (define-metafunction μTR
   local-value-env->provided : ρ PROVIDE -> ρ
@@ -126,134 +117,132 @@
 ;; -----------------------------------------------------------------------------
 
 (define-metafunction μTR
-  make-answer : L σ E any -> A
-  [(make-answer L σ E Error)
+  make-answer : σ E any -> A
+  [(make-answer σ E Error)
    Error]
-  [(make-answer L σ E e)
-   (L σ (in-hole E e))])
+  [(make-answer σ E e)
+   (σ (in-hole E e))])
 
 (define-metafunction μTR
-  do-ifz/typed : L σ E v e e -> A
-  [(do-ifz/typed L σ E v e_0 e_1)
-   #{do-ifz L σ E v e_0 e_1}])
+  do-ifz/typed : σ E v e e -> A
+  [(do-ifz/typed σ E v e_0 e_1)
+   #{do-ifz σ E v e_0 e_1}])
 
 (define-metafunction μTR
-  do-ifz/untyped : L σ E v e e -> A
-  [(do-ifz/untyped L σ E v e_0 e_1)
+  do-ifz/untyped : σ E v e e -> A
+  [(do-ifz/untyped σ E v e_0 e_1)
    (TE v "integer?")
    (side-condition (not (integer? (term v))))]
-  [(do-ifz/untyped L σ E v e_0 e_1)
-   #{do-ifz L σ E v e_0 e_1}])
+  [(do-ifz/untyped σ E v e_0 e_1)
+   #{do-ifz σ E v e_0 e_1}])
 
 (define-metafunction μTR
-  do-ifz : L σ E v e e -> A
-  [(do-ifz L σ E 0 e_0 e_1)
-   (L σ (in-hole E e_0))]
-  [(do-ifz L σ E integer e_0 e_1)
-   (L σ (in-hole E e_1))
+  do-ifz : σ E v e e -> A
+  [(do-ifz σ E 0 e_0 e_1)
+   (σ (in-hole E e_0))]
+  [(do-ifz σ E integer e_0 e_1)
+   (σ (in-hole E e_1))
    (side-condition (not (zero? (term integer))))])
 
 (define-metafunction μTR
-  do-arith/untyped : BINOP L σ E v v -> A
-  [(do-arith/untyped _ _ _ _ v _)
+  do-arith/untyped : BINOP σ E v v -> A
+  [(do-arith/untyped _ _ _ v _)
    (TE v "integer?")
    (side-condition (not (integer? (term v))))]
-  [(do-arith/untyped _ _ _ _ _ v)
+  [(do-arith/untyped _ _ _ _ v)
    (TE v "integer?")
    (side-condition (not (integer? (term v))))]
-  [(do-arith/untyped BINOP L σ E v_0 v_1)
-   #{do-arith BINOP L σ E v_0 v_1}])
+  [(do-arith/untyped BINOP σ E v_0 v_1)
+   #{do-arith BINOP σ E v_0 v_1}])
 
 (define-metafunction μTR
-  do-arith/typed : BINOP L σ E v v -> A
-  [(do-arith/typed BINOP L σ E v_0 v_1)
-   #{do-arith BINOP L σ E v_0 v_1}])
+  do-arith/typed : BINOP σ E v v -> A
+  [(do-arith/typed BINOP σ E v_0 v_1)
+   #{do-arith BINOP σ E v_0 v_1}])
 
 (define-metafunction μTR
-  do-arith : BINOP L σ E v v -> A
-  [(do-arith + L σ E integer_0 integer_1)
-   (L σ (in-hole E ,(+ (term integer_0) (term integer_1))))]
-  [(do-arith - L σ E integer_0 integer_1)
-   (L σ (in-hole E ,(- (term integer_0) (term integer_1))))]
-  [(do-arith * L σ E integer_0 integer_1)
-   (L σ (in-hole E ,(* (term integer_0) (term integer_1))))]
-  [(do-arith % L σ E integer_0 integer_1)
+  do-arith : BINOP σ E v v -> A
+  [(do-arith + σ E integer_0 integer_1)
+   (σ (in-hole E ,(+ (term integer_0) (term integer_1))))]
+  [(do-arith - σ E integer_0 integer_1)
+   (σ (in-hole E ,(- (term integer_0) (term integer_1))))]
+  [(do-arith * σ E integer_0 integer_1)
+   (σ (in-hole E ,(* (term integer_0) (term integer_1))))]
+  [(do-arith % σ E integer_0 integer_1)
    DivisionByZero
    (side-condition (zero? (term integer_1)))]
-  [(do-arith % L σ E integer_0 integer_1)
-   (L σ (in-hole E ,(quotient (term integer_0) (term integer_1))))
+  [(do-arith % σ E integer_0 integer_1)
+   (σ (in-hole E ,(quotient (term integer_0) (term integer_1))))
    (side-condition (not (zero? (term integer_1))))])
 
 (define-metafunction μTR
-  do-first/untyped : L σ E v -> A
-  [(do-first/untyped _ _ _ v)
+  do-first/untyped : σ E v -> A
+  [(do-first/untyped _ _ v)
    (TE v "pair?")
    (judgment-holds (not-list-value v))]
-  [(do-first/untyped L σ E v)
-   #{do-first L σ E v}])
+  [(do-first/untyped σ E v)
+   #{do-first σ E v}])
 
 (define-metafunction μTR
-  do-first/typed : L σ E v -> A
-  [(do-first/typed L σ E v)
-   #{do-first L σ E v}])
+  do-first/typed : σ E v -> A
+  [(do-first/typed σ E v)
+   #{do-first σ E v}])
 
 (define-metafunction μTR
-  do-first : L σ E v -> A
-  [(do-first _ _ _ nil)
+  do-first : σ E v -> A
+  [(do-first _ _ nil)
    EmptyList]
-  [(do-first L σ E (cons v_0 _))
-   (L σ (in-hole E v_0))])
+  [(do-first σ E (cons v_0 _))
+   (σ (in-hole E v_0))])
 
 (define-metafunction μTR
-  do-rest/untyped : L σ E v -> A
-  [(do-rest/untyped _ _ _ v)
+  do-rest/untyped : σ E v -> A
+  [(do-rest/untyped _ _ v)
    (TE v "pair?")
    (judgment-holds (not-list-value v))]
-  [(do-rest/untyped L σ E v)
-   #{do-rest L σ E v}])
+  [(do-rest/untyped σ E v)
+   #{do-rest σ E v}])
 
 (define-metafunction μTR
-  do-rest/typed : L σ E v -> A
-  [(do-rest/typed L σ E v)
-   #{do-rest L σ E v}])
+  do-rest/typed : σ E v -> A
+  [(do-rest/typed σ E v)
+   #{do-rest σ E v}])
 
 (define-metafunction μTR
-  do-rest : L σ E v -> A
-  [(do-rest _ _ _ nil)
+  do-rest : σ E v -> A
+  [(do-rest _ _ nil)
    EmptyList]
-  [(do-rest L σ E (cons _ v_1))
-   (L σ (in-hole E v_1))])
+  [(do-rest σ E (cons _ v_1))
+   (σ (in-hole E v_1))])
 
-;; TODO remove `not-VV`, and just make vector values syntactically different
-;;  from constructors (make-vector ...) vs (vector ...)
-(define-judgment-form μTR
-  #:mode (not-VV I I)
-  #:contract (not-VV σ e)
-  [
-   (side-condition ,(not (judgment-holds (VV σ e))))
-   ---
-   (not-VV σ e)])
+(define-metafunction μTR
+  do-ref : σ E v v -> A
+  [(do-ref σ E (vector loc) integer_index)
+   #{make-answer σ E #{term-ref v* integer_index}}
+   (where (_ v*) #{store-ref σ loc})]
+  [(do-ref σ E (vector _ loc) integer_index)
+   #{make-answer σ E #{term-ref v* integer_index}}
+   (where (_ v*) #{store-ref σ loc})])
 
-(define-judgment-form μTR
-  #:mode (VV I I)
-  #:contract (VV σ e)
-  [
-   (where (x _) #{unsafe-env-ref σ x #false})
-   ---
-   (VV σ (vector x))]
-  [
-   (where (x _) #{unsafe-env-ref σ x #false})
-   ---
-   (VV σ (vector τ x))])
+(define-metafunction μTR
+  do-set : σ E v v v -> A
+  [(do-set σ E (vector loc) v_1 v_2)
+   ,(if (redex-match? μTR Error (term any_set))
+      (term any_set)
+      (term (#{store-update σ loc any_set} (in-hole E v_2))))
+   (where (_ v*) #{store-ref σ loc})
+   (where any_set #{term-set v* v_1 v_2})]
+  [(do-set σ E (vector _ loc) v_1 v_2)
+   ,(if (redex-match? μTR Error (term any_set))
+      (term any_set)
+      (term (#{store-update σ loc any_set} (in-hole E v_2))))
+   (where (_ v*) #{store-ref σ loc})
+   (where any_set #{term-set v* v_1 v_2})])
 
 ;; =============================================================================
 
 (module+ test
   (require rackunit redex-abbrevs)
-
-  (test-case "not-VV"
-    (check-judgment-holds*
-     (not-VV () (vector (Vectorof Int) 1 2))))
 
   (test-case "assert-below"
     (check-mf-apply*
@@ -328,29 +317,22 @@
 
   (test-case "load-expression"
     (check-mf-apply*
-     ((load-expression UN () () (+ 2 2))
-      (UN () (+ 2 2)))
-     ((load-expression TY ((q (0))) () (+ 2 2))
-      (TY ((q (0))) (+ 2 2)))
-     ((load-expression UN ((q (0))) ((a 4) (b (vector (Vectorof Integer) q))) (+ a b))
-      (UN ((q (0))) (+ 4 (vector (Vectorof Integer) q))))))
+     ((load-expression () () (+ 2 2))
+      (() (+ 2 2)))
+     ((load-expression ((q (0))) () (+ 2 2))
+      (((q (0))) (+ 2 2)))
+     ((load-expression ((q (0))) ((a 4) (b (vector (Vectorof Integer) q))) (+ a b))
+      (((q (0))) (+ 4 (vector (Vectorof Integer) q))))
+     ((load-expression ((q (0))) ((a 4) (b (vector q))) (+ a b))
+      (((q (0))) (+ 4 (vector q))))))
 
   (test-case "unload-answer"
     (check-mf-apply*
-     ((unload-answer (UN () 3))
+     ((unload-answer (() 3))
       (() 3)))
 
     (check-exn exn:fail:contract?
       (λ () (term (unload-answer BadIndex)))))
-
-  (test-case "unload-answer/store"
-    (check-mf-apply*
-     ((unload-answer/store (UN () 3))
-      3)
-     ((unload-answer/store (UN ((q (0))) 3))
-      3)
-     ((unload-answer/store (UN ((q (0))) (vector q)))
-      (vector 0))))
 
   (test-case "local-value-env->provided"
     (check-mf-apply*
@@ -368,89 +350,106 @@
 
   (test-case "make-answer"
     (check-mf-apply*
-     ((make-answer UN () hole 2)
-      (UN () 2))
-     ((make-answer TY () hole (TE 2 "pair?"))
-      (TE 2 "pair?"))))
+     ((make-answer () hole 2)
+      (() 2))
+     ((make-answer () hole (TE 2 "pair?"))
+      (TE 2 "pair?"))
+     ((make-answer ((qq (1))) hole (mon-vector (Vectorof Nat) (vector qq)))
+      (((qq (1))) (mon-vector (Vectorof Nat) (vector qq))))
+    ))
 
   (test-case "do-ifz/untyped"
     (check-mf-apply*
-     ((do-ifz/untyped UN () hole 1 2 3)
-      (UN () 3))
-     ((do-ifz/untyped UN () hole 0 1 2)
-      (UN () 1))))
+     ((do-ifz/untyped () hole 1 2 3)
+      (() 3))
+     ((do-ifz/untyped () hole 0 1 2)
+      (() 1))))
 
   (test-case "do-arith/untyped"
     (check-mf-apply*
-     ((do-arith/untyped + UN () hole nil 0)
+     ((do-arith/untyped + () hole nil 0)
       (TE nil "integer?"))
-     ((do-arith/untyped + UN () hole 0 nil)
+     ((do-arith/untyped + () hole 0 nil)
       (TE nil "integer?"))
-     ((do-arith/untyped + UN () hole 3 2)
-      (UN () 5))
+     ((do-arith/untyped + () hole 3 2)
+      (() 5))
     )
   )
 
   (test-case "do-arith/typed"
     (check-mf-apply*
-     ((do-arith/typed * TY () hole 7 6)
-      (TY () 42))))
+     ((do-arith/typed * () hole 7 6)
+      (() 42))))
 
   (test-case "do-arith"
     (check-mf-apply*
-     ((do-arith + UN () hole 3 3)
-      (UN () 6))
-     ((do-arith - UN () hole 1 3)
-      (UN () -2))
-     ((do-arith * UN () hole 3 3)
-      (UN () 9))
-     ((do-arith % UN () hole 6 3)
-      (UN () 2))
-     ((do-arith % UN () hole 1 3)
-      (UN () 0))
-     ((do-arith % UN () hole 1 0)
+     ((do-arith + () hole 3 3)
+      (() 6))
+     ((do-arith - () hole 1 3)
+      (() -2))
+     ((do-arith * () hole 3 3)
+      (() 9))
+     ((do-arith % () hole 6 3)
+      (() 2))
+     ((do-arith % () hole 1 3)
+      (() 0))
+     ((do-arith % () hole 1 0)
       DivisionByZero)))
 
   (test-case "do-first/untyped"
     (check-mf-apply*
-     ((do-first/untyped UN () hole 3)
+     ((do-first/untyped () hole 3)
       (TE 3 "pair?"))
-     ((do-first/untyped UN () hole (cons 3 nil))
-      (UN () 3))))
+     ((do-first/untyped () hole (cons 3 nil))
+      (() 3))))
 
   (test-case "do-first/typed"
     (check-mf-apply*
-     ((do-first/typed TY () hole (cons 3 nil))
-      (TY () 3))))
+     ((do-first/typed () hole (cons 3 nil))
+      (() 3))))
 
   (test-case "do-first"
     (check-mf-apply*
-     ((do-first UN () hole nil)
+     ((do-first () hole nil)
       EmptyList)
-     ((do-first UN () hole (cons 2 nil))
-      (UN () 2))
-     ((do-first UN () hole (cons 2 (cons 3 nil)))
-      (UN () 2))))
+     ((do-first () hole (cons 2 nil))
+      (() 2))
+     ((do-first () hole (cons 2 (cons 3 nil)))
+      (() 2))))
 
   (test-case "do-rest/untyped"
     (check-mf-apply*
-     ((do-rest/untyped UN () hole 3)
+     ((do-rest/untyped () hole 3)
       (TE 3 "pair?"))
-     ((do-rest/untyped UN () hole (cons 3 nil))
-      (UN () nil))))
+     ((do-rest/untyped () hole (cons 3 nil))
+      (() nil))))
 
   (test-case "do-rest/typed"
     (check-mf-apply*
-     ((do-rest/typed TY () hole (cons 3 nil))
-      (TY () nil))))
+     ((do-rest/typed () hole (cons 3 nil))
+      (() nil))))
 
   (test-case "do-rest"
     (check-mf-apply*
-     ((do-rest UN () hole nil)
+     ((do-rest () hole nil)
       EmptyList)
-     ((do-rest UN () hole (cons 2 nil))
-      (UN () nil))
-     ((do-rest UN () hole (cons 2 (cons 3 nil)))
-      (UN () (cons 3 nil)))))
+     ((do-rest () hole (cons 2 nil))
+      (() nil))
+     ((do-rest () hole (cons 2 (cons 3 nil)))
+      (() (cons 3 nil)))))
+
+  (test-case "do-ref"
+    (check-mf-apply*
+     ((do-ref ((qq (2))) hole (vector qq) 0)
+      (((qq (2))) 2))))
+
+  (test-case "do-set"
+    (check-mf-apply*
+     ((do-set ((qq (5))) hole (vector qq) 0 1)
+      (((qq (1))) 1))
+     ((do-set ((qq (5))) hole (vector (Vectorof Int) qq) 0 1)
+      (((qq (1))) 1))
+    )
+  )
 
 )
