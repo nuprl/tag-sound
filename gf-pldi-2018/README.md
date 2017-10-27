@@ -3,6 +3,16 @@ paper
 
 "Spectrum of soundness"
 
+TODO
+---
+
+- type soundness isn't the only reason for type systems, see:
+  - typescript
+  - java
+  - pluggable types
+  - "any lnaguage without a proof (ocaml haskell TR)"
+- why reason ... still not sure, have some ideas, call for user studies
+
 
 Intro
 ---

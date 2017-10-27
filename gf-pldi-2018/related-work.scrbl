@@ -1,4 +1,4 @@
-#lang ???????
+#lang gf-pldi-2018
 @title[#:tag "sec:related-work"]{Related Work}
 
 Reticulated is a gradual typing system for Python@~cite[vksb-dls-2014].
@@ -6,6 +6,11 @@ Checks happen in ad-hoc places (just list them, don't really say @emph{ad-hoc}).
 Model proven to implement type-tag soundness.
 Performance good.
 In contrast we have principled checks.
+
+@; Question: does reticulated follow the model?
+@;  Yes basically. Something's wrong checking [] twice but the same problem
+@;   doesn't happen with integers so I guess its fine.
+
 
 Like types@~cite[bfnorsvw-oopsla-2009] are annotations with no semantics.
 @citet[rnv-ecoop-2015] apply the idea to TypeScript; TypeScript has only like types,
