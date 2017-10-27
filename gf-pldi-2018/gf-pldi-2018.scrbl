@@ -1,6 +1,9 @@
 #lang gf-pldi-2018 @sigplan @anonymous
 
-@title{Between Soundness and Unsoundness and What it Means for Performance}
+@; TODO fix the title
+@title{Forgetful, First-Order Language Interoperability}
+@subtitle{with applications to gradual typing}
+@;@title{Between Soundness and Unsoundness and What it Means for Performance}
 @;@title{An Unexpectedly Negative Result}
 
 @(define NEU
