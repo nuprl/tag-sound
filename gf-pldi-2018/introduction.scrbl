@@ -1,29 +1,69 @@
 #lang gf-pldi-2018
-@title[#:tag "sec:introduction"]{Introduction}
+@title[#:tag "sec:introduction"]{Tribes of Migratory Typing}
 
-Gradual typing is supposed to be a nice unifying subject, right?
-Implementations of gradual typing are anything but unifying.
-More like polar opposites.
-On one hand, Typed Racket implements sound gradual typing.
-All guarantees of the type system are preserved in mixed programs,
- and the performance of such programs can be disastrous.
-On the other hand, TypeScript implements unsound gradual typing.
-Types are erased for runtime; performance is the same as JavaScript and the
- type system makes no promises about the dynamic behavior of a statically typed program.
+@; Racket -> LISP ->
+@; Parentheses
+@; Racketensis
+@; Fungus ???
+@; Bacteria ?
 
-TypeScript invokes sneers from academic types, but has a growing following
- of JavaScript programmers.
-Typed Racket inspires fear in Racket programmers.
+@; Reticulated Python -> Python -> python
+@; Kingdom:  Animalia
+@; Phylum: Chordata
+@; Class:  Reptilia
+@; Order:  Squamata
+@; Suborder: Serpentes
+@; Infraorder: Alethinophidia
+@; Family: Pythonidae
 
-Great divide between the two.
-Desirable to bridge this gap, all depends on the context of the programmer.
-But what to do?
-Vitousek etal demonstrate an interesting idea in the context of Python,
- specifically a compiler for Python with type annotations to base Python.
-The compiler generates programs with decent performance and decent guarantees,
- falls between type soundness and type unsoundness.
+@; JavaScript -> Java -> Coffee
+@; Kingdom:  Plantae
+@; Clade:  Angiosperms
+@; Clade:  Eudicots
+@; Clade:  Asterids
+@; Order:  Gentianales
+@; Family: Rubiaceae
+@; Tribe:  Coffeeae
+@; Genus:  Coffea
 
-TODO
+The recent history of the world of programming languages has been shaped by
+ two fundamental truths.
+The first truth is that current dynamically typed languages are effective
+ tools for building applications.
+The second truth is that static typing systems are useful for maintaining
+ large applications.
+
+A migratory typing system is a type system and runtime
+ that combines statically-typed and dynamically typed code.
+Unlike gradual typing, migratory typing systems do not include a type
+ that is implicitly compatible with any other type.
+
+Two tribes have developed migratory typing systems to combine the benefits
+ of static typing and dynamic typing in a single language.
+One tribe, Racketensis, embeds untyped code using a type-directed "natural" embedding.
+Untyped values get type-checked at runtime, comprehensively.
+The other tribe, Coffeeae, erases types; the embedding is the trivial identity embedding.
+
+@; TypeScript invokes sneers from academic types, but has a growing following
+@;  of JavaScript programmers.
+@; Typed Racket inspires fear in Racket programmers.
+@; Great divide between the two.
+@; Desirable to bridge this gap, all depends on the context of the programmer.
+
+In the great plains of Indiana we have uncovered a mutant strain of python
+ that exhibits characteristics of both tribes albiet in restrained form.
+Less soundness, less overhead.
+
+Have refined this strain in the laboratory, and compared more thoroghly
+ its characteristics with the Racket and JavaScript strains of migratory typing.
+In particular, have a formal model with the essentials and an Typed Racket
+ functional implementation.
+Many programs can run in Racket to simulate all three tribes.
+
+Now it may be that the mutant is a happy compromise.
+Or may be, having none of the desirable traits from the dominant strains
+ this brand fades into obscurity.
+Nevertheless we present it to the scientific community.
 
 Contributions:
 @itemlist[
