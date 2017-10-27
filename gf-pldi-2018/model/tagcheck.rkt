@@ -38,7 +38,7 @@
    (where τ_fun+ #{weaken-arrow-domain τ_fun})
    (where Λ_+ (fun x_fun τ_fun+ (x_arg)
                 ((fun x_fun τ_fun (x_arg) e_+)
-                 (check κ_dom x_arg))))
+                 (from-untyped κ_dom x_arg))))
    --- C-Fun
    (tagged-completion Γ Λ κ_fun Λ_+)]
   [
@@ -50,93 +50,95 @@
    (or-TST List κ_cons)
    (tagged-completion Γ e_0 TST e_0+)
    (tagged-completion Γ e_1 List e_1+)
-   ---
+   --- C-Cons
    (tagged-completion Γ (cons e_0 e_1) κ_cons (cons e_0+ e_1+))]
   [
    (or-TST List κ_nil)
-   ---
+   --- C-Nil
    (tagged-completion Γ nil κ_nil nil)]
   [
    (where (_ τ) #{local-type-env-ref Γ x})
    (tag-of τ κ)
    (or-TST κ κ_x)
-   ---
+   --- C-Var
    (tagged-completion Γ x κ_x x)]
   [
    (tagged-completion Γ e_0 → e_0+)
    (tagged-completion Γ e_1 TST e_1+)
-   (where e_+ (check κ (e_0+ e_1+)))
-   ---
+   (where e_+ ,(if (equal? (term TST) (term κ))
+                 (term (e_0+ e_1+))
+                 (term (from-untyped κ (from-typed TST (e_0+ e_1+))))))
+   --- C-App
    (tagged-completion Γ (e_0 e_1) κ e_+)]
   [
    (tagged-completion Γ e_0 Int e_0+)
    (tagged-completion Γ e_1 κ e_1+)
    (tagged-completion Γ e_2 κ e_2+)
-   ---
+   --- C-Ifz
    (tagged-completion Γ (ifz e_0 e_1 e_2) κ (ifz e_0+ e_1+ e_2+))]
   [
    (tagged-completion Γ e_0 Nat e_0+)
    (tagged-completion Γ e_1 Nat e_1+)
-   ---
+   --- C-Plus0
    (tagged-completion Γ (+ e_0 e_1) Nat (+ e_0+ e_1+))]
   [
    (or-TST Int κ)
    (tagged-completion Γ e_0 Int e_0+)
    (tagged-completion Γ e_1 Int e_1+)
-   ---
+   --- C-Plus1
    (tagged-completion Γ (+ e_0 e_1) κ (+ e_0+ e_1+))]
   [
    (or-TST Int κ)
    (tagged-completion Γ e_0 Int e_0+)
    (tagged-completion Γ e_1 Int e_1+)
-   ---
+   --- C-Minus
    (tagged-completion Γ (- e_0 e_1) κ (- e_0+ e_1+))]
   [
    (tagged-completion Γ e_0 Nat e_0+)
    (tagged-completion Γ e_1 Nat e_1+)
-   ---
+   --- C-Times0
    (tagged-completion Γ (* e_0 e_1) Nat (* e_0+ e_1+))]
   [
    (or-TST Int κ)
    (tagged-completion Γ e_0 Int e_0+)
    (tagged-completion Γ e_1 Int e_1+)
-   ---
+   --- C-Times1
    (tagged-completion Γ (* e_0 e_1) κ (* e_0+ e_1+))]
   [
    (tagged-completion Γ e_0 Nat e_0+)
    (tagged-completion Γ e_1 Nat e_1+)
-   ---
+   --- C-Div0
    (tagged-completion Γ (% e_0 e_1) Nat (% e_0+ e_1+))]
   [
    (or-TST Int κ)
    (tagged-completion Γ e_0 Int e_0+)
    (tagged-completion Γ e_1 Int e_1+)
-   ---
+   --- C-Div1
    (tagged-completion Γ (% e_0 e_1) κ (% e_0+ e_1+))]
   [
    (tagged-completion Γ e_0 Vector e_0+)
    (tagged-completion Γ e_1 Int e_1+)
-   (where e_+ (check κ (vector-ref e_0+ e_1+)))
-   ---
+   (where e_+ (from-untyped κ (vector-ref e_0+ e_1+)))
+   --- C-Ref
    (tagged-completion Γ (vector-ref e_0 e_1) κ e_+)]
   [
    (tagged-completion Γ e_0 Vector e_0+)
    (tagged-completion Γ e_1 Int e_1+)
    (tagged-completion Γ e_2 κ e_2+)
-   ---
+   --- C-Set
    (tagged-completion Γ (vector-set! e_0 e_1 e_2) κ (vector-set! e_0+ e_1+ e_2+))]
   [
    (tagged-completion Γ e List e_+)
-   ---
-   (tagged-completion Γ (first e) κ (check κ (first e_+)))]
+   --- C-First
+   (tagged-completion Γ (first e) κ (from-untyped κ (first e_+)))]
   [
    (or-TST List κ)
    (tagged-completion Γ e List e_+)
-   ---
+   --- C-Rest
    (tagged-completion Γ (rest e) κ (rest e_+))]
   [
    (tagged-completion Γ e κ e_+)
-   ---
+   --- C-Union
    (tagged-completion Γ e (U κ_0 ... κ κ_1 ...) e_+)])
 
 (define-metafunction μTR
@@ -264,7 +266,7 @@
   [
    (well-tagged-expression Γ e TST)
    ---
-   (well-tagged-expression Γ (check κ e) κ)]
+   (well-tagged-expression Γ (from-untyped κ e) κ)]
   [
    (well-tagged-expression Γ e κ)
    ---
@@ -286,9 +288,9 @@
      ((tagged-completion# () -7 TST)
       -7)
      ((tagged-completion# () (fun f (→ Int Int) (x) (+ x 1)) →)
-      (fun f (→ TST Int) (x) ((fun f (→ Int Int) (x) (+ x 1)) (check Int x))))
+      (fun f (→ TST Int) (x) ((fun f (→ Int Int) (x) (+ x 1)) (from-untyped Int x))))
      ((tagged-completion# () (fun f (→ Int Int) (x) (+ x 1)) TST)
-      (fun f (→ TST Int) (x) ((fun f (→ Int Int) (x) (+ x 1)) (check Int x))))
+      (fun f (→ TST Int) (x) ((fun f (→ Int Int) (x) (+ x 1)) (from-untyped Int x))))
      ((tagged-completion# () (make-vector (Vectorof Int) 1 -2) Vector)
       (make-vector (Vectorof Int) 1 -2))
      ((tagged-completion# () (make-vector (Vectorof Int) 1 -2) TST)
@@ -308,15 +310,15 @@
      ((tagged-completion# ((x (Listof TST))) x List)
       x)
      ((tagged-completion# ((f (→ Int Int))) (f 3) Int)
-      (check Int (f 3)))
+      (from-untyped Int (from-typed TST (f 3))))
      ((tagged-completion# ((f (→ Int (Vectorof Int)))) (f 3) Vector)
-      (check Vector (f 3)))
+      (from-untyped Vector (from-typed TST (f 3))))
      ((tagged-completion# () ((fun f (→ Nat Nat) (x) (+ x 1)) 0) Nat)
-      (check Nat ((fun f (→ TST Nat) (x) ((fun f (→ Nat Nat) (x) (+ x 1)) (check Nat x))) 0)))
+      (from-untyped Nat (from-typed TST ((fun f (→ TST Nat) (x) ((fun f (→ Nat Nat) (x) (+ x 1)) (from-untyped Nat x))) 0))))
      ((tagged-completion# () (ifz 0 1 2) Nat)
       (ifz 0 1 2))
      ((tagged-completion# ((xs (Listof Nat))) (ifz (first xs) 1 nil) (U Int List))
-      (ifz (check Int (first xs)) 1 nil))
+      (ifz (from-untyped Int (first xs)) 1 nil))
      ((tagged-completion# () (+ 2 2) Int)
       (+ 2 2))
      ((tagged-completion# () (+ 2 2) Nat)
@@ -334,13 +336,13 @@
      ((tagged-completion# () (% 2 2) Int)
       (% 2 2))
      ((tagged-completion# ((xs (Listof Int))) (% 2 (first xs)) Int)
-      (% 2 (check Int (first xs))))
+      (% 2 (from-untyped Int (first xs))))
      ((tagged-completion# () (vector-ref (make-vector (Vectorof Int) 1 2) 0) Nat)
-      (check Nat (vector-ref (make-vector (Vectorof Int) 1 2) 0)))
+      (from-untyped Nat (vector-ref (make-vector (Vectorof Int) 1 2) 0)))
      ((tagged-completion# () (vector-set! (make-vector (Vectorof Int) 1 2) 0 1) Nat)
       (vector-set! (make-vector (Vectorof Int) 1 2) 0 1))
      ((tagged-completion# () (first nil) Nat)
-      (check Nat (first nil)))
+      (from-untyped Nat (first nil)))
      ((tagged-completion# () (rest nil) List)
       (rest nil))
     )
@@ -383,7 +385,7 @@
      (well-tagged-expression () (vector-set! (make-vector (Vectorof Int) 1) 0 0) Nat)
      (well-tagged-expression () (first (cons 1 nil)) TST)
      (well-tagged-expression () (rest nil) List)
-     (well-tagged-expression () (check Int (first (cons 1 nil))) Int)
+     (well-tagged-expression () (from-untyped Int (first (cons 1 nil))) Int)
      (well-tagged-expression ((x Int)) x (U Nat List Int))
     )
 

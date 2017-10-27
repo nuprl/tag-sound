@@ -34,17 +34,30 @@
 
 ;; =============================================================================
 
+(define-metafunction μTR
+  sound-eval-program# : PROGRAM -> [σ VAL-ENV]
+  [(sound-eval-program# PROGRAM)
+   [σ VAL-ENV]
+   (judgment-holds (sound-eval-program PROGRAM σ VAL-ENV))]
+  [(sound-eval-program# PROGRAM)
+   ,(raise-argument-error 'sound-eval-program "well-typed program" (term PROGRAM))
+   (side-condition (not (judgment-holds (well-typed-program PROGRAM TYPE-ENV))))]
+  [(sound-eval-program# PROGRAM)
+   ,(raise-arguments-error 'sound-eval-program "undefined for program"
+     "program" (term PROGRAM))])
+
 (define-judgment-form μTR
-  #:mode (sound-eval-program I)
-  #:contract (sound-eval-program PROGRAM)
+  #:mode (sound-eval-program I O O)
+  #:contract (sound-eval-program PROGRAM σ VAL-ENV)
   [
    (well-typed-program PROGRAM TYPE-ENV)
-   (sound-eval-module* () () () PROGRAM TYPE-ENV_rev σ_N VAL-ENV_N)
+   (sound-eval-module* () () () PROGRAM TYPE-ENV_rev σ_N VAL-ENV_rev)
    (where TYPE-ENV_N ,(reverse (term TYPE-ENV_rev)))
+   (where VAL-ENV_N ,(reverse (term VAL-ENV_rev)))
    (side-condition #{toplevel-type-env=? TYPE-ENV TYPE-ENV_N})
    (toplevel-value-env-models σ_N VAL-ENV_N TYPE-ENV_N)
    ---
-   (sound-eval-program PROGRAM)])
+   (sound-eval-program PROGRAM σ_N VAL-ENV_N)])
 
 (define-judgment-form μTR
   #:mode (sound-eval-module* I I I I O O O)
@@ -158,7 +171,7 @@
    (tag-of τ κ)
    (tagged-completion Γ e κ e_+)
    (well-tagged-expression Γ e_+ τ)
-   (where Σ_0 #{load-expression σ ρ e})
+   (where Σ_0 #{load-expression σ ρ e_+})
    (where (A τ) ,(sound-step* (term [Σ_0 τ])))
    ---
    (sound-eval-typed-expression Γ σ ρ e τ A)])
@@ -172,9 +185,13 @@
       T-step
       (judgment-holds (not-TST τ))
       (judgment-holds (well-tagged-state Σ τ))
+(side-condition (printf "yes well tagged ~a~n" (term Σ)))
       (where A #{typed-step# Σ})
+(side-condition (printf "yes took step ~a~n" (term A)))
       (side-condition (not (equal? (term Σ) (term A))))
-      (judgment-holds (well-tagged-answer A τ))]
+      (judgment-holds (well-tagged-answer A τ))
+(side-condition (printf "yes well-tagged ~a~n" (term τ)))
+]
     [-->
       (Σ TST)
       (A TST)
@@ -383,10 +400,6 @@
    --- T-Union
    (WK σ Γ e (U κ_0 ... κ κ_1 ...))]
   [
-   (WK σ Γ e TST)
-   --- T-Tag
-   (WK σ Γ (check κ e) κ)]
-  [
    (tag-of τ κ)
    (WK σ Γ e TST)
    ---
@@ -466,7 +479,7 @@
      (WK () () nil List)
      (WK () () nil TST)
      (WK () ((f (→ Int Int))) (f -6) TST)
-     (WK () ((f (→ Int Int))) (check Int (f -6)) Int)
+     (WK () ((f (→ Int Int))) (from-untyped Int (f -6)) Int)
      (WK () ((f TST)) (f f) TST) ;; TODO how is this allowed but still sound?
      (WK () () (3 3) TST)
      (WK () () (ifz 0 1 2) Nat)
@@ -589,14 +602,18 @@
     (check-mf-apply*
      ((sound-step# (() (+ 4 4)) Int)
       ((() 8) #true))
-     ((sound-step# (() (check Int (+ 2 2))) Int)
-      ((() (check Int 4)) #true))
+     ((sound-step# (() (from-untyped Int (+ 2 2))) Int)
+      ((() (from-untyped Int 4)) #true))
+     ((sound-step# (() (from-untyped Int 4)) Int)
+      ((() 4) #true))
      ((sound-step# (() (from-untyped Int (+ 2 nil))) Int)
       ((TE nil "integer?") #false))
      ((sound-step# (() (* 4 4)) TST)
       ((() 16) #true))
      ((sound-step# (() 16) TST)
       ((() 16) #false))
+     ((sound-step# (() (from-untyped Int (first (cons -1 (cons -2 nil))))) Int)
+      ((() (from-untyped Int -1)) #true))
     )
   )
 
@@ -610,45 +627,19 @@
       (TE nil "integer?"))
      ((sound-eval-untyped-expression# () () () (4 4))
       (TE 4 "procedure?"))
+     ((sound-eval-untyped-expression# () () () (first (cons -1 (cons -2 nil))))
+      (() -1))
+     ((sound-eval-untyped-expression# () () ()
+       (+ (first (cons -1 (cons -2 nil))) (first (rest (cons -1 (cons -2 nil))))))
+      (() -3))
+     ((sound-eval-typed-expression# () () () (first (cons -1 (cons -2 nil))) Int)
+      (() -1))
+     ((sound-eval-typed-expression# () () ()
+       (+ (first (cons -1 (cons -2 nil))) (first (rest (cons -1 (cons -2 nil)))))
+       Int)
+      (() -3))
     )
 
-    ;; `check` is not part of the source language
-    (check-exn exn:fail:contract?
-      (λ () (term #{sound-eval-typed-expression# () () () (check Int nil) Int})))
-  )
-
-  (test-case "sound-eval-program"
-    (check-judgment-holds*
-     (sound-eval-program
-      ((module M0 untyped
-        (define f (fun a (x) (fun b (y) (fun c (z) (+ (+ a b) c)))))
-        (provide f))
-       (module M1 typed
-        (require M0 ((f (→ Int (→ Int Int)))))
-        (provide f))
-       (module M2 untyped
-        (require M1 f)
-        (define f2 (f 2))
-        (define f23 (f2 3))
-        (provide))))
-    )
-  )
-
-  (test-case "sound-eval-program"
-    (check-judgment-holds*
-     (sound-eval-program
-      ((module M0 untyped
-        (define f (fun a (x) (fun b (y) (fun c (z) (+ (+ a b) c)))))
-        (provide f))
-       (module M1 typed
-        (require M0 ((f (→ Int (→ Int Int)))))
-        (provide f))
-       (module M2 untyped
-        (require M1 f)
-        (define f2 (f 2))
-        (define f23 (f2 3))
-        (provide))))
-    )
   )
 
   (test-case "toplevel-value-env-models"
@@ -676,6 +667,42 @@
      (toplevel-value-env-models () ((M0 ())) ())
      (toplevel-value-env-models () ()        ((M1 ())))
      (toplevel-value-env-models () ((M0 ((x -4)))) ((M0 ((x Nat)))))
+    )
+  )
+
+
+  (test-case "sound-eval-program"
+    (check-mf-apply*
+     ((sound-eval-program#
+       ((module M0 untyped
+         (define f (fun a (x) (fun b (y) (fun c (z) (+ (+ a b) c)))))
+         (provide f))
+        (module M1 typed
+         (require M0 ((f (→ Int (→ Int Int)))))
+         (provide f))
+        (module M2 untyped
+         (require M1 f)
+         (define f2 (f 2))
+         (define f23 (f2 3))
+         (provide))))
+      (() ((M0 ((f (fun a (x) (fun b (y) (fun c (z) (+ (+ a b) c)))))))
+           (M1 ((f (fun a (x) (fun b (y) (fun c (z) (+ (+ a b) c)))))))
+           (M2 ()))))
+    )
+  )
+
+  (test-case "sound-eval-program:II"
+    (check-mf-apply*
+     ((sound-eval-program#
+       ((module M0 untyped
+         (define nums (cons -1 (cons -2 nil)))
+         (provide nums))
+        (module M1 typed
+         (require M0 ((nums (Listof Int))))
+         (define a Int (+ (first nums) (first (rest nums))))
+         (provide a))))
+      (() ((M0 ((nums (cons -1 (cons -2 nil)))))
+           (M1 ((a -3))))))
     )
   )
 )

@@ -31,6 +31,8 @@
   ;; Purpose: so partial functions can check their inputs.
   ;;  The reduction relation uses tag-checks to make partial functions total
 
+  (τκ ::= τ κ)
+
   (PROGRAM ::= (MODULE ...))
   ;; A program is a sequence of modules.
 
@@ -77,8 +79,7 @@
                   (vector-ref TYPED-EXPR TYPED-EXPR)
                   (vector-set! TYPED-EXPR TYPED-EXPR TYPED-EXPR)
                   (first TYPED-EXPR) (rest TYPED-EXPR)
-                  (from-untyped τ UNTYPED-EXPR)
-                  (check κ TYPED-EXPR))
+                  (from-untyped τκ UNTYPED-EXPR))
   (TYPED-VALUE ::= integer
                    (fun x τ (x) TYPED-EXPR)
                    (vector τ loc)
@@ -97,8 +98,7 @@
                     (vector-ref UNTYPED-EXPR UNTYPED-EXPR)
                     (vector-set! UNTYPED-EXPR UNTYPED-EXPR UNTYPED-EXPR)
                     (first UNTYPED-EXPR) (rest UNTYPED-EXPR)
-                    (from-typed τ TYPED-EXPR)
-                    (check κ UNTYPED-EXPR))
+                    (from-typed τκ TYPED-EXPR))
   (UNTYPED-VALUE ::= integer
                      (fun x (x) UNTYPED-EXPR)
                      (vector loc)
@@ -128,8 +128,7 @@
          (BINOP v E)
          (vector-ref E e) (vector-ref v E)
          (vector-set! E e e) (vector-set! v E e) (vector-set! v v E)
-         (first E) (rest E)
-         (check κ E))
+         (first E) (rest E))
   ;; Left-to-right eager evaluation contexts.
   ;; Contexts do **not** reduce under boundaries, the reduction relations will
   ;;  have explicit rules for switching between languages.

@@ -57,16 +57,30 @@
 
 ;; =============================================================================
 
+(define-metafunction μTR
+  sound-eval-program# : PROGRAM -> [σ VAL-ENV]
+  [(sound-eval-program# PROGRAM)
+   [σ VAL-ENV]
+   (judgment-holds (sound-eval-program PROGRAM σ VAL-ENV))]
+  [(sound-eval-program# PROGRAM)
+   ,(raise-argument-error 'sound-eval-program "well-typed program" (term PROGRAM))
+   (side-condition (not (judgment-holds (well-typed-program PROGRAM TYPE-ENV))))]
+  [(sound-eval-program# PROGRAM)
+   ,(raise-arguments-error 'sound-eval-program "undefined for program"
+     "program" (term PROGRAM))])
+
 (define-judgment-form μTR
-  #:mode (sound-eval-program I)
-  #:contract (sound-eval-program PROGRAM)
+  #:mode (sound-eval-program I O O)
+  #:contract (sound-eval-program PROGRAM σ VAL-ENV)
   [
    (well-typed-program PROGRAM TYPE-ENV)
-   (sound-eval-module* () () () PROGRAM TYPE-ENV_N σ_N VAL-ENV_N)
-   (side-condition ,(equal? (term TYPE-ENV) (term TYPE-ENV_N)))
+   (sound-eval-module* () () () PROGRAM TYPE-ENV_rev σ_N VAL-ENV_rev)
+   (where TYPE-ENV_N ,(reverse (term TYPE-ENV_rev)))
+   (where VAL-ENV_N ,(reverse (term VAL-ENV_rev)))
+   (side-condition #{toplevel-type-env=? TYPE-ENV TYPE-ENV_N})
    (toplevel-value-env-models σ_N VAL-ENV_N TYPE-ENV_N)
    ---
-   (sound-eval-program PROGRAM)])
+   (sound-eval-program PROGRAM σ_N VAL-ENV_N)])
 
 (define-judgment-form μTR
   #:mode (sound-eval-module* I I I I O O O)
@@ -711,25 +725,6 @@
       (λ () (term #{sound-eval-typed-expression# () () () (from-untyped Int nil) Int})))
   )
 
-  (test-case "sound-eval-program:I"
-    (define-term P
-      ((module M0 untyped
-        (define f (fun a (x) (fun b (y) (fun c (z) (+ (+ x y) z)))))
-        (provide f))
-       (module M1 typed
-        (require M0 ((f (→ Int (→ Int Int)))))
-        (provide f))
-       (module M2 untyped
-        (require M1 f)
-        (define f2 (f 2))
-        (define f23 (f2 3))
-        (provide))))
-    (check-pred values
-      (term #{well-typed-program# P}))
-    (check-exn #rx"BE"
-     (λ () (judgment-holds (sound-eval-program P)))) ;;TODO
-  )
-
   (test-case "toplevel-value-env-models"
     (check-judgment-holds*
      (toplevel-value-env-models () () ())
@@ -751,4 +746,37 @@
     )
   )
 
+  (test-case "sound-eval-program:I"
+    (define-term P
+      ((module M0 untyped
+        (define f (fun a (x) (fun b (y) (fun c (z) (+ (+ x y) z)))))
+        (provide f))
+       (module M1 typed
+        (require M0 ((f (→ Int (→ Int Int)))))
+        (provide f))
+       (module M2 untyped
+        (require M1 f)
+        (define f2 (f 2))
+        (define f23 (f2 3))
+        (provide))))
+    (check-pred values
+      (term #{well-typed-program# P}))
+    (check-exn #rx"BE"
+     (λ () (term #{sound-eval-program# P})))
+  )
+
+  (test-case "sound-eval-program:II"
+    (check-mf-apply*
+     ((sound-eval-program#
+       ((module M0 untyped
+         (define nums (cons -1 (cons -2 nil)))
+         (provide nums))
+        (module M1 typed
+         (require M0 ((nums (Listof Int))))
+         (define a Int (+ (first nums) (first (rest nums))))
+         (provide a))))
+      (() ((M0 ((nums (cons -1 (cons -2 nil)))))
+           (M1 ((a -3))))))
+    )
+  )
 )

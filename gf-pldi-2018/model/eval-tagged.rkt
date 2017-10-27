@@ -202,8 +202,6 @@
 
 ;; -----------------------------------------------------------------------------
 
-;; TODO currently no rule for tag?. Need to add one?
-
 (define untyped-step
   (reduction-relation μTR
    #:domain A
@@ -606,6 +604,13 @@
 
     (check-exn exn:fail:redex?
       (λ () (term (eval-expression# () () TY (+ nil 2)))))
+  )
+
+  (test-case "typed-step"
+    (check-mf-apply*
+     ((typed-step# (() (first (cons -1 (cons -2 nil)))))
+      (() -1))
+    )
   )
 
   (test-case "eval-program:I"
