@@ -26,6 +26,7 @@
   toplevel-type-env-ref
   toplevel-type-env-set
   toplevel-type-env-update
+  toplevel-type-env=?
 
   store-ref
   store-set
@@ -150,6 +151,15 @@
    ,(append (term ρ_0) (term ρ_1))])
 
 (define-metafunction μTR
+  local-value-env=? : ρ ρ -> boolean
+  [(local-value-env=? ρ ρ)
+   #true]
+  [(local-value-env=? ρ_0 ρ_1)
+   ,(raise-arguments-error 'local-value-env=? "unequal envs"
+     "env0" (term ρ_0)
+     "env1" (term ρ_1))])
+
+(define-metafunction μTR
   toplevel-value-env-ref : VAL-ENV M -> any
   [(toplevel-value-env-ref VAL-ENV M)
    #{env-ref VAL-ENV M any_fail}
@@ -175,6 +185,15 @@
      ,(λ (x)
         (raise-arguments-error 'toplevel-value-env-update "unbound identifier, cannot update"
           "id" x "toplevel-value-env" (term VAL-ENV))))])
+
+(define-metafunction μTR
+  toplevel-value-env=? : VAL-ENV VAL-ENV -> boolean
+  [(toplevel-value-env=? VAL-ENV VAL-ENV)
+   #true]
+  [(toplevel-value-env=? VAL-ENV_0 VAL-ENV_1)
+   ,(raise-arguments-error 'toplevel-value-env=? "unequal envs"
+     "env0" (term VAL-ENV_0)
+     "env1" (term VAL-ENV_1))])
 
 (define-metafunction μTR
   local-type-env-ref : Γ x -> any
@@ -209,6 +228,15 @@
    ,(append (term Γ_0) (term Γ_1))])
 
 (define-metafunction μTR
+  local-type-env=? : Γ Γ -> boolean
+  [(local-type-env=? Γ Γ)
+   #true]
+  [(local-type-env=? Γ_0 Γ_1)
+   ,(raise-arguments-error 'local-type-env=? "unequal envs"
+     "env0" (term Γ_0)
+     "env1" (term Γ_1))])
+
+(define-metafunction μTR
   toplevel-type-env-ref : TYPE-ENV x -> any
   [(toplevel-type-env-ref TYPE-ENV x)
    #{env-ref TYPE-ENV x any_fail}
@@ -236,6 +264,15 @@
           "id" x "toplevel-type-env" (term Γ))))])
 
 (define-metafunction μTR
+  toplevel-type-env=? : TYPE-ENV TYPE-ENV -> boolean
+  [(toplevel-type-env=? TYPE-ENV TYPE-ENV)
+   #true]
+  [(toplevel-type-env=? TYPE-ENV_0 TYPE-ENV_1)
+   ,(raise-arguments-error 'toplevel-type-env=? "unequal envs"
+     "env0" (term TYPE-ENV_0)
+     "env1" (term TYPE-ENV_1))])
+
+(define-metafunction μTR
   store-ref : σ x -> any
   [(store-ref σ x)
    #{env-ref σ x any_fail}
@@ -261,6 +298,15 @@
      ,(λ (x)
         (raise-arguments-error 'store-update "unbound identifier, cannot update"
           "id" x "store" (term σ))))])
+
+(define-metafunction μTR
+  store=? : σ σ -> boolean
+  [(store=? σ σ)
+   #true]
+  [(store=? σ_0 σ_1)
+   ,(raise-arguments-error 'store=? "unequal envs"
+     "env0" (term σ_0)
+     "env1" (term σ_1))])
 
 ;; -----------------------------------------------------------------------------
 

@@ -39,8 +39,9 @@
   #:contract (sound-eval-program PROGRAM)
   [
    (well-typed-program PROGRAM TYPE-ENV)
-   (sound-eval-module* () () () PROGRAM TYPE-ENV_N σ_N VAL-ENV_N)
-   (side-condition ,(equal? (term TYPE-ENV) (term TYPE-ENV_N)))
+   (sound-eval-module* () () () PROGRAM TYPE-ENV_rev σ_N VAL-ENV_N)
+   (where TYPE-ENV_N ,(reverse (term TYPE-ENV_rev)))
+   (side-condition #{toplevel-type-env=? TYPE-ENV TYPE-ENV_N})
    (toplevel-value-env-models σ_N VAL-ENV_N TYPE-ENV_N)
    ---
    (sound-eval-program PROGRAM)])
@@ -609,21 +610,14 @@
       (TE nil "integer?"))
      ((sound-eval-untyped-expression# () () () (4 4))
       (TE 4 "procedure?"))
-     ;TODO;((sound-eval-typed-expression# ((f (→ Int Nat))) () ((f (fun f (x) x))) (check Nat (f 42)) Nat)
-     ;TODO; (() 42))
     )
-
-;; TODO
-;     ((sound-eval-expression# ((f (→ Int Nat))) () ((f (fun f (x) x))) (f 42) Nat)
-;      (() 42))
 
     ;; `check` is not part of the source language
     (check-exn exn:fail:contract?
       (λ () (term #{sound-eval-typed-expression# () () () (check Int nil) Int})))
   )
 
-;; TODO
-  #;(test-case "sound-eval-program"
+  (test-case "sound-eval-program"
     (check-judgment-holds*
      (sound-eval-program
       ((module M0 untyped
@@ -640,6 +634,22 @@
     )
   )
 
+  (test-case "sound-eval-program"
+    (check-judgment-holds*
+     (sound-eval-program
+      ((module M0 untyped
+        (define f (fun a (x) (fun b (y) (fun c (z) (+ (+ a b) c)))))
+        (provide f))
+       (module M1 typed
+        (require M0 ((f (→ Int (→ Int Int)))))
+        (provide f))
+       (module M2 untyped
+        (require M1 f)
+        (define f2 (f 2))
+        (define f23 (f2 3))
+        (provide))))
+    )
+  )
 
   (test-case "toplevel-value-env-models"
     (check-judgment-holds*
