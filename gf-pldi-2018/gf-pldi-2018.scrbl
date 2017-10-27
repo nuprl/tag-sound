@@ -1,8 +1,8 @@
 #lang gf-pldi-2018 @sigplan @anonymous
 
 @; TODO fix the title
-@title{Forgetful, First-Order Gradual Typing}
-@;@subtitle{with applications to gradual typing}
+@title{Forgetful, First-Order Language Embedding}
+@;@subtitle{with applications to migratory typing}
 @;@title{Between Soundness and Unsoundness and What it Means for Performance}
 @;@title{An Unexpectedly Negative Result}
 

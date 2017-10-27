@@ -12,6 +12,10 @@ TODO
   - pluggable types
   - "any lnaguage without a proof (ocaml haskell TR)"
 - why reason ... still not sure, have some ideas, call for user studies
+- Don't say "gradual typing" !!!! there's plenty of other words, e.g. 'migratory typing'
+- TRY THIS: each section starts with a summary of the previous section,
+   in not-so-many words, but the opening paragraph is just like "here's bottom
+   line from previous, here's what we're going to roll ahead with"
 
 
 Intro
