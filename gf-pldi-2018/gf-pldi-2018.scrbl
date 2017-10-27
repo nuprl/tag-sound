@@ -1,8 +1,8 @@
 #lang gf-pldi-2018 @sigplan @anonymous
 
 @; TODO fix the title
-@title{Forgetful, First-Order Language Interoperability}
-@subtitle{with applications to gradual typing}
+@title{Forgetful, First-Order Embedding}
+@;@subtitle{with applications to gradual typing}
 @;@title{Between Soundness and Unsoundness and What it Means for Performance}
 @;@title{An Unexpectedly Negative Result}
 
@@ -22,20 +22,20 @@
 
 @; -----------------------------------------------------------------------------
 
+@; TODO fix the abstract
 @abstract{
-  Typed Racket implements a generalized form type soundness.
-  The run-time cost of enforcing this type soundness is high.
-
-  Reticulated Python implements tag soundness; a term with the static type
-   @${\tlist(\tint)} can evaluate to any kind of list.
-  The run-time cost of enforcing this type soundness appears significantly
-   lower than the cost of enforcing generalized soundness.
-
-  This paper measures the cost of generalized soundness compared to tag
-   soundness in the context of Typed Racket.
-  We find that @emph{naive tag soundness} improves gradually typed programs,
-   but adds unacceptable overhead to typed code.
-  We present some techniques for reducing the overhead.
+  We present a techinque for embedding statically typed code in dynamically-typed
+   code, and vice-versa.
+  This technique is called the forgetful, first-order embedding.
+  It strikes a balance between the natural embedding (formalized by Matthews/Findler
+   and implemented in Typed Racket) and the identity embedding (implemented
+   in TypeScript).
+  The balance comes in two senses.
+  First, N-embedded programs run slower than F-embedded program run slower
+   than I-embedded programs.
+  Second, I-embedded programs have weaker static guarantees than F-embedded
+   programs have weaker guarantees than N-embedded programs.
+  We prove these claims for a model, and demonstrate them in an implementation.
 }
 
 @include-section{introduction.scrbl}
