@@ -1,7 +1,7 @@
 #lang gf-pldi-2018 @sigplan @anonymous
 
 @; TODO fix the title
-@title{Forgetful, First-Order Embedding}
+@title{Forgetful, First-Order Gradual Typing}
 @;@subtitle{with applications to gradual typing}
 @;@title{Between Soundness and Unsoundness and What it Means for Performance}
 @;@title{An Unexpectedly Negative Result}
@@ -37,6 +37,9 @@
    programs have weaker guarantees than N-embedded programs.
   We prove these claims for a model, and demonstrate them in an implementation.
 }
+
+@; vague outline: motivation, multi-language, macro-embedding, fo-embedding,
+@;   proofs about fo, implemetation notes lessons, performance evaluation, futures
 
 @include-section{introduction.scrbl}
 @include-section{background.scrbl}
