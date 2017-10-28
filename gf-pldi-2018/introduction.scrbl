@@ -1,5 +1,5 @@
 #lang gf-pldi-2018
-@title[#:tag "sec:introduction"]{Tribes of Migratory Typing}
+@title[#:tag "sec:introduction"]{Three Tribes of Migratory Typing}
 
 @; Racket -> LISP ->
 @; Parentheses
