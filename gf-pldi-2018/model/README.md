@@ -15,11 +15,14 @@ proofs of type and tag soundness
 TODO
 - count runtime time checks ?
 - CURRENT STATUS
-  * go back, clean up language, revise aux files AGAIN --- do this quickly
   * with revisions, 2 soundnesses are 2 ways of interpreting boundaries
   * actually possible (easy) to prove no type errors in tagged code --- because
     now the runtime knows what is tagged code instead of being hopelessly jumbled
-
+- split into "from-typed" "from-untyped" "guard"
+- prove tag soundness
+- reorganize so shared things are shared
+  (you give me XYZ and I give you some "evals")
+- remove \t from fun and vector, use monitors instead???????
 
 Summary
 ---
