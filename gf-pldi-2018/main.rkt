@@ -64,6 +64,8 @@
   ;;  where `code` is less than 1 line of Python code
   ;; Renders some Python code in the current line of text.
   ;; Useful for formatting identifiers
+
+  parag
 )
 
 (require
@@ -147,7 +149,11 @@
   (exact (format "\\pythonexternal{~a}" a)))
 
 ;; -----------------------------------------------------------------------------
-;; --- new stuff
+;; --- new stuff (not among the GTP-paper things)
 
 (define MMT
   (sc "mmt"))
+
+(define (parag . x)
+  (apply elem #:style "paragraph" x))
+

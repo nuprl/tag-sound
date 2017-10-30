@@ -44,8 +44,10 @@
 @include-section{introduction.scrbl}
 @include-section{background.scrbl}
 @include-section{design.scrbl}
+@include-section{implementation.scrbl}
+@;@include-section{reduce-checks-improve-errors.scrbl}
 @include-section{evaluation.scrbl}
-@include-section{reduce-checks-improve-errors.scrbl}
+@include-section{related-work.scrbl}
 @include-section{conclusion.scrbl}
 
 @generate-bibliography[]
