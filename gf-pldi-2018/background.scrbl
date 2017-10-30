@@ -2,9 +2,7 @@
 @title[#:tag "sec:background"]{Migratory Typing through Language Interoperability}
 
 @; TODO
-@; - remember, no soundness without semantics
-@; - make sure Sec 1 lists all tradeoffs
-@;   also Sec (related-word)
+@; - make sure Sec 1 lists all tradeoffs (???)
 @;   also Sec 1, more guarantees = more optimization but apparently not much at stake
 @; OUTLINE
 @; - interop, boundary terms, guards
@@ -18,59 +16,115 @@
 @; - TR vs Racket
 @; - 
 
-
-The goal of a migratory typing system is to allow safe interaction between
- statically typed code and dynamically typed code.
-The key tradeoffs at play are the guarantees and the performance.
 @; TR is "full guarantees" aka perfectly type sound,
 @; TS is "full performance" aka no penalty for interaction
 @;  I think penalty is the right way --- though low-level --- way to think
 @;  about performance because then there's no question of optimizations,
 @;  that's a separate question more tied to the guarantees
-The purpose of this section is to explain the key ideas of
- migratory typing as a language interoperability problem,
-Examine the benefits and drawbacks for previous approaches,
- set the stage for the first-order embedding formalized in the next section.
+
+@; -----------------------------------------------------------------------------
+
+The purpose of a migratory typing system is to enable safe interaction between
+ dynamically-typed and statically-typed code.
+Existing migratory typing systems meet this goal by combining a static typing
+ judgment with a run-time verification system.
+Intuitively, the typing judgment establishes certain invariants about typed
+ expressions and the run-time verification asserts that untyped expressions
+ flowing into typed contexts do not violate these invariants.
+
+The key challenge in designing a migratory typing system is choosing
+ a good notion of safety.
+On one hand, the static typing judgment should accept many programs and offer
+ strong guarantees.
+On the other hand, the run-time verification should impose minimal performance
+ overhead.
+@; Examples with base values, lists, streams, anonymous functions?
+@; Can reject these at the boundary, 
+
+This section presents two migratory typing systems for a lambda calculus,
+ these systems are respectively based on the natural and identity embeddings
+ for a multi-language system.
+At a high level, these systems illustrate the (extreme opposite) approaches taken by Typed Racket
+ and TypeScript.
 
 
+@section{Two Languages}
 
-Gradual typing idea is simple, controlled channels of communication
- with untyped code.
-Sadly, many ways to communicate.
-Sadly, adding control adds runtime overhead.
+@include-figure["fig:dyn-lang.tex" @elem{Dynamically-typed @|L_D|}]
+@include-figure["fig:sta-lang.tex" @elem{Statically-typed @|L_S|}]
 
-In principle, one thing to do = check untyped input.
-But input comes from many places.
+@Figure-ref["fig:dyn-lang" "fig:sta-lang"] define two variations of a lambda calculus
+ with integers and pairs.
+Both languages come with an operational semantics defined in terms of a partial
+ function over expressions, and both have a static "typing" judgment that
+ holds for all expressions with a well-defined semantics.
 
-@; this is easy to explain
+@parag{Dynamic Typing}
+The language @|L_D| is dynamically typed.
+An @|L_D| expression is well-formed according to @|⊢_D| if it contains no free
+ variables.
+Any well-formed expression that is not a value can step via @|→_D| to either
+ a well-formed expression, a type error, or a value error.
+Type errors are caused by values with a bad shape,
+ value errors are caused by partial primitive operations.
+More formally, the language satisfies a safety theorem:
 
-A gradual typing system delays some type checking until run-time.
-What becomes of type soundness?
+@theorem[@elem{@|L_D| safety}]{
+  If @well-dyn{e} then either:}
+  @itemlist[
+  @item{
+    @dyn*["e" "v"] and @well-dyn{v}
+  }
+  @item{
+    @${e} diverges
+  }
+  @item{
+    @dyn*["e" type-error]
+  }
+  @item{
+    @dyn*["e" value-error]
+  }
+  ]
 
-First order vs. higher-order data.
-
-Example programs, litmus tests.
-To frame the discussion, consider the following programs.
-
-TBA
-
-@section{A Theory of Macro-Level Gradual Typing}
-
-Static typing like normal,
- runtime environment can have monitored values,
- special runtime typing for progress and preservation, get conventional type soundness.
+@proof-sketch{
+  @|→_D| is defined for all closed terms, and satisfies subject reduction
+   for @|⊢_D|.
+}
 
 
-@section{Typed Racket, Generalized Soundness}
+@parag{Static Typing}
+The language @|L_S| includes types @${\tau} and extends the syntax of function
+ values to include type annotations.
+The static typing judgment @|⊢_S| uses these annotations to prove that an
+ expression will not reduce to a type error.
+Likewise, the reduction relation @|→_S| does not perform any type checks.
+The safety theorem for @|L_S| states that evaluation preserves types and
+ cannot end in a type error:@note{Don't care that @|L_S| is strongly normalizing.}
 
-Principles, particulars, answer to the programs.
+@theorem[@elem{@|L_D| safety}]{
+  If @well-sta["e" "\tau"] then either:}
+  @itemlist[
+  @item{
+    @sta*["e" "v"] and @well-sta["v" "\tau"]
+  }
+  @item{
+    @${e} diverges
+  }
+  @item{
+    @sta*["e" value-error]
+  }
+  ]
+
+@proof-sketch{
+  Progress and preservation.
+}
 
 
-@section{Reticulated, Tag Soundness}
+@section{Multi-Language}
 
-Principles is no proxies, only rewrite typed code, only check "tags".
-Particulars, answers TBA.
+@section{Identity Embedding}
 
+@section{Natural Embedding}
 
 @section{Performance}
 

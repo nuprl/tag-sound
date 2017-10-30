@@ -5,6 +5,26 @@
 (provide
   ;; --- new stuff
   MMT
+  L_D
+  L_S
+  ⊢_D
+  ⊢_S
+  →_D
+  →_S
+  well-dyn
+  well-sta
+  sta*
+  dyn*
+  definition
+  theorem
+  exact
+  etal
+  $
+  type-error
+  value-error
+  proof
+  proof-sketch
+  include-figure
 
   ;; ---------------------------------------------------------------------------
   ;; --- old stuff
@@ -154,6 +174,83 @@
 (define MMT
   (sc "mmt"))
 
+(define (include-figure ps caption)
+  (unless (and (string? ps) (file-exists? ps))
+    (raise-argument-error 'include-figure "(and/c string? file-exists?)" ps))
+  (define tag (path->string (path-replace-extension ps #"")))
+  (figure tag caption (exact (format "\\input{~a}" ps))))
+
 (define (parag . x)
   (apply elem #:style "paragraph" x))
 
+(define (definition term . defn*)
+  (make-thing "Definition" term defn*))
+
+(define (theorem term . defn*)
+  (make-thing "Theorem" term defn*))
+
+(define (make-thing title term defn*)
+  (para #:style plain
+    (list
+      (exact "\\vspace{1ex}\n")
+      (bold title)
+      (cons (element #f (list " (" (emph term) ") ")) defn*)
+      (exact "\\vspace{1ex}\n"))))
+
+(define (proof-sketch . elem*)
+  (make-proof elem*))
+
+(define (proof . elem*)
+  (make-proof elem*))
+
+(define (make-proof elem*)
+  (para #:style "proof" elem*))
+
+(define L_D
+  (bold "LD"))
+
+(define L_S
+  (bold "LS"))
+
+(define ⊢_D
+  (bold "⊢D"))
+
+(define ⊢_S
+  (bold "⊢S"))
+
+(define →_D
+  (bold "→D"))
+
+(define →_S
+  (bold "→S"))
+
+(define (exact . items)
+  (make-element (make-style "relax" '(exact-chars))
+                items))
+
+(define etal
+  (exact "et~al."))
+
+(define ($ . items)
+  (apply exact (list "$" items "$")))
+
+(define (well-dyn x)
+  ($ (format "\\welldyn~~~a" x)))
+
+(define (well-sta x t)
+  ($ (format "\\wellsta~~~a : ~a" x t)))
+
+(define (dyn* src tgt)
+  (step* "\\dynstep" src tgt))
+
+(define (sta* src tgt)
+  (step* "\\stastep" src tgt))
+
+(define (step* arr src tgt)
+  ($ (format "~a~~~a^*~~~a" src arr tgt)))
+
+(define type-error
+  "TypeError")
+
+(define value-error
+  "ValueError")
