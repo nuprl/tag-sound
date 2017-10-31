@@ -1,0 +1,15 @@
+\begin{flushleft}
+$\begin{array}{l}
+  \bcost{\edyn{\tint}{}} = \mathsf{check}
+\\
+  \bcost{\edyn{\tnat}{}} = \mathsf{check}
+\\
+  \bcost{\edyn{\tpair{\tau}{\tau'}}{}} = \bcost{\edyn{\tau}{}} + \bcost{\edyn{\tau'}{}}
+\\
+  \bcost{\edyn{(\tau\tarrow\tau')}{}} = \mathsf{alloc + (check * (1 + \#apps))}
+\\
+  \bcost{\esta{(\tau\tarrow\tau')}{}} = \mathsf{alloc + (check * (1 + \#apps))}
+\\
+  \bcost{\esta{\tau}{}} = 0
+\end{array}$
+\end{flushleft}

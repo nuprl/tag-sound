@@ -284,13 +284,50 @@ See @figure-ref{fig:natural-monitors} for the details.
 
 @section{Performance}
 
-Obviously the natural embedding offers stronger guarantees.
-Obviously the identity embedding has superior performance for mixed programs,
- but not for fully-typed programs.
+@include-figure["fig:natural-cost.tex" "Approximate Cost of Boundaries"]
 
-Recurrence for cost of boundaries.
+The natural embedding lets programmers use types to reason about the behavior
+ of mixed programs.
+Clearly this power comes at some cost to performance.
 
-Performance is complicated.
+The cost is difficult to statically estimate for two reasons.
+First, the cost comes from checks, allocations, and indirections.
+All three have non-obvious performance implications.
+Especially indirections, which affect JIT compilation.
+Second, the number of checks, allocations, and indirections depends on the
+ run-time behavior of the program.
+
+@Figure-ref{fig:natural-cost} is a sketch of the costs in terms of three
+ meta-variables: @sc{check}, @sc{alloc}, and @sc{\#apps}.
+A @sc{check} represents the cost of one run-time type test,
+ basically the cost of checking a few bits.
+An @sc{alloc} represents the cost of allocating a new monitor
+ (probably depends on the type, but not represented here).
+Lastly @sc{\#apps} represents the number of destructors applied to the
+ value after it crosses a boundary.
+
+
+@subsection{Typed Racket Performance}
+
+Typed Racket implements a natural embedding of Racket terms.
+Uses Racket's contract system to guard boundaries,
+ boundaries are module boundaries described by require and provides.
+Can think of this as, require and provide forms guide compilation from
+ syntax in @figure-ref["fig:dyn-lang" "fig:sta-lang"] to a "mixed" core language.
+(Technically its all Racket, but the boundaries separate "terms that were originally
+ Typed Racket terms.)
+
+Performance question.
+For a Racket program with @${N} modules, there are @${2^N} ways to convert
+ some modules to Typed Racket; call these @${2^N} configurations.
+How many mixed programs run faster than Racket?
+How many run at most @${D}x slower than Racket?
+
+The graphs in @figure-ref{fig:tr-performance} show data for @|NUM-TR| Racket
+ programs (source: Takikawa).
+The y-intercept is the percent of configurations that run as fast as Racket.
+Most benchmarks have a small area under the curve, which means few configurations
+ run within even a @${@~a[X-MAX]} overhead.
 
 @figure*["fig:tr-performance" "Typed Racket v6.10.1 performance"
   (overhead-plot* TR-DATA*)]

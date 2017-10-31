@@ -21,14 +21,13 @@
   step*
   definition
   theorem
-  exact
-  etal
-  $
   type-error
   value-error
   proof
   proof-sketch
   include-figure
+
+  ~a
 
   ;; ---------------------------------------------------------------------------
   ;; --- old stuff
@@ -177,16 +176,6 @@
 ;; -----------------------------------------------------------------------------
 ;; --- new stuff (not among the GTP-paper things)
 
-(define (exact . items)
-  (make-element (make-style "relax" '(exact-chars))
-                items))
-
-(define etal
-  (exact "et~al."))
-
-(define ($ . items)
-  (apply exact (list "$" items "$")))
-
 (define MMT
   (sc "mmt"))
 
@@ -195,9 +184,6 @@
     (raise-argument-error 'include-figure "(and/c string? file-exists?)" ps))
   (define tag (path->string (path-replace-extension ps #"")))
   (figure tag caption (exact (format "\\input{~a}" ps))))
-
-(define (parag . x)
-  (apply elem #:style "paragraph" x))
 
 (define (definition term . defn*)
   (make-thing "Definition" term defn*))

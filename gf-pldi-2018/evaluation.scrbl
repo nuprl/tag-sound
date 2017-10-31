@@ -23,10 +23,11 @@ How much is unclear, because maybe can improve the contract system.
 Section 2 outlined our method.
 
 Ten functional programs from Takikawa.
-Ran each eight times on unloaded machine, size memory GhZ.
-Run sequentially.
+Ran each eight times on a Linux machine with two physical AMD Opteron 6376 processors
+ and 128GB RAM.@note{The Opteron is a NUMA architecture.}
+Each the processors ran at 2.30 GHz using the performance CPU governor.
 
-Racket v6.10.1.
+Using Racket v6.10.1.
 
 
 @section{Results}
@@ -35,7 +36,12 @@ Two datasets on each plot, typed vs. tagged.
 Max overhead is significantly lower.
 Increase is typically linear,
  levels off when fully-typed because skip all codomain checks.
-But not domain so maybe I need to finish that to submit this.
+(Never skip domain checks, need to measure that version.)
+
+@figure*["fig:tagged-performance"
+         @elem{Tagged Racket (orange @|tag-color-sample| ) vs. Typed Racket (blue @|tr-color-sample| )}
+  (overhead-plot* (map cons TR-DATA* TAG-DATA*))]
+
 
 
 @section{Threats to Validity}
