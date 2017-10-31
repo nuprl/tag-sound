@@ -285,7 +285,12 @@ See @figure-ref{fig:natural-monitors} for the details.
 @section{Performance}
 
 Obviously the natural embedding offers stronger guarantees.
-Obviously the identity embedding has superior performance.
+Obviously the identity embedding has superior performance for mixed programs,
+ but not for fully-typed programs.
 
-High-level comparison, I guess "low-level" compare FSM performance.
+Recurrence for cost of boundaries.
 
+Performance is complicated.
+
+@figure*["fig:tr-performance" "Typed Racket v6.10.1 performance"
+  (overhead-plot* TR-DATA*)]

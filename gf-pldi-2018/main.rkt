@@ -34,6 +34,7 @@
   ;; --- old stuff
   (all-from-out
     "bib.rkt"
+    "plot.rkt"
     scribble-abbrevs
     scribble/acmart
     scribble/doclang
@@ -94,6 +95,7 @@
 
 (require
   "bib.rkt"
+  "plot.rkt"
   (only-in racket/class
     class new super-new object% define/public)
   (only-in racket/list
