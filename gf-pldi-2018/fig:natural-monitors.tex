@@ -1,0 +1,36 @@
+{\flushleft
+
+$\begin{array}{l c l}
+  v_D & = & \ldots \mid \vmonfun{(\tau\tarrow\tau')}{v_D}
+\\
+  v_S & = & \ldots \mid \vmonfun{(\tau\tarrow\tau')}{v_S}
+\end{array}$
+
+\smallskip
+\begin{mathpar}
+  \inferrule*{
+    \Gamma \wellsta v_S : \tau
+  }{
+    \Gamma \welldyn \vmonfun{\tau}{v_S}
+  }
+
+  \inferrule*{
+    \Gamma \welldyn v_D
+  }{
+    \Gamma \wellsta \vmonfun{\tau}{v_D} : \tau
+  }
+\end{mathpar}
+
+\smallskip
+\begin{mathpar}
+  \inferrule*{
+  }{
+    (\vmonfun{\tau\tarrow\tau'}{v_D})~v_S \stastep \edyn{\tau'}{(v_D~(\esta{\tau}{v_S}))}
+  }
+
+  \inferrule*{
+  }{
+    (\vmonfun{\tau\tarrow\tau'}{v_S})~v_D \dynstep \esta{\tau'}{(v_S~(\edyn{\tau}{v_D}))}
+  }
+\end{mathpar}
+}

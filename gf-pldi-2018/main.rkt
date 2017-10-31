@@ -16,6 +16,7 @@
   well-dyn
   well-sta
   sta*
+  dynstep
   dyn*
   step*
   definition

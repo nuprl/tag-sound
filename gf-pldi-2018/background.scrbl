@@ -183,7 +183,7 @@ Put another way, this approach treats @|⊢_S| as an optional static analysis
  that can rule out bad expressions and has no relation to the semantics.
 The semantics is an extension of the @|→_D| relation:
 
-@$|{ \begin{mathpar}
+@exact|{ \begin{mathpar}
   \inferrule*{
   }{
     \edyn{\tau}{v} \dynstep v
@@ -194,18 +194,18 @@ The semantics is an extension of the @|→_D| relation:
     \esta{\tau}{v} \dynstep v
   }
 
-  \inferrule*{
-    e' = \vsubst{e}{x}{v}
-  }{
-    (\vlam{(x:\tau)}{e})~v \dynstep e'
-  }
+  %\inferrule*{
+  %  e' = \vsubst{e}{x}{v}
+  %}{
+  %  (\vlam{(x:\tau)}{e})~v \dynstep e'
+  %}
 \end{mathpar} }|
 
 Safety for an identity-embedded migratory typing system guarantees that
  well-formed expressions have a well-defined semantics.
 
 @theorem[@elem{identity embedding term safety}]{
-  If @well-sta["e" ″\\tau"] or @well-dyn{e} then either:}
+  If @well-sta["e" "\tau"] then either:}
   @itemlist[
   @item{
     @dyn*["e" "v"] and @well-dyn{v}
@@ -232,39 +232,54 @@ The downside is that types cannot be used to reason about the behavior of
 
 
 @subsection{Natural Embedding}
-@; dude it is highly unclear what is the natural embedding youre trying to explain
 
-The goal of the natural embedding is to provide a conventional form of type
- safety for statically typed expressions.
-In particular, this safety guarantees the absence of type errors in statically
- typed code.
+The natural embedding uses boundary type annotations to check values at run-time.
+@Figure-ref{fig:natural-embedding} presents a limited kind of natural embedding.
+This version checks integer values, recursively checks pair values, and
+ prevents functions from crossing.
+With this semantics for boundary terms, it is possible to prove a nearly-conventional
+ type safety theorem:
 
 @theorem[@elem{natural embedding type safety}]{
-  If @well-sta["e" ″\\tau"] then either:}
+  If @well-sta["e" "\\tau"] then either:}
   @itemlist[
   @item{
-    @step*["e" "v"] and @well-sta["v" "\\tau"]
+    @sta*["e" "v"] and @well-sta["v" "\\tau"]
   }
   @item{
     @${e} diverges
   }
   @item{
-    @dyn*["e" "e'"] and @dyn["e'" type-error]
+    @sta*["e" "e'"] and @dynstep["e'" type-error]
   }
   @item{
-    @dyn*["e" value-error]
+    @sta*["e" value-error]
   }
   ]
 
 @include-figure["fig:natural-embedding.tex" "Natural Embedding"]
 
-Evaluation can end in a value error for one of two reasons:
- either due to a partial primitive operation or
- due to a mismatch at a type boundary.
-A mismatch occurs when a boundary expecting a value with static type @${\tau}
- receives an incompatible value (see @figure-ref{fig:natural-embedding}).
+In particular, this safety guarantees the absence of type errors in statically
+ typed code, but makes no guarantee about dynamically typed sub-expressions.
 
-????
+The trouble with function values is two-fold.
+First, an untyped function used in a typed context might return a "bad" value.
+Second, a typed function used in an untyped context might receive a "bad" value.
+
+Maybe possible to type-check dynamically-typed functions when they enter typed
+ code.
+But probably not practical to check the context that receives a typed function.
+So need another approach.
+At any rate, the "exhaustively check" approach is also impractical for
+ large objects (e.g., databases) or infinite objects (e.g., streams).
+If the MT system wants to share such values, cannot provide "immediate accountability".
+
+To allow functions across boundaries, we extend the language with new values
+ that represent "monitored functions".
+The reduction relation for a monitor ensures that it matches its type.
+See @figure-ref{fig:natural-monitors} for the details.
+
+@include-figure["fig:natural-monitors.tex" "Function Monitors"]
 
 
 @section{Performance}

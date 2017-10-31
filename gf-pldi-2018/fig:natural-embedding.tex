@@ -1,7 +1,13 @@
 \begin{mathpar}
   \inferrule*{
+    v \neq \vlam{(x:\tau)}{e}
   }{
     \esta{\tau}{v} \dynstep v
+  }
+
+  \inferrule*{
+  }{
+    \esta{\tau}{\vlam{(x:\tau)}{e}} \dynstep \valueerror
   }
 
   \inferrule*{
@@ -28,7 +34,16 @@
     \edyn{\tnat}{v} \stastep \valueerror
   }
 
-  %% TODO pairs functions
+  \inferrule*{
+  }{
+    \edyn{\tpair{\tau}{\tau'}}{\vpair{v}{v'}} \stastep \vpair{\edyn{\tau}{v}}{\edyn{\tau'}{v'}}
+  }
+
+  \inferrule*{
+    v \neq \vpair{v'}{v''}
+  }{
+    \edyn{\tpair{\tau}{\tau'}}{v} \stastep \valueerror
+  }
 
 \end{mathpar}
 

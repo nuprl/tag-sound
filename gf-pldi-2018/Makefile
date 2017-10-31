@@ -1,6 +1,6 @@
 PAPER=gf-pldi-2018
 PKG=gf-pldi-2018
-SCRIBBLE_FLAGS=++style texstyle.tex ++extra mathpartir.sty ++extra fig:dyn-lang.tex ++extra fig:sta-lang.tex ++extra fig:natural-embedding.tex
+SCRIBBLE_FLAGS=++style texstyle.tex ++extra mathpartir.sty ++extra fig:dyn-lang.tex ++extra fig:sta-lang.tex ++extra fig:natural-embedding.tex ++extra fig:natural-monitors.tex
 
 pdf: compile texstyle.tex
 	scribble ${SCRIBBLE_FLAGS} --pdf $(PAPER).scrbl
