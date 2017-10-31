@@ -17,6 +17,7 @@
   well-sta
   sta*
   dyn*
+  step*
   definition
   theorem
   exact
@@ -247,18 +248,18 @@
   (step "\\dynstep" src tgt))
 
 (define (dyn* src tgt)
-  (step* "\\dynstep" src tgt))
+  (format-step* "\\dynstep" src tgt))
 
 (define (sta* src tgt)
-  (step* "\\stastep" src tgt))
+  (format-step* "\\stastep" src tgt))
 
 (define (step* src tgt)
-  (step* "\\rightarrow" src tgt))
+  (format-step* "\\rightarrow" src tgt))
 
 (define (step arr src tgt)
   ($ (format "~a~~~a~~~a" src arr tgt)))
 
-(define (step* arr src tgt)
+(define (format-step* arr src tgt)
   ($ (format "~a~~~a^*~~~a" src arr tgt)))
 
 (define type-error

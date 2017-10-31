@@ -1,0 +1,34 @@
+\begin{mathpar}
+  \inferrule*{
+  }{
+    \esta{\tau}{v} \dynstep v
+  }
+
+  \inferrule*{
+    i \in \integers
+  }{
+    \edyn{\tint}{i} \stastep i
+  }
+
+  \inferrule*{
+    v \not\in \integers
+  }{
+    \edyn{\tint}{v} \stastep \valueerror
+  }
+
+  \inferrule*{
+    i \in \naturals
+  }{
+    \edyn{\tnat}{i} \stastep i
+  }
+
+  \inferrule*{
+    v \not\in \naturals
+  }{
+    \edyn{\tnat}{v} \stastep \valueerror
+  }
+
+  %% TODO pairs functions
+
+\end{mathpar}
+

@@ -170,7 +170,8 @@ In this spirit, one bad choice for the semantics would be to disallow all
  mixed terms --- safe or unsafe --- by reducing all boundary terms to a value error.
 Another poor choice would be to let any value cross a boundary and use
  the @|→_S| reduction relation on statically-typed terms.
-This could easily lead to a stuck expression, for instance @$|{((\edyn{(\tint \tarrow \tint)}{0})~0)}|
+This can easily lead to a stuck expression, for instance
+ @$|{((\edyn{(\tint \tarrow \tint)}{0})~0)}|
  would reduce to the stuck application @${(0~0)}.
 
 
@@ -194,11 +195,11 @@ The semantics is an extension of the @|→_D| relation:
   }
 
   \inferrule*{
-    e' = \subst{e}{x}{v}
+    e' = \vsubst{e}{x}{v}
   }{
-    \vlam{(x:\tau)}{e}~v \dynstep e'
+    (\vlam{(x:\tau)}{e})~v \dynstep e'
   }
-\end{mathpar} }
+\end{mathpar} }|
 
 Safety for an identity-embedded migratory typing system guarantees that
  well-formed expressions have a well-defined semantics.
@@ -235,7 +236,7 @@ The downside is that types cannot be used to reason about the behavior of
 
 The goal of the natural embedding is to provide a conventional form of type
  safety for statically typed expressions.
-In particular, this safety guarantees the absense of type errors in statically
+In particular, this safety guarantees the absence of type errors in statically
  typed code.
 
 @theorem[@elem{natural embedding type safety}]{
@@ -258,9 +259,10 @@ In particular, this safety guarantees the absense of type errors in statically
 @include-figure["fig:natural-embedding.tex" "Natural Embedding"]
 
 Evaluation can end in a value error for one of two reasons:
- either due to a partial primitive operation or due to a mismatch at a type
- boundary.
-Type boundary errors arise due to the semantics in @figure-ref{fig:natural-embedding}
+ either due to a partial primitive operation or
+ due to a mismatch at a type boundary.
+A mismatch occurs when a boundary expecting a value with static type @${\tau}
+ receives an incompatible value (see @figure-ref{fig:natural-embedding}).
 
 ????
 
