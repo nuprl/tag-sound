@@ -40,8 +40,7 @@ Increase is typically linear,
 
 @figure*["fig:tagged-performance"
          @elem{Tagged Racket (orange @|tag-color-sample| ) vs. Typed Racket (blue @|tr-color-sample| )}
-  (overhead-plot* (map cons TR-DATA* TAG-DATA*))]
-
+  (overhead-plot* (map list TR-DATA* TAG-DATA*))]
 
 
 @section{Threats to Validity}

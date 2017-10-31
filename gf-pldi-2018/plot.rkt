@@ -15,7 +15,8 @@
   gtp-plot/typed-racket-info
   with-cache
   racket/runtime-path
-  pict
+  (only-in pict
+    filled-rounded-rectangle)
   gtp-plot/util
   (only-in racket/string
     string-prefix?)
@@ -38,7 +39,7 @@
 
 (define RKT-VERSION "6.10.1")
 (define TAG-VERSION "v0.12")
-(define PLOT-HEIGHT 80)
+(define OVERHEADS-HEIGHT 800)
 (define OVERHEADS-HSPACE 30)
 (define OVERHEADS-VSPACE 6)
 (define OVERHEADS-WIDTH 600)
@@ -101,31 +102,25 @@
   (number->string (length TR-DATA*)))
 
 (define (overhead-plot* x*)
-  (define W (exact-floor (/ (- OVERHEADS-WIDTH OVERHEADS-HSPACE) NUM-COLUMNS)))
-  (define plot*
-    (parameterize ([*OVERHEAD-SHOW-RATIO* #f]
-                   [*OVERHEAD-PLOT-HEIGHT* PLOT-HEIGHT]
-                   [*OVERHEAD-LINE-COLOR* START-COLOR]
-                   [*OVERHEAD-MAX* X-MAX]
-                   [*OVERHEAD-PLOT-WIDTH* W]
-                   [*LEGEND-VSPACE* 2]
-                   [*LEGEND-HSPACE* 4]
-                   [*LEGEND?* #false]
-                   [*FONT-SIZE* 8]
-                   [*current-cache-directory* (build-path CWD CACHE-DIR)]
-                   [*current-cache-keys* (list (λ () (list X-MAX OVERHEADS-WIDTH PLOT-HEIGHT OVERHEADS-VSPACE OVERHEADS-HSPACE)))]
-                   [*with-cache-fasl?* #f])
-      (for/list ([x (in-list x*)])
-        (define filename (data->filename x))
-        (with-cache (cachefile filename)
-          (λ ()
-            (log-gtp-plot-info "rendering ~a" filename)
-            (collect-garbage 'major)
-            (data->plot x))))))
-  (define col*
-    (map (λ (p*) (apply vl-append OVERHEADS-VSPACE p*))
-         (columnize plot* NUM-COLUMNS)))
-  (apply ht-append OVERHEADS-HSPACE col*))
+  (parameterize ([*OVERHEAD-SHOW-RATIO* #f]
+                 [*OVERHEAD-LINE-COLOR* START-COLOR]
+                 [*OVERHEAD-MAX* X-MAX]
+                 [*GRID-X* OVERHEADS-WIDTH]
+                 [*GRID-Y* OVERHEADS-HEIGHT]
+                 [*GRID-X-SKIP* OVERHEADS-HSPACE]
+                 [*GRID-Y-SKIP* OVERHEADS-VSPACE]
+                 [*GRID-NUM-COLUMNS* NUM-COLUMNS]
+                 [*LEGEND?* #false]
+                 [*FONT-SIZE* 8]
+                 [*with-cache-fasl?* #f]
+                 [*current-cache-keys* (list *GRID-X* *GRID-Y* *OVERHEAD-MAX*)]
+                 [*current-cache-directory* (build-path CWD CACHE-DIR)])
+    (define (make-overhead-plot/cache x)
+      (define filename (data->filename x))
+      (with-cache (cachefile filename)
+        (λ ()
+          (data->plot x))))
+    (grid-plot make-overhead-plot/cache x*)))
 
 (define (data->filename x)
   (cond
@@ -133,7 +128,7 @@
     (format "tr-~a.rktd" (filename->prefix x))]
    [(pair? x)
     (define tr (car x))
-    (define tag (cdr x))
+    (define tag (cadr x))
     (define tr-prefix (filename->prefix tr))
     (define tag-prefix (filename->prefix tag))
     (unless (string-prefix? tag-prefix "tag_")
@@ -160,7 +155,7 @@
    [(path-string? x)
     (overhead-plot (make-typed-racket-info x))]
    [(pair? x)
-    (overhead-plot (list (make-typed-racket-info (car x)) (make-typed-racket-info (cdr x))))]
+    (overhead-plot (map make-typed-racket-info x))]
    [else
     (raise-argument-error 'data->plot "unrecognized data format" x)]))
 
