@@ -11,6 +11,8 @@
   ⊢_S
   →_D
   →_S
+  embed-sta
+  embed-dyn
   well-dyn
   well-sta
   sta*
@@ -171,6 +173,16 @@
 ;; -----------------------------------------------------------------------------
 ;; --- new stuff (not among the GTP-paper things)
 
+(define (exact . items)
+  (make-element (make-style "relax" '(exact-chars))
+                items))
+
+(define etal
+  (exact "et~al."))
+
+(define ($ . items)
+  (apply exact (list "$" items "$")))
+
 (define MMT
   (sc "mmt"))
 
@@ -198,7 +210,8 @@
       (exact "\\vspace{1ex}\n"))))
 
 (define (proof-sketch . elem*)
-  (make-proof elem*))
+  ""
+  #;(make-proof elem*))
 
 (define (proof . elem*)
   (make-proof elem*))
@@ -213,26 +226,16 @@
   (bold "LS"))
 
 (define ⊢_D
-  (bold "⊢D"))
+  ($ "\\welldyn"))
 
 (define ⊢_S
-  (bold "⊢S"))
+  ($ "\\wellsta"))
 
 (define →_D
-  (bold "→D"))
+  ($ "\\dynstep"))
 
 (define →_S
-  (bold "→S"))
-
-(define (exact . items)
-  (make-element (make-style "relax" '(exact-chars))
-                items))
-
-(define etal
-  (exact "et~al."))
-
-(define ($ . items)
-  (apply exact (list "$" items "$")))
+  ($ "\\stastep"))
 
 (define (well-dyn x)
   ($ (format "\\welldyn~~~a" x)))
@@ -240,17 +243,38 @@
 (define (well-sta x t)
   ($ (format "\\wellsta~~~a : ~a" x t)))
 
+(define (dynstep src tgt)
+  (step "\\dynstep" src tgt))
+
 (define (dyn* src tgt)
   (step* "\\dynstep" src tgt))
 
 (define (sta* src tgt)
   (step* "\\stastep" src tgt))
 
+(define (step* src tgt)
+  (step* "\\rightarrow" src tgt))
+
+(define (step arr src tgt)
+  ($ (format "~a~~~a~~~a" src arr tgt)))
+
 (define (step* arr src tgt)
   ($ (format "~a~~~a^*~~~a" src arr tgt)))
 
 (define type-error
-  "TypeError")
+  "\\typeerror")
 
 (define value-error
-  "ValueError")
+  "\\valueerror")
+
+(define (embed-sta t e)
+  ($ (format "\\esta{~a}{~a}" t e)))
+
+(define (embed-dyn t e)
+  ($ (format "\\edyn{~a}{~a}" t e)))
+
+(define (do-defend t e)
+  ($ (format "\\edefend{~a}{~a}" t e)))
+
+(define (do-check t e)
+  ($ (format "\\echeck{~a}{~a}" t e)))

@@ -87,12 +87,17 @@ showstringspaces=false            %
 
 \newcommand{\assign}{:\!=}
 
+\newcommand{\tnat}{\mathsf{Nat}}
 \newcommand{\tint}{\mathsf{Int}}
 \newcommand{\tbox}{\mathsf{Box}}
+\newcommand{\tpair}[2]{#1 \times #2}
 \newcommand{\tlist}{\mathsf{List}}
 \newcommand{\tarrow}{\rightarrow}
 \newcommand{\tunion}{\bigcup}
 \newcommand{\tall}{\forall}
+
+\newcommand{\edyn}[2]{\mathsf{dynamic}~#1~#2}
+\newcommand{\esta}[2]{\mathsf{static}~#1~#2}
 
 \newcommand{\kproc}{\texttt{proc}}
 \newcommand{\kref}{\texttt{ref}}
@@ -104,10 +109,12 @@ showstringspaces=false            %
 \newcommand{\vref}[1]{\textbf{ref}~#1}
 \newcommand{\vlam}[2]{\lambda #1.\, #2}
 \newcommand{\efst}[1]{\mathsf{fst}\,#1}
+\newcommand{\vpair}[2]{\langle #1,\,#2 \rangle}
 
 \newcommand{\vrel}[2]{#1 \models #2}
 \newcommand{\vstate}[2]{[#1~#2]}
 \newcommand{\vstategen}{\vstate{\sigma}{v}}
+\newcommand{\vsubst}[3]{#1[#2 \mapsto #3]}
 
 \newcommand{\tfun}[5]{\mathbf{fun} #1 (#2 : #3) \rightarrow #4\,.\,#5}
 \newcommand{\ufun}[3]{\mathbf{fun} #1 (#2)\,.\,#3}
@@ -120,6 +127,8 @@ showstringspaces=false            %
 \newcommand{\dynstep}{\rightarrow_D}
 \newcommand{\welldyn}{\vdash_D}
 \newcommand{\wellsta}{\vdash_S}
+\newcommand{\typeerror}{\mathsf{TypeError}}
+\newcommand{\valueerror}{\mathsf{ValueError}}
 
 %% -----------------------------------------------------------------------------
 

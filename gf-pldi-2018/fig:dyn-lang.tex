@@ -1,1 +1,71 @@
-YOLOOO
+{\flushleft
+
+$\begin{array}{l c l}
+  e_D & = & v_D \mid x \mid e_D~e_D \mid e_D / e_D \mid \ldots
+\\
+  v_D & = & \vlam{x}{e_D} \mid i \mid \vpair{v_D}{v_D}
+\\
+  A & = & e_D \mid \typeerror \mid \valueerror
+\\
+  \Gamma & = & \cdot \mid x,\Gamma
+\end{array}$
+
+\smallskip
+\fbox{$\Gamma \welldyn e_D$}
+\begin{mathpar}
+  \inferrule*{
+    x \in \Gamma
+  }{
+    \Gamma \welldyn x
+  }
+
+  \inferrule*{
+    x,\Gamma \welldyn e_D
+  }{
+    \Gamma \welldyn \vlam{x}{e_D}
+  }
+
+  \inferrule*{
+    \Gamma \welldyn e_D
+    \\
+    \Gamma \welldyn e_D'
+  }{
+    \Gamma \welldyn e_D / e_D'
+  }
+\end{mathpar}
+
+\smallskip
+\fbox{$e_D \dynstep A$}
+\begin{mathpar}
+  \inferrule*{
+    e_D' = \vsubst{e_D}{x}{v_D}
+  }{
+    (\vlam{x}{e_D})~v_D \dynstep e_D'
+  }
+
+  \inferrule*{
+    v_D \neq \vlam{x}{e_D}
+  }{
+    v_D~v_D' \dynstep \typeerror
+  }
+
+  \inferrule*{
+    i \in \integers
+    \\
+  }{
+    i / 0 \dynstep \valueerror
+  }
+
+  \inferrule*{
+    i \in \integers
+    \\
+    i' \in \integers
+    \\
+    i' \neq 0
+    \\
+    i'' = \lfloor i / i' \rfloor
+  }{
+    i / i' \dynstep i''
+  }
+\end{mathpar}
+}

@@ -1,1 +1,55 @@
-WEPA
+{\flushleft
+
+$\begin{array}{l c l}
+  e_S & = & v_S \mid x \mid e_S~e_S \mid e_S / e_S \mid \ldots
+\\
+  v_S & = & \vlam{(x:\tau)}{e_S} \mid i \mid \vpair{v_S}{v_S}
+\\
+  \tau & = & \tnat \mid \tint \mid \tpair{\tau}{\tau} \mid \tau \tarrow \tau
+\\
+  A & = & e_S \mid \valueerror
+\\
+  \Gamma & = & \cdot \mid (x:\tau),\Gamma
+\end{array}$
+
+\smallskip
+\fbox{$\Gamma \wellsta e_S : \tau$}
+\begin{mathpar}
+  \inferrule*{
+    (x:\tau) \in \Gamma
+  }{
+    \Gamma \wellsta x : \tau
+  }
+
+  \inferrule*{
+    (x:\tau),\Gamma \wellsta e_S : \tau'
+  }{
+    \Gamma \wellsta \vlam{(x:\tau)}{e_S} : \tau \tarrow \tau'
+  }
+
+  \inferrule*{
+    \Gamma \wellsta e_S : \tnat
+    \\
+    \Gamma \wellsta e_S' : \tnat
+  }{
+    \Gamma \wellsta e_S / e_S' : \tnat
+  }
+\end{mathpar}
+
+\smallskip
+\fbox{$e_S \stastep A$}
+\begin{mathpar}
+  \inferrule*{
+    e_S' = \vsubst{e_S}{x}{v_S}
+  }{
+    (\vlam{x:\tau}{e_S})~v_S \stastep e_S'
+  }
+
+  \inferrule*{
+    i \in \integers
+    \\
+  }{
+    i / 0 \stastep \valueerror
+  }
+\end{mathpar}
+}

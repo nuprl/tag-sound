@@ -1,6 +1,13 @@
 #lang gf-pldi-2018
 @title[#:tag "sec:conclusion"]{Why Types?}
 
+@; NOTE
+@; further "refinements" besides Nat? ... what to do when type cannot be
+@;  computed from value at runtime, such as "terminating function" or
+@;  "stream of even numbers"?
+
+@; -----------------------------------------------------------------------------
+
 Tribes seeking the elusive goal, of code that is easy to write
  read verify maintain.
 TypeScript state-of-the-art for writing and reading,

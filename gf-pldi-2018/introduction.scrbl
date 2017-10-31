@@ -1,6 +1,10 @@
 #lang gf-pldi-2018
 @title[#:tag "sec:introduction"]{Three Tribes of Migratory Typing}
 
+@; NOTE: 'migratory' and not 'gradual' because our static typing
+@;   systems do not use a dynamic type,
+@;   and do not have a type consistency relation
+
 @; Racket -> LISP ->
 @; Parentheses
 @; Racketensis
@@ -73,7 +77,7 @@ Contributions:
 }
 @item{
   systematic performance evaluation,
-   performance of first-order embedding is order-of-magnitude improvement
+   performance of first-order embedding is huge improvement
 }
 @item{
   discussion of type-tag soudness, listing of surprising programs
