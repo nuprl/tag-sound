@@ -7,10 +7,10 @@
   MMT
   L_D
   L_S
-  ⊢_D
-  ⊢_S
-  →_D
-  →_S
+  well_D
+  well_S
+  step_D
+  step_S
   embed-sta
   embed-dyn
   well-dyn
@@ -215,16 +215,16 @@
 (define L_S
   (bold "LS"))
 
-(define ⊢_D
+(define well_D
   ($ "\\welldyn"))
 
-(define ⊢_S
+(define well_S
   ($ "\\wellsta"))
 
-(define →_D
+(define step_D
   ($ "\\dynstep"))
 
-(define →_S
+(define step_S
   ($ "\\stastep"))
 
 (define (well-dyn x)

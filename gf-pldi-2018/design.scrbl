@@ -1,5 +1,5 @@
 #lang gf-pldi-2018
-@title[#:tag "sec:design"]{The Forgetful, First-Order Embedding}
+@title[#:tag "sec:design"]{The Descent}
 
 The identity embedding is unacceptable to programmers who want to use types
  to reason about the behavior of their programs.

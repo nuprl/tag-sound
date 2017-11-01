@@ -16,6 +16,18 @@ TODO
 - TRY THIS: each section starts with a summary of the previous section,
    in not-so-many words, but the opening paragraph is just like "here's bottom
    line from previous, here's what we're going to roll ahead with"
+- change plots, colors are bad
+- change plots, so instead of:
+    X X X
+    X X X
+    X X X
+    X
+  we have
+    X X X X X
+    X X X X X
+  and much smaller?
+  Idea is, quicker to see performance at-a-glance.
+  (Don't waste too much time building plots tho.)
 
 
 Intro

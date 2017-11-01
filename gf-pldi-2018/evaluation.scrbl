@@ -1,6 +1,9 @@
 #lang gf-pldi-2018
 @title[#:tag "sec:evaluation"]{Evaluation}
 
+@; TODO
+@; - table with "MAX OVERHEAD" and "T/B RATIO"
+
 Have implemented the embedding for Typed Racket.
 The prototype runs the Typed Racket type checker,
  rewrites the program to have defensive checks,

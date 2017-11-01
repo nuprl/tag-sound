@@ -1,5 +1,11 @@
 #lang racket/base
 
+;; Defines datasets,
+;;  exports functions for building plots.
+
+;; Most of the actual plotting is done in the `gtp-plot` library,
+;;  this is just a front-end that sets the right parameters for this paper.
+
 (provide
   TR-DATA*
   TAG-DATA*

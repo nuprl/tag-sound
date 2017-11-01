@@ -61,9 +61,9 @@ Both languages come with an operational semantics defined in terms of a partial
 
 @parag{Dynamic Typing}
 The language @|L_D| presented in @figure-ref{fig:dyn-lang} is dynamically typed.
-An @|L_D| expression is well-formed according to @|⊢_D| if it contains no free
+An @|L_D| expression is well-formed according to @|well_D| if it contains no free
  variables.
-Any well-formed expression that is not a value can step via @|→_D| to either
+Any well-formed expression that is not a value can step via @|step_D| to either
  a well-formed expression, a type error, or a value error.
 Type errors are caused by values with a bad shape,
  value errors are caused by partial primitive operations.
@@ -87,8 +87,8 @@ More formally, the language satisfies a safety theorem:
   ]
 
 @proof-sketch{
-  @|→_D| is defined for all closed terms, and satisfies subject reduction
-   for @|⊢_D|.
+  @|step_D| is defined for all closed terms, and satisfies subject reduction
+   for @|well_D|.
 }
 
 
@@ -97,13 +97,13 @@ More formally, the language satisfies a safety theorem:
 @parag{Static Typing}
 The language @|L_S| includes types @${\tau} and extends the syntax of function
  values to include type annotations.
-The static typing judgment @|⊢_S| uses these annotations to prove that an
+The static typing judgment @|well_S| uses these annotations to prove that an
  expression will not reduce to a type error.
-Likewise, the reduction relation @|→_S| does not perform any type checks.
+Likewise, the reduction relation @|step_S| does not perform any type checks.
 The safety theorem for @|L_S| states that evaluation preserves types and
  cannot end in a type error:@note{Don't care that @|L_S| is strongly normalizing.}
 
-@theorem[@elem{@|L_D| safety}]{
+@theorem[@elem{@|L_S| safety}]{
   If @well-sta["e_S" "\\tau"] then either:}
   @itemlist[
   @item{
@@ -169,7 +169,7 @@ The semantics of these boundary terms should find a balance between allowing
 In this spirit, one bad choice for the semantics would be to disallow all
  mixed terms --- safe or unsafe --- by reducing all boundary terms to a value error.
 Another poor choice would be to let any value cross a boundary and use
- the @|→_S| reduction relation on statically-typed terms.
+ the @|step_S| reduction relation on statically-typed terms.
 This can easily lead to a stuck expression, for instance
  @$|{((\edyn{(\tint \tarrow \tint)}{0})~0)}|
  would reduce to the stuck application @${(0~0)}.
@@ -179,9 +179,11 @@ This can easily lead to a stuck expression, for instance
 
 One approach to migratory typing is to let any value cross a type boundary
  and ignore the conclusions of the static type checker.
-Put another way, this approach treats @|⊢_S| as an optional static analysis
+Put another way, this approach treats @|well_S| as an optional static analysis
  that can rule out bad expressions and has no relation to the semantics.
-The semantics is an extension of the @|→_D| relation:
+
+The semantics is an extension of the @|step_D| relation.
+Very important not to use @|step_S| anymore.
 
 @exact|{ \begin{mathpar}
   \inferrule*{
