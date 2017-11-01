@@ -1,5 +1,5 @@
 #lang gf-pldi-2018
-@title[#:tag "sec:background"]{Migratory Typing through Language Interoperability}
+@title[#:tag "sec:background"]{MT via Multi-Lang}
 
 @; TODO
 @; - make sure Sec 1 lists all tradeoffs (???)
