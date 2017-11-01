@@ -38,6 +38,7 @@
 (define-runtime-path CWD ".")
 
 (define RKT-VERSION "6.10.1")
+(define NUM-SAMPLES 200)
 (define TAG-VERSION "v0.12")
 (define OVERHEADS-HEIGHT 800)
 (define OVERHEADS-HSPACE 30)
@@ -103,6 +104,7 @@
 
 (define (overhead-plot* x*)
   (parameterize ([*OVERHEAD-SHOW-RATIO* #f]
+                 [*OVERHEAD-SAMPLES* NUM-SAMPLES]
                  [*OVERHEAD-LINE-COLOR* START-COLOR]
                  [*OVERHEAD-MAX* X-MAX]
                  [*GRID-X* OVERHEADS-WIDTH]
