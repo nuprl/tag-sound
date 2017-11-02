@@ -217,5 +217,5 @@
       (redex-check LM-identity #:satisfying (well-typed () e τ)
         (term (theorem:identity-safety e τ))
         #:attempts 10
-        #:print? #f))))
-
+        #:print? #f)))
+)
