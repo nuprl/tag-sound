@@ -8,6 +8,7 @@
   type-join
   type-env-contains
   type-env-ref
+  negative?
 )
 
 (require
@@ -87,7 +88,7 @@
   #:mode (infer-type I I O)
   #:contract (infer-type Γ e τ)
   [
-   (where #true (negative? integer))
+   (where #true #{negative? integer})
    --- I-Int
    (infer-type Γ integer Int)]
   [

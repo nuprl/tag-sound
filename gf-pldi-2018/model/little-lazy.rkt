@@ -1,5 +1,9 @@
 #lang mf-apply racket/base
 
+;; Lazy natural embedding
+;; ... just add pair monitors
+;;     otherwise its the same soundness
+
 (require
   "little-mixed.rkt"
   (only-in redex-abbrevs
@@ -11,20 +15,29 @@
 
 ;; =============================================================================
 
-(define-extended-language LM-natural
+(define-extended-language LM-lazy
   LM
-  (v ::= .... (mon (→ τ τ) v)))
+  (v ::= .... (mon (× τ τ) v) (mon (→ τ τ) v)))
 
-(define-metafunction LM-natural
+(define-metafunction LM-lazy
   procedure? : v -> boolean
   [(procedure? Λ)
    #true]
   [(procedure? (mon (→ τ_dom τ_cod) v))
-   #true] ;; could recur, but always true currently
+   #{procedure? v}]
   [(procedure? _)
    #false])
 
-(define-metafunction LM-natural
+(define-metafunction LM-lazy
+  pair? : v -> boolean
+  [(pair? (× v_0 v_1))
+   #true]
+  [(pair? (mon (× τ_0 τ_1) v))
+   #{pair? v}]
+  [(pair? _)
+   #false])
+
+(define-metafunction LM-lazy
   maybe-in-hole : E A -> A
   [(maybe-in-hole E BE)
    BE]
@@ -33,7 +46,7 @@
   [(maybe-in-hole E e)
    (in-hole E e)])
 
-(define-metafunction LM-natural
+(define-metafunction LM-lazy
   boundary? : e -> boolean
   [(boundary? (static τ _))
    #true]
@@ -42,16 +55,8 @@
   [(boundary? _)
    #false])
 
-;; Have 3 reduction relations:
-;; - dyn-step : reduces dynamically-typed leaf terms
-;; - sta-step : reduces statically-typed leaf terms
-;; - dyn-boundary-step : cross type boundaries, applied dyn-step or sta-step at leaf
-;; - sta-boundary-step : ditto, but outermost context is statically typed
-;; - dyn-step* : closure of dyn-boundary-step
-;; - sta-step* : closure of sta-boundary-step
-
 (define dyn-step
-  (reduction-relation LM-natural
+  (reduction-relation LM-lazy
     #:domain A
     (--> (v_0 v_1)
          e_subst
@@ -73,10 +78,10 @@
          (where integer_1 v_1)
          (where integer_2 ,(+ (term integer_0) (term integer_1))))
     (--> (+ v_0 v_1)
-         (Type-Error ,(if (redex-match? LM-natural integer (term v_0)) (term v_1) (term v_0)) "integer")
+         (Type-Error ,(if (redex-match? LM-lazy integer (term v_0)) (term v_1) (term v_0)) "integer")
          E-+-1
-         (side-condition (not (and (redex-match? LM-natural integer (term v_0))
-                                   (redex-match? LM-natural integer (term v_1))))))
+         (side-condition (not (and (redex-match? LM-lazy integer (term v_0))
+                                   (redex-match? LM-lazy integer (term v_1))))))
     (--> (/ v_0 v_1)
          integer_2
          E-/-0
@@ -91,29 +96,37 @@
          (where integer_1 v_1)
          (side-condition (zero? (term integer_1))))
     (--> (/ v_0 v_1)
-         (Type-Error ,(if (redex-match? LM-natural integer (term v_0)) (term v_1) (term v_0)) "integer")
+         (Type-Error ,(if (redex-match? LM-lazy integer (term v_0)) (term v_1) (term v_0)) "integer")
          E-/-2
-         (side-condition (not (and (redex-match? LM-natural integer (term v_0))
-                                   (redex-match? LM-natural integer (term v_1))))))
+         (side-condition (not (and (redex-match? LM-lazy integer (term v_0))
+                                   (redex-match? LM-lazy integer (term v_1))))))
     (--> (fst v)
          v_0
          E-fst-0
          (where (× v_0 v_1) v))
     (--> (fst v)
-         (Type-Error v "pair?")
+         (static τ_0 (fst v_m))
          E-fst-1
-         (side-condition (not (redex-match? LM-natural (× v_0 v_1) (term v)))))
+         (where (mon (× τ_0 τ_1) v_m) v))
+    (--> (fst v)
+         (Type-Error v "pair?")
+         E-fst-2
+         (where #false #{pair? v}))
     (--> (snd v)
          v_1
          E-snd-0
          (where (× v_0 v_1) v))
     (--> (snd v)
-         (Type-Error v "pair?")
+         (static τ_1 (snd v_m))
          E-snd-1
-         (side-condition (not (redex-match? LM-natural (× v_0 v_1) (term v)))))))
+         (where (mon (× τ_0 τ_1) v_m) v))
+    (--> (snd v)
+         (Type-Error v "pair?")
+         E-snd-2
+         (where #false #{pair? v}))))
 
 (define sta-step
-  (reduction-relation LM-natural
+  (reduction-relation LM-lazy
     #:domain A
     (--> (v_0 v_1)
          e_subst
@@ -147,10 +160,18 @@
          v_0
          E-fst-0
          (where (× v_0 v_1) v))
+    (--> (fst v)
+         (dynamic τ_0 (fst v_m))
+         E-fst-1
+         (where (mon (× τ_0 τ_1) v_m) v))
     (--> (snd v)
          v_1
          E-snd-0
-         (where (× v_0 v_1) v))))
+         (where (× v_0 v_1) v))
+    (--> (snd v)
+         (dynamic τ_1 (snd v_m))
+         E-snd-1
+         (where (mon (× τ_0 τ_1) v_m) v))))
 
 (module+ test
   (define (stuck? r t)
@@ -165,6 +186,10 @@
     (check-equal? (apply-reduction-relation dyn-step (term (+ 2 3))) '(5))
     (check-equal? (apply-reduction-relation dyn-step (term ((mon (→ Int Int) (λ (x : Int) x)) 5)))
                   (list (term (static Int ((λ (x : Int) x) (dynamic Int 5))))))
+    (check-equal? (apply-reduction-relation dyn-step (term (fst (mon (× Nat Int) (× 1 -1)))))
+                  (list (term (static Nat (fst (× 1 -1))))))
+    (check-equal? (apply-reduction-relation dyn-step (term (snd (mon (× Nat Int) (× 1 -1)))))
+                  (list (term (static Int (snd (× 1 -1))))))
     )
 
   (test-case "sta-step"
@@ -178,11 +203,16 @@
     (check-equal? (apply-reduction-relation sta-step (term (/ 7 2))) '(3))
     (check-equal? (apply-reduction-relation sta-step (term ((mon (→ Int Int) (λ (x) x)) 5)))
                   (list (term (dynamic Int ((λ (x) x) (static Int 5))))))
+    (check-equal? (apply-reduction-relation sta-step (term (fst (mon (× Nat Int) (× 1 -1)))))
+                  (list (term (dynamic Nat (fst (× 1 -1))))))
+    (check-equal? (apply-reduction-relation sta-step (term (snd (mon (× Nat Int) (× 1 -1)))))
+                  (list (term (dynamic Int (snd (× 1 -1))))))
   )
 )
 
+;; Same as for `little-natural`
 (define dyn-boundary-step
-  (reduction-relation LM-natural
+  (reduction-relation LM-lazy
     #:domain A
     (--> (in-hole E (static τ v))
          (maybe-in-hole E A)
@@ -203,7 +233,7 @@
          (where (A) ,(apply-reduction-relation dyn-step (term e))))))
 
 (define sta-boundary-step
-  (reduction-relation LM-natural
+  (reduction-relation LM-lazy
     #:domain A
     (--> (in-hole E (dynamic τ v))
          (maybe-in-hole E A)
@@ -223,22 +253,16 @@
          (where #false (boundary? e))
          (where (A) ,(apply-reduction-relation sta-step (term e))))))
 
-(define-metafunction LM-natural
+(define-metafunction LM-lazy
   static->dynamic : τ v -> A
   [(static->dynamic (→ τ_dom τ_cod) v)
    (mon (→ τ_dom τ_cod) v)]
-  [(static->dynamic (× τ_0 τ_1) (× v_0 v_1))
-   BE
-   (where BE #{static->dynamic τ_0 v_0})]
-  [(static->dynamic (× τ_0 τ_1) (× v_0 v_1))
-   BE
-   (where BE #{static->dynamic τ_1 v_1})]
-  [(static->dynamic (× τ_0 τ_1) (× v_0 v_1))
-   (× #{static->dynamic τ_0 v_0} #{static->dynamic τ_1 v_1})]
+  [(static->dynamic (× τ_0 τ_1) v)
+   (mon (× τ_0 τ_1) v)]
   [(static->dynamic τ v)
    v])
 
-(define-metafunction LM-natural
+(define-metafunction LM-lazy
   dynamic->static : τ v -> A
   [(dynamic->static Nat natural)
    natural]
@@ -249,13 +273,7 @@
   [(dynamic->static Int v)
    (Boundary-Error v "Int")]
   [(dynamic->static (× τ_0 τ_1) (× v_0 v_1))
-   BE
-   (where BE (dynamic->static τ_0 v_0))]
-  [(dynamic->static (× τ_0 τ_1) (× v_0 v_1))
-   BE
-   (where BE (dynamic->static τ_1 v_1))]
-  [(dynamic->static (× τ_0 τ_1) (× v_0 v_1))
-   (× (dynamic->static τ_0 v_0) (dynamic->static τ_1 v_1))]
+   (mon (× τ_0 τ_1) (× v_0 v_1))]
   [(dynamic->static (× τ_0 τ_1) v)
    (Boundary-Error v ,(format "~a" (term (× τ_0 τ_1))))]
   [(dynamic->static (→ τ_dom τ_cod) v)
@@ -271,13 +289,13 @@
                   '(4))
     (check-equal? (apply-reduction-relation dyn-boundary-step (term (static Int 3)))
                   '(3))
-    (check-true (redex-match? LM-natural A
+    (check-true (redex-match? LM-lazy A
       (term (in-hole hole (static Int (+ 1 2))))))
     (check-equal? (apply-reduction-relation dyn-boundary-step (term (static Int (+ 1 2))))
                   (list (term (static Int 3))))
-    (check-true (redex-match? LM-natural BE
+    (check-true (redex-match? LM-lazy BE
       (car (apply-reduction-relation dyn-boundary-step (term (/ 1 0))))))
-    (check-true (redex-match? LM-natural BE
+    (check-true (redex-match? LM-lazy BE
       (car (apply-reduction-relation dyn-boundary-step (term (static Int (/ 1 0)))))))
 
     (check-true (stuck? dyn-boundary-step (term (dynamic Int 3))))
@@ -291,6 +309,9 @@
     (check-equal? (apply-reduction-relation dyn-boundary-step
                     (term (static Nat (+ 7 7))))
                   (list (term (static Nat 14))))
+    (check-equal? (apply-reduction-relation dyn-boundary-step
+                    (term (static (× Nat Int) (× 1 -1))))
+                  (list (term (mon (× Nat Int) (× 1 -1)))))
   )
 
   (test-case "sta-boundary-step"
@@ -300,19 +321,23 @@
                   '(3))
     (check-equal? (apply-reduction-relation sta-boundary-step (term (dynamic Nat (+ 1 2))))
                   (list (term (dynamic Nat 3))))
-    (check-true (redex-match? LM-natural BE
+    (check-true (redex-match? LM-lazy BE
       (car (apply-reduction-relation sta-boundary-step (term (/ 1 0))))))
-    (check-true (redex-match? LM-natural BE
+    (check-true (redex-match? LM-lazy BE
       (car (apply-reduction-relation sta-boundary-step (term (dynamic Int (/ 1 0)))))))
-    (check-true (redex-match? LM-natural BE
+    (check-true (redex-match? LM-lazy BE
       (car (apply-reduction-relation sta-boundary-step (term (dynamic Int (λ (x) x)))))))
-    (check-true (redex-match? LM-natural BE
+    (check-true (redex-match? LM-lazy BE
       (car (apply-reduction-relation sta-boundary-step (term (dynamic Int (× 0 0)))))))
-    (check-true (redex-match? LM-natural BE
+    (check-true (redex-match? LM-lazy BE
       (car (apply-reduction-relation sta-boundary-step (term (dynamic Nat -1))))))
 
     (check-true (stuck? sta-boundary-step (term (static Int 3))))
-    ))
+    (check-equal? (apply-reduction-relation sta-boundary-step
+                    (term (dynamic (× Nat Int) (× 1 -1))))
+                  (list (term (mon (× Nat Int) (× 1 -1)))))
+  )
+)
 
 (define dyn-step*
   (make--->* dyn-boundary-step))
@@ -340,35 +365,35 @@
                   14)
     (check-equal? (sta-step* (term (/ 10 (dynamic Nat ((λ (x) (fst x)) (× 2 5))))))
                   5)
-    (check-true (redex-match? LM-natural BE
+    (check-true (redex-match? LM-lazy BE
       (sta-step* (term ((λ (f : (→ Nat Nat)) (f 0)) (dynamic (→ Nat Nat) (λ (z) -2)))))))
   )
 )
 
 (define (assert-well-dyn t dont-care)
-  (unless (judgment-holds (well-dyn/natural () ,t))
+  (unless (judgment-holds (well-dyn/lazy () ,t))
     (raise-arguments-error 'current-runtime-invariant "expected well-dyn" "term" t)))
 
 (define (assert-well-typed t ty)
-  (unless (judgment-holds (well-typed/natural () ,t ,ty))
+  (unless (judgment-holds (well-typed/lazy () ,t ,ty))
     (raise-arguments-error 'current-runtime-invariant "expected well-typed"
       "term" t
       "type" ty)))
 
-(define-metafunction LM-natural
-  theorem:natural-safety : e MAYBE-τ -> any
-  [(theorem:natural-safety e #f)
+(define-metafunction LM-lazy
+  theorem:lazy-safety : e MAYBE-τ -> any
+  [(theorem:lazy-safety e #f)
    ,(or (not (judgment-holds (well-dyn () e)))
-        (safe-natural-step* (term e) #f assert-well-dyn dyn-boundary-step))]
-  [(theorem:natural-safety e τ)
+        (safe-lazy-step* (term e) #f assert-well-dyn dyn-boundary-step))]
+  [(theorem:lazy-safety e τ)
    ,(or (not (judgment-holds (well-typed () e τ)))
-        (safe-natural-step* (term e) (term τ) assert-well-typed sta-boundary-step))])
+        (safe-lazy-step* (term e) (term τ) assert-well-typed sta-boundary-step))])
 
-(define (safe-natural-step* A ty check-invariant step)
+(define (safe-lazy-step* A ty check-invariant step)
   (let loop ([A A])
     (cond
-     [(or (redex-match? LM-natural TE A)
-          (redex-match? LM-natural BE A))
+     [(or (redex-match? LM-lazy TE A)
+          (redex-match? LM-lazy BE A))
       A]
      [else
       (check-invariant A ty)
@@ -379,7 +404,7 @@
        [(null? (cdr A*))
         (loop (car A*))]
        [else
-        (raise-arguments-error 'safe-natural-step* "step is non-deterministic for expression"
+        (raise-arguments-error 'safe-lazy-step* "step is non-deterministic for expression"
           "e" A
           "answers" A*)])])))
 
@@ -390,59 +415,63 @@
 ;;      but that doesn't work for recursive calls.
 ;; ... okay, that, and it's important to distinguish environments!
 
-(define-judgment-form LM-natural
-  #:mode (well-dyn/natural I I)
-  #:contract (well-dyn/natural Γ e)
+(define-judgment-form LM-lazy
+  #:mode (well-dyn/lazy I I)
+  #:contract (well-dyn/lazy Γ e)
   [
    --- D-Int
-   (well-dyn/natural Γ integer)]
+   (well-dyn/lazy Γ integer)]
   [
-   (well-dyn/natural Γ e_0)
-   (well-dyn/natural Γ e_1)
+   (well-dyn/lazy Γ e_0)
+   (well-dyn/lazy Γ e_1)
    --- D-Pair
-   (well-dyn/natural Γ (× e_0 e_1))]
+   (well-dyn/lazy Γ (× e_0 e_1))]
   [
    (where Γ_x (x Γ))
-   (well-dyn/natural Γ_x e)
+   (well-dyn/lazy Γ_x e)
    --- D-Fun
-   (well-dyn/natural Γ (λ (x) e))]
+   (well-dyn/lazy Γ (λ (x) e))]
   [
    (where #true (type-env-contains Γ x))
    --- D-Var
-   (well-dyn/natural Γ x)]
+   (well-dyn/lazy Γ x)]
   [
-   (well-dyn/natural Γ e_0)
-   (well-dyn/natural Γ e_1)
+   (well-dyn/lazy Γ e_0)
+   (well-dyn/lazy Γ e_1)
    --- D-App
-   (well-dyn/natural Γ (e_0 e_1))]
+   (well-dyn/lazy Γ (e_0 e_1))]
   [
-   (well-dyn/natural Γ e_0)
-   (well-dyn/natural Γ e_1)
+   (well-dyn/lazy Γ e_0)
+   (well-dyn/lazy Γ e_1)
    --- D-Binop
-   (well-dyn/natural Γ (BINOP e_0 e_1))]
+   (well-dyn/lazy Γ (BINOP e_0 e_1))]
   [
-   (well-dyn/natural Γ e)
+   (well-dyn/lazy Γ e)
    --- D-Unop
-   (well-dyn/natural Γ (UNOP e))]
+   (well-dyn/lazy Γ (UNOP e))]
   [
-   (well-typed/natural Γ e τ)
+   (well-typed/lazy Γ e τ)
    --- D-Static
-   (well-dyn/natural Γ (static τ e))]
+   (well-dyn/lazy Γ (static τ e))]
   [
-   (well-typed/natural Γ v (→ τ_dom τ_cod))
-   --- D-Mon
-   (well-dyn/natural Γ (mon (→ τ_dom τ_cod) v))])
+   (well-typed/lazy Γ v (→ τ_dom τ_cod))
+   --- D-Mon-Fun
+   (well-dyn/lazy Γ (mon (→ τ_dom τ_cod) v))]
+  [
+   (well-typed/lazy Γ v (× τ_0 τ_1))
+   --- D-Mon-Pair ;; same as D-Mon-Fun
+   (well-dyn/lazy Γ (mon (× τ_0 τ_1) v))])
 
-(define-judgment-form LM-natural
-  #:mode (well-typed/natural I I I)
-  #:contract (well-typed/natural Γ e τ)
+(define-judgment-form LM-lazy
+  #:mode (well-typed/lazy I I I)
+  #:contract (well-typed/lazy Γ e τ)
   [
    (infer-type Γ e τ_infer)
    (subtype τ_infer τ)
    ---
-   (well-typed/natural Γ e τ)])
+   (well-typed/lazy Γ e τ)])
 
-(define-judgment-form LM-natural
+(define-judgment-form LM-lazy
   #:mode (infer-type I I O)
   #:contract (infer-type Γ e τ)
   [
@@ -497,22 +526,26 @@
    --- I-Snd
    (infer-type Γ (snd e) τ_1)]
   [
-   (well-dyn/natural Γ e)
+   (well-dyn/lazy Γ e)
    --- I-Dynamic
    (infer-type Γ (dynamic τ e) τ)]
   [
-   (well-dyn/natural Γ v)
-   --- I-Mon
-   (infer-type Γ (mon (→ τ_dom τ_cod) v) (→ τ_dom τ_cod))])
+   (well-dyn/lazy Γ v)
+   --- I-Mon-Fun
+   (infer-type Γ (mon (→ τ_dom τ_cod) v) (→ τ_dom τ_cod))]
+  [
+   (well-dyn/lazy Γ v)
+   --- I-Mon-Pair
+   (infer-type Γ (mon (× τ_0 τ_1) v) (× τ_0 τ_1))])
 
 ;; -----------------------------------------------------------------------------
 
 (module+ test
 
   (define (safe? t ty)
-    (and (term #{theorem:natural-safety ,t ,ty}) #true))
+    (and (term #{theorem:lazy-safety ,t ,ty}) #true))
 
-  (test-case "natural-safety"
+  (test-case "lazy-safety"
     (check-true (safe? (term ((× 0 2) (× 2 1))) #f))
     (check-true (safe? (term (λ (n) (× 0 0))) #f))
     (check-true (safe? (term (λ (n : Nat) (× 0 0))) (term (→ Nat (× Nat Nat)))))
@@ -521,15 +554,15 @@
     (check-true (safe? (term (static (× (→ (× (→ Int Int) Int) Nat) (→ Int Nat)) (× (λ (R : (× (→ Int Int) Int)) 2) (λ (r : Int) 2)))) #f))
   )
 
-  (test-case "natural-safety:auto"
+  (test-case "lazy-safety:auto"
     (check-true
-      (redex-check LM-natural #:satisfying (well-dyn () e)
-        (term (theorem:natural-safety e #f))
+      (redex-check LM-lazy #:satisfying (well-dyn () e)
+        (term (theorem:lazy-safety e #f))
         #:attempts 1000
         #:print? #f))
     (check-true
-      (redex-check LM-natural #:satisfying (well-typed () e τ)
-        (term (theorem:natural-safety e τ))
+      (redex-check LM-lazy #:satisfying (well-typed () e τ)
+        (term (theorem:lazy-safety e τ))
         #:attempts 1000
         #:print? #f)))
 )
