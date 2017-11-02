@@ -169,6 +169,9 @@
   [(safe-dyn-step* BE)
    BE]
   [(safe-dyn-step* e)
+   ,(raise-argument-error 'safe-dyn-step* "well-dyn-expression?" (term e))
+   (side-condition (not (judgment-holds (well-dyn () e))))]
+  [(safe-dyn-step* e)
    ,(let ([A* (apply-reduction-relation dyn-step (term e))])
       (cond
        [(null? A*)
