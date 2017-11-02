@@ -4,6 +4,19 @@
 ;; ... just add pair monitors
 ;;     otherwise its the same soundness
 
+(provide
+  LM-lazy
+  procedure?
+  pair?
+  maybe-in-hole
+  boundary?
+  dyn-step
+  sta-step
+  assert-well-dyn
+  assert-well-typed
+  safe-lazy-step*
+)
+
 (require
   "little-mixed.rkt"
   (only-in redex-abbrevs
@@ -174,9 +187,6 @@
          (where (mon (× τ_0 τ_1) v_m) v))))
 
 (module+ test
-  (define (stuck? r t)
-    (null? (apply-reduction-relation r t)))
-
   (test-case "dyn-step"
     (check-true (stuck? dyn-step (term (dynamic Int 3))))
     (check-true (stuck? dyn-step (term (static Int 3))))
@@ -272,8 +282,9 @@
    integer]
   [(dynamic->static Int v)
    (Boundary-Error v "Int")]
-  [(dynamic->static (× τ_0 τ_1) (× v_0 v_1))
-   (mon (× τ_0 τ_1) (× v_0 v_1))]
+  [(dynamic->static (× τ_0 τ_1) v)
+   (mon (× τ_0 τ_1) v)
+   (where #true (pair? v))]
   [(dynamic->static (× τ_0 τ_1) v)
    (Boundary-Error v ,(format "~a" (term (× τ_0 τ_1))))]
   [(dynamic->static (→ τ_dom τ_cod) v)

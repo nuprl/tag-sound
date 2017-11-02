@@ -9,6 +9,8 @@
   type-env-contains
   type-env-ref
   negative?
+
+  stuck?
 )
 
 (require
@@ -227,4 +229,7 @@
       (judgment-holds (well-dyn () ((static (→ Int Int) (λ (x : Int) (+ x 1))) 4))))
     (check-false
       (judgment-holds (well-dyn () (λ (h : Nat) 2))))))
+
+(define (stuck? r t)
+  (null? (apply-reduction-relation r t)))
 
