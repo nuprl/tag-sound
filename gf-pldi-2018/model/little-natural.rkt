@@ -227,6 +227,14 @@
   static->dynamic : τ v -> A
   [(static->dynamic (→ τ_dom τ_cod) v)
    (mon (→ τ_dom τ_cod) v)]
+  [(static->dynamic (× τ_0 τ_1) (× v_0 v_1))
+   BE
+   (where BE #{static->dynamic τ_0 v_0})]
+  [(static->dynamic (× τ_0 τ_1) (× v_0 v_1))
+   BE
+   (where BE #{static->dynamic τ_1 v_1})]
+  [(static->dynamic (× τ_0 τ_1) (× v_0 v_1))
+   (× #{static->dynamic τ_0 v_0} #{static->dynamic τ_1 v_1})]
   [(static->dynamic τ v)
    v])
 
@@ -240,6 +248,12 @@
    integer]
   [(dynamic->static Int v)
    (Boundary-Error v "Int")]
+  [(dynamic->static (× τ_0 τ_1) (× v_0 v_1))
+   BE
+   (where BE (dynamic->static τ_0 v_0))]
+  [(dynamic->static (× τ_0 τ_1) (× v_0 v_1))
+   BE
+   (where BE (dynamic->static τ_1 v_1))]
   [(dynamic->static (× τ_0 τ_1) (× v_0 v_1))
    (× (dynamic->static τ_0 v_0) (dynamic->static τ_1 v_1))]
   [(dynamic->static (× τ_0 τ_1) v)
@@ -332,11 +346,11 @@
 )
 
 (define (assert-well-dyn t dont-care)
-  (unless (judgment-holds (well-dyn () ,t))
+  (unless (judgment-holds (well-dyn/natural () ,t))
     (raise-arguments-error 'current-runtime-invariant "expected well-dyn" "term" t)))
 
 (define (assert-well-typed t ty)
-  (unless (judgment-holds (well-typed () ,t ,ty))
+  (unless (judgment-holds (well-typed/natural () ,t ,ty))
     (raise-arguments-error 'current-runtime-invariant "expected well-typed"
       "term" t
       "type" ty)))
@@ -369,6 +383,130 @@
           "e" A
           "answers" A*)])])))
 
+;; -----------------------------------------------------------------------------
+;; --- NOTE: these judgments are very similar to the ones in `little-mixed.rkt`,
+;;      just add new rules for monitors.
+;;     It would be nice to be able to use `define-extended-judgment-form`,
+;;      but that doesn't work for recursive calls.
+;; ... okay, that, and it's important to distinguish environments!
+
+(define-judgment-form LM-natural
+  #:mode (well-dyn/natural I I)
+  #:contract (well-dyn/natural Γ e)
+  [
+   --- D-Int
+   (well-dyn/natural Γ integer)]
+  [
+   (well-dyn/natural Γ e_0)
+   (well-dyn/natural Γ e_1)
+   --- D-Pair
+   (well-dyn/natural Γ (× e_0 e_1))]
+  [
+   (where Γ_x (x Γ))
+   (well-dyn/natural Γ_x e)
+   --- D-Fun
+   (well-dyn/natural Γ (λ (x) e))]
+  [
+   (where #true (type-env-contains Γ x))
+   --- D-Var
+   (well-dyn/natural Γ x)]
+  [
+   (well-dyn/natural Γ e_0)
+   (well-dyn/natural Γ e_1)
+   --- D-App
+   (well-dyn/natural Γ (e_0 e_1))]
+  [
+   (well-dyn/natural Γ e_0)
+   (well-dyn/natural Γ e_1)
+   --- D-Binop
+   (well-dyn/natural Γ (BINOP e_0 e_1))]
+  [
+   (well-dyn/natural Γ e)
+   --- D-Unop
+   (well-dyn/natural Γ (UNOP e))]
+  [
+   (well-typed/natural Γ e τ)
+   --- D-Static
+   (well-dyn/natural Γ (static τ e))]
+  [
+   (well-typed/natural Γ v (→ τ_dom τ_cod))
+   --- D-Mon
+   (well-dyn/natural Γ (mon (→ τ_dom τ_cod) v))])
+
+(define-judgment-form LM-natural
+  #:mode (well-typed/natural I I I)
+  #:contract (well-typed/natural Γ e τ)
+  [
+   (infer-type Γ e τ_infer)
+   (subtype τ_infer τ)
+   ---
+   (well-typed/natural Γ e τ)])
+
+(define-judgment-form LM-natural
+  #:mode (infer-type I I O)
+  #:contract (infer-type Γ e τ)
+  [
+   (where #true (negative? integer))
+   --- I-Int
+   (infer-type Γ integer Int)]
+  [
+   --- I-Nat
+   (infer-type Γ natural Nat)]
+  [
+   (infer-type Γ e_0 τ_0)
+   (infer-type Γ e_1 τ_1)
+   --- I-Pair
+   (infer-type Γ (× e_0 e_1) (× τ_0 τ_1))]
+  [
+   (where Γ_x ((x : τ_0) Γ))
+   (infer-type Γ_x e τ_1)
+   --- I-Fun
+   (infer-type Γ (λ (x : τ_0) e) (→ τ_0 τ_1))]
+  [
+   (where τ (type-env-ref Γ x))
+   --- I-Var
+   (infer-type Γ x τ)]
+  [
+   (infer-type Γ e_0 (→ τ_dom τ_cod))
+   (infer-type Γ e_1 τ_1)
+   (subtype τ_1 τ_dom)
+   --- I-App
+   (infer-type Γ (e_0 e_1) τ_cod)]
+  [
+   (infer-type Γ e_0 τ_0)
+   (infer-type Γ e_1 τ_1)
+   (subtype τ_0 Int)
+   (subtype τ_1 Int)
+   (where τ (type-join τ_0 τ_1))
+   --- I-+
+   (infer-type Γ (+ e_0 e_1) τ)]
+  [
+   (infer-type Γ e_0 τ_0)
+   (infer-type Γ e_1 τ_1)
+   (subtype τ_0 Int)
+   (subtype τ_1 Int)
+   (where τ (type-join τ_0 τ_1))
+   --- I-/
+   (infer-type Γ (/ e_0 e_1) τ)]
+  [
+   (infer-type Γ e (× τ_0 τ_1))
+   --- I-Fst
+   (infer-type Γ (fst e) τ_0)]
+  [
+   (infer-type Γ e (× τ_0 τ_1))
+   --- I-Snd
+   (infer-type Γ (snd e) τ_1)]
+  [
+   (well-dyn/natural Γ e)
+   --- I-Dynamic
+   (infer-type Γ (dynamic τ e) τ)]
+  [
+   (well-dyn/natural Γ v)
+   --- I-Mon
+   (infer-type Γ (mon (→ τ_dom τ_cod) v) (→ τ_dom τ_cod))])
+
+;; -----------------------------------------------------------------------------
+
 (module+ test
 
   (define (safe? t ty)
@@ -379,18 +517,20 @@
     (check-true (safe? (term (λ (n) (× 0 0))) #f))
     (check-true (safe? (term (λ (n : Nat) (× 0 0))) (term (→ Nat (× Nat Nat)))))
     (check-true (safe? (term (+ (fst (fst (fst (dynamic (× (× (× Int Nat) (→ Nat (× Int Int))) Int) 0)))) (fst (dynamic (× Int (× (× Int Int) Nat)) 0)))) (term Int)))
+    (check-true (safe? (term (dynamic (→ Int Int) (λ (x) x))) (term (→ Int Int))))
+    (check-true (safe? (term (static (× (→ (× (→ Int Int) Int) Nat) (→ Int Nat)) (× (λ (R : (× (→ Int Int) Int)) 2) (λ (r : Int) 2)))) #f))
   )
 
-  (test-case "identity-safety:auto"
+  (test-case "natural-safety:auto"
     (check-true
       (redex-check LM-natural #:satisfying (well-dyn () e)
         (term (theorem:natural-safety e #f))
-        #:attempts 10
+        #:attempts 1000
         #:print? #f))
     (check-true
       (redex-check LM-natural #:satisfying (well-typed () e τ)
         (term (theorem:natural-safety e τ))
-        #:attempts 10
+        #:attempts 1000
         #:print? #f)))
 )
 

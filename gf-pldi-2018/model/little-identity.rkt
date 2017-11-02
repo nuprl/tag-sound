@@ -211,11 +211,11 @@
     (check-true
       (redex-check LM-identity #:satisfying (well-dyn () e)
         (term (theorem:identity-safety e #f))
-        #:attempts 10
+        #:attempts 1000
         #:print? #f))
     (check-true
       (redex-check LM-identity #:satisfying (well-typed () e τ)
         (term (theorem:identity-safety e τ))
-        #:attempts 10
+        #:attempts 1000
         #:print? #f)))
 )

@@ -4,7 +4,10 @@
   LM
   well-typed
   well-dyn
+  subtype
+  type-join
   type-env-contains
+  type-env-ref
 )
 
 (require
