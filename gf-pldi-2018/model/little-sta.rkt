@@ -17,10 +17,11 @@
   (v ::= integer (× v v) (λ (x : τ) e))
   (τ ::= Int Nat (× τ τ) (→ τ τ))
   (E ::= hole (E e) (v E) (× E e) (× v E) (BINOP E e) (BINOP v E) (UNOP E))
-  (Γ ::= ((x : τ) ...))
+  (Γ ::= ((x : τ) Γ) ())
   (A ::= e TE BE)
   (BE ::= (Boundary-Error e string))
   (TE ::= (Type-Error e string))
+  (MAYBE-τ ::= #f τ)
   (x ::= variable-not-otherwise-mentioned)
   #:binding-forms
   (λ (x : τ) e #:refers-to x))
@@ -61,7 +62,7 @@
    (subtype τ τ)])
 
 (define-metafunction LS
-  type-join : τ τ -> τ
+  type-join : τ τ -> MAYBE-τ
   [(type-join τ_0 τ_1)
    τ_1
    (judgment-holds (subtype τ_0 τ_1))]
@@ -69,15 +70,13 @@
    τ_0
    (judgment-holds (subtype τ_1 τ_0))]
   [(type-join τ_0 τ_1)
-   ,(raise-arguments-error 'type-join "types do not have common super"
-      "τ0" (term τ_0)
-      "τ1" (term τ_1))])
+   #false])
 
 (define-judgment-form LS
   #:mode (infer-type I I O)
   #:contract (infer-type Γ e τ)
   [
-   (side-condition ,(not (redex-match? LS natural (term integer))))
+   (where #true (negative? integer))
    --- I-Int
    (infer-type Γ integer Int)]
   [
@@ -89,12 +88,12 @@
    --- I-Pair
    (infer-type Γ (× e_0 e_1) (× τ_0 τ_1))]
   [
-   (where Γ_x ,(cons (term (x : τ_0)) (term Γ)))
+   (where Γ_x ((x : τ_0) Γ))
    (infer-type Γ_x e τ_1)
    --- I-Fun
    (infer-type Γ (λ (x : τ_0) e) (→ τ_0 τ_1))]
   [
-   (where ((x_0 : τ_0) ... (x : τ) (x_1 : τ_1) ...) Γ)
+   (where τ (type-env-ref Γ x))
    --- I-Var
    (infer-type Γ x τ)]
   [
@@ -128,16 +127,32 @@
    --- I-Snd
    (infer-type Γ (snd e) τ_1)])
 
+(define-metafunction LS
+  negative? : integer -> boolean
+  [(negative? natural)
+   #false]
+  [(negative? integer)
+   #true])
+
+(define-metafunction LS
+  type-env-ref : Γ x -> MAYBE-τ
+  [(type-env-ref () x)
+   #false]
+  [(type-env-ref ((x : τ) Γ) x)
+   τ]
+  [(type-env-ref ((x_0 : _) Γ) x)
+   (type-env-ref Γ x)])
+
 (module+ test
   (test-case "well-typed"
     (check-true (judgment-holds (well-typed () (+ 2 2) Int)))
     (check-true (judgment-holds (well-typed () (+ 2 2) Nat)))
-    (check-true (judgment-holds (well-typed ((x : Int)) (λ (y : Nat) (+ y x)) (→ Nat Int)))))
+    (check-true (judgment-holds (well-typed ((x : Int) ()) (λ (y : Nat) (+ y x)) (→ Nat Int)))))
 
   (test-case "not well-typed"
     (check-false (judgment-holds (well-typed () x Int)))
     (check-false (judgment-holds (well-typed () (2 2) Int)))
-    (check-false (judgment-holds (well-typed ((x : Nat)) (λ (x : (× Int Int)) z) (→ (× Int Int) Int))))))
+    (check-false (judgment-holds (well-typed ((x : Nat) ()) (λ (x : (× Int Int)) z) (→ (× Int Int) Int))))))
 
 (define typed-step
   (reduction-relation LS
@@ -229,6 +244,10 @@
           "answers" A*)]))])
 
 (module+ test
-  (check-metafunction theorem:typed-safety
-    (λ (args) (term #{theorem:typed-safety ,@args}))))
+  (test-case "typed-safety"
+    (check-true
+      (redex-check LS #:satisfying (well-typed () e τ)
+        (term (theorem:typed-safety e τ))
+        #:attempts 1000
+        #:print? #f))))
 

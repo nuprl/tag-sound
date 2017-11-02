@@ -19,7 +19,7 @@
   (τ ::= Int Nat (× τ τ) (→ τ τ))
   (E ::= hole (E e) (v E) (× E e) (× v E) (BINOP E e) (BINOP v E) (UNOP E)
          (static τ E) (dynamic τ E))
-  (Γ ::= (x:τ ...))
+  (Γ ::= (x:τ Γ) ())
   (x:τ ::= x (x : τ))
   (A ::= e TE BE)
   (BE ::= (Boundary-Error e string))
@@ -66,23 +66,19 @@
    (subtype τ τ)])
 
 (define-metafunction LM
-  type-join : τ τ -> τ
+  type-join : τ τ -> MAYBE-τ
   [(type-join τ_0 τ_1)
    τ_1
    (judgment-holds (subtype τ_0 τ_1))]
   [(type-join τ_0 τ_1)
    τ_0
-   (judgment-holds (subtype τ_1 τ_0))]
-  [(type-join τ_0 τ_1)
-   ,(raise-arguments-error 'type-join "types do not have common super"
-      "τ0" (term τ_0)
-      "τ1" (term τ_1))])
+   (judgment-holds (subtype τ_1 τ_0))])
 
 (define-judgment-form LM
   #:mode (infer-type I I O)
   #:contract (infer-type Γ e τ)
   [
-   (side-condition ,(not (redex-match? LM natural (term integer))))
+   (where #true (negative? integer))
    --- I-Int
    (infer-type Γ integer Int)]
   [
@@ -94,12 +90,12 @@
    --- I-Pair
    (infer-type Γ (× e_0 e_1) (× τ_0 τ_1))]
   [
-   (where Γ_x ,(cons (term (x : τ_0)) (term Γ)))
+   (where Γ_x ((x : τ_0) Γ))
    (infer-type Γ_x e τ_1)
    --- I-Fun
    (infer-type Γ (λ (x : τ_0) e) (→ τ_0 τ_1))]
   [
-   (where (x:τ_0 ... (x : τ) x:τ_1 ...) Γ)
+   (where τ (type-env-ref Γ x))
    --- I-Var
    (infer-type Γ x τ)]
   [
@@ -137,6 +133,22 @@
    --- I-Dynamic
    (infer-type Γ (dynamic τ e) τ)])
 
+(define-metafunction LM
+  negative? : integer -> boolean
+  [(negative? natural)
+   #false]
+  [(negative? integer)
+   #true])
+
+(define-metafunction LM
+  type-env-ref : Γ x -> MAYBE-τ
+  [(type-env-ref () x)
+   #false]
+  [(type-env-ref ((x : τ) Γ) x)
+   τ]
+  [(type-env-ref (x:τ Γ) x)
+   (type-env-ref Γ x)])
+
 (define-judgment-form LM
   #:mode (well-dyn I I)
   #:contract (well-dyn Γ e)
@@ -149,12 +161,12 @@
    --- D-Pair
    (well-dyn Γ (× e_0 e_1))]
   [
-   (where Γ_x ,(cons (term x) (term Γ)))
+   (where Γ_x (x Γ))
    (well-dyn Γ_x e)
    --- D-Fun
    (well-dyn Γ (λ (x) e))]
   [
-   (where (x:τ_0 ... x x:τ_1 ...) Γ)
+   (where #true (type-env-contains Γ x))
    --- D-Var
    (well-dyn Γ x)]
   [
@@ -175,6 +187,15 @@
    (well-typed Γ e τ)
    --- D-Static
    (well-dyn Γ (static τ e))])
+
+(define-metafunction LM
+  type-env-contains : Γ x -> boolean
+  [(type-env-contains () x)
+   #false]
+  [(type-env-contains (x Γ) x)
+   #true]
+  [(type-env-contains (x:τ Γ) x)
+   (type-env-contains Γ x)])
 
 (module+ test
   (test-case "well-typed"
@@ -376,6 +397,15 @@
    (well-mixed Γ (dynamic τ e))])
 
 (module+ test
-  (check-metafunction theorem:identity-safety
-    (λ (args) (term #{theorem:identity-safety ,@args}))))
+  (test-case "identity-safety"
+    (check-true
+      (redex-check LM #:satisfying (well-dyn () e)
+        (term (theorem:mixed-safety e #f))
+        #:attempts 1000
+        #:print? #f))
+    (check-true
+      (redex-check LM #:satisfying (well-typed () e τ)
+        (term (theorem:mixed-safety e τ))
+        #:attempts 1000
+        #:print? #f))))
 

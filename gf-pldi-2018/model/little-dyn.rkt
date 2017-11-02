@@ -16,7 +16,7 @@
   (UNOP ::= fst snd)
   (v ::= integer (× v v) (λ (x) e))
   (E ::= hole (E e) (v E) (× E e) (× v E) (BINOP E e) (BINOP v E) (UNOP E))
-  (Γ ::= (x ...))
+  (Γ ::= () (x Γ))
   (A ::= e TE BE)
   (BE ::= (Boundary-Error e string))
   (TE ::= (Type-Error e string))
@@ -42,12 +42,12 @@
    --- T-Pair
    (well-dyn Γ (× e_0 e_1))]
   [
-   (where Γ_x ,(cons (term x) (term Γ)))
+   (where Γ_x (x Γ))
    (well-dyn Γ_x e)
    --- T-Fun
    (well-dyn Γ (λ (x) e))]
   [
-   (where (x_0 ... x x_1 ...) Γ)
+   (where #true (type-env-contains Γ x))
    --- T-Var
    (well-dyn Γ x)]
   [
@@ -65,15 +65,24 @@
    --- T-Unop
    (well-dyn Γ (UNOP e))])
 
+(define-metafunction LD
+  type-env-contains : Γ x -> boolean
+  [(type-env-contains () x)
+   #false]
+  [(type-env-contains (x Γ) x)
+   #true]
+  [(type-env-contains (x_0 Γ) x)
+   (type-env-contains Γ x)])
+
 (module+ test
   (test-case "well-dyn"
     (check-true (judgment-holds (well-dyn () (+ 2 2))))
     (check-true (judgment-holds (well-dyn () (2 2))))
-    (check-true (judgment-holds (well-dyn (x) (λ (y) (+ y x))))))
+    (check-true (judgment-holds (well-dyn (x ()) (λ (y) (+ y x))))))
 
   (test-case "not well-dyn"
     (check-false (judgment-holds (well-dyn () x)))
-    (check-false (judgment-holds (well-dyn (x) (λ (x) z))))))
+    (check-false (judgment-holds (well-dyn (x ()) (λ (x) z))))))
 
 (define dyn-step
   (reduction-relation LD
@@ -184,6 +193,10 @@
           "answers" A*)]))])
 
 (module+ test
-  (check-metafunction theorem:dyn-safety
-    (λ (args) (term #{theorem:dyn-safety ,@args}))))
+  (test-case "dyn-safety"
+    (check-true
+      (redex-check LD #:satisfying (well-dyn () e)
+        (term (theorem:dyn-safety e))
+        #:attempts 500
+        #:print? #f))))
 
