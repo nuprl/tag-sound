@@ -1,14 +1,9 @@
 #lang mf-apply racket/base
 
-;; TODO try modeling with "double boundaries" instead of "zero boundaries"
-;;  at apps
-
 ;; Forgetful lazy natural embedding
 ;; ... same soundness
 ;;     fewer errors
 ;;     "contracts exist to make partial operations safe"
-
-;; Main difference is `static->dynamic` and `dynamic->static`
 
 (require
   "little-lazy.rkt"
@@ -88,9 +83,10 @@
          (where (mon _ (λ (x) e)) v_0)
          (where e_subst (substitute e x v_1)))
     (--> (v_0 v_1)
-         (static τ_cod ((λ (x : τ_dom) e) (dynamic τ_dom v_1)))
+         (static τ_cod ((λ (x : τ_dom) e) v_+))
          E-App-2
-         (where (mon (→ τ_dom τ_cod) (λ (x : τ_dom) e)) v_0))
+         (where (mon (→ _ τ_cod) (λ (x : τ_dom) e)) v_0)
+         (where v_+ #{static->dynamic τ_dom v_1}))
     (--> (v_0 v_1)
          (Type-Error v_0 "procedure?")
          E-App-3
@@ -160,8 +156,9 @@
     (--> (v_0 v_1)
          e_subst
          E-App-1
-         (where (mon (→ τ_dom τ_cod) (λ (x : τ_dom) e)) v_0)
-         (where e_subst (substitute e x v_1)))
+         (where (mon (→ _ τ_cod) (λ (x : τ_dom) e)) v_0)
+         (where v_+ #{dynamic->static τ_dom v_1})
+         (where e_subst (substitute e x v_+)))
     (--> (v_0 v_1)
          (dynamic τ_cod ((λ (x) e) (static τ_dom v_1)))
          E-App-2
@@ -617,11 +614,11 @@
 
   )
 
-  #;(test-case "forgetful-safety:auto"
+  (test-case "forgetful-safety:auto"
     (check-true
       (redex-check LM-forgetful #:satisfying (well-dyn () e)
         (term (theorem:forgetful-safety e #f))
-        #:attempts 100
+        #:attempts 1000
         #:print? #f))
     (check-true
       (redex-check LM-forgetful #:satisfying (well-typed () e τ)
