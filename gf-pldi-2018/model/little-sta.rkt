@@ -147,7 +147,9 @@
   (test-case "well-typed"
     (check-true (judgment-holds (well-typed () (+ 2 2) Int)))
     (check-true (judgment-holds (well-typed () (+ 2 2) Nat)))
-    (check-true (judgment-holds (well-typed ((x : Int) ()) (λ (y : Nat) (+ y x)) (→ Nat Int)))))
+    (check-true (judgment-holds (well-typed ((x : Int) ()) (λ (y : Nat) (+ y x)) (→ Nat Int))))
+    (check-true (judgment-holds (well-typed () (λ (C : Int) C) (→ Nat Nat))))
+  )
 
   (test-case "not well-typed"
     (check-false (judgment-holds (well-typed () x Int)))

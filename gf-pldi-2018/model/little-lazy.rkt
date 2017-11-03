@@ -549,6 +549,61 @@
    --- I-Mon-Pair
    (infer-type Γ (mon (× τ_0 τ_1) v) (× τ_0 τ_1))])
 
+(module+ test
+  (test-case "well-dyn"
+    (check-true (judgment-holds
+      (well-dyn/lazy ()
+        (static (→ (→ Nat (→ Int Nat)) Int)
+          ((dynamic (→ (→ Nat Int) (→ (→ Nat (→ Nat Int)) Nat)) (λ (bs) bs))
+           (λ (C : Int) C))))))
+    (check-false (judgment-holds
+      (well-dyn/lazy ()
+        (mon (→ (× Int Int) (→ Nat Int))
+             (λ (p) (λ (Okp) 2))))))
+  )
+
+  (test-case "well-typed"
+    (check-true (judgment-holds (subtype (→ Int Nat) (→ Nat Int))))
+    (check-true (judgment-holds
+      (subtype (→ Nat Nat) (→ Nat Int))))
+    (check-true (judgment-holds
+      (subtype (→ (→ Nat (→ Nat Int)) Nat)
+               (→ (→ Nat (→ Int Nat)) Int))))
+    (check-true (judgment-holds
+      (subtype
+        (→ (→ Nat Int) Nat)
+        (→ (→ Nat Nat) Nat))))
+    (check-true (judgment-holds
+      (subtype
+        (× (→ (→ Nat Int) Nat) (→ Int Nat))
+        (× (→ (→ Nat Nat) Nat) (→ Nat Int)))))
+    (check-true (judgment-holds
+      (well-typed/lazy ()
+        ((dynamic (→ (→ Nat Int) (→ (→ Nat (→ Nat Int)) Nat)) (λ (bs) bs))
+         (λ (C : Int) C))
+        (→ (→ Nat (→ Int Nat)) Int))))
+    ;; TODO
+    #;(check-true (judgment-holds
+      (well-typed/lazy ()
+        (λ (C : Int) C)
+        (→ Nat Nat))))
+    (check-false (judgment-holds
+      (well-typed/lazy ()
+        (mon (→ Nat Int) (λ (C : Int) C))
+        (→ (→ Nat (→ Nat Int)) Int))))
+    (check-true (judgment-holds
+      (well-typed/lazy ()
+        (dynamic (× (→ (→ Nat Int) Nat) (→ Int Nat))
+          3
+          #;((λ (Qgk)
+             (λ (IQ) 1))
+           (mon (→ (× Int Int) (→ Nat Int))
+                (λ (p) (λ (Okp) 2)))))
+        (× (→ (→ Nat Nat) Nat)
+           (→ Nat Int)))))
+  )
+)
+
 ;; -----------------------------------------------------------------------------
 
 (module+ test
@@ -563,6 +618,7 @@
     (check-true (safe? (term (+ (fst (fst (fst (dynamic (× (× (× Int Nat) (→ Nat (× Int Int))) Int) 0)))) (fst (dynamic (× Int (× (× Int Int) Nat)) 0)))) (term Int)))
     (check-true (safe? (term (dynamic (→ Int Int) (λ (x) x))) (term (→ Int Int))))
     (check-true (safe? (term (static (× (→ (× (→ Int Int) Int) Nat) (→ Int Nat)) (× (λ (R : (× (→ Int Int) Int)) 2) (λ (r : Int) 2)))) #f))
+    (check-true (safe? (term (static (→ (→ Nat (→ Int Nat)) Int) ((dynamic (→ (→ Nat Int) (→ (→ Nat (→ Nat Int)) Nat)) (λ (bs) bs)) (λ (C : Int) C)))) #f))
   )
 
   (test-case "lazy-safety:auto"
