@@ -10,11 +10,6 @@
   pair?
   maybe-in-hole
   boundary?
-  dyn-step
-  sta-step
-  assert-well-dyn
-  assert-well-typed
-  safe-lazy-step*
 )
 
 (require
@@ -391,33 +386,18 @@
       "term" t
       "type" ty)))
 
+(define (is-error? t)
+  (or (redex-match? LM-lazy TE t)
+      (redex-match? LM-lazy BE t)))
+
 (define-metafunction LM-lazy
   theorem:lazy-safety : e MAYBE-τ -> any
   [(theorem:lazy-safety e #f)
    ,(or (not (judgment-holds (well-dyn () e)))
-        (safe-lazy-step* (term e) #f assert-well-dyn dyn-boundary-step))]
+        (safe-step* (term e) #f is-error? assert-well-dyn dyn-boundary-step))]
   [(theorem:lazy-safety e τ)
    ,(or (not (judgment-holds (well-typed () e τ)))
-        (safe-lazy-step* (term e) (term τ) assert-well-typed sta-boundary-step))])
-
-(define (safe-lazy-step* A ty check-invariant step)
-  (let loop ([A A])
-    (cond
-     [(or (redex-match? LM-lazy TE A)
-          (redex-match? LM-lazy BE A))
-      A]
-     [else
-      (check-invariant A ty)
-      (define A* (apply-reduction-relation step A))
-      (cond
-       [(null? A*)
-        A]
-       [(null? (cdr A*))
-        (loop (car A*))]
-       [else
-        (raise-arguments-error 'safe-lazy-step* "step is non-deterministic for expression"
-          "e" A
-          "answers" A*)])])))
+        (safe-step* (term e) (term τ) is-error? assert-well-typed sta-boundary-step))])
 
 ;; -----------------------------------------------------------------------------
 ;; --- NOTE: these judgments are very similar to the ones in `little-mixed.rkt`,

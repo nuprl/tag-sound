@@ -10,6 +10,7 @@
   type-env-ref
   negative?
 
+  safe-step*
   stuck?
 )
 
@@ -232,4 +233,22 @@
 
 (define (stuck? r t)
   (null? (apply-reduction-relation r t)))
+
+(define (safe-step* A ty done? check-invariant step)
+  (let loop ([A A])
+    (cond
+     [(done? A)
+      A]
+     [else
+      (check-invariant A ty)
+      (define A* (apply-reduction-relation step A))
+      (cond
+       [(null? A*)
+        A]
+       [(null? (cdr A*))
+        (loop (car A*))]
+       [else
+        (raise-arguments-error 'safe-step* "step is non-deterministic for expression"
+          "e" A
+          "answers" A*)])])))
 
