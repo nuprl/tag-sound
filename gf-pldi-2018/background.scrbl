@@ -4,6 +4,7 @@
 @; TODO
 @; - make sure Sec 1 lists all tradeoffs (???)
 @;   also Sec 1, more guarantees = more optimization but apparently not much at stake
+@; - NEED TO CHANGE VARIABLE RULES ... cannot reference a static variable in dyn context and vice-versa
 @; OUTLINE
 @; - interop, boundary terms, guards
 @; - identity embedding, dyn soundness

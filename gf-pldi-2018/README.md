@@ -10,13 +10,14 @@ TODO
   - typescript
   - java
   - pluggable types
-  - "any lnaguage without a proof (ocaml haskell TR)"
+  - "any language without a proof (ocaml haskell TR)"
 - why reason ... still not sure, have some ideas, call for user studies
 - Don't say "gradual typing" !!!! there's plenty of other words, e.g. 'migratory typing'
 - TRY THIS: each section starts with a summary of the previous section,
    in not-so-many words, but the opening paragraph is just like "here's bottom
    line from previous, here's what we're going to roll ahead with"
 - change plots, colors are bad
+- change plots, too much space b/w legend and plot
 - change plots, so instead of:
     X X X
     X X X
@@ -28,6 +29,8 @@ TODO
   and much smaller?
   Idea is, quicker to see performance at-a-glance.
   (Don't waste too much time building plots tho.)
+- rename TYPE-ERROR VALUE-ERROR to be more like "good error" "bad error"?
+  because some VALUE-ERROR really look like type errors (boudnary error)
 
 
 Intro
@@ -175,3 +178,50 @@ References
 Vitouseks
 Levity Polymorphism
 Concrete Types
+
+
+Meeting with Matthias, hope to have a good Sec 2 Sec 3 this weekend!
+---
+;; one small step for gradual typing but a huge leap for mankind
+;; .... not final thing, but another tag
+;; one small tag huge leap for gradual typing
+
+;; the spectrum of soundness and its performance
+
+;; types are meaningless but useful
+
+I. intro, credits to Siek/Greenberg/Findler
+   -
+
+II. Macro Gradual Typing as Multi-Lang
+  - natural is sound but slow
+  - identity is fast but "unsound"
+
+III. Compromise  / Sacrifice / The Descent
+  1. sources of cost
+    - O(n) checks
+    - indirection (JIT)
+    - allocation
+    - errors.... very important very hard to say
+  2. attack checks
+  3. attack checks
+  4. attack checks
+
+IV. Scaling the Model to an Implementation
+  - general advice
+  - TR specific???
+
+V. Performance
+  - how to measure, summarize JFP
+  - plots
+  - look at that
+
+VI. Related
+
+VII. Conclusion
+  - what do types mean?
+  - "watch this space"
+
+;; cite pythonm
+;; rouble reverse engineering the model, so systematic story
+;; .... 
