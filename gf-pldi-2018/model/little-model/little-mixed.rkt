@@ -85,7 +85,9 @@
    (judgment-holds (subtype τ_0 τ_1))]
   [(type-join τ_0 τ_1)
    τ_0
-   (judgment-holds (subtype τ_1 τ_0))])
+   (judgment-holds (subtype τ_1 τ_0))]
+  [(type-join _ _)
+   #false])
 
 (define-judgment-form LM
   #:mode (infer-type I I O)
