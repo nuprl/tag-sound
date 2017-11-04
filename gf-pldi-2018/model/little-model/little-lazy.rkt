@@ -63,6 +63,15 @@
   [(boundary? _)
    #false])
 
+(define-metafunction LM-lazy
+  error? : A -> boolean
+  [(error? BE)
+   #true]
+  [(error? TE)
+   #true]
+  [(error? _)
+   #false])
+
 (define dyn-step
   (reduction-relation LM-lazy
     #:domain A
@@ -230,7 +239,8 @@
     (--> (in-hole E (static τ e))
          BE
          E-Advance-1
-         (where (BE) ,(apply-reduction-relation sta-boundary-step (term e))))
+         (where (A) ,(apply-reduction-relation sta-boundary-step (term e)))
+         (where #true #{error? A}))
     (--> (in-hole E e)
          (maybe-in-hole E A)
          E-Dyn
@@ -249,9 +259,10 @@
          E-Advance-0
          (where (e_+) ,(apply-reduction-relation dyn-boundary-step (term e))))
     (--> (in-hole E (dynamic τ e))
-         BE
+         A
          E-Advance-1
-         (where (BE) ,(apply-reduction-relation dyn-boundary-step (term e))))
+         (where (A) ,(apply-reduction-relation dyn-boundary-step (term e)))
+         (where #true #{error? A}))
     (--> (in-hole E e)
          (maybe-in-hole E A)
          E-Sta
@@ -301,6 +312,8 @@
                   (list (term (static Int 3))))
     (check-true (redex-match? LM-lazy BE
       (car (apply-reduction-relation dyn-boundary-step (term (/ 1 0))))))
+     (printf "HEY ~a~n"
+       (apply-reduction-relation dyn-boundary-step (term (static Int (/ 1 0)))))
     (check-true (redex-match? LM-lazy BE
       (car (apply-reduction-relation dyn-boundary-step (term (static Int (/ 1 0)))))))
 
@@ -318,6 +331,10 @@
     (check-equal? (apply-reduction-relation dyn-boundary-step
                     (term (static (× Nat Int) (× 1 -1))))
                   (list (term (mon (× Nat Int) (× 1 -1)))))
+
+    (check-true (redex-match? LM-lazy TE
+      (car (apply-reduction-relation dyn-boundary-step
+             (term (static Int (dynamic Int (fst 0))))))))
   )
 
   (test-case "sta-boundary-step"
@@ -342,6 +359,10 @@
     (check-equal? (apply-reduction-relation sta-boundary-step
                     (term (dynamic (× Nat Int) (× 1 -1))))
                   (list (term (mon (× Nat Int) (× 1 -1)))))
+
+    (check-true (redex-match? LM-lazy TE
+      (car (apply-reduction-relation sta-boundary-step
+             (term (dynamic Int (fst 0)))))))
   )
 )
 
@@ -601,7 +622,7 @@
     (check-true (safe? (term (static (→ (→ Nat (→ Int Nat)) Int) ((dynamic (→ (→ Nat Int) (→ (→ Nat (→ Nat Int)) Nat)) (λ (bs) bs)) (λ (C : Int) C)))) #f))
   )
 
-  (test-case "lazy-safety:auto"
+  #;(test-case "lazy-safety:auto"
     (check-true
       (redex-check LM-lazy #:satisfying (well-dyn () e)
         (term (theorem:lazy-safety e #f))

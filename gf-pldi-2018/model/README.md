@@ -1,7 +1,9 @@
 micro-racket
 ===
 
-Model of Typed Racket,
+2017-11-04: see `little-model/` for something closer to the paper
+
+One "big" model of macro gradual typing,
  showing difference between type soundness and tag soundness semantics.
 
 Outline:
