@@ -1,5 +1,8 @@
 #lang gf-pldi-2018
-@title[#:tag "sec:introduction"]{Three Tribes of Migratory Typing}
+
+@title[#:tag "sec:introduction"]{Three Flavors of Migratory Typing}
+
+@; tfffgksst-snapl-2017
 
 @; NOTE: 'migratory' and not 'gradual' because our static typing
 @;   systems do not use a dynamic type,
@@ -30,67 +33,54 @@
 @; Tribe:  Coffeeae
 @; Genus:  Coffea
 
-The recent history of the world of programming languages has been shaped by
- two fundamental truths.
-The first truth is that current dynamically typed languages are effective
- tools for building applications.
-The second truth is that static typing systems are useful for maintaining
- large applications.
+Over the past two decades, software developers have migrated from the world
+ of C++ and Java to the broad world of untyped languages: JavaScript, Perl,
+ Python, Ruby (on Rails), and many others. About one decade ago, they
+ discovered the cost of using languages without type systems. In response,
+ academic researchers simultaneously proposed gradual
+ typing@~cite[st-sfp-2006 svcb-snapl-2015] and migratory
+ typing@~cite[thf-dls-2006 tfffgksst-snapl-2017], both of which allow
+ developers to mix typed into untyped code. Using such systems, developers
+ can incrementally equip a code base with types and migrate it to the typed
+ world. 
 
-A migratory typing system is a type system and runtime
- that combines statically-typed and dynamically typed code.
-Unlike gradual typing, migratory typing systems do not include a type
- that is implicitly compatible with any other type.
+In theory, these type systems provide software developers with an ideal
+ pathway to equip a code base with types. To begin with, developers can add
+ types wherever needed. Better still, the software system keeps
+ functioning, regression test suites remain applicable, and the added types
+ may just reveal some long-hidden obscure errors; in contrast, a whole-sale
+ port to a different language merely forces developers to go through the
+ whole development process again---without improving the well-tested
+ system. All this theory can work only if the performance of the mixed-type code
+ base remains acceptable. As Takikawa et al. have recently
+ shown@~cite[tfgnvf-popl-2016], however,  the performance is definitely
+ @emph{not} acceptable when the underlying type system is @emph{sound}. 
+ By comparison, industrial implementations of such type systems come
+ without performance problems because they do not insist on type
+ soundness. 
 
-Two tribes have developed migratory typing systems to combine the benefits
- of static typing and dynamic typing in a single language.
-One tribe, Racketensis, embeds untyped code using a type-directed "natural" embedding.
-Untyped values get type-checked at runtime, comprehensively.
-The other tribe, Coffeeae, erases types; the embedding is the trivial identity embedding.
+From a type-theoretic perspective, academic migratory type systems use a
+ type-directed ``natural'' embedding of typed code into an untyped
+ context@~cite[mf-toplas-2007]. Roughly speaking, when an untyped value
+ mixes with typed code, it gets ``type checked'' at run time; viewed from
+ the typed perspective, a typed value gets protected with a checking
+ wrapper when it flows into an untyped context. All of these checks add a
+ significant overhead when mixed-typed code is run; the performance
+ improves only when (almost) the entire code base is equipped with
+ types. Industrial variants of these type systems use an ``identity
+ embedding.''  The result is code that does not catch the misuse of a typed
+ value in an untyped context but relies on the existing run-time checks of
+ the underlying untyped language to prevent the segmentation faults (of
+ unsafe languages such as C++).
 
-@; TypeScript invokes sneers from academic types, but has a growing following
-@;  of JavaScript programmers.
-@; Typed Racket inspires fear in Racket programmers.
-@; Great divide between the two.
-@; Desirable to bridge this gap, all depends on the context of the programmer.
-
-In the great plains of Indiana we have uncovered a mutant strain of python
- that exhibits characteristics of both tribes albiet in restrained form.
-Less soundness, less overhead.
-
-Have refined this strain in the laboratory, and compared more thoroghly
- its characteristics with the Racket and JavaScript strains of migratory typing.
-In particular, have a formal model with the essentials and an Typed Racket
- functional implementation.
-Many programs can run in Racket to simulate all three tribes.
-
-Now it may be that the mutant is a happy compromise.
-Or may be, having none of the desirable traits from the dominant strains
- this brand fades into obscurity.
-Nevertheless we present it to the scientific community.
-
-Contributions:
-@itemlist[
-@item{
-  formal model of the @emph{first-order embedding},
-   statement and proof of @emph{type-tag soundness}
-}
-@item{
-  systematic performance evaluation,
-   performance of first-order embedding is huge improvement
-}
-@item{
-  discussion of type-tag soudness, listing of surprising programs
-   that are well-typed, incorrect, and potentially difficult to debug
-}
-]
-
-This paper is organized as follows.
-@Section-ref{sec:background} outlines the general problem of implementing a
- performant gradual type system, and compares the particular approaches taken by
- Typed Racket and Reticulated.
-@Section-ref{sec:design} lists our design goals for tag-sound gradual
- typing and presents a formal model.
-@Section-ref{sec:evaluation} compares the performance of Tagged Racket
- to Typed Racket.
-@Section-ref{sec:conclusion} concludes.
+This paper contributes (1) several models of migratory type systems that
+ sit between these two extremes. The development is inspired by Reticulated
+ Python@~cite[vksb-dls-2014], an pre-processor implementation of a gradual
+ type system for Python. We state theorems that explain to what extent each
+ model is type-sound. (2) We add examples how things go wrong during an
+ execution and remain unnoticed in these weaker systems. (3) We explain how
+ to implement the most promising variant in Typed Racket, and we present
+ the results of applying Takikawa et al.'s method to this
+ implementation. The speed-up improvements are dramatic, in all cases at
+ least one order of magnitude. We thus consider these results a first 
+ step toward the creation of a feasible, sound migratory type system. 
