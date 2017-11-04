@@ -1,10 +1,7 @@
 #lang gf-pldi-2018 @sigplan @anonymous
 
 @; TODO fix the title
-@title{Forgetful, First-Order Language Embedding}
-@;@subtitle{with applications to migratory typing}
-@;@title{Between Soundness and Unsoundness and What it Means for Performance}
-@;@title{An Unexpectedly Negative Result}
+@title{The Spectrum of Soundness and Performance}
 
 @(define NEU
    @affiliation[
@@ -26,21 +23,25 @@
 
 @; -----------------------------------------------------------------------------
 
-@; TODO fix the abstract
-@abstract{
-  We present a techinque for embedding statically typed code in dynamically-typed
-   code, and vice-versa.
-  This technique is called the forgetful, first-order embedding.
-  It strikes a balance between the natural embedding (formalized by Matthews/Findler
-   and implemented in Typed Racket) and the identity embedding (implemented
-   in TypeScript).
-  The balance comes in two senses.
-  First, N-embedded programs run slower than F-embedded program run slower
-   than I-embedded programs.
-  Second, I-embedded programs have weaker static guarantees than F-embedded
-   programs have weaker guarantees than N-embedded programs.
-  We prove these claims for a model, and demonstrate them in an implementation.
-}
+@abstract{Gradual typing provides software developers with the means to
+ re-factor an untyped code basis into a typed one. As this re-factoring
+ proceeds, the code bases consists of a mixture of typed and untyped code.
+ In this mixed-typed world, developers begin to rely on the assumptions
+ behind the type system, that is, its soundness. Industrial variants of
+ gradual typing, however, guarantee only an extremely limited form of
+ soundness, and as recently shown, the soundness of academic
+ implementations poses a serious performance bottleneck. 
+
+In this paper, we develop a spectrum of type soundness and demonstrate that
+ a form of whole-program, non-compositional form of soundness vastly
+ improves the performance of Typed Racket, the most mature implementation
+ of a sound gradual type system. Specifically, we develop a series of
+ theoretical models of gradual typing, starting with a classically sound
+ gradual core language, and prove a type soundness theorem for each. We
+ also point out how each step weakens the classical notion of
+ soundness. Furthermore, we explain how to modify Typed Racket's
+ implementation and present the results of measuring this revised
+ implementation on the Takikawa-Greenman benchmarks.}
 
 @; vague outline: motivation, multi-language, macro-embedding, fo-embedding,
 @;   proofs about fo, implemetation notes lessons, performance evaluation, futures
