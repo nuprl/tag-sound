@@ -15,6 +15,10 @@
 ;;   ... only in typed code
 ;;   ... semantics preserving
 ;; - BEWARE 71498 of variables, typed referencing untyped
+;;   actually is not a problem
+;; - completion correctness,
+;;   * only adds checks
+;;   * "similar" behavior ...
 
 (require
   "little-lazy.rkt"
@@ -38,8 +42,14 @@
 (define-extended-language LK
   LM
   (e ::= .... (check K e) (static e) (dynamic e))
-  (K ::= Int Nat Pair Fun)
+  (K ::= Int Nat Pair Fun Any)
+  (MAYBE-K ::= #f K)
   (E ::= .... (check K E)))
+
+(define (LK=? t0 t1)
+  (alpha-equivalent? LK t0 t1))
+
+;; TODO update semantics to use Any
 
 (define-metafunction LK
   static->dynamic : τ v -> A
@@ -332,4 +342,330 @@
       (car (apply-reduction-relation dyn-boundary-step
              (term (static Int (dynamic Int (fst 0))))))))
   )
+)
+
+;; -----------------------------------------------------------------------------
+
+(define (assert-well-dyn t dont-care)
+  (unless (judgment-holds (well-dyn/tagged () ,t))
+    (raise-arguments-error 'current-runtime-invariant "expected well-dyn" "term" t)))
+
+(define (assert-well-typed t ty)
+  (unless (judgment-holds (well-typed/tagged () ,t ,ty))
+    (raise-arguments-error 'current-runtime-invariant "expected well-typed"
+      "term" t
+      "type" ty)))
+
+(define (is-error? t)
+  (or (redex-match? LK TE t)
+      (redex-match? LK BE t)))
+
+(define-metafunction LK
+  theorem:tagged-safety : e MAYBE-τ -> any
+  [(theorem:tagged-safety e #f)
+   ,(or (not (judgment-holds (well-dyn () e)))
+        (safe-step* (term #{tagged-completion/dyn# e}) #f is-error? assert-well-dyn dyn-boundary-step))]
+  [(theorem:tagged-safety e τ)
+   ,(or (not (judgment-holds (well-typed () e τ)))
+        (let ([K (term #{type->tag τ})])
+          (safe-step* (term #{tagged-completion/typed# e ,K}) K is-error? assert-well-typed sta-boundary-step)))])
+
+;; -----------------------------------------------------------------------------
+
+(define-metafunction LK
+  tagged-completion/dyn# : e -> e
+  [(tagged-completion/dyn# e)
+   e_+
+   (judgment-holds (tagged-completion/dyn e e_+))])
+
+(define-metafunction LK
+  tagged-completion/typed# : e τ -> e
+  [(tagged-completion/typed# e τ)
+   e_+
+   (judgment-holds (tagged-completion/typed e τ e_+))])
+
+(define-metafunction LK
+  tagged-erasure# : any -> any
+  [(tagged-erasure# (check K e))
+   #{tagged-erasure# e}]
+  [(tagged-erasure# (any ...))
+   (#{tagged-erasure# any} ...)]
+  [(tagged-erasure# any)
+   any])
+
+(module+ test
+  (test-case "tagged-erasure"
+    (check-equal?
+      (term #{tagged-erasure# (+ 2 2)})
+      (term (+ 2 2)))
+    (check LK=?
+      (term #{tagged-erasure# (check Int ((λ (x : Int) x) (× 0 0)))})
+      (term ((λ (x : Int) x) (× 0 0))))
+  )
+)
+
+(define-judgment-form LK
+  #:mode (tagged-completion/dyn I O)
+  #:contract (tagged-completion/dyn e e)
+  [
+   ---
+   (tagged-completion/dyn e e)])
+
+(define-judgment-form LK
+  #:mode (tagged-completion/typed I I O)
+  #:contract (tagged-completion/typed e τ e)
+  [
+   ---
+   (tagged-completion/typed e τ e)])
+
+;; intentionally undefined for:
+;; - (dynamic ....)
+;; - (check ....)
+(define-judgment-form LK
+  #:mode (well-dyn/tagged I I)
+  #:contract (well-dyn/tagged Γ e)
+  [
+   --- D-Int
+   (well-dyn/tagged Γ integer)]
+  [
+   (well-dyn/tagged Γ e_0)
+   (well-dyn/tagged Γ e_1)
+   --- D-Pair
+   (well-dyn/tagged Γ (× e_0 e_1))]
+  [
+   (where Γ_x (x Γ))
+   (well-dyn/tagged Γ_x e)
+   --- D-Fun-0
+   (well-dyn/tagged Γ (λ (x) e))]
+  [
+   (where Γ_x ((x : τ) Γ))
+   (well-typed/tagged Γ_x e Any)
+   --- D-Fun-1
+   (well-dyn/tagged Γ (λ (x : τ) e))]
+  [
+   (where #true #{type-env-contains Γ x})
+   --- D-Var-0
+   (well-dyn/tagged Γ x)]
+  [
+   (where _ #{type-env-ref Γ x})
+   ;; fine because Dyn context cannot "mis-use" typed variable,
+   ;;  worst case, `x` is a function and Dyn passes a bad value to a typed
+   ;;  context. But tag checks mean that all typed functions are total.
+   --- D-Var-1
+   (well-dyn/tagged Γ x)]
+  [
+   (well-dyn/tagged Γ e_0)
+   (well-dyn/tagged Γ e_1)
+   --- D-App
+   (well-dyn/tagged Γ (e_0 e_1))]
+  [
+   (well-dyn/tagged Γ e_0)
+   (well-dyn/tagged Γ e_1)
+   --- D-Binop
+   (well-dyn/tagged Γ (BINOP e_0 e_1))]
+  [
+   (well-dyn/tagged Γ e)
+   --- D-Unop
+   (well-dyn/tagged Γ (UNOP e))]
+  [
+   (where K #{type->tag τ})
+   (well-typed/tagged Γ e K)
+   --- D-Static-0
+   (well-dyn/tagged Γ (static τ e))]
+  [
+   (well-typed/tagged Γ e Any)
+   ---
+   (well-dyn/tagged Γ (static e))])
+
+(define-judgment-form LK
+  #:mode (sub-tag I I)
+  #:contract (sub-tag K K)
+  [
+   --- S-Any
+   (sub-tag K Any)]
+  [
+   --- S-Nat
+   (sub-tag Nat Int)]
+  [
+   --- S-Refl
+   (sub-tag K K)])
+
+(define-metafunction LK
+  tag-join : K K -> MAYBE-K
+  [(tag-join K_0 K_1)
+   K_1
+   (judgment-holds (sub-tag K_0 K_1))]
+  [(tag-join K_0 K_1)
+   K_0
+   (judgment-holds (sub-tag K_1 K_0))]
+  [(tag-join _ _)
+   #false])
+
+(module+ test
+  (test-case "sub-tag"
+    (check-true (judgment-holds (sub-tag Nat Int)))
+    (check-true (judgment-holds (sub-tag Fun Fun)))
+    (check-true (judgment-holds (sub-tag Fun Any)))
+
+    (check-false (judgment-holds (sub-tag Int Nat)))
+    (check-false (judgment-holds (sub-tag Any Pair)))))
+
+(define-judgment-form LK
+  #:mode (well-typed/tagged I I I)
+  #:contract (well-typed/tagged Γ e K)
+  [
+   (infer-tag Γ e K_actual)
+   (sub-tag K_actual K)
+   ---
+   (well-typed/tagged Γ e K)])
+
+(define-judgment-form LK
+  #:mode (infer-tag I I O)
+  #:contract (infer-tag Γ e K)
+  [
+   --- I-Nat
+   (infer-tag Γ natural Nat)]
+  [
+   (where #true #{negative? integer})
+   --- I-Int
+   (infer-tag Γ integer Int)]
+  [
+   (well-typed/tagged Γ e_0 Any)
+   (well-typed/tagged Γ e_1 Any)
+   --- I-Pair
+   (infer-tag Γ (× e_0 e_1) Pair)]
+  [
+   (where Γ_x (x Γ))
+   (well-dyn/tagged Γ_x e)
+   --- I-Fun-0
+   (infer-tag Γ (λ (x) e) Fun)]
+  [
+   (where Γ_x ((x : τ) Γ))
+   (well-typed/tagged Γ_x e Any)
+   --- I-Fun-1
+   (infer-tag Γ (λ (x : τ) e) Fun)]
+  [
+   (where #true #{type-env-contains Γ x})
+   --- I-Var-0
+   (infer-tag Γ x Any)]
+  [
+   (where τ #{type-env-ref Γ x})
+   (where K #{type->tag τ})
+   --- I-Var-1
+   (infer-tag Γ x K)]
+  [
+   (well-typed/tagged Γ e_0 Fun)
+   (well-typed/tagged Γ e_1 Any)
+   --- I-App
+   (infer-tag Γ (e_0 e_1) Any)]
+  [
+   (infer-tag Γ e_0 K_0)
+   (infer-tag Γ e_1 K_1)
+   (sub-tag K_0 Int)
+   (sub-tag K_1 Int)
+   (where K #{tag-join K_0 K_1})
+   --- I-+
+   (infer-tag Γ (+ e_0 e_1) K)]
+  [
+   (infer-tag Γ e_0 K_0)
+   (infer-tag Γ e_1 K_1)
+   (sub-tag K_0 Int)
+   (sub-tag K_1 Int)
+   (where K #{tag-join K_0 K_1})
+   --- I-/
+   (infer-tag Γ (/ e_0 e_1) K)]
+  [
+   (well-typed/tagged Γ e Pair)
+   --- I-fst
+   (infer-tag Γ (fst e) Any)]
+  [
+   (well-typed/tagged Γ e Pair)
+   --- I-snd
+   (infer-tag Γ (snd e) Any)]
+  [
+   (well-dyn/tagged Γ e)
+   (where K #{type->tag τ})
+   --- I-Dyn-0
+   (infer-tag Γ (dynamic τ e) K)]
+  [
+   (well-dyn/tagged Γ e)
+   --- I-Dyn-1
+   (infer-tag Γ (dynamic e) Any)]
+  [
+   (well-typed/tagged Γ e Any)
+   --- I-Check
+   (infer-tag Γ (check K e) K)])
+
+(define-metafunction LK
+  infer-tag# : Γ e -> K
+  [(infer-tag# Γ e)
+   K
+   (judgment-holds (infer-tag Γ e K))])
+
+(module+ test
+  (test-case "well-dyn"
+    (check-false (judgment-holds
+      (well-dyn/tagged ()
+        (static (→ (→ Nat (→ Int Nat)) Int)
+          ((dynamic (→ (→ Nat Int) (→ (→ Nat (→ Nat Int)) Nat)) (λ (bs) bs))
+           (λ (C : Int) C))))))
+  )
+
+  (test-case "well-typed"
+    (check-true (judgment-holds
+      (well-typed/tagged ()
+        (dynamic (→ (→ Nat Int) (→ (→ Nat (→ Nat Int)) Nat)) (λ (bs) bs))
+        Fun)))
+    (check-true (judgment-holds
+      (well-typed/tagged ()
+        (λ (C : Int) C)
+        Fun)))
+    (check-true (judgment-holds
+      (well-typed/tagged ()
+        ((dynamic (→ (→ Nat Int) (→ (→ Nat (→ Nat Int)) Nat)) (λ (bs) bs))
+         (λ (C : Int) C))
+        Any)))
+    (check-true (judgment-holds
+      (well-typed/tagged ()
+        ((dynamic (→ (→ Nat Int) (→ (→ Nat (→ Nat Int)) Nat)) (λ (bs) bs))
+         (λ (C : Int) C))
+        Any)))
+    (check-false (judgment-holds
+      (well-typed/tagged ()
+        ((dynamic (→ (→ Nat Int) (→ (→ Nat (→ Nat Int)) Nat)) (λ (bs) bs))
+         (λ (C : Int) C))
+        Fun)))
+    (check-true (judgment-holds
+      (well-typed/tagged ()
+        (check Fun
+          ((dynamic (→ (→ Nat Int) (→ (→ Nat (→ Nat Int)) Nat)) (λ (bs) bs))
+           (λ (C : Int) C)))
+        Fun)))
+    (check-true (judgment-holds
+      (well-typed/tagged ()
+        (λ (C : Int) C)
+        Fun)))
+    (check-true (judgment-holds
+      (well-typed/tagged ()
+        (dynamic (× (→ (→ Nat Int) Nat) (→ Int Nat)) 3)
+        Pair)))
+  )
+)
+;; -----------------------------------------------------------------------------
+
+(module+ test
+  (test-case "tagged-safety"
+  )
+
+  #;(test-case "tagged-safety:auto"
+    (check-true
+      (redex-check LK #:satisfying (well-dyn () e)
+        (term (theorem:tagged-safety e #f))
+        #:attempts 1000
+        #:print? #f))
+    (check-true
+      (redex-check LK #:satisfying (well-typed () e τ)
+        (term (theorem:tagged-safety e τ))
+        #:attempts 1000
+        #:print? #f)))
 )
