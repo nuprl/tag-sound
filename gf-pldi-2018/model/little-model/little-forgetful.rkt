@@ -6,7 +6,13 @@
 ;;     "contracts exist to make partial operations safe"
 
 (require
-  "little-lazy.rkt"
+  (only-in "little-lazy.rkt"
+    LM-lazy
+    procedure?
+    pair?
+    maybe-in-hole
+    boundary?
+    error?)
   "little-mixed.rkt"
   (only-in redex-abbrevs
     make--->*)
@@ -233,9 +239,10 @@
          E-Advance-0
          (where (e_+) ,(apply-reduction-relation sta-boundary-step (term e))))
     (--> (in-hole E (static τ e))
-         BE
+         A
          E-Advance-1
-         (where (BE) ,(apply-reduction-relation sta-boundary-step (term e))))
+         (where (A) ,(apply-reduction-relation sta-boundary-step (term e)))
+         (where #true #{error? A}))
     (--> (in-hole E e)
          (maybe-in-hole E A)
          E-Dyn
@@ -254,9 +261,10 @@
          E-Advance-0
          (where (e_+) ,(apply-reduction-relation dyn-boundary-step (term e))))
     (--> (in-hole E (dynamic τ e))
-         BE
+         A
          E-Advance-1
-         (where (BE) ,(apply-reduction-relation dyn-boundary-step (term e))))
+         (where (A) ,(apply-reduction-relation dyn-boundary-step (term e)))
+         (where #true #{error? A}))
     (--> (in-hole E e)
          (maybe-in-hole E A)
          E-Sta
@@ -293,6 +301,10 @@
     (check-equal? (apply-reduction-relation dyn-boundary-step
                     (term (static (× Nat Int) (× 1 -1))))
                   (list (term (mon (× Nat Int) (× 1 -1)))))
+
+    (check-true (redex-match? LM-forgetful TE
+      (car (apply-reduction-relation dyn-boundary-step
+             (term (static Int (dynamic Int (fst 0))))))))
   )
 
   (test-case "sta-boundary-step"
@@ -317,6 +329,10 @@
     (check-equal? (apply-reduction-relation sta-boundary-step
                     (term (dynamic (× Nat Int) (× 1 -1))))
                   (list (term (mon (× Nat Int) (× 1 -1)))))
+
+    (check-true (redex-match? LM-forgetful TE
+      (car (apply-reduction-relation sta-boundary-step
+             (term (dynamic Int (fst 0)))))))
   )
 )
 
@@ -629,7 +645,7 @@
 
   )
 
-  #;(test-case "forgetful-safety:auto"
+  (test-case "forgetful-safety:auto"
     (check-true
       (redex-check LM-forgetful #:satisfying (well-dyn () e)
         (term (theorem:forgetful-safety e #f))

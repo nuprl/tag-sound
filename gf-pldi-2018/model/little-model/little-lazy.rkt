@@ -10,6 +10,7 @@
   pair?
   maybe-in-hole
   boundary?
+  error?
 )
 
 (require
@@ -237,7 +238,7 @@
          E-Advance-0
          (where (e_+) ,(apply-reduction-relation sta-boundary-step (term e))))
     (--> (in-hole E (static τ e))
-         BE
+         A
          E-Advance-1
          (where (A) ,(apply-reduction-relation sta-boundary-step (term e)))
          (where #true #{error? A}))
@@ -312,8 +313,7 @@
                   (list (term (static Int 3))))
     (check-true (redex-match? LM-lazy BE
       (car (apply-reduction-relation dyn-boundary-step (term (/ 1 0))))))
-     (printf "HEY ~a~n"
-       (apply-reduction-relation dyn-boundary-step (term (static Int (/ 1 0)))))
+
     (check-true (redex-match? LM-lazy BE
       (car (apply-reduction-relation dyn-boundary-step (term (static Int (/ 1 0)))))))
 
@@ -622,7 +622,7 @@
     (check-true (safe? (term (static (→ (→ Nat (→ Int Nat)) Int) ((dynamic (→ (→ Nat Int) (→ (→ Nat (→ Nat Int)) Nat)) (λ (bs) bs)) (λ (C : Int) C)))) #f))
   )
 
-  #;(test-case "lazy-safety:auto"
+  (test-case "lazy-safety:auto"
     (check-true
       (redex-check LM-lazy #:satisfying (well-dyn () e)
         (term (theorem:lazy-safety e #f))
