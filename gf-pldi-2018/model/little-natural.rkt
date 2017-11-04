@@ -42,6 +42,15 @@
   [(boundary? _)
    #false])
 
+(define-metafunction LM-natural
+  error? : A -> boolean
+  [(error? BE)
+   #true]
+  [(error? TE)
+   #true]
+  [(error? _)
+   #false])
+
 ;; Have 3 reduction relations:
 ;; - dyn-step : reduces dynamically-typed leaf terms
 ;; - sta-step : reduces statically-typed leaf terms
@@ -193,9 +202,10 @@
          E-Advance-0
          (where (e_+) ,(apply-reduction-relation sta-boundary-step (term e))))
     (--> (in-hole E (static τ e))
-         BE
+         A
          E-Advance-1
-         (where (BE) ,(apply-reduction-relation sta-boundary-step (term e))))
+         (where (A) ,(apply-reduction-relation sta-boundary-step (term e)))
+         (where #true #{error? A}))
     (--> (in-hole E e)
          (maybe-in-hole E A)
          E-Dyn
@@ -214,9 +224,10 @@
          E-Advance-0
          (where (e_+) ,(apply-reduction-relation dyn-boundary-step (term e))))
     (--> (in-hole E (dynamic τ e))
-         BE
+         A
          E-Advance-1
-         (where (BE) ,(apply-reduction-relation dyn-boundary-step (term e))))
+         (where (A) ,(apply-reduction-relation dyn-boundary-step (term e)))
+         (where #true #{error? A}))
     (--> (in-hole E e)
          (maybe-in-hole E A)
          E-Sta
@@ -291,6 +302,10 @@
     (check-equal? (apply-reduction-relation dyn-boundary-step
                     (term (static Nat (+ 7 7))))
                   (list (term (static Nat 14))))
+
+    (check-true (redex-match? LM-natural TE
+      (car (apply-reduction-relation dyn-boundary-step
+             (term (static Int (dynamic Int (fst 0))))))))
   )
 
   (test-case "sta-boundary-step"
@@ -312,7 +327,12 @@
       (car (apply-reduction-relation sta-boundary-step (term (dynamic Nat -1))))))
 
     (check-true (stuck? sta-boundary-step (term (static Int 3))))
-    ))
+
+    (check-true (redex-match? LM-natural TE
+      (car (apply-reduction-relation sta-boundary-step
+             (term (dynamic Int (fst 0)))))))
+  )
+)
 
 (define dyn-step*
   (make--->* dyn-boundary-step))
