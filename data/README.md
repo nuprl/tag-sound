@@ -14,7 +14,7 @@ Performance data for Tagged Racket
 | benchmark  | 6.10.1 | tag |
 |------------|--------|-----}
 | fsm        |      4 |   8 |
-| gregor     |      2 |   6 |
+| gregor     |      2 |   8 |
 | kcfa       |      4 |   8 |
 | morsecode  |      2 |   8 |
 | sieve      |      2 |   8 |
