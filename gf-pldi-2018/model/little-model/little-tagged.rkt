@@ -21,7 +21,7 @@
 ;;   * "similar" behavior ...
 
 (require
-  "little-lazy.rkt"
+  ;"little-lazy.rkt"
   "little-mixed.rkt"
   (only-in redex-abbrevs
     make--->*)
@@ -72,6 +72,8 @@
    (× v_0 v_1)]
   [(do-check Fun Λ)
    Λ]
+  [(do-check Any v)
+   v]
   [(do-check K v)
    (Boundary-Error v ,(format "~a" (term K)))])
 
@@ -93,6 +95,42 @@
   [(error? TE)
    #true]
   [(error? _)
+   #false])
+
+(define-metafunction LK
+  maybe-in-hole : E A -> A
+  [(maybe-in-hole E BE)
+   BE]
+  [(maybe-in-hole E TE)
+   TE]
+  [(maybe-in-hole E e)
+   (in-hole E e)])
+
+(define-metafunction LK
+  procedure? : v -> boolean
+  [(procedure? Λ)
+   #true]
+  [(procedure? _)
+   #false])
+
+(define-metafunction LK
+  pair? : v -> boolean
+  [(pair? (× v_0 v_1))
+   #true]
+  [(pair? _)
+   #false])
+
+(define-metafunction LK
+  boundary? : e -> boolean
+  [(boundary? (static τ _))
+   #true]
+  [(boundary? (static _))
+   #true]
+  [(boundary? (dynamic τ _))
+   #true]
+  [(boundary? (dynamic _))
+   #true]
+  [(boundary? _)
    #false])
 
 ;; -----------------------------------------------------------------------------
@@ -179,7 +217,7 @@
          (where e_subst (substitute e x v_1)))
     (--> (v_0 v_1)
          (dynamic e_subst)
-         ;; TODO
+         ;; TODO remove this boundary??
          E-App-1
          (where (λ (x) e) v_0)
          (where e_subst (substitute e x v_1)))
@@ -209,7 +247,22 @@
     (--> (snd v)
          v_1
          E-snd
-         (where (× v_0 v_1) v))))
+         (where (× v_0 v_1) v))
+    (--> (check K v)
+         #{do-check K v}
+         E-check)))
+
+(module+ test
+  (test-case "dyn-step"
+    (check-true (stuck? dyn-step (term (check Int 5))))
+  )
+
+  (test-case "sta-step"
+    (check-equal?
+      (car (apply-reduction-relation sta-step (term (check Int 5))))
+      5)
+  )
+)
 
 ;; static,dynamic are boundaries; check is not
 (define dyn-boundary-step
@@ -243,7 +296,7 @@
     (--> (in-hole E e)
          (maybe-in-hole E A)
          E-Dyn
-         (where #false (boundary? e))
+         (where #false #{boundary? e})
          (where (A) ,(apply-reduction-relation dyn-step (term e))))))
 
 (define sta-boundary-step
@@ -474,11 +527,15 @@
    --- K-App
    (tagged-completion/typed (e_0 e_1) K (check K (e_0c e_1c)))]
   [
-   ;; If expecting a Nat, need to check arguments as Nats (or just check result)
-   (where K_sub #{tag-join K Nat})
-   (tagged-completion/typed e_0 K_sub e_0c)
-   (tagged-completion/typed e_1 K_sub e_1c)
+   (tagged-completion/typed e_0 Nat e_0c)
+   (tagged-completion/typed e_1 Nat e_1c)
    --- K-Binop-0
+   (tagged-completion/typed (BINOP e_0 e_1) Nat (BINOP e_0c e_1c))]
+  [
+   (where #false #{sub-tag# K Nat})
+   (tagged-completion/typed e_0 Int e_0c)
+   (tagged-completion/typed e_1 Int e_1c)
+   --- K-Binop-1
    (tagged-completion/typed (BINOP e_0 e_1) K (BINOP e_0c e_1c))]
   [
    (tagged-completion/typed e Pair e_c)
@@ -568,6 +625,14 @@
   [
    --- S-Refl
    (sub-tag K K)])
+
+(define-metafunction LK
+  sub-tag# : K K -> boolean
+  [(sub-tag# K_0 K_1)
+   #true
+   (judgment-holds (sub-tag K_0 K_1))]
+  [(sub-tag# _ _)
+   #false])
 
 (define-metafunction LK
   tag-join : K K -> MAYBE-K
@@ -733,18 +798,43 @@
 ;; -----------------------------------------------------------------------------
 
 (module+ test
+
+  (define (safe? t ty)
+    (parameterize ((error-print-width 9999))
+      (with-handlers ([exn:fail:contract? (λ (e) (exn-message e))])
+        (and (term #{theorem:tagged-safety ,t ,ty}) #true))))
+
   (test-case "tagged-safety"
+    (check-true (safe? (term
+      (+ (snd (fst (fst (dynamic (× (× (× Int Int) Int) (→ Int (× Int Nat))) 3))))
+         (dynamic Int 0)))
+      (term Int)))
+    (check-true (safe? (term
+      (static (→ (→ Int (→ Int Int)) (→ Nat (→ (→ Int Nat) Int)))
+        ((fst (snd (snd (snd (snd (fst (snd (snd (fst (snd (fst (dynamic (× (× (→ Int Nat) (× (× Int (× (→ Nat (× Int Int)) (× (× Nat (× Nat (× Nat (× Nat (× (→ (× Int Nat) (→ (→ Nat (→ Nat Int)) (→ Int (→ (→ Nat Nat) Nat)))) (× Nat (→ Nat Nat))))))) Nat))) Int)) (× (× Int Nat) (× Nat Nat))) 1)))))))))))) (× (/ (snd (fst (fst (dynamic (× (× (× (× (→ Int Int) (→ Nat Nat)) Nat) Nat) (× (× Nat Nat) (× Nat Int))) 0)))) (snd (fst (snd (snd (snd (fst (dynamic (× (× Nat (× Int (× Nat (× (× (× (→ Int Nat) (→ Int Int)) Int) (× Nat (× Nat Nat)))))) Nat) 2)))))))) 0))))
+      #f))
+    (check-true (safe? (term
+      (+ ((λ (aH : Int) (fst (dynamic (× Nat (× (→ Int Int) (× Int Nat))) 0)))
+          (+ (snd (fst (fst (dynamic (× (× (× Int Int) Int) (→ Int (× Int Nat))) 3))))
+             (dynamic Int 0)))
+         ((fst (fst (dynamic (× (× (→ (× (× Nat (→ Nat Nat)) (× Int (× Nat Nat))) Int) (→ Nat (→ Int Int))) (× Nat (× Nat Int))) 1))) (dynamic (× (× Nat (→ Nat Nat)) (× Int (× Nat Nat))) (snd 1)))))
+      (term Int)))
   )
 
-  #;(test-case "tagged-safety:auto"
+(parameterize ((error-print-width 99999))
+  (test-case "tagged-safety:auto"
     (check-true
       (redex-check LK #:satisfying (well-dyn () e)
         (term (theorem:tagged-safety e #f))
-        #:attempts 1000
+        #:attempts 100
         #:print? #f))
+        )
+  (test-case "tagged-ety:auto"
     (check-true
       (redex-check LK #:satisfying (well-typed () e τ)
         (term (theorem:tagged-safety e τ))
-        #:attempts 1000
+        #:attempts 10000
         #:print? #f)))
 )
+)
+
