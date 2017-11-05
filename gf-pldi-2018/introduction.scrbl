@@ -2,37 +2,6 @@
 
 @title[#:tag "sec:introduction"]{Three Flavors of Migratory Typing}
 
-@; tfffgksst-snapl-2017
-
-@; NOTE: 'migratory' and not 'gradual' because our static typing
-@;   systems do not use a dynamic type,
-@;   and do not have a type consistency relation
-
-@; Racket -> LISP ->
-@; Parentheses
-@; Racketensis
-@; Fungus ???
-@; Bacteria ?
-
-@; Reticulated Python -> Python -> python
-@; Kingdom:  Animalia
-@; Phylum: Chordata
-@; Class:  Reptilia
-@; Order:  Squamata
-@; Suborder: Serpentes
-@; Infraorder: Alethinophidia
-@; Family: Pythonidae
-
-@; JavaScript -> Java -> Coffee
-@; Kingdom:  Plantae
-@; Clade:  Angiosperms
-@; Clade:  Eudicots
-@; Clade:  Asterids
-@; Order:  Gentianales
-@; Family: Rubiaceae
-@; Tribe:  Coffeeae
-@; Genus:  Coffea
-
 Over the past two decades, software developers have migrated from the world
  of C++ and Java to the broad world of untyped languages: JavaScript, Perl,
  Python, Ruby (on Rails), and many others. About one decade ago, they
@@ -46,17 +15,19 @@ Over the past two decades, software developers have migrated from the world
 
 In theory, these type systems provide developers with an ideal pathway to
  equip a code base with types. To begin with, developers can add types
- wherever needed. Better still, the software system keeps functioning,
- regression test suites remain applicable, and the added types may just
- reveal some long-hidden obscure errors; in contrast, a whole-sale port to
- a different language merely forces developers to go through the whole
- development process again---without improving the well-tested system. All
- this theory can work only if the performance of the mixed-type code base
- remains acceptable. As Takikawa et al. have recently
- shown@~cite[tfgnvf-popl-2016], however, the performance is definitely
- @emph{not} acceptable when the underlying type system is @emph{sound}.  By
- comparison, industrial implementations of such type systems come without
- performance problems because they do not insist on type soundness.
+ wherever needed, explicitly stating (and checking) invariants that will
+ help future readers to understand the code. Better still, the software
+ system keeps functioning, regression test suites remain applicable, and
+ the added types may just reveal some long-hidden obscure errors; in
+ contrast, a whole-sale port to a (completely) statically typed language
+ merely forces developers to go through the whole development process
+ again---without improving the well-tested system. All this theory can work
+ only if the performance of the mixed-type code base remains acceptable. As
+ Takikawa et al. have recently shown@~cite[tfgnvf-popl-2016], however, the
+ performance is definitely @emph{not} acceptable when the underlying type
+ system is @emph{sound}.  By comparison, industrial implementations of
+ gradual typing come without performance problems because they do not
+ insist on type soundness. 
 
 From a type-theoretic perspective, academic migratory type systems use a
  type-directed ``natural'' embedding of typed code into an untyped
@@ -67,24 +38,24 @@ From a type-theoretic perspective, academic migratory type systems use a
  significant overhead when mixed-typed code is run; the performance
  improves only when (almost) the entire code base is equipped with
  types. Industrial variants of these type systems use an ``identity
- embedding.''  The result is code that does not catch the misuse of a typed
- value in an untyped context but relies on the existing run-time checks of
- the underlying untyped language to prevent the segmentation faults (of
- unsafe languages such as C++).
+ embedding.''  The result is code that does not detect when a run-time
+ state violates the type invariant of the source code; indeed, it may never
+ signal such a violation; but, it relies on the existing run-time checks of
+ the underlying untyped language to prevent type violations from turning
+ into segmentation faults (of unsafe languages such as C++).
 
 This paper contributes (1) several models of migratory type systems that
- sit between these two extremes (@secref{sec:design}). The development is
- inspired by Reticulated Python@~cite[vksb-dls-2014], an pre-processor
- implementation of a gradual type system for Python. We state theorems that
- explain to what extent each model is type-sound. (2) We add examples how
- things go wrong during an execution and remain unnoticed in these weaker
- systems. (3) We explain how to implement the most promising variant in
- Typed Racket so that we can compare ``apples with apples''
- (@secref{sec:implementation}). And finally, we present the results of
- applying Takikawa et al.'s method to this implementation
- (@secref{sec:evaluation}). The speed-up improvements are dramatic, in all
- cases at least one order of magnitude. We thus consider these results a
- first step toward the creation of a feasible, sound migratory type system.
- @Secref{sec:background} starts the paper with a presentation of the
- background, and @secref{sec:related-work} explains the context in some
- more detail. 
+ sit between these two extremes (see sec. @secref{sec:design}). The
+ development is inspired by Reticulated Python@~cite[vksb-dls-2014], an
+ pre-processor implementation of a gradual type system for Python. We state
+ theorems that demonstrate to what extent each model is type-sound.  (2) We
+ explain how to implement the most promising variant in Typed Racket so
+ that we can compare ``apples with apples'' (see
+ sec. @secref{sec:implementation}). And finally, we present the results of
+ applying Takikawa et al.'s method to this implementation (see
+ sec. @secref{sec:evaluation}). The speed-up improvements are dramatic, in
+ all cases at least one order of magnitude. We thus consider these results
+ a first step toward the creation of a feasible, sound migratory type
+ system.  @Secref{sec:background} starts the paper with a presentation of
+ the background, and section @secref{sec:related-work} explains the context
+ in some detail.

@@ -32,18 +32,16 @@
  soundness of academic implementations poses a serious performance
  bottleneck, which limits the deployability of mixed-typed software.
 
-In this paper, we develop the idea of a spectrum of type soundness and
+@;{NOTE remove 'novel' when paper is accepted}
+
+In this paper, we develop the novel idea of a spectrum of type soundness and
  demonstrate that a form of whole-program, non-compositional form of
  soundness vastly improves the performance of Typed Racket, the most mature
  implementation of sound gradual typing. Specifically, we develop a series
  of theoretical models of gradual typing, starting with a classically sound
- gradual core language. Examples demonstrate how each step weakens
- classical soundness. Furthermore, we explain how to modify Typed Racket's
+ gradual core language. Furthermore, we explain how to modify Typed Racket's
  implementation and present the results of measuring this revised
  implementation on the Takikawa-Greenman benchmarks.}
-
-@; vague outline: motivation, multi-language, macro-embedding, fo-embedding,
-@;   proofs about fo, implemetation notes lessons, performance evaluation, futures
 
 @include-section{introduction.scrbl}
 @include-section{background.scrbl}
