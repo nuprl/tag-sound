@@ -408,15 +408,94 @@
   #:mode (tagged-completion/dyn I O)
   #:contract (tagged-completion/dyn e e)
   [
-   ---
-   (tagged-completion/dyn e e)])
+   --- C-Int
+   (tagged-completion/dyn integer integer)]
+  [
+   (tagged-completion/dyn e_0 e_0c)
+   (tagged-completion/dyn e_1 e_1c)
+   --- C-Pair
+   (tagged-completion/dyn (× e_0 e_1) (× e_0c e_1c))]
+  [
+   (tagged-completion/dyn e e_c)
+   --- C-Fun-0
+   (tagged-completion/dyn (λ (x) e) (λ (x) e_c))]
+  [
+   (tagged-completion/typed e Any e_c)
+   --- C-Fun-1
+   (tagged-completion/dyn (λ (x : τ) e) (λ (x : τ) e_c))]
+  [
+   --- C-Var
+   (tagged-completion/dyn x x)]
+  [
+   (tagged-completion/dyn e_0 e_0c)
+   (tagged-completion/dyn e_1 e_1c)
+   --- C-App
+   (tagged-completion/dyn (e_0 e_1) (e_0c e_1c))]
+  [
+   (tagged-completion/dyn e_0 e_0c)
+   (tagged-completion/dyn e_1 e_1c)
+   --- C-Binop
+   (tagged-completion/dyn (BINOP e_0 e_1) (BINOP e_0c e_1c))]
+  [
+   (tagged-completion/dyn e e_c)
+   --- C-Unop
+   (tagged-completion/dyn (UNOP e) (UNOP e_c))]
+  [
+   (where K #{type->tag τ})
+   (tagged-completion/typed e K e_c)
+   --- C-Static
+   (tagged-completion/dyn (static τ e) (static τ e_c))])
 
 (define-judgment-form LK
   #:mode (tagged-completion/typed I I O)
-  #:contract (tagged-completion/typed e τ e)
+  #:contract (tagged-completion/typed e K e)
   [
+   --- K-Int
+   (tagged-completion/typed integer K integer)]
+  [
+   (tagged-completion/typed e_0 Any e_0c)
+   (tagged-completion/typed e_1 Any e_1c)
+   --- K-Pair
+   (tagged-completion/typed (× e_0 e_1) K (× e_0c e_1c))]
+  [
+   (tagged-completion/dyn e e_c)
+   --- K-Fun-0
+   (tagged-completion/typed (λ (x) e) K (λ (x) e_c))]
+  [
+   (tagged-completion/typed e Any e_c)
+   --- K-Fun-1
+   (tagged-completion/typed (λ (x : τ) e) K (λ (x : τ) e_c))]
+  [
+   --- K-Var
+   (tagged-completion/typed x K x)]
+  [
+   (tagged-completion/typed e_0 Fun e_0c)
+   (tagged-completion/typed e_1 Any e_1c)
+   --- K-App
+   (tagged-completion/typed (e_0 e_1) K (check K (e_0c e_1c)))]
+  [
+   ;; If expecting a Nat, need to check arguments as Nats (or just check result)
+   (where K_sub #{tag-join K Nat})
+   (tagged-completion/typed e_0 K_sub e_0c)
+   (tagged-completion/typed e_1 K_sub e_1c)
+   --- K-Binop-0
+   (tagged-completion/typed (BINOP e_0 e_1) K (BINOP e_0c e_1c))]
+  [
+   (tagged-completion/typed e Pair e_c)
+   --- K-fst
+   (tagged-completion/typed (fst e) K (check K (fst e_c)))]
+  [
+   (tagged-completion/typed e Pair e_c)
+   --- K-snd
+   (tagged-completion/typed (snd e) K (check K (snd e_c)))]
+  [
+   (tagged-completion/dyn e e_c)
    ---
-   (tagged-completion/typed e τ e)])
+   (tagged-completion/typed (dynamic τ e) K (dynamic τ e_c))]
+  [
+   (tagged-completion/typed e Any e_c)
+   ---
+   (tagged-completion/typed (check K e) _ (check K e_c))])
 
 ;; intentionally undefined for:
 ;; - (dynamic ....)
