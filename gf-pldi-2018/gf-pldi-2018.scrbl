@@ -24,22 +24,21 @@
 @; -----------------------------------------------------------------------------
 
 @abstract{Gradual typing provides software developers with the means to
- re-factor an untyped code basis into a typed one. As this re-factoring
- proceeds, the code bases consists of a mixture of typed and untyped code.
- In this mixed-typed world, developers begin to rely on the assumptions
- behind the type system, that is, its soundness. Industrial variants of
- gradual typing, however, guarantee only an extremely limited form of
- soundness, and as recently shown, the soundness of academic
- implementations poses a serious performance bottleneck. 
+ re-factor an untyped code base into a typed one. As this re-factoring
+ proceeds, the code base becomes a mixture of typed and untyped code.  In
+ this mixed-typed world, developers may wish to rely on the soundness of
+ the type system. Industrial variants of gradual typing, however, guarantee
+ only an extremely limited form of soundness, and as recently shown, the
+ soundness of academic implementations poses a serious performance
+ bottleneck, which limits the deployability of mixed-typed software.
 
-In this paper, we develop a spectrum of type soundness and demonstrate that
- a form of whole-program, non-compositional form of soundness vastly
- improves the performance of Typed Racket, the most mature implementation
- of a sound gradual type system. Specifically, we develop a series of
- theoretical models of gradual typing, starting with a classically sound
- gradual core language, and prove a type soundness theorem for each. We
- also point out how each step weakens the classical notion of
- soundness. Furthermore, we explain how to modify Typed Racket's
+In this paper, we develop the idea of a spectrum of type soundness and
+ demonstrate that a form of whole-program, non-compositional form of
+ soundness vastly improves the performance of Typed Racket, the most mature
+ implementation of sound gradual typing. Specifically, we develop a series
+ of theoretical models of gradual typing, starting with a classically sound
+ gradual core language. Examples demonstrate how each step weakens
+ classical soundness. Furthermore, we explain how to modify Typed Racket's
  implementation and present the results of measuring this revised
  implementation on the Takikawa-Greenman benchmarks.}
 

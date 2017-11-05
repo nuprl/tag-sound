@@ -44,20 +44,19 @@ Over the past two decades, software developers have migrated from the world
  can incrementally equip a code base with types and migrate it to the typed
  world. 
 
-In theory, these type systems provide software developers with an ideal
- pathway to equip a code base with types. To begin with, developers can add
- types wherever needed. Better still, the software system keeps
- functioning, regression test suites remain applicable, and the added types
- may just reveal some long-hidden obscure errors; in contrast, a whole-sale
- port to a different language merely forces developers to go through the
- whole development process again---without improving the well-tested
- system. All this theory can work only if the performance of the mixed-type code
- base remains acceptable. As Takikawa et al. have recently
- shown@~cite[tfgnvf-popl-2016], however,  the performance is definitely
- @emph{not} acceptable when the underlying type system is @emph{sound}. 
- By comparison, industrial implementations of such type systems come
- without performance problems because they do not insist on type
- soundness. 
+In theory, these type systems provide developers with an ideal pathway to
+ equip a code base with types. To begin with, developers can add types
+ wherever needed. Better still, the software system keeps functioning,
+ regression test suites remain applicable, and the added types may just
+ reveal some long-hidden obscure errors; in contrast, a whole-sale port to
+ a different language merely forces developers to go through the whole
+ development process again---without improving the well-tested system. All
+ this theory can work only if the performance of the mixed-type code base
+ remains acceptable. As Takikawa et al. have recently
+ shown@~cite[tfgnvf-popl-2016], however, the performance is definitely
+ @emph{not} acceptable when the underlying type system is @emph{sound}.  By
+ comparison, industrial implementations of such type systems come without
+ performance problems because they do not insist on type soundness.
 
 From a type-theoretic perspective, academic migratory type systems use a
  type-directed ``natural'' embedding of typed code into an untyped
@@ -74,13 +73,18 @@ From a type-theoretic perspective, academic migratory type systems use a
  unsafe languages such as C++).
 
 This paper contributes (1) several models of migratory type systems that
- sit between these two extremes. The development is inspired by Reticulated
- Python@~cite[vksb-dls-2014], an pre-processor implementation of a gradual
- type system for Python. We state theorems that explain to what extent each
- model is type-sound. (2) We add examples how things go wrong during an
- execution and remain unnoticed in these weaker systems. (3) We explain how
- to implement the most promising variant in Typed Racket, and we present
- the results of applying Takikawa et al.'s method to this
- implementation. The speed-up improvements are dramatic, in all cases at
- least one order of magnitude. We thus consider these results a first 
- step toward the creation of a feasible, sound migratory type system. 
+ sit between these two extremes (@secref{sec:design}). The development is
+ inspired by Reticulated Python@~cite[vksb-dls-2014], an pre-processor
+ implementation of a gradual type system for Python. We state theorems that
+ explain to what extent each model is type-sound. (2) We add examples how
+ things go wrong during an execution and remain unnoticed in these weaker
+ systems. (3) We explain how to implement the most promising variant in
+ Typed Racket so that we can compare ``apples with apples''
+ (@secref{sec:implementation}). And finally, we present the results of
+ applying Takikawa et al.'s method to this implementation
+ (@secref{sec:evaluation}). The speed-up improvements are dramatic, in all
+ cases at least one order of magnitude. We thus consider these results a
+ first step toward the creation of a feasible, sound migratory type system.
+ @Secref{sec:background} starts the paper with a presentation of the
+ background, and @secref{sec:related-work} explains the context in some
+ more detail. 
