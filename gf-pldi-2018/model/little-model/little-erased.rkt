@@ -1,10 +1,14 @@
 #lang mf-apply racket/base
 
+;; Type-erased embedding.
+;; - ignore types at runtime
+;; - static->dynamic: no-op
+;; - dynamic->static: no-op
+;; - use a dynamically-typed semantics; always check e.g. that + gets 2 integers
 
 (require
   "little-mixed.rkt"
-  (only-in redex-abbrevs
-    make--->*)
+  "redex-helpers.rkt"
   redex/reduction-semantics)
 
 (module+ test
@@ -14,9 +18,16 @@
 
 (define-extended-language LM-erased
   LM
-  (E ::= .... (static τ E) (dynamic τ E)))
+  (E ::= .... (static τ E) (dynamic τ E))
+  ;; The erased semantics uses the same reduction relation
+  ;;  for all terms (whether statically-typed or dynamically-typed).
+  ;; So it's safe to reduce under a type boundary.
+)
 
-;; This `erased-step` is just a `dyn-step` that passes through boundaries.
+;; -----------------------------------------------------------------------------
+
+;; This `erased-step` is just an extension of `dyn-step` that passes through
+;;  type boundaries.
 (define erased-step
   (reduction-relation LM-erased
     #:domain A
@@ -33,36 +44,38 @@
     (--> (in-hole E (v_0 v_1))
          (Type-Error v_0 "procedure?")
          E-App-2
-         (side-condition (not (redex-match? LM-erased Λ (term v_0)))))
-    (--> (in-hole E (+ v_0 v_1))
+         (where #false #{procedure? v_0}))
+    (--> (in-hole E (+ integer_0 integer_1))
          (in-hole E integer_2)
          E-+-0
-         (where integer_0 v_0)
-         (where integer_1 v_1)
          (where integer_2 ,(+ (term integer_0) (term integer_1))))
     (--> (in-hole E (+ v_0 v_1))
-         (Type-Error ,(if (redex-match? LM-erased integer (term v_0)) (term v_1) (term v_0)) "integer")
+         (Type-Error v_0 "integer")
          E-+-1
-         (side-condition (not (and (redex-match? LM-erased integer (term v_0))
-                                   (redex-match? LM-erased integer (term v_1))))))
-    (--> (in-hole E (/ v_0 v_1))
+         (where #false #{integer? v_0}))
+    (--> (in-hole E (+ v_0 v_1))
+         (Type-Error v_1 "integer")
+         E-+-2
+         (where #true #{integer? v_0})
+         (where #false #{integer? v_1}))
+    (--> (in-hole E (/ integer_0 integer_1))
          (in-hole E integer_2)
          E-/-0
-         (where integer_0 v_0)
-         (where integer_1 v_1)
          (side-condition (not (zero? (term integer_1))))
          (where integer_2 ,(quotient (term integer_0) (term integer_1))))
-    (--> (in-hole E (/ v_0 v_1))
-         (Boundary-Error v_1 "non-zero integer")
+    (--> (in-hole E (/ integer_0 integer_1))
+         (Boundary-Error integer_1 "non-zero integer")
          E-/-1
-         (where integer_0 v_0)
-         (where integer_1 v_1)
          (side-condition (zero? (term integer_1))))
     (--> (in-hole E (/ v_0 v_1))
-         (Type-Error ,(if (redex-match? LM-erased integer (term v_0)) (term v_1) (term v_0)) "integer")
+         (Type-Error v_0 "integer")
          E-/-2
-         (side-condition (not (and (redex-match? LM-erased integer (term v_0))
-                                   (redex-match? LM-erased integer (term v_1))))))
+         (where #false #{integer? v_0}))
+    (--> (in-hole E (/ v_0 v_1))
+         (Type-Error v_1 "integer")
+         E-/-3
+         (where #true #{integer? v_0})
+         (where #false #{integer? v_0}))
     (--> (in-hole E (fst v))
          (in-hole E v_0)
          E-fst-0
@@ -70,7 +83,7 @@
     (--> (in-hole E (fst v))
          (Type-Error v "pair?")
          E-fst-1
-         (side-condition (not (redex-match? LM-erased (× v_0 v_1) (term v)))))
+         (where #false #{pair? v}))
     (--> (in-hole E (snd v))
          (in-hole E v_1)
          E-snd-0
@@ -78,7 +91,7 @@
     (--> (in-hole E (snd v))
          (Type-Error v "pair?")
          E-snd-1
-         (side-condition (not (redex-match? LM-erased (× v_0 v_1) (term v)))))
+         (where #false #{pair? v}))
     (--> (in-hole E (static τ v))
          (in-hole E v)
          E-static)
@@ -86,10 +99,10 @@
          (in-hole E v)
          E-dynamic)))
 
-(define erased-step*
-  (make--->* erased-step))
-
 (module+ test
+  (define erased-step*
+    (make--->* erased-step))
+
   (test-case "erased-step*"
     (check-equal?
       (erased-step* (term (+ 2 2)))
@@ -98,7 +111,7 @@
       (erased-step* (term ((λ (x) (+ x x)) 2)))
       (term 4))
     (check-equal?
-      (erased-step* (term ((λ (x : Int) (+ x x)) 2)))
+      (erased-step* (term ((λ (x) (+ x x)) 2)))
       (term 4))
     (check-true (redex-match? LM-erased TE
       (erased-step* (term (0 0)))))
@@ -114,41 +127,38 @@
     (check-true (redex-match? LM-erased TE
       (erased-step* (term (fst 0)))))))
 
-(define (assert-well-mixed t)
-  (unless (judgment-holds (well-mixed () ,t))
-    (raise-arguments-error 'safe-erased-step* "well-mixed expression" "term" t)))
+;; -----------------------------------------------------------------------------
+
+;; Safety for the type-erased language is just term safety (from the
+;;  dynamically-typed language).
+;; If `e` is well-typed, or `e` is well-dyn, then either:
+;; - e reduces to a value
+;; - e reduces to a type error
+;; - e reduces to a boundary error
+;; - e diverges
+;;
+;; There is no guarantee that reduction preserves or respects types
 
 (define-metafunction LM-erased
   theorem:erased-safety : e MAYBE-τ -> any
   [(theorem:erased-safety e #f)
    ,(or (not (judgment-holds (well-dyn () e)))
-        (term #{safe-erased-step* e}))]
+        (safe-step* (term e) #f is-error? assert-well-mixed erased-step))]
   [(theorem:erased-safety e τ)
    ,(or (not (judgment-holds (well-typed () e τ)))
-        (term #{safe-erased-step* e}))])
+        (safe-step* (term e) (term τ) is-error? assert-well-mixed erased-step))])
 
-(define-metafunction LM-erased
-  safe-erased-step* : A -> A
-  [(safe-erased-step* TE)
-   TE]
-  [(safe-erased-step* BE)
-   BE]
-  [(safe-erased-step* e)
-   ,(begin
-      (void (assert-well-mixed (term e)))
-      (let ([A* (apply-reduction-relation erased-step (term e))])
-        (cond
-         [(null? A*)
-          (term e)]
-         [(null? (cdr A*))
-          (term #{safe-erased-step* ,(car A*)})]
-         [else
-          (raise-arguments-error 'safe-erased-step* "erased-step is non-deterministic for expression"
-            "e" (term e)
-            "answers" A*)])))])
+(define (is-error? A)
+  (term #{error? ,A}))
 
-;; `well-mixed` is invariant over evaluation,
-;;  similar to `well-dyn` but allows more terms
+(define (assert-well-mixed t ty)
+  (unless (judgment-holds (well-mixed () ,t))
+    (raise-arguments-error 'safe-erased-step* "well-mixed expression" "term" t)))
+
+;; `well-mixed` extends `well-dyn` to boundaries
+;; (Strictly-speaking, we could erase type boundaries,
+;;  but none of the other example languages do this.
+;;  So it's better to keep them to prepare for what's next.)
 (define-judgment-form LM-erased
   #:mode (well-mixed I I)
   #:contract (well-mixed Γ e)
@@ -204,7 +214,28 @@
 
   (test-case "erased-safety"
     (check-true (safe? (term ((× 0 2) (× 2 1))) #f))
-    (check-true (safe? (term (λ (n) (× 0 0))) #f))
+    (check-true (safe? (term (λ (n) (× 0 0))) #f)))
+
+  (test-case "erased-is-type-unsound"
+    ;; "safe" terms can commit type errors at runtime ...
+    ;; in other words it's possible that `Γ ⊢ e : τ` statically,
+    ;;  but at run-time `e` evaluates to a value with a different type
+    ;; (Dangers of moral turpitude)
+
+    (check-equal?
+      (term #{theorem:erased-safety (dynamic Int (λ (z) z)) Int})
+      (term (λ (z) z)))
+    ;; Simple example of type-unsoundness
+
+    (check-equal?
+      (term #{theorem:erased-safety ((λ (x : Int) x) (dynamic Int (× 0 0))) Int})
+      (term (× 0 0)))
+    ;; Type-unsound function application
+
+    (check-equal?
+      (term #{theorem:erased-safety ((λ (x : Nat) (+ x x)) (dynamic Nat -4)) Nat})
+      (term -8))
+    ;; Typed function returns value that doesn't match its codomain type
   )
 
   (test-case "erased-safety:auto"

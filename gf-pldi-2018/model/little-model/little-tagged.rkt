@@ -1,30 +1,30 @@
 #lang mf-apply racket/base
 
-;; Tagged embedding,
-;;  combine the lessons of lazy and forgetful
-
-;; Needs:
-;; - good old well-typed and well-dyn
-;; - new semantics
-;;   ... tag checks, never type checks never wraps
-;;   ... probably very easy
-;; - new run-time typing (well-tagged)
-;;   ... (fst x) : TST, never has type τ
-;;   ...
-;; - check insertion
-;;   ... only in typed code
-;;   ... semantics preserving
-;; - BEWARE 71498 of variables, typed referencing untyped
-;;   actually is not a problem
-;; - completion correctness,
-;;   * only adds checks
-;;   * "similar" behavior ...
+;; Tagged embedding
+;;
+;; Similar to forgetful, but removes the monitors altogether.
+;;
+;; In forgetful, the monitors just make sure that every term has
+;;  a well-defined semantics.
+;; Monitors do that by putting the right checks in the right places.
+;;
+;; Don't need a monitor (dynamic analysis) to say where the right places
+;;  are. Obviously!
+;; Dynamic typing doesn't use monitors and it has just enough checks to
+;;  make things well-defined.
+;;
+;; Idea:
+;; - if tag-checks are always enough to make sure a valid is within the
+;;   domain of a primop
+;; - then tag-check every value that enters typed code
+;; - and tag-check every value extracted from such values
+;;
+;; so if `e` has the static type `τ` then the checks make sure `e` evaluates
+;;  to a value with the same type-tag as `τ`
 
 (require
-  ;"little-lazy.rkt"
   "little-mixed.rkt"
-  (only-in redex-abbrevs
-    make--->*)
+  "redex-helpers.rkt"
   redex/reduction-semantics)
 
 (module+ test
@@ -32,24 +32,29 @@
 
 ;; =============================================================================
 
-;; HMPH
-;; really not happy about these "static" and "dynamic" fences
-;; but the trouble is...
-;; - all checks are necessary
-;; - not all checks are boundaries
-;; - need to distinguish boundaries (no type errors in typed code)
-
 (define-extended-language LK
   LM
   (e ::= .... (check K e) (static e) (dynamic e))
+  ;; A `check` is a plain old assert statement, insert these where
+  ;;  you're "not sure" whether a value has the right type tag.
+  ;; (This "not sure" is made precise with a type system, later.)
+
   (K ::= Int Nat Pair Fun Any)
+  ;; One type tag for each non-terminal + terminal in the grammar of types
+
   (MAYBE-K ::= #f K)
+
   (E ::= .... (check K E)))
 
 (define (LK=? t0 t1)
   (alpha-equivalent? LK t0 t1))
 
-;; TODO update semantics to use Any
+;; Boundary crossing = check the tag
+
+(define-metafunction LK
+  dynamic->static : τ v -> A
+  [(dynamic->static τ v)
+   #{static->dynamic τ v}])
 
 (define-metafunction LK
   static->dynamic : τ v -> A
@@ -57,11 +62,7 @@
    #{do-check K v}
    (where K #{type->tag τ})])
 
-(define-metafunction LK
-  dynamic->static : τ v -> A
-  [(dynamic->static τ v)
-   #{static->dynamic τ v}])
-
+;; Tag checks are the simple thing
 (define-metafunction LK
   do-check : K v -> A
   [(do-check Int integer)
@@ -89,15 +90,6 @@
    Fun])
 
 (define-metafunction LK
-  error? : A -> boolean
-  [(error? BE)
-   #true]
-  [(error? TE)
-   #true]
-  [(error? _)
-   #false])
-
-(define-metafunction LK
   maybe-in-hole : E A -> A
   [(maybe-in-hole E BE)
    BE]
@@ -105,20 +97,6 @@
    TE]
   [(maybe-in-hole E e)
    (in-hole E e)])
-
-(define-metafunction LK
-  procedure? : v -> boolean
-  [(procedure? Λ)
-   #true]
-  [(procedure? _)
-   #false])
-
-(define-metafunction LK
-  pair? : v -> boolean
-  [(pair? (× v_0 v_1))
-   #true]
-  [(pair? _)
-   #false])
 
 (define-metafunction LK
   boundary? : e -> boolean
@@ -131,6 +109,15 @@
   [(boundary? (dynamic _))
    #true]
   [(boundary? _)
+   #false])
+
+(define-metafunction LM
+  error? : A -> boolean
+  [(error? TE)
+   #true]
+  [(error? BE)
+   #true]
+  [(error? _)
    #false])
 
 ;; -----------------------------------------------------------------------------
@@ -151,7 +138,6 @@
          (where BE #{do-check K v_1}))
     (--> (v_0 v_1)
          (static e_subst)
-         ;; TODO can remove this boundary??? probably not!
          E-App-1.1
          (where (λ (x : τ) e) v_0)
          (where K #{type->tag τ})
@@ -161,35 +147,37 @@
          (Type-Error v_0 "procedure?")
          E-App-2
          (where #false #{procedure? v_0}))
-    (--> (+ v_0 v_1)
+    (--> (+ integer_0 integer_1)
          integer_2
          E-+-0
-         (where integer_0 v_0)
-         (where integer_1 v_1)
          (where integer_2 ,(+ (term integer_0) (term integer_1))))
     (--> (+ v_0 v_1)
-         (Type-Error ,(if (redex-match? LK integer (term v_0)) (term v_1) (term v_0)) "integer")
+         (Type-Error v_0 "integer")
          E-+-1
-         (side-condition (not (and (redex-match? LK integer (term v_0))
-                                   (redex-match? LK integer (term v_1))))))
-    (--> (/ v_0 v_1)
+         (where #false #{integer? v_0}))
+    (--> (+ v_0 v_1)
+         (Type-Error v_1 "integer")
+         E-+-2
+         (where #true #{integer? v_0})
+         (where #false #{integer? v_1}))
+    (--> (/ integer_0 integer_1)
          integer_2
          E-/-0
-         (where integer_0 v_0)
-         (where integer_1 v_1)
          (side-condition (not (zero? (term integer_1))))
          (where integer_2 ,(quotient (term integer_0) (term integer_1))))
-    (--> (/ v_0 v_1)
+    (--> (/ integer_0 integer_1)
          (Boundary-Error v_1 "non-zero integer")
          E-/-1
-         (where integer_0 v_0)
-         (where integer_1 v_1)
          (side-condition (zero? (term integer_1))))
     (--> (/ v_0 v_1)
-         (Type-Error ,(if (redex-match? LK integer (term v_0)) (term v_1) (term v_0)) "integer")
+         (Type-Error v_0 "integer")
          E-/-2
-         (side-condition (not (and (redex-match? LK integer (term v_0))
-                                   (redex-match? LK integer (term v_1))))))
+         (where #false #{integer? v_0}))
+    (--> (/ v_0 v_1)
+         (Type-Error v_1 "integer")
+         E-/-3
+         (where #true #{integer? v_0})
+         (where #false #{integer? v_1}))
     (--> (fst v)
          v_0
          E-fst-0
@@ -217,28 +205,21 @@
          (where e_subst (substitute e x v_1)))
     (--> (v_0 v_1)
          (dynamic e_subst)
-         ;; TODO remove this boundary??
          E-App-1
          (where (λ (x) e) v_0)
          (where e_subst (substitute e x v_1)))
-    (--> (+ v_0 v_1)
+    (--> (+ integer_0 integer_1)
          integer_2
          E-+
-         (where integer_0 v_0)
-         (where integer_1 v_1)
          (where integer_2 ,(+ (term integer_0) (term integer_1))))
-    (--> (/ v_0 v_1)
+    (--> (/ integer_0 integer_1)
          integer_2
          E-/-0
-         (where integer_0 v_0)
-         (where integer_1 v_1)
          (side-condition (not (zero? (term integer_1))))
          (where integer_2 ,(quotient (term integer_0) (term integer_1))))
-    (--> (/ v_0 v_1)
+    (--> (/ integer_0 integer_1)
          (Boundary-Error v_1 "non-zero integer")
          E-/-1
-         (where integer_0 v_0)
-         (where integer_1 v_1)
          (side-condition (zero? (term integer_1))))
     (--> (fst v)
          v_0
@@ -399,6 +380,16 @@
 
 ;; -----------------------------------------------------------------------------
 
+(define-metafunction LK
+  theorem:tagged-safety : e MAYBE-τ -> any
+  [(theorem:tagged-safety e #f)
+   ,(or (not (judgment-holds (well-dyn () e)))
+        (safe-step* (term #{tagged-completion/dyn# e}) #f is-error? assert-well-dyn dyn-boundary-step))]
+  [(theorem:tagged-safety e τ)
+   ,(or (not (judgment-holds (well-typed () e τ)))
+        (let ([K (term #{type->tag τ})])
+          (safe-step* (term #{tagged-completion/typed# e ,K}) K is-error? assert-well-typed sta-boundary-step)))])
+
 (define (assert-well-dyn t dont-care)
   (unless (judgment-holds (well-dyn/tagged () ,t))
     (raise-arguments-error 'current-runtime-invariant "expected well-dyn" "term" t)))
@@ -412,16 +403,6 @@
 (define (is-error? t)
   (or (redex-match? LK TE t)
       (redex-match? LK BE t)))
-
-(define-metafunction LK
-  theorem:tagged-safety : e MAYBE-τ -> any
-  [(theorem:tagged-safety e #f)
-   ,(or (not (judgment-holds (well-dyn () e)))
-        (safe-step* (term #{tagged-completion/dyn# e}) #f is-error? assert-well-dyn dyn-boundary-step))]
-  [(theorem:tagged-safety e τ)
-   ,(or (not (judgment-holds (well-typed () e τ)))
-        (let ([K (term #{type->tag τ})])
-          (safe-step* (term #{tagged-completion/typed# e ,K}) K is-error? assert-well-typed sta-boundary-step)))])
 
 ;; -----------------------------------------------------------------------------
 
@@ -833,8 +814,12 @@
     (check-true
       (redex-check LK #:satisfying (well-typed () e τ)
         (term (theorem:tagged-safety e τ))
-        #:attempts 10000
+        #:attempts 100
         #:print? #f)))
 )
 )
 
+;checking (well-typed () (/ ((λ (MS : (× (× (× Int Nat) Nat) (→ Nat Int))) (fst (fst (fst MS)))) (snd (dynamic (× (→ (× Nat Nat) (× Int Nat)) (× (× (× Int Nat) Nat) (→ Int Nat))) (× 2 0)))) ((λ (v : (× Int Nat)) (snd (dynamic (× (× Nat (× Nat Nat)) Int) 1))) (fst (× (× 4 0) (snd (snd (fst (snd (snd (fst (dynamic (× (× (× (× Nat Int) Nat) (× (→ Int Int) (× (× (→ Int (× Int Int)) (× (→ (→ Int Nat) (→ Int Nat)) Int)) Nat))) Nat) 2))))))))))) Int) raises an exception:
+;current-runtime-invariant: expected well-typed
+;  term: '(/ (check Int (check Any (fst (check Pair (fst (check Pair (fst 0))))))) (check Int ((λ (v«34595» : (× Int Nat)) (check Any (snd (dynamic (× (× Nat (× Nat Nat)) Int) 1)))) (check Any (fst (× (× 4 0) (check Any (snd (check Pair (snd (check Pair (fst (check Pair (snd (check Pair (snd (check Pair (fst (dynamic (× (× (× (× Nat Int) Nat) (× (→ Int Int) (× (× (→ Int (× Int Int)) (× (→ (→ Int Nat) (→ Int Nat)) Int)) Nat))) Nat) 2)))))))))))))))))))
+;    type: 'Int

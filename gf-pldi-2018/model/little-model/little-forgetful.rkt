@@ -1,21 +1,49 @@
 #lang mf-apply racket/base
 
 ;; Forgetful lazy natural embedding
-;; ... same soundness
-;;     fewer errors
-;;     "contracts exist to make partial operations safe"
+;;
+;; Solves a second performance problem with the natural embedding:
+;;  the problem that monitors can stack up on a value.
+;; For example if a function crosses 5 boundaries, it has 5 monitors
+;;  and applications need to go through 5 levels of indirection.
+;;
+;; "Forgetful" drops the intermediate checks, and only tests the first
+;;  domain monitor and final range monitor.
+;; - first domain, because it matches the function's static type;
+;;   the function is defined for everything in its domain
+;; - final range, because that's what the context receiving the value is defined
+;;   for
+;;
+;; These 2 checks are "just enough" to show evaluation never reaches an
+;;  undefined state.
+;;
+;; The tradeoff is that some type errors go un-detected.
+;; Most likely, these errors will be in typed "glue code" where the types
+;;  were meant to catch some errors.
+;; Example:
+;; - higher-order typed function `(f g)`, passes `g` to an untyped context
+;; - untyped code calls `f` with a function whose type doesn't match the annotation
+;;   for `g`
+;; - the function goes to untyped code, the runtime forgets the annotation
 
 (require
   (only-in "little-lazy.rkt"
     LM-lazy
+    integer?
+    negative?
     procedure?
     pair?
     maybe-in-hole
     boundary?
     error?)
-  "little-mixed.rkt"
-  (only-in redex-abbrevs
-    make--->*)
+  (only-in "little-mixed.rkt"
+    subtype
+    type-join
+    type-env-contains
+    type-env-ref
+    well-typed
+    well-dyn)
+  "redex-helpers.rkt"
   redex/reduction-semantics)
 
 (module+ test
@@ -28,6 +56,10 @@
 
 (define (LM-forgetful=? t0 t1)
   (alpha-equivalent? LM-forgetful t0 t1))
+
+;; All boundaries implemented equally in this version,
+;;  because a monitor is **not** always a boundary-crossing.
+;; It's now possible to have `(mon τ (λ (x) x))` in **untyped** code.
 
 (define-metafunction LM-forgetful
   static->dynamic : τ v -> A
@@ -52,6 +84,8 @@
    (Boundary-Error v ,(format "~a" (term (× τ_0 τ_1))))]
   [(dynamic->static (→ τ_dom-new τ_cod-new)
                     (mon (→ _ _) Λ))
+   ;; Keep newest domain for static typing (function always has contexts type),
+   ;;  but checking uses the function's type annotation
    (mon (→ τ_dom-new τ_cod-new) Λ)]
   [(dynamic->static (→ τ_dom τ_cod) Λ)
    (mon (→ τ_dom τ_cod) Λ)]
@@ -59,10 +93,6 @@
    (Boundary-Error v ,(format "~a" (term (→ τ_dom τ_cod))))])
 
 ;; -----------------------------------------------------------------------------
-
-;; hang on this monitor stuff, can I just do this ... ughm 
-;; without monitors at all?
-;; just use the τ on a lambda? thats more whats actually happening
 
 (define dyn-step
   (reduction-relation LM-forgetful
@@ -91,35 +121,37 @@
          (Type-Error v_0 "procedure?")
          E-App-3
          (where #false (procedure? v_0)))
-    (--> (+ v_0 v_1)
+    (--> (+ integer_0 integer_1)
          integer_2
          E-+-0
-         (where integer_0 v_0)
-         (where integer_1 v_1)
          (where integer_2 ,(+ (term integer_0) (term integer_1))))
     (--> (+ v_0 v_1)
-         (Type-Error ,(if (redex-match? LM-forgetful integer (term v_0)) (term v_1) (term v_0)) "integer")
+         (Type-Error v_0 "integer")
          E-+-1
-         (side-condition (not (and (redex-match? LM-forgetful integer (term v_0))
-                                   (redex-match? LM-forgetful integer (term v_1))))))
-    (--> (/ v_0 v_1)
+         (where #false #{integer? v_0}))
+    (--> (+ v_0 v_1)
+         (Type-Error v_1 "integer")
+         E-+-2
+         (where #true #{integer? v_0})
+         (where #false #{integer? v_1}))
+    (--> (/ integer_0 integer_1)
          integer_2
          E-/-0
-         (where integer_0 v_0)
-         (where integer_1 v_1)
          (side-condition (not (zero? (term integer_1))))
          (where integer_2 ,(quotient (term integer_0) (term integer_1))))
-    (--> (/ v_0 v_1)
+    (--> (/ integer_0 integer_1)
          (Boundary-Error v_1 "non-zero integer")
          E-/-1
-         (where integer_0 v_0)
-         (where integer_1 v_1)
          (side-condition (zero? (term integer_1))))
     (--> (/ v_0 v_1)
-         (Type-Error ,(if (redex-match? LM-forgetful integer (term v_0)) (term v_1) (term v_0)) "integer")
+         (Type-Error v_0 "integer")
          E-/-2
-         (side-condition (not (and (redex-match? LM-forgetful integer (term v_0))
-                                   (redex-match? LM-forgetful integer (term v_1))))))
+         (where #false #{integer? v_0}))
+    (--> (/ v_0 v_1)
+         (Type-Error v_1 "integer")
+         E-/-3
+         (where #true #{integer? v_0})
+         (where #false #{integer? v_1}))
     (--> (fst v)
          v_0
          E-fst-0
@@ -162,24 +194,18 @@
          (dynamic τ_cod ((λ (x) e) (static τ_dom v_1)))
          E-App-2
          (where (mon (→ τ_dom τ_cod) (λ (x) e)) v_0))
-    (--> (+ v_0 v_1)
+    (--> (+ integer_0 integer_1)
          integer_2
          E-+
-         (where integer_0 v_0)
-         (where integer_1 v_1)
          (where integer_2 ,(+ (term integer_0) (term integer_1))))
-    (--> (/ v_0 v_1)
+    (--> (/ integer_0 integer_1)
          integer_2
          E-/-0
-         (where integer_0 v_0)
-         (where integer_1 v_1)
          (side-condition (not (zero? (term integer_1))))
          (where integer_2 ,(quotient (term integer_0) (term integer_1))))
-    (--> (/ v_0 v_1)
+    (--> (/ integer_0 integer_1)
          (Boundary-Error v_1 "non-zero integer")
          E-/-1
-         (where integer_0 v_0)
-         (where integer_1 v_1)
          (side-condition (zero? (term integer_1))))
     (--> (fst v)
          v_0
@@ -220,13 +246,6 @@
   )
 )
 
-;; what's the point of `dynamic->static t v`
-;; when could just do `(dynamic t v)` because that will reduce in one
-;;  step to v again, or error, using dynamic->static anyway . . .
-;; ok the problem is `(dynamic t v)` needs to be well-typed,
-;;  so v needs to be well-dyn
-;;  but v might NOT be a dynamic value, might be a typed value!!!!
-
 (define dyn-boundary-step
   (reduction-relation LM-forgetful
     #:domain A
@@ -255,7 +274,7 @@
     (--> (in-hole E (dynamic τ v))
          (maybe-in-hole E A)
          E-Cross-Boundary
-         (where A (dynamic->static τ v)))
+         (where A #{dynamic->static τ v}))
     (--> (in-hole E (dynamic τ e))
          (in-hole E (dynamic τ e_+))
          E-Advance-0
@@ -335,6 +354,30 @@
              (term (dynamic Int (fst 0)))))))
   )
 )
+
+;; -----------------------------------------------------------------------------
+
+(define-metafunction LM-forgetful
+  theorem:forgetful-safety : e MAYBE-τ -> any
+  [(theorem:forgetful-safety e #f)
+   ,(or (not (judgment-holds (well-dyn () e)))
+        (safe-step* (term e) #f is-error? assert-well-dyn dyn-boundary-step))]
+  [(theorem:forgetful-safety e τ)
+   ,(or (not (judgment-holds (well-typed () e τ)))
+        (safe-step* (term e) (term τ) is-error? assert-well-typed sta-boundary-step))])
+
+(define (assert-well-dyn t dont-care)
+  (unless (judgment-holds (well-dyn/forgetful () ,t))
+    (raise-arguments-error 'current-runtime-invariant "expected well-dyn" "term" t)))
+
+(define (assert-well-typed t ty)
+  (unless (judgment-holds (well-typed/forgetful () ,t ,ty))
+    (raise-arguments-error 'current-runtime-invariant "expected well-typed"
+      "term" t
+      "type" ty)))
+
+(define (is-error? t)
+  (term #{error? ,t}))
 
 ;; -----------------------------------------------------------------------------
 
@@ -548,30 +591,7 @@
   )
 )
 
-(define (assert-well-dyn t dont-care)
-  (unless (judgment-holds (well-dyn/forgetful () ,t))
-    (raise-arguments-error 'current-runtime-invariant "expected well-dyn" "term" t)))
-
-(define (assert-well-typed t ty)
-  (unless (judgment-holds (well-typed/forgetful () ,t ,ty))
-    (raise-arguments-error 'current-runtime-invariant "expected well-typed"
-      "term" t
-      "type" ty)))
-
-(define (is-error? t)
-  (or (redex-match? LM-forgetful TE t)
-      (redex-match? LM-forgetful BE t)))
-
 ;; -----------------------------------------------------------------------------
-
-(define-metafunction LM-forgetful
-  theorem:forgetful-safety : e MAYBE-τ -> any
-  [(theorem:forgetful-safety e #f)
-   ,(or (not (judgment-holds (well-dyn () e)))
-        (safe-step* (term e) #f is-error? assert-well-dyn dyn-boundary-step))]
-  [(theorem:forgetful-safety e τ)
-   ,(or (not (judgment-holds (well-typed () e τ)))
-        (safe-step* (term e) (term τ) is-error? assert-well-typed sta-boundary-step))])
 
 (module+ test
 

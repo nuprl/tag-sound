@@ -1,22 +1,42 @@
 #lang mf-apply racket/base
 
 ;; Lazy natural embedding
-;; ... just add pair monitors
-;;     otherwise its the same soundness
+;;
+;; Solves one performance problem with the natural embedding:
+;;  the problem that 1 boundary-crossing can take linear time (or worse)
+;;
+;; The solution:
+;; - have monitors for every "non-flat" value in a language
+;;   "non-flat" = cannot be checked in constant time
+;; - every boundary-crossing installs a monitor
+;; - later operations do the checks
+;;
+;; Guarantees the same soundness as the natural embedding,
+;;  that if evaluation ends, it ends in either:
+;;  - a well-typed value (given typing rules for monitors)
+;;  - a boundary error
+;;  - a type error in dynamically-typed code
+;;
+;; The difference is that boundary errors may happen later, or not at all.
+;;
+;; Note: it's possible to improve performance with "by-need" monitors
+;;       that remember if they are pure and have been "forced"
 
 (provide
   LM-lazy
-  procedure?
-  pair?
+
   maybe-in-hole
   boundary?
   error?
+  integer?
+  negative?
+  pair?
+  procedure?
 )
 
 (require
   "little-mixed.rkt"
-  (only-in redex-abbrevs
-    make--->*)
+  "redex-helpers.rkt"
   redex/reduction-semantics)
 
 (module+ test
@@ -27,24 +47,6 @@
 (define-extended-language LM-lazy
   LM
   (v ::= .... (mon (× τ τ) v) (mon (→ τ τ) v)))
-
-(define-metafunction LM-lazy
-  procedure? : v -> boolean
-  [(procedure? Λ)
-   #true]
-  [(procedure? (mon (→ τ_dom τ_cod) v))
-   #{procedure? v}]
-  [(procedure? _)
-   #false])
-
-(define-metafunction LM-lazy
-  pair? : v -> boolean
-  [(pair? (× v_0 v_1))
-   #true]
-  [(pair? (mon (× τ_0 τ_1) v))
-   #{pair? v}]
-  [(pair? _)
-   #false])
 
 (define-metafunction LM-lazy
   maybe-in-hole : E A -> A
@@ -73,6 +75,58 @@
   [(error? _)
    #false])
 
+(define-metafunction LM-lazy
+  pair? : v -> boolean
+  [(pair? (× v_0 v_1))
+   #true]
+  [(pair? (mon (× τ_0 τ_1) v))
+   #{pair? v}]
+  [(pair? _)
+   #false])
+
+(define-metafunction LM-lazy
+  procedure? : v -> boolean
+  [(procedure? Λ)
+   #true]
+  [(procedure? (mon (→ τ_dom τ_cod) v))
+   #{procedure? v}]
+  [(procedure? _)
+   #false])
+
+;; -----------------------------------------------------------------------------
+
+(define-metafunction LM-lazy
+  static->dynamic : τ v -> A
+  [(static->dynamic (→ τ_dom τ_cod) v)
+   (mon (→ τ_dom τ_cod) v)]
+  [(static->dynamic (× τ_0 τ_1) v)
+   (mon (× τ_0 τ_1) v)]
+  [(static->dynamic τ v)
+   v])
+
+(define-metafunction LM-lazy
+  dynamic->static : τ v -> A
+  [(dynamic->static Nat natural)
+   natural]
+  [(dynamic->static Nat v)
+   (Boundary-Error v "Nat")]
+  [(dynamic->static Int integer)
+   integer]
+  [(dynamic->static Int v)
+   (Boundary-Error v "Int")]
+  [(dynamic->static (× τ_0 τ_1) v)
+   (mon (× τ_0 τ_1) v)
+   (where #true (pair? v))]
+  [(dynamic->static (× τ_0 τ_1) v)
+   (Boundary-Error v ,(format "~a" (term (× τ_0 τ_1))))]
+  [(dynamic->static (→ τ_dom τ_cod) v)
+   (mon (→ τ_dom τ_cod) v)
+   (where #true (procedure? v))]
+  [(dynamic->static (→ τ_dom τ_cod) v)
+   (Boundary-Error v ,(format "~a" (term (→ τ_dom τ_cod))))])
+
+;; -----------------------------------------------------------------------------
+
 (define dyn-step
   (reduction-relation LM-lazy
     #:domain A
@@ -88,36 +142,38 @@
     (--> (v_0 v_1)
          (Type-Error v_0 "procedure?")
          E-App-2
-         (where #false (procedure? v_0)))
-    (--> (+ v_0 v_1)
+         (where #false #{procedure? v_0}))
+    (--> (+ integer_0 integer_1)
          integer_2
          E-+-0
-         (where integer_0 v_0)
-         (where integer_1 v_1)
          (where integer_2 ,(+ (term integer_0) (term integer_1))))
     (--> (+ v_0 v_1)
-         (Type-Error ,(if (redex-match? LM-lazy integer (term v_0)) (term v_1) (term v_0)) "integer")
+         (Type-Error v_0 "integer")
          E-+-1
-         (side-condition (not (and (redex-match? LM-lazy integer (term v_0))
-                                   (redex-match? LM-lazy integer (term v_1))))))
-    (--> (/ v_0 v_1)
+         (where #false #{integer? v_0}))
+    (--> (+ v_0 v_1)
+         (Type-Error v_1 "integer")
+         E-+-2
+         (where #true #{integer? v_0})
+         (where #false #{integer? v_1}))
+    (--> (/ integer_0 integer_1)
          integer_2
          E-/-0
-         (where integer_0 v_0)
-         (where integer_1 v_1)
          (side-condition (not (zero? (term integer_1))))
          (where integer_2 ,(quotient (term integer_0) (term integer_1))))
-    (--> (/ v_0 v_1)
+    (--> (/ integer_0 integer_1)
          (Boundary-Error v_1 "non-zero integer")
          E-/-1
-         (where integer_0 v_0)
-         (where integer_1 v_1)
          (side-condition (zero? (term integer_1))))
     (--> (/ v_0 v_1)
-         (Type-Error ,(if (redex-match? LM-lazy integer (term v_0)) (term v_1) (term v_0)) "integer")
+         (Type-Error v_0 "integer")
          E-/-2
-         (side-condition (not (and (redex-match? LM-lazy integer (term v_0))
-                                   (redex-match? LM-lazy integer (term v_1))))))
+         (where #false #{integer? v_0}))
+    (--> (/ v_0 v_1)
+         (Type-Error v_1 "integer")
+         E-/-3
+         (where #true #{integer? v_0})
+         (where #false #{integer? v_1}))
     (--> (fst v)
          v_0
          E-fst-0
@@ -155,24 +211,18 @@
          (dynamic τ_cod (v (static τ_dom v_1)))
          E-App-1
          (where (mon (→ τ_dom τ_cod) v) v_0))
-    (--> (+ v_0 v_1)
+    (--> (+ integer_0 integer_1)
          integer_2
          E-+
-         (where integer_0 v_0)
-         (where integer_1 v_1)
          (where integer_2 ,(+ (term integer_0) (term integer_1))))
-    (--> (/ v_0 v_1)
+    (--> (/ integer_0 integer_1)
          integer_2
          E-/-0
-         (where integer_0 v_0)
-         (where integer_1 v_1)
          (side-condition (not (zero? (term integer_1))))
          (where integer_2 ,(quotient (term integer_0) (term integer_1))))
-    (--> (/ v_0 v_1)
+    (--> (/ integer_0 integer_1)
          (Boundary-Error v_1 "non-zero integer")
          E-/-1
-         (where integer_0 v_0)
-         (where integer_1 v_1)
          (side-condition (zero? (term integer_1))))
     (--> (fst v)
          v_0
@@ -205,7 +255,7 @@
                   (list (term (static Nat (fst (× 1 -1))))))
     (check-equal? (apply-reduction-relation dyn-step (term (snd (mon (× Nat Int) (× 1 -1)))))
                   (list (term (static Int (snd (× 1 -1))))))
-    )
+  )
 
   (test-case "sta-step"
     (check-true (stuck? sta-step (term (dynamic Int 3))))
@@ -225,7 +275,7 @@
   )
 )
 
-;; Same as for `little-natural`
+;; Same as for `little-natural`, just using the new leaf reductions
 (define dyn-boundary-step
   (reduction-relation LM-lazy
     #:domain A
@@ -254,7 +304,7 @@
     (--> (in-hole E (dynamic τ v))
          (maybe-in-hole E A)
          E-Cross-Boundary
-         (where A (dynamic->static τ v)))
+         (where A #{dynamic->static τ v}))
     (--> (in-hole E (dynamic τ e))
          (in-hole E (dynamic τ e_+))
          E-Advance-0
@@ -267,38 +317,8 @@
     (--> (in-hole E e)
          (maybe-in-hole E A)
          E-Sta
-         (where #false (boundary? e))
+         (where #false #{boundary? e})
          (where (A) ,(apply-reduction-relation sta-step (term e))))))
-
-(define-metafunction LM-lazy
-  static->dynamic : τ v -> A
-  [(static->dynamic (→ τ_dom τ_cod) v)
-   (mon (→ τ_dom τ_cod) v)]
-  [(static->dynamic (× τ_0 τ_1) v)
-   (mon (× τ_0 τ_1) v)]
-  [(static->dynamic τ v)
-   v])
-
-(define-metafunction LM-lazy
-  dynamic->static : τ v -> A
-  [(dynamic->static Nat natural)
-   natural]
-  [(dynamic->static Nat v)
-   (Boundary-Error v "Nat")]
-  [(dynamic->static Int integer)
-   integer]
-  [(dynamic->static Int v)
-   (Boundary-Error v "Int")]
-  [(dynamic->static (× τ_0 τ_1) v)
-   (mon (× τ_0 τ_1) v)
-   (where #true (pair? v))]
-  [(dynamic->static (× τ_0 τ_1) v)
-   (Boundary-Error v ,(format "~a" (term (× τ_0 τ_1))))]
-  [(dynamic->static (→ τ_dom τ_cod) v)
-   (mon (→ τ_dom τ_cod) v)
-   (where #true (procedure? v))]
-  [(dynamic->static (→ τ_dom τ_cod) v)
-   (Boundary-Error v ,(format "~a" (term (→ τ_dom τ_cod))))])
 
 (module+ test
 
@@ -366,13 +386,13 @@
   )
 )
 
-(define dyn-step*
-  (make--->* dyn-boundary-step))
-
-(define sta-step*
-  (make--->* sta-boundary-step))
-
 (module+ test
+  (define dyn-step*
+    (make--->* dyn-boundary-step))
+
+  (define sta-step*
+    (make--->* sta-boundary-step))
+
   (test-case "dyn-step*"
     (check-equal? (dyn-step* (term (+ (+ 1 1) (+ 1 1))))
                   4)
@@ -397,19 +417,7 @@
   )
 )
 
-(define (assert-well-dyn t dont-care)
-  (unless (judgment-holds (well-dyn/lazy () ,t))
-    (raise-arguments-error 'current-runtime-invariant "expected well-dyn" "term" t)))
-
-(define (assert-well-typed t ty)
-  (unless (judgment-holds (well-typed/lazy () ,t ,ty))
-    (raise-arguments-error 'current-runtime-invariant "expected well-typed"
-      "term" t
-      "type" ty)))
-
-(define (is-error? t)
-  (or (redex-match? LM-lazy TE t)
-      (redex-match? LM-lazy BE t)))
+;; -----------------------------------------------------------------------------
 
 (define-metafunction LM-lazy
   theorem:lazy-safety : e MAYBE-τ -> any
@@ -420,12 +428,20 @@
    ,(or (not (judgment-holds (well-typed () e τ)))
         (safe-step* (term e) (term τ) is-error? assert-well-typed sta-boundary-step))])
 
+(define (is-error? t)
+  (term #{error? ,t}))
+
+(define (assert-well-dyn t dont-care)
+  (unless (judgment-holds (well-dyn/lazy () ,t))
+    (raise-arguments-error 'current-runtime-invariant "expected well-dyn" "term" t)))
+
+(define (assert-well-typed t ty)
+  (unless (judgment-holds (well-typed/lazy () ,t ,ty))
+    (raise-arguments-error 'current-runtime-invariant "expected well-typed"
+      "term" t
+      "type" ty)))
+
 ;; -----------------------------------------------------------------------------
-;; --- NOTE: these judgments are very similar to the ones in `little-mixed.rkt`,
-;;      just add new rules for monitors.
-;;     It would be nice to be able to use `define-extended-judgment-form`,
-;;      but that doesn't work for recursive calls.
-;; ... okay, that, and it's important to distinguish environments!
 
 (define-judgment-form LM-lazy
   #:mode (well-dyn/lazy I I)
@@ -444,7 +460,7 @@
    --- D-Fun
    (well-dyn/lazy Γ (λ (x) e))]
   [
-   (where #true (type-env-contains Γ x))
+   (where #true #{type-env-contains Γ x})
    --- D-Var
    (well-dyn/lazy Γ x)]
   [
@@ -504,7 +520,7 @@
    --- I-Fun
    (infer-type Γ (λ (x : τ_0) e) (→ τ_0 τ_1))]
   [
-   (where τ (type-env-ref Γ x))
+   (where τ #{type-env-ref Γ x})
    --- I-Var
    (infer-type Γ x τ)]
   [
@@ -583,23 +599,13 @@
         ((dynamic (→ (→ Nat Int) (→ (→ Nat (→ Nat Int)) Nat)) (λ (bs) bs))
          (λ (C : Int) C))
         (→ (→ Nat (→ Int Nat)) Int))))
-    ;; TODO
-    #;(check-true (judgment-holds
-      (well-typed/lazy ()
-        (λ (C : Int) C)
-        (→ Nat Nat))))
     (check-false (judgment-holds
       (well-typed/lazy ()
         (mon (→ Nat Int) (λ (C : Int) C))
         (→ (→ Nat (→ Nat Int)) Int))))
     (check-true (judgment-holds
       (well-typed/lazy ()
-        (dynamic (× (→ (→ Nat Int) Nat) (→ Int Nat))
-          3
-          #;((λ (Qgk)
-             (λ (IQ) 1))
-           (mon (→ (× Int Int) (→ Nat Int))
-                (λ (p) (λ (Okp) 2)))))
+        (dynamic (× (→ (→ Nat Int) Nat) (→ Int Nat)) 3)
         (× (→ (→ Nat Nat) Nat)
            (→ Nat Int)))))
   )
@@ -620,6 +626,12 @@
     (check-true (safe? (term (dynamic (→ Int Int) (λ (x) x))) (term (→ Int Int))))
     (check-true (safe? (term (static (× (→ (× (→ Int Int) Int) Nat) (→ Int Nat)) (× (λ (R : (× (→ Int Int) Int)) 2) (λ (r : Int) 2)))) #f))
     (check-true (safe? (term (static (→ (→ Nat (→ Int Nat)) Int) ((dynamic (→ (→ Nat Int) (→ (→ Nat (→ Nat Int)) Nat)) (λ (bs) bs)) (λ (C : Int) C)))) #f))
+  )
+
+  (test-case "lazy-can-avoid-errors"
+    (check-equal?
+      (term #{theorem:lazy-safety (dynamic (× Int Int) (× 1 (λ (x) x))) (× Int Int)})
+      (term (mon (× Int Int) (× 1 (λ (x) x)))))
   )
 
   (test-case "lazy-safety:auto"

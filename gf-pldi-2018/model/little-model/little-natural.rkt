@@ -1,9 +1,27 @@
 #lang mf-apply racket/base
 
+;; Natural embedding
+;; - preserve types at runtime
+;; - static->dynamic: defends typed functions, lets other values through
+;; - dynamic->static: checks all untyped values, monitors functions to check all calls
+;;
+;; A type "is forever".
+;; If an untyped function passes through a type boundary,
+;;  then **every** time that function is called it gets checked against the
+;;  return type.
+;; This means function calls in untyped contexts can raise a boundary error
+;;  (because of the latent type boundary around the lambda).
+;;
+;; - values include "monitors" that attach a type to a function
+;; - semantics is via two mutually-recursive reduction relations,
+;;   one for statically-typed terms
+;;   and one for dynamically-typed terms.
+;; - all statically-typed terms have a type safety ---
+;;   this safety allows type errors in (embedded) untyped code
+
 (require
   "little-mixed.rkt"
-  (only-in redex-abbrevs
-    make--->*)
+  "redex-helpers.rkt"
   redex/reduction-semantics)
 
 (module+ test
@@ -13,16 +31,10 @@
 
 (define-extended-language LM-natural
   LM
-  (v ::= .... (mon (→ τ τ) v)))
-
-(define-metafunction LM-natural
-  procedure? : v -> boolean
-  [(procedure? Λ)
-   #true]
-  [(procedure? (mon (→ τ_dom τ_cod) v))
-   #true] ;; could recur, but always true currently
-  [(procedure? _)
-   #false])
+  (v ::= .... (mon (→ τ τ) v))
+  ;; A monitor value associates a type with a function, i.e. a monitor is
+  ;;  a latent type boundary
+)
 
 (define-metafunction LM-natural
   maybe-in-hole : E A -> A
@@ -51,14 +63,77 @@
   [(error? _)
    #false])
 
-;; Have 3 reduction relations:
-;; - dyn-step : reduces dynamically-typed leaf terms
-;; - sta-step : reduces statically-typed leaf terms
-;; - dyn-boundary-step : cross type boundaries, applied dyn-step or sta-step at leaf
-;; - sta-boundary-step : ditto, but outermost context is statically typed
-;; - dyn-step* : closure of dyn-boundary-step
-;; - sta-step* : closure of sta-boundary-step
+(define-metafunction LM-natural
+  pair? : v -> boolean
+  [(pair? (× _ _))
+   #true]
+  [(pair? _)
+   #false])
 
+(define-metafunction LM-natural
+  procedure? : v -> boolean
+  [(procedure? Λ)
+   #true]
+  [(procedure? (mon (→ τ_dom τ_cod) v))
+   #true] ;; could recur, but always true currently
+  [(procedure? _)
+   #false])
+
+;; -----------------------------------------------------------------------------
+
+;; The most interesting part of the natural embedding is how it
+;;  brings terms across a type boundary
+
+(define-metafunction LM-natural
+  static->dynamic : τ v -> A
+  [(static->dynamic (→ τ_dom τ_cod) v)
+   (mon (→ τ_dom τ_cod) v)]
+  [(static->dynamic (× τ_0 τ_1) (× v_0 v_1))
+   BE
+   (where BE #{static->dynamic τ_0 v_0})]
+  [(static->dynamic (× τ_0 τ_1) (× v_0 v_1))
+   BE
+   (where BE #{static->dynamic τ_1 v_1})]
+  [(static->dynamic (× τ_0 τ_1) (× v_0 v_1))
+   (× #{static->dynamic τ_0 v_0} #{static->dynamic τ_1 v_1})]
+  [(static->dynamic τ v)
+   v])
+
+(define-metafunction LM-natural
+  dynamic->static : τ v -> A
+  [(dynamic->static Nat natural)
+   natural]
+  [(dynamic->static Nat v)
+   (Boundary-Error v "Nat")]
+  [(dynamic->static Int integer)
+   integer]
+  [(dynamic->static Int v)
+   (Boundary-Error v "Int")]
+  [(dynamic->static (× τ_0 τ_1) (× v_0 v_1))
+   BE
+   (where BE (dynamic->static τ_0 v_0))]
+  [(dynamic->static (× τ_0 τ_1) (× v_0 v_1))
+   BE
+   (where BE (dynamic->static τ_1 v_1))]
+  [(dynamic->static (× τ_0 τ_1) (× v_0 v_1))
+   (× (dynamic->static τ_0 v_0) (dynamic->static τ_1 v_1))]
+  [(dynamic->static (× τ_0 τ_1) v)
+   (Boundary-Error v ,(format "~a" (term (× τ_0 τ_1))))]
+  [(dynamic->static (→ τ_dom τ_cod) v)
+   (mon (→ τ_dom τ_cod) v)
+   (where #true (procedure? v))]
+  [(dynamic->static (→ τ_dom τ_cod) v)
+   (Boundary-Error v ,(format "~a" (term (→ τ_dom τ_cod))))])
+
+;; -----------------------------------------------------------------------------
+
+;; Summary of reduction relations:
+;; - `dyn-step` reduces dynamically-typed leaf terms
+;; - `sta-step` reduces statically-typed leaf terms
+;; - `dyn-boundary-step` : cross type boundaries, applied dyn-step or sta-step at leaf
+;; - `sta-boundary-step` : ditto, but outermost context is statically typed
+
+;; dyn-step checks for ill-typed terms
 (define dyn-step
   (reduction-relation LM-natural
     #:domain A
@@ -75,35 +150,37 @@
          (Type-Error v_0 "procedure?")
          E-App-2
          (where #false (procedure? v_0)))
-    (--> (+ v_0 v_1)
+    (--> (+ integer_0 integer_1)
          integer_2
          E-+-0
-         (where integer_0 v_0)
-         (where integer_1 v_1)
          (where integer_2 ,(+ (term integer_0) (term integer_1))))
     (--> (+ v_0 v_1)
-         (Type-Error ,(if (redex-match? LM-natural integer (term v_0)) (term v_1) (term v_0)) "integer")
+         (Type-Error v_0 "integer")
          E-+-1
-         (side-condition (not (and (redex-match? LM-natural integer (term v_0))
-                                   (redex-match? LM-natural integer (term v_1))))))
-    (--> (/ v_0 v_1)
+         (where #false #{integer? v_0}))
+    (--> (+ v_0 v_1)
+         (Type-Error v_1 "integer")
+         E-+-2
+         (where #true #{integer? v_0})
+         (where #false #{integer? v_1}))
+    (--> (/ integer_0 integer_1)
          integer_2
          E-/-0
-         (where integer_0 v_0)
-         (where integer_1 v_1)
          (side-condition (not (zero? (term integer_1))))
          (where integer_2 ,(quotient (term integer_0) (term integer_1))))
-    (--> (/ v_0 v_1)
+    (--> (/ integer_0 integer_1)
          (Boundary-Error v_1 "non-zero integer")
          E-/-1
-         (where integer_0 v_0)
-         (where integer_1 v_1)
          (side-condition (zero? (term integer_1))))
     (--> (/ v_0 v_1)
-         (Type-Error ,(if (redex-match? LM-natural integer (term v_0)) (term v_1) (term v_0)) "integer")
+         (Type-Error v_0 "integer")
          E-/-2
-         (side-condition (not (and (redex-match? LM-natural integer (term v_0))
-                                   (redex-match? LM-natural integer (term v_1))))))
+         (where #false #{integer? v_0}))
+    (--> (/ v_0 v_1)
+         (Type-Error v_1 "integer")
+         E-/-3
+         (where #true #{integer? v_0})
+         (where #false #{integer? v_1}))
     (--> (fst v)
          v_0
          E-fst-0
@@ -111,7 +188,7 @@
     (--> (fst v)
          (Type-Error v "pair?")
          E-fst-1
-         (side-condition (not (redex-match? LM-natural (× v_0 v_1) (term v)))))
+         (where #false #{pair? v}))
     (--> (snd v)
          v_1
          E-snd-0
@@ -119,7 +196,7 @@
     (--> (snd v)
          (Type-Error v "pair?")
          E-snd-1
-         (side-condition (not (redex-match? LM-natural (× v_0 v_1) (term v)))))))
+         (where #false #{pair? v}))))
 
 (define sta-step
   (reduction-relation LM-natural
@@ -133,24 +210,18 @@
          (dynamic τ_cod (v (static τ_dom v_1)))
          E-App-1
          (where (mon (→ τ_dom τ_cod) v) v_0))
-    (--> (+ v_0 v_1)
+    (--> (+ integer_0 integer_1)
          integer_2
          E-+
-         (where integer_0 v_0)
-         (where integer_1 v_1)
          (where integer_2 ,(+ (term integer_0) (term integer_1))))
-    (--> (/ v_0 v_1)
+    (--> (/ integer_0 integer_1)
          integer_2
          E-/-0
-         (where integer_0 v_0)
-         (where integer_1 v_1)
          (side-condition (not (zero? (term integer_1))))
          (where integer_2 ,(quotient (term integer_0) (term integer_1))))
-    (--> (/ v_0 v_1)
+    (--> (/ integer_0 integer_1)
          (Boundary-Error v_1 "non-zero integer")
          E-/-1
-         (where integer_0 v_0)
-         (where integer_1 v_1)
          (side-condition (zero? (term integer_1))))
     (--> (fst v)
          v_0
@@ -162,8 +233,6 @@
          (where (× v_0 v_1) v))))
 
 (module+ test
-  (define (stuck? r t)
-    (null? (apply-reduction-relation r t)))
 
   (test-case "dyn-step"
     (check-true (stuck? dyn-step (term (dynamic Int 3))))
@@ -234,47 +303,6 @@
          (where #false (boundary? e))
          (where (A) ,(apply-reduction-relation sta-step (term e))))))
 
-(define-metafunction LM-natural
-  static->dynamic : τ v -> A
-  [(static->dynamic (→ τ_dom τ_cod) v)
-   (mon (→ τ_dom τ_cod) v)]
-  [(static->dynamic (× τ_0 τ_1) (× v_0 v_1))
-   BE
-   (where BE #{static->dynamic τ_0 v_0})]
-  [(static->dynamic (× τ_0 τ_1) (× v_0 v_1))
-   BE
-   (where BE #{static->dynamic τ_1 v_1})]
-  [(static->dynamic (× τ_0 τ_1) (× v_0 v_1))
-   (× #{static->dynamic τ_0 v_0} #{static->dynamic τ_1 v_1})]
-  [(static->dynamic τ v)
-   v])
-
-(define-metafunction LM-natural
-  dynamic->static : τ v -> A
-  [(dynamic->static Nat natural)
-   natural]
-  [(dynamic->static Nat v)
-   (Boundary-Error v "Nat")]
-  [(dynamic->static Int integer)
-   integer]
-  [(dynamic->static Int v)
-   (Boundary-Error v "Int")]
-  [(dynamic->static (× τ_0 τ_1) (× v_0 v_1))
-   BE
-   (where BE (dynamic->static τ_0 v_0))]
-  [(dynamic->static (× τ_0 τ_1) (× v_0 v_1))
-   BE
-   (where BE (dynamic->static τ_1 v_1))]
-  [(dynamic->static (× τ_0 τ_1) (× v_0 v_1))
-   (× (dynamic->static τ_0 v_0) (dynamic->static τ_1 v_1))]
-  [(dynamic->static (× τ_0 τ_1) v)
-   (Boundary-Error v ,(format "~a" (term (× τ_0 τ_1))))]
-  [(dynamic->static (→ τ_dom τ_cod) v)
-   (mon (→ τ_dom τ_cod) v)
-   (where #true (procedure? v))]
-  [(dynamic->static (→ τ_dom τ_cod) v)
-   (Boundary-Error v ,(format "~a" (term (→ τ_dom τ_cod))))])
-
 (module+ test
 
   (test-case "dyn-boundary-step"
@@ -334,13 +362,13 @@
   )
 )
 
-(define dyn-step*
-  (make--->* dyn-boundary-step))
-
-(define sta-step*
-  (make--->* sta-boundary-step))
-
 (module+ test
+  (define dyn-step*
+    (make--->* dyn-boundary-step))
+
+  (define sta-step*
+    (make--->* sta-boundary-step))
+
   (test-case "dyn-step*"
     (check-equal? (dyn-step* (term (+ (+ 1 1) (+ 1 1))))
                   4)
@@ -365,6 +393,20 @@
   )
 )
 
+;; -----------------------------------------------------------------------------
+
+(define-metafunction LM-natural
+  theorem:natural-safety : e MAYBE-τ -> any
+  [(theorem:natural-safety e #f)
+   ,(or (not (judgment-holds (well-dyn () e)))
+        (safe-step* (term e) #f is-error? assert-well-dyn dyn-boundary-step))]
+  [(theorem:natural-safety e τ)
+   ,(or (not (judgment-holds (well-typed () e τ)))
+        (safe-step* (term e) (term τ) is-error? assert-well-typed sta-boundary-step))])
+
+(define (is-error? A)
+  (term #{error? ,A}))
+
 (define (assert-well-dyn t dont-care)
   (unless (judgment-holds (well-dyn/natural () ,t))
     (raise-arguments-error 'current-runtime-invariant "expected well-dyn" "term" t)))
@@ -375,40 +417,13 @@
       "term" t
       "type" ty)))
 
-(define-metafunction LM-natural
-  theorem:natural-safety : e MAYBE-τ -> any
-  [(theorem:natural-safety e #f)
-   ,(or (not (judgment-holds (well-dyn () e)))
-        (safe-natural-step* (term e) #f assert-well-dyn dyn-boundary-step))]
-  [(theorem:natural-safety e τ)
-   ,(or (not (judgment-holds (well-typed () e τ)))
-        (safe-natural-step* (term e) (term τ) assert-well-typed sta-boundary-step))])
-
-(define (safe-natural-step* A ty check-invariant step)
-  (let loop ([A A])
-    (cond
-     [(or (redex-match? LM-natural TE A)
-          (redex-match? LM-natural BE A))
-      A]
-     [else
-      (check-invariant A ty)
-      (define A* (apply-reduction-relation step A))
-      (cond
-       [(null? A*)
-        A]
-       [(null? (cdr A*))
-        (loop (car A*))]
-       [else
-        (raise-arguments-error 'safe-natural-step* "step is non-deterministic for expression"
-          "e" A
-          "answers" A*)])])))
-
 ;; -----------------------------------------------------------------------------
-;; --- NOTE: these judgments are very similar to the ones in `little-mixed.rkt`,
-;;      just add new rules for monitors.
+;; --- TODO: these judgments are very similar to the ones in `little-mixed.rkt`,
+;;      just add new rules for monitors and dispatch to the correct judgment
+;;      for the mutual recursion.
+;;
 ;;     It would be nice to be able to use `define-extended-judgment-form`,
 ;;      but that doesn't work for recursive calls.
-;; ... okay, that, and it's important to distinguish environments!
 
 (define-judgment-form LM-natural
   #:mode (well-dyn/natural I I)
@@ -540,6 +555,22 @@
     (check-true (safe? (term (dynamic (→ Int Int) (λ (x) x))) (term (→ Int Int))))
     (check-true (safe? (term (static (× (→ (× (→ Int Int) Int) Nat) (→ Int Nat)) (× (λ (R : (× (→ Int Int) Int)) 2) (λ (r : Int) 2)))) #f))
   )
+
+  (test-case "natural-is-type-sound"
+    ;; Programs that succeed in the erased embedding but commit type errors
+    ;;  are identified as unsafe by the natural embedding
+
+    (check-true (redex-match? LM-natural BE
+      (term #{theorem:natural-safety (dynamic Int (λ (z) z)) Int})))
+    (check-true (redex-match? LM-natural BE
+      (term #{theorem:natural-safety ((λ (x : Int) x) (dynamic Int (× 0 0))) Int})))
+    (check-true (redex-match? LM-natural BE
+      (term #{theorem:natural-safety ((λ (x : Nat) (+ x x)) (dynamic Nat -4)) Nat})))
+  )
+
+  (test-case "natural-eager-errors"
+    (check-true (redex-match? LM-natural BE
+      (term #{theorem:natural-safety (dynamic (× Int Int) (× 1 (λ (x) x))) (× Int Int)}))))
 
   (test-case "natural-safety:auto"
     (check-true

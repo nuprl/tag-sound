@@ -1,22 +1,50 @@
 #lang mf-apply racket/base
 
+;; Syntax for a mixed language,
+;;  allows terms from the dynamically-typed language
+;;  and terms from the statically-typed language.
+;;
+;; - values are: integers, pairs, functions
+;; - types are for: integer, pairs, functions, natural numbers
+;;
+;; `well-typed` judgment holds for terms that type check statically
+;; `well-dyn` holds for terms that are closed, and use types correctly
+;; These judgments are mutually recursive --- dynamic terms embedded in
+;;  a statically typed term must be well-formed.
+;;
+;; Dynamically-typed contexts cannot reference statically-typed variables,
+;;  and statically-typed contexts cannot reference dynamically-typed variables.
+;; At best, need to go through a type boundary:
+;;
+;;  (λ (x : τ)
+;;    (dynamic Int (+ 1 (static Int x))))
+;;
+;; The above will fail to type check if `τ` is not compatible with `Int`
+
 (provide
   LM
+
   well-typed
   well-dyn
+
   subtype
   type-join
+  ;; TODO it **should** be possible to import these from `little-sta.rkt`,
+  ;;  but when I do that and run the redex-check tests, I get an error:
+  ;;  `unify: nonterminal x:τ not found for provided language... nts found: (e v UNOP BINOP τ E Γ A BE TE MAYBE-τ x)`
+  ;; Will debug it LATER.
+
   type-env-contains
   type-env-ref
-  negative?
 
-  safe-step*
-  stuck?
+  error?
+  integer?
+  negative?
+  pair?
+  procedure?
 )
 
 (require
-  (only-in redex-abbrevs
-    make--->*)
   redex/reduction-semantics)
 
 (module+ test
@@ -26,17 +54,22 @@
 
 (define-language LM
   (e ::= v x (e e) (× e e) (BINOP e e) (UNOP e) (static τ e) (dynamic τ e))
-  (BINOP ::= + /)
-  (UNOP ::= fst snd)
   (v ::= integer (× v v) Λ)
   (Λ ::= (λ (x : τ) e) (λ (x) e))
+  (BINOP ::= + /)
+  (UNOP ::= fst snd)
+
   (τ ::= Int Nat (× τ τ) (→ τ τ))
+
   (E ::= hole (E e) (v E) (× E e) (× v E) (BINOP E e) (BINOP v E) (UNOP E))
+
   (Γ ::= (x:τ Γ) ())
   (x:τ ::= x (x : τ))
+
   (A ::= e TE BE)
   (BE ::= (Boundary-Error e string))
   (TE ::= (Type-Error e string))
+
   (MAYBE-τ ::= #f τ)
   (x ::= variable-not-otherwise-mentioned)
   #:binding-forms
@@ -49,6 +82,65 @@
     (check-true (redex-match? LM e (term (f x))))
     (check-true (redex-match? LM e (term (0 1))))))
 
+(define-metafunction LM
+  type-env-contains : Γ x -> boolean
+  [(type-env-contains () x)
+   #false]
+  [(type-env-contains (x Γ) x)
+   #true]
+  [(type-env-contains (x:τ Γ) x)
+   (type-env-contains Γ x)])
+
+(define-metafunction LM
+  type-env-ref : Γ x -> MAYBE-τ
+  [(type-env-ref () x)
+   #false]
+  [(type-env-ref ((x : τ) Γ) x)
+   τ]
+  [(type-env-ref (x:τ Γ) x)
+   (type-env-ref Γ x)])
+
+(define-metafunction LM
+  error? : A -> boolean
+  [(error? TE)
+   #true]
+  [(error? BE)
+   #true]
+  [(error? _)
+   #false])
+
+(define-metafunction LM
+  integer? : any -> boolean
+  [(integer? integer)
+   #true]
+  [(integer? _)
+   #false])
+
+(define-metafunction LM
+  negative? : integer -> boolean
+  [(negative? natural)
+   #false]
+  [(negative? integer)
+   #true])
+
+(define-metafunction LM
+  pair? : v -> boolean
+  [(pair? (× _ _))
+   #true]
+  [(pair? _)
+   #false])
+
+(define-metafunction LM
+  procedure? : v -> boolean
+  [(procedure? (λ (x : τ) e))
+   #true]
+  [(procedure? (λ (x) e))
+   #true]
+  [(procedure? _)
+   #false])
+
+;; -----------------------------------------------------------------------------
+
 (define-judgment-form LM
   #:mode (well-typed I I I)
   #:contract (well-typed Γ e τ)
@@ -57,37 +149,6 @@
    (subtype τ_infer τ)
    ---
    (well-typed Γ e τ)])
-
-(define-judgment-form LM
-  #:mode (subtype I I)
-  #:contract (subtype τ τ)
-  [
-   --- S-Nat
-   (subtype Nat Int)]
-  [
-   (subtype τ_0 τ_2)
-   (subtype τ_1 τ_3)
-   --- S-Pair
-   (subtype (× τ_0 τ_1) (× τ_2 τ_3))]
-  [
-   (subtype τ_2 τ_0)
-   (subtype τ_1 τ_3)
-   --- S-Fun
-   (subtype (→ τ_0 τ_1) (→ τ_2 τ_3))]
-  [
-   --- S-Refl
-   (subtype τ τ)])
-
-(define-metafunction LM
-  type-join : τ τ -> MAYBE-τ
-  [(type-join τ_0 τ_1)
-   τ_1
-   (judgment-holds (subtype τ_0 τ_1))]
-  [(type-join τ_0 τ_1)
-   τ_0
-   (judgment-holds (subtype τ_1 τ_0))]
-  [(type-join _ _)
-   #false])
 
 (define-judgment-form LM
   #:mode (infer-type I I O)
@@ -148,22 +209,6 @@
    --- I-Dynamic
    (infer-type Γ (dynamic τ e) τ)])
 
-(define-metafunction LM
-  negative? : integer -> boolean
-  [(negative? natural)
-   #false]
-  [(negative? integer)
-   #true])
-
-(define-metafunction LM
-  type-env-ref : Γ x -> MAYBE-τ
-  [(type-env-ref () x)
-   #false]
-  [(type-env-ref ((x : τ) Γ) x)
-   τ]
-  [(type-env-ref (x:τ Γ) x)
-   (type-env-ref Γ x)])
-
 (define-judgment-form LM
   #:mode (well-dyn I I)
   #:contract (well-dyn Γ e)
@@ -203,15 +248,6 @@
    --- D-Static
    (well-dyn Γ (static τ e))])
 
-(define-metafunction LM
-  type-env-contains : Γ x -> boolean
-  [(type-env-contains () x)
-   #false]
-  [(type-env-contains (x Γ) x)
-   #true]
-  [(type-env-contains (x:τ Γ) x)
-   (type-env-contains Γ x)])
-
 (module+ test
   (test-case "well-typed"
     (check-true
@@ -233,24 +269,34 @@
     (check-false
       (judgment-holds (well-dyn () (λ (h : Nat) 2))))))
 
-(define (stuck? r t)
-  (null? (apply-reduction-relation r t)))
+(define-judgment-form LM
+  #:mode (subtype I I)
+  #:contract (subtype τ τ)
+  [
+   --- S-Nat
+   (subtype Nat Int)]
+  [
+   (subtype τ_0 τ_2)
+   (subtype τ_1 τ_3)
+   --- S-Pair
+   (subtype (× τ_0 τ_1) (× τ_2 τ_3))]
+  [
+   (subtype τ_2 τ_0)
+   (subtype τ_1 τ_3)
+   --- S-Fun
+   (subtype (→ τ_0 τ_1) (→ τ_2 τ_3))]
+  [
+   --- S-Refl
+   (subtype τ τ)])
 
-(define (safe-step* A ty done? check-invariant step)
-  (let loop ([A A])
-    (cond
-     [(done? A)
-      A]
-     [else
-      (check-invariant A ty)
-      (define A* (apply-reduction-relation step A))
-      (cond
-       [(null? A*)
-        A]
-       [(null? (cdr A*))
-        (loop (car A*))]
-       [else
-        (raise-arguments-error 'safe-step* "step is non-deterministic for expression"
-          "e" A
-          "answers" A*)])])))
+(define-metafunction LM
+  type-join : τ τ -> MAYBE-τ
+  [(type-join τ_0 τ_1)
+   τ_1
+   (judgment-holds (subtype τ_0 τ_1))]
+  [(type-join τ_0 τ_1)
+   τ_0
+   (judgment-holds (subtype τ_1 τ_0))]
+  [(type-join τ_0 τ_1)
+   #false])
 

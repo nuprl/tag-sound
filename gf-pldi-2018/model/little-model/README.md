@@ -21,28 +21,30 @@ Series of simple PLT Redex models to describe the key ideas of type-tag soundnes
 ### Outline
 
 Every `little-*.rkt` file contains a PLT Redex model.
-Some models depend on others.
 
-- `little-dyn.rkt` dynamically typed language, term safety theorem
-- `little-sta.rkt` statically typed language, type safety theorem
-- `little-mixed.rkt` combined language "well-formed" rules
-- `little-erased.rkt` type-erased embedding
-- `little-natural.rkt` natural (type-directed) embedding
-- `little-lazy.rkt` lazy natural embedding
-- `little-forgetful.rkt` lazy forgetful natural embedding
-- `little-tagged.rkt` monitor-free lazy-forgetful natural embedding
+1. `little-dyn.rkt` dynamically typed language, term safety theorem
+2. `little-sta.rkt` statically typed language, type safety theorem
+3. `little-mixed.rkt` combined language "well-formed" rules
+4. `little-erased.rkt` type-erased embedding
+5. `little-natural.rkt` natural (type-directed) embedding
+6. `little-lazy.rkt` lazy natural embedding
+7. `little-forgetful.rkt` lazy forgetful natural embedding
+8. `little-tagged.rkt` monitor-free lazy-forgetful natural embedding
+
+Other files:
+
+- `redex-helpers.rkt` generic helper functions, mostly for testing
 
 
 #### Diagram of dependencies
 
-If `A` and `B` are module names, here's how to read the diagram:
+HOW TO READ, assuming `A` and `B` are module names:
 
 - a line from `A` **down to** `B` means that `B` imports things from `A`
 - if `A` is above `B`, then `A` comes "conceptually before" `B` in the outline,
   at least for my conception of things
 
 ```
-
      little-dyn   little-sta
            \      /
             \    /
