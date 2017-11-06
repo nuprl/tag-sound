@@ -13,21 +13,22 @@ Performance data for Tagged Racket
 
 | benchmark  | 6.10.1 | tag |
 |------------|--------|-----}
-| fsm        |      4 |   8 |
-| gregor     |      2 |   8 |
-| kcfa       |      4 |   8 |
-| morsecode  |      2 |   8 |
-| sieve      |      2 |   8 |
-| snake      |      2 |   8 |
-| suffixtree |      2 |   8 |
-| synth      |      4 |   8 |
-| tetris     |      2 |   8 |
-| zombie     |      2 |   8 |
+| fsm        |      8 |   8 |
+| gregor     |      4 |   8 |
+| kcfa       |      6 |   8 |
+| morsecode  |      8 |   8 |
+| sieve      |     10 |   8 |
+| snake      |      8 |   8 |
+| suffixtree |      8 |   8 |
+| synth      |      8 |   8 |
+| tetris     |      8 |   8 |
+| zombie     |      8 |   8 |
 | zordoz     |      0 |   0 |
 
 
 ### Notes / Conclusions
 
+- `zombie` is a little too fast untyped --- slow down and re-run?
 - early `zombie` performance issues due to making chaperone for `name/sc` contracts,
   this was because the names depended on a mutable table of extra defs,
   and I wasn't converting those to tags
