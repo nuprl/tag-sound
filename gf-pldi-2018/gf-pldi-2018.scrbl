@@ -1,7 +1,8 @@
 #lang gf-pldi-2018 @sigplan @anonymous
 
-@; TODO fix the title
-@title{The Spectrum of Soundness and Performance}
+@title{The Spectrum of Gradual Type Soundness and Performance}
+@; one small tag for gradual typing
+@; 
 
 @(define NEU
    @affiliation[

@@ -19,12 +19,14 @@ Tobin-Hochstadt, Typed Racket.
 They prove that the generated code is tag sound.
 First implementation of the forgetful, first-order embedding.
 
-... in a way, our Section 3 is adding the missing "why" from their paper,
-I mean they give high-level motivation, but that's all besides "proofs worked out".
-Very frustrating.
-There are many design choices, important to know why this particular set
- makes sense for what context.
-Because it's not always going to be true for all contexts.
+@;... in a way, our Section 3 is adding the missing "why" from their paper,
+@;I mean they give high-level motivation, but that's all besides "proofs worked out".
+@;Very frustrating.
+@;There are many design choices, important to know why this particular set
+@; makes sense for what context.
+@;Because it's not always going to be true for all contexts.
+@;
+@; 2017-11-05 : trouble reverse-engineering the model, whence the story
 
 @; Question: does reticulated follow the model?
 @;  Yes basically. Something's wrong checking [] twice but the same problem
@@ -40,3 +42,4 @@ Because it's not always going to be true for all contexts.
 @; progressive types
 @; redex
 @; redex-check
+@; levity polymorphism, ideas for compiling functions that MIGHT need checks
