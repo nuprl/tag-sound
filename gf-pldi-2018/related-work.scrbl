@@ -34,3 +34,9 @@ Because it's not always going to be true for all contexts.
 @;@citet[rnv-ecoop-2015] apply the idea to TypeScript; TypeScript has only like types,
 @; and their work gives programmers the choice of using (concrete) types that
 @; are enforced at run-time.
+
+
+
+@; progressive types
+@; redex
+@; redex-check
