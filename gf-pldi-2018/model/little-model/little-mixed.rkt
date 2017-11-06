@@ -25,6 +25,7 @@
   LM
 
   well-typed
+  infer-type ;; used in tagged-completion, instead of writing a type-annotator
   well-dyn
 
   subtype

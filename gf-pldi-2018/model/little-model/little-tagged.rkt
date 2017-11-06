@@ -111,7 +111,7 @@
   [(boundary? _)
    #false])
 
-(define-metafunction LM
+(define-metafunction LK
   error? : A -> boolean
   [(error? TE)
    #true]
@@ -198,11 +198,20 @@
 (define sta-step
   (reduction-relation LK
     #:domain A
+    #;(--> (v_0 v_1)
+         BE
+         E-App-0.0
+         (where (λ (x : τ) e) v_0)
+         (where K #{type->tag τ})
+         (where BE #{do-check K v_1}))
     (--> (v_0 v_1)
          e_subst
-         E-App-0
+         E-App-0.0
          (where (λ (x : τ) e) v_0)
-         (where e_subst (substitute e x v_1)))
+         #;(where K #{type->tag τ})
+         #;(where v_+ #{do-check K v_1})
+         (where v_+ v_1)
+         (where e_subst (substitute e x v_+)))
     (--> (v_0 v_1)
          (dynamic e_subst)
          E-App-1
@@ -410,13 +419,13 @@
   tagged-completion/dyn# : e -> e
   [(tagged-completion/dyn# e)
    e_+
-   (judgment-holds (tagged-completion/dyn e e_+))])
+   (judgment-holds (tagged-completion/dyn () e e_+))])
 
 (define-metafunction LK
-  tagged-completion/typed# : e τ -> e
-  [(tagged-completion/typed# e τ)
+  tagged-completion/typed# : e K -> e
+  [(tagged-completion/typed# e K)
    e_+
-   (judgment-holds (tagged-completion/typed e τ e_+))])
+   (judgment-holds (tagged-completion/typed () e K e_+))])
 
 (define-metafunction LK
   tagged-erasure# : any -> any
@@ -438,102 +447,137 @@
   )
 )
 
+;; NOTE:
+;; - using type environment in completion
+;; - because calling type checker in completion
+;; - because need type annotations on certain parts
+;; Alternative: add syntax for type-annotated terms, read type annotations
+;;  instead of calling type checker
 (define-judgment-form LK
-  #:mode (tagged-completion/dyn I O)
-  #:contract (tagged-completion/dyn e e)
+  #:mode (tagged-completion/dyn I I O)
+  #:contract (tagged-completion/dyn Γ e e)
   [
    --- C-Int
-   (tagged-completion/dyn integer integer)]
+   (tagged-completion/dyn Γ integer integer)]
   [
-   (tagged-completion/dyn e_0 e_0c)
-   (tagged-completion/dyn e_1 e_1c)
+   (tagged-completion/dyn Γ e_0 e_0c)
+   (tagged-completion/dyn Γ e_1 e_1c)
    --- C-Pair
-   (tagged-completion/dyn (× e_0 e_1) (× e_0c e_1c))]
+   (tagged-completion/dyn Γ (× e_0 e_1) (× e_0c e_1c))]
   [
-   (tagged-completion/dyn e e_c)
+   (where Γ_x (x Γ))
+   (tagged-completion/dyn Γ_x e e_c)
    --- C-Fun-0
-   (tagged-completion/dyn (λ (x) e) (λ (x) e_c))]
+   (tagged-completion/dyn Γ (λ (x) e) (λ (x) e_c))]
   [
-   (tagged-completion/typed e Any e_c)
+   (where Γ_x ((x : τ) Γ))
+   (infer-type Γ_x e τ_cod)
+   (where K_cod #{type->tag τ_cod})
+   (tagged-completion/typed Γ_x e K_cod e_c)
    --- C-Fun-1
-   (tagged-completion/dyn (λ (x : τ) e) (λ (x : τ) e_c))]
+   (tagged-completion/dyn Γ (λ (x : τ) e) (λ (x : τ) e_c))]
   [
+   ;; No need to check Γ, already know term is closed,
+   ;;  and its safe for dyn contexts to reference typed variables
    --- C-Var
-   (tagged-completion/dyn x x)]
+   (tagged-completion/dyn Γ x x)]
   [
-   (tagged-completion/dyn e_0 e_0c)
-   (tagged-completion/dyn e_1 e_1c)
+   (tagged-completion/dyn Γ e_0 e_0c)
+   (tagged-completion/dyn Γ e_1 e_1c)
    --- C-App
-   (tagged-completion/dyn (e_0 e_1) (e_0c e_1c))]
+   (tagged-completion/dyn Γ (e_0 e_1) (e_0c e_1c))]
   [
-   (tagged-completion/dyn e_0 e_0c)
-   (tagged-completion/dyn e_1 e_1c)
+   (tagged-completion/dyn Γ e_0 e_0c)
+   (tagged-completion/dyn Γ e_1 e_1c)
    --- C-Binop
-   (tagged-completion/dyn (BINOP e_0 e_1) (BINOP e_0c e_1c))]
+   (tagged-completion/dyn Γ (BINOP e_0 e_1) (BINOP e_0c e_1c))]
   [
-   (tagged-completion/dyn e e_c)
+   (tagged-completion/dyn Γ e e_c)
    --- C-Unop
-   (tagged-completion/dyn (UNOP e) (UNOP e_c))]
+   (tagged-completion/dyn Γ (UNOP e) (UNOP e_c))]
   [
    (where K #{type->tag τ})
-   (tagged-completion/typed e K e_c)
+   (tagged-completion/typed Γ e K e_c)
    --- C-Static
-   (tagged-completion/dyn (static τ e) (static τ e_c))])
+   (tagged-completion/dyn Γ (static τ e) (static τ e_c))])
 
 (define-judgment-form LK
-  #:mode (tagged-completion/typed I I O)
-  #:contract (tagged-completion/typed e K e)
+  #:mode (tagged-completion/typed I I I O)
+  #:contract (tagged-completion/typed Γ e K e)
   [
    --- K-Int
-   (tagged-completion/typed integer K integer)]
+   (tagged-completion/typed Γ integer K integer)]
   [
-   (tagged-completion/typed e_0 Any e_0c)
-   (tagged-completion/typed e_1 Any e_1c)
+   (infer-type Γ (× e_0 e_1) (× τ_0 τ_1))
+   (where K_0 #{type->tag τ_0})
+   (where K_1 #{type->tag τ_1})
+   (tagged-completion/typed Γ e_0 K_0 e_0c)
+   (tagged-completion/typed Γ e_1 K_1 e_1c)
    --- K-Pair
-   (tagged-completion/typed (× e_0 e_1) K (× e_0c e_1c))]
+   (tagged-completion/typed Γ (× e_0 e_1) K (× e_0c e_1c))]
   [
-   (tagged-completion/dyn e e_c)
+   (where Γ_x (x Γ))
+   (tagged-completion/dyn Γ_x e e_c)
    --- K-Fun-0
-   (tagged-completion/typed (λ (x) e) K (λ (x) e_c))]
+   (tagged-completion/typed Γ (λ (x) e) K (λ (x) e_c))]
   [
-   (tagged-completion/typed e Any e_c)
+   (where Γ_x ((x : τ) Γ))
+   (infer-type Γ_x e τ_cod)
+   (where K_cod #{type->tag τ_cod})
+   (tagged-completion/typed Γ_x e K_cod e_c)
    --- K-Fun-1
-   (tagged-completion/typed (λ (x : τ) e) K (λ (x : τ) e_c))]
+   (tagged-completion/typed Γ (λ (x : τ) e) K (λ (x : τ) e_c))]
   [
+   ;; Doesn't matter if `x` or `x : τ` are in `Γ`
    --- K-Var
-   (tagged-completion/typed x K x)]
+   (tagged-completion/typed Γ x K x)]
   [
-   (tagged-completion/typed e_0 Fun e_0c)
-   (tagged-completion/typed e_1 Any e_1c)
+   (tagged-completion/typed Γ e_0 Fun e_0c)
+   (infer-type Γ e_0 (→ τ_dom _))
+   (where K_dom #{type->tag τ_dom})
+   (tagged-completion/typed Γ e_1 K_dom e_1c)
    --- K-App
-   (tagged-completion/typed (e_0 e_1) K (check K (e_0c e_1c)))]
+   (tagged-completion/typed Γ (e_0 e_1) K (check K (e_0c e_1c)))]
   [
-   (tagged-completion/typed e_0 Nat e_0c)
-   (tagged-completion/typed e_1 Nat e_1c)
+   (tagged-completion/typed Γ e_0 Nat e_0c)
+   (tagged-completion/typed Γ e_1 Nat e_1c)
    --- K-Binop-0
-   (tagged-completion/typed (BINOP e_0 e_1) Nat (BINOP e_0c e_1c))]
+   (tagged-completion/typed Γ (BINOP e_0 e_1) Nat (BINOP e_0c e_1c))]
   [
    (where #false #{sub-tag# K Nat})
-   (tagged-completion/typed e_0 Int e_0c)
-   (tagged-completion/typed e_1 Int e_1c)
+   (tagged-completion/typed Γ e_0 Int e_0c)
+   (tagged-completion/typed Γ e_1 Int e_1c)
    --- K-Binop-1
-   (tagged-completion/typed (BINOP e_0 e_1) K (BINOP e_0c e_1c))]
+   (tagged-completion/typed Γ (BINOP e_0 e_1) K (BINOP e_0c e_1c))]
   [
-   (tagged-completion/typed e Pair e_c)
+   (tagged-completion/typed Γ e Pair e_c)
    --- K-fst
-   (tagged-completion/typed (fst e) K (check K (fst e_c)))]
+   (tagged-completion/typed Γ (fst e) K (check K (fst e_c)))]
   [
-   (tagged-completion/typed e Pair e_c)
+   (tagged-completion/typed Γ e Pair e_c)
    --- K-snd
-   (tagged-completion/typed (snd e) K (check K (snd e_c)))]
+   (tagged-completion/typed Γ (snd e) K (check K (snd e_c)))]
   [
-   (tagged-completion/dyn e e_c)
+   (tagged-completion/dyn Γ e e_c)
    ---
-   (tagged-completion/typed (dynamic τ e) K (dynamic τ e_c))]
+   (tagged-completion/typed Γ (dynamic τ e) K (dynamic τ e_c))]
   [
-   (tagged-completion/typed e Any e_c)
+   (tagged-completion/typed Γ e Any e_c)
    ---
-   (tagged-completion/typed (check K e) _ (check K e_c))])
+   (tagged-completion/typed Γ (check K e) _ (check K e_c))])
+
+(module+ test
+  (test-case "tagged-completion/typed"
+    (check-true (redex-match? LK e
+      (term (fst (dynamic (× (× Int Int) Int) (× 0 3))))))
+    (check-equal?
+      (term #{tagged-completion/typed# (fst (dynamic (× (× Int Int) Int) (× 0 3))) Pair})
+      (term (check Pair (fst (dynamic (× (× Int Int) Int) (× 0 3))))))
+    (check LK=?
+      (term #{tagged-completion/typed# ((λ (x : Int) (× x x)) (fst (dynamic (× (× Int Int) Int) (× 0 3)))) Pair})
+      (term (check Pair ((λ (x : Int) (× x x)) (check Int (fst (dynamic (× (× Int Int) Int) (× 0 3))))))))
+  )
+)
 
 ;; intentionally undefined for:
 ;; - (dynamic ....)
@@ -800,6 +844,31 @@
              (dynamic Int 0)))
          ((fst (fst (dynamic (× (× (→ (× (× Nat (→ Nat Nat)) (× Int (× Nat Nat))) Int) (→ Nat (→ Int Int))) (× Nat (× Nat Int))) 1))) (dynamic (× (× Nat (→ Nat Nat)) (× Int (× Nat Nat))) (snd 1)))))
       (term Int)))
+    (check-true (safe? (term
+      ((λ (yp : (× (× (× (× Int Int) (× Nat Int)) (× Nat Int)) Nat)) (fst (snd (fst yp))))
+       (dynamic (× (× (× (× Int Int) (× Nat Int)) (× Nat Int)) Nat) (× 0 3))))
+      (term Int)))
+    (check-true (safe? (term
+      ((λ (yp : (× (× (× (× Int Int) (× Nat Int)) (× Nat Int)) Nat)) (fst (snd (fst yp))))
+       (dynamic (× (× (× (× Int Int) (× Nat Int)) (× Nat Int)) Nat) 0)))
+      (term Int)))
+    (check-true (safe? (term
+      (fst (dynamic (× (× Int Int) Int) (× 0 3))))
+      (term (× Int Int))))
+    (check-true (safe? (term
+      ((λ (yp : (× (× (× (× Int Int) (× Nat Int)) (× Nat Int)) Nat)) (fst (snd (fst yp))))
+       (fst (dynamic (× (× (× (× (× Int Int) (× Nat Int)) (× Nat Int)) Nat) Int) (× 0 3)))))
+      (term Int)))
+    (check-true (safe? (term
+      (/ ((λ (MS : (× (× (× Int Nat) Nat) (→ Nat Int))) (fst (fst (fst MS)))) (snd (dynamic (× (→ (× Nat Nat) (× Int Nat)) (× (× (× Int Nat) Nat) (→ Int Nat))) (× 2 0)))) ((λ (v : (× Int Nat)) (snd (dynamic (× (× Nat (× Nat Nat)) Int) 1))) (fst (× (× 4 0) (snd (snd (fst (snd (snd (fst (dynamic (× (× (× (× Nat Int) Nat) (× (→ Int Int) (× (× (→ Int (× Int Int)) (× (→ (→ Int Nat) (→ Int Nat)) Int)) Nat))) Nat) 2))))))))))))
+      (term Int)))
+    (check-true (safe? (term
+      (+ ((λ (yp : (× (× (× (× Int Int) (× Nat Int)) (× Nat Int)) Nat)) (fst (snd (fst yp)))) (fst (dynamic (× (× (× (× (× Int Int) (× Nat Int)) (× Nat Int)) Nat) (→ (× Int Nat) Nat)) (× 0 3))))
+         ((dynamic (→ (→ (× Nat Int) (× Nat Int)) Nat) (λ (z) z)) (λ (G : (× Nat Int)) G))))
+      (term Int)))
+    (check-true (safe? (term
+      (static (× Int (→ (× (→ Nat Int) (× Nat Nat)) Nat)) (× ((λ (p : Int) 1) 1) ((snd (dynamic (× Nat (→ Int (→ (× (→ Nat Int) (× Nat Nat)) Nat))) 1)) 0))))
+      #f))
   )
 
 (parameterize ((error-print-width 99999))
@@ -807,19 +876,15 @@
     (check-true
       (redex-check LK #:satisfying (well-dyn () e)
         (term (theorem:tagged-safety e #f))
-        #:attempts 100
+        #:attempts 1000
         #:print? #f))
         )
   (test-case "tagged-ety:auto"
     (check-true
       (redex-check LK #:satisfying (well-typed () e τ)
         (term (theorem:tagged-safety e τ))
-        #:attempts 100
+        #:attempts 1000
         #:print? #f)))
 )
 )
 
-;checking (well-typed () (/ ((λ (MS : (× (× (× Int Nat) Nat) (→ Nat Int))) (fst (fst (fst MS)))) (snd (dynamic (× (→ (× Nat Nat) (× Int Nat)) (× (× (× Int Nat) Nat) (→ Int Nat))) (× 2 0)))) ((λ (v : (× Int Nat)) (snd (dynamic (× (× Nat (× Nat Nat)) Int) 1))) (fst (× (× 4 0) (snd (snd (fst (snd (snd (fst (dynamic (× (× (× (× Nat Int) Nat) (× (→ Int Int) (× (× (→ Int (× Int Int)) (× (→ (→ Int Nat) (→ Int Nat)) Int)) Nat))) Nat) 2))))))))))) Int) raises an exception:
-;current-runtime-invariant: expected well-typed
-;  term: '(/ (check Int (check Any (fst (check Pair (fst (check Pair (fst 0))))))) (check Int ((λ (v«34595» : (× Int Nat)) (check Any (snd (dynamic (× (× Nat (× Nat Nat)) Int) 1)))) (check Any (fst (× (× 4 0) (check Any (snd (check Pair (snd (check Pair (fst (check Pair (snd (check Pair (snd (check Pair (fst (dynamic (× (× (× (× Nat Int) Nat) (× (→ Int Int) (× (× (→ Int (× Int Int)) (× (→ (→ Int Nat) (→ Int Nat)) Int)) Nat))) Nat) 2)))))))))))))))))))
-;    type: 'Int
