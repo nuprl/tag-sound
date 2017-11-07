@@ -4,6 +4,8 @@
 
 (provide
   ;; --- new stuff
+  MT
+  language
   MMT
   L_D
   L_S
@@ -274,3 +276,8 @@
 (define (note-to-self . elem*)
   (nested #:style 'inset (emph elem*)))
 
+(define (language x)
+  (bold x))
+
+(define (MT x)
+  (bold (format "MT(~a)" x)))

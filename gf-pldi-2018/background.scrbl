@@ -1,47 +1,69 @@
 #lang gf-pldi-2018
-@title[#:tag "sec:background"]{Temporary: Ideas Only}
-
-@note-to-self{
-  This is a temporary section, the goal is to explain the embeddings without technical detail.
-}
-
-@; OUTLINE
-@; - interop, boundary terms, guards
-@; - identity embedding, dyn soundness
-@; - natural embedding, type soundness
-@; - extension to generalized datatypes
-@;   * recur into structured values
-@;   * monitor for "higher-order" values, e.g. writable
-@; - silent failures! use the Reynolds example
-@; - performance cost! plot results for typed racket
-@; - TR vs Racket
-
-@; TR is "full guarantees" aka perfectly type sound,
-@; TS is "full performance" aka no penalty for interaction
-@;  I think penalty is the right way --- though low-level --- way to think
-@;  about performance because then there's no question of optimizations,
-@;  that's a separate question more tied to the guarantees
+@title[#:tag "sec:background"]{Story so Far}
 
 @; -----------------------------------------------------------------------------
 
-D is a dynamically typed language with all the features modern-day programmers
- have come to expect.
-These include mutable data structures, immutable data structures,
- first class functions, integer/string literals.
-Oh my fkinglord.
-Easy to build applications with D.
-Lots of support online.
-One problem, D is dynamically typed.
-Problem because ABC.
+The goal of migratory typing is to add optional static typing
+ to a dynamically-typed language.
+A migratory typing system @MT{D} for a dynamically-typed language @language{D}
+ consists of:
+ a grammar of types,
+ a type checker,
+ and a formal semantics for programs that mix statically-typed and dynamically-typed code.
+The purpose of the types is to categorize values in the dynamically-typed language.
+The type checker defines a syntactic relation between expressions from @language{D} and types.
+The semantics defines the behavior of mixed programs.
 
-To fix this, the language designers introduce a statically typed counterpart,
- called S.
-An S program is just like a D program with the addition of static type annotations.
-Programmers can write new programs in S.
-Programmers can convert existing programs from D to S.
+@; ABORT this is taking way too long, been like 5 hours with very little progress.
+@; NOTES FOR LATER, the current plan is:
+@; - describe goals/tradeoffs for an MT system (expressive, safe, performant)
+@; - outline a mixed language
+@;   * extra values (monitors)
+@;   * extra expressions (embedding)
+@;   * key design decisions
+@; - natural embedding
+@; - type-erased embedding
+@; ....
+@; PERHAPS want to move natural and type-erased to the next section,
+@;  and put them all together in a "formal" section.
+@; but get the technical stuff written first
 
-One problem, interoperability.
-What to do for interoperability?
+
+
+The migratory typing problem is really a language interoperability problem.
+Have two languages that want to safely share values.
+The languages happen to be similar, but the essence
+ is "how to share values" and "what does this mean for static reasoning".
+
+@section{The Interoperability Problem}
+
+The year is 200X.
+Let D be a dynamically typed programming language
+ that can express all kinds of values,
+ ranging from integers to lists to first-class functions.
+Programmers love the D and use it to build all kinds of applications.
+They claim it is useful for rapid prototyping, testing poorly-specified ideas,
+ and building flexible code.
+
+Two years later, growing pains kick in.
+Maintenance is a problem, difficult to edit existing code.
+The unit test suite helps find breaking changes,
+ but doesn't help with making changes or understanding how the codebase
+ fits together.
+
+Look, a formal specification is a good thing for any program.
+A formal specification language is a good thing for any programming language
+ --- to help programmers write "correct" formal specifications.
+
+A group of designers builds S, a statically typed variant of D.
+An S program is just a D program that contains type annotations.
+The S compiler checks that these annotations are consistent with the program;
+ the types are a lightweight checked specification language.
+
+Although S makes it easy to retrofit static typing on D programs,
+ developers want to re-use their existing D programs.
+They want a DS foreign interface.
+The two languages should interoperate.
 
 
 @section{Expressiveness Safety Performance}
@@ -66,7 +88,16 @@ Also, hey, all the uses of BIG data are from the outside world,
  so like there's an O(n) or a lazy step somewhere for S before even started
  on DS mixing.
 
+@; -----------------------------------------------------------------------------
 
+The key challenge in designing a migratory typing system is choosing
+ a good notion of safety.
+On one hand, the static typing judgment should accept many programs and offer
+ strong guarantees.
+On the other hand, the run-time verification should impose minimal performance
+ overhead.
+
+@; -----------------------------------------------------------------------------
 
 The purpose of a migratory typing system is to enable safe interaction between
  dynamically-typed and statically-typed code.
@@ -75,15 +106,6 @@ Existing migratory typing systems meet this goal by combining a static typing
 Intuitively, the typing judgment establishes certain invariants about typed
  expressions and the run-time verification asserts that untyped expressions
  flowing into typed contexts do not violate these invariants.
-
-The key challenge in designing a migratory typing system is choosing
- a good notion of safety.
-On one hand, the static typing judgment should accept many programs and offer
- strong guarantees.
-On the other hand, the run-time verification should impose minimal performance
- overhead.
-@; Examples with base values, lists, streams, anonymous functions?
-@; Can reject these at the boundary, 
 
 This section presents two migratory typing systems for a lambda calculus,
  these systems are respectively based on the natural and identity embeddings
