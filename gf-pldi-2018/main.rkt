@@ -29,6 +29,8 @@
 
   ~a
 
+  note-to-self
+
   ;; ---------------------------------------------------------------------------
   ;; --- old stuff
   (all-from-out
@@ -268,3 +270,7 @@
 
 (define (do-check t e)
   ($ (format "\\echeck{~a}{~a}" t e)))
+
+(define (note-to-self . elem*)
+  (nested #:style 'inset (emph elem*)))
+

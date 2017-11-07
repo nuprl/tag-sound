@@ -1,6 +1,6 @@
 #lang gf-pldi-2018 @sigplan @anonymous
 
-@title{The Spectrum of Gradual Type Soundness and Performance}
+@title{The Spectrum of Soundness and Performance}
 @; one small tag for gradual typing
 @; 
 

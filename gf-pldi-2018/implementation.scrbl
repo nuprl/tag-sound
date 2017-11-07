@@ -10,8 +10,10 @@
 @; - no space
 @; - "minimize" checks, fully-typed should be fast
 
-
 @section{More Types}
+
+@; unions
+@; recursive types
 
 Any surprises with base types?
 

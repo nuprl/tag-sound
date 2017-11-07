@@ -1,10 +1,10 @@
 #lang gf-pldi-2018
-@title[#:tag "sec:background"]{MT via Multi-Lang}
+@title[#:tag "sec:background"]{Temporary: Ideas Only}
 
-@; TODO
-@; - make sure Sec 1 lists all tradeoffs (???)
-@;   also Sec 1, more guarantees = more optimization but apparently not much at stake
-@; - NEED TO CHANGE VARIABLE RULES ... cannot reference a static variable in dyn context and vice-versa
+@note-to-self{
+  This is a temporary section, the goal is to explain the embeddings without technical detail.
+}
+
 @; OUTLINE
 @; - interop, boundary terms, guards
 @; - identity embedding, dyn soundness
@@ -15,7 +15,6 @@
 @; - silent failures! use the Reynolds example
 @; - performance cost! plot results for typed racket
 @; - TR vs Racket
-@; - 
 
 @; TR is "full guarantees" aka perfectly type sound,
 @; TS is "full performance" aka no penalty for interaction
@@ -24,6 +23,50 @@
 @;  that's a separate question more tied to the guarantees
 
 @; -----------------------------------------------------------------------------
+
+D is a dynamically typed language with all the features modern-day programmers
+ have come to expect.
+These include mutable data structures, immutable data structures,
+ first class functions, integer/string literals.
+Oh my fkinglord.
+Easy to build applications with D.
+Lots of support online.
+One problem, D is dynamically typed.
+Problem because ABC.
+
+To fix this, the language designers introduce a statically typed counterpart,
+ called S.
+An S program is just like a D program with the addition of static type annotations.
+Programmers can write new programs in S.
+Programmers can convert existing programs from D to S.
+
+One problem, interoperability.
+What to do for interoperability?
+
+
+@section{Expressiveness Safety Performance}
+
+Three tradeoffs at play with the interoperability story.
+
+Expressiveness : should be possible to share many kinds of values between
+ D and S programs.
+
+Safety : if D programs are safe and S programs are safe then
+ DS mixed programs should be safe --- never reach an undefined state.
+ Likewise if S has a type soundness theorem then analogous theorem
+ should hold for the statically-typed parts of mixed programs.
+
+Performance : mixed programs should suffer little overhead
+ compared to pure-D programs and pure-S programs.
+
+Hard to achieve all three.
+Do we really need to illustrate here, how immediate accountability not
+ possible in general.
+Also, hey, all the uses of BIG data are from the outside world,
+ so like there's an O(n) or a lazy step somewhere for S before even started
+ on DS mixing.
+
+
 
 The purpose of a migratory typing system is to enable safe interaction between
  dynamically-typed and statically-typed code.
@@ -332,5 +375,12 @@ The y-intercept is the percent of configurations that run as fast as Racket.
 Most benchmarks have a small area under the curve, which means few configurations
  run within even a @${@~a[X-MAX]} overhead.
 
-@figure*["fig:tr-performance" "Typed Racket v6.10.1 performance"
-  (overhead-plot* TR-DATA*)]
+
+
+@section{Summary, Glossary}
+
+mixed
+configuration
+monitors
+accountability
+

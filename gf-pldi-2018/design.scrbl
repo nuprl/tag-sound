@@ -1,5 +1,10 @@
 #lang gf-pldi-2018
-@title[#:tag "sec:design"]{The Descent}
+@title[#:tag "sec:design"]{Temporary: Models Only}
+
+@note-to-self{
+  The goal of this section is to explain the embeddings with full technical detail.
+}
+
 
 The identity embedding is unacceptable to programmers who want to use types
  to reason about the behavior of their programs.
