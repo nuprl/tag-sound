@@ -1,0 +1,141 @@
+\usepackage{listings}
+\usepackage{amsmath}
+\usepackage{amssymb}
+\usepackage{mathpartir}
+
+% Override Scribble's default SecRef to numeric only
+\renewcommand{\SecRef}[2]{#1}
+
+\renewcommand{\vee}{\mbox{or}}
+
+% For bib style
+\newcommand{\Thyperref}[2]{\hyperref[#2]{#1}}
+
+\let\captionwidth\relax
+
+%% -----------------------------------------------------------------------------
+%% common PL paper formatting
+
+\newcommand{\subt}{\mathrel{<:}}
+\newcommand{\subteq}{\mathrel{\leqslant:}}
+
+%% -----------------------------------------------------------------------------
+%% formatting Python code
+
+% Default fixed font does not support bold face
+\DeclareFixedFont{\ttb}{T1}{txtt}{bx}{n}{8} % for bold
+\DeclareFixedFont{\ttm}{T1}{txtt}{m}{n}{8}  % for normal
+
+% Custom colors
+\definecolor{deepblue}{rgb}{0,0,0.5}
+\definecolor{deepred}{rgb}{0.6,0,0}
+\definecolor{deepgreen}{rgb}{0,0.5,0}
+
+% Python style for highlighting
+\newcommand\pythonstyle{\lstset{
+language=Python,
+basicstyle=\ttm,
+commentstyle=\fontfamily{tt},
+otherkeywords={self},             % Add keywords here
+keywordstyle=\ttb\color{deepblue},
+emph={MyClass,__init__},          % Custom highlighting
+emphstyle=\ttb\color{deepred},    % Custom highlighting style
+stringstyle=\color{deepgreen},
+frame=none,                         % Any extra options here
+showstringspaces=false            % 
+}}
+
+% Python environment
+\lstnewenvironment{python}[1][]
+{
+\pythonstyle
+\lstset{#1}
+}
+{}
+
+% Python for external files
+\newcommand\pythonexternal[1]{{
+\pythonstyle
+\lstinputlisting{#1}}}
+
+% Python for inline
+\newcommand\pythoninline[1]{{\pythonstyle\lstinline!#1!}}
+
+%% -----------------------------------------------------------------------------
+%% enable page numbers
+
+\settopmatter{printfolios=true}
+
+%% -----------------------------------------------------------------------------
+
+\newcommand{\compilesto}{\rightsquigarrow}
+\newcommand{\context}{\mathcal{C}}
+\newcommand{\tagof}[1]{\lfloor #1 \rfloor}
+\newcommand{\config}[1]{\langle #1 \rangle}
+\newcommand{\stepsto}{\rightarrow^*}
+\newcommand{\blameset}{\mathcal{B}}
+\newcommand{\blame}[1]{\textsc{Blame}(#1)}
+\newcommand{\labels}{\mathcal{L}}
+\newcommand{\dyncheck}[2]{#1 \Downarrow \config{#2, l , \respath}}
+\newcommand{\fresh}[1]{\emph{fresh}(#1)}
+\newcommand{\respath}{\textsc{Res}}
+
+\newcommand{\integers}{\mathbb{Z}}
+\newcommand{\naturals}{\mathbb{N}}
+
+\newcommand{\assign}{:\!=}
+
+\newcommand{\tnat}{\mathsf{Nat}}
+\newcommand{\tint}{\mathsf{Int}}
+\newcommand{\tbox}{\mathsf{Box}}
+\newcommand{\tpair}[2]{#1 \times #2}
+\newcommand{\tlist}{\mathsf{List}}
+\newcommand{\tarrow}{\rightarrow}
+\newcommand{\tunion}{\bigcup}
+\newcommand{\tall}{\forall}
+
+\newcommand{\edyn}[2]{\mathsf{dynamic}~#1~#2}
+\newcommand{\esta}[2]{\mathsf{static}~#1~#2}
+
+\newcommand{\kproc}{\texttt{proc}}
+\newcommand{\kref}{\texttt{ref}}
+\newcommand{\kint}{\texttt{int}}
+
+\newcommand{\torigin}{\lozenge}
+\newcommand{\uorigin}{\blacklozenge}
+
+\newcommand{\rrD}{\textsc{d}}
+\newcommand{\rrDstar}{\rightarrow^{*}_{\rrD}}
+
+\newcommand{\vfst}{\mathsf{fst}}
+\newcommand{\vsnd}{\mathsf{snd}}
+\newcommand{\vref}[1]{\textbf{ref}~#1}
+\newcommand{\vlam}[2]{\lambda #1.\, #2}
+\newcommand{\efst}[1]{\vfst\,#1}
+\newcommand{\vpair}[2]{\langle #1,#2 \rangle}
+\newcommand{\vmonfun}[2]{\mathsf{mon}\,#1\,#2}
+\newcommand{\vunop}{\emph{op}^1}
+\newcommand{\vbinop}{\emph{op}^2}
+\newcommand{\vsum}{\mathsf{sum}}
+\newcommand{\vquotient}{\mathsf{quotient}}
+\newcommand{\vevalD}{\mathsf{eval}_{\rrD}}
+
+\newcommand{\vrel}[2]{#1 \models #2}
+\newcommand{\vstate}[2]{[#1~#2]}
+\newcommand{\vstategen}{\vstate{\sigma}{v}}
+\newcommand{\vsubst}[3]{#1[#2 \mapsto #3]}
+
+\newcommand{\tfun}[5]{\mathbf{fun} #1 (#2 : #3) \rightarrow #4\,.\,#5}
+\newcommand{\ufun}[3]{\mathbf{fun} #1 (#2)\,.\,#3}
+
+%% value relation
+
+%% -----------------------------------------------------------------------------
+
+\newcommand{\stastep}{\rightarrow_S}
+\newcommand{\dynstep}{\rightarrow_D}
+\newcommand{\welldyn}{\vdash}
+\newcommand{\wellsta}{\vdash}
+\newcommand{\typeerror}{\mathsf{TypeError}}
+\newcommand{\valueerror}{\mathsf{BoundaryError}}
+\newcommand{\bcost}[1]{\mathbf{C}(#1)}

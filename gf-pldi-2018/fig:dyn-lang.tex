@@ -1,17 +1,26 @@
 {\flushleft
 
 $\begin{array}{l c l}
-  e_D & = & v_D \mid x \mid e_D~e_D \mid e_D / e_D \mid \ldots
+  e & \Coloneqq & x \mid v \mid e~e \mid \vpair{e}{e} \mid \vunop~e \mid \vbinop~e~e
 \\
-  v_D & = & \vlam{x}{e_D} \mid i \mid \vpair{v_D}{v_D}
+  v & \Coloneqq & \vlam{x}{e} \mid i \mid \vpair{v}{v}
 \\
-  A & = & e_D \mid \typeerror \mid \valueerror
+  i & \Coloneqq & 0 \mid 1 \mid -1 \mid \ldots
 \\
-  \Gamma & = & \cdot \mid x,\Gamma
+  \vunop & \Coloneqq & \vfst \mid \vsnd
+\\
+  \vbinop & \Coloneqq & \vsum \mid \vquotient
+\\
+  \Gamma & \Coloneqq & \cdot \mid x,\Gamma
+\\
+  A & \Coloneqq & e \mid \typeerror \mid \valueerror
+\\
+  E & \Coloneqq & \bullet \mid E~e \mid v~E \mid \ldots
+                  % \vpair{E}{e} \mid \vpair{v}{E} \mid \vunop~E \mid \vbinop~E~e \mid \vbinop~v~E
 \end{array}$
 
-\smallskip
-\fbox{$\Gamma \welldyn e_D$}
+\medskip
+\fbox{$\Gamma \welldyn e$}
 \begin{mathpar}
   \inferrule*{
     x \in \Gamma
@@ -20,53 +29,102 @@ $\begin{array}{l c l}
   }
 
   \inferrule*{
-    x,\Gamma \welldyn e_D
+    x,\Gamma \welldyn e
   }{
-    \Gamma \welldyn \vlam{x}{e_D}
+    \Gamma \welldyn \vlam{x}{e}
   }
 
   \inferrule*{
-    \Gamma \welldyn e_D
-    \\
-    \Gamma \welldyn e_D'
   }{
-    \Gamma \welldyn e_D / e_D'
+    \Gamma \welldyn i
   }
+
+  \inferrule*{
+    \Gamma \welldyn e_0
+    \\
+    \Gamma \welldyn e_1
+  }{
+    \Gamma \welldyn \vpair{e_0}{e_1}
+  }
+
+  \inferrule*{
+    \Gamma \welldyn e_0
+    \\
+    \Gamma \welldyn e_1
+  }{
+    \Gamma \welldyn e_0~e_1
+  }
+
+  \inferrule*{
+    \Gamma \welldyn e
+  }{
+    \Gamma \welldyn \vunop~e
+  }
+
+  \inferrule*{
+    \Gamma \welldyn e_0
+    \\
+    \Gamma \welldyn e_1
+  }{
+    \Gamma \welldyn \vbinop~e_0~e_1
+  }
+
 \end{mathpar}
 
-\smallskip
-\fbox{$e_D \dynstep A$}
+\medskip
+
+\fbox{$\delta(\mathsf{op}, v, \ldots) = A$}
+$\begin{array}{l c l}
+  \delta(\vfst, \vpair{v_0}{v_1}) & = & v_0
+\\
+  \delta(\vfst, v) & = & \typeerror
+\\[0.8ex]
+  \delta(\vsnd, \vpair{v_0}{v_1}) & = & v_1
+\\
+  \delta(\vsnd, v) & = & \typeerror
+\\[0.8ex]
+  \delta(\vsum, i_0, i_1) & = & i_0 + i_1
+\\
+  \delta(\vsum, v_0, v_1) & = & \typeerror
+\\[0.8ex]
+  \delta(\vquotient, i_0, i_1) & = & \tagof{i_0 / i_1}
+\\
+  \delta(\vquotient, i_0, 0) & = & \valueerror
+\\
+  \delta(\vquotient, v_0, v_1) & = & \typeerror
+\end{array}$
+
+\medskip
+\fbox{$e~~\rrD~~A$}
 \begin{mathpar}
   \inferrule*{
-    e_D' = \vsubst{e_D}{x}{v_D}
   }{
-    (\vlam{x}{e_D})~v_D \dynstep e_D'
+    (\vlam{x}{e})~v~~\rrD~~\vsubst{e}{x}{v}
   }
 
   \inferrule*{
-    v_D \neq \vlam{x}{e_D}
+    v_0 \neq \vlam{x}{e}
   }{
-    v_D~v_D' \dynstep \typeerror
+    v_0~v_1~~\rrD~~\typeerror
   }
 
   \inferrule*{
-    i \in \integers
-    \\
   }{
-    i / 0 \dynstep \valueerror
+    \vunop~v~~\rrD~~\delta(\vunop, v)
   }
 
   \inferrule*{
-    i \in \integers
-    \\
-    i' \in \integers
-    \\
-    i' \neq 0
-    \\
-    i'' = \lfloor i / i' \rfloor
   }{
-    i / i' \dynstep i''
+    \vbinop~v_0~v_1~~\rrD~~\delta(\vbinop, v_0, v_1)
   }
 \end{mathpar}
-}
 
+\medskip
+
+$\vevalD(e) = \left\{ \begin{array}{l l}
+  v & \emph{if}~~e~\rrDstar~v \\
+  \typeerror & \emph{if}~~e~\rrDstar~\typeerror \\
+  \valueerror & \emph{if}~~e~\rrDstar~\valueerror
+\end{array}\right.$
+
+}

@@ -200,8 +200,7 @@
     (list
       (exact "\\vspace{1ex}\n")
       (bold title)
-      (cons (element #f (list " (" (emph term) ") ")) defn*)
-      (exact "\\vspace{1ex}\n"))))
+      (cons (element #f (list " (" (emph term) ") ")) defn*))))
 
 (define (proof-sketch . elem*)
   ""
