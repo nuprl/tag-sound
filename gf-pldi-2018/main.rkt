@@ -5,6 +5,7 @@
 (provide
   ;; --- new stuff
   MT
+  good
   language
   MMT
   L_D
@@ -23,6 +24,7 @@
   step*
   definition
   theorem
+  fake-theorem
   type-error
   value-error
   proof
@@ -194,6 +196,12 @@
 
 (define (theorem term . defn*)
   (make-thing "Theorem" term defn*))
+
+(define (fake-theorem term . defn*)
+  (make-thing "Theorem Sketch" term defn*))
+
+(define (good str)
+  ($ (format "\\emph{good}(~a)" str)))
 
 (define (make-thing title term defn*)
   (para #:style plain

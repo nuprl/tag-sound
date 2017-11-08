@@ -122,51 +122,33 @@ The other typing rules carry over unchanged.
 Note that the re-use of the old rules correctly prevents a statically-typed
  expression from referencing a variable bound by a dynamically-typed function.
 
-@Figure-ref{fig:mixed-lang} does not define a semantics.
+@Figure-ref{fig:mixed-lang} does not define a semantics for the mixed
+ language.
+Intuitively a language could re-use @${\vevalD} for dynamically-typed expressions
+ and @${\vevalS} for statically-typed expressions, but of course the real
+ question is what to do with boundary expressions.
+The following sections will describe five semantics, each with a safety
+ theorem of the form:
 
-@; TODO add recipe for an embedding?
-@; TODO 
+@fake-theorem["safety"]{
+  If @${\Gamma \wellsta e : \tau} then @good{e} and either:
+}
+@itemlist[
+@item{
+  @${e} reduces to a value @${v} such that @good{v}
+}
+@item{
+  @${e} reduces to a well-defined error state
+}
+]
 
+Safety for dynamically-typed expressions is analogous; just replace
+ @${\Gamma \wellsta e : \tau} with @${\Gamma \welldyn e} and relax the definition
+ of @emph{good} accordingly.
+@; cite techreport ... TODO make a blog post about how to publish a tech report
 
-@;Before we can run programs that combine dynamically-typed and statically-typed
-@; expressions, we need a syntax for mixed expressions.
-@;
-@;@; ... boundary terms ...
-@;
-@;@$|{
-@;  \begin{array}{l c l}
-@;    e_D & = & \ldots \mid \esta{\tau}{e_S}
-@;  \\
-@;    e_S & = & \ldots \mid \edyn{\tau}{e_D}
-@;  \end{array}
-@;}|
-@;
-@;
-@;The new @|L_D| expression @embed-sta["\\tau" "e_S"] embeds a statically-typed
-@; expression into a dynamically-typed context.
-@;The new @|L_S| expression @embed-dyn["\\tau" "e_D"] similarly embeds a
-@; dynamically-typed expression into a statically typed context.
-@;
-@;Static typing for these expressions is straightforward, mutually-recursive
-@; (for suitable definition of @${\Gamma}):
-@;
-@;@exact|{
-@;\begin{mathpar}
-@;  \inferrule{
-@;    \Gamma \wellsta e_S : \tau
-@;  }{
-@;    \Gamma \welldyn \edyn{\tau}{e_S}
-@;  }
-@;
-@;  \inferrule{
-@;    \Gamma \welldyn e_D
-@;  }{
-@;    \Gamma \wellsta \esta{\tau}{e_D} : \tau
-@;  }
-@;\end{mathpar}
-@;}|
-@;
-@;
+@; TODO note about safety/expressiveness/performance
+
 @;The semantics of these boundary terms should find a balance between allowing
 @; "safe" values to cross the boundary and disallowing mixes that lead to
 @; undefined behavior.
@@ -177,8 +159,10 @@ Note that the re-use of the old rules correctly prevents a statically-typed
 @;This can easily lead to a stuck expression, for instance
 @; @$|{((\edyn{(\tint \tarrow \tint)}{0})~0)}|
 @; would reduce to the stuck application @${(0~0)}.
-@;
-@;
+
+
+@;@section{Natural Embedding}
+
 @;@subsection{Identity Embedding}
 @;
 @;One approach to migratory typing is to let any value cross a type boundary
