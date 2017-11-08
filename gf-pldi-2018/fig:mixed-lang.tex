@@ -1,0 +1,34 @@
+{\flushleft
+$\begin{array}{l c l}
+  e & \Coloneqq & x \mid v \mid e~e~ \mid \ldots \mid \edyn{\tau}{e} \mid \esta{\tau}{e}
+\\
+  v & \Coloneqq & \vlam{x}{e} \mid \vlam{\tann{x}{\tau}}{e} \mid i \mid \vpair{v}{v}
+\\
+  \Gamma & \Coloneqq & \cdot \mid x,\Gamma \mid \tann{x}{\tau},\Gamma
+\\
+  A & \Coloneqq & e \mid \typeerror \mid \valueerror
+\end{array}$
+
+\medskip
+\begin{minipage}{0.5\columnwidth}
+\fbox{$\Gamma \welldyn e$}
+\begin{mathpar}
+  \inferrule*{
+    \Gamma \wellsta e : \tau
+  }{
+    \Gamma \welldyn \esta{\tau}{e}
+  }
+\end{mathpar}
+\end{minipage}%
+\begin{minipage}{0.5\columnwidth}
+\fbox{$\Gamma \wellsta e : \tau$}
+\begin{mathpar}
+  \inferrule*{
+    \Gamma \welldyn e
+  }{
+    \Gamma \wellsta \edyn{\tau}{e} : \tau
+  }
+\end{mathpar}
+\end{minipage}
+
+}

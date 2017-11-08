@@ -105,8 +105,29 @@ If an expression is well typed, then the answer @${\vevalS(e)} is well-defined.
 }
 
 
-@;@section{Migratory Typing}
-@;
+@section{Migratory Typing, the syntax}
+
+@include-figure["fig:mixed-lang.tex" "Syntax for the mixed language"]
+
+@Figure-ref{fig:mixed-lang} defines the syntax and typing rules for a
+ multi-language that combines @figure-ref["fig:dyn-lang" "fig:sta-lang"].
+The boundary expression @${(\edyn{\tau}{e})} embeds a dynamically-typed expression
+ @${e} within a statically-typed context.
+The boundary expression @${(\esta{\tau}{e})} embeds a statically-typed expression
+ in a dynamically-typed context.
+In order to handle mixed terms, the typing judgments @${\Gamma \welldyn e} and
+ @${\Gamma \wellsta e : \tau} are extended with mutually-recursive rules
+ to handle boundary expressions.
+The other typing rules carry over unchanged.
+Note that the re-use of the old rules correctly prevents a statically-typed
+ expression from referencing a variable bound by a dynamically-typed function.
+
+@Figure-ref{fig:mixed-lang} does not define a semantics.
+
+@; TODO add recipe for an embedding?
+@; TODO 
+
+
 @;Before we can run programs that combine dynamically-typed and statically-typed
 @; expressions, we need a syntax for mixed expressions.
 @;
