@@ -3,6 +3,12 @@
 \usepackage{amssymb}
 \usepackage{mathpartir}
 
+%% -----------------------------------------------------------------------------
+%% enable page numbers
+%\settopmatter{printfolios=true}
+\settopmatter{printfolios=true,printccs=false,printacmref=false}
+%% -----------------------------------------------------------------------------
+
 % Override Scribble's default SecRef to numeric only
 \renewcommand{\SecRef}[2]{#1}
 
@@ -12,9 +18,6 @@
 \newcommand{\Thyperref}[2]{\hyperref[#2]{#1}}
 
 \let\captionwidth\relax
-
-%% -----------------------------------------------------------------------------
-%% common PL paper formatting
 
 \newcommand{\subt}{\mathrel{<:}}
 \newcommand{\subteq}{\mathrel{\leqslant:}}
@@ -60,11 +63,6 @@ showstringspaces=false            %
 
 % Python for inline
 \newcommand\pythoninline[1]{{\pythonstyle\lstinline!#1!}}
-
-%% -----------------------------------------------------------------------------
-%% enable page numbers
-
-\settopmatter{printfolios=true}
 
 %% -----------------------------------------------------------------------------
 
