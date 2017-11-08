@@ -91,6 +91,7 @@ showstringspaces=false            %
 \newcommand{\tarrow}{\rightarrow}
 \newcommand{\tunion}{\bigcup}
 \newcommand{\tall}{\forall}
+\newcommand{\tann}[2]{(#1\!:\!#2)}
 
 \newcommand{\edyn}[2]{\mathsf{dynamic}~#1~#2}
 \newcommand{\esta}[2]{\mathsf{static}~#1~#2}
@@ -102,8 +103,13 @@ showstringspaces=false            %
 \newcommand{\torigin}{\lozenge}
 \newcommand{\uorigin}{\blacklozenge}
 
-\newcommand{\rrD}{\textsc{d}}
+\newcommand{\rrD}{\mathrel{\textsc{d}}}
+\newcommand{\rrS}{\mathrel{\textsc{s}}}
 \newcommand{\rrDstar}{\rightarrow^{*}_{\rrD}}
+\newcommand{\rrSstar}{\rightarrow^{*}_{\rrS}}
+
+\newcommand{\vevalD}{\mathsf{eval}_{\rrD}}
+\newcommand{\vevalS}{\mathsf{eval}_{\rrS}}
 
 \newcommand{\vfst}{\mathsf{fst}}
 \newcommand{\vsnd}{\mathsf{snd}}
@@ -116,7 +122,6 @@ showstringspaces=false            %
 \newcommand{\vbinop}{\emph{op}^2}
 \newcommand{\vsum}{\mathsf{sum}}
 \newcommand{\vquotient}{\mathsf{quotient}}
-\newcommand{\vevalD}{\mathsf{eval}_{\rrD}}
 
 \newcommand{\vrel}[2]{#1 \models #2}
 \newcommand{\vstate}[2]{[#1~#2]}

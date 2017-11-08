@@ -16,10 +16,11 @@ Expressions @${e} consist of variables, constructors, function application,
  and primitive operation applications.
 An expression @${e} is well-formed in variable context @${\Gamma}, written
  @${\Gamma \welldyn e}, if all free variables of @${e} are bound in the context.
+The (total) function @${\delta} interprets primitive operations.
 The reduction relation @${\rrD} maps closed expressions to answers @${A};
  an answer is either an expression, a token representing a type error,
  or a token indicating a boundary error.
-@; TODO clarify boundary error
+@; TODO clarify boundary error, our view of \delta as a language boundary
 The function @${\vevalD} defines the semantics of expressions in terms
  of the @${\rrD} relation.
 
@@ -41,45 +42,69 @@ For any closed expression @${e}, the answer @${\vevalD(e)} is well-defined:
     @${e~\rrDstar~\valueerror}
   }
   @item{
-    for all @${e'} such that @${e~\rrDstar~e'}, there exists an @${e''}
-     such that @${e'~~\rrD~~e''}
+    @${e} diverges
+@;    for all @${e'} such that @${e~\rrDstar~e'}, there exists an @${e''}
+@;     such that @${e'~~\rrD~~e''}
   }
   ]
 
+@definition["divergence"]{
+  An expression @${e} diverges if for all @${e'} such that @${e~\rrDstar~e'}
+   there exists an @${e''} such that @${e'~\rrD~e''}
+}
+
 @proof-sketch{
-  By progress and preservation lemmas for @${\cdot \welldyn e} and the @${\rrD} relation.
+  By progress and preservation lemmas for @${\cdot \welldyn e}
+   and the @${\rrD} relation.
 }
 
 
-@;
-@;@parag{Static Typing}
-@;The language @|L_S| includes types @${\tau} and extends the syntax of function
-@; values to include type annotations.
-@;The static typing judgment @|well_S| uses these annotations to prove that an
-@; expression will not reduce to a type error.
-@;Likewise, the reduction relation @|step_S| does not perform any type checks.
-@;The safety theorem for @|L_S| states that evaluation preserves types and
-@; cannot end in a type error:@note{Don't care that @|L_S| is strongly normalizing.}
-@;
-@;@theorem[@elem{@|L_S| safety}]{
-@;  If @well-sta["e_S" "\\tau"] then either:}
-@;  @itemlist[
-@;  @item{
-@;    @sta*["e_S" "v_S"] and @well-sta["v_S" "\\tau"]
-@;  }
-@;  @item{
-@;    @${e_S} diverges
-@;  }
-@;  @item{
-@;    @sta*["e_S" value-error]
-@;  }
-@;  ]
-@;
-@;@proof-sketch{
-@;  Progress and preservation.
-@;}
-@;
-@;
+@section{Static Typing}
+
+@include-figure["fig:sta-lang.tex" "Static Typing"]
+
+@Figure-ref{fig:sta-lang} defines a statically typed functional language.
+Value forms @${v} are integers, pairs, and type-annotated anonymous functions.
+Expressions @${e} consist of variables, constructors, function applications,
+ and primitive operation applications.
+Types @${\tau} describe non-negative integers, integers, pairs, and
+ functions.
+@; TODO explain why natural, why subtyping
+An expression @${e} has type @${\tau} in type context @${\Gamma} if
+ the judgment @${\Gamma \wellsta e : \tau} holds according to the (non-algorithmic)
+ rules in @figure-ref{fig:sta-lang}.
+The subtyping relation @${\subt} defines a kind of subset relation on types.
+The @${\Delta} relation assigns types to primitive operations.
+The partial function @${\delta} assigns meaning to primitive operations.
+Note that this @${\delta} function does produce type errors.
+Likewise, the reduction relation @${\rrS} maps expressions to expressions or
+ boundary errors.
+The function @${\vevalS} defines the semantics of expressions.
+
+The language in @figure-ref{fig:sta-lang} is type safe.
+If an expression is well typed, then the answer @${\vevalS(e)} is well-defined.
+
+@theorem[@elem{type safety}]{
+  If @${\cdot \wellsta e : \tau} then either:
+}
+@itemlist[
+  @item{
+    @${e~\rrSstar~v} and @${\cdot \wellsta v}
+  }
+  @item{
+    @${e~\rrSstar~\valueerror}
+  }
+  @item{
+    @${e} diverges
+  }
+]
+
+@proof-sketch{
+  By progress and preservation lemmas for the @${\cdot \vdash e : \tau}
+   and @${\rrS} relations.
+}
+
+
 @;@section{Migratory Typing}
 @;
 @;Before we can run programs that combine dynamically-typed and statically-typed

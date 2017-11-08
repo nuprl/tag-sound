@@ -1,55 +1,170 @@
 {\flushleft
 
 $\begin{array}{l c l}
-  e_S & = & v_S \mid x \mid e_S~e_S \mid e_S / e_S \mid \ldots
+  e & \Coloneqq & x \mid v \mid e~e \mid \vpair{e}{e} \mid \vunop~e \mid \vbinop~e~e
 \\
-  v_S & = & \vlam{(x:\tau)}{e_S} \mid i \mid \vpair{v_S}{v_S}
+  v & \Coloneqq & \vlam{\tann{x}{\tau}}{e} \mid i \mid \vpair{v}{v}
 \\
-  \tau & = & \tnat \mid \tint \mid \tpair{\tau}{\tau} \mid \tau \tarrow \tau
+  \tau & \Coloneqq & \tnat \mid \tint \mid \tpair{\tau}{\tau} \mid \tau \tarrow \tau
 \\
-  A & = & e_S \mid \valueerror
+  i & \Coloneqq & 0 \mid 1 \mid -1 \mid \ldots
 \\
-  \Gamma & = & \cdot \mid (x:\tau),\Gamma
+  \vunop & \Coloneqq & \vfst \mid \vsnd
+\\
+  \vbinop & \Coloneqq & \vsum \mid \vquotient
+\\
+  \Gamma & \Coloneqq & \cdot \mid \tann{x}{\tau},\Gamma
+\\
+  A & \Coloneqq & e \mid \valueerror
+\\
+  E & \Coloneqq & \bullet \mid E~e \mid v~E \mid \ldots
 \end{array}$
 
-\smallskip
-\fbox{$\Gamma \wellsta e_S : \tau$}
+\medskip
+\fbox{$\Gamma \wellsta e : \tau$}
 \begin{mathpar}
   \inferrule*{
-    (x:\tau) \in \Gamma
+    \tann{x}{\tau} \in \Gamma
   }{
     \Gamma \wellsta x : \tau
   }
 
   \inferrule*{
-    (x:\tau),\Gamma \wellsta e_S : \tau'
+    \tann{x}{\tau_d},\Gamma \wellsta e : \tau_c
   }{
-    \Gamma \wellsta \vlam{(x:\tau)}{e_S} : \tau \tarrow \tau'
+    \Gamma \wellsta \vlam{\tann{x}{\tau_d}}{e} : \tau_d \tarrow \tau_c
   }
 
   \inferrule*{
-    \Gamma \wellsta e_S : \tnat
-    \\
-    \Gamma \wellsta e_S' : \tnat
+    i \in \naturals
   }{
-    \Gamma \wellsta e_S / e_S' : \tnat
-  }
-\end{mathpar}
-
-\smallskip
-\fbox{$e_S \stastep A$}
-\begin{mathpar}
-  \inferrule*{
-    e_S' = \vsubst{e_S}{x}{v_S}
-  }{
-    (\vlam{x:\tau}{e_S})~v_S \stastep e_S'
+    \Gamma \wellsta i : \tnat
   }
 
   \inferrule*{
     i \in \integers
-    \\
   }{
-    i / 0 \stastep \valueerror
+    \Gamma \wellsta i : \tint
+  }
+
+  \inferrule*{
+    \Gamma \wellsta e_0 : \tau_0
+    \\\\
+    \Gamma \wellsta e_1 : \tau_1
+  }{
+    \Gamma \wellsta \vpair{e_0}{e_1} : \tpair{\tau_0}{\tau_1}
+  }
+
+  \inferrule*{
+    \Gamma \wellsta e_0 : \tau_d \tarrow \tau_c
+    \\\\
+    \Gamma \wellsta e_1 : \tau_d
+  }{
+    \Gamma \wellsta e_0~e_1 : \tau_c
+  }
+
+  \inferrule*{
+    \Gamma \wellsta e_0 : \tau_0
+    \\\\
+    \Delta(\vunop, \tau_0) = \tau
+  }{
+    \Gamma \wellsta \vunop~e_0 : \tau
+  }
+
+  \inferrule*{
+    \Gamma \wellsta e_0 : \tau_0
+    \\\\
+    \Gamma \wellsta e_1 : \tau_1
+    \\\\
+    \Delta(\vbinop, \tau_0, \tau_1) = \tau
+  }{
+    \Gamma \wellsta \vbinop~e_0~e_1 : \tau
+  }
+
+  \inferrule*{
+    \Gamma \wellsta e : \tau'
+    \\\\
+    \tau' \subt \tau
+  }{
+    \Gamma \wellsta e : \tau
+  }
+
+\end{mathpar}
+
+\medskip
+\fbox{$\tau \subt \tau$}
+\begin{mathpar}
+  \inferrule*{
+  }{
+    \tnat \subt \tint
+  }
+
+  \inferrule*{
+    \tau_d' \subt \tau_d
+    \\\\
+    \tau_c \subt \tau_c'
+  }{
+    \tau_d \tarrow \tau_c \subt \tau_d' \tau_c'
+  }
+
+  \inferrule*{
+    \tau_0 \subt \tau_0'
+    \\\\
+    \tau_1 \subt \tau_1'
+  }{
+    \tpair{\tau_0}{\tau_1} \subt \tpair{\tau_0'}{\tau_1'}
   }
 \end{mathpar}
+
+\medskip
+\fbox{$\Delta(\mathsf{op}, \tau, \ldots) = \tau$}
+$\begin{array}{l c l}
+  \Delta(\vfst, \tpair{\tau_0}{\tau_1}) & = & \tau_0
+\\
+  \Delta(\vsnd, \tpair{\tau_0}{\tau_1}) & = & \tau_1
+\\
+  \Delta(\vbinop, \tnat, \tnat) & = & \tnat
+\\
+  \Delta(\vbinop, \tau_0, \tau_1) & = & \tint \qquad \emph{if}~~~~\tau_0 \subt \tint \wedge \tau_1 \subt \tint
+\end{array}$
+
+\medskip
+\fbox{$\delta(\mathsf{op}, v, \ldots) = A$}
+$\begin{array}{l c l}
+  \delta(\vfst, \vpair{v_0}{v_1}) & = & v_0
+\\
+  \delta(\vsnd, \vpair{v_0}{v_1}) & = & v_1
+\\
+  \delta(\vsum, i_0, i_1) & = & i_0 + i_1
+\\
+  \delta(\vquotient, i_0, i_1) & = & \tagof{i_0 / i_1}
+\\
+  \delta(\vquotient, i_0, 0) & = & \valueerror
+\end{array}$
+
+\medskip
+\fbox{$e \rrS A$}
+\begin{mathpar}
+  \inferrule*{
+  }{
+    (\vlam{x:\tau}{e})~v \rrS \vsubst{e}{x}{v}
+  }
+
+  \inferrule*{
+  }{
+    \vunop~v \rrS \delta(\vunop, v)
+  }
+
+  \inferrule*{
+  }{
+    \vbinop~v_0~v_1 \rrS \delta(\vbinop, v_0, v_1)
+  }
+\end{mathpar}
+
+\medskip
+$\vevalS(e) = \left\{ \begin{array}{l l}
+  v & \emph{if}~~e~\rrSstar~v \\
+  \valueerror & \emph{if}~~e~\rrSstar~\valueerror
+\end{array}\right.$
+
 }

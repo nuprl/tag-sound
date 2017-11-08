@@ -202,9 +202,9 @@
       (bold title)
       (cons (element #f (list " (" (emph term) ") ")) defn*))))
 
+;; TODO say "proof sketch" instead of "proof"
 (define (proof-sketch . elem*)
-  ""
-  #;(make-proof elem*))
+  (make-proof elem*))
 
 (define (proof . elem*)
   (make-proof elem*))

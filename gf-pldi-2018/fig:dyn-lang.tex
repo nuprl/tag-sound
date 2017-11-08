@@ -95,32 +95,31 @@ $\begin{array}{l c l}
 \end{array}$
 
 \medskip
-\fbox{$e~~\rrD~~A$}
+\fbox{$e \rrD A$}
 \begin{mathpar}
   \inferrule*{
   }{
-    (\vlam{x}{e})~v~~\rrD~~\vsubst{e}{x}{v}
+    (\vlam{x}{e})~v \rrD \vsubst{e}{x}{v}
   }
 
   \inferrule*{
     v_0 \neq \vlam{x}{e}
   }{
-    v_0~v_1~~\rrD~~\typeerror
+    v_0~v_1 \rrD \typeerror
   }
 
   \inferrule*{
   }{
-    \vunop~v~~\rrD~~\delta(\vunop, v)
+    \vunop~v \rrD \delta(\vunop, v)
   }
 
   \inferrule*{
   }{
-    \vbinop~v_0~v_1~~\rrD~~\delta(\vbinop, v_0, v_1)
+    \vbinop~v_0~v_1 \rrD \delta(\vbinop, v_0, v_1)
   }
 \end{mathpar}
 
 \medskip
-
 $\vevalD(e) = \left\{ \begin{array}{l l}
   v & \emph{if}~~e~\rrDstar~v \\
   \typeerror & \emph{if}~~e~\rrDstar~\typeerror \\
