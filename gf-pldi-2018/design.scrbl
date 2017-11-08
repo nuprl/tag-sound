@@ -5,6 +5,7 @@
 See techreport for proofs and PLT Redex models.
 
 
+@; -----------------------------------------------------------------------------
 @section{Dynamic Typing}
 
 @include-figure["fig:dyn-lang.tex" "Dynamic Typing"]
@@ -57,6 +58,7 @@ For any closed expression @${e}, the answer @${\vevalD(e)} is well-defined:
 }
 
 
+@; -----------------------------------------------------------------------------
 @section{Static Typing}
 
 @include-figure["fig:sta-lang.tex" "Static Typing"]
@@ -103,6 +105,7 @@ If an expression is well typed, then the answer @${\vevalS(e)} is well-defined.
 }
 
 
+@; -----------------------------------------------------------------------------
 @section{Migratory Typing, the syntax}
 
 @include-figure["fig:mixed-lang.tex" "Syntax for the mixed language"]
@@ -159,6 +162,7 @@ Safety for dynamically-typed expressions is analogous; just replace
 @; would reduce to the stuck application @${(0~0)}.
 
 
+@; -----------------------------------------------------------------------------
 @section{The Type-Erased Embedding}
 
 @include-figure["fig:type-erased-embedding.tex" "Type-Erased Embedding"]
@@ -218,99 +222,49 @@ For one example, consider what happens at runtime when a dynamically-typed
 Note that an equivalent way to define the same semantics is translate expressions
  to the syntax in @figure-ref{fig:dyn-lang} by removing type annotations, then
  re-using the @${\rrD} reduction relation.
-This alternative is similar to what TypeScript implements. @; TODO cite
+This alternative is similar to what TypeScript implements.
+@; TODO cite
 @; TODO and it influences the monitor-free design
 
 
+@; -----------------------------------------------------------------------------
 @section{Natural Embedding}
-@;
-@;The natural embedding uses boundary type annotations to check values at run-time.
-@;@Figure-ref{fig:natural-embedding} presents a limited kind of natural embedding.
-@;This version checks integer values, recursively checks pair values, and
-@; prevents functions from crossing.
-@;With this semantics for boundary terms, it is possible to prove a nearly-conventional
-@; type safety theorem:
-@;
-@;@theorem[@elem{natural embedding type safety}]{
-@;  If @well-sta["e" "\\tau"] then either:}
-@;  @itemlist[
-@;  @item{
-@;    @sta*["e" "v"] and @well-sta["v" "\\tau"]
-@;  }
-@;  @item{
-@;    @${e} diverges
-@;  }
-@;  @item{
-@;    @sta*["e" "e'"] and @dynstep["e'" type-error]
-@;  }
-@;  @item{
-@;    @sta*["e" value-error]
-@;  }
-@;  ]
-@;
-@;@include-figure["fig:natural-embedding.tex" "Natural Embedding"]
-@;
-@;In particular, this safety guarantees the absence of type errors in statically
-@; typed code, but makes no guarantee about dynamically typed sub-expressions.
-@;
-@;The trouble with function values is two-fold.
-@;First, an untyped function used in a typed context might return a "bad" value.
-@;Second, a typed function used in an untyped context might receive a "bad" value.
-@;
-@;Maybe possible to type-check dynamically-typed functions when they enter typed
-@; code.
-@;But probably not practical to check the context that receives a typed function.
-@;So need another approach.
-@;At any rate, the "exhaustively check" approach is also impractical for
-@; large objects (e.g., databases) or infinite objects (e.g., streams).
-@;If the MT system wants to share such values, cannot provide "immediate accountability".
-@;
-@;To allow functions across boundaries, we extend the language with new values
-@; that represent "monitored functions".
-@;The reduction relation for a monitor ensures that it matches its type.
-@;See @figure-ref{fig:natural-monitors} for the details.
-@;
-@;@include-figure["fig:natural-monitors.tex" "Function Monitors"]
-@;
-@;
-@;
-@;
-@;
-@;
-@;
-@;
-@;
-@;@; =============================================================================
-@;
-@;
-@;
-@;
-@;The identity embedding is unacceptable to programmers who want to use types
-@; to reason about the behavior of their programs.
-@;The natural embeddings is unacceptable to programmers with performance
-@; requirements.
-@;This section presents an embedding that represents a compromise.
-@;In theory, this embedding has significantly better performance than the
-@; natural embedding --- each boundary crossing and eliminator incurs one
-@; near-constant time check.
-@;The shallow performance cost enables an equally shallow safety theorem:
-@; if you pay for tag checks, you can trust the type-tags of all values.
-@;
-@;In the natural embedding, type boundaries suffer three kinds of costs.
-@;The costs are (1) checking a value, (2) allocating a monitor, and (3)
-@; the indirection cost of monitors.
-@;@; TODO what about the later checks for each monitor?
-@;@;   this story is not really cohesive
-@;We will systematically reduce these costs in three steps.
-@;First we introduce new monitors to avoid traversing a data structure
-@; at a type boundary.
-@;Second we reduce indirection at the cost of "forgetting" past boundaries.
-@;Third we remove monitors altogether with a rewriting scheme;
-@; saves performance but loses error messages in untyped code.
-@;
-@;All this in the context of our lambda calculus (?).
-@;
-@;
+
+@; TODO note somewhere that could get type soundness by NO SHARING,
+@;      but laffer curve
+
+@include-figure["fig:natural-embedding.tex" "Natural Embedding"]
+
+@Figure-ref{fig:natural-embedding} extends the multi language with
+ monitor values.
+A monitor @${(\vmonfun{\tau}{v})} associates a value with a type.
+
+@theorem["natural safety"]{
+  If @${\cdot \wellsta e : \tau} then @${\cdot \wellNE e : \tau} and either:
+}
+@itemlist[
+@item{
+  @${e \rrNEstar v} and @${\cdot \wellNE v : \tau}
+}
+@item{
+  @${e \rrNEstar \typeerror}
+}
+@item{
+  @${e \rrNEstar \valueerror}
+}
+@item{
+  @${e} diverges
+}
+]
+
+In particular, this safety guarantees the absence of type errors in statically
+ typed code, but makes no guarantee about dynamically typed sub-expressions.
+
+@; May be possible to type-check dynamically-typed functions when they enter typed code.
+@; Not practical to check the context that receives a typed function.
+
+
+@; -----------------------------------------------------------------------------
 @;@section{Lazy Boundary Checks}
 @;
 @;First we deal with the linear-time cost of checking pairs at a boundary.

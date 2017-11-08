@@ -93,8 +93,10 @@ showstringspaces=false            %
 \newcommand{\tall}{\forall}
 \newcommand{\tann}[2]{(#1\!:\!#2)}
 
-\newcommand{\edyn}[2]{\mathsf{dynamic}~#1~#2}
-\newcommand{\esta}[2]{\mathsf{static}~#1~#2}
+\newcommand{\vdyn}{\mathsf{dynamic}}
+\newcommand{\vsta}{\mathsf{static}}
+\newcommand{\edyn}[2]{\vdyn~#1~#2}
+\newcommand{\esta}[2]{\vsta~#1~#2}
 
 \newcommand{\kproc}{\texttt{proc}}
 \newcommand{\kref}{\texttt{ref}}
@@ -106,9 +108,11 @@ showstringspaces=false            %
 \newcommand{\rrD}{\mathrel{\textsc{d}}}
 \newcommand{\rrS}{\mathrel{\textsc{s}}}
 \newcommand{\rrTE}{\mathrel{\textsc{d}^+}}
+\newcommand{\rrNE}{\mathrel{\textsc{s}^+}}
 \newcommand{\rrDstar}{\rightarrow^{*}_{\rrD}}
 \newcommand{\rrSstar}{\rightarrow^{*}_{\rrS}}
 \newcommand{\rrTEstar}{\rightarrow^{*}_{\rrTE}}
+\newcommand{\rrNEstar}{\rightarrow^{*}_{\rrNE}}
 
 \newcommand{\vevalD}{\mathsf{eval}_{\rrD}}
 \newcommand{\vevalS}{\mathsf{eval}_{\rrS}}
@@ -123,6 +127,7 @@ showstringspaces=false            %
 \newcommand{\vmonfun}[2]{\mathsf{mon}\,#1\,#2}
 \newcommand{\vunop}{\emph{op}^1}
 \newcommand{\vbinop}{\emph{op}^2}
+\newcommand{\vbnd}{\emph{bnd}}
 \newcommand{\vsum}{\mathsf{sum}}
 \newcommand{\vquotient}{\mathsf{quotient}}
 
@@ -143,6 +148,7 @@ showstringspaces=false            %
 \newcommand{\welldyn}{\vdash}
 \newcommand{\wellsta}{\vdash}
 \newcommand{\wellTE}{\welldyn^+}
+\newcommand{\wellNE}{\wellsta^+}
 \newcommand{\typeerror}{\mathsf{TypeError}}
 \newcommand{\valueerror}{\mathsf{BoundaryError}}
 \newcommand{\bcost}[1]{\mathbf{C}(#1)}
