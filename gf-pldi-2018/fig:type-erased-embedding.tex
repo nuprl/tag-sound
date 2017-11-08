@@ -1,0 +1,50 @@
+{\flushleft
+
+\fbox{$e \rrTE A$}
+\begin{mathpar}
+  \inferrule*{
+  }{
+    (\vlam{\tann{x}{\tau}}{e})~v \rrTE \vsubst{e}{x}{v}
+  }
+
+  \inferrule*{
+  }{
+    \edyn{\tau}{v} \rrTE v
+  }
+
+  \inferrule*{
+  }{
+    \esta{\tau}{v} \rrTE v
+  }
+\end{mathpar}
+
+\medskip
+\fbox{$\Gamma \wellTE e$}
+\begin{mathpar}
+  \inferrule*{
+    x,\Gamma \wellTE e
+  }{
+    \Gamma \wellTE \vlam{\tann{x}{\tau}}{e}
+  }
+
+  \inferrule*{
+    \Gamma \wellTE e
+  }{
+    \Gamma \wellTE \edyn{\tau}{e}
+  }
+
+  \inferrule*{
+    \Gamma \wellTE e
+  }{
+    \Gamma \wellTE \esta{\tau}{e}
+  }
+\end{mathpar}
+
+\medskip
+$\vevalTE(e) = \left\{ \begin{array}{l l}
+  v & \emph{if}~~e~\rrTEstar~v \\
+  \typeerror & \emph{if}~~e~\rrTEstar~\typeerror \\
+  \valueerror & \emph{if}~~e~\rrTEstar~\valueerror
+\end{array}\right.$
+
+}

@@ -31,22 +31,20 @@ For any closed expression @${e}, the answer @${\vevalD(e)} is well-defined:
 @theorem[@elem{term safety}]{
   If @${\cdot \welldyn e} then either:
   }
-  @itemlist[
-  @item{
-    @${e~\rrDstar~v}
-  }
-  @item{
-    @${e~\rrDstar~\typeerror}
-  }
-  @item{
-    @${e~\rrDstar~\valueerror}
-  }
-  @item{
-    @${e} diverges
-@;    for all @${e'} such that @${e~\rrDstar~e'}, there exists an @${e''}
-@;     such that @${e'~~\rrD~~e''}
-  }
-  ]
+@itemlist[
+@item{
+  @${e~\rrDstar~v}
+}
+@item{
+  @${e~\rrDstar~\typeerror}
+}
+@item{
+  @${e~\rrDstar~\valueerror}
+}
+@item{
+  @${e} diverges
+}
+]
 
 @definition["divergence"]{
   An expression @${e} diverges if for all @${e'} such that @${e~\rrDstar~e'}
@@ -161,67 +159,70 @@ Safety for dynamically-typed expressions is analogous; just replace
 @; would reduce to the stuck application @${(0~0)}.
 
 
-@;@section{Natural Embedding}
+@section{The Type-Erased Embedding}
 
-@;@subsection{Identity Embedding}
-@;
-@;One approach to migratory typing is to let any value cross a type boundary
-@; and ignore the conclusions of the static type checker.
-@;Put another way, this approach treats @|well_S| as an optional static analysis
-@; that can rule out bad expressions and has no relation to the semantics.
-@;
-@;The semantics is an extension of the @|step_D| relation.
-@;Very important not to use @|step_S| anymore.
-@;
-@;@exact|{ \begin{mathpar}
-@;  \inferrule*{
-@;  }{
-@;    \edyn{\tau}{v} \dynstep v
-@;  }
-@;
-@;  \inferrule*{
-@;  }{
-@;    \esta{\tau}{v} \dynstep v
-@;  }
-@;
-@;  %\inferrule*{
-@;  %  e' = \vsubst{e}{x}{v}
-@;  %}{
-@;  %  (\vlam{(x:\tau)}{e})~v \dynstep e'
-@;  %}
-@;\end{mathpar} }|
-@;
-@;Safety for an identity-embedded migratory typing system guarantees that
-@; well-formed expressions have a well-defined semantics.
-@;
-@;@theorem[@elem{identity embedding term safety}]{
-@;  If @well-sta["e" "\tau"] then either:}
-@;  @itemlist[
-@;  @item{
-@;    @dyn*["e" "v"] and @well-dyn{v}
-@;  }
-@;  @item{
-@;    @${e} diverges
-@;  }
-@;  @item{
-@;    @dyn*["e" type-error]
-@;  }
-@;  @item{
-@;    @dyn*["e" value-error]
-@;  }
-@;  ]
-@;
-@;No other extensions needed.
-@;
-@;This is the approach taken by TypeScript.
-@;Simple to implement and explain, performs as well as dynamic typing.
-@;The downside is that types cannot be used to reason about the behavior of
-@; expressions; it is entirely possible to give a well-typed function ill-typed
-@; inputs and have it (erronously) return a value.
-@;@; Reynolds example?
-@;
-@;
-@;@subsection{Natural Embedding}
+@include-figure["fig:type-erased-embedding.tex" "Type-Erased Embedding"]
+
+One straightforward way to define a semantics for the mixed language is to
+ extend the reduction relation for dynamically typed expressions.
+The new rules ignore the type annotations on function parameters and
+ boundary expressions; see @figure-ref{fig:type-erased-embedding} for the details.
+
+To prove that this semantics is @emph{term safe}, we define a judgment
+ @${\Gamma \wellTE e} as an extension of the relation in @figure-ref{fig:dyn-lang}
+ that checks whether an expression is closed.
+After this addition, it is straightforward to prove that the evaluation
+ of well-typed terms never reaches an undefined state:
+
+@theorem["type-erased safety"]{
+  If @${\cdot \wellsta e : \tau} then @${\cdot \wellTE e} and either:
+}
+@itemlist[
+@item{
+  @${e~\rrTEstar~v} and @${\cdot \wellTE v}
+}
+@item{
+  @${e~\rrTEstar~\typeerror}
+}
+@item{
+  @${e~\rrTEstar~\valueerror}
+}
+@item{
+  @${e} diverges
+}
+]
+
+This semantics is cleary not type safe.
+One can easily build a well-typed expression that reduces to a value
+ with a completely different type, for example @${(\edyn{\tint}{\vlam{x}{x}})}.
+When ill-typed subterms are used in a larger context, it is possible for a
+ well-typed program to fail in subtle ways because the static types
+ are utterly meaningless at runtime:
+
+@$|{\begin{array}{l}
+  C = ((\vlam{\tann{x}{\tnat}}{\vquotient~42~(\vsum~x~1)})~\bullet)
+\\
+  e = \edyn{\tnat}{-1}
+\\
+  \cdot \wellsta C[e] : \tnat
+\\
+  C[e] \rrTEstar \valueerror
+\end{array}}|
+
+Worse yet, evaluation can "go wrong" without signaling an error.
+For one example, consider what happens at runtime when a dynamically-typed
+ context adds a negative number to a monotonically increasing counter.
+
+@; TODO need more examples of silent failures
+
+Note that an equivalent way to define the same semantics is translate expressions
+ to the syntax in @figure-ref{fig:dyn-lang} by removing type annotations, then
+ re-using the @${\rrD} reduction relation.
+This alternative is similar to what TypeScript implements. @; TODO cite
+@; TODO and it influences the monitor-free design
+
+
+@section{Natural Embedding}
 @;
 @;The natural embedding uses boundary type annotations to check values at run-time.
 @;@Figure-ref{fig:natural-embedding} presents a limited kind of natural embedding.
