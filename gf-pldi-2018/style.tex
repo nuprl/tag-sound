@@ -107,24 +107,38 @@ showstringspaces=false            %
 
 \newcommand{\rrD}{\mathrel{\textsc{d}}}
 \newcommand{\rrS}{\mathrel{\textsc{s}}}
-\newcommand{\rrTE}{\mathrel{\textsc{d}^+}}
+\newcommand{\rrEE}{\mathrel{\textsc{d}^+}}
 \newcommand{\rrNE}{\mathrel{\textsc{s}^+}}
+\newcommand{\rrLE}{\mathrel{\textsc{l}}}
+\newcommand{\rrFE}{\mathrel{\textsc{f}}}
+\newcommand{\rrKE}{\mathrel{\textsc{k}}}
+
 \newcommand{\rrDstar}{\rightarrow^{*}_{\rrD}}
 \newcommand{\rrSstar}{\rightarrow^{*}_{\rrS}}
-\newcommand{\rrTEstar}{\rightarrow^{*}_{\rrTE}}
+\newcommand{\rrEEstar}{\rightarrow^{*}_{\rrEE}}
 \newcommand{\rrNEstar}{\rightarrow^{*}_{\rrNE}}
+\newcommand{\rrLEstar}{\rightarrow^{*}_{\rrLE}}
+\newcommand{\rrFEstar}{\rightarrow^{*}_{\rrFE}}
+\newcommand{\rrKEstar}{\rightarrow^{*}_{\rrKE}}
 
 \newcommand{\vevalD}{\mathsf{eval}_{\rrD}}
 \newcommand{\vevalS}{\mathsf{eval}_{\rrS}}
-\newcommand{\vevalTE}{\mathsf{eval}_{\rrTE}}
+\newcommand{\vevalEE}{\mathsf{eval}_{\rrEE}}
+\newcommand{\vevalNE}{\mathsf{eval}_{\rrNE}}
+\newcommand{\vevalLE}{\mathsf{eval}_{\rrLE}}
+\newcommand{\vevalFE}{\mathsf{eval}_{\rrFE}}
+\newcommand{\vevalKE}{\mathsf{eval}_{\rrKE}}
 
 \newcommand{\vfst}{\mathsf{fst}}
 \newcommand{\vsnd}{\mathsf{snd}}
 \newcommand{\vref}[1]{\textbf{ref}~#1}
 \newcommand{\vlam}[2]{\lambda #1.\, #2}
 \newcommand{\efst}[1]{\vfst\,#1}
+\newcommand{\esnd}[1]{\vsnd\,#1}
 \newcommand{\vpair}[2]{\langle #1,#2 \rangle}
-\newcommand{\vmonfun}[2]{\mathsf{mon}\,#1\,#2}
+\newcommand{\vmon}[2]{\mathsf{mon}\,#1\,#2}
+\newcommand{\vmonfun}[2]{\vmon{#1}{#2}}
+\newcommand{\vmonpair}[2]{\vmon{#1}{#2}}
 \newcommand{\vunop}{\emph{op}^1}
 \newcommand{\vbinop}{\emph{op}^2}
 \newcommand{\vbnd}{\emph{bnd}}
@@ -147,8 +161,11 @@ showstringspaces=false            %
 \newcommand{\dynstep}{\rightarrow_D}
 \newcommand{\welldyn}{\vdash}
 \newcommand{\wellsta}{\vdash}
-\newcommand{\wellTE}{\welldyn^+}
+\newcommand{\wellEE}{\welldyn^+}
 \newcommand{\wellNE}{\wellsta^+}
+\newcommand{\wellLE}{\wellsta^L}
+\newcommand{\wellFE}{\wellsta^F}
+\newcommand{\wellKE}{\wellsta^K}
 \newcommand{\typeerror}{\mathsf{TypeError}}
 \newcommand{\valueerror}{\mathsf{BoundaryError}}
 \newcommand{\bcost}[1]{\mathbf{C}(#1)}

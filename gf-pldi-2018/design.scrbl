@@ -173,23 +173,23 @@ The new rules ignore the type annotations on function parameters and
  boundary expressions; see @figure-ref{fig:type-erased-embedding} for the details.
 
 To prove that this semantics is @emph{term safe}, we define a judgment
- @${\Gamma \wellTE e} as an extension of the relation in @figure-ref{fig:dyn-lang}
+ @${\Gamma \wellEE e} as an extension of the relation in @figure-ref{fig:dyn-lang}
  that checks whether an expression is closed.
 After this addition, it is straightforward to prove that the evaluation
  of well-typed terms never reaches an undefined state:
 
 @theorem["type-erased safety"]{
-  If @${\cdot \wellsta e : \tau} then @${\cdot \wellTE e} and either:
+  If @${\cdot \wellsta e : \tau} then @${\cdot \wellEE e} and either:
 }
 @itemlist[
 @item{
-  @${e~\rrTEstar~v} and @${\cdot \wellTE v}
+  @${e~\rrEEstar~v} and @${\cdot \wellEE v}
 }
 @item{
-  @${e~\rrTEstar~\typeerror}
+  @${e~\rrEEstar~\typeerror}
 }
 @item{
-  @${e~\rrTEstar~\valueerror}
+  @${e~\rrEEstar~\valueerror}
 }
 @item{
   @${e} diverges
@@ -210,7 +210,7 @@ When ill-typed subterms are used in a larger context, it is possible for a
 \\
   \cdot \wellsta C[e] : \tnat
 \\
-  C[e] \rrTEstar \valueerror
+  C[e] \rrEEstar \valueerror
 \end{array}}|
 
 Worse yet, evaluation can "go wrong" without signaling an error.
@@ -265,34 +265,56 @@ In particular, this safety guarantees the absence of type errors in statically
 
 
 @; -----------------------------------------------------------------------------
-@;@section{Lazy Boundary Checks}
-@;
-@;First we deal with the linear-time cost of checking pairs at a boundary.
-@;The goal is to make this a near-constant cost.
-@;No more recursion.
-@;
-@;Can apply the same strategy used for functions.
-@;For functions we were forced to be lazy because it was impossible to check
-@; exhaustively.
-@;For pairs, laziness is the "right" choice.
-@;(Okay maybe this version isn't performant. I don't know. But it's on the
-@; road to a performant implementation.)
-@;
-@;Add new kind of value, new typing rules, new reduction relation.
-@;Figure to demonstrate.
-@;Instead of eagerly checking the pair, delay until reads.
-@;
-@;Note, could be far more expensive than just checking the pair, consider a function
-@; that performs two reads.
-@;The function is twice as slow with the new guards.
-@;
-@;@exact|{
-@; $$(\vlam{(x:\tpair{\tint}{\tint})}{(\efst{x} + \efst{x})})$$
-@;}|
-@;
-@;But this is arguably bad style, requires two data stucture accesses as well.
-@;Maybe a compiler should re-write (CSE) before inserting the tag checks.
-@;
+@section{The Lazy Embedding}
+@; TODO avoid saying "lazy", want to rename this
+
+@include-figure["fig:lazy-embedding.tex" "Lazy Embedding"]
+
+Remove recursion from @${\delta} with a new kind of monitor.
+Same strategy used for functions.
+Easy in our functional language, difficult in general,
+ need to add a new class of values with same API as the old,
+ probably need to change the language.
+
+@Figure-ref{fig:lazy-embedding} extends the syntax of the functional language
+ with monitors for pairs.
+The @${\delta} relation is extended with the obvious cases to check the
+ contents of monitored pairs at run-time.
+
+Note, could be far more expensive than just checking the pair, consider a function
+ that performs two reads.
+The function is twice as slow with the new guards.
+
+@exact|{
+ $$(\vlam{(x:\tpair{\tint}{\tint})}{(\efst{x} + \efst{x})})$$
+}|
+
+But this is arguably bad style, requires two data stucture accesses as well.
+Maybe a compiler should re-write (CSE) before inserting the tag checks.
+
+Can prove a safety theorem much like natural safety.
+
+@theorem["lazy safety"]{
+  If @${\cdot \wellsta e : \tau} then @${\cdot \wellLE e : \tau} and either:
+}
+@itemlist[
+@item{
+  @${e \rrLEstar v} and @${\cdot \wellLE v : \tau}
+}
+@item{
+  @${e \rrLEstar \typeerror}
+}
+@item{
+  @${e \rrLEstar \valueerror}
+}
+@item{
+  @${e} diverges
+}
+]
+
+Why bother printing this?
+
+
 @;@emph{Type soundness} does not change by making checks lazy,
 @; it only delays value errors from "immediately at the boundary" to
 @; "only until access".
