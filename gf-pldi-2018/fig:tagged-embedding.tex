@@ -40,4 +40,322 @@ $\begin{array}{l c l}
   \delta(\vsta, \tau, v) & = & \delta(\vchk, \tagof{\tau}, v)
 \end{array}$
 
+\fbox{$\Gamma \wellKE e$}
+\begin{mathpar}
+  \inferrule*{
+  }{
+    \Gamma \wellKE i
+  }
+
+  \inferrule*{
+    \Gamma \wellKE e_0
+    \\\\
+    \Gamma \wellKE e_1
+  }{
+    \Gamma \wellKE \vpair{e_0}{e_1}
+  }
+
+  \inferrule*{
+    x,\Gamma \wellKE e
+  }{
+    \Gamma \wellKE \vlam{x}{e}
+  }
+
+  \inferrule*{
+    \tann{x}{\tau},\Gamma \wellKE e : \kany
+  }{
+    \Gamma \wellKE \vlam{\tann{x}{\tau}}{e}
+  }
+
+  \inferrule*{
+    x \in \Gamma
+  }{
+    \Gamma \wellKE x
+  }
+
+  \inferrule*{
+    \tann{x}{\tau} \in \Gamma
+  }{
+    \Gamma \wellKE x
+  }
+
+  \inferrule*{
+    \Gamma \wellKE e_0
+    \\\\
+    \Gamma \wellKE e_1
+  }{
+    \Gamma \wellKE e_0~e_1
+  }
+
+  \inferrule*{
+    \Gamma \wellKE e
+  }{
+    \Gamma \wellKE \vunop~e
+  }
+
+  \inferrule*{
+    \Gamma \wellKE e_0
+    \\\\
+    \Gamma \wellKE e_1
+  }{
+    \Gamma \wellKE \vbinop~e_0~e_1
+  }
+
+  \inferrule*{
+    \Gamma \wellKE e : \tagof{\tau}
+  }{
+    \Gamma \wellKE \esta~\tau~e
+  }
+
+\end{mathpar}
+
+\medskip
+\fbox{$\Gamma \wellKE e : K$}
+\begin{mathpar}
+  \inferrule*{
+    i \in \naturals
+  }{
+    \Gamma \wellKE i : \knat
+  }
+
+  \inferrule*{
+  }{
+    \Gamma \wellKE i : \kint
+  }
+
+  \inferrule*{
+    \Gamma \wellKE e_0 : \kany
+    \\\\
+    \Gamma \wellKE e_1 : \kany
+  }{
+    \Gamma \wellKE \vpair{e_0}{e_1} : \kpair
+  }
+
+  \inferrule*{
+    x,\Gamma \wellKE e
+  }{
+    \Gamma \wellKE \vlam{x}{e} : \kfun
+  }
+
+  \inferrule*{
+    \tann{x}{\tau},\Gamma \wellKE e : \kany
+  }{
+    \Gamma \wellKE \vlam{\tann{x}{\tau}}{e} : \kfun
+  }
+
+  \inferrule*{
+    x \in \Gamma
+  }{
+    \Gamma \wellKE x : \kany
+  }
+
+  \inferrule*{
+    \tann{x}{\tau} \in \Gamma
+    \\\\
+    \tagof{\tau} = K
+  }{
+    \Gamma \wellKE x : K
+  }
+
+  \inferrule*{
+    \Gamma \wellKE e_0 : \kfun
+    \\\\
+    \Gamma \wellKE e_1 : \kany
+  }{
+    \Gamma \wellKE e_0~e_1 : \kany
+  }
+
+  \inferrule*{
+    \Gamma \wellKE e : \kpair
+  }{
+    \Gamma \wellKE \efst{e} : \kany
+  }
+
+  \inferrule*{
+    \Gamma \wellKE e : \kpair
+  }{
+    \Gamma \wellKE \esnd{e} : \kany
+  }
+
+  \inferrule*{
+    \Gamma \wellKE e_0 : K_0
+    \\\\
+    \Gamma \wellKE e_1 : K_1
+    \\\\
+    \Delta(\vbinop, K_0, K_1) = K
+  }{
+    \Gamma \wellKE \vbinop~e_0~e_1 : K
+  }
+
+  \inferrule*{
+    \Gamma \wellKE e
+    \\\\
+    \tagof{\tau} = K
+  }{
+    \Gamma \wellKE \edyn{\tau}{e} : K
+  }
+
+  \inferrule*{
+    \Gamma \wellKE e : K'
+  }{
+    \Gamma \wellKE \echk{K}{e} : K
+  }
+
+  \inferrule*{
+    \Gamma \wellKE e : K'
+    \\\\
+    K' \subk K
+  }{
+    \Gamma \wellKE e : K
+  }
+\end{mathpar}
+
+\fbox{$K \subk K$}
+\begin{mathpar}
+  \inferrule*{
+  }{
+    K \subk \kany
+  }
+
+  \inferrule*{
+  }{
+    \knat \subk \kint
+  }
+
+  \inferrule*{
+  }{
+    K \subk K
+  }
+\end{mathpar}
+
+\fbox{$\Gamma \welldyn e \carrow e$}
+\begin{mathpar}
+  \inferrule*{
+  }{
+    \Gamma \welldyn i \carrow i
+  }
+
+  \inferrule*{
+    \Gamma \welldyn e_0 \carrow e_0'
+    \\\\
+    \Gamma \welldyn e_1 \carrow e_1'
+  }{
+    \Gamma \welldyn \vpair{e_0}{e_1} \carrow \vpair{e_0'}{e_1'}
+  }
+
+  \inferrule*{
+    x,\Gamma \welldyn e \carrow e'
+  }{
+    \Gamma \welldyn \vlam{x}{e} \carrow \vlam{x}{e'}
+  }
+
+  \inferrule*{
+  }{
+    \Gamma \welldyn x \carrow x
+  }
+
+  \inferrule*{
+    \Gamma \welldyn e_0 \carrow e_0'
+    \\\\
+    \Gamma \welldyn e_1 \carrow e_1'
+  }{
+    \Gamma \welldyn e_0~e_1 \carrow e_0'~e_1'
+  }
+
+  \inferrule*{
+    \Gamma \welldyn e \carrow e'
+  }{
+    \Gamma \welldyn \eunop{e} \carrow \eunop{e'}
+  }
+
+  \inferrule*{
+    \Gamma \welldyn e_0 \carrow e_0'
+    \\\\
+    \Gamma \welldyn e_1 \carrow e_1'
+  }{
+    \Gamma \welldyn \ebinop{e_0}{e_1} \carrow \ebinop{e_0'}{e_1'}
+  }
+
+  \inferrule*{
+    \Gamma \wellsta e : \tau \carrow e'
+  }{
+    \Gamma \welldyn \esta{\tau}{e} \carrow \esta{\tau}{e'}
+  }
+
+\end{mathpar}
+
+\fbox{$\Gamma \wellsta e : \tau \carrow e$}
+\begin{mathpar}
+  \inferrule*{
+  }{
+    \Gamma \vdash i : \tnat \carrow i
+  }
+
+  \inferrule*{
+  }{
+    \Gamma \vdash i : \tint \carrow i
+  }
+
+  \inferrule*{
+    \Gamma \vdash e_0 : \tau_0 \carrow e_0'
+    \\\\
+    \Gamma \vdash e_1 : \tau_1 \carrow e_1'
+  }{
+    \Gamma \vdash \vpair{e_0}{e_1} : \tpair{\tau_0}{\tau_1} \carrow \vpair{e_0'}{e_1'}
+  }
+
+  \inferrule*{
+    \tann{x}{\tau},\Gamma \vdash e : \tau_c \carrow e'
+  }{
+    \Gamma \vdash \vlam{\tann{x}{\tau_d}}{e} : \tarr{\tau_d}{\tau_c} \carrow \vlam{\tann{x}{\tau}}{e'}
+  }
+
+  \inferrule*{
+  }{
+    \Gamma \vdash x : \tau \carrow x
+  }
+
+  \inferrule*{
+    \Gamma \vdash e_0 : \tarr{\tau_d}{\tau_c} \carrow e_0'
+    \\\\
+    \Gamma \vdash e_1 : \tau_d \carrow e_1'
+    \\\\
+    \tagof{\tau_c} = K
+  }{
+    \Gamma \vdash e_0~e_1 : \tau_c \carrow \echk{K}{e_0'~e_1'}
+  }
+
+  \inferrule*{
+    \Gamma \vdash e_0 : \tau_0 \carrow e_0'
+    \\\\
+    \Gamma \vdash e_1 : \tau_1 \carrow e_1'
+    \\\\
+    \Delta(\vbinop, \tau_0, \tau_1) = \tau
+  }{
+    \Gamma \vdash \vbinop~e_0~e_1 : \tau \carrow \vbinop~e_0'~e_1'
+  }
+
+  \inferrule*{
+    \Gamma \vdash e : \tpair{\tau_0}{\tau_1} \carrow e'
+    \\\\
+    \tagof{\tau_0} = K
+  }{
+    \Gamma \vdash \efst{e} : \tau_0 \carrow \echk{K}{\efst{e'}}
+  }
+
+  \inferrule*{
+    \Gamma \vdash e : \tpair{\tau_0}{\tau_1} \carrow e'
+    \\\\
+    \tagof{\tau_1} = K
+  }{
+    \Gamma \vdash \esnd{e} : \tau_1 \carrow \echk{K}{\esnd{e'}}
+  }
+
+  \inferrule*{
+    \Gamma \vdash e \carrow e'
+  }{
+    \Gamma \vdash \edyn{\tau}{e} : \tau \carrow \edyn{\tau}{e'}
+  }
+
+\end{mathpar}
 }

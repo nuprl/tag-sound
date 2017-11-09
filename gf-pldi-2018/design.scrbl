@@ -165,12 +165,12 @@ Safety for dynamically-typed expressions is analogous; just replace
 @; -----------------------------------------------------------------------------
 @section{The Type-Erased Embedding}
 
-@include-figure["fig:type-erased-embedding.tex" "Type-Erased Embedding"]
+@include-figure["fig:erased-delta.tex" "Type-Erased Embedding"]
 
 One straightforward way to define a semantics for the mixed language is to
  extend the reduction relation for dynamically typed expressions.
 The new rules ignore the type annotations on function parameters and
- boundary expressions; see @figure-ref{fig:type-erased-embedding} for the details.
+ boundary expressions; see @figure-ref{fig:erased-delta} for the details.
 
 To prove that this semantics is @emph{term safe}, we define a judgment
  @${\Gamma \wellEE e} as an extension of the relation in @figure-ref{fig:dyn-lang}
@@ -233,9 +233,9 @@ This alternative is similar to what TypeScript implements.
 @; TODO note somewhere that could get type soundness by NO SHARING,
 @;      but laffer curve
 
-@include-figure["fig:natural-embedding.tex" "Natural Embedding"]
+@include-figure["fig:natural-delta.tex" "Natural Embedding"]
 
-@Figure-ref{fig:natural-embedding} extends the multi language with
+@Figure-ref{fig:natural-delta} extends the multi language with
  monitor values.
 A monitor @${(\vmonfun{\tau}{v})} associates a value with a type.
 
@@ -265,10 +265,9 @@ In particular, this safety guarantees the absence of type errors in statically
 
 
 @; -----------------------------------------------------------------------------
-@section{The Lazy Embedding}
-@; TODO avoid saying "lazy", want to rename this
+@section{The Delayed Embedding}
 
-@include-figure["fig:lazy-embedding.tex" "Lazy Embedding"]
+@include-figure["fig:delayed-delta.tex" "Lazy Embedding"]
 
 Remove recursion from @${\delta} with a new kind of monitor.
 Same strategy used for functions.
@@ -276,7 +275,7 @@ Easy in our functional language, difficult in general,
  need to add a new class of values with same API as the old,
  probably need to change the language.
 
-@Figure-ref{fig:lazy-embedding} extends the syntax of the functional language
+@Figure-ref{fig:delayed-delta} extends the syntax of the functional language
  with monitors for pairs.
 The @${\delta} relation is extended with the obvious cases to check the
  contents of monitored pairs at run-time.
@@ -324,13 +323,12 @@ No matter where it happens.
 
 
 @section{The Forgetful Embedding}
-
-@include-figure["fig:forgetful-embedding.tex" "Forgetful Embedding"]
+@include-figure["fig:forgetful-delta.tex" "Forgetful Embedding"]
 
 Adopt rationale proposed by Greenberg, contracts exist to make partial
  operations total.
 
-@Figure-ref{fig:forgetful-embedding} shows the changes to the delta relation.
+@Figure-ref{fig:forgetful-delta} shows the changes to the delta relation.
 Crossing boundaries collapses monitors.
 Lost invariant about boundaries, so function application does extra checking.
 Typing rules axiomative monitors.
@@ -356,17 +354,13 @@ Soundness is the same
 
 
 @section{The Tagged Embedding}
-
-@include-figure["fig:tagged-embedding.tex" "Tagged Embedding"]
-
-@figure*["fig:tagged-extras" "Tagged Extras"
-  @exact|{\input{fig:tagged-extras.tex}}|]
+@include-figure["fig:tagged-delta.tex" "Tagged Embedding"]
 
 After collapsing monitors, left with a small number of checks only within
  typed code.
 Introduce a type system to clarify 
 
-Can remove monitors by extending syntax as shown in @figure-ref{fig:tagged-embedding}.
+Can remove monitors by extending syntax as shown in @figure-ref{fig:tagged-delta}.
 Has N parts.
 
 Type system declares when a term is well-tagged.
