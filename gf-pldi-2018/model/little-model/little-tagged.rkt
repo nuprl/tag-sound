@@ -389,7 +389,7 @@
   [(theorem:tagged-safety e τ)
    ,(or (not (judgment-holds (well-typed () e τ)))
         (let ([K (term #{type->tag τ})])
-          (safe-step* (term #{tagged-completion/typed# e ,K}) K is-error? assert-well-typed sta-boundary-step)))])
+          (safe-step* (term #{tagged-completion/typed# e τ}) K is-error? assert-well-typed sta-boundary-step)))])
 
 (define (assert-well-dyn t dont-care)
   (unless (judgment-holds (well-dyn/tagged () ,t))
@@ -414,10 +414,10 @@
    (judgment-holds (tagged-completion/dyn () e e_+))])
 
 (define-metafunction LK
-  tagged-completion/typed# : e K -> e
-  [(tagged-completion/typed# e K)
+  tagged-completion/typed# : e τ -> e
+  [(tagged-completion/typed# e τ)
    e_+
-   (judgment-holds (tagged-completion/typed () e K e_+))])
+   (judgment-holds (tagged-completion/typed () e τ e_+))])
 
 (define-metafunction LK
   tagged-erasure# : any -> any
@@ -462,13 +462,6 @@
    --- C-Fun-0
    (tagged-completion/dyn Γ (λ (x) e) (λ (x) e_c))]
   [
-   (where Γ_x ((x : τ) Γ))
-   (infer-type Γ_x e τ_cod)
-   (where K_cod #{type->tag τ_cod})
-   (tagged-completion/typed Γ_x e K_cod e_c)
-   --- C-Fun-1
-   (tagged-completion/dyn Γ (λ (x : τ) e) (λ (x : τ) e_c))]
-  [
    ;; No need to check Γ, already know term is closed,
    ;;  and its safe for dyn contexts to reference typed variables
    --- C-Var
@@ -488,86 +481,78 @@
    --- C-Unop
    (tagged-completion/dyn Γ (UNOP e) (UNOP e_c))]
   [
-   (where K #{type->tag τ})
-   (tagged-completion/typed Γ e K e_c)
+   (tagged-completion/typed Γ e τ e_c)
    --- C-Static
    (tagged-completion/dyn Γ (static τ e) (static τ e_c))])
 
 (define-judgment-form LK
   #:mode (tagged-completion/typed I I I O)
-  #:contract (tagged-completion/typed Γ e K e)
+  #:contract (tagged-completion/typed Γ e τ e)
   [
    --- K-Int
-   (tagged-completion/typed Γ integer K integer)]
+   (tagged-completion/typed Γ integer _ integer)]
   [
    (infer-type Γ (× e_0 e_1) (× τ_0 τ_1))
-   (where K_0 #{type->tag τ_0})
-   (where K_1 #{type->tag τ_1})
-   (tagged-completion/typed Γ e_0 K_0 e_0c)
-   (tagged-completion/typed Γ e_1 K_1 e_1c)
+   (tagged-completion/typed Γ e_0 τ_0 e_0c)
+   (tagged-completion/typed Γ e_1 τ_1 e_1c)
    --- K-Pair
-   (tagged-completion/typed Γ (× e_0 e_1) K (× e_0c e_1c))]
-  [
-   (where Γ_x (x Γ))
-   (tagged-completion/dyn Γ_x e e_c)
-   --- K-Fun-0
-   (tagged-completion/typed Γ (λ (x) e) K (λ (x) e_c))]
+   (tagged-completion/typed Γ (× e_0 e_1) _ (× e_0c e_1c))]
   [
    (where Γ_x ((x : τ) Γ))
    (infer-type Γ_x e τ_cod)
-   (where K_cod #{type->tag τ_cod})
-   (tagged-completion/typed Γ_x e K_cod e_c)
+   (tagged-completion/typed Γ_x e τ_cod e_c)
    --- K-Fun-1
-   (tagged-completion/typed Γ (λ (x : τ) e) K (λ (x : τ) e_c))]
+   (tagged-completion/typed Γ (λ (x : τ) e) _ (λ (x : τ) e_c))]
   [
    ;; Doesn't matter if `x` or `x : τ` are in `Γ`
    --- K-Var
-   (tagged-completion/typed Γ x K x)]
+   (tagged-completion/typed Γ x _ x)]
   [
-   (tagged-completion/typed Γ e_0 Fun e_0c)
-   (infer-type Γ e_0 (→ τ_dom _))
-   (where K_dom #{type->tag τ_dom})
-   (tagged-completion/typed Γ e_1 K_dom e_1c)
+   (infer-type Γ e_0 (→ τ_dom τ_cod))
+   (tagged-completion/typed Γ e_0 (→ τ_dom τ_cod) e_0c)
+   (tagged-completion/typed Γ e_1 τ_dom e_1c)
+   ;; assert that τ_cod <: τ ??? should always hold because well-typed
+   (where K #{type->tag τ})
    --- K-App
-   (tagged-completion/typed Γ (e_0 e_1) K (check K (e_0c e_1c)))]
+   (tagged-completion/typed Γ (e_0 e_1) τ (check K (e_0c e_1c)))]
   [
    (tagged-completion/typed Γ e_0 Nat e_0c)
    (tagged-completion/typed Γ e_1 Nat e_1c)
    --- K-Binop-0
    (tagged-completion/typed Γ (BINOP e_0 e_1) Nat (BINOP e_0c e_1c))]
   [
-   (where #false #{sub-tag# K Nat})
+   (where #false #{sub-tag# #{type->tag τ} Nat})
    (tagged-completion/typed Γ e_0 Int e_0c)
    (tagged-completion/typed Γ e_1 Int e_1c)
    --- K-Binop-1
-   (tagged-completion/typed Γ (BINOP e_0 e_1) K (BINOP e_0c e_1c))]
+   (tagged-completion/typed Γ (BINOP e_0 e_1) τ (BINOP e_0c e_1c))]
   [
-   (tagged-completion/typed Γ e Pair e_c)
+   (infer-type Γ e (× τ_0 τ_1))
+   (tagged-completion/typed Γ e (× τ_0 τ_1) e_c)
+   (where K #{type->tag τ})
    --- K-fst
-   (tagged-completion/typed Γ (fst e) K (check K (fst e_c)))]
+   (tagged-completion/typed Γ (fst e) τ (check K (fst e_c)))]
   [
-   (tagged-completion/typed Γ e Pair e_c)
+   (infer-type Γ e (× τ_0 τ_1))
+   (tagged-completion/typed Γ e (× τ_0 τ_1) e_c)
+   (where K #{type->tag τ})
    --- K-snd
-   (tagged-completion/typed Γ (snd e) K (check K (snd e_c)))]
+   (tagged-completion/typed Γ (snd e) τ (check K (snd e_c)))]
   [
    (tagged-completion/dyn Γ e e_c)
    ---
-   (tagged-completion/typed Γ (dynamic τ e) K (dynamic τ e_c))]
-  [
-   (tagged-completion/typed Γ e Any e_c)
-   ---
-   (tagged-completion/typed Γ (check K e) _ (check K e_c))])
+   (tagged-completion/typed Γ (dynamic τ e) _ (dynamic τ e_c))])
 
 (module+ test
   (test-case "tagged-completion/typed"
     (check-true (redex-match? LK e
       (term (fst (dynamic (× (× Int Int) Int) (× 0 3))))))
     (check-equal?
-      (term #{tagged-completion/typed# (fst (dynamic (× (× Int Int) Int) (× 0 3))) Pair})
+      (term #{tagged-completion/typed# (fst (dynamic (× (× Int Int) Int) (× 0 3))) (× Int Int)})
       (term (check Pair (fst (dynamic (× (× Int Int) Int) (× 0 3))))))
-    (check LK=?
-      (term #{tagged-completion/typed# ((λ (x : Int) (× x x)) (fst (dynamic (× (× Int Int) Int) (× 0 3)))) Pair})
-      (term (check Pair ((λ (x : Int) (× x x)) (check Int (fst (dynamic (× (× Int Int) Int) (× 0 3))))))))
+    ;(check LK=?
+    ;  (term #{tagged-completion/typed# ((λ (x : Int) (× x x)) (fst (dynamic (× (× Int Int) Int) (× 0 3)))) (× Int Int)})
+    ;  (term (check Pair ((λ (x : Int) (× x x)) (check Int (fst (dynamic (× (× Int Int) Int) (× 0 3))))))))
   )
 )
 
