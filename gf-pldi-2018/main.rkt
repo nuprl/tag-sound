@@ -30,6 +30,7 @@
   proof
   proof-sketch
   include-figure
+  include-figure*
 
   ~a
 
@@ -188,8 +189,22 @@
 (define (include-figure ps caption)
   (unless (and (string? ps) (file-exists? ps))
     (raise-argument-error 'include-figure "(and/c string? file-exists?)" ps))
-  (define tag (path->string (path-replace-extension ps #"")))
-  (figure tag caption (exact (format "\\input{~a}" ps))))
+  (define tag (path-string->tag ps))
+  (define tex (path-string->input ps))
+  (figure tag caption tex))
+
+(define (include-figure* ps caption)
+  (unless (and (string? ps) (file-exists? ps))
+    (raise-argument-error 'include-figure* "(and/c string? file-exists?)" ps))
+  (define tag (path-string->tag ps))
+  (define tex (path-string->input ps))
+  (figure* tag caption tex))
+
+(define (path-string->tag ps)
+  (path->string (path-replace-extension ps #"")))
+
+(define (path-string->input ps)
+  (exact (format "\\input{~a}" ps)))
 
 (define (definition term . defn*)
   (make-thing "Definition" term defn*))

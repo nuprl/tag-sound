@@ -359,6 +359,9 @@ Soundness is the same
 
 @include-figure["fig:tagged-embedding.tex" "Tagged Embedding"]
 
+@figure*["fig:tagged-extras" "Tagged Extras"
+  @exact|{\input{fig:tagged-extras.tex}}|]
+
 After collapsing monitors, left with a small number of checks only within
  typed code.
 Introduce a type system to clarify 

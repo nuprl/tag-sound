@@ -1,6 +1,6 @@
 PAPER=gf-pldi-2018
 PKG=gf-pldi-2018
-SCRIBBLE_FLAGS=++style texstyle.tex ++extra mathpartir.sty ++extra fig:dyn-lang.tex ++extra fig:sta-lang.tex ++extra fig:mixed-lang.tex ++extra fig:type-erased-embedding.tex ++extra fig:natural-embedding.tex ++extra fig:lazy-embedding.tex ++extra fig:forgetful-embedding.tex ++extra fig:tagged-embedding.tex
+SCRIBBLE_FLAGS=++style texstyle.tex ++extra mathpartir.sty ++extra fig:dyn-lang.tex ++extra fig:sta-lang.tex ++extra fig:mixed-lang.tex ++extra fig:type-erased-embedding.tex ++extra fig:natural-embedding.tex ++extra fig:lazy-embedding.tex ++extra fig:forgetful-embedding.tex ++extra fig:tagged-embedding.tex ++extra fig:tagged-extras.tex
 PLT_FLAGS=PLTSTDERR="error info@gtp-plot"
 
 pdf: compile texstyle.tex
