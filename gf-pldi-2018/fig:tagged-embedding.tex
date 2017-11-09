@@ -1,0 +1,48 @@
+{\flushleft
+$\begin{array}{l c l}
+  e & \Coloneqq & \ldots \mid \echk~K~e
+  %% TODO static & dynamic boundaries without goals?
+\\
+  K & \Coloneqq & \knat \mid \kint \mid \kpair \mid \kfun \mid \kany
+\end{array}$
+
+\medskip
+\fbox{$\tagof{\tau} = \kappa$}
+$\begin{array}{l c l}
+  \tagof{\tnat} & = & \knat
+\\
+  \tagof{\tint} & = & \kint
+\\
+  \tagof{\tpair{\tau_0}{\tau_1}} & = & \kpair
+\\
+  \tagof{\tfun{\tau_d}{\tau_c}} & = & \kfun
+\end{array}$
+
+\medskip
+\fbox{$\delta(\vchk, K, v) = A$}
+$\begin{array}{l c l}
+  \delta(\vchk, \knat, i) & = & i \qquad \emph{if}~~~~i \in \naturals
+\\
+  \delta(\vchk, \kint, i) & = & i
+\\
+  \delta(\vchk, \kpair, \vpair{v_0}{v_1}) & = & \vpair{v_0}{v_1}
+\\
+  \delta(\vchk, \kfun, \vlam{x}{e}) & = & \vlam{x}{e}
+\\
+  \delta(\vchk, \kfun, \vlam{\tann{x}{\tau}}{e}) & = & \vlam{\tann{x}{\tau}}{e}
+\\
+  \delta(\vchk, \kany, v) & = & v
+\\
+  \delta(\vchk, K, v) & = & \valueerror
+\\[0.8ex]
+  \delta(\vdyn, \tau, v) & = & \delta(\vchk, \tagof{\tau}, v)
+\\
+  \delta(\vsta, \tau, v) & = & \delta(\vchk, \tagof{\tau}, v)
+\end{array}$
+
+\medskip
+\fbox{$\Gamma \vdash e : K$}
+%% well-tagged
+
+
+}

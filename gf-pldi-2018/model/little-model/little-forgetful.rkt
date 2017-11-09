@@ -111,7 +111,7 @@
          (static τ_cod ((λ (x : τ_dom) e) v_+))
          E-App-2.0
          (where (mon (→ _ τ_cod) (λ (x : τ_dom) e)) v_0)
-         (where v_+ #{static->dynamic τ_dom v_1}))
+         (where v_+ #{dynamic->static τ_dom v_1}))
     (--> (v_0 v_1)
          BE
          E-App-2.1

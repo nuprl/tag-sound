@@ -17,7 +17,13 @@ $\begin{array}{l c l}
 \medskip
 \fbox{$\delta(\vbnd, \tau, v) = A$}
 $\begin{array}{l c l}
-  \delta(\vsta, \tau_d \tarrow \tau_c, v) & = & \vmonfun{\tau_d \tarrow \tau_c}{v}
+  \delta(\vsta, \tau_d \tarrow \tau_c, v) & = & \vmonfun{(\tau_d \tarrow \tau_c)}{v}
+\\
+  \delta(\vsta, \tpair{\tau_0}{\tau_1}, \vpair{v_0}{v_1}) & = & \vpair{v_0^+}{v_1^+}
+\\
+  \hfill\emph{where} & v_0^+ & = \delta(\vsta, \tau_0, v_0)
+\\
+  \hfill\emph{and} & v_1^+ & = \delta(\vsta, \tau_1, v_1)
 \\
   \delta(\vsta, \tau, v) & = & v
 \\[0.8ex]
@@ -25,14 +31,13 @@ $\begin{array}{l c l}
 \\
   \delta(\vdyn, \tint, i) & = & i
 \\
+  \delta(\vdyn, \tau_d \tarrow \tau_c, v) & = & \vmonfun{(\tau_d \tarrow \tau_c)}{v}
+\\ \hfill\emph{where} & & \emph{proc?}(v)
+\\
   \delta(\vdyn, \tpair{\tau_0}{\tau_1}, \vpair{v_0}{v_1}) & = & \vpair{v_0^+}{v_1^+}
-\\
-  \hfill\emph{where} & v_0^+ & = \delta(\vdyn, \tau_0, v_0)
-\\
-  \hfill\emph{and} & v_1^+ & = \delta(\vdyn, \tau_1, v_1)
+\\ \hfill\emph{where} & v_0^+ & = \delta(\vdyn, \tau_0, v_0)
+\\ \hfill\emph{and} & v_1^+ & = \delta(\vdyn, \tau_1, v_1)
 \\[0.2ex]
-  \delta(\vdyn, \tau_d \tarrow \tau_c, \vlam{x}{e}) & = & \vmonfun{\tau_d \tarrow \tau_c}{\vlam{x}{e}}
-\\
   \delta(\vdyn, \tau, v) & = & \valueerror
 \end{array}$
 

@@ -198,18 +198,10 @@
 (define sta-step
   (reduction-relation LK
     #:domain A
-    #;(--> (v_0 v_1)
-         BE
-         E-App-0.0
-         (where (λ (x : τ) e) v_0)
-         (where K #{type->tag τ})
-         (where BE #{do-check K v_1}))
     (--> (v_0 v_1)
          e_subst
          E-App-0.0
          (where (λ (x : τ) e) v_0)
-         #;(where K #{type->tag τ})
-         #;(where v_+ #{do-check K v_1})
          (where v_+ v_1)
          (where e_subst (substitute e x v_+)))
     (--> (v_0 v_1)

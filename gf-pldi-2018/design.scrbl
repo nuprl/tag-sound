@@ -228,7 +228,7 @@ This alternative is similar to what TypeScript implements.
 
 
 @; -----------------------------------------------------------------------------
-@section{Natural Embedding}
+@section{The Natural Embedding}
 
 @; TODO note somewhere that could get type soundness by NO SHARING,
 @;      but laffer curve
@@ -312,67 +312,88 @@ Can prove a safety theorem much like natural safety.
 }
 ]
 
-Why bother printing this?
+Same soundness, but different behaviors!
+@emph{Type soundness} does not change by making checks lazy,
+ it only delays value errors from "immediately at the boundary" to
+ "only until access".
+Allows somewhat latent type errors,
+ but nothing serious because if an access happens to read a bad value,
+ this will be reported.
+No matter where it happens.
+@; Gradual guarantee?
 
 
-@;@emph{Type soundness} does not change by making checks lazy,
-@; it only delays value errors from "immediately at the boundary" to
-@; "only until access".
-@;Allows somewhat latent type errors,
-@; but nothing serious because if an access happens to read a bad value,
-@; this will be reported.
-@;No matter where it happens.
-@;
-@;
-@;@section{Forgetful Monitors}
-@;
-@;Previous step was uncontroversial in terms of soundness,
-@; questionable in terms of performance.
-@;Now going further, definitely to gain performance and lose something
-@; of soundness (though the same theorem can be proved).
-@;
-@;New semantics for monitors, "mon mon" reduces to "mon".
-@;This is the forgetful space-efficient semantics formalized by Greenberg.
-@;
-@;Quick discussion about how this is sound?
-@;Probably obvious, but probably good to give intuition for the tech report proof.
-@;
-@;
-@;@section{Removing Monitors}
-@;
-@;Another controversial step.
-@;Replace monitors with inlined checks.
-@;Only rewrite in typed code.
-@;
-@;Two rules:
-@;@itemlist[
-@;@item{
-@;  Typed code that @emph{reads} from a possibly-untyped value must tag-check
-@;   the result.
-@;}
-@;@item{
-@;  Typed values that receive @emph{writes} from possible-untyped contexts must
-@;   be prepared to accept any kind of input.
-@;}
-@;]
-@;
-@;For reads, the solution is to insert a check between a data structure and
-@; its clients.
-@;For writes in the form of function application, the function must tag-check
-@; its input.
-@;Other writes --- for example writes to a mutable data structure --- do not
-@; need to check their input provided the language runtime supports writing
-@; any kind of value to the data structure (should be no problem in a dynamically-typed language).
-@;
+@section{The Forgetful Embedding}
+
+@include-figure["fig:forgetful-embedding.tex" "Forgetful Embedding"]
+
+Adopt rationale proposed by Greenberg, contracts exist to make partial
+ operations total.
+
+@Figure-ref{fig:forgetful-embedding} shows the changes to the delta relation.
+Crossing boundaries collapses monitors.
+Lost invariant about boundaries, so function application does extra checking.
+Typing rules axiomative monitors.
+
+Soundness is the same
+@theorem["forgetful safety"]{
+  If @${\cdot \wellsta e : \tau} then @${\cdot \wellFE e : \tau} and either:
+}
+@itemlist[
+@item{
+  @${e \rrFEstar v} and @${\cdot \wellFE v : \tau}
+}
+@item{
+  @${e \rrFEstar \typeerror}
+}
+@item{
+  @${e \rrFEstar \valueerror}
+}
+@item{
+  @${e} diverges
+}
+]
+
+
+@section{The Tagged Embedding}
+
+@include-figure["fig:tagged-embedding.tex" "Tagged Embedding"]
+
+After collapsing monitors, left with a small number of checks only within
+ typed code.
+Introduce a type system to clarify 
+
+Can remove monitors by extending syntax as shown in @figure-ref{fig:tagged-embedding}.
+Has N parts.
+
+Type system declares when a term is well-tagged.
+
+Static rewriting converts a well-typed program to a well-tagged program
+ by inserting checks in typed code.
+
+Reduction relation implements the tag checking.
+
+Intuition:
+@itemlist[
+@item{
+  Typed code that @emph{reads} from a possibly-untyped value must tag-check
+   the result.
+}
+@item{
+  Typed values that receive @emph{writes} from possible-untyped contexts must
+   be prepared to accept any kind of input.
+}
+]
+
+For reads, the solution is to insert a check between a data structure and its clients.
+For writes in the form of function application, the function must tag-check its input.
+Other writes --- for example writes to a mutable data structure --- do not
+ need to check their input provided the language runtime supports writing
+ any kind of value to the data structure (should be no problem in a dynamically-typed language).
+
 @;More efficient.
 @;Loses codomain errors in untyped code.
 @;Does more checks than necessary in typed code.
-@;
-@;
-@;@section{Further Improvements}
-@;
-@;@; trusted cod
-@;@; already-checked dom (unify?)
-@;
-@;Redundant tag checks, remove.
-@;Slogan is, @emph{you can trust the tags}.
+
+@; ... suffers all the problems of the lazy and forgetful,
+@; ... gains significant performance?

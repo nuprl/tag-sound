@@ -1,5 +1,5 @@
 #lang gf-pldi-2018
-@title[#:tag "sec:implementation"]{Scaling the Model}
+@title[#:tag "sec:implementation"]{Scaling the Model to an Implementation}
 
 @; Purpose: lessons of tags for a real language,
 @;   if you try extension XXX, here's what to look out for.
@@ -36,3 +36,11 @@ Did not implement for objects and classes,
 PLT Redex, see tech report?
 
 Modules, require provide, store.
+
+@;@section{Further Improvements}
+@;
+@;@; trusted cod
+@;@; already-checked dom (unify?)
+@;
+@;Redundant tag checks, remove.
+@;Slogan is, @emph{you can trust the tags}.
