@@ -28,6 +28,13 @@ First implementation of the forgetful, first-order embedding.
 @;
 @; 2017-11-05 : trouble reverse-engineering the model, whence the story
 
+@; retic calls it "transient" as opposed to the "guarded" natural embedding.
+@; we aren't saying "transient" because believe it confuses two things,
+@; - forgetting types
+@; - only tag-checks
+@;
+@; BUT I STILL DONT HAVE A NAME
+
 @; Question: does reticulated follow the model?
 @;  Yes basically. Something's wrong checking [] twice but the same problem
 @;   doesn't happen with integers so I guess its fine.
