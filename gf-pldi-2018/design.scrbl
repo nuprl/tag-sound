@@ -47,11 +47,6 @@ For any closed expression @${e}, the answer @${\vevalD(e)} is well-defined:
 }
 ]
 
-@definition["divergence"]{
-  An expression @${e} diverges if for all @${e'} such that @${e~\rrDstar~e'}
-   there exists an @${e''} such that @${e'~\rrD~e''}
-}
-
 @proof-sketch{
   By progress and preservation lemmas for @${\cdot \welldyn e}
    and the @${\rrD} relation.
@@ -163,7 +158,7 @@ Safety for dynamically-typed expressions is analogous; just replace
 
 
 @; -----------------------------------------------------------------------------
-@section{The Type-Erased Embedding}
+@section{The Erased Embedding}
 
 @include-figure["fig:erased-delta.tex" "Type-Erased Embedding"]
 
@@ -266,7 +261,6 @@ In particular, this safety guarantees the absence of type errors in statically
 
 @; -----------------------------------------------------------------------------
 @section{The Delayed Embedding}
-
 @include-figure["fig:delayed-delta.tex" "Lazy Embedding"]
 
 Remove recursion from @${\delta} with a new kind of monitor.

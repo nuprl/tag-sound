@@ -8,8 +8,6 @@
   good
   language
   MMT
-  L_D
-  L_S
   well_D
   well_S
   step_D
@@ -234,12 +232,6 @@
 
 (define (make-proof elem*)
   (para #:style "proof" elem*))
-
-(define L_D
-  (bold "LD"))
-
-(define L_S
-  (bold "LS"))
 
 (define well_D
   ($ "\\welldyn"))

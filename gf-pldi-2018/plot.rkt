@@ -13,7 +13,8 @@
   tr-color-sample
   NUM-TR
   X-MAX
-  overhead-plot*)
+  overhead-plot*
+  models-roadmap)
 
 (require
   file/glob
@@ -21,8 +22,7 @@
   gtp-plot/typed-racket-info
   with-cache
   racket/runtime-path
-  (only-in pict
-    filled-rounded-rectangle)
+  pict
   gtp-plot/util
   (only-in racket/string
     string-prefix?)
@@ -166,6 +166,36 @@
     (overhead-plot (map make-typed-racket-info x))]
    [else
     (raise-argument-error 'data->plot "unrecognized data format" x)]))
+
+(define (models-roadmap #:D dyn-name
+                        #:S sta-name
+                        #:M mixed-name
+                        #:E erased-name
+                        #:N natural-name
+                        #:L delayed-name
+                        #:F forgetful-name
+                        #:K tagged-name)
+  (define (name->pict str)
+    (text str (cons 'bold '())))
+  (define D (name->pict dyn-name))
+  (define S (name->pict sta-name))
+  (define M (name->pict mixed-name))
+  (define E (name->pict erased-name))
+  (define N (name->pict natural-name))
+  (define L (name->pict delayed-name))
+  (define F (name->pict forgetful-name))
+  (define K (name->pict tagged-name))
+  (define empty (blank 0 0))
+  (define tree
+    (vc-append 8
+      (hb-append 20 D S)
+      M
+      (hb-append 35 N E)
+      (hb-append 10 empty L)
+      (hb-append 10 empty F)
+      K))
+  empty)
+
 
 ;; =============================================================================
 
