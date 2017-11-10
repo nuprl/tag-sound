@@ -1,15 +1,20 @@
 \begin{flushleft}
 
-\begin{minipage}[t]{0.34\textwidth}
+\begin{minipage}[t]{0.44\textwidth}
 \fbox{Language $\langK$} extends $\langM$:\\
 $\begin{array}{l c l}
-  e & \Coloneqq & \ldots \mid \echk~K~e
-  %% TODO static & dynamic boundaries without goals?
+  e & \Coloneqq & \ldots \mid \edyn{\kany}{e} \mid \esta{\kany}{e} \mid
+\\ & & \echk~K~e
 \\
   K & \Coloneqq & \knat \mid \kint \mid \kpair \mid \kfun \mid \kany
+\\
+  E & \Coloneqq & \bullet \mid E~e \mid v~E \mid
+                  \vpair{E}{e} \mid \vpair{v}{E} \mid \vunop~E \mid
+\\ & &            \ebinop{E}{e} \mid \ebinop{v}{E} \mid
+\\ & & \edyn{\kany}{E} \mid \esta{\kany}{E} \mid \echk~K~E \mid 
 \end{array}$
 \end{minipage}%
-\begin{minipage}[t]{0.34\textwidth}
+\begin{minipage}[t]{0.3\textwidth}
 \fbox{$\tagof{\tau} = \kappa$}\\
 $\begin{array}{l c l}
   \tagof{\tnat} & = & \knat
@@ -18,7 +23,7 @@ $\begin{array}{l c l}
 \\
   \tagof{\tpair{\tau_0}{\tau_1}} & = & \kpair
 \\
-  \tagof{\tfun{\tau_d}{\tau_c}} & = & \kfun
+  \tagof{\tarr{\tau_d}{\tau_c}} & = & \kfun
 \end{array}$
 \end{minipage}%
 \begin{minipage}[t]{0.2\textwidth}
@@ -41,56 +46,7 @@ $\begin{array}{l c l}
 \end{mathpar}
 \end{minipage}
 
-\medskip
-\fbox{$\vchk(K, v) = A$}
-\begin{mathpar}
-  \inferrule*{
-    i \in \naturals
-  }{
-    \vchk(\knat, i) = i
-  }
-
-  \inferrule*{
-    i \in \integers
-  }{
-    \vchk(\kint, i) = i
-  }
-
-  \inferrule*{
-    v = \vpair{v_0}{v_1}
-  }{
-    \vchk(\kpair, v) = v
-  }
-
-  \inferrule*{
-    v = \vlam{x}{e}
-    \\\\
-    \vee
-    \\\\
-    v = \vlam{\tann{x}{\tau}}{e}
-  }{
-    \vchk(\kfun, v) = v
-  }
-
-  \inferrule*{
-  }{
-    \vchk(\kany, v) = v
-  }
-\end{mathpar}
-
-\medskip
-$\fromsta(\tau, v) = \left\{\begin{array}{l l}
-  v' & \mbox{if $\vchk(\tagof{\tau}, v) = v'$}
-\end{array}\right.$
-
-\medskip
-$\fromdyn(\tau, v) = \left\{\begin{array}{l l}
-  v' & \mbox{if $\vchk(\tagof{\tau}, v) = v'$}
-\\
-  \valueerror & \mbox{otherwise}
-\end{array}\right.$
-
-
+%% -----------------------------------------------------------------------------
 \medskip
 \fbox{$\Gamma \wellKE e$}
 \begin{mathpar}
@@ -157,6 +113,12 @@ $\fromdyn(\tau, v) = \left\{\begin{array}{l l}
     \Gamma \wellKE e : \tagof{\tau}
   }{
     \Gamma \wellKE \esta~\tau~e
+  }
+
+  \inferrule*{
+    \Gamma \wellKE e : \kany
+  }{
+    \Gamma \wellKE \esta~\kany~e
   }
 
 \end{mathpar}
@@ -231,20 +193,30 @@ $\fromdyn(\tau, v) = \left\{\begin{array}{l l}
 
   \inferrule*{
     \Gamma \wellKE e_0 : K_0
-    \\\\
+    \\
     \Gamma \wellKE e_1 : K_1
+    %\\\\
+    %\tau_0 = K_0
+    %\\
+    %\tau_1 = K_1
     \\\\
-    \Delta(\vbinop, K_0, K_1) = K
+    \Delta(\vbinop, \tau_0, \tau_1) = K
   }{
     \Gamma \wellKE \vbinop~e_0~e_1 : K
   }
 
   \inferrule*{
     \Gamma \wellKE e
-    \\\\
+    \\
     \tagof{\tau} = K
   }{
     \Gamma \wellKE \edyn{\tau}{e} : K
+  }
+
+  \inferrule*{
+    \Gamma \wellKE e
+  }{
+    \Gamma \wellKE \edyn{\kany}{e} : \kany
   }
 
   \inferrule*{
@@ -255,15 +227,75 @@ $\fromdyn(\tau, v) = \left\{\begin{array}{l l}
 
   \inferrule*{
     \Gamma \wellKE e : K'
-    \\\\
+    \\
     K' \subk K
   }{
     \Gamma \wellKE e : K
   }
 \end{mathpar}
 
-%% TODO there is more to the runtime
+%% -----------------------------------------------------------------------------
+\fbox{$e \rrKD A$} extends $e \rrD A$:
+\begin{mathpar}
+  \inferrule*{
+    v = \deltaC(\tagof{\tau}, v)
+  }{
+    (\vlam{\tann{x}{\tau}}{e})~v \rrKD (\esta{\kany}{\vsubst{e}{x}{v}})
+  }
 
+  \inferrule*{
+    \valueerror = \deltaC(\tagof{\tau}, v)
+  }{
+    (\vlam{\tann{x}{\tau}}{e})~v \rrKD \valueerror
+  }
+
+  \inferrule*{
+  }{
+    (\esta{\kany}{v}) \rrKD v
+  }
+\end{mathpar}
+
+\medskip
+\fbox{$e \rrKS A$} extends $e \rrS A$:
+\begin{mathpar}
+  \inferrule*{
+  }{
+    (\vlam{x}{e})~v \rrKS (\edyn{\kany}{\vsubst{e}{x}{v}})
+  }
+
+  \inferrule*{
+  }{
+    (\edyn{\kany}{v}) \rrKS v
+  }
+
+  \inferrule*{
+    v = \deltaC{K}{v}
+  }{
+    \echk{K}{v} \rrKS v
+  }
+
+  \inferrule*{
+    \valueerror = \deltaC{K}{v}
+  }{
+    (\echk{K}{v}) \rrKS \valueerror
+  }
+\end{mathpar}
+
+%% -----------------------------------------------------------------------------
+\medskip
+$\deltaC(K, v) = \left\{\begin{array}{l l}
+  v & \mbox{if $\wellKE v : K$}
+\\
+  \valueerror & \mbox{otherwise}
+\end{array}\right.$
+
+\medskip
+$\fromdyn(\tau, v) = \deltaC(\tagof{\tau}, v)$
+
+\medskip
+$\fromsta(\tau, v) = \deltaC(\tagof{\tau}, v)$
+
+%% -----------------------------------------------------------------------------
 \medskip
 $\begin{array}{l c l}
   \rrKEstar & \triangleq & \mbox{analogous to $\rrNEstar$}

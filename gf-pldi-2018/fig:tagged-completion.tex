@@ -52,9 +52,10 @@
   }{
     \Gamma \welldyn \esta{\tau}{e} \carrow \esta{\tau}{e'}
   }
-
 \end{mathpar}
 
+%% -----------------------------------------------------------------------------
+\medskip
 \fbox{$\Gamma \wellsta e : \tau \carrow e$}
 \begin{mathpar}
   \inferrule*{
@@ -78,7 +79,7 @@
   \inferrule*{
     \tann{x}{\tau},\Gamma \vdash e : \tau_c \carrow e'
   }{
-    \Gamma \vdash \vlam{\tann{x}{\tau_d}}{e} : \tarr{\tau_d}{\tau_c} \carrow \vlam{\tann{x}{\tau}}{e'}
+    \Gamma \vdash \vlam{\tann{x}{\tau}}{e} : \tarr{\tau_d}{\tau_c} \carrow \vlam{\tann{x}{\tau}}{e'}
   }
 
   \inferrule*{
@@ -90,7 +91,7 @@
     \Gamma \vdash e_0 : \tarr{\tau_d}{\tau_c} \carrow e_0'
     \\\\
     \Gamma \vdash e_1 : \tau_d \carrow e_1'
-    \\\\
+    \\
     \tagof{\tau_c} = K
   }{
     \Gamma \vdash e_0~e_1 : \tau_c \carrow \echk{K}{e_0'~e_1'}
@@ -100,8 +101,8 @@
     \Gamma \vdash e_0 : \tau_0 \carrow e_0'
     \\\\
     \Gamma \vdash e_1 : \tau_1 \carrow e_1'
-    \\\\
-    \Delta(\vbinop, \tau_0, \tau_1) = \tau
+    %\\\\
+    %\Delta(\vbinop, \tau_0, \tau_1) = \tau
   }{
     \Gamma \vdash \vbinop~e_0~e_1 : \tau \carrow \vbinop~e_0'~e_1'
   }

@@ -3,6 +3,10 @@
 \fbox{Language $\langN$} extends $\langM$:\\
 $\begin{array}{l c l}
   v & = & \ldots \mid \vmonfun{(\tau\tarrow\tau)}{v}
+\\
+  E & \Coloneqq & \bullet \mid E~e \mid v~E \mid
+                  \vpair{E}{e} \mid \vpair{v}{E} \mid \vunop~E \mid
+\\ & &            \ebinop{E}{e} \mid \ebinop{v}{E}
 \end{array}$
 
 %% -----------------------------------------------------------------------------
