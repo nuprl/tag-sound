@@ -1,5 +1,6 @@
-{\flushleft
+\begin{flushleft}
 
+\fbox{Language $\langS$}
 $\begin{array}{l c l}
   e & \Coloneqq & x \mid v \mid e~e \mid \vpair{e}{e} \mid \vunop~e \mid \vbinop~e~e
 \\
@@ -13,84 +14,16 @@ $\begin{array}{l c l}
 \\
   \vbinop & \Coloneqq & \vsum \mid \vquotient
 \\
-  \Gamma & \Coloneqq & \cdot \mid \tann{x}{\tau},\Gamma
+  \GammaS & \Coloneqq & \cdot \mid \tann{x}{\tau},\GammaS
 \\
   A & \Coloneqq & e \mid \valueerror
 \\
-  E & \Coloneqq & \bullet \mid E~e \mid v~E \mid \ldots
+  E & \Coloneqq & \bullet \mid E~e \mid v~E \mid
+                  \vpair{E}{e} \mid \vpair{v}{E} \mid \vunop~E \mid
+\\ & &            \vbinop~E~e \mid \vbinop~v~E
 \end{array}$
 
-\medskip
-\fbox{$\Gamma \wellsta e : \tau$}
-\begin{mathpar}
-  \inferrule*{
-    \tann{x}{\tau} \in \Gamma
-  }{
-    \Gamma \wellsta x : \tau
-  }
-
-  \inferrule*{
-    \tann{x}{\tau_d},\Gamma \wellsta e : \tau_c
-  }{
-    \Gamma \wellsta \vlam{\tann{x}{\tau_d}}{e} : \tau_d \tarrow \tau_c
-  }
-
-  \inferrule*{
-    i \in \naturals
-  }{
-    \Gamma \wellsta i : \tnat
-  }
-
-  \inferrule*{
-    i \in \integers
-  }{
-    \Gamma \wellsta i : \tint
-  }
-
-  \inferrule*{
-    \Gamma \wellsta e_0 : \tau_0
-    \\\\
-    \Gamma \wellsta e_1 : \tau_1
-  }{
-    \Gamma \wellsta \vpair{e_0}{e_1} : \tpair{\tau_0}{\tau_1}
-  }
-
-  \inferrule*{
-    \Gamma \wellsta e_0 : \tau_d \tarrow \tau_c
-    \\\\
-    \Gamma \wellsta e_1 : \tau_d
-  }{
-    \Gamma \wellsta e_0~e_1 : \tau_c
-  }
-
-  \inferrule*{
-    \Gamma \wellsta e_0 : \tau_0
-    \\\\
-    \Delta(\vunop, \tau_0) = \tau
-  }{
-    \Gamma \wellsta \vunop~e_0 : \tau
-  }
-
-  \inferrule*{
-    \Gamma \wellsta e_0 : \tau_0
-    \\\\
-    \Gamma \wellsta e_1 : \tau_1
-    \\\\
-    \Delta(\vbinop, \tau_0, \tau_1) = \tau
-  }{
-    \Gamma \wellsta \vbinop~e_0~e_1 : \tau
-  }
-
-  \inferrule*{
-    \Gamma \wellsta e : \tau'
-    \\\\
-    \tau' \subt \tau
-  }{
-    \Gamma \wellsta e : \tau
-  }
-
-\end{mathpar}
-
+%% -----------------------------------------------------------------------------
 \medskip
 \fbox{$\tau \subt \tau$}
 \begin{mathpar}
@@ -104,7 +37,7 @@ $\begin{array}{l c l}
     \\\\
     \tau_c \subt \tau_c'
   }{
-    \tau_d \tarrow \tau_c \subt \tau_d' \tau_c'
+    \tarr{\tau_d}{\tau_c} \subt \tarr{\tau_d'}{\tau_c'}
   }
 
   \inferrule*{
@@ -116,30 +49,124 @@ $\begin{array}{l c l}
   }
 \end{mathpar}
 
+%% -----------------------------------------------------------------------------
 \medskip
-\fbox{$\Delta(\mathsf{op}, \tau, \ldots) = \tau$}
+\fbox{$\Delta(\vunop, \tau) = \tau$}
+\begin{mathpar}
+  \inferrule*{
+  }{
+    \Delta(\vfst, \tpair{\tau_0}{\tau_1}) = \tau_0
+  }
+
+  \inferrule*{
+  }{
+    \Delta(\vsnd, \tpair{\tau_0}{\tau_1}) = \tau_1
+  }
+\end{mathpar}
+
+\fbox{$\Delta(\vunop, \tau, \tau) = \tau$}
+\begin{mathpar}
+  \inferrule*{
+  }{
+    \Delta(\vbinop, \tnat, \tnat) = \tnat
+  }
+
+  \inferrule*{
+    \tau_0 \subt \tint
+    \\
+    \tau_1 \subt \tint
+  }{
+    \Delta(\vbinop, \tau_0, \tau_1) = \tint
+  }
+\end{mathpar}
+
+%% -----------------------------------------------------------------------------
+\medskip
+\fbox{$\GammaS \wellsta e : \tau$}
+\begin{mathpar}
+  \inferrule*{
+    \tann{x}{\tau} \in \GammaS
+  }{
+    \GammaS \wellsta x : \tau
+  }
+
+  \inferrule*{
+    \tann{x}{\tau_d},\GammaS \wellsta e : \tau_c
+  }{
+    \GammaS \wellsta \vlam{\tann{x}{\tau_d}}{e} : \tau_d \tarrow \tau_c
+  }
+
+  \inferrule*{
+    i \in \naturals
+  }{
+    \GammaS \wellsta i : \tnat
+  }
+
+  \inferrule*{
+    i \in \integers
+  }{
+    \GammaS \wellsta i : \tint
+  }
+
+  \inferrule*{
+    \GammaS \wellsta e_0 : \tau_0
+    \\\\
+    \GammaS \wellsta e_1 : \tau_1
+  }{
+    \GammaS \wellsta \vpair{e_0}{e_1} : \tpair{\tau_0}{\tau_1}
+  }
+
+  \inferrule*{
+    \GammaS \wellsta e_0 : \tau_d \tarrow \tau_c
+    \\\\
+    \GammaS \wellsta e_1 : \tau_d
+  }{
+    \GammaS \wellsta e_0~e_1 : \tau_c
+  }
+
+  \inferrule*{
+    \GammaS \wellsta e_0 : \tau_0
+    \\\\
+    \Delta(\vunop, \tau_0) = \tau
+  }{
+    \GammaS \wellsta \vunop~e_0 : \tau
+  }
+
+  \inferrule*{
+    \GammaS \wellsta e_0 : \tau_0
+    \\\\
+    \GammaS \wellsta e_1 : \tau_1
+    \\\\
+    \Delta(\vbinop, \tau_0, \tau_1) = \tau
+  }{
+    \GammaS \wellsta \vbinop~e_0~e_1 : \tau
+  }
+
+  \inferrule*{
+    \GammaS \wellsta e : \tau'
+    \\\\
+    \tau' \subt \tau
+  }{
+    \GammaS \wellsta e : \tau
+  }
+\end{mathpar}
+
+\medskip
+\fbox{$\deltaS(\vunop, v) = A$}\\
 $\begin{array}{l c l}
-  \Delta(\vfst, \tpair{\tau_0}{\tau_1}) & = & \tau_0
+  \deltaS(\vfst, \vpair{v_0}{v_1}) & = & v_0
 \\
-  \Delta(\vsnd, \tpair{\tau_0}{\tau_1}) & = & \tau_1
-\\
-  \Delta(\vbinop, \tnat, \tnat) & = & \tnat
-\\
-  \Delta(\vbinop, \tau_0, \tau_1) & = & \tint \qquad \emph{if}~~~~\tau_0 \subt \tint \wedge \tau_1 \subt \tint
+  \deltaS(\vsnd, \vpair{v_0}{v_1}) & = & v_1
 \end{array}$
 
 \medskip
-\fbox{$\delta(\mathsf{op}, v, \ldots) = A$}
+\fbox{$\deltaS(\vbinop, v, v) = A$}
 $\begin{array}{l c l}
-  \delta(\vfst, \vpair{v_0}{v_1}) & = & v_0
+  \deltaS(\vsum, i_0, i_1) & = & i_0 + i_1
 \\
-  \delta(\vsnd, \vpair{v_0}{v_1}) & = & v_1
+  \deltaS(\vquotient, i_0, 0) & = & \valueerror
 \\
-  \delta(\vsum, i_0, i_1) & = & i_0 + i_1
-\\
-  \delta(\vquotient, i_0, i_1) & = & \tagof{i_0 / i_1}
-\\
-  \delta(\vquotient, i_0, 0) & = & \valueerror
+  \deltaS(\vquotient, i_0, i_1) & = & \tagof{i_0 / i_1}
 \end{array}$
 
 \medskip
@@ -151,20 +178,29 @@ $\begin{array}{l c l}
   }
 
   \inferrule*{
+    A = \deltaS(\vunop, v)
   }{
-    \vunop~v \rrS \delta(\vunop, v)
+    \vunop~v \rrS A
   }
 
   \inferrule*{
+    A = \deltaS(\vbinop, v_0, v_1)
   }{
-    \vbinop~v_0~v_1 \rrS \delta(\vbinop, v_0, v_1)
+    \vbinop~v_0~v_1 \rrS A
   }
 \end{mathpar}
 
 \medskip
-$\vevalS(e) = \left\{ \begin{array}{l l}
-  v & \emph{if}~~e~\rrSstar~v \\
-  \valueerror & \emph{if}~~e~\rrSstar~\valueerror
-\end{array}\right.$
+$\begin{array}{l c l}
+  \ccS & \triangleq & \mbox{context closure of $\rrS$ in $E$}
+\\
+  \rrSstar & \triangleq & \mbox{reflexive, transitive closure of $\ccS$}
+\end{array}$
 
-}
+%\medskip
+%$\vevalS(e) = \left\{ \begin{array}{l l}
+%  v & \emph{if}~~e~\rrSstar~v \\
+%  \valueerror & \emph{if}~~e~\rrSstar~\valueerror
+%\end{array}\right.$
+
+\end{flushleft}
