@@ -50,6 +50,9 @@ A migratory typing system is a gradual typing system designed for an existing
  dynamically-typed language.
 The dynamic type and type compatibility relations are optional.
 
+Not sure about that gradual guarantee.
+For us, no matter how your system evolves you can count on type soundness.
+
 
 @; progressive types
 @; redex

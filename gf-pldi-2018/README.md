@@ -15,6 +15,8 @@ TODO
   because some VALUE-ERROR really look like type errors (boudnary error)
 - converting to typed "not guaranteed to improve performance"
   ... second-system syndrome?
+- NOTE natural->forgetful is a MAJOR CHANGE
+  and natural->delayed is minor
 
 - intro: "sound" => "conventionally sound"
 
@@ -55,3 +57,14 @@ VI. Related
 VII. Conclusion
   - what do types mean?
   - "watch this space"
+
+-----------------------------------------------------------------------------
+
+imagine car manufacturer, certified vehicle, consumer buys it and
+ starts replacing/modifying the parts. "Just trust me" he tells the car.
+after changes maybe runs maybe doesn't, can make any guarantees about how
+ it runs?
+
+MT: replace parts of program with "trust me" things in the gamma.
+ could be very useful, like z3 or some fast library for fast things.
+ what guarantees about "mixed" programs?

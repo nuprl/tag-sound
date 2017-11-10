@@ -260,8 +260,8 @@ In particular, this safety guarantees the absence of type errors in statically
 
 
 @; -----------------------------------------------------------------------------
-@section{The Delayed Embedding}
-@include-figure["fig:delayed-delta.tex" "Lazy Embedding"]
+@section{The Co-Natural Embedding}
+@include-figure["fig:conatural-delta.tex" "Lazy Embedding"]
 
 Remove recursion from @${\delta} with a new kind of monitor.
 Same strategy used for functions.
@@ -269,7 +269,7 @@ Easy in our functional language, difficult in general,
  need to add a new class of values with same API as the old,
  probably need to change the language.
 
-@Figure-ref{fig:delayed-delta} extends the syntax of the functional language
+@Figure-ref{fig:conatural-delta} extends the syntax of the functional language
  with monitors for pairs.
 The @${\delta} relation is extended with the obvious cases to check the
  contents of monitored pairs at run-time.
