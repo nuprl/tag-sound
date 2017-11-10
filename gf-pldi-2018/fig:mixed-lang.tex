@@ -1,36 +1,43 @@
-{\flushleft
+\begin{flushleft}
+
+\fbox{Language $\langM$}\\
 $\begin{array}{l c l}
-  e & \Coloneqq & x \mid v \mid e~e~ \mid \ldots \mid \edyn{\tau}{e} \mid \esta{\tau}{e}
+  e & \Coloneqq & x \mid v \mid e~e \mid \vpair{e}{e} \mid \eunop{e} \mid \ebinop{e}{e} \mid
+\\ & &            \edyn{\tau}{e} \mid \esta{\tau}{e}
 \\
   v & \Coloneqq & \vlam{x}{e} \mid \vlam{\tann{x}{\tau}}{e} \mid i \mid \vpair{v}{v}
+\\
+  \tau & \Coloneqq & \tnat \mid \tint \mid \tpair{\tau}{\tau} \mid \tau \tarrow \tau
+\\
+  i & \Coloneqq & 0 \mid 1 \mid -1 \mid \ldots
 \\
   \Gamma & \Coloneqq & \cdot \mid x,\Gamma \mid \tann{x}{\tau},\Gamma
 \\
   A & \Coloneqq & e \mid \typeerror \mid \valueerror
 \end{array}$
 
+%% -----------------------------------------------------------------------------
 \medskip
-\begin{minipage}{0.5\columnwidth}
-\fbox{$\Gamma \welldyn e$}
+\begin{minipage}[t]{0.5\columnwidth}
+\fbox{$\Gamma \wellM e$}~~extends $\Gamma \welldyn e$:\\
 \begin{mathpar}
   \inferrule*{
-    \Gamma \wellsta e : \tau
+    \Gamma \wellM e : \tau
   }{
-    \Gamma \welldyn \esta{\tau}{e}
+    \Gamma \wellM \esta{\tau}{e}
   }
 \end{mathpar}
 \end{minipage}%
-\begin{minipage}{0.5\columnwidth}
-\fbox{$\Gamma \wellsta e : \tau$}
+\begin{minipage}[t]{0.5\columnwidth}
+\fbox{$\Gamma \wellM e : \tau$}~~extends $\Gamma \wellsta e : \tau$:\\
 \begin{mathpar}
+
   \inferrule*{
-    \Gamma \welldyn e
+    \Gamma \wellM e
   }{
-    \Gamma \wellsta \edyn{\tau}{e} : \tau
+    \Gamma \wellM \edyn{\tau}{e} : \tau
   }
 \end{mathpar}
 \end{minipage}
 
-% TODO sketch reduction relation (either here, or for natural)
-
-}
+\end{flushleft}

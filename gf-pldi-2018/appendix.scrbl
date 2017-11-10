@@ -96,7 +96,7 @@ See @figure-ref{fig:models-outline} for an illustration.
 
 
 @subsection{Multi-Language}
-@include-figure*["fig:mixed-lang.tex" @elem{Static/Dynamic Multi-language}]
+@include-figure["fig:mixed-lang.tex" @elem{Static/Dynamic Multi-language}]
 
 The languages in subsequent sections extend the syntax of @${\langM}
  and use its typing judgments to formulate safety guarantees.
@@ -106,7 +106,7 @@ The languages in subsequent sections extend the syntax of @${\langM}
 @include-figure["fig:erased-embedding.tex" "Type-Erased Embedding"]
 
 @theorem[@elem{@${\langE} term safety}]{
-  If @${\wellsta e : \tau} then @${\wellEE e} and either:
+  If @${\wellM e : \tau} then @${\wellEE e} and either:
 }
 @itemlist[
 @item{
@@ -131,7 +131,7 @@ The languages in subsequent sections extend the syntax of @${\langM}
 @include-figure["fig:natural-embedding.tex" "Natural Embedding"]
 
 @theorem[@elem{@${\langN} type safety}]{
-  If @${\wellsta e : \tau} then @${\wellNE e : \tau} and either:
+  If @${\wellM e : \tau} then @${\wellNE e : \tau} and either:
 }
 @itemlist[
 @item{
@@ -156,7 +156,7 @@ The languages in subsequent sections extend the syntax of @${\langM}
 @include-figure["fig:delayed-embedding.tex" "Lazy Embedding"]
 
 @theorem[@elem{@${\langL} type safety}]{
-  If @${\wellsta e : \tau} then @${\wellLE e : \tau} and either:
+  If @${\wellM e : \tau} then @${\wellLE e : \tau} and either:
 }
 @itemlist[
 @item{
@@ -181,7 +181,7 @@ The languages in subsequent sections extend the syntax of @${\langM}
 @include-figure["fig:forgetful-embedding.tex" "Forgetful Embedding"]
 
 @theorem[@elem{@${\langF} type safety}]{
-  If @${\wellsta e : \tau} then @${\wellFE e : \tau} and either:
+  If @${\wellM e : \tau} then @${\wellFE e : \tau} and either:
 }
 @itemlist[
 @item{
@@ -206,9 +206,9 @@ The languages in subsequent sections extend the syntax of @${\langM}
 @include-figure["fig:tagged-embedding.tex" "Tagged Embedding"]
 
 @theorem[@elem{@${\langK} type-tag safety}]{
-  If @${\wellsta e : \tau}
+  If @${\wellM e : \tau}
    and @${\tagof{\tau} = K}, then
-   @${\wellsta e : \tau \carrow e^+}
+   @${\wellM e : \tau \carrow e^+}
    and
    @${\wellKE e^+ : K}
    and either:

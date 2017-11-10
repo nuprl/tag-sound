@@ -143,6 +143,45 @@
 ;; -----------------------------------------------------------------------------
 
 (define-judgment-form LM
+  #:mode (well-dyn I I)
+  #:contract (well-dyn Γ e)
+  [
+   --- D-Int
+   (well-dyn Γ integer)]
+  [
+   (well-dyn Γ e_0)
+   (well-dyn Γ e_1)
+   --- D-Pair
+   (well-dyn Γ (× e_0 e_1))]
+  [
+   (where Γ_x (x Γ))
+   (well-dyn Γ_x e)
+   --- D-Fun
+   (well-dyn Γ (λ (x) e))]
+  [
+   (where #true (type-env-contains Γ x))
+   --- D-Var
+   (well-dyn Γ x)]
+  [
+   (well-dyn Γ e_0)
+   (well-dyn Γ e_1)
+   --- D-App
+   (well-dyn Γ (e_0 e_1))]
+  [
+   (well-dyn Γ e_0)
+   (well-dyn Γ e_1)
+   --- D-Binop
+   (well-dyn Γ (BINOP e_0 e_1))]
+  [
+   (well-dyn Γ e)
+   --- D-Unop
+   (well-dyn Γ (UNOP e))]
+  [
+   (well-typed Γ e τ)
+   --- D-Static
+   (well-dyn Γ (static τ e))])
+
+(define-judgment-form LM
   #:mode (well-typed I I I)
   #:contract (well-typed Γ e τ)
   [
@@ -209,45 +248,6 @@
    (well-dyn Γ e)
    --- I-Dynamic
    (infer-type Γ (dynamic τ e) τ)])
-
-(define-judgment-form LM
-  #:mode (well-dyn I I)
-  #:contract (well-dyn Γ e)
-  [
-   --- D-Int
-   (well-dyn Γ integer)]
-  [
-   (well-dyn Γ e_0)
-   (well-dyn Γ e_1)
-   --- D-Pair
-   (well-dyn Γ (× e_0 e_1))]
-  [
-   (where Γ_x (x Γ))
-   (well-dyn Γ_x e)
-   --- D-Fun
-   (well-dyn Γ (λ (x) e))]
-  [
-   (where #true (type-env-contains Γ x))
-   --- D-Var
-   (well-dyn Γ x)]
-  [
-   (well-dyn Γ e_0)
-   (well-dyn Γ e_1)
-   --- D-App
-   (well-dyn Γ (e_0 e_1))]
-  [
-   (well-dyn Γ e_0)
-   (well-dyn Γ e_1)
-   --- D-Binop
-   (well-dyn Γ (BINOP e_0 e_1))]
-  [
-   (well-dyn Γ e)
-   --- D-Unop
-   (well-dyn Γ (UNOP e))]
-  [
-   (well-typed Γ e τ)
-   --- D-Static
-   (well-dyn Γ (static τ e))])
 
 (module+ test
   (test-case "well-typed"

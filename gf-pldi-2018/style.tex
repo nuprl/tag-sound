@@ -188,13 +188,14 @@ showstringspaces=false            %
 
 \newcommand{\stastep}{\rightarrow_S}
 \newcommand{\dynstep}{\rightarrow_D}
-\newcommand{\welldyn}{\vdash}
-\newcommand{\wellsta}{\vdash}
-\newcommand{\wellEE}{\welldyn^+}
-\newcommand{\wellNE}{\wellsta^+}
-\newcommand{\wellLE}{\wellsta^L}
-\newcommand{\wellFE}{\wellsta^F}
-\newcommand{\wellKE}{\wellsta^K}
+\newcommand{\welldyn}{\vdash_D}
+\newcommand{\wellsta}{\vdash_S}
+\newcommand{\wellM}{\vdash}
+\newcommand{\wellEE}{\vdash_E}
+\newcommand{\wellNE}{\vdash_N}
+\newcommand{\wellLE}{\vdash_L}
+\newcommand{\wellFE}{\vdash_F}
+\newcommand{\wellKE}{\vdash_K}
 \newcommand{\typeerror}{\mathsf{TypeError}}
 \newcommand{\valueerror}{\mathsf{BoundaryError}}
 \newcommand{\bcost}[1]{\mathbf{C}(#1)}
