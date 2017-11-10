@@ -1,25 +1,15 @@
-{\flushleft
+\begin{flushleft}
 
-\fbox{$e \rrEE A$}
-\begin{mathpar}
-  \inferrule*{
-  }{
-    (\vlam{\tann{x}{\tau}}{e})~v \rrEE \vsubst{e}{x}{v}
-  }
+\fbox{Language $\langE$} extends $\langM$:
+$\begin{array}{l c l}
+  E & \Coloneqq & \bullet \mid E~e \mid v~E \mid
+                  \vpair{E}{e} \mid \vpair{v}{E} \mid \vunop~E \mid
+\\ & &            \ebinop{E}{e} \mid \ebinop{v}{E} \mid \edyn{\tau}{E} \mid \esta{\tau}{E}
+\end{array}$
 
-  \inferrule*{
-  }{
-    \edyn{\tau}{v} \rrEE v
-  }
-
-  \inferrule*{
-  }{
-    \esta{\tau}{v} \rrEE v
-  }
-\end{mathpar}
-
+%% -----------------------------------------------------------------------------
 \medskip
-\fbox{$\Gamma \wellEE e$}
+\fbox{$\Gamma \wellEE e$} extends $\Gamma \welldyn e$:\\
 \begin{mathpar}
   \inferrule*{
     x,\Gamma \wellEE e
@@ -40,11 +30,39 @@
   }
 \end{mathpar}
 
+%% -----------------------------------------------------------------------------
 \medskip
-$\vevalEE(e) = \left\{ \begin{array}{l l}
-  v & \emph{if}~~e~\rrEEstar~v \\
-  \typeerror & \emph{if}~~e~\rrEEstar~\typeerror \\
-  \valueerror & \emph{if}~~e~\rrEEstar~\valueerror
-\end{array}\right.$
+\fbox{$e \rrEE A$} extends $e \rrD A$:\\
+\begin{mathpar}
+  \inferrule*{
+  }{
+    \edyn{\tau}{v} \rrEE v
+  }
 
-}
+  \inferrule*{
+  }{
+    \esta{\tau}{v} \rrEE v
+  }
+
+  \inferrule*{
+  }{
+    (\vlam{\tann{x}{\tau}}{e})~v \rrEE \vsubst{e}{x}{v}
+  }
+\end{mathpar}
+
+%% -----------------------------------------------------------------------------
+\medskip
+$\begin{array}{l c l}
+  \ccEE & \triangleq & \mbox{context closure of $\rrEE$ in $E$}
+\\
+  \rrEEstar & \triangleq & \mbox{reflexive, transitive closure of $\ccEE$}
+\end{array}$
+
+%\medskip
+%$\vevalEE(e) = \left\{ \begin{array}{l l}
+%  v & \emph{if}~~e~\rrEEstar~v \\
+%  \typeerror & \emph{if}~~e~\rrEEstar~\typeerror \\
+%  \valueerror & \emph{if}~~e~\rrEEstar~\valueerror
+%\end{array}\right.$
+
+\end{flushleft}
