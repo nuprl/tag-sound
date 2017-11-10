@@ -128,7 +128,7 @@ The languages in subsequent sections extend the syntax of @${\langM}
 
 
 @subsection{Natural Embedding}
-@include-figure["fig:natural-embedding.tex" "Natural Embedding"]
+@include-figure*["fig:natural-embedding.tex" "Natural Embedding"]
 
 @theorem[@elem{@${\langN} type safety}]{
   If @${\wellM e : \tau} then @${\wellNE e : \tau} and either:

@@ -108,6 +108,14 @@ showstringspaces=false            %
 \newcommand{\esta}[2]{\vsta~#1~#2}
 \newcommand{\echk}[2]{\vchk~#1~#2}
 
+\newcommand{\arrSD}{\mathrel{\textsc{s}\!\!\Rightarrow\!\!\textsc{d}}}
+\newcommand{\arrDS}{\mathrel{\textsc{d}\!\!\Rightarrow\!\!\textsc{s}}}
+\newcommand{\wellSD}[3]{#1, #2 \arrSD #3}
+\newcommand{\wellDS}[3]{#1, #2 \arrDS #3}
+
+\newcommand{\fromsta}{\mathsf{static{\rightarrow}dynamic}}
+\newcommand{\fromdyn}{\mathsf{dynamic{\rightarrow}static}}
+
 \newcommand{\kany}{\mathsf{Any}}
 \newcommand{\kpair}{\mathsf{Pair}}
 \newcommand{\kfun}{\mathsf{Fun}}
@@ -120,6 +128,8 @@ showstringspaces=false            %
 \newcommand{\rrD}{\mathrel{\textsc{d}}}
 \newcommand{\rrS}{\mathrel{\textsc{s}}}
 \newcommand{\rrEE}{\mathrel{\textsc{e}}}
+\newcommand{\rrND}{\mathrel{\textsc{d}_N}}
+\newcommand{\rrNS}{\mathrel{\textsc{s}_N}}
 \newcommand{\rrNE}{\mathrel{\textsc{n}}}
 \newcommand{\rrLE}{\mathrel{\textsc{l}}}
 \newcommand{\rrFE}{\mathrel{\textsc{f}}}
@@ -128,7 +138,8 @@ showstringspaces=false            %
 \newcommand{\ccD}{\mathrel{\rightarrow_{\rrD}}}
 \newcommand{\ccS}{\mathrel{\rightarrow_{\rrS}}}
 \newcommand{\ccEE}{\mathrel{\rightarrow_{\rrEE}}}
-\newcommand{\ccNE}{\mathrel{\rightarrow_{\rrNE}}}
+\newcommand{\ccND}{\mathrel{\rightarrow_{\rrND}}}
+\newcommand{\ccNS}{\mathrel{\rightarrow_{\rrNS}}}
 \newcommand{\ccLE}{\mathrel{\rightarrow_{\rrLE}}}
 \newcommand{\ccFE}{\mathrel{\rightarrow_{\rrFE}}}
 \newcommand{\ccKE}{\mathrel{\rightarrow_{\rrKE}}}
