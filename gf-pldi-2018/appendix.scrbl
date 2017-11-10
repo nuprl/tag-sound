@@ -178,7 +178,7 @@ The languages in subsequent sections extend the syntax of @${\langM}
 
 
 @subsection{Forgetful Embedding}
-@include-figure["fig:forgetful-embedding.tex" "Forgetful Embedding"]
+@include-figure*["fig:forgetful-embedding.tex" "Forgetful Embedding"]
 
 @theorem[@elem{@${\langF} type safety}]{
   If @${\wellM e : \tau} then @${\wellFE e : \tau} and either:
@@ -203,7 +203,7 @@ The languages in subsequent sections extend the syntax of @${\langM}
 
 
 @subsection{Tagged Embedding}
-@include-figure["fig:tagged-embedding.tex" "Tagged Embedding"]
+@include-figure*["fig:tagged-embedding.tex" "Tagged Embedding"]
 
 @theorem[@elem{@${\langK} type-tag safety}]{
   If @${\wellM e : \tau}

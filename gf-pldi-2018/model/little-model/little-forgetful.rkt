@@ -113,7 +113,7 @@
          (where (mon (→ _ τ_cod) (λ (x : τ_dom) e)) v_0)
          (where v_+ #{dynamic->static τ_dom v_1}))
     (--> (v_0 v_1)
-         BE
+         BE ;; TODO can remove this rule, stop using #{dynamic->static ...} ?
          E-App-2.1
          (where (mon (→ _ τ_cod) (λ (x : τ_dom) e)) v_0)
          (where BE #{static->dynamic τ_dom v_1}))
