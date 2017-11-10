@@ -1,6 +1,7 @@
 \begin{flushleft}
 
-\fbox{Language $\langS$}
+\begin{minipage}[t]{0.6\textwidth}
+\fbox{Language $\langS$}\\
 $\begin{array}{l c l}
   e & \Coloneqq & x \mid v \mid e~e \mid \vpair{e}{e} \mid \vunop~e \mid \vbinop~e~e
 \\
@@ -20,11 +21,10 @@ $\begin{array}{l c l}
 \\
   E & \Coloneqq & \bullet \mid E~e \mid v~E \mid
                   \vpair{E}{e} \mid \vpair{v}{E} \mid \vunop~E \mid
-\\ & &            \ebinop{E}{e} \mid \ebinop{v}{E}
+                  \ebinop{E}{e} \mid \ebinop{v}{E}
 \end{array}$
-
-%% -----------------------------------------------------------------------------
-\medskip
+\end{minipage}%
+\begin{minipage}[t]{0.3\textwidth}
 \fbox{$\tau \subt \tau$}
 \begin{mathpar}
   \inferrule*{
@@ -41,6 +41,11 @@ $\begin{array}{l c l}
   }
 
   \inferrule*{
+  }{
+    \tau \subt \tau
+  }
+
+  \inferrule*{
     \tau_0 \subt \tau_0'
     \\\\
     \tau_1 \subt \tau_1'
@@ -48,9 +53,11 @@ $\begin{array}{l c l}
     \tpair{\tau_0}{\tau_1} \subt \tpair{\tau_0'}{\tau_1'}
   }
 \end{mathpar}
+\end{minipage}
 
 %% -----------------------------------------------------------------------------
 \medskip
+\begin{minipage}[t]{0.5\textwidth}
 \fbox{$\Delta(\vunop, \tau) = \tau$}
 \begin{mathpar}
   \inferrule*{
@@ -63,7 +70,8 @@ $\begin{array}{l c l}
     \Delta(\vsnd, \tpair{\tau_0}{\tau_1}) = \tau_1
   }
 \end{mathpar}
-
+\end{minipage}%
+\begin{minipage}[t]{0.5\textwidth}
 \fbox{$\Delta(\vbinop, \tau, \tau) = \tau$}
 \begin{mathpar}
   \inferrule*{
@@ -79,6 +87,7 @@ $\begin{array}{l c l}
     \Delta(\vbinop, \tau_0, \tau_1) = \tint
   }
 \end{mathpar}
+\end{minipage}
 
 %% -----------------------------------------------------------------------------
 \medskip
@@ -152,15 +161,16 @@ $\begin{array}{l c l}
 \end{mathpar}
 
 \medskip
+\begin{minipage}[t]{0.5\textwidth}
 \fbox{$\deltaS(\vunop, v) = A$}\\
 $\begin{array}{l c l}
   \deltaS(\vfst, \vpair{v_0}{v_1}) & = & v_0
 \\
   \deltaS(\vsnd, \vpair{v_0}{v_1}) & = & v_1
 \end{array}$
-
-\medskip
-\fbox{$\deltaS(\vbinop, v, v) = A$}
+\end{minipage}%
+\begin{minipage}[t]{0.5\textwidth}
+\fbox{$\deltaS(\vbinop, v, v) = A$}\\
 $\begin{array}{l c l}
   \deltaS(\vsum, i_0, i_1) & = & i_0 + i_1
 \\
@@ -168,6 +178,7 @@ $\begin{array}{l c l}
 \\
   \deltaS(\vquotient, i_0, i_1) & = & \tagof{i_0 / i_1}
 \end{array}$
+\end{minipage}
 
 \medskip
 \fbox{$e \rrS A$}

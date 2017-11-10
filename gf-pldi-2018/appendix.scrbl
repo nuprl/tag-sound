@@ -33,7 +33,7 @@ See @figure-ref{fig:models-outline} for an illustration.
     #:M "Multi-Language"
     #:E "Erased Embedding"
     #:N "Natural Embedding"
-    #:L "Delayed Embedding"
+    #:L "Co-Natural Embedding"
     #:F "Forgetful Embedding"
     #:K "Tagged Embedding"]]
 
@@ -152,8 +152,8 @@ The languages in subsequent sections extend the syntax of @${\langM}
 }
 
 
-@subsection{Delayed Embedding}
-@include-figure*["fig:delayed-embedding.tex" "Delayed Natural Embedding"]
+@subsection{Co-Natural Embedding}
+@include-figure*["fig:conatural-embedding.tex" "Co-Natural Embedding"]
 
 @theorem[@elem{@${\langL} type safety}]{
   If @${\wellM e : \tau} then @${\wellLE e : \tau} and either:
