@@ -74,7 +74,7 @@ See @figure-ref{fig:models-outline} for an illustration.
 
 
 @subsection{Static Typing}
-@include-figure["fig:sta-lang.tex" @elem{Statically-typed @${\langS}}]
+@include-figure*["fig:sta-lang.tex" @elem{Statically-typed @${\langS}}]
 
 @theorem[@elem{@${\langS} type safety}]{
   If @${\wellsta e : \tau} then either:
@@ -204,6 +204,7 @@ The languages in subsequent sections extend the syntax of @${\langM}
 
 @subsection{Tagged Embedding}
 @include-figure*["fig:tagged-embedding.tex" "Tagged Embedding"]
+@include-figure*["fig:tagged-completion.tex" "Tagged Completion"]
 
 @theorem[@elem{@${\langK} type-tag safety}]{
   If @${\wellM e : \tau}

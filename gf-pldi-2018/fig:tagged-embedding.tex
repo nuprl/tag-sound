@@ -1,13 +1,16 @@
-{\flushleft
+\begin{flushleft}
+
+\begin{minipage}[t]{0.34\textwidth}
+\fbox{Language $\langK$} extends $\langM$:\\
 $\begin{array}{l c l}
   e & \Coloneqq & \ldots \mid \echk~K~e
   %% TODO static & dynamic boundaries without goals?
 \\
   K & \Coloneqq & \knat \mid \kint \mid \kpair \mid \kfun \mid \kany
 \end{array}$
-
-\medskip
-\fbox{$\tagof{\tau} = \kappa$}
+\end{minipage}%
+\begin{minipage}[t]{0.34\textwidth}
+\fbox{$\tagof{\tau} = \kappa$}\\
 $\begin{array}{l c l}
   \tagof{\tnat} & = & \knat
 \\
@@ -17,29 +20,78 @@ $\begin{array}{l c l}
 \\
   \tagof{\tfun{\tau_d}{\tau_c}} & = & \kfun
 \end{array}$
+\end{minipage}%
+\begin{minipage}[t]{0.2\textwidth}
+\fbox{$K \subk K$}
+\begin{mathpar}
+  \inferrule*{
+  }{
+    K \subk \kany
+  }
+
+  \inferrule*{
+  }{
+    \knat \subk \kint
+  }
+
+  \inferrule*{
+  }{
+    K \subk K
+  }
+\end{mathpar}
+\end{minipage}
 
 \medskip
-\fbox{$\delta(\vchk, K, v) = A$}
-$\begin{array}{l c l}
-  \delta(\vchk, \knat, i) & = & i \qquad \emph{if}~~~~i \in \naturals
-\\
-  \delta(\vchk, \kint, i) & = & i
-\\
-  \delta(\vchk, \kpair, \vpair{v_0}{v_1}) & = & \vpair{v_0}{v_1}
-\\
-  \delta(\vchk, \kfun, \vlam{x}{e}) & = & \vlam{x}{e}
-\\
-  \delta(\vchk, \kfun, \vlam{\tann{x}{\tau}}{e}) & = & \vlam{\tann{x}{\tau}}{e}
-\\
-  \delta(\vchk, \kany, v) & = & v
-\\
-  \delta(\vchk, K, v) & = & \valueerror
-\\[0.8ex]
-  \delta(\vdyn, \tau, v) & = & \delta(\vchk, \tagof{\tau}, v)
-\\
-  \delta(\vsta, \tau, v) & = & \delta(\vchk, \tagof{\tau}, v)
-\end{array}$
+\fbox{$\vchk(K, v) = A$}
+\begin{mathpar}
+  \inferrule*{
+    i \in \naturals
+  }{
+    \vchk(\knat, i) = i
+  }
 
+  \inferrule*{
+    i \in \integers
+  }{
+    \vchk(\kint, i) = i
+  }
+
+  \inferrule*{
+    v = \vpair{v_0}{v_1}
+  }{
+    \vchk(\kpair, v) = v
+  }
+
+  \inferrule*{
+    v = \vlam{x}{e}
+    \\\\
+    \vee
+    \\\\
+    v = \vlam{\tann{x}{\tau}}{e}
+  }{
+    \vchk(\kfun, v) = v
+  }
+
+  \inferrule*{
+  }{
+    \vchk(\kany, v) = v
+  }
+\end{mathpar}
+
+\medskip
+$\fromsta(\tau, v) = \left\{\begin{array}{l l}
+  v' & \mbox{if $\vchk(\tagof{\tau}, v) = v'$}
+\end{array}\right.$
+
+\medskip
+$\fromdyn(\tau, v) = \left\{\begin{array}{l l}
+  v' & \mbox{if $\vchk(\tagof{\tau}, v) = v'$}
+\\
+  \valueerror & \mbox{otherwise}
+\end{array}\right.$
+
+
+\medskip
 \fbox{$\Gamma \wellKE e$}
 \begin{mathpar}
   \inferrule*{
@@ -49,7 +101,7 @@ $\begin{array}{l c l}
 
   \inferrule*{
     \Gamma \wellKE e_0
-    \\\\
+    \\
     \Gamma \wellKE e_1
   }{
     \Gamma \wellKE \vpair{e_0}{e_1}
@@ -81,7 +133,7 @@ $\begin{array}{l c l}
 
   \inferrule*{
     \Gamma \wellKE e_0
-    \\\\
+    \\
     \Gamma \wellKE e_1
   }{
     \Gamma \wellKE e_0~e_1
@@ -95,7 +147,7 @@ $\begin{array}{l c l}
 
   \inferrule*{
     \Gamma \wellKE e_0
-    \\\\
+    \\
     \Gamma \wellKE e_1
   }{
     \Gamma \wellKE \vbinop~e_0~e_1
@@ -210,152 +262,11 @@ $\begin{array}{l c l}
   }
 \end{mathpar}
 
-\fbox{$K \subk K$}
-\begin{mathpar}
-  \inferrule*{
-  }{
-    K \subk \kany
-  }
+%% TODO there is more to the runtime
 
-  \inferrule*{
-  }{
-    \knat \subk \kint
-  }
+\medskip
+$\begin{array}{l c l}
+  \rrKEstar & \triangleq & \mbox{analogous to $\rrNEstar$}
+\end{array}$
 
-  \inferrule*{
-  }{
-    K \subk K
-  }
-\end{mathpar}
-
-\fbox{$\Gamma \welldyn e \carrow e$}
-\begin{mathpar}
-  \inferrule*{
-  }{
-    \Gamma \welldyn i \carrow i
-  }
-
-  \inferrule*{
-    \Gamma \welldyn e_0 \carrow e_0'
-    \\\\
-    \Gamma \welldyn e_1 \carrow e_1'
-  }{
-    \Gamma \welldyn \vpair{e_0}{e_1} \carrow \vpair{e_0'}{e_1'}
-  }
-
-  \inferrule*{
-    x,\Gamma \welldyn e \carrow e'
-  }{
-    \Gamma \welldyn \vlam{x}{e} \carrow \vlam{x}{e'}
-  }
-
-  \inferrule*{
-  }{
-    \Gamma \welldyn x \carrow x
-  }
-
-  \inferrule*{
-    \Gamma \welldyn e_0 \carrow e_0'
-    \\\\
-    \Gamma \welldyn e_1 \carrow e_1'
-  }{
-    \Gamma \welldyn e_0~e_1 \carrow e_0'~e_1'
-  }
-
-  \inferrule*{
-    \Gamma \welldyn e \carrow e'
-  }{
-    \Gamma \welldyn \vunop~e \carrow \vunop~e'
-  }
-
-  \inferrule*{
-    \Gamma \welldyn e_0 \carrow e_0'
-    \\\\
-    \Gamma \welldyn e_1 \carrow e_1'
-  }{
-    \Gamma \welldyn \ebinop{e_0}{e_1} \carrow \ebinop{e_0'}{e_1'}
-  }
-
-  \inferrule*{
-    \Gamma \wellsta e : \tau \carrow e'
-  }{
-    \Gamma \welldyn \esta{\tau}{e} \carrow \esta{\tau}{e'}
-  }
-
-\end{mathpar}
-
-\fbox{$\Gamma \wellsta e : \tau \carrow e$}
-\begin{mathpar}
-  \inferrule*{
-  }{
-    \Gamma \vdash i : \tnat \carrow i
-  }
-
-  \inferrule*{
-  }{
-    \Gamma \vdash i : \tint \carrow i
-  }
-
-  \inferrule*{
-    \Gamma \vdash e_0 : \tau_0 \carrow e_0'
-    \\\\
-    \Gamma \vdash e_1 : \tau_1 \carrow e_1'
-  }{
-    \Gamma \vdash \vpair{e_0}{e_1} : \tpair{\tau_0}{\tau_1} \carrow \vpair{e_0'}{e_1'}
-  }
-
-  \inferrule*{
-    \tann{x}{\tau},\Gamma \vdash e : \tau_c \carrow e'
-  }{
-    \Gamma \vdash \vlam{\tann{x}{\tau_d}}{e} : \tarr{\tau_d}{\tau_c} \carrow \vlam{\tann{x}{\tau}}{e'}
-  }
-
-  \inferrule*{
-  }{
-    \Gamma \vdash x : \tau \carrow x
-  }
-
-  \inferrule*{
-    \Gamma \vdash e_0 : \tarr{\tau_d}{\tau_c} \carrow e_0'
-    \\\\
-    \Gamma \vdash e_1 : \tau_d \carrow e_1'
-    \\\\
-    \tagof{\tau_c} = K
-  }{
-    \Gamma \vdash e_0~e_1 : \tau_c \carrow \echk{K}{e_0'~e_1'}
-  }
-
-  \inferrule*{
-    \Gamma \vdash e_0 : \tau_0 \carrow e_0'
-    \\\\
-    \Gamma \vdash e_1 : \tau_1 \carrow e_1'
-    \\\\
-    \Delta(\vbinop, \tau_0, \tau_1) = \tau
-  }{
-    \Gamma \vdash \vbinop~e_0~e_1 : \tau \carrow \vbinop~e_0'~e_1'
-  }
-
-  \inferrule*{
-    \Gamma \vdash e : \tpair{\tau_0}{\tau_1} \carrow e'
-    \\\\
-    \tagof{\tau_0} = K
-  }{
-    \Gamma \vdash \efst{e} : \tau_0 \carrow \echk{K}{\efst{e'}}
-  }
-
-  \inferrule*{
-    \Gamma \vdash e : \tpair{\tau_0}{\tau_1} \carrow e'
-    \\\\
-    \tagof{\tau_1} = K
-  }{
-    \Gamma \vdash \esnd{e} : \tau_1 \carrow \echk{K}{\esnd{e'}}
-  }
-
-  \inferrule*{
-    \Gamma \vdash e \carrow e'
-  }{
-    \Gamma \vdash \edyn{\tau}{e} : \tau \carrow \edyn{\tau}{e'}
-  }
-
-\end{mathpar}
-}
+\end{flushleft}
