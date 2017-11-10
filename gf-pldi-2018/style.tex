@@ -70,7 +70,8 @@ showstringspaces=false            %
 \newcommand{\compilesto}{\rightsquigarrow}
 \newcommand{\carrow}{\compilesto}
 \newcommand{\context}{\mathcal{C}}
-\newcommand{\tagof}[1]{\lfloor #1 \rfloor}
+\newcommand{\floorof}[1]{\lfloor #1 \rfloor}
+\newcommand{\tagof}[1]{\floorof{#1}}
 \newcommand{\config}[1]{\langle #1 \rangle}
 \newcommand{\stepsto}{\rightarrow^*}
 \newcommand{\blameset}{\mathcal{B}}
@@ -84,6 +85,10 @@ showstringspaces=false            %
 \newcommand{\naturals}{\mathbb{N}}
 
 \newcommand{\assign}{:\!=}
+\newcommand{\GammaD}{\Gamma_D}
+\newcommand{\GammaS}{\Gamma_S}
+\newcommand{\deltaD}{\delta_D}
+\newcommand{\deltaS}{\delta_S}
 
 \newcommand{\tnat}{\mathsf{Nat}}
 \newcommand{\tint}{\mathsf{Int}}
@@ -120,6 +125,9 @@ showstringspaces=false            %
 \newcommand{\rrFE}{\mathrel{\textsc{f}}}
 \newcommand{\rrKE}{\mathrel{\textsc{k}}}
 
+\newcommand{\ccD}{\mathrel{\rightarrow_{\rrD}}}
+\newcommand{\ccS}{\mathrel{\rightarrow_{\rrS}}}
+
 \newcommand{\rrDstar}{\rightarrow^{*}_{\rrD}}
 \newcommand{\rrSstar}{\rightarrow^{*}_{\rrS}}
 \newcommand{\rrEEstar}{\rightarrow^{*}_{\rrEE}}
@@ -155,7 +163,7 @@ showstringspaces=false            %
 \newcommand{\vrel}[2]{#1 \models #2}
 \newcommand{\vstate}[2]{[#1~#2]}
 \newcommand{\vstategen}{\vstate{\sigma}{v}}
-\newcommand{\vsubst}[3]{#1[#2 \mapsto #3]}
+\newcommand{\vsubst}[3]{#1[#2\!\mapsto\!#3]}
 
 \newcommand{\tfun}[5]{\mathbf{fun} #1 (#2 : #3) \rightarrow #4\,.\,#5}
 \newcommand{\ufun}[3]{\mathbf{fun} #1 (#2)\,.\,#3}

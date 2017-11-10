@@ -25,7 +25,7 @@
   ;; Integer division `/` is an example of a partial primitive operation
 
   (E ::= hole (E e) (v E) (× E e) (× v E) (BINOP E e) (BINOP v E) (UNOP E))
-  ;; Standard left-to-right evaluation contexts
+  ;; Left-to-right evaluation contexts
 
   (Γ ::= () (x Γ))
   ;; Variable environment, used to check that expressions are closed
