@@ -44,6 +44,11 @@ First implementation of the forgetful, first-order embedding.
 @; and their work gives programmers the choice of using (concrete) types that
 @; are enforced at run-time.
 
+@section{Gradual Typing}
+Extremely similar.
+A migratory typing system is a gradual typing system designed for an existing
+ dynamically-typed language.
+The dynamic type and type compatibility relations are optional.
 
 
 @; progressive types
