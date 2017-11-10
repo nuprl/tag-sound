@@ -153,7 +153,7 @@ The languages in subsequent sections extend the syntax of @${\langM}
 
 
 @subsection{Delayed Embedding}
-@include-figure["fig:delayed-embedding.tex" "Lazy Embedding"]
+@include-figure*["fig:delayed-embedding.tex" "Delayed Natural Embedding"]
 
 @theorem[@elem{@${\langL} type safety}]{
   If @${\wellM e : \tau} then @${\wellLE e : \tau} and either:

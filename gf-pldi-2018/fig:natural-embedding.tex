@@ -11,9 +11,9 @@ $\begin{array}{l c l}
 \fbox{$\Gamma \wellNE e$} extends $\Gamma \welldyn e$:
 \begin{mathpar}
   \inferrule*{
-    \Gamma \wellNE v : \tau
+    \Gamma \wellNE v : \tarr{\tau_d}{\tau_c}
   }{
-    \Gamma \wellNE \vmonfun{\tau}{v}
+    \Gamma \wellNE \vmonfun{(\tarr{\tau_d}{\tau_c})}{v}
   }
 \end{mathpar}
 \end{minipage}%
@@ -23,7 +23,7 @@ $\begin{array}{l c l}
   \inferrule*{
     \Gamma \wellNE v
   }{
-    \Gamma \wellNE \vmonfun{\tau}{v} : \tau
+    \Gamma \wellNE \vmonfun{(\tarr{\tau_d}{\tau_c})}{v} : (\tarr{\tau_d}{\tau_c})
   }
 \end{mathpar}
 \end{minipage}
@@ -53,7 +53,7 @@ $\begin{array}{l c l}
 
 %% -----------------------------------------------------------------------------
 \medskip
-\fbox{$\wellSD{v}{\tau}{A}$}
+\fbox{$\wellSD{v}{\tau}{v}$}
 \begin{mathpar}
   \inferrule*{
   }{
@@ -233,4 +233,5 @@ $\fromdyn(\tau, v) = \left\{\begin{array}{l l}
 $\begin{array}{l c l}
   \rrNEstar & \triangleq & \mbox{reflexive, transitive closure of $\ccNS$}
 \end{array}$
+
 \end{flushleft}

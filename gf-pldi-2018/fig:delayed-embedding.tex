@@ -1,46 +1,137 @@
-{\flushleft
+\begin{flushleft}
+
+\fbox{Language $\langL$} extends $\langN$:\\
 $\begin{array}{l c l}
   v & = & \ldots \mid \vmonpair{(\tpair{\tau}{\tau})}{v}
 \end{array}$
 
+%% -----------------------------------------------------------------------------
 \medskip
-\fbox{$\delta(\vbnd, \tau, v) = A$}
-$\begin{array}{l c l}
-  \delta(\vdyn, \tpair{\tau_0}{\tau_1}, v) & = & \vmonpair{(\tpair{\tau_0}{\tau_1})}{v}
-\\\hfill\emph{where} & v & = \vmonpair{(\tpair{\tau_0'}{\tau_1'})}{v'}
-\\
-  \delta(\vsta, \tpair{\tau_0}{\tau_1}, v) & = & \vmonpair{(\tpair{\tau_0}{\tau_1})}{v}
-\\\hfill\emph{where} & v & = \vmonpair{(\tpair{\tau_0'}{\tau_1'})}{v'}
-\\
-  \delta(\vfst, \vmonpair{(\tpair{\tau_0}{\tau_1})}{v}) & = & \edyn{\tau_0}{(\efst{v})}
-\\
-  \delta(\vsnd, \vmonpair{(\tpair{\tau_0}{\tau_1})}{v}) & = & \edyn{\tau_1}{(\esnd{v})}
-\\
-  \delta(\vfst, \vmonpair{(\tpair{\tau_0}{\tau_1})}{v}) & = & \esta{\tau_0}{(\efst{v})}
-\\
-  \delta(\vsnd, \vmonpair{(\tpair{\tau_0}{\tau_1})}{v}) & = & \esta{\tau_1}{(\esnd{v})}
-\end{array}$
-
-\medskip
-\begin{minipage}{0.5\columnwidth}
-\fbox{$\Gamma \welldyn e$}
+\begin{minipage}[t]{0.5\textwidth}
+\fbox{$\Gamma \wellLE e$} extends $\Gamma \wellNE e$:
 \begin{mathpar}
   \inferrule*{
-    \Gamma \wellsta v : \tau
+    \Gamma \wellLE v : \tpair{\tau_0}{\tau_1}
   }{
-    \Gamma \welldyn \vmonpair{\tau}{v}
+    \Gamma \wellLE \vmonpair{(\tpair{\tau_0}{\tau_1})}{v}
   }
 \end{mathpar}
 \end{minipage}%
-\begin{minipage}{0.5\columnwidth}
-\fbox{$\Gamma \wellsta e : \tau$}
+\begin{minipage}[t]{0.5\textwidth}
+\fbox{$\Gamma \wellLE e : \tau$} extends $\Gamma \wellNE e : \tau$:
 \begin{mathpar}
   \inferrule*{
-    \Gamma \welldyn v
+    \Gamma \wellLE v
   }{
-    \Gamma \wellsta \vmonpair{\tau}{v} : \tau
+    \Gamma \wellLE \vmonfun{(\tpair{\tau_0}{\tau_1})}{v} : (\tpair{\tau_0}{\tau_1})
   }
 \end{mathpar}
 \end{minipage}
 
-}
+%% -----------------------------------------------------------------------------
+\medskip
+\begin{minipage}[t]{0.5\textwidth}
+\fbox{$e \rrLD A$} extends $e \rrND A$:
+\begin{mathpar}
+  \inferrule*{
+  }{
+    \efst{(\vmonpair{(\tpair{\tau_0}{\tau_1})}{v})} \rrLD \esta{\tau_0}{\efst{v}}
+  }
+
+  \inferrule*{
+  }{
+    \esnd{(\vmonpair{(\tpair{\tau_0}{\tau_1})}{v})} \rrLD \esta{\tau_1}{\esnd{v}}
+  }
+\end{mathpar}
+\end{minipage}%
+\begin{minipage}[t]{0.5\textwidth}
+\fbox{$e \rrLS A$} extends $e \rrNS A$:
+\begin{mathpar}
+  \inferrule*{
+  }{
+    \efst{(\vmonpair{(\tpair{\tau_0}{\tau_1})}{v})} \rrLS \edyn{\tau_0}{\efst{v}}
+  }
+
+  \inferrule*{
+  }{
+    \esnd{(\vmonpair{(\tpair{\tau_0}{\tau_1})}{v})} \rrLS \edyn{\tau_1}{\esnd{v}}
+  }
+\end{mathpar}
+\end{minipage}
+
+%% -----------------------------------------------------------------------------
+\medskip
+\fbox{$\wellSD{v}{\tau}{v}$}
+\begin{mathpar}
+  \inferrule*{
+  }{
+    \wellSD{v}{\tnat}{v}
+  }
+
+  \inferrule*{
+  }{
+    \wellSD{v}{\tint}{v}
+  }
+
+  \inferrule*{
+  }{
+    \wellSD{v}{(\tpair{\tau_0}{\tau_1})}{\vmonpair{(\tpair{\tau_0}{\tau_1})}{v}}
+  }
+
+  \inferrule*{
+  }{
+    \wellSD{v}{(\tarr{\tau_d}{\tau_c})}{\vmonfun{(\tarr{\tau_d}{\tau_c})}{v}}
+  }
+\end{mathpar}
+
+%\medskip
+%$\fromsta(\tau, v) = \begin{array}{l l}
+%  v' & \mbox{where $\wellSD{v}{\tau}{v'}$}
+%\end{array}$
+
+%% -----------------------------------------------------------------------------
+\medskip
+\fbox{$\wellDS{v}{\tau}{v}$}
+\begin{mathpar}
+  \inferrule*{
+    v \in \naturals
+  }{
+    \wellDS{v}{\tnat}{v}
+  }
+
+  \inferrule*{
+    v \in \integers
+  }{
+    \wellDS{v}{\tint}{v}
+  }
+
+  \inferrule*{
+    v = \vpair{v_0}{v_1}
+  }{
+    \wellDS{v}{(\tpair{\tau_0}{\tau_1})}{\vmonpair{(\tpair{\tau_0}{\tau_1})}{v}}
+  }
+
+  \inferrule*{
+    v = \vlam{x}{e}
+    \\
+    \vee
+    \\
+    v = \vmonfun{\tau}{v'}
+  }{
+    \wellDS{v}{(\tarr{\tau_d}{\tau_c})}{\vmonfun{(\tarr{\tau_d}{\tau_c})}{v}}
+  }
+\end{mathpar}
+
+%\medskip
+%$\fromdyn(\tau, v) = \left\{\begin{array}{l l}
+%  v' & \mbox{if $\wellDS{v}{\tau}{v'}$}
+%\\
+%  \valueerror & \mbox{otherwise}
+%\end{array}\right.$
+
+\medskip
+$\begin{array}{l c l}
+  \rrLEstar & \triangleq & \mbox{analogous to $\rrNEstar$}
+\end{array}$
+
+\end{flushleft}
