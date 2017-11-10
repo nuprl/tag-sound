@@ -24,6 +24,8 @@
   racket/runtime-path
   pict
   gtp-plot/util
+  (only-in gtp-plot/system
+    md5sum)
   (only-in racket/string
     string-prefix?)
   (only-in racket/draw
@@ -45,7 +47,7 @@
 
 (define RKT-VERSION "6.10.1")
 (define NUM-SAMPLES 200)
-(define TAG-VERSION "v0.12")
+(define TAG-VERSION "v0.14")
 (define OVERHEADS-HEIGHT 800)
 (define OVERHEADS-HSPACE 30)
 (define OVERHEADS-VSPACE 6)
@@ -109,6 +111,7 @@
   (number->string (length TR-DATA*)))
 
 (define (overhead-plot* x*)
+  (define base-cache-keys (list *GRID-X* *GRID-Y* *OVERHEAD-MAX*))
   (parameterize ([*OVERHEAD-SHOW-RATIO* #f]
                  [*OVERHEAD-SAMPLES* NUM-SAMPLES]
                  [*OVERHEAD-LINE-COLOR* START-COLOR]
@@ -121,13 +124,14 @@
                  [*LEGEND?* #false]
                  [*FONT-SIZE* 8]
                  [*with-cache-fasl?* #f]
-                 [*current-cache-keys* (list *GRID-X* *GRID-Y* *OVERHEAD-MAX*)]
                  [*current-cache-directory* (build-path CWD CACHE-DIR)])
     (define (make-overhead-plot/cache x)
       (define filename (data->filename x))
-      (with-cache (cachefile filename)
-        (λ ()
-          (data->plot x))))
+      (define current-md5 (data->md5sum x))
+      (parameterize ([*current-cache-keys* (cons (λ () current-md5) base-cache-keys)])
+        (with-cache (cachefile filename)
+          (λ ()
+            (data->plot x)))))
     (grid-plot make-overhead-plot/cache x*)))
 
 (define (data->filename x)
@@ -157,6 +161,15 @@
     (for/list ([c (in-string (path-string->string (file-name-from-path ps)))]
                #:break (memq c '(#\- #\.)))
       c)))
+
+(define (data->md5sum x)
+  (cond
+   [(path-string? x)
+    (md5sum x)]
+   [(pair? x)
+    (map md5sum x)]
+   [else
+    (raise-argument-error 'data->md5sum "unrecognized data format" x)]))
 
 (define (data->plot x)
   (cond
