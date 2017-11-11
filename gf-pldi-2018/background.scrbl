@@ -107,8 +107,13 @@ A language could leave them undefined and thus prohibit sharing.
 A language could define them only for sequence-of-bits kinds of values,
  such as integers and characters, to allow a limit form of sharing.
 These choices are obviously safe, but inexpressive.
-We want embeddings that are at least partially defined for all types in
- the language.
+
+We want embeddings that are:
+  (1) @emph{complete}
+  (2) @emph{functorial}, in sense that same observations before/after ... though partial.
+AKA only chaperone embeddings.
+An embedding is @|EGOOD| if it meets these criteria.
+(Don't forget, the embedding is a distraction, really only care about type soundness)
 
 
 @;@section{Summary, Glossary}

@@ -30,6 +30,7 @@
   include-figure
   include-figure*
   NUM-EMBEDDINGS
+  EGOOD
 
   D-SAFETY
   S-SAFETY
@@ -326,3 +327,6 @@
 
 (define NUM-EMBEDDINGS
   (length EMBEDDINGS))
+
+(define EGOOD
+  (emph "good"))
