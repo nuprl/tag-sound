@@ -1,0 +1,51 @@
+\begin{flushleft}
+
+\fbox{Language $\langM$} extends Common Syntax:\\
+$\begin{array}{l c l}
+  e & \Coloneqq & \ldots \mid \edyn{\tau}{e} \mid \esta{\tau}{e}
+\\
+  v & \Coloneqq & \vlam{x}{e} \mid \vlam{\tann{x}{\tau}}{e} \mid i \mid \vpair{v}{v}
+\\
+  \tau & \Coloneqq & \tnat \mid \tint \mid \tpair{\tau}{\tau} \mid \tau \tarrow \tau
+\\
+  \Gamma & \Coloneqq & \cdot \mid x,\Gamma \mid \tann{x}{\tau},\Gamma
+\\
+  A & \Coloneqq & e \mid \typeerror \mid \valueerror
+\end{array}$
+
+%% -----------------------------------------------------------------------------
+\medskip
+\begin{minipage}[t]{0.5\columnwidth}
+\fbox{$\Gamma \wellM e$}~~extends $\Gamma \welldyn e$:\\
+\begin{mathpar}
+  \inferrule*{
+    \Gamma \wellM e : \tau
+  }{
+    \Gamma \wellM \esta{\tau}{e}
+  }
+
+  \inferrule*{
+    x \in \Gamma
+  }{
+    \Gamma \wellM x
+  }
+\end{mathpar}
+\end{minipage}%
+\begin{minipage}[t]{0.5\columnwidth}
+\fbox{$\Gamma \wellM e : \tau$}~~extends $\Gamma \wellsta e : \tau$:\\
+\begin{mathpar}
+
+  \inferrule*{
+    \Gamma \wellM e
+  }{
+    \Gamma \wellM \edyn{\tau}{e} : \tau
+  }
+
+  \inferrule*{
+    \tann{x}{\tau} \in \Gamma
+  }{
+    \Gamma \wellM x : \tau
+  }
+\end{mathpar}
+\end{minipage}
+\end{flushleft}

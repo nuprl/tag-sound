@@ -1,160 +1,86 @@
 #lang gf-pldi-2018
 @title[#:tag "sec:design"]{Temporary: Models Only}
 
+@section{Source Languages}
 
-See techreport for proofs and PLT Redex models.
+@include-figure["fig:source-lang.tex" @elem{Base languages, typing rules, and semantics}]
 
+To begin, @figure-ref{fig:source-lang} presents two base languages.
+Each is a lambda calculus with integers and pairs.
+Language @${\langD} is dynamically typed; language @${\langS} is statically typed.
+Their syntax is nearly identical, but @${\langS} functions require a type
+ annotation on their parameter.
 
-@; -----------------------------------------------------------------------------
-@section{Dynamic Typing}
+The types in @${\langS} describe four interesting classes of @${\langD} values:
+ integers, natural numbers, pairs, and functions.
+Abstractly, these types illustrate: (1) a base type, (2) a refinement of a
+ base type, (3) a co-variant type constructor, and (4) a type for a higher-order
+ value.
+If a multi-language embedding can handle these four examples, then it can
+ scale to almost any type found in a non-dependent programming language.
+See @section-ref{sec:implementation} for discussion of untagged unions,
+ recursive types, and parametric polymorphism.
 
-@include-figure["fig:dyn-lang.tex" "Dynamic Typing"]
+Both languages include a syntactic judgment that describes when an expression
+ is well formed.
+For @${\langS}, the judgment @${\Gamma \welldyn e} claims that the free
+ variables in @${e} are bound in the set @${\Gamma}.
+For @${\langS}, the stronger judgment @${\Gamma \wellsta e : \tau}
+ claims that @${e} has the static type @${\tau} in type context @${\Gamma},
+ and furthermore all sub-expressions of @${e} have an appropriate static type.
 
-@Figure-ref{fig:dyn-lang} defines a simple functional language.
-Value forms @${v} are integers, pairs, and anonymous functions.
-@; choses to represent base values, read-only data, and higher-order data
-Expressions @${e} consist of variables, constructors, function application,
- and primitive operation applications.
-An expression @${e} is well-formed in variable context @${\Gamma}, written
- @${\Gamma \welldyn e}, if all free variables of @${e} are bound in the context.
-The (total) function @${\delta} interprets primitive operations.
-The reduction relation @${\rrD} maps closed expressions to answers @${A};
- an answer is either an expression, a token representing a type error,
- or a token indicating a boundary error.
-@; TODO clarify boundary error, our view of \delta as a language boundary
-The function @${\vevalD} defines the semantics of expressions in terms
- of the @${\rrD} relation.
+The semantics of each language is defined as the context closure
+ of a simpler reduction relation.
+The reduction relation is a partial function from expressions to answers;
+ an answer @${A} is either an expression or an error token.
+As the name ``dynamic typing'' suggests, the reduction relation for @${\langD}
+ maps ill-typed expressions to a token indicating a type error.
+For example, the application of any integer to any other value @${v} is an
+ error, e.g. @${(2~v) \rrD \typeerror}.
+The reduction relation for @${\langS} is undefined for such expressions.
+There is no answer @${A} such that @${(2~v) \rrS A} is defined.
 
-The language in @figure-ref{fig:dyn-lang} is a minimal example of a "safe"
- programming language.
-For any closed expression @${e}, the answer @${\vevalD(e)} is well-defined:
+Naturally, there is an important connection between the well-formedness
+ judgments and the semantics.
+This can be characterized in an appropriate @emph{term safety} theorem for the languages.
+For @${\langD} one can show that evaluation never reaches an undefined state:
 
-@theorem[@elem{term safety}]{
-  If @${\cdot \welldyn e} then either:
-  }
-@itemlist[
-@item{
-  @${e~\rrDstar~v}
-}
-@item{
-  @${e~\rrDstar~\typeerror}
-}
-@item{
-  @${e~\rrDstar~\valueerror}
-}
-@item{
-  @${e} diverges
-}
-]
+@|D-SAFETY|
 
-@proof-sketch{
-  By progress and preservation lemmas for @${\cdot \welldyn e}
-   and the @${\rrD} relation.
-}
+For @${\langS}, one can prove a stronger @emph{type safety} theorem that (1) rules out type errors
+ and (2) states that types are preserved in evaluation.
 
+@|S-SAFETY|
 
-@; -----------------------------------------------------------------------------
-@section{Static Typing}
-
-@include-figure["fig:sta-lang.tex" "Static Typing"]
-
-@Figure-ref{fig:sta-lang} defines a statically typed functional language.
-Value forms @${v} are integers, pairs, and type-annotated anonymous functions.
-Expressions @${e} consist of variables, constructors, function applications,
- and primitive operation applications.
-Types @${\tau} describe non-negative integers, integers, pairs, and
- functions.
-@; TODO explain why natural, why subtyping
-An expression @${e} has type @${\tau} in type context @${\Gamma} if
- the judgment @${\Gamma \wellsta e : \tau} holds according to the (non-algorithmic)
- rules in @figure-ref{fig:sta-lang}.
-The subtyping relation @${\subt} defines a kind of subset relation on types.
-The @${\Delta} relation assigns types to primitive operations.
-The partial function @${\delta} assigns meaning to primitive operations.
-Note that this @${\delta} function does produce type errors.
-Likewise, the reduction relation @${\rrS} maps expressions to expressions or
- boundary errors.
-The function @${\vevalS} defines the semantics of expressions.
-
-The language in @figure-ref{fig:sta-lang} is type safe.
-If an expression is well typed, then the answer @${\vevalS(e)} is well-defined.
-
-@theorem[@elem{type safety}]{
-  If @${\cdot \wellsta e : \tau} then either:
-}
-@itemlist[
-  @item{
-    @${e~\rrSstar~v} and @${\cdot \wellsta v}
-  }
-  @item{
-    @${e~\rrSstar~\valueerror}
-  }
-  @item{
-    @${e} diverges
-  }
-]
-
-@proof-sketch{
-  By progress and preservation lemmas for the @${\cdot \vdash e : \tau}
-   and @${\rrS} relations.
-}
+The embeddings will each have a safety theorem
+ that falls somewhere between term safety and type safety.
+@; gee are you finished with intro material yet????
 
 
 @; -----------------------------------------------------------------------------
-@section{Migratory Typing, the syntax}
+@section{Multi-Language Syntax}
 
-@include-figure["fig:mixed-lang.tex" "Syntax for the mixed language"]
+@include-figure["fig:mixed-delta.tex" @elem{Multi-Language @${\langM}}]
 
-@Figure-ref{fig:mixed-lang} defines the syntax and typing rules for a
- multi-language that combines @figure-ref["fig:dyn-lang" "fig:sta-lang"].
-The boundary expression @${(\edyn{\tau}{e})} embeds a dynamically-typed expression
- @${e} within a statically-typed context.
-The boundary expression @${(\esta{\tau}{e})} embeds a statically-typed expression
- in a dynamically-typed context.
-In order to handle mixed terms, the typing judgments @${\Gamma \welldyn e} and
- @${\Gamma \wellsta e : \tau} are extended with mutually-recursive rules
- to handle boundary expressions.
-The other typing rules carry over unchanged.
-Note that the re-use of the old rules correctly prevents a statically-typed
- expression from referencing a variable bound by a dynamically-typed function.
+@Figure-ref{fig:mixed-delta} defines the syntax and typing rules of a
+ multi-language for @${\langD} and @${\langS}.
+The multi-language @${\langM} extends the common syntax in @figure-ref{fig:source-lang}
+ with boundary expressions, combined value forms, and combined type contexts.
+The mutually-recursive well-formedness rules for @${\langM} control how an
+ expression can mix static and dynamic typing.
+Informally, an expression @${e} has type @${\tau} in context @${\GammaS},
+ written @${\GammaS \wellM e : \tau}, if all statically-typed sub-expressions
+ of @${e} are well-typed and all dynamically-typed sub-expressions are
+ well-formed.
+Note that the typing rules prevent a dynamically-typed expression from
+ directly referencing a statically-typed variable.
+Such references must factor through a boundary expression.
 
-@Figure-ref{fig:mixed-lang} does not define a semantics for the mixed
- language.
-Intuitively a language could re-use @${\vevalD} for dynamically-typed expressions
- and @${\vevalS} for statically-typed expressions, but of course the real
- question is what to do with boundary expressions.
-The following sections will describe five semantics, each with a safety
- theorem of the form:
-
-@fake-theorem["safety"]{
-  If @${\Gamma \wellsta e : \tau} then @good{e} and either:
-}
-@itemlist[
-@item{
-  @${e} reduces to a value @${v} such that @good{v}
-}
-@item{
-  @${e} reduces to a well-defined error state
-}
-]
-
-Safety for dynamically-typed expressions is analogous; just replace
- @${\Gamma \wellsta e : \tau} with @${\Gamma \welldyn e} and relax the definition
- of @emph{good} accordingly.
-@; cite techreport ... TODO make a blog post about how to publish a tech report
-
-@; TODO note about safety/expressiveness/performance
-
-@;The semantics of these boundary terms should find a balance between allowing
-@; "safe" values to cross the boundary and disallowing mixes that lead to
-@; undefined behavior.
-@;In this spirit, one bad choice for the semantics would be to disallow all
-@; mixed terms --- safe or unsafe --- by reducing all boundary terms to a value error.
-@;Another poor choice would be to let any value cross a boundary and use
-@; the @|step_S| reduction relation on statically-typed terms.
-@;This can easily lead to a stuck expression, for instance
-@; @$|{((\edyn{(\tint \tarrow \tint)}{0})~0)}|
-@; would reduce to the stuck application @${(0~0)}.
+In order to turn this multi-language into an embedding,
+ we need to instantiate the (partial) functions
+ @${\fromdyn} and @${\fromsta} that transport values between static and dynamic contexts.
+The following @integer->word[NUM-EMBEDDINGS] sections explore different choices.
+@; TODO we are NOT 'exploring' in section 3 of a PLDI submission!!!!!
 
 
 @; -----------------------------------------------------------------------------

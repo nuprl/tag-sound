@@ -50,24 +50,7 @@ See @figure-ref{fig:models-outline} for an illustration.
 @subsection{Dynamic Typing}
 @include-figure["fig:dyn-lang.tex" @elem{Dynamically-typed @${\langD}}]
 
-
-@theorem[@elem{@${\langD} term safety}]{
-  If @${\welldyn e} then either:
-}
-@itemlist[
-@item{
-  @${e~\rrDstar~v}
-}
-@item{
-  @${e~\rrDstar~\typeerror}
-}
-@item{
-  @${e~\rrDstar~\valueerror}
-}
-@item{
-  @${e} diverges
-}
-]
+@|D-SAFETY|
 @proof{
   TODO
 }
@@ -76,20 +59,7 @@ See @figure-ref{fig:models-outline} for an illustration.
 @subsection{Static Typing}
 @include-figure*["fig:sta-lang.tex" @elem{Statically-typed @${\langS}}]
 
-@theorem[@elem{@${\langS} type safety}]{
-  If @${\wellsta e : \tau} then either:
-}
-@itemlist[
-  @item{
-    @${e~\rrSstar~v} and @${\wellsta v}
-  }
-  @item{
-    @${e~\rrSstar~\valueerror}
-  }
-  @item{
-    @${e} diverges
-  }
-]
+@|S-SAFETY|
 @proof{
   TODO
 }

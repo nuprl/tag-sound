@@ -1,4 +1,4 @@
-#lang racket/base
+#lang at-exp racket/base
 
 ;; Utilities / setup for acmart-style Scribble papers
 
@@ -29,6 +29,10 @@
   proof-sketch
   include-figure
   include-figure*
+  NUM-EMBEDDINGS
+
+  D-SAFETY
+  S-SAFETY
 
   ~a
 
@@ -295,3 +299,30 @@
 
 (define (MT x)
   (bold (format "MT(~a)" x)))
+
+(define D-SAFETY
+  (list
+    @theorem[@elem{@${\langD} term safety}]{
+      If @${\welldyn e} then either:
+    }
+    @itemlist[
+    @item{ @${e~\rrDstar~v} }
+    @item{ @${e~\rrDstar~\typeerror} }
+    @item{ @${e~\rrDstar~\valueerror} }
+    @item{ @${e} diverges } ]))
+
+(define S-SAFETY
+  (list
+    @theorem[@elem{@${\langS} type safety}]{
+      If @${\wellsta e : \tau} then either:
+    }
+    @itemlist[
+      @item{ @${e~\rrSstar~v} and @${\wellsta v} }
+      @item{ @${e~\rrSstar~\valueerror} }
+      @item{ @${e} diverges } ]))
+
+(define EMBEDDINGS
+  '("erased" "natural" "co-natural" "forgetful" "tagged"))
+
+(define NUM-EMBEDDINGS
+  (length EMBEDDINGS))

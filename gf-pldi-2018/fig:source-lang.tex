@@ -1,0 +1,104 @@
+\begin{flushleft}
+\fbox{Common Syntax}
+$\begin{array}{l@{~~}c@{~~}l}
+  e & \Coloneqq & x \mid v \mid e~e \mid \vpair{e}{e} \mid \vunop~e \mid \vbinop~e~e
+\\
+  i & \Coloneqq & 0 \mid 1 \mid -1 \mid \ldots
+\\
+  \vunop & \Coloneqq & \vfst \mid \vsnd
+\\
+  \vbinop & \Coloneqq & \vsum \mid \vquotient
+\\
+  E & \Coloneqq & \bullet \mid E\,e \mid v\,E \mid \vpair{E}{e} \mid \vpair{v}{E} \mid \vunop\,E \mid
+            \vbinop\,E\,e \mid \vbinop\,v\,E
+\end{array}$
+
+\medskip
+\begin{minipage}[t]{0.5\columnwidth}
+\fbox{Language $\langD$}\\
+$\begin{array}{l@{~~}c@{~~}l}
+  v & \Coloneqq & \vlam{x}{e} \mid i \mid \vpair{v}{v}
+\\
+  \GammaD & \Coloneqq & \cdot \mid x,\GammaD
+\\
+  A & \Coloneqq & e \mid \valueerror
+\\ & & \typeerror
+\end{array}$
+
+\end{minipage}%
+\begin{minipage}[t]{0.5\columnwidth}
+\fbox{Language $\langS$}\\
+$\begin{array}{l@{~~}c@{~~}l}
+  v & \Coloneqq & \vlam{\tann{x}{\tau}}{e} \mid i \mid \vpair{v}{v}
+\\
+  \tau & \Coloneqq & \tint \mid \tnat \mid
+\\ & & \tpair{\tau}{\tau} \mid \tau \tarrow \tau
+\\
+  \GammaS & \Coloneqq & \cdot \mid \tann{x}{\tau},\GammaS
+\\
+  A & \Coloneqq & e \mid \valueerror
+\end{array}$
+\end{minipage}
+
+\medskip
+\begin{minipage}[t]{0.5\columnwidth}
+\fbox{$\GammaD \welldyn e$}
+\begin{mathpar}
+  \inferrule*{
+    x,\GammaD \welldyn e
+  }{
+    \GammaD \welldyn \vlam{x}{e}
+  }
+\end{mathpar}
+\end{minipage}%
+\begin{minipage}[t]{0.5\columnwidth}
+\fbox{$\GammaS \wellsta e : \tau$}
+\begin{mathpar}
+  \inferrule*{
+    \tann{x}{\tau_d},\GammaS \wellsta e : \tau_c
+  }{
+    \GammaS \wellsta \vlam{\tann{x}{\tau_d}}{e} : \tau_d \tarrow \tau_c
+  }
+\end{mathpar}
+\end{minipage}
+
+\medskip
+\begin{minipage}[t]{0.5\columnwidth}
+\fbox{$e \rrD A$}
+\begin{mathpar}
+  \inferrule*{
+    v_0 \neq \vlam{x}{e}
+  }{
+    v_0~v_1 \rrD \typeerror
+  }
+
+  \inferrule*{
+  }{
+    (\vlam{x}{e})~v \rrD \vsubst{e}{x}{v}
+  }
+\end{mathpar}
+\end{minipage}%
+\begin{minipage}[t]{0.5\columnwidth}
+\fbox{$e \rrS A$}
+\begin{mathpar}
+  \inferrule*{
+  }{
+    (\vlam{x:\tau}{e})~v \rrS \vsubst{e}{x}{v}
+  }
+\end{mathpar}
+\end{minipage}
+
+\medskip
+$\begin{array}{l@{~~}c@{~~}l}
+  \ccD & \triangleq & \mbox{context closure of $\rrD$ in $E$}
+\\
+  \rrDstar & \triangleq & \mbox{reflexive, transitive closure of $\ccD$}
+\end{array}$
+
+\medskip
+$\begin{array}{l@{~~}c@{~~}l}
+  \ccS & \triangleq & \mbox{context closure of $\rrS$ in $E$}
+\\
+  \rrSstar & \triangleq & \mbox{reflexive, transitive closure of $\ccS$}
+\end{array}$
+\end{flushleft}
