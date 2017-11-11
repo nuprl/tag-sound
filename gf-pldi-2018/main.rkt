@@ -34,6 +34,7 @@
 
   D-SAFETY
   S-SAFETY
+  N-SAFETY
 
   ~a
 
@@ -321,6 +322,17 @@
       @item{ @${e~\rrSstar~v} and @${\wellsta v} }
       @item{ @${e~\rrSstar~\valueerror} }
       @item{ @${e} diverges } ]))
+
+(define N-SAFETY
+  (list
+    @theorem[@elem{@${\langN} type safety}]{
+      If @${\wellM e : \tau} then @${\wellNE e : \tau} and either:
+    }
+    @itemlist[
+    @item{ @${e \rrNEstar v} and @${\wellNE v : \tau} }
+    @item{ @${e \rrNEstar E[e']} and @${(e' \rrD \typeerror)} }
+    @item{ @${e \rrNEstar \valueerror} }
+    @item{ @${e} diverges } ]))
 
 (define EMBEDDINGS
   '("erased" "natural" "co-natural" "forgetful" "tagged"))

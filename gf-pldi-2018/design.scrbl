@@ -1,5 +1,5 @@
 #lang gf-pldi-2018
-@title[#:tag "sec:design"]{Temporary: Models Only}
+@title[#:tag "sec:design"]{Models}
 
 @section{Source Languages}
 
@@ -138,38 +138,68 @@ This simple idea has found increasingly widespread use; see, for example,
 @; -----------------------------------------------------------------------------
 @section{The Natural Embedding}
 
-@; TODO note somewhere that could get type soundness by NO SHARING,
-@;      but laffer curve
+@include-figure*["fig:natural-delta.tex" "Natural Embedding"]
 
-@include-figure["fig:natural-delta.tex" "Natural Embedding"]
+The erased embedding permits any kind interaction across boundary expressions,
+ and consequently loses all type safety.
+In contrast, a type-safe embedding must check all cross-context interactions.
 
-@Figure-ref{fig:natural-delta} extends the multi language with
- monitor values.
-A monitor @${(\vmonfun{\tau}{v})} associates a value with a type.
+On one hand, an embedding must check dynamically-typed values flowing in to typed contexts.
+The natural way to implement a type-safe embedding is to interpret the
+ boundary type as a checking scheme.
+@; in essence, canonical forms
+For base types, the check is typically straightforward.
+For covariant type constructors, it suffices to check outermost type-tag
+ @; TODO cite appel
+ of an incoming value and recursively check its components.
+The recursive check is potentially expensive for large values, but it
+ suffices to ensure type safety.
 
-@theorem["natural safety"]{
-  If @${\cdot \wellsta e : \tau} then @${\cdot \wellNE e : \tau} and either:
-}
-@itemlist[
-@item{
-  @${e \rrNEstar v} and @${\cdot \wellNE v : \tau}
-}
-@item{
-  @${e \rrNEstar \typeerror}
-}
-@item{
-  @${e \rrNEstar \valueerror}
-}
-@item{
-  @${e} diverges
-}
-]
+This ``inductive'' checking strategy fails, however, for higher-order values.
+It is generally infeasible to check whether a value @${v} behaves like
+ a function of type @${(\tarr{\tau_d}{\tau_c})}.
+More broadly, the same problem arises for any value with unknown size,
+ such as a port that delivers an infinite stream of data.
+The classic solution is
+ @; TODO cite FF
+ to use a ``coinductive'' strategy and monitor such values.
+For function types, this means the boundary type
+ @${(\tarr{\tau_d}{\tau_c})} accepts any dynamically-typed function @${v}
+ and signals a boundary error if a future application of @${v} produces
+ a result that does not match the @${\tau_c} type.
+Instead of checking that @${v} is well typed, the boundary monitors @${v}
+ for any evidence that @${v} is not well typed.
 
-In particular, this safety guarantees the absence of type errors in statically
- typed code, but makes no guarantee about dynamically typed sub-expressions.
+@; TODO fixup
+On the other hand, a type-safe embedding must defend statically-typed
+ functions against dynamically-typed arguments.
+When a function crosses from static to dynamic, its future arguments
+ must be monitored.
 
-@; May be possible to type-check dynamically-typed functions when they enter typed code.
-@; Not practical to check the context that receives a typed function.
+@Figure-ref{fig:natural-delta} implements a natural embedding by extending
+ the multi-language with monitor values.
+A function monitor @${(\vmonfun{(\tarr{\tau_d}{\tau_c})}{v})} associates a type to a value;
+ new reduction rule ensure that applying the monitor to an argument is
+ the same as applying the underlying value @${v} across two boundary expressions.
+@; monitor at boundary is the same as a function
+
+Monitor values establish a key invariant: every value in statically-typed
+ code is either well-typed, or a monitor that encapsulates a dynamically-typed
+ expression.
+With this invariant and an appropriate typing rule for monitors, one can
+ prove a type safety theorem that guaratees the absence of type errors in
+ statically-typed code.
+
+@|N-SAFETY|
+@proof-sketch{
+  By progress and preservation lemmas for the @${\Gamma \wellNE e : \tau} judgment.
+  See the appendix for proof, and the full definition of the @${\rrNEstar} reduction relation.
+}
+
+
+@; -----------------------------------------------------------------------------
+@section{Soundness vs. Performance}
+
 
 
 @; -----------------------------------------------------------------------------

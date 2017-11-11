@@ -1,0 +1,82 @@
+\begin{flushleft}
+
+\begin{minipage}[t]{0.5\textwidth}
+\fbox{Language $\langN$} extends $\langM$:\\
+$\begin{array}{l c l}
+  v & = & \ldots \mid \vmonfun{(\tau\tarrow\tau)}{v}
+\end{array}$
+
+\medskip
+$\begin{array}{l}
+  \fromsta(\tarr{\tau_d}{\tau_c}, v) = \vmonfun{(\tarr{\tau_d}{\tau_c})}{v}
+\\
+  \fromsta(\tau, v) = v
+\\ \mbox{\quad otherwise}
+\end{array}$
+\end{minipage}%
+\begin{minipage}[t]{0.5\textwidth}
+$\begin{array}{l}
+  \fromdyn(\tint, i) = i
+\\
+  \fromdyn(\tnat, i) = i
+\\ \mbox{\quad if $i \in \naturals$}
+\\
+  \fromdyn(\tpair{\tau_0}{\tau_1}, \vpair{v_0}{v_1}) = \vpair{v_0'}{v_1'}
+\\ \mbox{\quad where $v_0' = \fromdyn(\tau_0, v_0)$}
+\\ \mbox{\quad and $v_1' = \fromdyn(\tau_1, v_1)$}
+\\
+  \fromdyn(\tarr{\tau_d}{\tau_c}, v) = \vmonfun{(\tarr{\tau_d}{\tau_c})}{v}
+\\ \mbox{\quad if $v = \vlam{x}{e}$ or $v = \vmonfun{\tau}{v'}$}
+\\
+  \fromdyn(\tau, v) = \valueerror
+\\ \mbox{\quad otherwise}
+\end{array}$
+\end{minipage}
+
+%% -----------------------------------------------------------------------------
+\medskip
+\begin{minipage}[t]{0.5\textwidth}
+\fbox{$e \rrND A$} extends $e \rrD A$:
+\begin{mathpar}
+  \inferrule*{
+    e_{arg} = \edyn{\tau_d}{v_{arg}}
+  }{
+    (\vmonfun{(\tau_d\tarrow\tau_c)}{v_f})~v_{arg} \rrND \esta{\tau_c}{(v_f~e_{arg})}
+  }
+\end{mathpar}
+\end{minipage}%
+\begin{minipage}[t]{0.5\textwidth}
+\fbox{$e \rrNS A$} extends $e \rrS A$:
+\begin{mathpar}
+  \inferrule*{
+    e_{arg} = \esta{\tau_d}{v_{arg}}
+  }{
+    (\vmonfun{(\tau_d\tarrow\tau_c)}{v_f})~v_{arg} \rrNS \edyn{\tau_c}{(v_f~e_{arg})}
+  }
+\end{mathpar}
+\end{minipage}%
+
+%% -----------------------------------------------------------------------------
+\medskip
+\begin{minipage}[t]{0.5\textwidth}
+\fbox{$\Gamma \wellNE e$} extends $\Gamma \wellM e$:
+\begin{mathpar}
+  \inferrule*{
+    \Gamma \wellNE v : \tarr{\tau_d}{\tau_c}
+  }{
+    \Gamma \wellNE \vmonfun{(\tarr{\tau_d}{\tau_c})}{v}
+  }
+\end{mathpar}
+\end{minipage}%
+\begin{minipage}[t]{0.5\textwidth}
+\fbox{$\Gamma \wellNE e : \tau$} extends $\Gamma \wellM e : \tau$:
+\begin{mathpar}
+  \inferrule*{
+    \Gamma \wellNE v
+  }{
+    \Gamma \wellNE \vmonfun{(\tarr{\tau_d}{\tau_c})}{v} : (\tarr{\tau_d}{\tau_c})
+  }
+\end{mathpar}
+\end{minipage}
+
+\end{flushleft}
