@@ -74,13 +74,16 @@ Informally, an expression @${e} has type @${\tau} in context @${\GammaS},
  well-formed.
 Note that the typing rules prevent a dynamically-typed expression from
  directly referencing a statically-typed variable.
-Such references must factor through a boundary expression.
+Cross-context references must go through a boundary.
 
 In order to turn this multi-language into an embedding,
  we need to instantiate the (partial) functions
  @${\fromdyn} and @${\fromsta} that transport values between static and dynamic contexts.
-The following @integer->word[NUM-EMBEDDINGS] sections explore different choices.
 @; TODO we are NOT 'exploring' in section 3 of a PLDI submission!!!!!
+
+@; ... should "recipe" go in the mixed-lang figure?
+@; - static->dyn dyn->sta
+@; - common reduction rules (but ... how to reference those later?)
 
 
 @; -----------------------------------------------------------------------------
@@ -88,64 +91,48 @@ The following @integer->word[NUM-EMBEDDINGS] sections explore different choices.
 
 @include-figure["fig:erased-delta.tex" "Type-Erased Embedding"]
 
-One straightforward way to define a semantics for the mixed language is to
- extend the reduction relation for dynamically typed expressions.
-The new rules ignore the type annotations on function parameters and
- boundary expressions; see @figure-ref{fig:erased-delta} for the details.
+The simplest @|EGOOD| pair of embedding functions lets any value cross any boundary:
 
-To prove that this semantics is @emph{term safe}, we define a judgment
- @${\Gamma \wellEE e} as an extension of the relation in @figure-ref{fig:dyn-lang}
- that checks whether an expression is closed.
-After this addition, it is straightforward to prove that the evaluation
- of well-typed terms never reaches an undefined state:
+@exact|{
+  $\hfill\fromdyn(\tau, v) = v \hfill$
 
-@theorem["type-erased safety"]{
-  If @${\cdot \wellsta e : \tau} then @${\cdot \wellEE e} and either:
-}
-@itemlist[
-@item{
-  @${e~\rrEEstar~v} and @${\cdot \wellEE v}
-}
-@item{
-  @${e~\rrEEstar~\typeerror}
-}
-@item{
-  @${e~\rrEEstar~\valueerror}
-}
-@item{
-  @${e} diverges
-}
-]
+  $\hfill\fromsta(\tau, v) = v \hfill$
+}|
 
-This semantics is cleary not type safe.
+Using these functions, @figure-ref{fig:erased-delta} defines an @emph{erased embedding}
+ by extending
+ the dynamically-typed reduction relation @${\rrD} with new cases for typed
+ functions and boundary expressions.
+@; TODO add note that need to update the old rule for applying non-function?
+@;      ... does appendix take care about this?
+The new rules simply ignore the types.
+
+Clearly this embedding is not type safe.
 One can easily build a well-typed expression that reduces to a value
  with a completely different type, for example @${(\edyn{\tint}{\vlam{x}{x}})}.
-When ill-typed subterms are used in a larger context, it is possible for a
- well-typed program to fail in subtle ways because the static types
- are utterly meaningless at runtime:
+Worse yet, well-typed expressions may produce unexpected errors,
+ or silently compute nonsensical results, for example when a function expecting
+ a natural number is applied to an integer.
+In short, erased types cannot be used to reason about program behavior.
 
-@$|{\begin{array}{l}
-  C = ((\vlam{\tann{x}{\tnat}}{\vquotient~42~(\vsum~x~1)})~\bullet)
-\\
-  e = \edyn{\tnat}{-1}
-\\
-  \cdot \wellsta C[e] : \tnat
-\\
-  C[e] \rrEEstar \valueerror
-\end{array}}|
+@;@exact|{
+@;$ ((\vlam{\tann{x}{\tnat}}{42 / (x + 1)})~\edyn{\tnat}{-1}) $
+@;}|
 
-Worse yet, evaluation can "go wrong" without signaling an error.
-For one example, consider what happens at runtime when a dynamically-typed
- context adds a negative number to a monotonically increasing counter.
+Despite the lack of type safety, the erased embedding does satisfy a term
+ safety theorem:
+ for any expression @${e} such that @${\wellM e : \tau}, evaluation of
+ @${e} never reaches an undefined state.
+The proof follows by progress and preservation of the @${\Gamma \wellEE e}
+ judgment sketched in @figure-ref{fig:erased-delta}.
 
-@; TODO need more examples of silent failures
-
-Note that an equivalent way to define the same semantics is translate expressions
- to the syntax in @figure-ref{fig:dyn-lang} by removing type annotations, then
- re-using the @${\rrD} reduction relation.
-This alternative is similar to what TypeScript implements.
+@emph{Remark}:
+An equivalent way to define the erased embedding is to first remove the type
+ annotations and second re-use the dynamically-typed reduction relation.
+This simple idea has found increasingly widespread use; see, for example,
+ TypeScript, the Python annotations API, and Pluggable Type Systems.
+@emph{End Remark}
 @; TODO cite
-@; TODO and it influences the monitor-free design
 
 
 @; -----------------------------------------------------------------------------
