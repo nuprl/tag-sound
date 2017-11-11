@@ -53,6 +53,15 @@ The dynamic type and type compatibility relations are optional.
 Not sure about that gradual guarantee.
 For us, no matter how your system evolves you can count on type soundness.
 
+Gradual typing broadly construed = any kind of research about mixing
+ static/dynamic typing, where statically-typed is denoted by explicit type
+ annotations.
+In this sense, migratory typing is a special case.
+
+Recently Siek etal propose gradual guarantee, suggest that a gradual typing
+ system
+In this sense, a gradual typing system is one kind of migratory typing system.
+
 
 @; progressive types
 @; redex

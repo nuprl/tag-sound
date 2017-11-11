@@ -14,6 +14,7 @@
 
 @; unions
 @; recursive types
+@; parametric polymorphism
 
 Any surprises with base types?
 

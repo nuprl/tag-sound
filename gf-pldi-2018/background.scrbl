@@ -1,5 +1,13 @@
 #lang gf-pldi-2018
-@title[#:tag "sec:background"]{Migratory Typing via Language Embedding}
+@title[#:tag "sec:background"]{Background}
+
+@; @parag{Assumptions}
+@; (1) boundaries are explicit in syntax
+@; (2) no Dyn type, no type compatibility
+@; (3) all values can cross boundary
+@; (4) at least one ``infinite'' value
+@; (5) type system makes finer distinctions than primops
+@; (6) same values, don't need to convert floats to ints etc.
 
 @; -----------------------------------------------------------------------------
 
@@ -29,8 +37,8 @@ There are, however, two unifying characteristics among existing migratory
 First, each system extends the syntax of the host language with support
  for type annotations.@note{In principle, migratory typing based on type
   inference does not require explicit annotations.
-  Nevertheless, explicit annotations are a useful specification language
-   and can help programmers debug type error messages.}
+  Nevertheless, explicit annotations may help programmers debug type
+   errors and understand unfamiliar code.}
 @; cite ML error
 @; cite Wright's thesis
 @; TODO say something better about "readability"
@@ -44,25 +52,40 @@ Consequently, a migratory typing system for a dynamically-typed host language @$
  consists of two parts:
  (1) a statically-typed language @${\langS},
  and (2) a typed foreign-function interface (FFI) between the languages.
-The FFI must be able to import an @${\langD} value at a given type,
- and must be able to export a typed @${\langS} value to a dynamically-typed context.
+The language @${\langS} must support a large subset of the host language,
+ and add syntax for explicit type annotations.
+The FFI is typically part of a runtime system that monitors interactions
+ between statically-typed and dynamically-typed values.
 
-In this paper we focus on the problem of designing an FFI for migratory typing.
-Following Matthews and Findler, we refer to such FFIs as @emph{embeddings}.
-We compare the type soundness guarantee of each
- embedding with the run-time cost of enforcing soundness.
 
-@; @parag{Assumptions}
-@; 1. boundaries are explicit in syntax
-@; 2. no Dyn type, no type compatibility
-@; 3. all values can cross boundary
-@; 4. at least one infinite value
-@; 5. type system makes finer distinctions than primops
+@section{The Problem: Language Embedding}
+
+Given a safe dynamically-typed language @${\langD} and a type-safe statically-typed language
+ @${\langS} that adds syntax for type annotations, the challenge is to design a multi-language
+ in which @${\langD} expressions may be embedded in @${\langS} expressions (and vice-versa).
+The embedding must provide a safety guarantee,
+ and it must add minimal performance overhead to preserve safety at run-time.
+@; TODO but we haven't talked about how such overheads arise!!!!!!
+
+An @emph{embedding} in this sense may consist of static and dynamic components.
+On the static end, the multi-language may add expression and value forms,
+ as well as typing rules for the new additions.
+At a minimum, the extension must include so-called @emph{boundary terms}
+ to distinguish code from either source language.
+On the dynamic end, the multi-language needs a type-directed strategy for
+ converting values between languages.
+It may also need reduction rules to support any new value forms.
 
 
 @section{Multi-Language Syntax}
 
+@include-figure["fig:all-lang.tex" @elem{Base Languages @${\langD}, @${\langS}, and @${\langM}}]
 
+
+
+
+see @section-ref{sec:implementation} for discussion of untagged unions,
+ recursive types, and paramteric polymorphism.
 
 
 @; ABORT this is taking way too long, been like 5 hours with very little progress.
