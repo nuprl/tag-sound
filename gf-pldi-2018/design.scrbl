@@ -140,13 +140,8 @@ This simple idea has found increasingly widespread use; see, for example,
 
 @include-figure*["fig:natural-delta.tex" "Natural Embedding"]
 
-The erased embedding permits any kind interaction across boundary expressions,
- and consequently loses all type safety.
-In contrast, a type-safe embedding must check all cross-context interactions.
-
-On one hand, an embedding must check dynamically-typed values flowing in to typed contexts.
-The natural way to implement a type-safe embedding is to interpret the
- boundary type as a checking scheme.
+A type-safe embedding must check dynamically-typed values flowing in to typed contexts.
+The natural way to implement checks is to interpret the boundary type as a checking scheme.
 @; in essence, canonical forms
 For base types, the check is typically straightforward.
 For covariant type constructors, it suffices to check outermost type-tag
@@ -156,8 +151,9 @@ The recursive check is potentially expensive for large values, but it
  suffices to ensure type safety.
 
 This ``inductive'' checking strategy fails, however, for higher-order values.
-It is generally infeasible to check whether a value @${v} behaves like
- a function of type @${(\tarr{\tau_d}{\tau_c})}.
+It is generally infeasible to check whether a run-time value @${v} is
+ built from an expression with the static type @${(\tarr{\tau_d}{\tau_c})}.
+@; TODO awkward
 More broadly, the same problem arises for any value with unknown size,
  such as a port that delivers an infinite stream of data.
 The classic solution is
@@ -171,7 +167,7 @@ Instead of checking that @${v} is well typed, the boundary monitors @${v}
  for any evidence that @${v} is not well typed.
 
 @; TODO fixup
-On the other hand, a type-safe embedding must defend statically-typed
+A type-safe embedding must also defend statically-typed
  functions against dynamically-typed arguments.
 When a function crosses from static to dynamic, its future arguments
  must be monitored.
@@ -199,7 +195,45 @@ With this invariant and an appropriate typing rule for monitors, one can
 
 @; -----------------------------------------------------------------------------
 @section{Soundness vs. Performance}
+@include-figure["fig:natural-cost.tex" "Approximate cost of the natural embedding"]
 
+The erased and natural embeddings are opposites in terms of type soundness
+ and performance.
+The erased embedding promises nothing in the way of type soudness,
+ and lets values freely cross boundary expressions.
+The natural embedding is ideally type sound (for a language that makes no
+ attempt to connect run-time boundary errors to source-program boundary terms)
+ @; TODO cite MT1/MT2
+ but imposes a large performance overhead.
+In the context of Typed Racket, Takikawa etal observed that a straightforward
+ implementation of the natural embedding can slow down a working program
+ by two orders of magnitude.
+
+At a high level, the performance overhead of the natural embedding comes from three sources:
+  checking, indirection, and allocation.
+By @emph{checking}, we refer to the cost of validating a type-tag and recursively
+ validating the components of a structured value.
+For example, checking a list structure built from @${N} pair values requires
+ (at least) @${2N} recursive calls.
+Function monitors add an @emph{indirection} cost.
+Every call to a monitored function incurs one additional boundary-crossing.
+This single layer of indirection may affect the inlining decisions in a JIT-compiled language;
+ furthermore, layers of indirection accumulate as values repeatedly cross boundaries.
+Finally, the @emph{allocation} cost of building a monitor value at run-time
+ may have significant implications for performance.
+
+@Figure-ref{fig:natural-cost} summarizes the cost of checking a
+ value in terms of the meta-variables @${C}, @${A}, @${I}, and @${O}.
+The variable @${C} denotes the cost of a type-tag check, for example @${i \in \naturals}.
+Similarly, the variable @${A} denotes the cost of allocating one function monitor.
+It may be possible to estimate @${C} and @${A} without running the program.
+The variables @${I} and @${O} denote the number of times a function value crosses a
+ boundary and the number of times it is applied.
+The values of @${I} and @${O} depend on the run-time behavior a program.
+
+The embeddings in the following three sections address these costs systematically.
+Consequently, they demonstrate that the erased and natural embeddings lie on
+ opposite ends of a spectrum between soundness and performance.
 
 
 @; -----------------------------------------------------------------------------
@@ -290,6 +324,16 @@ Soundness is the same
 ]
 
 
+@; -----------------------------------------------------------------------------
+@section{What have we lost?}
+
+Type soundness is the same.
+No loss?
+No no no no no.
+There is loss.
+
+
+@; -----------------------------------------------------------------------------
 @section{The Tagged Embedding}
 @include-figure["fig:tagged-delta.tex" "Tagged Embedding"]
 

@@ -231,13 +231,13 @@
 
 ;; TODO say "proof sketch" instead of "proof"
 (define (proof-sketch . elem*)
-  (make-proof elem*))
+  (make-proof "Proof Sketch: " elem*))
 
 (define (proof . elem*)
-  (make-proof elem*))
+  (make-proof "Proof: " elem*))
 
-(define (make-proof elem*)
-  (para #:style "proof" elem*))
+(define (make-proof descr elem*)
+  (para (cons (emph descr) elem*)))
 
 (define well_D
   ($ "\\welldyn"))
