@@ -188,8 +188,9 @@
                         #:L delayed-name
                         #:F forgetful-name
                         #:K tagged-name)
+  (define arrow-size 4)
   (define (name->pict str)
-    (text str (cons 'bold '())))
+    (text str (cons 'bold '()) 10))
   (define D (name->pict dyn-name))
   (define S (name->pict sta-name))
   (define M (name->pict mixed-name))
@@ -201,13 +202,25 @@
   (define empty (blank 0 0))
   (define tree
     (vc-append 8
-      (hb-append 20 D S)
+      (ht-append 20 D S)
       M
-      (hb-append 35 N E)
-      (hb-append 10 empty L)
-      (hb-append 10 empty F)
+      (ht-append 35
+        (vc-append 8 N L F)
+        E)
       K))
-  empty)
+  (define arrow-spec*
+    (list (cons D M)
+          (cons S M)
+          (cons M N)
+          (cons M E)
+          (cons N L)
+          (cons L F)
+          (cons M K)))
+  (for/fold ([acc tree])
+            ([src+dst (in-list arrow-spec*)])
+    (pin-arrow-line arrow-size acc
+      (car src+dst) cb-find
+      (cdr src+dst) ct-find)))
 
 
 ;; =============================================================================
