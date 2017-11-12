@@ -359,27 +359,36 @@ With the addition of typing rules for the collapsed monitors, one can
 
 
 @; -----------------------------------------------------------------------------
-@section{What have we lost?}
+@section{Errors Matter!}
 
-Type soundness is the same.
-No loss?
-No no no no no.
-There is loss.
+The type safety theorem for the forgetful embedding is nearly identical
+ to the natural embedding type safety.
+This gives the illusion that we have improved performance without any
+ obvious loss.
+In fact, type safety holds because the theorem suffers two significant limitations
+ in our context.
 
-@; Co-Natural
-Same soundness, but different behaviors!
-@emph{Type soundness} does not change by making checks lazy,
- it only delays value errors from "immediately at the boundary" to
- "only until access".
-Allows somewhat latent type errors,
- but nothing serious because if an access happens to read a bad value,
- this will be reported.
-No matter where it happens.
-@; Gradual guarantee?
+First, the delayed type checking of monitors lets many values
+ pretend to have an incorrect static type.
+For instance, the value @${(\vmonpair{(\tpair{\tnat}{\tnat})}{\vpair{4}{-4}})}
+ is well-typed in the co-natural embedding.
+A statically typed function can return this value; the function's clients
+ will only observe an error if they access the second component of this pair.@note{This
+  kind of latent error is analogous to the pitfalls of undiscovered lazy
+  computations in Haskell programs.}
 
-@; Forgetful
-co-inductive intuition breaks down,
- types are more "transient"
+Second, type safety says nothing about how a well-typed value may be used by
+ an enclosing expression.
+In a statically-typed language, the type of a value is a complete guarantee;
+ any context must respect the type.
+This is not true in the forgetful embedding.
+The well-typed pair value @${(\vmonpair{(\tpair{\tnat}{\tnat})}{\vpair{-1}{\vlam{x}{x}}})}
+ may be used as a pair of integers or a pair of functions depending on local type
+ annotations and access patterns.
+
+In short, the combination of monitor values and forgetful semantics
+ takes the compositional reasoning property out of the static type system.
+
 
 @; -----------------------------------------------------------------------------
 @section{The Tagged Embedding}

@@ -492,7 +492,7 @@
    --- I-Dynamic
    (infer-type Γ (dynamic τ e) τ)]
   [
-   ;; TRUST ME
+   ;; TRUST ME ... TODO remove these!
    --- I-Mon
    (infer-type Γ (mon τ v) τ)])
 
