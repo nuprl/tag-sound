@@ -1,12 +1,16 @@
-{\flushleft
-\fbox{Language $\langE$} extends $\langM$
+\begin{flushleft}
+
+\fbox{Language $\langE$} $= \langM$
 
 \medskip
-$\fromdyn(\tau, v) = v$
-
-\smallskip
-
+\begin{minipage}[t]{0.5\columnwidth}
+\fbox{$\fromsta(\tau, v) = A$}\\
 $\fromsta(\tau, v) = v$
+\end{minipage}%
+\begin{minipage}[t]{0.5\columnwidth}
+\fbox{$\fromdyn(\tau, v) = A$}\\
+$\fromdyn(\tau, v) = v$
+\end{minipage}
 
 \medskip
 \fbox{$e \rrEE A$} extends $e \rrD A$:
@@ -51,4 +55,4 @@ $\fromsta(\tau, v) = v$
   }
 \end{mathpar}
 
-}
+\end{flushleft}

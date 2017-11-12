@@ -1,16 +1,27 @@
 \begin{flushleft}
 
 \begin{minipage}[t]{0.5\textwidth}
-\fbox{Language $\langF$} $= \langL$\\
+\fbox{Language $\langF$} extends $\langM$:\\
+$\begin{array}{l@{~~}c@{~~}l}
+  v & \Coloneqq & \ldots \mid \vmonfun{(\tarr{\tau}{\tau})}{\vlam{x}{e}} \mid
+\\ & & \vmonfun{(\tarr{\tau}{\tau})}{\vlam{\tann{x}{\tau}}{e}} \mid
+\\ & & \vmonpair{(\tpair{\tau}{\tau})}{\vpair{v}{v}}
+\end{array}$
 
 \medskip
+\fbox{$\fromsta(\tau, v) = A$}\\
 $\begin{array}{l}
   \fromsta(\tau, v) = \fromany(\tau, v)
-\\[0.8ex]
+\end{array}$
+
+\medskip
+\fbox{$\fromdyn(\tau, v) = A$}\\
+$\begin{array}{l}
   \fromdyn(\tau, v) = \fromany(\tau, v)
 \end{array}$
 \end{minipage}%
 \begin{minipage}[t]{0.5\textwidth}
+\fbox{$\fromany(\tau, v) = A$}\\
 $\begin{array}{l}
   \fromany(\tint, i) = i
 \\

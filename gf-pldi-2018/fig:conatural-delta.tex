@@ -2,11 +2,12 @@
 
 \begin{minipage}[t]{0.5\textwidth}
 \fbox{Language $\langL$} extends $\langN$:\\
-$\begin{array}{l c l}
-  v & = & \ldots \mid \vmonpair{(\tpair{\tau}{\tau})}{v}
+$\begin{array}{l@{~~}c@{~~}l}
+  v & \Coloneqq & \ldots \mid \vmonpair{(\tpair{\tau}{\tau})}{v}
 \end{array}$
 
 \medskip
+\fbox{$\fromsta(\tau, v) = A$}\\
 $\begin{array}{l}
   \fromsta(\tarr{\tau_d}{\tau_c}, v) = \vmonfun{(\tarr{\tau_d}{\tau_c})}{v}
 \\
@@ -15,6 +16,7 @@ $\begin{array}{l}
 \end{array}$
 \end{minipage}%
 \begin{minipage}[t]{0.5\textwidth}
+\fbox{$\fromdyn(\tau, v) = A$}\\
 $\begin{array}{l}
   \fromdyn(\tint, i) = i
 \\

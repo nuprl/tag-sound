@@ -282,9 +282,10 @@ whether the natural or co-natural embedding performs fewer type-checks in
 For example, the following program is at the ``break even'' point between
  the two embeddings:
 
-@exact|{
- $$(\vlam{(x:\tpair{\tint}{\tint})}{(\efst{x} + \efst{x})})$$
-}|
+@${
+\hfill
+ (\vlam{(x:\tpair{\tint}{\tint})}{(\efst{x} + \efst{x})})
+\hfill }
 
 Suppose this function is invoked on a dynamically-typed pair of integers.
 Under the natural embedding, the boundary-crossing will check both components
@@ -298,32 +299,23 @@ The two calls to @${\vfst}, however, will both trigger a type check.
 @section{The Forgetful Embedding}
 @include-figure*["fig:forgetful-delta.tex" "Forgetful Embedding"]
 
-Adopt rationale proposed by Greenberg, contracts exist to make partial
- operations total.
+The second source of performance overhead in the natural embedding is the
+ indirection cost of monitors.
+Each time a function value crosses a boundary, it accumulates a new type-checking
+ monitor.
+The same holds true of pairs (or any co-variant, parameterized type) in the
+ co-natural embedding.
+Put another way, our type-safe embeddings are space-inefficient.
 
-@Figure-ref{fig:forgetful-delta} shows the changes to the delta relation.
-Crossing boundaries collapses monitors.
-Lost invariant about boundaries, so function application does extra checking.
-Typing rules axiomative monitors.
+A direct way to remove the indirection cost is to keep only the most recent monitor.
+When a boundary expecting type @${\tau} finds a value of the form
+ @${\vmon{\tau}{v}}, we forget the old monitor and return @${\vmon{\tau'}{v}}.
+We call this approach a forgetful embedding, based on Greenbergs similar proposal
+ for space-efficient contracts.@note{Greenberg proposes three space-efficient
+  contract calculi: forgetful, heedful, and eidetic. We use forgetful because
+  it admits a monitor-free implementation.}
 
-Soundness is the same
-@theorem["forgetful safety"]{
-  If @${\cdot \wellsta e : \tau} then @${\cdot \wellFE e : \tau} and either:
-}
-@itemlist[
-@item{
-  @${e \rrFEstar v} and @${\cdot \wellFE v : \tau}
-}
-@item{
-  @${e \rrFEstar \typeerror}
-}
-@item{
-  @${e \rrFEstar \valueerror}
-}
-@item{
-  @${e} diverges
-}
-]
+
 
 
 @; -----------------------------------------------------------------------------

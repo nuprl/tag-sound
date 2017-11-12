@@ -1,6 +1,11 @@
 #lang gf-pldi-2018
 @title[#:tag "sec:background"]{Background}
 
+@; TODO
+@; space-efficient contracts has a useful summary at the top,
+@;  we should at least put that in section 2
+@;  ... erased/natural are the standard, here's sketch of our three embeddings
+
 @; @parag{Assumptions}
 @; (0) no lump embedding! want observationally-equal values across boundaries
 @; (1) boundaries are explicit in syntax

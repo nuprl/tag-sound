@@ -70,6 +70,7 @@ The dynamic type and type compatibility relations are optional.
 
 Not sure about that gradual guarantee.
 For us, no matter how your system evolves you can count on type soundness.
+@; thats part of why we say 'migratory'
 
 Gradual typing broadly construed = any kind of research about mixing
  static/dynamic typing, where statically-typed is denoted by explicit type
