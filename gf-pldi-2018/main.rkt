@@ -36,6 +36,7 @@
   S-SAFETY
   N-SAFETY
   F-SAFETY
+  K-SAFETY
 
   ~a
 
@@ -345,6 +346,22 @@
     @item{ @${e \rrFEstar E[e']} and @${e' \rrD \typeerror} }
     @item{ @${e \rrFEstar \valueerror} }
     @item{ @${e} diverges } ]))
+
+(define K-SAFETY
+  (list
+    @theorem[@elem{@${\langK} type-tag safety}]{
+      If @${\wellM e : \tau}
+       and @${\tagof{\tau} = K}, then
+       @${\wellM e : \tau \carrow e^+}
+       and
+       @${\wellKE e^+ : K}
+       and either:
+    }
+    @itemlist[
+    @item{ @${e^+ \rrKEstar v} and @${\wellKE v : K} }
+    @item{ @${e^+ \rrKEstar E[e']} and @${e' \rrD \typeerror} }
+    @item{ @${e^+ \rrKEstar \valueerror} }
+    @item{ @${e^+} diverges } ]))
 
 (define EMBEDDINGS
   '("erased" "natural" "co-natural" "forgetful" "tagged"))

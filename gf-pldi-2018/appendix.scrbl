@@ -144,28 +144,7 @@ The languages in subsequent sections extend the syntax of @${\langM}
 @include-figure*["fig:tagged-embedding.tex" "Tagged Embedding"]
 @include-figure*["fig:tagged-completion.tex" "Tagged Completion"]
 
-@theorem[@elem{@${\langK} type-tag safety}]{
-  If @${\wellM e : \tau}
-   and @${\tagof{\tau} = K}, then
-   @${\wellM e : \tau \carrow e^+}
-   and
-   @${\wellKE e^+ : K}
-   and either:
-}
-@itemlist[
-@item{
-  @${e^+ \rrKEstar v} and @${\wellKE v : K}
-}
-@item{
-  @${e^+ \rrKEstar E[e']} and @${e' \rrD \typeerror}
-}
-@item{
-  @${e^+ \rrKEstar \valueerror}
-}
-@item{
-  @${e^+} diverges
-}
-]
+@|K-SAFETY|
 
 
 @; =============================================================================

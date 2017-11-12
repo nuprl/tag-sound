@@ -91,9 +91,9 @@ $\begin{array}{l}
   \inferrule*{
     v_{f} = \vlam{x}{e}
     \\
-    v_{arg}' = \fromany(\tau_d, v_{arg})
+    e_{arg}' = \esta{\tau_d}{v_{arg}}
   }{
-    (\vmonfun{(\tarr{\tau_d}{\tau_c})}{v_f})~v_{arg} \rrFS \edyn{\tau_c}{v_f~v_{arg}'}
+    (\vmonfun{(\tarr{\tau_d}{\tau_c})}{v_f})~v_{arg} \rrFS \edyn{\tau_c}{v_f~e_{arg}'}
   }
 
   \inferrule*{
@@ -110,24 +110,4 @@ $\begin{array}{l}
 \end{mathpar}
 \end{minipage}%
 
-%% -----------------------------------------------------------------------------
-\medskip
-\begin{minipage}[t]{0.5\textwidth}
-\fbox{$\Gamma \wellFE e$} extends $\Gamma \wellM e$:
-\begin{mathpar}
-  \inferrule*{
-  }{
-    \Gamma \wellFE \vmon{\tau}{v}
-  }
-\end{mathpar}
-\end{minipage}%
-\begin{minipage}[t]{0.5\textwidth}
-\fbox{$\Gamma \wellFE e : \tau$} extends $\Gamma \wellM e : \tau$:
-\begin{mathpar}
-  \inferrule*{
-  }{
-    \Gamma \wellFE \vmon{\tau}{v} : \tau
-  }
-\end{mathpar}
-\end{minipage}
 \end{flushleft}

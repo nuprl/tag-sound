@@ -392,43 +392,59 @@ In short, the combination of monitor values and forgetful semantics
 
 @; -----------------------------------------------------------------------------
 @section{The Tagged Embedding}
-@include-figure["fig:tagged-delta.tex" "Tagged Embedding"]
+@include-figure["fig:well-tagged.tex" "Well-Tagged Typing"]
 
-After collapsing monitors, left with a small number of checks only within
- typed code.
-Introduce a type system to clarify 
+@; ... yeah this is kind of the right idea but way to awkward especially the figure
 
-Can remove monitors by extending syntax as shown in @figure-ref{fig:tagged-delta}.
-Has N parts.
+Each boundary-crossing checks that a value has the expected shape,
+ then optionally allocates a monitor to insert future checks.
+These future checks occur at
+ function applications and calls to the @${\vfst} and @${\vsnd} accessor primitives.
+Such checks are necessary in statically-typed code to prevent undefined calls to
+ the @${\deltaS} function.
+Dynamically-typed code does not need these safety checks; see the erased embedding.
 
-Type system declares when a term is well-tagged.
+A statically-typed expression would not need type checks if it made no assumptions
+ about dynamically-typed values.
+Such values can come from @${\vdyn} expressions or as arguments to statically-typed
+ functions.
+@; STOP. Not sure what to say, just get the figures done and then go to dinner.
 
-Static rewriting converts a well-typed program to a well-tagged program
- by inserting checks in typed code.
+The type system ensures that:
+ (1) functions make no assumptions about their input, and
+ (2) elimination forms make no assumption about what result they will receive.
+If a program type-checks using the rules in @figure-ref{fig:well-tagged},
+ then it is safe to evaluate without any instrumentation.
+No monitors required.
 
-Reduction relation implements the tag checking.
+For example, the function @${(\vlam{x}{\echk{\kint}{(\efst{(\echk{\kpair}{x})})}})}
+ has type @${(\tpair{\kany}{\tint})} and is safe to call from dynamically-typed
+ code.
 
-Intuition:
-@itemlist[
-@item{
-  Typed code that @emph{reads} from a possibly-untyped value must tag-check
-   the result.
-}
-@item{
-  Typed values that receive @emph{writes} from possible-untyped contexts must
-   be prepared to accept any kind of input.
-}
-]
 
-For reads, the solution is to insert a check between a data structure and its clients.
-For writes in the form of function application, the function must tag-check its input.
-Other writes --- for example writes to a mutable data structure --- do not
- need to check their input provided the language runtime supports writing
- any kind of value to the data structure (should be no problem in a dynamically-typed language).
+@subsection{Automatic Completion}
+@include-figure["fig:tagged-completion-delta.tex" @elem{Automatic @${\vchk} Completion}]
 
-@;More efficient.
-@;Loses codomain errors in untyped code.
-@;Does more checks than necessary in typed code.
+Rather than force programmers to insert @${\vchk} expressions,
+ we can better support the goals of migratory typing by statically rewriting
+ programs.
+See @figure-ref{fig:tagged-completion-delta} for the ideas, the appendix has the details.
+@; WHAT IS IT
+@; WHY NAMED THAT?
+After Henglein, we call this @emph{completion}.
 
-@; ... suffers all the problems of the lazy and forgetful,
-@; ... gains significant performance?
+NOTE: (1) these checks are an overapproximation (2) our completion is not minimal.
+
+
+@subsection{Type-Tag Soundness}
+
+Bringing it all together, get soundness result for the multi-language.
+
+@|K-SAFETY|
+
+@emph{Remark}: we conjecture that for all source expressions @${e},
+ the forgetful embedding and tagged embedding are observationally equivalent.
+(Isn't there a simple class of counterexamples to rule out?)
+At any rate they are similar to one another and very different from the
+ natural embedding ... future work for readers:
+ there should be a way to make this precise!

@@ -1,0 +1,39 @@
+\begin{flushleft}
+
+\fbox{Language $\langk$} extends Common Syntax:
+$\begin{array}{l@{~~}c@{~~}l}
+  e & \Coloneqq & \ldots \mid \echk~K~e
+\\
+  \tau & \Coloneqq & \tarr{\kany}{\tau} \mid \ldots
+\end{array}$
+
+\fbox{$\Gamma \wellk e : \tau$}
+\begin{mathpar}
+  \inferrule*{
+    \Gamma \wellk e : \kpair
+  }{
+    \Gamma \wellk \efst{e} : \kany
+  }
+
+  \inferrule*{
+    \Gamma \wellk e : \kpair
+  }{
+    \Gamma \wellk \esnd{e} : \kany
+  }
+
+  \inferrule*{
+    \Gamma \wellk e_0 : \kfun
+    \\
+    \Gamma \wellk e_1 : \kany
+  }{
+    \Gamma \wellk e_0~e_1 : \kany
+  }
+
+  \inferrule*{
+    \Gamma \wellk e : K'
+  }{
+    \Gamma \wellk \echk{K}{e} : K
+  }
+\end{mathpar}
+
+\end{flushleft}
