@@ -115,6 +115,9 @@ AKA only chaperone embeddings.
 An embedding is @|EGOOD| if it meets these criteria.
 (Don't forget, the embedding is a distraction, really only care about type soundness)
 
+@; Example: any 2 languages can interoperate if they only share JSON,
+@;  but converting every API to JSON is not going to work for migratory typing
+
 
 @;@section{Summary, Glossary}
 @;
