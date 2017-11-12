@@ -219,6 +219,9 @@ Function monitors add an @emph{indirection} cost.
 Every call to a monitored function incurs one additional boundary-crossing.
 This single layer of indirection may affect the inlining decisions in a JIT-compiled language;
  furthermore, layers of indirection accumulate as values repeatedly cross boundaries.
+@; TODO really need to emphasize the N-levels,
+@;  important to bring in the JIT, but not at the expense of de-emphasizing
+@;  how important-important the wrapping is
 Finally, the @emph{allocation} cost of building a monitor value at run-time
  may have significant implications for performance.
 
@@ -238,61 +241,56 @@ Consequently, they demonstrate that the erased and natural embeddings lie on
 
 @; -----------------------------------------------------------------------------
 @section{The Co-Natural Embedding}
-@include-figure["fig:conatural-delta.tex" "Lazy Embedding"]
+@include-figure*["fig:conatural-delta.tex" "Co-Natural Embedding"]
 
-Remove recursion from @${\delta} with a new kind of monitor.
-Same strategy used for functions.
-Easy in our functional language, difficult in general,
- need to add a new class of values with same API as the old,
- probably need to change the language.
+The natural embedding checks values eagerly whenever possible.
+Consequentyl, a boundary expecting values of type @${\tau} typically
+ requires one type-tag check for each type constructor in the @${\tau} type.
+For example, if @${\tau} is the pair type @${\tpair{\tint}{\tnat}} then a
+ boundary expecting a value of type @${\tau} must perform three type-tag checks.
 
-@Figure-ref{fig:conatural-delta} extends the syntax of the functional language
- with monitors for pairs.
-The @${\delta} relation is extended with the obvious cases to check the
- contents of monitored pairs at run-time.
+The exception to this linear-cost rule is the function type.
+To check that a value has type @${(\tarr{\tau_d}{\tau_c})},
+ the natural embedding performs one type-tag check and allocates a monitor to
+ delay checking the function's domain and codomain.
 
-Note, could be far more expensive than just checking the pair, consider a function
- that performs two reads.
-The function is twice as slow with the new guards.
+Therein lies the insight for a co-natural embedding strategy.
+If a language has one monitor value for each parameterized type,
+ then it can enforce any type boundary with (at most) one type-tag check and one
+ monitor allocation.
+
+@; TODO note no need to protect pairs???
+
+@Figure-ref{fig:conatural-delta} outlines the details for our multi-language
+ as an extension of the natural embedding language @${\langN}.
+The new value @${\vmonpair{(\tpair{\tau_0}{\tau_1})}{v}} monitors a pair value.
+If @${v_m} is such a monitor, then every call @${(\efst{v_m})} checks that
+ the first component of @${v} matches the @${\tau_0} type.
+
+Proving natural type soundness for this embedding is straightforward.
+For any expression @${e} with type @${\tau}, if @${e} evaluates to a value
+ then the value has type @${\tau} --- either from first principles or because
+ the value is a monitor.
+
+@emph{Remark}:
+whether the natural or co-natural embedding performs fewer type-checks in
+ a particular program depends on its data access patterns.
+For example, the following program is at the ``break even'' point between
+ the two embeddings:
 
 @exact|{
  $$(\vlam{(x:\tpair{\tint}{\tint})}{(\efst{x} + \efst{x})})$$
 }|
 
-But this is arguably bad style, requires two data stucture accesses as well.
-Maybe a compiler should re-write (CSE) before inserting the tag checks.
-
-Can prove a safety theorem much like natural safety.
-
-@theorem["lazy safety"]{
-  If @${\cdot \wellsta e : \tau} then @${\cdot \wellLE e : \tau} and either:
-}
-@itemlist[
-@item{
-  @${e \rrLEstar v} and @${\cdot \wellLE v : \tau}
-}
-@item{
-  @${e \rrLEstar \typeerror}
-}
-@item{
-  @${e \rrLEstar \valueerror}
-}
-@item{
-  @${e} diverges
-}
-]
-
-Same soundness, but different behaviors!
-@emph{Type soundness} does not change by making checks lazy,
- it only delays value errors from "immediately at the boundary" to
- "only until access".
-Allows somewhat latent type errors,
- but nothing serious because if an access happens to read a bad value,
- this will be reported.
-No matter where it happens.
-@; Gradual guarantee?
+Suppose this function is invoked on a dynamically-typed pair of integers.
+Under the natural embedding, the boundary-crossing will check both components
+ of the pair --- even though the function only accesses the first component.
+Under the co-natural embedding, the boundary-crossing will only check the tag.
+The two calls to @${\vfst}, however, will both trigger a type check.
+@emph{End Remark}
 
 
+@; -----------------------------------------------------------------------------
 @section{The Forgetful Embedding}
 @include-figure["fig:forgetful-delta.tex" "Forgetful Embedding"]
 
@@ -332,6 +330,16 @@ No loss?
 No no no no no.
 There is loss.
 
+@; Co-Natural
+Same soundness, but different behaviors!
+@emph{Type soundness} does not change by making checks lazy,
+ it only delays value errors from "immediately at the boundary" to
+ "only until access".
+Allows somewhat latent type errors,
+ but nothing serious because if an access happens to read a bad value,
+ this will be reported.
+No matter where it happens.
+@; Gradual guarantee?
 
 @; -----------------------------------------------------------------------------
 @section{The Tagged Embedding}

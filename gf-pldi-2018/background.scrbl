@@ -122,3 +122,4 @@ An embedding is @|EGOOD| if it meets these criteria.
 @;configuration
 @;monitors
 @;accountability
+@; type-tag check

@@ -6,6 +6,24 @@
 Matthews-Findler originated.
 Dimoulas for complete monitoring.
 
+Erased embedding, see TypeScript and pluggable types.
+@; does the academic history go deeper?
+
+Natural embedding formatlized by Matthews / Findler,
+ based on lots of prior work about type-safe FFIs.
+@; thank you based Robby, perfect reference material
+
+Co-Natural is our own, but the idea comes from Findler / Felleisen.
+
+Forgetful by Greenberg.
+Never would have taken it seriously otherwise.
+
+Tagged by Vitousek.
+This work started by trying to replicate their compiler,
+ wound up with many difficult questions.
+We confirm their performance results with an apples-to-apples for TR,
+ and outline the research landscape for improving tag-soundness.
+
 
 @parag{Migratory Typing}
 
