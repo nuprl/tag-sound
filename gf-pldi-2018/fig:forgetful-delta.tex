@@ -113,30 +113,20 @@ $\begin{array}{l}
 %% -----------------------------------------------------------------------------
 \medskip
 \begin{minipage}[t]{0.5\textwidth}
-\fbox{$\Gamma \wellFE e$} extends $\Gamma \welldyn e$:
+\fbox{$\Gamma \wellFE e$} extends $\Gamma \wellM e$:
 \begin{mathpar}
   \inferrule*{
   }{
     \Gamma \wellFE \vmon{\tau}{v}
   }
-
-  \inferrule*{
-  }{
-    \Gamma \wellFE \esta{\tau}{e} : \tau
-  }
 \end{mathpar}
 \end{minipage}%
 \begin{minipage}[t]{0.5\textwidth}
-\fbox{$\Gamma \wellFE e : \tau$} extends $\Gamma \wellsta e : \tau$:
+\fbox{$\Gamma \wellFE e : \tau$} extends $\Gamma \wellM e : \tau$:
 \begin{mathpar}
   \inferrule*{
   }{
     \Gamma \wellFE \vmon{\tau}{v} : \tau
-  }
-
-  \inferrule*{
-  }{
-    \Gamma \wellFE \edyn{\tau}{e} : \tau
   }
 \end{mathpar}
 \end{minipage}

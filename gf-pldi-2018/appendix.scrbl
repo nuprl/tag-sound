@@ -134,23 +134,7 @@ The languages in subsequent sections extend the syntax of @${\langM}
 @subsection{Forgetful Embedding}
 @include-figure*["fig:forgetful-embedding.tex" "Forgetful Embedding"]
 
-@theorem[@elem{@${\langF} type safety}]{
-  If @${\wellM e : \tau} then @${\wellFE e : \tau} and either:
-}
-@itemlist[
-@item{
-  @${e \rrFEstar v} and @${\wellFE v : \tau}
-}
-@item{
-  @${e \rrFEstar E[e']} and @${e' \rrD \typeerror}
-}
-@item{
-  @${e \rrFEstar \valueerror}
-}
-@item{
-  @${e} diverges
-}
-]
+@|F-SAFETY|
 @proof{
   TODO
 }

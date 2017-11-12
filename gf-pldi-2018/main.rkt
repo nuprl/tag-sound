@@ -35,6 +35,7 @@
   D-SAFETY
   S-SAFETY
   N-SAFETY
+  F-SAFETY
 
   ~a
 
@@ -332,6 +333,17 @@
     @item{ @${e \rrNEstar v} and @${\wellNE v : \tau} }
     @item{ @${e \rrNEstar E[e']} and @${(e' \rrD \typeerror)} }
     @item{ @${e \rrNEstar \valueerror} }
+    @item{ @${e} diverges } ]))
+
+(define F-SAFETY
+  (list
+    @theorem[@elem{@${\langF} type safety}]{
+      If @${\wellM e : \tau} then @${\wellFE e : \tau} and either:
+    }
+    @itemlist[
+    @item{ @${e \rrFEstar v} and @${\wellFE v : \tau} }
+    @item{ @${e \rrFEstar E[e']} and @${e' \rrD \typeerror} }
+    @item{ @${e \rrFEstar \valueerror} }
     @item{ @${e} diverges } ]))
 
 (define EMBEDDINGS

@@ -315,7 +315,47 @@ We call this approach a forgetful embedding, based on Greenbergs similar proposa
   contract calculi: forgetful, heedful, and eidetic. We use forgetful because
   it admits a monitor-free implementation.}
 
+It is far less obvious that a forgetful embedding can provide any kind of type
+ soundness, given that it neglects to enforce certain static types.
+@;Moreover, collapsing monitors loses the one-to-one correspondence between
+@; boundary-crossings and monitors that was present in the natural embeddings.
+@; TODO ... I mean it wasn't obvious to me that soundness would work,
+@;   and had to add some non-obvious reduction rules to do so (looing under monitors)
 
+@; TODO
+However is possible to prove the natural embedding soundness,
+ namely that terms do not get stuck.
+
+The intuition --- due to Greenberg --- is that a forgetful embedding can be type
+ sound provided no expression depends on a value having a forgotten type.
+
+To illustrate, consider the statically-typed expression @${(\vsum~1~\efst{x})}.
+This expression is well-typed if the variable @${x} has the static type @${\tpair{\tint}{\tau}}
+ for some type @${\tau}.
+With the co-natural embedding, the run-time value of @${x} could be
+ any statically type pair, or any monitor of the form @${(\vmonpair{(\tpair{\tint}{\tau})}{v})}
+That @${v} could be a monitor.
+If it is, there's only chance for errors; no chance that @${\deltaS} will get stuck.
+@; TODO would also work for Nat, I don't think this "intuition" is helping anyone
+For functions, need to check the original static domain and the codomain
+ that the caller expects.
+@; ok the intuition defs needs to be here
+
+@Figure-ref{fig:forgetful-delta} extends our multi-language with a forgetful
+ embedding.
+The syntax of value forms prevents nested monitors.
+Consequently, there is no distinction between ${\fromdyn} boundaries and
+ @${\fromsta} boundaries; both must check a value against a type.
+The new reduction rules implement the checks necessary to prevent stuck states.
+The reduction rules for pairs check the contents of a monitored pair against
+ the expectations of the context.
+The rules for applying a function check that the argument is within the function's
+ domain, and introduce a boundary to check the function's codomain.
+With the addition of typing rules for the collapsed monitors, one can
+ show that forgetful satisfies a variant of natural type safety:
+
+@|F-SAFETY|
+@proof-sketch{By progress and preservation of the @${\wellFE} judgment. See appendix.}
 
 
 @; -----------------------------------------------------------------------------
