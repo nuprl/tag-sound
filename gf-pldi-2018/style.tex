@@ -67,6 +67,8 @@ showstringspaces=false            %
 
 %% -----------------------------------------------------------------------------
 
+\mathchardef\mhyphen="2D
+
 \newcommand{\compilesto}{\rightsquigarrow}
 \newcommand{\carrow}{\compilesto}
 \newcommand{\context}{\mathcal{C}}
@@ -101,7 +103,6 @@ showstringspaces=false            %
 \newcommand{\tall}{\forall}
 \newcommand{\tann}[2]{(#1\!:\!#2)}
 
-\mathchardef\mhyphen="2D
 \newcommand{\deltaC}{\vchk\mhyphen\mathsf{tag}}
 \newcommand{\vdyn}{\mathsf{dynamic}}
 \newcommand{\vsta}{\mathsf{static}}
@@ -117,6 +118,7 @@ showstringspaces=false            %
 
 \newcommand{\fromsta}{\mathsf{static{\rightarrow}dynamic}}
 \newcommand{\fromdyn}{\mathsf{dynamic{\rightarrow}static}}
+\newcommand{\fromany}{\mathsf{check{\mhyphen}type}}
 
 \newcommand{\kany}{\mathsf{Any}}
 \newcommand{\kpair}{\mathsf{Pair}}

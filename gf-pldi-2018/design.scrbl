@@ -190,6 +190,9 @@ With this invariant and an appropriate typing rule for monitors, one can
 @proof-sketch{
   By progress and preservation lemmas for the @${\Gamma \wellNE e : \tau} judgment.
   See the appendix for proof, and the full definition of the @${\rrNEstar} reduction relation.
+  Intuitively, @${\rrNEstar} applies @${\ccD} in dynamically-typed code,
+   @${\ccS} in statically-typed code, and uses boundary expressions to determine
+   which is which.
 }
 
 
@@ -244,22 +247,23 @@ Consequently, they demonstrate that the erased and natural embeddings lie on
 @include-figure*["fig:conatural-delta.tex" "Co-Natural Embedding"]
 
 The natural embedding checks values eagerly whenever possible.
-Consequentyl, a boundary expecting values of type @${\tau} typically
+Consequently, a boundary expecting values of type @${\tau} typically
  requires one type-tag check for each type constructor in the @${\tau} type.
 For example, if @${\tau} is the pair type @${\tpair{\tint}{\tnat}} then a
  boundary expecting a value of type @${\tau} must perform three type-tag checks.
 
 The exception to this linear-cost rule is the function type.
-To check that a value has type @${(\tarr{\tau_d}{\tau_c})},
+To check that a dynamically-typed value has type @${(\tarr{\tau_d}{\tau_c})},
  the natural embedding performs one type-tag check and allocates a monitor to
  delay checking the function's domain and codomain.
 
 Therein lies the insight for a co-natural embedding strategy.
 If a language has one monitor value for each parameterized type,
- then it can enforce any type boundary with (at most) one type-tag check and one
+ then it can check any dynamically-typed value with (at most) one type-tag check and one
  monitor allocation.
 
 @; TODO note no need to protect pairs???
+@; ... well I guess its obvious enough
 
 @Figure-ref{fig:conatural-delta} outlines the details for our multi-language
  as an extension of the natural embedding language @${\langN}.
@@ -292,7 +296,7 @@ The two calls to @${\vfst}, however, will both trigger a type check.
 
 @; -----------------------------------------------------------------------------
 @section{The Forgetful Embedding}
-@include-figure["fig:forgetful-delta.tex" "Forgetful Embedding"]
+@include-figure*["fig:forgetful-delta.tex" "Forgetful Embedding"]
 
 Adopt rationale proposed by Greenberg, contracts exist to make partial
  operations total.
@@ -340,6 +344,10 @@ Allows somewhat latent type errors,
  this will be reported.
 No matter where it happens.
 @; Gradual guarantee?
+
+@; Forgetful
+co-inductive intuition breaks down,
+ types are more "transient"
 
 @; -----------------------------------------------------------------------------
 @section{The Tagged Embedding}

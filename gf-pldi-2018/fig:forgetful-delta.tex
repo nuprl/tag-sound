@@ -1,0 +1,132 @@
+\begin{flushleft}
+
+\begin{minipage}[t]{0.5\textwidth}
+\fbox{Language $\langF$} $= \langL$\\
+
+\medskip
+$\begin{array}{l}
+  \fromsta(\tau, v) = \fromany(\tau, v)
+\\[0.8ex]
+  \fromdyn(\tau, v) = \fromany(\tau, v)
+\end{array}$
+\end{minipage}%
+\begin{minipage}[t]{0.5\textwidth}
+$\begin{array}{l}
+  \fromany(\tint, i) = i
+\\
+  \fromany(\tnat, i) = i
+\\ \mbox{\quad if $i \in \naturals$}
+\\
+  \fromany(\tpair{\tau_0}{\tau_1}, v) = \vmonpair{(\tpair{\tau_0}{\tau_1})}{v}
+\\ \mbox{\quad if $v = \vpair{v_0}{v_1}$}
+\\
+  \fromany(\tpair{\tau_0}{\tau_1}, v) = \vmonpair{(\tpair{\tau_0}{\tau_1})}{v'}
+\\ \mbox{\quad if $v = \vmonpair{(\tpair{\tau_0'}{\tau_1'})}{v'}$}
+\\
+  \fromany(\tarr{\tau_d}{\tau_c}, v) = \vmonfun{(\tarr{\tau_d}{\tau_c})}{v}
+\\ \mbox{\quad if $v = \vlam{x}{e}$ or $v = \vlam{\tann{x}{\tau}}{e}$}
+\\
+  \fromany(\tarr{\tau_d}{\tau_c}, v) = \vmonfun{(\tarr{\tau_d}{\tau_c})}{v'}
+\\ \mbox{\quad if $v = \vmonfun{(\tarr{\tau_d'}{\tau_c'})}{v'}$}
+\\
+  \fromany(\tau, v) = \valueerror
+\\ \mbox{\quad otherwise}
+\end{array}$
+\end{minipage}
+
+%% -----------------------------------------------------------------------------
+\medskip
+\begin{minipage}[t]{0.5\textwidth}
+\fbox{$e \rrFD A$} extends $e \rrD A$:
+\begin{mathpar}
+  \inferrule*{
+    v_{f} = \vlam{x}{e}
+  }{
+    (\vmonfun{(\tarr{\tau_d}{\tau_c})}{v_f})~v_{arg} \rrFD \vsubst{e}{x}{v_{arg}}
+  }
+
+  \inferrule*{
+    v_{f} = \vlam{\tann{x}{\tau}}{e}
+    \\
+    v_{arg}' = \fromany(\tau, v_{arg})
+  }{
+    (\vmonfun{(\tarr{\tau_d}{\tau_c})}{v_f})~v_{arg} \rrFD \esta{\tau_c}{v_f~v_{arg}'}
+  }
+
+  \inferrule*{
+    v_0' = \fromany(\tau_0, v_0)
+  }{
+    \efst{(\vmonpair{(\tpair{\tau_0}{\tau_1})}{\vpair{v_0}{v_1}})} \rrFD v_0'
+  }
+
+  \inferrule*{
+    v_1' = \fromany(\tau_1, v_1)
+  }{
+    \esnd{(\vmonpair{(\tpair{\tau_0}{\tau_1})}{\vpair{v_0}{v_1}})} \rrFD v_1'
+  }
+\end{mathpar}
+\end{minipage}%
+\begin{minipage}[t]{0.5\textwidth}
+\fbox{$e \rrFS A$} extends $e \rrS A$:
+\begin{mathpar}
+  \inferrule*{
+    v_{f} = \vlam{\tann{x}{\tau}}{e}
+    \\
+    v_{arg}' = \fromany(\tau, v_{arg})
+  }{
+    (\vmonfun{(\tarr{\tau_d}{\tau_c})}{v_f})~v_{arg} \rrFS v_f~v_{arg}'
+  }
+
+  \inferrule*{
+    v_{f} = \vlam{x}{e}
+    \\
+    v_{arg}' = \fromany(\tau_d, v_{arg})
+  }{
+    (\vmonfun{(\tarr{\tau_d}{\tau_c})}{v_f})~v_{arg} \rrFS \edyn{\tau_c}{v_f~v_{arg}'}
+  }
+
+  \inferrule*{
+    v_0' = \fromany(\tau_0, v_0)
+  }{
+    \efst{(\vmonpair{(\tpair{\tau_0}{\tau_1})}{\vpair{v_0}{v_1}})} \rrFS v_0'
+  }
+
+  \inferrule*{
+    v_1' = \fromany(\tau_1, v_1)
+  }{
+    \esnd{(\vmonpair{(\tpair{\tau_0}{\tau_1})}{\vpair{v_0}{v_1}})} \rrFS v_1'
+  }
+\end{mathpar}
+\end{minipage}%
+
+%% -----------------------------------------------------------------------------
+\medskip
+\begin{minipage}[t]{0.5\textwidth}
+\fbox{$\Gamma \wellFE e$} extends $\Gamma \welldyn e$:
+\begin{mathpar}
+  \inferrule*{
+  }{
+    \Gamma \wellFE \vmon{\tau}{v}
+  }
+
+  \inferrule*{
+  }{
+    \Gamma \wellFE \esta{\tau}{e} : \tau
+  }
+\end{mathpar}
+\end{minipage}%
+\begin{minipage}[t]{0.5\textwidth}
+\fbox{$\Gamma \wellFE e : \tau$} extends $\Gamma \wellsta e : \tau$:
+\begin{mathpar}
+  \inferrule*{
+  }{
+    \Gamma \wellFE \vmon{\tau}{v} : \tau
+  }
+
+  \inferrule*{
+  }{
+    \Gamma \wellFE \edyn{\tau}{e} : \tau
+  }
+\end{mathpar}
+\end{minipage}
+\end{flushleft}
