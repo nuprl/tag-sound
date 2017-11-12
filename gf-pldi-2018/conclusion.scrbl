@@ -28,3 +28,10 @@ Conventional conference wisdom and conventional industry wisdom
  are polar opposites,
  the performance work suggests they will never meet in the middle.
 This paper is one idea for a compromise, interested to hear others.
+
+@; Future work:
+@; - precise cost of boundaries
+@; - infer types, help with conversion
+@; - RTTI for TR, the models have (mon T v) but reality is (mon K,K v)
+@; - static analysis, to pick natural vs. co-natural for a boundary (for efficiency)
+@; - JIT for tagged, other things to reduce tag checks
