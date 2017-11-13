@@ -10,17 +10,6 @@ The prototype runs the Typed Racket type checker,
  and disables Typed Racket's contract generation.
 
 
-@section{Errors Matter}
-
-Prototype gives poor error messages,
- expected A got B.
-Not even using the contract system,
- see tech report.
-
-Improving the error messages will cost a lot.
-How much is unclear, because maybe can improve the contract system.
-
-
 @section{Method}
 
 Section 2 outlined our method.
@@ -48,7 +37,23 @@ Increase is typically linear,
 
 @section{Threats to Validity}
 
-Early prototype,
- IO actions,
- disabled TR optimizer,
+Our implementation is an early prototype,
+ significant threats to validity.
+
+@; === things that make prototype too fast
+Minimal error messages.
+
+
+@; === things that make prototype too slow
+Incompatible with TR optimizer.
+
+Could optimize more checks.
+
+@; === things that make prototype non-representative
+Does not support objects.
+
+
+@; === things about the benchmarks / experiment
+
+
 

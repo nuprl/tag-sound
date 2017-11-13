@@ -404,7 +404,7 @@ For our multi-language, these elimination forms are function applications
 
 The @emph{type-tagging} system in @figure-ref{fig:well-tagged} precisely
  describes where tag checks are required.
-The judgment @${\Gamma \wellK e : K} holds if the expression @${e} has
+The judgment @${\Gamma \wellKE e : K} holds if the expression @${e} has
  type-tag @${K} in the type context @${\Gamma}, where variables in @${\Gamma}
  are assumed to have the correct tag.
 @; TODO why not just (x:K) in gamma? problem with boundaries?

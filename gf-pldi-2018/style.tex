@@ -100,7 +100,8 @@ showstringspaces=false            %
 \newcommand{\tarrow}{\rightarrow}
 \newcommand{\tarr}[2]{#1 \tarrow #2}
 \newcommand{\tunion}{\bigcup}
-\newcommand{\tall}{\forall}
+\newcommand{\tall}[2]{\forall\,#1.\,#2}
+\newcommand{\trec}[2]{\mu\,#1.\,#2}
 \newcommand{\tann}[2]{(#1\!:\!#2)}
 
 \newcommand{\deltaC}{\vchk\mhyphen\mathsf{tag}}
@@ -189,7 +190,7 @@ showstringspaces=false            %
 \newcommand{\vrel}[2]{#1 \models #2}
 \newcommand{\vstate}[2]{[#1~#2]}
 \newcommand{\vstategen}{\vstate{\sigma}{v}}
-\newcommand{\vsubst}[3]{#1[#2\!\mapsto\!#3]}
+\newcommand{\vsubst}[3]{#1[#3\!\leftarrow\!#2]}
 
 \newcommand{\tfun}[5]{\mathbf{fun} #1 (#2 : #3) \rightarrow #4\,.\,#5}
 \newcommand{\ufun}[3]{\mathbf{fun} #1 (#2)\,.\,#3}
