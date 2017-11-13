@@ -341,6 +341,7 @@ For functions, need to check the original static domain and the codomain
  that the caller expects.
 @; ok the intuition defs needs to be here
 
+@; TODO call this a "forgetful final embedding"
 @Figure-ref{fig:forgetful-delta} extends our multi-language with a forgetful
  embedding.
 The syntax of value forms prevents nested monitors.
@@ -394,36 +395,38 @@ In short, the combination of monitor values and forgetful semantics
 @section{The Tagged Embedding}
 @include-figure["fig:well-tagged.tex" "Well-Tagged Typing"]
 
-@; ... yeah this is kind of the right idea but way to awkward especially the figure
+An embedding that combines the co-natural and forgetful strategies
+ checks only type-tags at elimination forms.
+For our multi-language, these elimination forms are function applications
+ and pair accessors --- statically-typed functions need protection against arguments
+ outside their domain, and statically-typed expressions need protection against
+ values produced by dynamically-typed functions and pairs.
 
-Each boundary-crossing checks that a value has the expected shape,
- then optionally allocates a monitor to insert future checks.
-These future checks occur at
- function applications and calls to the @${\vfst} and @${\vsnd} accessor primitives.
-Such checks are necessary in statically-typed code to prevent undefined calls to
- the @${\deltaS} function.
-Dynamically-typed code does not need these safety checks; see the erased embedding.
+The @emph{type-tagging} system in @figure-ref{fig:well-tagged} precisely
+ describes where tag checks are required.
+The judgment @${\Gamma \wellK e : K} holds if the expression @${e} has
+ type-tag @${K} in the type context @${\Gamma}, where variables in @${\Gamma}
+ are assumed to have the correct tag.
+@; TODO why not just (x:K) in gamma? problem with boundaries?
+A type-tag @${K} either corresponds to a type constructor, or represents
+ a dynamically-typed value with an unknown tag.
+The meta-function @${\tagof{\cdot}} maps a type to its tag.
 
-A statically-typed expression would not need type checks if it made no assumptions
- about dynamically-typed values.
-Such values can come from @${\vdyn} expressions or as arguments to statically-typed
- functions.
-@; STOP. Not sure what to say, just get the figures done and then go to dinner.
-
-The type system ensures that:
- (1) functions make no assumptions about their input, and
- (2) elimination forms make no assumption about what result they will receive.
-If a program type-checks using the rules in @figure-ref{fig:well-tagged},
- then it is safe to evaluate without any instrumentation.
-No monitors required.
-
-For example, the function @${(\vlam{x}{\echk{\kint}{(\efst{(\echk{\kpair}{x})})}})}
- has type @${(\tpair{\kany}{\tint})} and is safe to call from dynamically-typed
- code.
+Few well-typed terms are well-tagged.
+So introduce check form to make it so.
+@;The type system ensures that:
+@; (1) functions make no assumptions about their input, and
+@; (2) elimination forms make no assumption about what result they will receive.
+@;If a program type-checks using the rules in @figure-ref{fig:well-tagged},
+@; then it is safe to evaluate without any instrumentation.
+@;No monitors required.
 
 
 @subsection{Automatic Completion}
 @include-figure["fig:tagged-completion-delta.tex" @elem{Automatic @${\vchk} Completion}]
+
+Queue from similar work by Vitousek and Henglein,
+ time for completions.
 
 Rather than force programmers to insert @${\vchk} expressions,
  we can better support the goals of migratory typing by statically rewriting
