@@ -7,19 +7,24 @@
 ;;  this is just a front-end that sets the right parameters for this paper.
 
 (provide
+  BM-NAME*
   TR-DATA*
   TAG-DATA*
   tag-color-sample
   tr-color-sample
   NUM-TR
+  NUM-ITERS
   X-MAX
   overhead-plot*
-  models-roadmap)
+  models-roadmap
+  render-max-overhead)
 
 (require
   file/glob
   gtp-plot/plot
   gtp-plot/typed-racket-info
+  (only-in gtp-plot/performance-info
+    max-overhead)
   with-cache
   racket/runtime-path
   pict
@@ -36,6 +41,7 @@
   (only-in racket/path
     file-name-from-path)
   (only-in racket/math
+    exact-round
     exact-floor))
 
 (module+ test
@@ -58,7 +64,7 @@
 (define START-COLOR 3)
 
 (define BM-NAME* '(
-  fsm gregor kcfa morsecode sieve snake suffixtree synth tetris zombie))
+  fsm kcfa morsecode sieve snake suffixtree synth tetris zombie))
 
 (define (color-sample i)
   (define border-color (apply make-color (->pen-color i)))
@@ -109,6 +115,10 @@
 
 (define NUM-TR
   (number->string (length TR-DATA*)))
+
+(define NUM-ITERS
+  ;; TODO
+  8)
 
 (define (overhead-plot* x*)
   (define base-cache-keys (list *GRID-X* *GRID-Y* *OVERHEAD-MAX*))
@@ -222,10 +232,54 @@
       (car src+dst) cb-find
       (cdr src+dst) ct-find)))
 
+(define (render-max-overhead kind bm-name)
+  (unless (valid-embedding? kind)
+    (raise-argument-error 'max-overhead "valid-embedding?" 0 kind bm-name))
+  (unless (memq bm-name BM-NAME*)
+    (raise-argument-error 'max-overhead "benchmark-name?" 1 kind bm-name))
+  (define rktd
+    (case kind
+     [(typed)
+      (find-rktd TR-DATA* bm-name)]
+     [(tagged)
+      (find-rktd TAG-DATA* bm-name)]
+     [else
+      (error 'impossible)]))
+  (define pi (make-typed-racket-info rktd))
+  (define o (max-overhead pi))
+  (string-append (number->string (exact-round o)) "x"))
+
+(define (valid-embedding? k)
+  (memq k '(typed tagged)))
+
+(define (find-rktd rktd* bm-name)
+  (define str (symbol->string bm-name))
+  (let loop ([r* rktd*])
+    (cond
+     [(null? r*)
+      (raise-arguments-error 'find-rktd "failed to find matching data file"
+        "benchmark" bm-name
+        "data files" rktd*)]
+     [(regexp-match? str (car r*))
+      (car r*)]
+     [else
+      (loop (cdr r*))])))
 
 ;; =============================================================================
 
 (module+ test
+  (require rackunit)
+
   (test-case "tag/type data matches"
     (check-equal? NUM-TAG NUM-TR))
+
+  (test-case "render-max-overhead"
+    (check-equal?
+      (render-max-overhead 'typed 'fsm)
+      "1280x")
+    (check-equal?
+      (render-max-overhead 'tagged 'fsm)
+      "2x"))
+
+  ;; TODO get and check NUM-ITERS
 )

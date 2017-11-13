@@ -5,6 +5,7 @@
 (provide
   ;; --- new stuff
   MT
+  TR
   good
   language
   MMT
@@ -31,12 +32,16 @@
   include-figure*
   NUM-EMBEDDINGS
   EGOOD
+  deliverable
+  LD-Racket
+  x-axis
 
   D-SAFETY
   S-SAFETY
   N-SAFETY
   F-SAFETY
   K-SAFETY
+  bm
 
   ~a
 
@@ -113,6 +118,8 @@
   (only-in racket/list
     add-between
     partition)
+  (only-in gtp-plot/util
+    log-gtp-plot-warning)
   racket/format
   racket/string
   scribble/acmart
@@ -371,3 +378,29 @@
 
 (define EGOOD
   (emph "good"))
+
+(define (deliverable [D "D"])
+  (define d-str
+    (cond
+     [(string? D)
+      D]
+     [(and (real? D) (positive? D))
+      (number->string D)]
+     [else
+      (raise-argument-error 'deliverable "(or/c positive-real? string?)" D)]))
+  (elem ($ d-str) "-deliverable"))
+
+(define LD-Racket
+  "LD Racket")
+
+(define TR
+  "Typed Racket")
+
+(define x-axis
+  (exact "\\emph{x}-axis"))
+
+(define (bm str)
+  (define sym (string->symbol str))
+  (unless (memq sym BM-NAME*)
+    (log-gtp-plot-warning "unrecognized benchmark name '~a'" str))
+  (tt str))
