@@ -17,117 +17,65 @@
 
 @; -----------------------------------------------------------------------------
 
-The goal of migratory typing is to retrofit a static typing system to
- a dynamically-typed host language.
-A well-designed migratory typing system provides some of the benefits of static
- typing at little cost to programmers.
-Such benefits can include static detection of logical errors and guarantees
- about programs' run-time behavior.
-The costs can include the human cost of writing type annotations
- and the performance overhead of enforcing static types at run-time.
-@; I think this is in the ballpark
+Given a dynamically typed language, the design of a migratory type system
+poses two problems. The first one concerns the existing programming idioms. 
+To avoid the need for large-scale rewrites, the new type system ought to
+support existing idioms, which may necessitate the invention of new type
+system elements. The second one concerns the boundary between the typed and
+the untyped portions of code repositories. As mentioned, we cannot assume
+that developers equip all their ``untyped code'' with the necessary type
+annotations so mixed-typed programs will exist. This paper focuses on the
+second problem, because it is the dominant source of performance problems
+and deserves more attention than it has received initially. 
 
-Existing migratory typing systems include
- @;StrongTalk,
- Typed Racket,
- TypeScript,
- and
- Reticulated.
-@; ^^^ sorted by release date
-These systems are diverse.
-Each is tailored to a particular dynamically-typed host language
- and each offers different benefits to programmers.
+Our novel take on this ``boundary problem'' is to understand it as a
+multi-language problem in the spirit of Matthews and Findler's
+idea@~cite[mf-toplas-2007]. From this perspective, a migratory typing system
+for a dynamically-typed host language @${\langD} adds two key pieces: (1) a
+statically-typed language @${\langS}, and (2) a typed foreign-function
+interface (FFI) between the languages.  The language @${\langS} is basically
+like the host language with syntax for explicit type annotations.  The
+foreign-function interface (FFI) is typically part of a runtime system that
+monitors interactions between statically-typed and dynamically-typed
+values. The FFI @emph{introduces} the boundary and therefore run-time
+checks as needed for the desired level of type soundness. 
 
-There are, however, two unifying characteristics among existing migratory
- typing systems.
-First, each system extends the syntax of the host language with support
- for type annotations.@note{In principle, migratory typing based on type
-  inference does not require explicit annotations.
-  Nevertheless, explicit annotations may help programmers debug type
-   errors and understand unfamiliar code.}
-@; cite ML error
-@; cite Wright's thesis
-@; TODO say something better about "readability"
-Second, each system is compatible with dynamically-typed code from the host
- language.
-@; illustrate these?
-A statically-typed TypeScript function, for example, may use JavaScript
- libraries to compute its result.
+From the literature on multi-language semantics we know that an FFI demands
+a well-specified embedding of values from one language in the other and
+that this embedding supports a soundness guarantee (or doesn't). Since
+@${\langD} and @${\langL} share values, the FFI does not need to worry
+about value conversion. 
 
-Consequently, a migratory typing system for a dynamically-typed host language @${\langD}
- consists of two parts:
- (1) a statically-typed language @${\langS},
- and (2) a typed foreign-function interface (FFI) between the languages.
-The language @${\langS} must support a large subset of the host language,
- and add syntax for explicit type annotations.
-The FFI is typically part of a runtime system that monitors interactions
- between statically-typed and dynamically-typed values.
-Our focus is the FFI.
+@bold{Note} Though we must make a choice concerning which values may cross
+these special boundaries. To keep the boundaries as inexpensive as
+possible, we might wish to restrict the set of FFI values to just numbers
+and characters, i.e., small, ``flat'' values. To facilitate the migration
+from the untyped world to the typed one, we ought to allow such boundaries
+to show up wherever developers need them, which implies that all kinds of
+values may cross the boundaries. All designs practical forms of migratory
+and gradual type system prefer the second choice, and so do we in this
+paper. @bold{End} 
 
-
-@section{The Problem: Language Embedding}
-
-Given a safe dynamically-typed language @${\langD} and a type-safe statically-typed language
- @${\langS} that adds syntax for type annotations, the challenge is to design a multi-language
- in which @${\langD} expressions may be embedded in @${\langS} expressions (and vice-versa).
-The embedding must provide a safety guarantee,
- and it must add minimal performance overhead to preserve safety at run-time.
-@; TODO but we haven't talked about how such overheads arise!!!!!!
-@; TODO really want to say "key tradeoffs: soundness, performance, (expressiveness)"
-
-An @emph{embedding} in this sense may consist of static and dynamic components.
-On the static end, the multi-language may add expression and value forms,
- as well as typing rules for the new additions.
-At a minimum, the extension must include so-called @emph{boundary terms}
- to distinguish code from either source language.
-The boundary terms we use are:
-
-@$|{ \hfill \edyn{\tau}{e} \qquad \esta{\tau}{e} \hfill }|
-
-A @${\vdyn} expression embeds a dynamically-typed expression @${e} in a
- statically-typed context.
-Likewise, a @${\vsta} expression embeds a statically-typed expression @${e}
- in a dynamically-typed context.
+An @emph{embedding} in this sense may consist of static and dynamic
+components.  On the static end, the multi-language may add expression and
+value forms, as well as typing rules for the new additions.  At a minimum,
+the extension must include so-called @emph{boundary terms} to draw a line
+between code from either source language:
+@;
+@centerline{@$|{ \hfill \edyn{\tau}{e} \qquad \esta{\tau}{e} \hfill }|}
+@;
+A @${\vdyn} expression embeds a dynamically-typed expression @${e} into a
+statically-typed context that expects a value of type @${\tau}. 
+A @${\vsta} expression embeds a statically-typed expression @${e}
+of type @${\tau} into a dynamically-typed context.
 
 On the dynamic end, the multi-language needs runtime support for any new
- values and for boundary terms.
-For boundary terms, we require type-directed strategies for moving value forms
- across boundary terms.
-These can take the form of metafunctions:
+values and for boundary terms. For boundary terms, we require type-directed
+reduction strategies (often just meta-functions) for moving value forms
+across boundary terms. 
 
-@exact|{
-  $\hfill\fromdyn : \tau \times v \rightarrow v\hfill$
-
-  $\hfill\fromsta : \tau \times v \rightarrow v\hfill$
-}|
-
-These metafunctions are the key part of an embedding.
-They determine what kinds of values may cross boundaries,
- they enforce type safety,
- and they determine the performance overhead of sharing values.
-
-How to define them?
-That is the main question.
-A language could leave them undefined and thus prohibit sharing.
-A language could define them only for sequence-of-bits kinds of values,
- such as integers and characters, to allow a limit form of sharing.
-These choices are obviously safe, but inexpressive.
-
-We want embeddings that are:
-  (1) @emph{complete}
-  (2) @emph{functorial}, in sense that same observations before/after ... though partial.
-AKA only chaperone embeddings.
-An embedding is @|EGOOD| if it meets these criteria.
-(Don't forget, the embedding is a distraction, really only care about type soundness)
-
-@; Example: any 2 languages can interoperate if they only share JSON,
-@;  but converting every API to JSON is not going to work for migratory typing
-
-
-@;@section{Summary, Glossary}
-@;
-@;mixed
-@;configuration
-@;monitors
-@;accountability
-@; type-tag check
+The following section develops several different strategies in the context
+of concrete lambda-calculus based language models. Each strategy comes with
+soundness benefits and performance costs, which just these choices
+explain. Some choices explain existing industrial choices, while others
+explain academic choices.
