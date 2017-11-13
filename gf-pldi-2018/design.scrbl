@@ -1,6 +1,11 @@
 #lang gf-pldi-2018
 @title[#:tag "sec:design"]{Models}
 
+@; TODO
+@; * add - operation, to clarify natural numbers
+@;   ... uhm not even sure what this should return
+@; * clarify "boundary to untyped runtime"
+
 @section{Source Languages}
 
 @include-figure["fig:source-lang.tex" @elem{Base languages, typing rules, and semantics}]
@@ -87,9 +92,9 @@ In order to turn this multi-language into an embedding,
 
 
 @; -----------------------------------------------------------------------------
-@section{The Erased Embedding}
+@section{The Erasure Embedding}
 
-@include-figure["fig:erased-delta.tex" "Type-Erased Embedding"]
+@include-figure["fig:erasure-delta.tex" "Erasure Embedding"]
 
 The simplest @|EGOOD| pair of embedding functions lets any value cross any boundary:
 
@@ -99,7 +104,7 @@ The simplest @|EGOOD| pair of embedding functions lets any value cross any bound
   $\hfill\fromsta(\tau, v) = v \hfill$
 }|
 
-Using these functions, @figure-ref{fig:erased-delta} defines an @emph{erased embedding}
+Using these functions, @figure-ref{fig:erasure-delta} defines an @emph{erasure embedding}
  by extending
  the dynamically-typed reduction relation @${\rrD} with new cases for typed
  functions and boundary expressions.
@@ -119,15 +124,15 @@ In short, erased types cannot be used to reason about program behavior.
 @;$ ((\vlam{\tann{x}{\tnat}}{42 / (x + 1)})~\edyn{\tnat}{-1}) $
 @;}|
 
-Despite the lack of type safety, the erased embedding does satisfy a term
+Despite the lack of type safety, the erasure embedding does satisfy a term
  safety theorem:
  for any expression @${e} such that @${\wellM e : \tau}, evaluation of
  @${e} never reaches an undefined state.
 The proof follows by progress and preservation of the @${\Gamma \wellEE e}
- judgment sketched in @figure-ref{fig:erased-delta}.
+ judgment sketched in @figure-ref{fig:erasure-delta}.
 
 @emph{Remark}:
-An equivalent way to define the erased embedding is to first remove the type
+An equivalent way to define the erasure embedding is to first remove the type
  annotations and second re-use the dynamically-typed reduction relation.
 This simple idea has found increasingly widespread use; see, for example,
  TypeScript, the Python annotations API, and Pluggable Type Systems.
@@ -200,9 +205,9 @@ With this invariant and an appropriate typing rule for monitors, one can
 @section{Soundness vs. Performance}
 @include-figure["fig:natural-cost.tex" "Approximate cost of the natural embedding"]
 
-The erased and natural embeddings are opposites in terms of type soundness
+The erasure and natural embeddings are opposites in terms of type soundness
  and performance.
-The erased embedding promises nothing in the way of type soudness,
+The erasure embedding promises nothing in the way of type soudness,
  and lets values freely cross boundary expressions.
 The natural embedding is ideally type sound (for a language that makes no
  attempt to connect run-time boundary errors to source-program boundary terms)
@@ -238,7 +243,7 @@ The variables @${I} and @${O} denote the number of times a function value crosse
 The values of @${I} and @${O} depend on the run-time behavior a program.
 
 The embeddings in the following three sections address these costs systematically.
-Consequently, they demonstrate that the erased and natural embeddings lie on
+Consequently, they demonstrate that the erasure and natural embeddings lie on
  opposite ends of a spectrum between soundness and performance.
 
 

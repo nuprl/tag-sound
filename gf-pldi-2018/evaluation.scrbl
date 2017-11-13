@@ -3,11 +3,25 @@
 
 @; TODO
 @; - table with "MAX OVERHEAD" and "T/B RATIO"
+@; -----------------------------------------------------------------------------
 
-Have implemented the embedding for Typed Racket.
-The prototype runs the Typed Racket type checker,
- rewrites the program to have defensive checks,
- and disables Typed Racket's contract generation.
+Based on the models, the natural, locally-defensive, and erased embeddings occupy
+ three unique points on a spectrum between soundness and performance.
+To measure how these embeddings stack up in a realistic setting,
+ we have implemented a locally-defensive embedding as an extension of Typed Racket.
+Since Typed Racket implements a natural embedding, this lets us compare the three approaches:
+@itemlist[
+@item{
+  the natural embedding, as implemented by Typed Racket;
+}
+@item{
+  the locally-defensive embedding, via our prototype; and
+}
+@item{
+  the erasure embedding
+}
+]
+
 
 
 @section{Method}
@@ -56,4 +70,6 @@ Does not support objects.
 @; === things about the benchmarks / experiment
 
 
+@section{Experience}
 
+Tag errors suck.

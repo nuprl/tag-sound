@@ -31,7 +31,7 @@ See @figure-ref{fig:models-outline} for an illustration.
     #:D "Dynamic"
     #:S "Static"
     #:M "Multi-Language"
-    #:E "Erased Embedding"
+    #:E "Erasure Embedding"
     #:N "Natural Embedding"
     #:L "Co-Natural Embedding"
     #:F "Forgetful Embedding"
@@ -72,8 +72,8 @@ The languages in subsequent sections extend the syntax of @${\langM}
  and use its typing judgments to formulate safety guarantees.
 
 
-@subsection{Erased Embedding}
-@include-figure["fig:erased-embedding.tex" "Type-Erased Embedding"]
+@subsection{Erasure Embedding}
+@include-figure["fig:erasure-embedding.tex" "Erasure Embedding"]
 
 @theorem[@elem{@${\langE} term safety}]{
   If @${\wellM e : \tau} then @${\wellEE e} and either:
