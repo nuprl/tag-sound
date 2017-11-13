@@ -161,6 +161,8 @@ Our implementation is an early prototype,
 @; === things that make prototype too fast
 Minimal error messages.
 
+Avoid contract system.
+
 
 @; === things that make prototype too slow
 Incompatible with TR optimizer.

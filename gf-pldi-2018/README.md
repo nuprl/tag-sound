@@ -6,6 +6,7 @@ paper
 TODO
 ---
 
+- investigate performance of morsecode
 - remove "trust me" in forgetful model
 - type soundness isn't the only reason for type systems, see:
   - typescript

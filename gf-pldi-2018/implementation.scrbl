@@ -21,7 +21,8 @@ In practice, there are some design decisions to consider.
 @; clarifications
 @; ... ?
 
-@section{???}
+
+@section{More Simple Type-Tags}
 
 Mutable is no problem
 Objects, check the fields
@@ -52,7 +53,7 @@ For the Racket implementation, we check the number of args and kwards.
 Performance is fine, as long as we avoid contract combinators.
 
 
-@section{Non-trivial Type Constructors}
+@section{Tags for Unguarded Types}
 
 The types @${\tau} in the model all have simple canonical forms.
 For example, the pair type @${(\tpair{\tau_0}{\tau_1})} corresponds to
