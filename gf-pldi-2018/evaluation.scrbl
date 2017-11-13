@@ -155,27 +155,51 @@ Adding types in LD is a slow degredation, not much light at the end because all 
 
 @section{Threats to Validity}
 
-Our implementation is an early prototype,
- significant threats to validity.
+The performance of our @|LD-Racket| prototype is an order-of-magnitude improvement
+ over @|TR|.
+We believe this high-level conclusion is valid; however, the exact performance of a full
+ implementation is likely to vary from our implementation.
 
 @; === things that make prototype too fast
-Minimal error messages.
+On one hand, the prototype is likely to be faster than a complete implementation
+ because it makes little effort to provide useful error messages.
+When a tag check fails, the prototype simply directs programmers to the
+ source code associated with the tag check using information available to the
+ completion function.
+Improving these error messages with information about the source of an ill-tagged
+ value is likely to degrade performance.
 
-Avoid contract system.
-
+Similarly, the prototype avoids using Racket's contract system to implement
+ type-tag checks.
+Contracts are a useful tool for defining predicates that give well-structured
+ error messages, but we found they added prohibitive overheads.
+Perhaps the implementation of contracts could be improved; perhaps they
+ are just the wrong tool for implementing frequently-executed assert statements.
 
 @; === things that make prototype too slow
-Incompatible with TR optimizer.
-
-Could optimize more checks.
+On the other hand, the performance of the prototype could be improved in two
+ obvious ways.
+First, @|LD-Racket| does not take advantage of the @|TR| optimizer
+ to remove type-tag checks from primitive operations.
+Second, the prototype could use type-based static analysis
+ to detect redundant type-tag checks.
+See occurrence typing and the unification-based ideas in soft typing.
 
 @; === things that make prototype non-representative
-Does not support objects.
+Three other threats are worth noting.
+First, @|LD-Racket| does not support Racket's object-oriented features;
+ programs using such features might not improve as drastically as the functional
+ benchmarks we measure.
+Second, our benchmarks are relatively small; the largest is 10 modules and 800 lines (see appendix for full details).
+@; TODO auto-compute
+Third, ascribing different types to the same program can affect its performance;
+ for example the tag check for an integer is less expensive than the tag check for
+ a natural number or some other union type.
+Nevertheless we consider our results representative.
 
 
-@; === things about the benchmarks / experiment
+@;@section{Experience}
+@;
+@;Type-tag error messages suck.
+@;More generally, forgetful-embedding error messages suck.
 
-
-@section{Experience}
-
-Tag errors suck.
