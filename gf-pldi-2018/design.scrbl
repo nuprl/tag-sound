@@ -392,7 +392,7 @@ In short, the combination of monitor values and forgetful semantics
 
 
 @; -----------------------------------------------------------------------------
-@section{The Tagged Embedding}
+@section{The Locally-Defensive Embedding}
 @include-figure["fig:well-tagged.tex" "Well-Tagged Typing"]
 
 An embedding that combines the co-natural and forgetful strategies
