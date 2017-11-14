@@ -1,7 +1,9 @@
 \usepackage{listings}
 \usepackage{amsmath}
 \usepackage{amssymb}
+
 \usepackage{mathpartir}
+\mprset{sep=1em,andskip=1em}
 
 %% -----------------------------------------------------------------------------
 %% enable page numbers
@@ -21,7 +23,7 @@
 
 \newcommand{\subt}{\mathrel{<:}}
 \newcommand{\subk}{\subt}
-\newcommand{\subteq}{\mathrel{\leqslant:}}
+\newcommand{\subteq}{\mathrel{\leqslant\kern-0.3em\raisebox{0.3ex}{:}}}
 
 %% -----------------------------------------------------------------------------
 %% formatting Python code
@@ -73,7 +75,7 @@ showstringspaces=false            %
 \newcommand{\carrow}{\compilesto}
 \newcommand{\context}{\mathcal{C}}
 \newcommand{\floorof}[1]{\lfloor #1 \rfloor}
-\newcommand{\tagof}[1]{\floorof{#1}}
+\newcommand{\tagof}[1]{\lfloor #1 \rfloor}
 \newcommand{\config}[1]{\langle #1 \rangle}
 \newcommand{\stepsto}{\rightarrow^*}
 \newcommand{\blameset}{\mathcal{B}}
@@ -91,6 +93,8 @@ showstringspaces=false            %
 \newcommand{\GammaS}{\Gamma}
 \newcommand{\deltaD}{\delta_D}
 \newcommand{\deltaS}{\delta_S}
+\newcommand{\ctxD}[1]{E_D[#1]}
+\newcommand{\ctxS}[1]{E_S[#1]}
 
 \newcommand{\tnat}{\mathsf{Nat}}
 \newcommand{\tint}{\mathsf{Int}}
@@ -195,7 +199,9 @@ showstringspaces=false            %
 \newcommand{\tfun}[5]{\mathbf{fun} #1 (#2 : #3) \rightarrow #4\,.\,#5}
 \newcommand{\ufun}[3]{\mathbf{fun} #1 (#2)\,.\,#3}
 
-%% value relation
+\newcommand{\ehole}{{[\,]}}
+\newcommand{\holeD}{\ehole_D}
+\newcommand{\holeS}{\ehole_S}
 
 %% -----------------------------------------------------------------------------
 
@@ -222,10 +228,13 @@ showstringspaces=false            %
 \newcommand{\wellFE}{\vdash_F}
 \newcommand{\wellk}{\vdash_k}
 \newcommand{\wellKE}{\vdash_K}
-\newcommand{\typeerror}{\mathsf{TypeError}}
-\newcommand{\valueerror}{\mathsf{BoundaryError}}
+\newcommand{\tagerror}{\mathsf{TagError}}
+\newcommand{\typeerror}{\tagerror}
+\newcommand{\boundaryerror}{\mathsf{BoundaryError}}
+\newcommand{\valueerror}{\boundaryerror}
 \newcommand{\costDS}[1]{\mathbf{cost}_{DS}(#1)}
 \newcommand{\costSD}[1]{\mathbf{cost}_{SD}(#1)}
 \newcommand{\eunop}[1]{\vunop~#1}
 \newcommand{\ebinop}[2]{\vbinop~#1~#2}
-
+\newcommand{\esum}[2]{\vsum~#1~#2}
+\newcommand{\equotient}[2]{\vquotient~#1~#2}

@@ -8,7 +8,7 @@
 
 @section{Source Languages}
 
-@include-figure["fig:source-lang.tex" @elem{Base languages, typing rules, and semantics}]
+@include-figure*["fig:source-lang.tex" @elem{Base languages, typing rules, and semantics}]
 
 To begin, @figure-ref{fig:source-lang} presents two base languages.
 Each is a lambda calculus with integers and pairs.

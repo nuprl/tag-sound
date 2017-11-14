@@ -1,5 +1,7 @@
 \begin{flushleft}
-\fbox{Common Syntax}
+
+\begin{minipage}[t]{0.75\columnwidth}
+\fbox{Common Syntax}\\
 $\begin{array}{l@{~~}c@{~~}l}
   e & \Coloneqq & x \mid v \mid e~e \mid \vpair{e}{e} \mid \vunop~e \mid \vbinop~e~e
 \\
@@ -8,97 +10,264 @@ $\begin{array}{l@{~~}c@{~~}l}
   \vunop & \Coloneqq & \vfst \mid \vsnd
 \\
   \vbinop & \Coloneqq & \vsum \mid \vquotient
-\\
-  E & \Coloneqq & \bullet \mid E\,e \mid v\,E \mid \vpair{E}{e} \mid \vpair{v}{E} \mid \vunop\,E \mid
-            \vbinop\,E\,e \mid \vbinop\,v\,E
 \end{array}$
-
-\medskip
-\begin{minipage}[t]{0.5\columnwidth}
+\end{minipage}%
+\begin{minipage}[t]{0.7\columnwidth}
 \fbox{Language $\langD$}\\
 $\begin{array}{l@{~~}c@{~~}l}
   v & \Coloneqq & \vlam{x}{e} \mid i \mid \vpair{v}{v}
+\\ & &
+\\
+  A & \Coloneqq & e \mid \valueerror \mid \typeerror
 \\
   \GammaD & \Coloneqq & \cdot \mid x,\GammaD
 \\
-  A & \Coloneqq & e \mid \valueerror
-\\ & & \typeerror
+  E & \Coloneqq & \holeD \mid E\,e \mid v\,E \mid \vpair{E}{e} \mid \vpair{v}{E} \mid
+\\ & & \vunop\,E \mid \vbinop\,E\,e \mid \vbinop\,v\,E
 \end{array}$
-
 \end{minipage}%
-\begin{minipage}[t]{0.5\columnwidth}
+\begin{minipage}[t]{0.7\columnwidth}
 \fbox{Language $\langS$}\\
 $\begin{array}{l@{~~}c@{~~}l}
   v & \Coloneqq & \vlam{\tann{x}{\tau}}{e} \mid i \mid \vpair{v}{v}
 \\
-  \tau & \Coloneqq & \tint \mid \tnat \mid
-\\ & & \tpair{\tau}{\tau} \mid \tau \tarrow \tau
+  \tau & \Coloneqq & \tint \mid \tnat \mid \tpair{\tau}{\tau} \mid \tau \tarrow \tau
+\\
+  A & \Coloneqq & e \mid \valueerror
 \\
   \GammaS & \Coloneqq & \cdot \mid \tann{x}{\tau},\GammaS
 \\
-  A & \Coloneqq & e \mid \valueerror
+  E & \Coloneqq & \holeS \mid E\,e \mid v\,E \mid \vpair{E}{e} \mid \vpair{v}{E} \mid
+\\ & & \vunop\,E \mid \vbinop\,E\,e \mid \vbinop\,v\,E
 \end{array}$
 \end{minipage}
 
+%% -----------------------------------------------------------------------------
 \medskip
-\begin{minipage}[t]{0.5\columnwidth}
+\begin{minipage}[t]{\columnwidth}
 \fbox{$\GammaD \welldyn e$}
 \begin{mathpar}
+  \inferrule*{
+    x \in \GammaD
+  }{
+    \GammaD \welldyn x
+  }
+
   \inferrule*{
     x,\GammaD \welldyn e
   }{
     \GammaD \welldyn \vlam{x}{e}
   }
+
+  \inferrule*{
+  }{
+    \GammaD \welldyn i
+  }
+
+  \inferrule*{
+    \GammaD \welldyn e_0
+    \\
+    \GammaD \welldyn e_1
+  }{
+    \GammaD \welldyn \vpair{e_0}{e_1}
+  }
+
+  \inferrule*{
+    \GammaD \welldyn e_0
+    \\
+    \GammaD \welldyn e_1
+  }{
+    \GammaD \welldyn e_0~e_1
+  }
+
+  \inferrule*{
+    \GammaD \welldyn e
+  }{
+    \GammaD \welldyn \vunop~e
+  }
+
+  \inferrule*{
+    \GammaD \welldyn e_0
+    \\
+    \GammaD \welldyn e_1
+  }{
+    \GammaD \welldyn \vbinop~e_0~e_1
+  }
 \end{mathpar}
 \end{minipage}%
-\begin{minipage}[t]{0.5\columnwidth}
+\begin{minipage}[t]{\columnwidth}
 \fbox{$\GammaS \wellsta e : \tau$}
 \begin{mathpar}
+  \inferrule*{
+    \tann{x}{\tau} \in \GammaS
+  }{
+    \GammaS \wellsta x : \tau
+  }
+
   \inferrule*{
     \tann{x}{\tau_d},\GammaS \wellsta e : \tau_c
   }{
     \GammaS \wellsta \vlam{\tann{x}{\tau_d}}{e} : \tau_d \tarrow \tau_c
   }
+
+  \inferrule*{
+    i \in \naturals
+  }{
+    \GammaS \wellsta i : \tnat
+  }
+
+  \inferrule*{
+    i \in \integers
+  }{
+    \GammaS \wellsta i : \tint
+  }
+
+  \inferrule*{
+    \GammaS \wellsta e_0 : \tau_0
+    \\\\
+    \GammaS \wellsta e_1 : \tau_1
+  }{
+    \GammaS \wellsta \vpair{e_0}{e_1} : \tpair{\tau_0}{\tau_1}
+  }
+
+  \inferrule*{
+    \GammaS \wellsta e_0 : \tau_d \tarrow \tau_c
+    \\\\
+    \GammaS \wellsta e_1 : \tau_d
+  }{
+    \GammaS \wellsta e_0~e_1 : \tau_c
+  }
+
+  \inferrule*{
+    \GammaS \wellsta e_0 : \tau_0
+    \\\\
+    \Delta(\vunop, \tau_0) = \tau
+  }{
+    \GammaS \wellsta \vunop~e_0 : \tau
+  }
+
+  \inferrule*{
+    \GammaS \wellsta e_0 : \tau_0
+    \\\\
+    \GammaS \wellsta e_1 : \tau_1
+    \\\\
+    \Delta(\vbinop, \tau_0, \tau_1) = \tau
+  }{
+    \GammaS \wellsta \vbinop~e_0~e_1 : \tau
+  }
+
+  \inferrule*{
+    \GammaS \wellsta e : \tau'
+    \\\\
+    \tau' \subt \tau
+  }{
+    \GammaS \wellsta e : \tau
+  }
 \end{mathpar}
 \end{minipage}
 
+\begin{minipage}[b]{\columnwidth}
+\fbox{$e \ccD A$}\\
+$\begin{array}{l@{~~}c@{~~}l}
+  \ctxD{(\vlam{x}{e})~v} & \ccD & \ctxD{\vsubst{e}{x}{v}}
+\\
+  \ctxD{v_0~v_1} & \ccD & \typeerror
+\\ \multicolumn{3}{l}{\mbox{\quad where $v \neq \vlam{x}{e}$}}
+\\
+  \ctxD{\efst{\vpair{v_0}{v_1}}} & \ccD & \ctxD{v_0}
+\\
+  \ctxD{\efst{v}} & \ccD & \typeerror
+\\ \multicolumn{3}{l}{\mbox{\quad where $v \neq \vpair{v_0}{v_1}$}}
+\\
+  \ctxD{\esnd{\vpair{v_0}{v_1}}} & \ccD & \ctxD{v_1}
+\\
+  \ctxD{\esnd{v}} & \ccD & \typeerror
+\\ \multicolumn{3}{l}{\mbox{\quad where $v \neq \vpair{v_0}{v_1}$}}
+\\
+  \ctxD{\esum{i_0}{i_1}} & \ccD & \ctxD{i_0 + i_1}
+\\
+  \ctxD{\esum{v_0}{v_1}} & \ccD & \tagerror
+\\ \multicolumn{3}{l}{\mbox{\quad where $v_0 \not\in \integers$ or $v_1 \not\in \integers$}}
+\\
+  \ctxD{\equotient{i_0}{0}} & \ccD & \valueerror
+\\
+  \ctxD{\equotient{i_0}{i_1}} & \ccD & \ctxD{i_0 \backslash i_1}
+\\ \multicolumn{3}{l}{\mbox{\quad where $i_1 \neq 0$}}
+\\
+  \ctxD{\equotient{v_0}{v_1}} & \ccD & \tagerror
+\\ \multicolumn{3}{l}{\mbox{\quad where $v_0 \not\in \integers$ or $v_1 \not\in \integers$}}
+\end{array}$
+
+\medskip
+\fbox{$e \rrDstar A$} reflexive, transitive closure of $\ccD$
+
+\end{minipage}%
+\begin{minipage}[b]{\columnwidth}
 \medskip
 \begin{minipage}[t]{0.5\columnwidth}
-\fbox{$e \rrD A$}
-\begin{mathpar}
-  \inferrule*{
-    v_0 \neq \vlam{x}{e}
-  }{
-    v_0~v_1 \rrD \typeerror
-  }
-
-  \inferrule*{
-  }{
-    (\vlam{x}{e})~v \rrD \vsubst{e}{x}{v}
-  }
-\end{mathpar}
+\fbox{$\Delta(\vunop, \tau) = \tau$}\\
+$\begin{array}{l@{~~}c@{~~}l}
+  \Delta(\vfst, \tpair{\tau_0}{\tau_1}) & = & \tau_0
+\\
+  \Delta(\vsnd, \tpair{\tau_0}{\tau_1}) & = & \tau_1
+\end{array}$
 \end{minipage}%
 \begin{minipage}[t]{0.5\columnwidth}
-\fbox{$e \rrS A$}
+\fbox{$\Delta(\vbinop, \tau, \tau) = \tau$}\\
+$\begin{array}{l@{~~}c@{~~}l}
+  \Delta(\vbinop, \tnat, \tnat) & = & \tnat
+\\
+  \Delta(\vbinop, \tau_0, \tau_1) & = & \tint
+\\
+  \multicolumn{3}{l}{\mbox{\quad where $\tau_0\!\subteq\!\tint$ and $\tau_0\!\subteq\!\tint$}}
+\end{array}$
+\end{minipage}
+
+\fbox{$\tau \subt \tau$}\\[-1em]
 \begin{mathpar}
   \inferrule*{
   }{
-    (\vlam{x:\tau}{e})~v \rrS \vsubst{e}{x}{v}
+    \tnat \subt \tint
+  }
+
+  \inferrule*{
+    \tau_d' \subt \tau_d
+    \\
+    \tau_c \subt \tau_c'
+  }{
+    \tarr{\tau_d}{\tau_c} \subt \tarr{\tau_d'}{\tau_c'}
+  }
+
+  \inferrule*{
+    \tau_0 \subt \tau_0'
+    \\
+    \tau_1 \subt \tau_1'
+  }{
+    \tpair{\tau_0}{\tau_1} \subt \tpair{\tau_0'}{\tau_1'}
   }
 \end{mathpar}
+
+\medskip
+\fbox{$\tau \subteq \tau$} reflexive closure of $\subt$
+
+\medskip
+\fbox{$e \ccS A$}\\
+$\begin{array}{l@{~~}c@{~~}l}
+  \ctxS{(\vlam{\tann{x}{\tau_d}}{e})~v} & \ccS & \ctxS{\vsubst{e}{x}{v}}
+\\
+  \ctxS{\efst{\vpair{v_0}{v_1}}} & \ccS & \ctxS{v_0}
+\\
+  \ctxS{\esnd{\vpair{v_0}{v_1}}} & \ccS & \ctxS{v_1}
+\\
+  \ctxS{\esum{i_0}{i_1}} & \ccS & \ctxS{i_0 + i_1}
+\\
+  \ctxS{\equotient{i_0}{0}} & \ccS & \valueerror
+\\
+  \ctxS{\equotient{i_0}{i_1}} & \ccS & \ctxS{i_0 \backslash i_1}
+\end{array}$
+
+\medskip
+\fbox{$e \rrSstar A$} reflexive, transitive closure of $\ccS$
+
 \end{minipage}
-
-\medskip
-$\begin{array}{l@{~~}c@{~~}l}
-  \ccD & \triangleq & \mbox{context closure of $\rrD$ in $E$}
-\\
-  \rrDstar & \triangleq & \mbox{reflexive, transitive closure of $\ccD$}
-\end{array}$
-
-\medskip
-$\begin{array}{l@{~~}c@{~~}l}
-  \ccS & \triangleq & \mbox{context closure of $\rrS$ in $E$}
-\\
-  \rrSstar & \triangleq & \mbox{reflexive, transitive closure of $\ccS$}
-\end{array}$
 \end{flushleft}
