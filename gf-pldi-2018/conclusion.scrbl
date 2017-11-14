@@ -35,3 +35,10 @@ This paper is one idea for a compromise, interested to hear others.
 @; - RTTI for TR, the models have (mon T v) but reality is (mon K,K v)
 @; - static analysis, to pick natural vs. co-natural for a boundary (for efficiency)
 @; - JIT for tagged, other things to reduce tag checks
+
+
+@acks{
+  @; redex-check
+  @; NSF funding
+  @; early feedback at PI meeting
+}
