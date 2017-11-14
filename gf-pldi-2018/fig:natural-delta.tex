@@ -1,66 +1,12 @@
 \begin{flushleft}
 
-\begin{minipage}[t]{0.5\textwidth}
 \fbox{Language $\langN$} extends $\langM$:\\
 $\begin{array}{l@{~~}c@{~~}l}
   v & \Coloneqq & \ldots \mid \vmonfun{(\tau\tarrow\tau)}{v}
 \end{array}$
 
 \medskip
-\fbox{$\fromsta(\tau, v) = A$}\\
-$\begin{array}{l}
-  \fromsta(\tarr{\tau_d}{\tau_c}, v) = \vmonfun{(\tarr{\tau_d}{\tau_c})}{v}
-\\
-  \fromsta(\tau, v) = v
-\\ \mbox{\quad otherwise}
-\end{array}$
-\end{minipage}%
-\begin{minipage}[t]{0.5\textwidth}
-\fbox{$\fromdyn(\tau, v) = A$}\\
-$\begin{array}{l}
-  \fromdyn(\tint, i) = i
-\\
-  \fromdyn(\tnat, i) = i
-\\ \mbox{\quad if $i \in \naturals$}
-\\
-  \fromdyn(\tpair{\tau_0}{\tau_1}, \vpair{v_0}{v_1}) = \vpair{v_0'}{v_1'}
-\\ \mbox{\quad where $v_0' = \fromdyn(\tau_0, v_0)$}
-\\ \mbox{\quad and $v_1' = \fromdyn(\tau_1, v_1)$}
-\\
-  \fromdyn(\tarr{\tau_d}{\tau_c}, v) = \vmonfun{(\tarr{\tau_d}{\tau_c})}{v}
-\\ \mbox{\quad if $v = \vlam{x}{e}$ or $v = \vmonfun{\tau}{v'}$}
-\\
-  \fromdyn(\tau, v) = \valueerror
-\\ \mbox{\quad otherwise}
-\end{array}$
-\end{minipage}
-
-%% -----------------------------------------------------------------------------
-\medskip
-\begin{minipage}[t]{0.5\textwidth}
-\fbox{$e \rrND A$} extends $e \rrD A$:
-\begin{mathpar}
-  \inferrule*{
-    e_{arg} = \edyn{\tau_d}{v_{arg}}
-  }{
-    (\vmonfun{(\tau_d\tarrow\tau_c)}{v_f})~v_{arg} \rrND \esta{\tau_c}{(v_f~e_{arg})}
-  }
-\end{mathpar}
-\end{minipage}%
-\begin{minipage}[t]{0.5\textwidth}
-\fbox{$e \rrNS A$} extends $e \rrS A$:
-\begin{mathpar}
-  \inferrule*{
-    e_{arg} = \esta{\tau_d}{v_{arg}}
-  }{
-    (\vmonfun{(\tau_d\tarrow\tau_c)}{v_f})~v_{arg} \rrNS \edyn{\tau_c}{(v_f~e_{arg})}
-  }
-\end{mathpar}
-\end{minipage}%
-
-%% -----------------------------------------------------------------------------
-\medskip
-\begin{minipage}[t]{0.5\textwidth}
+\begin{minipage}[t]{\columnwidth}
 \fbox{$\Gamma \wellNE e$} extends $\Gamma \wellM e$:
 \begin{mathpar}
   \inferrule*{
@@ -70,7 +16,7 @@ $\begin{array}{l}
   }
 \end{mathpar}
 \end{minipage}%
-\begin{minipage}[t]{0.5\textwidth}
+\begin{minipage}[t]{\columnwidth}
 \fbox{$\Gamma \wellNE e : \tau$} extends $\Gamma \wellM e : \tau$:
 \begin{mathpar}
   \inferrule*{
@@ -80,5 +26,47 @@ $\begin{array}{l}
   }
 \end{mathpar}
 \end{minipage}
+
+%% -----------------------------------------------------------------------------
+\medskip
+\begin{minipage}[t]{\columnwidth}
+\fbox{$e \ccND A$} inherits $e \ccD A$:\\
+$\begin{array}{l@{~~}c@{~~}l}
+  \ctxD{(\vmonfun{\tarr{\tau_d}{\tau_c}}{v_f})~v_{arg}} & \ccND & \ctxD{\esta{\tau_c}{v_f~e_{arg}}}
+\\ \multicolumn{3}{l}{\mbox{\quad where $e_{arg} = \edyn{\tau_d}{v_{arg}}$}}
+\\[0.8ex]
+  \ctxD{\edyn{\tint}{i}} & \ccND & \ctxD{i}
+\\
+  \ctxD{\edyn{\tnat}{i}} & \ccND & \ctxD{i}
+\\ \multicolumn{3}{l}{\mbox{\quad where $i \in \naturals$}}
+\\
+  \ctxD{\edyn{\tpair{\tau_0}{\tau_1}}{\vpair{v_0}{v_1}}} & \ccND & \ctxD{\vpair{e_0}{e_1}}
+\\ \multicolumn{3}{l}{\mbox{\quad where $e_0 = \edyn{\tau_0}{v_0}$}}
+\\ \multicolumn{3}{l}{\mbox{\quad and $e_1 = \edyn{\tau_1}{v_1}$}}
+\\
+  \ctxD{\edyn{\tarr{\tau_d}{\tau_c}}{v}} & \ccND & \ctxD{\vmonfun{\tarr{\tau_d}{\tau_c}}{v}}
+\\ \multicolumn{3}{l}{\mbox{\quad where $v = \vlam{x}{e}$ or $v = \vmonfun{\tau}{v'}$}}
+\\
+  \ctxD{\edyn{\tau}{v}} & \ccND & \boundaryerror
+\\ \multicolumn{3}{l}{\mbox{\quad otherwise}}
+\end{array}$
+\end{minipage}%
+\begin{minipage}[t]{\columnwidth}
+\fbox{$e \ccNS A$} inherits $e \ccS A$:\\
+$\begin{array}{l@{~~}c@{~~}l}
+  \ctxS{(\vmonfun{\tarr{\tau_d}{\tau_c}}{v_f})~v_{arg}} & \ccNS & \ctxS{\edyn{\tau_c}{v_f~e_{arg}'}}
+\\ \multicolumn{3}{l}{\mbox{\quad where $e_{arg}' = \esta{\tau_d}{v_{arg}}$}}
+\\[0.8ex]
+  \ctxS{\esta{\tarr{\tau_d}{\tau_c}}{v}} & \ccNS & \ctxS{\vmonfun{\tarr{\tau_d}{\tau_c}}{v}}
+\\
+  \ctxS{\esta{\tau}{v}} & \ccNS & \ctxS{v}
+\\ \multicolumn{3}{l}{\mbox{\quad otherwise}}
+\end{array}$
+
+\vspace{6em}
+
+\fbox{$e \rrNEstar A$} reflexive, transitive closure of $\ccND \cup \ccNS$
+\end{minipage}
+
 
 \end{flushleft}
