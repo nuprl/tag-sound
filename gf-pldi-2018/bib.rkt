@@ -71,6 +71,7 @@
   (define/short lsc "LSC" "LISP and Symbolic Computation")
   (define/short ml-workshop "ML" (string-append Workshop "on ML"))
   (define/short oopsla "OOPSLA" (string-append ACM Conference "on Object-Oriented Programming, Systems, Languages and Applications"))
+  (define/short onward "ONWARD" (string-append ACM Symposium "on New ideas, new paradigms, and reflections on programming and software"))
   (define/short padl "PADL" (string-append Symposium "on Practical Aspects of Declarative Languages"))
   (define/short pldi "PLDI" (string-append ACM Conference "on Programming Language Design and Implementation"))
   (define/short plpv "PLPV" (string-append ACM Workshop "Programming Languages meets Program Verification"))
@@ -2047,12 +2048,12 @@
     #:location (proceedings-location ecoop #:pages '(28:1 28:29))
     #:date 2017))
 
-(define gm-tr-2017
+(define gm-pepm-2018
   (make-bib
-    #:title "On the Cost of Soundness for Gradual Typing"
+    #:title "On the Cost of Type-Tag Soundness"
     #:author (authors "Ben Greenman" "Zeina Migeed")
-    #:location (techrpt-location #:institution "Northeastern University" #:number "NU-CCIS-2017-001")
-    #:date 2017))
+    #:location "To appear in PEPM"
+    #:date 2018))
 
 (define r-ip-1983
   (make-bib
@@ -2060,3 +2061,24 @@
    #:author "John C. Reynolds"
    #:location (proceedings-location ip)
    #:date 1983))
+
+(define pqk-onward-2012
+  (make-bib
+   #:title "Progressive Types"
+   #:author (authors "Joe Gibbs Politz" "Hannah Quay-de la Vallee" "Shriram Krishnamurthi")
+   #:location (proceedings-location onward #:pages '(55 66))
+   #:date 2012))
+
+(define bbst-oopsla-2017
+  (make-bib
+   #:title "Sound Gradual Typing: Only Mostly Dead"
+   #:author (authors "Spenser Bauman" "Sam Tobin-Hochstadt" "Carl Friedrich Bolz-Tereick" "Jeremy Siek" "Sam Tobin-Hochstadt")
+   #:location (proceedings-location oopsla)
+   #:date 2017))
+
+(define mt-oopsla-2018
+  (make-bib
+   #:title "Sound Gradual Typing is Nominally Alive and Well"
+   #:author (authors "Fabian Muehlboeck" "Ross Tate")
+   #:location (proceedings-location oopsla)
+   #:date 2017))

@@ -1,88 +1,100 @@
 #lang gf-pldi-2018
 @title[#:tag "sec:related-work"]{Related Work}
 
+@; -----------------------------------------------------------------------------
+
+@parag{Gradual Typing}
+In the broad sense, the term gradual typing@~cite[st-sfp-2006] describes
+ any research that combines static and dynamic typing.
+In the more precise sense defined by @citet[svcb-snapl-2015], a gradual typing
+ system includes: (1) a ``dynamic'' type that may be implicitly cast to
+ any other type; (2) a relation between types that are equal up to occurrences
+ of the dynamic type; and (3) a proof that replacing any
+ static type with the dynamic type can only affect the semantics of a term
+ by removing a boundary error.
+We leave open the question of how our type soundness and performance
+ results apply to a true gradual typing system; @;@~cite[];
+ we conjecture that the two areas are orthogonal.
+
+
+@parag{Migratory Typing}
+
+Tobin-Hochstadt and Felleisen introduced the idea of migratory typing
+ with Typed Racket@~cite[thf-dls-2006].
+This led to a series of works on designing types to accomodate the idioms
+ of dynamically-typed Racket; see @citet[tfffgksst-snapl-2017] for an overview.
+Other migratory typing systems target
+ JavaScript@~cite[bat-ecoop-2014]
+ Python@~cite[vksb-dls-2014], and
+ Smalltalk@~cite[acftd-scp-2013].
+
+
+@parag{Gradual Typing Performance}
+
+@citet[tfgnvf-popl-2016] introduce an method for systematically evaluating
+ the performance of a gradual typing system.
+They apply the method to Typed Racket and find that its performance is a serious
+ problem.
+@citet[bbst-oopsla-2017] apply the method to a tracing JIT back-end for Typed
+ Racket and report order-of-magnitude improvements without sacrificing soundness,
+ performance, or error messages.
+
+@citet[gm-pepm-2018] apply the Takikawa evaluation method to Reticulated
+ and find that the overhead of type-tag soundness is within 10x on their benchmarks.
+@citet[mt-oopsla-2018] evaluate the performance of an object calculus and
+ report that natural-embedding gradual typing can yield an efficient implementation
+ if the language of types is limited to a nominal class hierarchy.
+
+
+@parag{Type-Tag Soundness}
+
+@citet[vss-popl-2017] present a compiler from a statically-typed source language
+ to a Python-like target language and prove that compiled programs satisfy
+ a theorem similar to our type-tag soundness.
+Using the ideas from the calculus, they implement a locally-defensive embedding
+ of Reticulated (a statically typed variant of Python) into Python 3.
+Their work is the direct inspiration for our own;
+ we began by trying to implement a variant of their compiler for Typed Racket,
+ but needed a deeper understanding of why the compiler was correct,
+ what design choices were essential, and
+ how the idea of rewriting statically-typed code related to other multi-language embeddings.
+
 @parag{Multi-Language Semantics}
+@; barret tratt
+@; new ahmed
 
 Matthews-Findler originated.
 Dimoulas for complete monitoring.
-
-Erased embedding, see TypeScript and pluggable types.
-@; does the academic history go deeper?
 
 Natural embedding formatlized by Matthews / Findler,
  based on lots of prior work about type-safe FFIs.
 @; thank you based Robby, perfect reference material
 
+
+Erased embedding, see TypeScript and pluggable types.
+@; does the academic history go deeper?
+
+@parag{Final Algebra Semantics}
+@; wand cartwright atkey
+
 Co-Natural is our own, but the idea comes from Findler / Felleisen.
+
+@parag{Space-Efficient Contracts}
+@; knowles greenberg
 
 Forgetful by Greenberg.
 Never would have taken it seriously otherwise.
 
-Tagged by Vitousek.
-This work started by trying to replicate their compiler,
- wound up with many difficult questions.
-We confirm their performance results with an apples-to-apples for TR,
- and outline the research landscape for improving tag-soundness.
 
+@parag{Spectrum of Type Soundness}
 
-@parag{Migratory Typing}
+Two related works led us towards the idea of a spectrum of type soundness.
+@emph{Like types} are static type annotations that are erased before run-time@~cite[bfnorsvw-oopsla-2009 rnv-ecoop-2015].
+Programmers can switch between like types and concrete types to exchange
+ soundness for performance without sacrificing any static type checking.
 
-Tobin-Hochstadt, Typed Racket.
+The @emph{progressive types} vision paper describes a type system in which
+ programmers can decide whether certain errors are caught statically or dynamically@~cite[pqk-onward-2012].
+This offers a choice between (1) statically proving an expression is universally correct,
+ and (2) letting the run-time dynamically check the whether the code is safe in practice.
 
-
-@parag{Type-Tag Soundness}
-
-@citet[vss-popl-2017] present a compiler from type-annotated source code
- to a dynamically typed host language.
-They prove that the generated code is tag sound.
-First implementation of the forgetful, first-order embedding.
-
-@;... in a way, our Section 3 is adding the missing "why" from their paper,
-@;I mean they give high-level motivation, but that's all besides "proofs worked out".
-@;Very frustrating.
-@;There are many design choices, important to know why this particular set
-@; makes sense for what context.
-@;Because it's not always going to be true for all contexts.
-@;
-@; 2017-11-05 : trouble reverse-engineering the model, whence the story
-
-@; retic calls it "transient" as opposed to the "guarded" natural embedding.
-@; we aren't saying "transient" because believe it confuses two things,
-@; - forgetting types
-@; - only tag-checks
-@;
-@; BUT I STILL DONT HAVE A NAME
-
-@; Question: does reticulated follow the model?
-@;  Yes basically. Something's wrong checking [] twice but the same problem
-@;   doesn't happen with integers so I guess its fine.
-
-@;Like types@~cite[bfnorsvw-oopsla-2009] are annotations with no semantics.
-@;@citet[rnv-ecoop-2015] apply the idea to TypeScript; TypeScript has only like types,
-@; and their work gives programmers the choice of using (concrete) types that
-@; are enforced at run-time.
-
-@section{Gradual Typing}
-Extremely similar.
-A migratory typing system is a gradual typing system designed for an existing
- dynamically-typed language.
-The dynamic type and type compatibility relations are optional.
-
-Not sure about that gradual guarantee.
-For us, no matter how your system evolves you can count on type soundness.
-@; thats part of why we say 'migratory'
-
-Gradual typing broadly construed = any kind of research about mixing
- static/dynamic typing, where statically-typed is denoted by explicit type
- annotations.
-In this sense, migratory typing is a special case.
-
-Recently Siek etal propose gradual guarantee, suggest that a gradual typing
- system
-In this sense, a gradual typing system is one kind of migratory typing system.
-
-
-@; progressive types
-@; redex
-@; redex-check
-@; levity polymorphism, ideas for compiling functions that MIGHT need checks
