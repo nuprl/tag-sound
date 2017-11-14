@@ -1,113 +1,138 @@
 \begin{flushleft}
 
-\begin{minipage}[t]{0.5\textwidth}
 \fbox{Language $\langF$} extends $\langM$:\\
 $\begin{array}{l@{~~}c@{~~}l}
-  v & \Coloneqq & \ldots \mid \vmonfun{(\tarr{\tau}{\tau})}{\vlam{x}{e}} \mid
-\\ & & \vmonfun{(\tarr{\tau}{\tau})}{\vlam{\tann{x}{\tau}}{e}} \mid
-\\ & & \vmonpair{(\tpair{\tau}{\tau})}{\vpair{v}{v}}
+  v & \Coloneqq & \ldots \mid \vmonfun{(\tarr{\tau}{\tau})}{(\vlam{x}{e})} \mid
+      \vmonfun{(\tarr{\tau}{\tau})}{(\vlam{\tann{x}{\tau}}{e})} \mid
+      \vmonpair{(\tpair{\tau}{\tau})}{\vpair{v}{v}}
 \end{array}$
 
-\medskip
-\fbox{$\fromsta(\tau, v) = A$}\\
-$\begin{array}{l}
-  \fromsta(\tau, v) = \fromany(\tau, v)
-\end{array}$
+\bigskip
+\begin{minipage}[t]{\columnwidth}
+\fbox{$\Gamma \wellFE e$} inherits $\Gamma \wellM e$:
+\begin{mathpar}
+  \inferrule*{
+  }{
+    \Gamma \wellFE \vmonfun{(\tarr{\tau_d}{\tau_c})}{v}
+  }
 
-\medskip
-\fbox{$\fromdyn(\tau, v) = A$}\\
-$\begin{array}{l}
-  \fromdyn(\tau, v) = \fromany(\tau, v)
-\end{array}$
+  \inferrule*{
+  }{
+    \Gamma \wellFE \vmonpair{(\tpair{\tau_0}{\tau_1})}{v}
+  }
+\end{mathpar}
 \end{minipage}%
-\begin{minipage}[t]{0.5\textwidth}
-\fbox{$\fromany(\tau, v) = A$}\\
-$\begin{array}{l}
-  \fromany(\tint, i) = i
-\\
-  \fromany(\tnat, i) = i
-\\ \mbox{\quad if $i \in \naturals$}
-\\
-  \fromany(\tpair{\tau_0}{\tau_1}, v) = \vmonpair{(\tpair{\tau_0}{\tau_1})}{v}
-\\ \mbox{\quad if $v = \vpair{v_0}{v_1}$}
-\\
-  \fromany(\tpair{\tau_0}{\tau_1}, v) = \vmonpair{(\tpair{\tau_0}{\tau_1})}{v'}
-\\ \mbox{\quad if $v = \vmonpair{(\tpair{\tau_0'}{\tau_1'})}{v'}$}
-\\
-  \fromany(\tarr{\tau_d}{\tau_c}, v) = \vmonfun{(\tarr{\tau_d}{\tau_c})}{v}
-\\ \mbox{\quad if $v = \vlam{x}{e}$ or $v = \vlam{\tann{x}{\tau}}{e}$}
-\\
-  \fromany(\tarr{\tau_d}{\tau_c}, v) = \vmonfun{(\tarr{\tau_d}{\tau_c})}{v'}
-\\ \mbox{\quad if $v = \vmonfun{(\tarr{\tau_d'}{\tau_c'})}{v'}$}
-\\
-  \fromany(\tau, v) = \valueerror
-\\ \mbox{\quad otherwise}
-\end{array}$
+\begin{minipage}[t]{\columnwidth}
+\fbox{$\Gamma \wellFE e : \tau$} inherits $\Gamma \wellM e : \tau$:
+\begin{mathpar}
+  \inferrule*{
+  }{
+    \Gamma \wellFE \vmonfun{(\tarr{\tau_d}{\tau_c})}{v} : \tarr{\tau_d}{\tau_c}
+  }
+
+  \inferrule*{
+  }{
+    \Gamma \wellFE \vmonpair{(\tpair{\tau_0}{\tau_1})}{v} : \tpair{\tau_0}{\tau_1}
+  }
+\end{mathpar}
 \end{minipage}
 
 %% -----------------------------------------------------------------------------
+
 \medskip
-\begin{minipage}[t]{0.5\textwidth}
-\fbox{$e \rrFD A$} extends $e \rrD A$:
-\begin{mathpar}
-  \inferrule*{
-    v_{f} = \vlam{x}{e}
-  }{
-    (\vmonfun{(\tarr{\tau_d}{\tau_c})}{v_f})~v_{arg} \rrFD \vsubst{e}{x}{v_{arg}}
-  }
-
-  \inferrule*{
-    v_{f} = \vlam{\tann{x}{\tau}}{e}
-    \\
-    v_{arg}' = \fromany(\tau, v_{arg})
-  }{
-    (\vmonfun{(\tarr{\tau_d}{\tau_c})}{v_f})~v_{arg} \rrFD \esta{\tau_c}{v_f~v_{arg}'}
-  }
-
-  \inferrule*{
-    v_0' = \fromany(\tau_0, v_0)
-  }{
-    \efst{(\vmonpair{(\tpair{\tau_0}{\tau_1})}{\vpair{v_0}{v_1}})} \rrFD v_0'
-  }
-
-  \inferrule*{
-    v_1' = \fromany(\tau_1, v_1)
-  }{
-    \esnd{(\vmonpair{(\tpair{\tau_0}{\tau_1})}{\vpair{v_0}{v_1}})} \rrFD v_1'
-  }
-\end{mathpar}
+\begin{minipage}[t]{\columnwidth}
+\fbox{$e \ccFD A$} inherits $e \ccD A$:\\
+$\begin{array}{l@{~~}c@{~~}l}
+  \ctxD{(\vmonfun{\tarr{\tau_d}{\tau_c}}{\vlam{x}{e}})~v} & \ccFD & \ctxD{\vsubst{e}{x}{v'}}
+\\ \multicolumn{3}{l}{\mbox{\quad where $v' = \echk{\tau_d}{v}$}}
+\\
+  \ctxD{(\vmonfun{\tarr{\tau_d}{\tau_c}}{\vlam{\tann{x}{\tau}}{e}})~v} & \ccFD & \ctxD{\esta{\tau_c}{\vsubst{e}{x}{v'}}}
+\\ \multicolumn{3}{l}{\mbox{\quad where $v' = \echk{\tau}{v}$}}
+\\
+  \ctxD{(\vmonfun{\tarr{\tau_d}{\tau_c}}{\vlam{\tann{x}{\tau}}{e}})~v} & \ccFD & \boundaryerror
+\\ \multicolumn{3}{l}{\mbox{\quad where $\boundaryerror = \echk{\tau}{v}$}}
+\\
+  \ctxD{\efst{(\vmonpair{\tpair{\tau_0}{\tau_1}}{\vpair{v_0}{v_1}})}} & \ccFD & \ctxD{v_0'}
+\\ \multicolumn{3}{l}{\mbox{\quad where $v_0' = \echk{\tau_0}{v_0}$}}
+\\
+  \ctxD{\efst{(\vmonpair{\tpair{\tau_0}{\tau_1}}{\vpair{v_0}{v_1}})}} & \ccFD & \boundaryerror
+\\ \multicolumn{3}{l}{\mbox{\quad where $\boundaryerror = \echk{\tau_0}{v_0}$}}
+\\
+  \ctxD{\esnd{(\vmonpair{\tpair{\tau_0}{\tau_1}}{\vpair{v_0}{v_1}})}} & \ccFD & \ctxD{v_1'}
+\\ \multicolumn{3}{l}{\mbox{\quad where $v_1' = \echk{\tau_1}{v_1}$}}
+\\
+  \ctxD{\esnd{(\vmonpair{\tpair{\tau_0}{\tau_1}}{\vpair{v_0}{v_1}})}} & \ccFD & \boundaryerror
+\\ \multicolumn{3}{l}{\mbox{\quad where $\boundaryerror = \echk{\tau_1}{v_1}$}}
+\\
+  \ctxD{\esta{\tau}{v}} & \ccFD & \ctxD{v'}
+\\ \multicolumn{3}{l}{\mbox{\quad where $v' = \echk{\tau}{v}$}}
+\\
+  \ctxD{\esta{\tau}{v}} & \ccFD & \boundaryerror
+\\ \multicolumn{3}{l}{\mbox{\quad where $\boundaryerror = \echk{\tau}{v}$}}
+\end{array}$
 \end{minipage}%
-\begin{minipage}[t]{0.5\textwidth}
-\fbox{$e \rrFS A$} extends $e \rrS A$:
-\begin{mathpar}
-  \inferrule*{
-    v_{f} = \vlam{\tann{x}{\tau}}{e}
-    \\
-    v_{arg}' = \fromany(\tau, v_{arg})
-  }{
-    (\vmonfun{(\tarr{\tau_d}{\tau_c})}{v_f})~v_{arg} \rrFS v_f~v_{arg}'
-  }
+\begin{minipage}[t]{\columnwidth}
+\fbox{$e \ccFS A$} inherits $e \ccS A$:\\
+$\begin{array}{l@{~~}c@{~~}l}
+  \ctxS{(\vmonfun{\tarr{\tau_d}{\tau_c}}{\vlam{\tann{x}{\tau}}{e}})~v} & \ccFS & \ctxS{\vsubst{e}{x}{v'}}
+\\ \multicolumn{3}{l}{\mbox{\quad where $v' = \echk{\tau}{v}$}}
+\\
+  \ctxS{(\vmonfun{\tarr{\tau_d}{\tau_c}}{\vlam{\tann{x}{\tau}}{e}})~v} & \ccFS & \boundaryerror
+\\ \multicolumn{3}{l}{\mbox{\quad where $\boundaryerror = \echk{\tau}{v}$}}
+\\
+  \ctxS{(\vmonfun{\tarr{\tau_d}{\tau_c}}{\vlam{x}{e}})~v} & \ccFS & \ctxS{\edyn{\tau_c}{\vsubst{e}{x}{v'}}}
+\\ \multicolumn{3}{l}{\mbox{\quad where $v' = \echk{\tau_d}{v}$}}
+\\
+  \ctxS{\efst{(\vmonpair{\tpair{\tau_0}{\tau_1}}{\vpair{v_0}{v_1}})}} & \ccFS & \ctxS{v_0'}
+\\ \multicolumn{3}{l}{\mbox{\quad where $v_0' = \echk{\tau_0}{v_0}$}}
+\\
+  \ctxS{\efst{(\vmonpair{\tpair{\tau_0}{\tau_1}}{\vpair{v_0}{v_1}})}} & \ccFS & \boundaryerror
+\\ \multicolumn{3}{l}{\mbox{\quad where $\boundaryerror = \echk{\tau_0}{v_0}$}}
+\\
+  \ctxS{\esnd{(\vmonpair{\tpair{\tau_0}{\tau_1}}{\vpair{v_0}{v_1}})}} & \ccFS & \ctxS{v_1'}
+\\ \multicolumn{3}{l}{\mbox{\quad where $v_1' = \echk{\tau_1}{v_1}$}}
+\\
+  \ctxS{\esnd{(\vmonpair{\tpair{\tau_0}{\tau_1}}{\vpair{v_0}{v_1}})}} & \ccFS & \boundaryerror
+\\ \multicolumn{3}{l}{\mbox{\quad where $\boundaryerror = \echk{\tau_1}{v_1}$}}
+\\
+  \ctxS{\edyn{\tau}{v}} & \ccFS & \ctxS{v'}
+\\ \multicolumn{3}{l}{\mbox{\quad where $v' = \echk{\tau}{v}$}}
+\\
+  \ctxS{\edyn{\tau}{v}} & \ccFS & \boundaryerror
+\\ \multicolumn{3}{l}{\mbox{\quad where $\boundaryerror = \echk{\tau}{v}$}}
+\end{array}$
+\end{minipage}
 
-  \inferrule*{
-    v_{f} = \vlam{x}{e}
-    \\
-    e_{arg}' = \esta{\tau_d}{v_{arg}}
-  }{
-    (\vmonfun{(\tarr{\tau_d}{\tau_c})}{v_f})~v_{arg} \rrFS \edyn{\tau_c}{v_f~e_{arg}'}
-  }
-
-  \inferrule*{
-    v_0' = \fromany(\tau_0, v_0)
-  }{
-    \efst{(\vmonpair{(\tpair{\tau_0}{\tau_1})}{\vpair{v_0}{v_1}})} \rrFS v_0'
-  }
-
-  \inferrule*{
-    v_1' = \fromany(\tau_1, v_1)
-  }{
-    \esnd{(\vmonpair{(\tpair{\tau_0}{\tau_1})}{\vpair{v_0}{v_1}})} \rrFS v_1'
-  }
-\end{mathpar}
+\medskip
+\fbox{$\echk{\tau}{v} = A$}
+\begin{minipage}[t]{\columnwidth}
+$\begin{array}{l@{~~}c@{~~}l}
+  \echk{\tint}{i} & = & i
+\\
+  \echk{\tnat}{i} & = & i
+\\ \multicolumn{3}{l}{\mbox{\quad if $i \in \naturals$}}
+\\
+  \echk{\tpair{\tau_0}{\tau_1}}{\vpair{v_0}{v_1}} & = & \vmonpair{\tpair{\tau_0}{\tau_1}}{\vpair{v_0}{v_1}}
+\\
+  \echk{\tpair{\tau_0}{\tau_1}}{v} & = & \vmonpair{\tpair{\tau_0}{\tau_1}}{v'}
+\\ \multicolumn{3}{l}{\mbox{\quad if $v \sim \vmonpair{\tpair{\tau_0'}{\tau_1'}}{v'}$}}
+\end{array}$
 \end{minipage}%
+\begin{minipage}[t]{\columnwidth}
+$\begin{array}{l@{~~}c@{~~}l}
+  \echk{\tarr{\tau_d}{\tau_c}}{v} & = & \vmonfun{\tarr{\tau_d}{\tau_c}}{v}
+\\ \multicolumn{3}{l}{\mbox{\quad if $v \sim \vlam{x}{e}$}}
+\\ \multicolumn{3}{l}{\mbox{\quad or $v \sim \vlam{\tann{x}{\tau}}{e}$}}
+\\
+  \echk{\tarr{\tau_d}{\tau_c}}{v} & = & \vmonfun{\tarr{\tau_d}{\tau_c}}{v'}
+\\ \multicolumn{3}{l}{\mbox{\quad if $v \sim \vmonfun{\tarr{\tau_d'}{\tau_c'}}{v'}$}}
+\\
+  \echk{\tau}{v} & = & \boundaryerror
+\\ \multicolumn{3}{l}{\mbox{\quad otherwise}}
+\end{array}$
+\end{minipage}
 
+\medskip
+\fbox{$e \rrFEstar A$} reflexive, transitive closure of $\ccFD \cup \ccFS$
+\smallskip
 \end{flushleft}

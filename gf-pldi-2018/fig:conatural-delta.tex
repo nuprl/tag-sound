@@ -33,29 +33,24 @@ $\begin{array}{l@{~~}c@{~~}l}
 \begin{minipage}[t]{\columnwidth}
 \fbox{$e \ccLD A$} inherits $e \ccD A$:\\
 $\begin{array}{l@{~~}c@{~~}l}
-  \ctxD{\efst{(\vmonpair{\tpair{\tau_0}{\tau_1}}{v})}} & \ccLD & \ctxD{\esta{\tau_0}{(\efst{v})}}
+  \ctxD{\efst{(\vmonpair{\tpair{\tau_0}{\tau_1}}{v})}} & \ccLS & \ctxD{\esta{\tau_0}{(\efst{v})}}
 \\
-  \ctxD{\esnd{(\vmonpair{\tpair{\tau_0}{\tau_1}}{v})}} & \ccLD & \ctxD{\esta{\tau_1}{(\esnd{v})}}
+  \ctxD{\esnd{(\vmonpair{\tpair{\tau_0}{\tau_1}}{v})}} & \ccLS & \ctxD{\esta{\tau_1}{(\esnd{v})}}
 \\
-  \ctxD{(\vmonfun{\tarr{\tau_d}{\tau_c}}{v_f})~v_{arg}} & \ccLD & \ctxD{\esta{\tau_c}{(v_f~e_{arg})}}
-\\ \multicolumn{3}{l}{\mbox{\quad where $e_{arg} = \edyn{\tau_d}{v_{arg}}$}}
+  \ctxD{(\vmonfun{\tarr{\tau_d}{\tau_c}}{v_f})~v_{arg}} & \ccLS & \ctxD{\esta{\tau_c}{(v_f~e_{arg}')}}
+\\ \multicolumn{3}{l}{\mbox{\quad where $e_{arg}' = \edyn{\tau_d}{v_{arg}}$}}
 \\[0.8ex]
-  \ctxD{\edyn{\tint}{i}} & \ccLD & \ctxD{i}
+  \ctxD{\esta{\tpair{\tau_0}{\tau_1}}{v}} & \ccLS & \ctxD{\vmonpair{\tpair{\tau_0}{\tau_1}}{v}}
 \\
-  \ctxD{\edyn{\tnat}{i}} & \ccLD & \ctxD{i}
-\\ \multicolumn{3}{l}{\mbox{\quad where $i \in \naturals$}}
+  \ctxD{\esta{\tarr{\tau_d}{\tau_c}}{v}} & \ccLS & \ctxD{\vmonfun{\tarr{\tau_d}{\tau_c}}{v}}
 \\
-  \ctxD{\edyn{\tpair{\tau_0}{\tau_1}}{v}} & \ccLD & \ctxD{\vmonpair{\tpair{\tau_0}{\tau_1}}{v}}
-\\ \multicolumn{3}{l}{\mbox{\quad where $v = \vpair{v_0}{v_1}$}}
-\\ \multicolumn{3}{l}{\mbox{\quad or $v = \vmonpair{\tpair{\tau_0'}{\tau_1'}}{v'}$}}
-\\
-  \ctxD{\edyn{\tarr{\tau_d}{\tau_c}}{v}} & \ccLD & \ctxD{\vmonfun{\tarr{\tau_d}{\tau_c}}{v}}
-\\ \multicolumn{3}{l}{\mbox{\quad where $v = \vlam{x}{e}$}}
-\\ \multicolumn{3}{l}{\mbox{\quad or $v = \vmonfun{\tarr{\tau_d'}{\tau_c'}}{v'}$}}
-\\
-  \ctxD{\edyn{\tau}{v}} & \ccLD & \boundaryerror
+  \ctxD{\esta{\tau}{v}} & \ccLS & \ctxD{v}
 \\ \multicolumn{3}{l}{\mbox{\quad otherwise}}
 \end{array}$
+
+\vspace{6em}
+
+\fbox{$e \rrLEstar A$} reflexive, transitive closure of $\ccLD \cup \ccLS$
 \end{minipage}%
 \begin{minipage}[t]{\columnwidth}
 \fbox{$e \ccLS A$} inherits $e \ccS A$:\\
@@ -64,20 +59,25 @@ $\begin{array}{l@{~~}c@{~~}l}
 \\
   \ctxS{\esnd{(\vmonpair{\tpair{\tau_0}{\tau_1}}{v})}} & \ccLS & \ctxS{\edyn{\tau_1}{(\esnd{v})}}
 \\
-  \ctxS{(\vmonfun{\tarr{\tau_d}{\tau_c}}{v_f})~v_{arg}} & \ccLS & \ctxS{\edyn{\tau_c}{(v_f~e_{arg}')}}
-\\ \multicolumn{3}{l}{\mbox{\quad where $e_{arg}' = \esta{\tau_d}{v_{arg}}$}}
+  \ctxS{(\vmonfun{\tarr{\tau_d}{\tau_c}}{v_f})~v_{arg}} & \ccLS & \ctxS{\edyn{\tau_c}{(v_f~e_{arg})}}
+\\ \multicolumn{3}{l}{\mbox{\quad where $e_{arg} = \esta{\tau_d}{v_{arg}}$}}
 \\[0.8ex]
-  \ctxS{\esta{\tpair{\tau_0}{\tau_1}}{v}} & \ccLS & \ctxS{\vmonpair{\tpair{\tau_0}{\tau_1}}{v}}
+  \ctxS{\edyn{\tint}{i}} & \ccLD & \ctxS{i}
 \\
-  \ctxS{\esta{\tarr{\tau_d}{\tau_c}}{v}} & \ccLS & \ctxS{\vmonfun{\tarr{\tau_d}{\tau_c}}{v}}
+  \ctxS{\edyn{\tnat}{i}} & \ccLD & \ctxS{i}
+\\ \multicolumn{3}{l}{\mbox{\quad if $i \in \naturals$}}
 \\
-  \ctxS{\esta{\tau}{v}} & \ccLS & \ctxS{v}
+  \ctxS{\edyn{\tpair{\tau_0}{\tau_1}}{v}} & \ccLD & \ctxS{\vmonpair{\tpair{\tau_0}{\tau_1}}{v}}
+\\ \multicolumn{3}{l}{\mbox{\quad if $v \sim \vpair{v_0}{v_1}$}}
+\\ \multicolumn{3}{l}{\mbox{\quad or $v \sim \vmonpair{\tpair{\tau_0'}{\tau_1'}}{v'}$}}
+\\
+  \ctxS{\edyn{\tarr{\tau_d}{\tau_c}}{v}} & \ccLD & \ctxS{\vmonfun{\tarr{\tau_d}{\tau_c}}{v}}
+\\ \multicolumn{3}{l}{\mbox{\quad if $v \sim \vlam{x}{e}$}}
+\\ \multicolumn{3}{l}{\mbox{\quad or $v \sim \vmonfun{\tarr{\tau_d'}{\tau_c'}}{v'}$}}
+\\
+  \ctxS{\edyn{\tau}{v}} & \ccLD & \boundaryerror
 \\ \multicolumn{3}{l}{\mbox{\quad otherwise}}
 \end{array}$
-
-\vspace{6em}
-
-\fbox{$e \rrLEstar A$} reflexive, transitive closure of $\ccLD \cup \ccLS$
 \end{minipage}
 
 \end{flushleft}

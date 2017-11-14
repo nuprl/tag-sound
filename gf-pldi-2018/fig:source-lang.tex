@@ -43,7 +43,7 @@ $\begin{array}{l@{~~}c@{~~}l}
 \end{minipage}
 
 %% -----------------------------------------------------------------------------
-\medskip
+\bigskip
 \begin{minipage}[t]{\columnwidth}
 \fbox{$\GammaD \welldyn e$}
 \begin{mathpar}
@@ -172,30 +172,30 @@ $\begin{array}{l@{~~}c@{~~}l}
   \ctxD{(\vlam{x}{e})~v} & \ccD & \ctxD{\vsubst{e}{x}{v}}
 \\
   \ctxD{v_0~v_1} & \ccD & \typeerror
-\\ \multicolumn{3}{l}{\mbox{\quad where $v \neq \vlam{x}{e}$}}
+\\ \multicolumn{3}{l}{\mbox{\quad if $v \neq \vlam{x}{e}$}}
 \\
   \ctxD{\efst{\vpair{v_0}{v_1}}} & \ccD & \ctxD{v_0}
 \\
   \ctxD{\efst{v}} & \ccD & \typeerror
-\\ \multicolumn{3}{l}{\mbox{\quad where $v \neq \vpair{v_0}{v_1}$}}
+\\ \multicolumn{3}{l}{\mbox{\quad if $v \neq \vpair{v_0}{v_1}$}}
 \\
   \ctxD{\esnd{\vpair{v_0}{v_1}}} & \ccD & \ctxD{v_1}
 \\
   \ctxD{\esnd{v}} & \ccD & \typeerror
-\\ \multicolumn{3}{l}{\mbox{\quad where $v \neq \vpair{v_0}{v_1}$}}
+\\ \multicolumn{3}{l}{\mbox{\quad if $v \neq \vpair{v_0}{v_1}$}}
 \\
   \ctxD{\esum{i_0}{i_1}} & \ccD & \ctxD{i_0 + i_1}
 \\
   \ctxD{\esum{v_0}{v_1}} & \ccD & \tagerror
-\\ \multicolumn{3}{l}{\mbox{\quad where $v_0 \not\in \integers$ or $v_1 \not\in \integers$}}
+\\ \multicolumn{3}{l}{\mbox{\quad if $v_0 \not\in \integers$ or $v_1 \not\in \integers$}}
 \\
   \ctxD{\equotient{i_0}{0}} & \ccD & \valueerror
 \\
   \ctxD{\equotient{i_0}{i_1}} & \ccD & \ctxD{i_0 \backslash i_1}
-\\ \multicolumn{3}{l}{\mbox{\quad where $i_1 \neq 0$}}
+\\ \multicolumn{3}{l}{\mbox{\quad if $i_1 \neq 0$}}
 \\
   \ctxD{\equotient{v_0}{v_1}} & \ccD & \tagerror
-\\ \multicolumn{3}{l}{\mbox{\quad where $v_0 \not\in \integers$ or $v_1 \not\in \integers$}}
+\\ \multicolumn{3}{l}{\mbox{\quad if $v_0 \not\in \integers$ or $v_1 \not\in \integers$}}
 \end{array}$
 
 \medskip
@@ -219,7 +219,7 @@ $\begin{array}{l@{~~}c@{~~}l}
 \\
   \Delta(\vbinop, \tau_0, \tau_1) & = & \tint
 \\
-  \multicolumn{3}{l}{\mbox{\quad where $\tau_0\!\subteq\!\tint$ and $\tau_0\!\subteq\!\tint$}}
+  \multicolumn{3}{l}{\mbox{\quad if $\tau_0\!\subteq\!\tint$ and $\tau_0\!\subteq\!\tint$}}
 \end{array}$
 \end{minipage}
 
@@ -250,7 +250,7 @@ $\begin{array}{l@{~~}c@{~~}l}
 \medskip
 \fbox{$\tau \subteq \tau$} reflexive closure of $\subt$
 
-\medskip
+\bigskip
 \fbox{$e \ccS A$}\\
 $\begin{array}{l@{~~}c@{~~}l}
   \ctxS{(\vlam{\tann{x}{\tau_d}}{e})~v} & \ccS & \ctxS{\vsubst{e}{x}{v}}
