@@ -1,6 +1,6 @@
 \begin{flushleft}
 
-\fbox{Language $\langM$} extends Common Syntax:\\
+\fbox{Language $\langM$} inherits Common Syntax:\\
 $\begin{array}{l@{~~}c@{~~}l}
   e & \Coloneqq & \ldots \mid \edyn{\tau}{e} \mid \esta{\tau}{e}
 \\
@@ -11,12 +11,16 @@ $\begin{array}{l@{~~}c@{~~}l}
   \Gamma & \Coloneqq & \cdot \mid x,\Gamma \mid \tann{x}{\tau},\Gamma
 \\
   A & \Coloneqq & e \mid \typeerror \mid \valueerror
+\\
+  \ED & \Coloneqq & \ldots \mid \esta{\tau}{\ES}
+\\
+  \ES & \Coloneqq & \ldots \mid \edyn{\tau}{\ED}
 \end{array}$
 
 %% -----------------------------------------------------------------------------
 \medskip
 \begin{minipage}[t]{0.5\columnwidth}
-\fbox{$\Gamma \wellM e$}~~extends $\Gamma \welldyn e$:\\
+\fbox{$\Gamma \wellM e$}~~inherits $\Gamma \welldyn e$:\\
 \begin{mathpar}
   \inferrule*{
     \Gamma \wellM e : \tau
@@ -24,28 +28,15 @@ $\begin{array}{l@{~~}c@{~~}l}
     \Gamma \wellM \esta{\tau}{e}
   }
 \end{mathpar}
-\begin{mathpar}
-  \inferrule*{
-    x \in \Gamma
-  }{
-    \Gamma \wellM x
-  }
-\end{mathpar}
 \end{minipage}%
 \begin{minipage}[t]{0.5\columnwidth}
-\fbox{$\Gamma \wellM e : \tau$}~~extends $\Gamma \wellsta e : \tau$:\\
+\fbox{$\Gamma \wellM e : \tau$}~~inherits $\Gamma \wellsta e : \tau$:\\
 \begin{mathpar}
 
   \inferrule*{
     \Gamma \wellM e
   }{
     \Gamma \wellM \edyn{\tau}{e} : \tau
-  }
-
-  \inferrule*{
-    \tann{x}{\tau} \in \Gamma
-  }{
-    \Gamma \wellM x : \tau
   }
 \end{mathpar}
 \end{minipage}

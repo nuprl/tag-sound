@@ -78,6 +78,7 @@
   (define/short popl "POPL" (string-append ACM Symposium "on Principles of Programming Languages"))
   (define/short sac "SAC" (string-append Symposium "on Applied Computing"))
   (define/short sas "SAS" (string-append International Symposium "on Static Analysis"))
+  (define/short sblp "SBLP" "Brazilian Symposium on Programming Languages")
   (define/short scala "SCALA" (string-append "Workshop on Scala"))
   (define/short scheme-workshop "SFP" (string-append "Scheme and Functional Programming Workshop"))
   (define/short snapl "SNAPL" "Summit oN Advances in Programming Languages")
@@ -2090,3 +2091,9 @@
    #:location (proceedings-location popl #:pages '(181 194))
    #:date 2015))
 
+(define bc-sblp-2009
+  (make-bib
+   #:title "Function Inheritance: Monadic Memoization Mixins"
+   #:author (authors "Daniel Brown" "William R. Cook")
+   #:location (proceedings-location sblp #:pages '())
+   #:date 2009))

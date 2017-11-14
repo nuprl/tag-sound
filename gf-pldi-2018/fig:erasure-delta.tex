@@ -1,37 +1,9 @@
 \begin{flushleft}
 
-\fbox{Language $\langE$} $= \langM$
-
-\medskip
-\begin{minipage}[t]{0.5\columnwidth}
-\fbox{$\fromsta(\tau, v) = A$}\\
-$\fromsta(\tau, v) = v$
-\end{minipage}%
-\begin{minipage}[t]{0.5\columnwidth}
-\fbox{$\fromdyn(\tau, v) = A$}\\
-$\fromdyn(\tau, v) = v$
-\end{minipage}
-
-\medskip
-\fbox{$e \rrEE A$} extends $e \rrD A$:
-\begin{mathpar}
-  \inferrule*{
-  }{
-    (\vlam{\tann{x}{\tau}}{e})~v \rrEE \vsubst{e}{x}{v}
-  }
-
-  \inferrule*{
-    \fromdyn(\tau, v) = v
-  }{
-    \edyn{\tau}{v} \rrEE v
-  }
-
-  \inferrule*{
-    \fromsta(\tau, v) = v
-  }{
-    \esta{\tau}{v} \rrEE v
-  }
-\end{mathpar}
+\fbox{Language $\langE$} inherits $\langM$:\\
+$\begin{array}{l@{~~}c@{~~}l}
+  \ED & \Coloneqq & \ldots \mid \esta{\tau}{\ED} \mid \edyn{\tau}{\ED}
+\end{array}$
 
 \medskip
 \fbox{$\Gamma \wellEE e$} extends $\Gamma \wellD e$:
@@ -54,5 +26,17 @@ $\fromdyn(\tau, v) = v$
     \Gamma \wellEE \esta{\tau}{e}
   }
 \end{mathpar}
+
+\medskip
+\fbox{$e \ccEE A$} inherits $e \ccD A$:\\
+$\begin{array}{l@{~~}c@{~~}l}
+  \ctxD{\edyn{\tau}{v}} & \ccEE & \ctxD{v}
+\\
+  \ctxD{\esta{\tau}{v}} & \ccEE & \ctxD{v}
+\\
+  \ctxD{(\vlam{\tann{x}{\tau_d}}{e})~v} & \ccEE & \ctxD{\vsubst{e}{x}{v}}
+\end{array}$
+
+\fbox{$e \rrEEstar A$} reflexive, transitive closure of $\ccEE$
 
 \end{flushleft}
