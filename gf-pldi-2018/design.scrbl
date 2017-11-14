@@ -135,9 +135,10 @@ The proof follows by progress and preservation of the @${\Gamma \wellEE e}
 An equivalent way to define the erasure embedding is to first remove the type
  annotations and second re-use the dynamically-typed reduction relation.
 This simple idea has found increasingly widespread use; see, for example,
- TypeScript, the Python annotations API, and Pluggable Type Systems.
+ TypeScript,@note{@url{https://www.typescriptlang.org/}}
+ the Python function annotations API,@note{@url{https://www.python.org/dev/peps/pep-3107/}}
+ and Pluggable Type Systems@~cite[bracha-pluggable-types].
 @emph{End Remark}
-@; TODO cite
 
 
 @; -----------------------------------------------------------------------------
@@ -150,7 +151,6 @@ The natural way to implement checks is to interpret the boundary type as a check
 @; in essence, canonical forms
 For base types, the check is typically straightforward.
 For covariant type constructors, it suffices to check outermost type-tag
- @; TODO cite appel
  of an incoming value and recursively check its components.
 The recursive check is potentially expensive for large values, but it
  suffices to ensure type safety.
@@ -162,8 +162,7 @@ It is generally infeasible to check whether a run-time value @${v} is
 More broadly, the same problem arises for any value with unknown size,
  such as a port that delivers an infinite stream of data.
 The classic solution is
- @; TODO cite FF
- to use a ``coinductive'' strategy and monitor such values.
+ to use a ``coinductive'' strategy and monitor such values@~cite[ff-icfp-2002].
 For function types, this means the boundary type
  @${(\tarr{\tau_d}{\tau_c})} accepts any dynamically-typed function @${v}
  and signals a boundary error if a future application of @${v} produces
@@ -210,8 +209,7 @@ The erasure and natural embeddings are opposites in terms of type soundness
 The erasure embedding promises nothing in the way of type soudness,
  and lets values freely cross boundary expressions.
 The natural embedding is ideally type sound (for a language that makes no
- attempt to connect run-time boundary errors to source-program boundary terms)
- @; TODO cite MT1/MT2
+ attempt to connect run-time boundary errors to source-program boundary terms@~cite[tfffgksst-snapl-2017])
  but imposes a large performance overhead.
 In the context of Typed Racket, Takikawa etal observed that a straightforward
  implementation of the natural embedding can slow down a working program
