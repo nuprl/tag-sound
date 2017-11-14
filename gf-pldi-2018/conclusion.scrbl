@@ -1,40 +1,27 @@
 #lang gf-pldi-2018
 @title[#:tag "sec:conclusion"]{Why Types?}
 
-@; NOTE
-@; further "refinements" besides Nat? ... what to do when type cannot be
-@;  computed from value at runtime, such as "terminating function" or
-@;  "stream of even numbers"?
-
-@; -----------------------------------------------------------------------------
-
-Tribes seeking the elusive goal, of code that is easy to write
- read verify maintain.
-TypeScript state-of-the-art for writing and reading,
- Typed Racket state-of-the-art for static reasoning.
-What do programmers prefer?
-Need to ask them.
-Does tag soundness strike a balance?
-We'll see.
-
-Soundness costs time and money, here is a new point on the Laffer curve.
-
-The big question, what are types good for?
-Best for static checking, for IDE completion?
-For making partial operations total,
- reasoning about code,
- optimization?
-Conventional conference wisdom and conventional industry wisdom
- are polar opposites,
- the performance work suggests they will never meet in the middle.
-This paper is one idea for a compromise, interested to hear others.
-
 @; Future work:
-@; - precise cost of boundaries
+@; - static/dynamic analysis to attribute run-time cost to boundaries
 @; - infer types, help with conversion
 @; - RTTI for TR, the models have (mon T v) but reality is (mon K,K v)
 @; - static analysis, to pick natural vs. co-natural for a boundary (for efficiency)
 @; - JIT for tagged, other things to reduce tag checks
+
+@; -----------------------------------------------------------------------------
+
+There seems to be general agreement that type systems are useful,
+ and general disagreement about what type systems are useful for.
+Types get used for proving theorems, reasoning about semantics,
+ static analysis, efficient compilation, and checked documentation.
+Even C and Python programmers use types to specify their programs
+ get something from their toolchain (faster code, IDE auto-completion).
+
+In migratory type systems, changing the intended purpose of types can
+ have significant performance implications.
+Perhaps in addition to designing a type system to accomodate the idioms
+ of dynamically-typed programs, a migratory typing system ought to tailor
+ its type soundness.
 
 
 @acks{
