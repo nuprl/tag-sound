@@ -13,7 +13,7 @@ In the more precise sense defined by @citet[svcb-snapl-2015], a gradual typing
  static type with the dynamic type can only affect the semantics of a term
  by removing a boundary error.
 We leave open the question of how our type soundness and performance
- results apply to a true gradual typing system; @;@~cite[];
+ results apply to a true gradual typing system;
  we conjecture that the two areas are orthogonal.
 
 
@@ -24,7 +24,8 @@ Tobin-Hochstadt and Felleisen introduced the idea of migratory typing
 This led to a series of works on designing types to accomodate the idioms
  of dynamically-typed Racket; see @citet[tfffgksst-snapl-2017] for an overview.
 Other migratory typing systems target
- JavaScript@~cite[bat-ecoop-2014]
+ JavaScript@~cite[bat-ecoop-2014],
+ PHP,
  Python@~cite[vksb-dls-2014], and
  Smalltalk@~cite[acftd-scp-2013].
 
@@ -53,38 +54,38 @@ They apply the method to Typed Racket and find that its performance is a serious
  a theorem similar to our type-tag soundness.
 Using the ideas from the calculus, they implement a locally-defensive embedding
  of Reticulated (a statically typed variant of Python) into Python 3.
-Their work is the direct inspiration for our own;
+Their so-called transient semantics is the direct inspiration for our own;
  we began by trying to implement a variant of their compiler for Typed Racket,
  but needed a deeper understanding of why the compiler was correct,
  what design choices were essential, and
  how the idea of rewriting statically-typed code related to other multi-language embeddings.
 
-@parag{Multi-Language Semantics}
-@; barret tratt
-@; new ahmed
+The idea of rewriting an expression to add explicit safety checks goes back
+ at least to @citet[henglein-scp-1994], who introduced the name @emph{completion}.
 
-Matthews-Findler originated.
-Dimoulas for complete monitoring.
-
-Natural embedding formatlized by Matthews / Findler,
- based on lots of prior work about type-safe FFIs.
-@; thank you based Robby, perfect reference material
-
-
-Erased embedding, see TypeScript and pluggable types.
-@; does the academic history go deeper?
-
-@parag{Final Algebra Semantics}
-@; wand cartwright atkey
-
-Co-Natural is our own, but the idea comes from Findler / Felleisen.
 
 @parag{Space-Efficient Contracts}
-@; knowles greenberg
 
-Forgetful by Greenberg.
-Never would have taken it seriously otherwise.
+The forgetful embedding is based on Greenberg's semantics for space-efficient
+ manifest contracts@~cite[g-popl-2015].
+His work is the latest, and most successful, attempt to prevent higher-order
+ contracts from stacking up without bound@~cite[htf-hosc-2010 sw-popl-2010].
 
+
+@;@parag{Multi-Language Semantics}
+@;@citet[mf-toplas-2007] introduce the first formal semantics for a multi-language.
+@;
+@; barret tratt
+@; new ahmed
+@; matthews-findler
+@; gray findler flatt
+
+
+@;@parag{Final Algebra Semantics}
+@; wand
+@; cartwright
+@; atkey
+@; findler / felleisen
 
 @parag{Spectrum of Type Soundness}
 

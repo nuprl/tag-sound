@@ -2082,3 +2082,11 @@
    #:author (authors "Fabian Muehlboeck" "Ross Tate")
    #:location (proceedings-location oopsla)
    #:date 2017))
+
+(define g-popl-2015
+  (make-bib
+   #:title "Space-Efficient Manifest Contracts"
+   #:author "Michael Greenberg"
+   #:location (proceedings-location popl #:pages '(181 194))
+   #:date 2015))
+
