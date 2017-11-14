@@ -55,4 +55,5 @@ In this paper, we develop the novel idea of a spectrum of type soundness and
 
 @generate-bibliography[]
 
-@include-section{appendix.scrbl}
+
+@IF-TECHREPORT[@include-section{appendix.scrbl}]

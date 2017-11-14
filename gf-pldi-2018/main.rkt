@@ -35,6 +35,7 @@
   deliverable
   LD-Racket
   x-axis
+  IF-TECHREPORT
 
   D-SAFETY
   S-SAFETY
@@ -404,3 +405,9 @@
   (unless (memq sym BM-NAME*)
     (log-gtp-plot-warning "unrecognized benchmark name '~a'" str))
   (tt str))
+
+(define-for-syntax TECH-REPORT? #false)
+(define-syntax (IF-TECHREPORT stx)
+  (if TECH-REPORT?
+    (cdr (syntax-e stx))
+    #'(void)))
