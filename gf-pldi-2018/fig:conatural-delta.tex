@@ -1,92 +1,83 @@
 \begin{flushleft}
 
-\begin{minipage}[t]{0.5\textwidth}
-\fbox{Language $\langL$} extends $\langN$:\\
+\fbox{Language $\langL$} inherits $\langN$:\\
 $\begin{array}{l@{~~}c@{~~}l}
   v & \Coloneqq & \ldots \mid \vmonpair{(\tpair{\tau}{\tau})}{v}
 \end{array}$
 
 \medskip
-\fbox{$\fromsta(\tau, v) = A$}\\
-$\begin{array}{l}
-  \fromsta(\tarr{\tau_d}{\tau_c}, v) = \vmonfun{(\tarr{\tau_d}{\tau_c})}{v}
-\\
-  \fromsta(\tau, v) = v
-\\ \mbox{\quad otherwise}
-\end{array}$
+\begin{minipage}[t]{\columnwidth}
+\fbox{$\Gamma \wellLE e$} inherits $\Gamma \wellNE e$:
+\begin{mathpar}
+  \inferrule*{
+    \Gamma \wellLE v : \tpair{\tau_0}{\tau_1}
+  }{
+    \Gamma \wellLE \vmonpair{(\tpair{\tau_0}{\tau_1})}{v}
+  }
+\end{mathpar}
 \end{minipage}%
-\begin{minipage}[t]{0.5\textwidth}
-\fbox{$\fromdyn(\tau, v) = A$}\\
-$\begin{array}{l}
-  \fromdyn(\tint, i) = i
-\\
-  \fromdyn(\tnat, i) = i
-\\ \mbox{\quad if $i \in \naturals$}
-\\
-  \fromdyn(\tpair{\tau_0}{\tau_1}, v) = \vmonpair{(\tpair{\tau_0}{\tau_1})}{v}
-\\ \mbox{\quad if $v = \vpair{v_0}{v_1}$ or $v = \vmonpair{(\tpair{\tau_0'}{\tau_1'})}{v'}$}
-\\
-  \fromdyn(\tarr{\tau_d}{\tau_c}, v) = \vmonfun{(\tarr{\tau_d}{\tau_c})}{v}
-\\ \mbox{\quad if $v = \vlam{x}{e}$ or $v = \vmonfun{(\tarr{\tau_d'}{\tau_c'})}{v'}$}
-\\
-  \fromdyn(\tau, v) = \valueerror
-\\ \mbox{\quad otherwise}
-\end{array}$
+\begin{minipage}[t]{\columnwidth}
+\fbox{$\Gamma \wellLE e : \tau$} inherits $\Gamma \wellNE e : \tau$:
+\begin{mathpar}
+  \inferrule*{
+    \Gamma \wellLE v
+  }{
+    \Gamma \wellLE \vmonfun{(\tpair{\tau_0}{\tau_1})}{v} : (\tarr{\tau_d}{\tau_c})
+  }
+\end{mathpar}
 \end{minipage}
 
-
 %% -----------------------------------------------------------------------------
+
 \medskip
-\begin{minipage}[t]{0.5\textwidth}
-\fbox{$e \rrLD A$} extends $e \rrND A$:
-\begin{mathpar}
-  \inferrule*{
-  }{
-    \efst{(\vmonpair{(\tpair{\tau_0}{\tau_1})}{v})} \rrLD \esta{\tau_0}{\efst{v}}
-  }
-
-  \inferrule*{
-  }{
-    \esnd{(\vmonpair{(\tpair{\tau_0}{\tau_1})}{v})} \rrLD \esta{\tau_1}{\esnd{v}}
-  }
-\end{mathpar}
+\begin{minipage}[t]{\columnwidth}
+\fbox{$e \ccLD A$} inherits $e \ccD A$:\\
+$\begin{array}{l@{~~}c@{~~}l}
+  \ctxD{\efst{(\vmonpair{\tpair{\tau_0}{\tau_1}}{v})}} & \ccLD & \ctxD{\esta{\tau_0}{(\efst{v})}}
+\\
+  \ctxD{\esnd{(\vmonpair{\tpair{\tau_0}{\tau_1}}{v})}} & \ccLD & \ctxD{\esta{\tau_1}{(\esnd{v})}}
+\\
+  \ctxD{(\vmonfun{\tarr{\tau_d}{\tau_c}}{v_f})~v_{arg}} & \ccLD & \ctxD{\esta{\tau_c}{(v_f~e_{arg})}}
+\\ \multicolumn{3}{l}{\mbox{\quad where $e_{arg} = \edyn{\tau_d}{v_{arg}}$}}
+\\[0.8ex]
+  \ctxD{\edyn{\tint}{i}} & \ccLD & \ctxD{i}
+\\
+  \ctxD{\edyn{\tnat}{i}} & \ccLD & \ctxD{i}
+\\ \multicolumn{3}{l}{\mbox{\quad where $i \in \naturals$}}
+\\
+  \ctxD{\edyn{\tpair{\tau_0}{\tau_1}}{v}} & \ccLD & \ctxD{\vmonpair{\tpair{\tau_0}{\tau_1}}{v}}
+\\ \multicolumn{3}{l}{\mbox{\quad where $v = \vpair{v_0}{v_1}$}}
+\\ \multicolumn{3}{l}{\mbox{\quad or $v = \vmonpair{\tpair{\tau_0'}{\tau_1'}}{v'}$}}
+\\
+  \ctxD{\edyn{\tarr{\tau_d}{\tau_c}}{v}} & \ccLD & \ctxD{\vmonfun{\tarr{\tau_d}{\tau_c}}{v}}
+\\ \multicolumn{3}{l}{\mbox{\quad where $v = \vlam{x}{e}$}}
+\\ \multicolumn{3}{l}{\mbox{\quad or $v = \vmonfun{\tarr{\tau_d'}{\tau_c'}}{v'}$}}
+\\
+  \ctxD{\edyn{\tau}{v}} & \ccLD & \boundaryerror
+\\ \multicolumn{3}{l}{\mbox{\quad otherwise}}
+\end{array}$
 \end{minipage}%
-\begin{minipage}[t]{0.5\textwidth}
-\fbox{$e \rrLS A$} extends $e \rrNS A$:
-\begin{mathpar}
-  \inferrule*{
-  }{
-    \efst{(\vmonpair{(\tpair{\tau_0}{\tau_1})}{v})} \rrLS \edyn{\tau_0}{\efst{v}}
-  }
+\begin{minipage}[t]{\columnwidth}
+\fbox{$e \ccLS A$} inherits $e \ccS A$:\\
+$\begin{array}{l@{~~}c@{~~}l}
+  \ctxS{\efst{(\vmonpair{\tpair{\tau_0}{\tau_1}}{v})}} & \ccLS & \ctxS{\edyn{\tau_0}{(\efst{v})}}
+\\
+  \ctxS{\esnd{(\vmonpair{\tpair{\tau_0}{\tau_1}}{v})}} & \ccLS & \ctxS{\edyn{\tau_1}{(\esnd{v})}}
+\\
+  \ctxS{(\vmonfun{\tarr{\tau_d}{\tau_c}}{v_f})~v_{arg}} & \ccLS & \ctxS{\edyn{\tau_c}{(v_f~e_{arg}')}}
+\\ \multicolumn{3}{l}{\mbox{\quad where $e_{arg}' = \esta{\tau_d}{v_{arg}}$}}
+\\[0.8ex]
+  \ctxS{\esta{\tpair{\tau_0}{\tau_1}}{v}} & \ccLS & \ctxS{\vmonpair{\tpair{\tau_0}{\tau_1}}{v}}
+\\
+  \ctxS{\esta{\tarr{\tau_d}{\tau_c}}{v}} & \ccLS & \ctxS{\vmonfun{\tarr{\tau_d}{\tau_c}}{v}}
+\\
+  \ctxS{\esta{\tau}{v}} & \ccLS & \ctxS{v}
+\\ \multicolumn{3}{l}{\mbox{\quad otherwise}}
+\end{array}$
 
-  \inferrule*{
-  }{
-    \esnd{(\vmonpair{(\tpair{\tau_0}{\tau_1})}{v})} \rrLS \edyn{\tau_1}{\esnd{v}}
-  }
-\end{mathpar}
+\vspace{6em}
+
+\fbox{$e \rrLEstar A$} reflexive, transitive closure of $\ccLD \cup \ccLS$
 \end{minipage}
-
-%% -----------------------------------------------------------------------------
-%\medskip
-%\begin{minipage}[t]{0.5\textwidth}
-%\fbox{$\Gamma \wellLE e$} extends $\Gamma \wellNE e$:
-%\begin{mathpar}
-%  \inferrule*{
-%    \Gamma \wellLE v : \tpair{\tau_0}{\tau_1}
-%  }{
-%    \Gamma \wellLE \vmonpair{(\tpair{\tau_0}{\tau_1})}{v}
-%  }
-%\end{mathpar}
-%\end{minipage}%
-%\begin{minipage}[t]{0.5\textwidth}
-%\fbox{$\Gamma \wellLE e : \tau$} extends $\Gamma \wellNE e : \tau$:
-%\begin{mathpar}
-%  \inferrule*{
-%    \Gamma \wellLE v
-%  }{
-%    \Gamma \wellLE \vmonfun{(\tpair{\tau_0}{\tau_1})}{v} : (\tpair{\tau_0}{\tau_1})
-%  }
-%\end{mathpar}
-%\end{minipage}
 
 \end{flushleft}
