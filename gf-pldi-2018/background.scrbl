@@ -37,7 +37,7 @@ interface (FFI) between the languages.  The language @${\langS} is basically
 like the host language with syntax for explicit type annotations.  The
 foreign-function interface (FFI) is typically part of a runtime system that
 monitors interactions between statically-typed and dynamically-typed
-values. The FFI @emph{introduces} the boundary and therefore run-time
+values. The FFI @emph{introduces} the boundary (and therefore run-time)
 checks as needed for the desired level of type soundness. 
 
 From the literature on multi-language semantics we know that an FFI demands
@@ -46,15 +46,15 @@ that this embedding supports a soundness guarantee (or doesn't). Since
 @${\langD} and @${\langL} share values, the FFI does not need to worry
 about value conversion. 
 
-@bold{Note} Though we must make a choice concerning which values may cross
+@bold{Note} We must make a choice concerning which values may cross
 these special boundaries. To keep the boundaries as inexpensive as
 possible, we might wish to restrict the set of FFI values to just numbers
 and characters, i.e., small, ``flat'' values. To facilitate the migration
 from the untyped world to the typed one, we ought to allow such boundaries
 to show up wherever developers need them, which implies that all kinds of
-values may cross the boundaries. All designs practical forms of migratory
+values may cross the boundaries. All practical forms of migratory
 and gradual type system prefer the second choice, and so do we in this
-paper. @bold{End} 
+paper. @bold{End}
 
 An @emph{embedding} in this sense may consist of static and dynamic
 components.  On the static end, the multi-language may add expression and
