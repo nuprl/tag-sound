@@ -129,7 +129,7 @@ This happens because Typed Racket @bm{synth} spends a large amount of time
  eagerly traversing data structures and monitoring their components.
 @; FSM also dramatic, removes huge indirection cost
 
-The @bm{zombie} benchmark shows only a modest improvement.@note{}
+The @bm{zombie} benchmark shows only a modest improvement.
 In fact, @|LD-Racket| @bm{zombie} is a huge improvement over Typed Racket;
  the worst-case overhead in @|LD-Racket| is @render-max-overhead['tagged 'zombie]
  compared to @render-max-overhead['typed 'zombie] in @|TR|.
