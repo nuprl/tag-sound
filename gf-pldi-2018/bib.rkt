@@ -65,6 +65,7 @@
   (define/short ip "Information Processing" "Information Processing")
   (define/short issta "ISSTA" (string-append International Symposium "on Software Testing and Analysis"))
   (define/short jfp "JFP" (string-append Journal "Functional Programming"))
+  (define/short jcss "JCSS" (string-append Journal "of Computer and System Sciences"))
   (define/short jsl "JSL" (string-append Journal "of Symbolic Logic"))
   (define/short lfp "LFP" "LISP and Functional Programming")
   (define/short lncs "LNCS" "Lecture Notes in Computer Science")
@@ -2097,3 +2098,17 @@
    #:author (authors "Daniel Brown" "William R. Cook")
    #:location (proceedings-location sblp)
    #:date 2009))
+
+(define fgr-ifl-2007
+  (make-bib
+   #:title "Lazy Contract Checking for Immutable Data Structures"
+   #:author (authors "Robert Bruce Findler" "Shu-yu Guo" "Anne Rogers")
+   #:location (proceedings-location ifl #:pages '(111 128))
+   #:date 2007))
+
+(define w-jcss-1979
+  (make-bib
+   #:title "Final Algebra Semantics and Data Type Extension"
+   #:author (authors "Mitchell Wand")
+   #:location (journal-location jcss #:volume 19 #:pages '(27 44))
+   #:date 1979))

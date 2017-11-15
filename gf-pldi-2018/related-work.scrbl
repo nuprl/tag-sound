@@ -54,7 +54,7 @@ They apply the method to Typed Racket and find that its performance is a serious
  a theorem similar to our type-tag soundness.
 Using the ideas from the calculus, they implement a locally-defensive embedding
  of Reticulated (a statically typed variant of Python) into Python 3.
-Their so-called transient semantics is the direct inspiration for our own;
+Their so-called transient semantics is the motivation for our work;
  we began by trying to implement a variant of their compiler for Typed Racket,
  but needed a deeper understanding of why the compiler was correct,
  what design choices were essential, and
@@ -68,7 +68,7 @@ The idea of rewriting an expression to add explicit safety checks goes back
 
 The forgetful embedding is based on Greenberg's semantics for space-efficient
  manifest contracts@~cite[g-popl-2015].
-His work is the latest, and most successful, attempt to prevent higher-order
+Prior work has explored different techniques to prevent higher-order
  contracts from stacking up without bound@~cite[htf-hosc-2010 sw-popl-2010].
 
 
@@ -81,11 +81,13 @@ His work is the latest, and most successful, attempt to prevent higher-order
 @; gray findler flatt
 
 
-@;@parag{Final Algebra Semantics}
-@; wand
-@; cartwright
-@; atkey
-@; findler / felleisen
+@parag{Final Algebra Semantics}
+
+The co-natural embedding is directly inspired by Findler and Felleisen's technique
+ for higher-order contracts@~cite[fgr-ifl-2007] and prior work on lazy contract checking@~cite[ff-icfp-2002].
+We conjecture that this embedding is a @emph{final algebra semantics}@~cite[w-jcss-1979],
+ in contrast to the natural embedding.
+
 
 @parag{Spectrum of Type Soundness}
 
