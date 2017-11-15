@@ -67,7 +67,7 @@ $\begin{array}{l@{~~}c@{~~}l}
 $\begin{array}{l@{~~}c@{~~}l l}
   (\vlam{x}{e})~v & \rrD & \vsubst{e}{x}{v} &
 \\
-  v_0~v_1 & \rrD & \typeerror & \mbox{if $v_0 \neq \vlam{x}{e}$}
+  v_0~v_1 & \rrD & \typeerror & \mbox{if $v_0 \sim i$ or $v_0 \sim \vpair{v}{v'}$}
 \\
   \eunop{v} & \rrD & A & \mbox{if $A = \delta(\vunop, v)$}
 \\

@@ -22,6 +22,12 @@ TODO
 
 - intro: "sound" => "conventionally sound"
 
+TYPESETTING
+- e D A ... more space ... between notions of reduction and their arguments
+  - same for fusion reduction
+- "flushleft" the typing rules
+- arrow types closer together
+
 
 Meeting with Matthias, hope to have a good Sec 2 Sec 3 this weekend!
 ---
