@@ -7,7 +7,11 @@ This appendix contains:
   complete definitions and proofs for the language embeddings discussed in the paper,
 }
 @item{
-  brief descriptions of the benchmark programs, and
+  brief descriptions of the benchmark programs,
+}
+@item{
+  a set of figures comparing the running time of a configuration to the number
+   of type annotations, and
 }
 @item{
   a comparison between the implementations of Typed Racket and Tag-Sound Racket.

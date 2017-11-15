@@ -147,9 +147,8 @@ This degredation reveals a pitfall of the locally-defensive embedding, which
 @section{Results: Linear Degredation}
 
 @note-to-self{
-Worth adding a figure for this?
-Adding types in TR hits a performance wall, but there is light at the end of the tunnel.
-Adding types in LD is a slow degredation, not much light at the end because all typed code must be defensive.
+Need to mention the "more types, more slow" property.
+No space here for a figure, but point to the appendix.
 }
 
 
