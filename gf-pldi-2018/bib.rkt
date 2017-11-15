@@ -2112,3 +2112,18 @@
    #:author (authors "Mitchell Wand")
    #:location (journal-location jcss #:volume 19 #:pages '(27 44))
    #:date 1979))
+
+(define bbdt-ecoop-2016
+  (make-bib
+   #:title "Fine-grained Language Composition: A Case Study"
+   #:author (authors "Edd Barrett" "Carl Friedrich Bolz" "Lukas Diekmann" "Laurence Tratt")
+   #:location (proceedings-location ecoop #:pages '(3:1 3:27))
+   #:date 2016))
+
+(define gff-oopsla-2005
+  (make-bib
+   #:title "Fine-Grained Interoperability Through Mirrors and Contracts"
+   #:author (authors "Kathryn E. Gray" "Robert Bruce Findler" "Matthew Flatt")
+   #:location (proceedings-location oopsla #:pages '(231 245))
+   #:date 2005))
+

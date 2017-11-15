@@ -1,5 +1,6 @@
 #lang gf-pldi-2018
-@title[#:tag "sec:background"]{Background}
+@title[#:tag "sec:background"]{The FFI Problem}
+@; embedding problem?
 
 @; TODO
 @; space-efficient contracts has a useful summary at the top,
@@ -44,7 +45,7 @@ From the literature on multi-language semantics we know that an FFI demands
 a well-specified embedding of values from one language in the other and
 that this embedding supports a soundness guarantee (or doesn't). Since
 @${\langD} and @${\langL} share values, the FFI does not need to worry
-about value conversion. 
+about value conversion@~cite[gff-oopsla-2005 bbdt-ecoop-2016].
 
 @bold{Note} We must make a choice concerning which values may cross
 these special boundaries. To keep the boundaries as inexpensive as
@@ -61,8 +62,8 @@ components.  On the static end, the multi-language may add expression and
 value forms, as well as typing rules for the new additions.  At a minimum,
 the extension must include so-called @emph{boundary terms} to draw a line
 between code from either source language:
-@;
-@centerline{@$|{ \hfill \edyn{\tau}{e} \qquad \esta{\tau}{e} \hfill }|}
+
+@$|{\hfill \edyn{\tau}{e} \qquad \esta{\tau}{e} \hfill}|
 @;
 A @${\vdyn} expression embeds a dynamically-typed expression @${e} into a
 statically-typed context that expects a value of type @${\tau}. 
@@ -71,11 +72,10 @@ of type @${\tau} into a dynamically-typed context.
 
 On the dynamic end, the multi-language needs runtime support for any new
 values and for boundary terms. For boundary terms, we require type-directed
-reduction strategies (often just meta-functions) for moving value forms
-across boundary terms. 
+reduction strategies for moving value forms across boundary terms.
 
 The following section develops several different strategies in the context
-of concrete lambda-calculus based language models. Each strategy comes with
+of several lambda-calculus based language models. Each embedding strategy comes with
 soundness benefits and performance costs, which just these choices
 explain. Some choices explain existing industrial choices, while others
 explain academic choices.

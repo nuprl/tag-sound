@@ -1,12 +1,6 @@
 #lang gf-pldi-2018
-@title[#:tag "sec:design"]{Models}
+@title[#:tag "sec:design"]{Five Models}
 
-@; TODO
-@; * add - operation, to clarify natural numbers
-@;   ... uhm not even sure what this should return
-@; * clarify "boundary to untyped runtime"
-
-@section{Source Languages}
 @include-figure["fig:common-syntax.tex" @elem{Common syntax and semantics}]
 @include-figure["fig:dyn-delta.tex" @elem{Dynamic Typing}]
 @include-figure["fig:sta-delta.tex" @elem{Static Typing}]
