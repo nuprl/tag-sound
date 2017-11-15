@@ -22,6 +22,17 @@ In practice, there are some design decisions to consider.
 @; ... ?
 
 
+@section{ERASE TYPES}
+
+Real implementations do not have 2 interpreters, just one.
+
+Because we proved no segfaults can make ->D and ->S the same
+
+Theorem ... go over mixed type term,
+ run ->D implies same first-order result,
+ (functions have different type annotations)
+
+
 @section{More Simple Type-Tags}
 
 Mutable is no problem
