@@ -12,7 +12,7 @@ $\begin{array}{l@{~~}c@{~~}l}
 \\
   \vbinop & \Coloneqq & \vsum \mid \vquotient
 \\
-  A & \Coloneqq & e \mid \boundaryerror
+  A & \Coloneqq & e \mid \boundaryerror \mid \tagerror
 \end{array}$
 
 \medskip
@@ -37,14 +37,10 @@ $\begin{array}{l@{~~}c@{~~}l}
 \end{minipage}
 
 \fbox{$\cclift{E}{\rrR} = \ccR$}\\
-$\begin{array}{l@{~~}c@{~~}l}
-  \cclift{E}{\rrR} & = & \ccR
-\end{array}$
-\\[0.1ex]
 $\begin{array}{l l}
-\mbox{\quad where $\ctxE{e} \ccR \ctxE{e'}$} & \mbox{if $e \rrR e'$}
+\ctxE{e} \ccR \ctxE{e'} & \mbox{if $e \rrR e'$}
 \\
-\mbox{\quad and $\ctxE{e} \ccR A$} & \mbox{if $e \rrR A$ and $A \neq e'$}
+\ctxE{e} \ccR A & \mbox{if $e \rrR A$ and $A \neq e'$}
 \end{array}$
 
 \end{flushleft}

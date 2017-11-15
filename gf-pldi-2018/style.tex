@@ -99,6 +99,7 @@ showstringspaces=false            %
 \newcommand{\ctxD}[1]{\ED[#1]}
 \newcommand{\ctxS}[1]{\ES[#1]}
 \newcommand{\ctxE}[1]{E[#1]}
+\newcommand{\ctxEp}[1]{E'[#1]}
 \newcommand{\quinequote}[1]{\llbracket #1 \rrbracket}
 
 
@@ -139,11 +140,14 @@ showstringspaces=false            %
 \newcommand{\knat}{\tnat}
 
 \newcommand{\cclift}[2]{\quinequote{#2}_{#1}}
+\newcommand{\DSlift}[4]{\quinequote{#2}_{#1} \bowtie \quinequote{#4}_{#3}}
+\newcommand{\vtuple}[2]{(#1, #2)}
 
 \newcommand{\torigin}{\lozenge}
 \newcommand{\uorigin}{\blacklozenge}
 
 \newcommand{\rrR}{\mathrel{\textsc{r}}}
+\newcommand{\rrRp}{\mathrel{\textsc{r}'}}
 \newcommand{\rrD}{\mathrel{\textsc{d}}}
 \newcommand{\rrS}{\mathrel{\textsc{s}}}
 \newcommand{\rrEE}{\mathrel{\textsc{e}}}
@@ -161,6 +165,7 @@ showstringspaces=false            %
 \newcommand{\rrKE}{\mathrel{\textsc{k}}}
 
 \newcommand{\ccR}{\mathrel{\rightarrow_{\rrR}}}
+\newcommand{\ccRp}{\mathrel{\rightarrow_{\rrRp}}}
 \newcommand{\ccD}{\mathrel{\rightarrow_{\rrD}}}
 \newcommand{\ccS}{\mathrel{\rightarrow_{\rrS}}}
 \newcommand{\ccEE}{\mathrel{\rightarrow_{\rrEE}}}
