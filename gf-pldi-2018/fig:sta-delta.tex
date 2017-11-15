@@ -1,0 +1,147 @@
+\begin{flushleft}
+
+\fbox{Language $\langS$}\\
+$\begin{array}{l@{~~}c@{~~}l}
+  v & \Coloneqq & \ldots \mid \vlam{\tann{x}{\tau}}{e}
+\\
+  \tau & \Coloneqq & \tint \mid \tnat \mid \tpair{\tau}{\tau} \mid \tau \tarrow \tau
+\\
+  \GammaS & \Coloneqq & \cdot \mid \tann{x}{\tau},\GammaS
+\\
+  \ES & \Coloneqq & \holeS \mid \ES\,e \mid v\,\ES \mid \vpair{\ES}{e} \mid
+\\ & & \vpair{v}{\ES} \mid \vunop\,\ES \mid \vbinop\,\ES\,e \mid \vbinop\,v\,\ES
+\end{array}$
+
+\bigskip
+\fbox{$\GammaS \wellsta e : \tau$}
+\begin{mathpar}
+  \inferrule*{
+    \tann{x}{\tau} \in \GammaS
+  }{
+    \GammaS \wellsta x : \tau
+  }
+
+  \inferrule*{
+    \tann{x}{\tau_d},\GammaS \wellsta e : \tau_c
+  }{
+    \GammaS \wellsta \vlam{\tann{x}{\tau_d}}{e} : \tau_d \tarrow \tau_c
+  }
+
+  \inferrule*{
+    i \in \naturals
+  }{
+    \GammaS \wellsta i : \tnat
+  }
+
+  \inferrule*{
+    i \in \integers
+  }{
+    \GammaS \wellsta i : \tint
+  }
+
+  \inferrule*{
+    \GammaS \wellsta e_0 : \tau_0
+    \\\\
+    \GammaS \wellsta e_1 : \tau_1
+  }{
+    \GammaS \wellsta \vpair{e_0}{e_1} : \tpair{\tau_0}{\tau_1}
+  }
+
+  \inferrule*{
+    \GammaS \wellsta e_0 : \tau_d \tarrow \tau_c
+    \\\\
+    \GammaS \wellsta e_1 : \tau_d
+  }{
+    \GammaS \wellsta e_0~e_1 : \tau_c
+  }
+
+  \inferrule*{
+    \GammaS \wellsta e_0 : \tau_0
+    \\\\
+    \Delta(\vunop, \tau_0) = \tau
+  }{
+    \GammaS \wellsta \vunop~e_0 : \tau
+  }
+
+  \inferrule*{
+    \GammaS \wellsta e_0 : \tau_0
+    \\\\
+    \GammaS \wellsta e_1 : \tau_1
+    \\\\
+    \Delta(\vbinop, \tau_0, \tau_1) = \tau
+  }{
+    \GammaS \wellsta \vbinop~e_0~e_1 : \tau
+  }
+
+  \inferrule*{
+    \GammaS \wellsta e : \tau'
+    \\\\
+    \tau' \subt \tau
+  }{
+    \GammaS \wellsta e : \tau
+  }
+\end{mathpar}
+
+\medskip
+\begin{minipage}[t]{0.5\columnwidth}
+\fbox{$\Delta(\vunop, \tau) = \tau$}\\
+$\begin{array}{l@{~~}c@{~~}l}
+  \Delta(\vfst, \tpair{\tau_0}{\tau_1}) & = & \tau_0
+\\
+  \Delta(\vsnd, \tpair{\tau_0}{\tau_1}) & = & \tau_1
+\end{array}$
+\end{minipage}%
+\begin{minipage}[t]{0.5\columnwidth}
+\fbox{$\Delta(\vbinop, \tau, \tau) = \tau$}\\
+$\begin{array}{l@{~~}c@{~~}l}
+  \Delta(\vbinop, \tnat, \tnat) & = & \tnat
+\\
+  \Delta(\vbinop, \tint, \tint) & = & \tint
+\end{array}$
+\end{minipage}
+
+\medskip
+\fbox{$\tau \subt \tau$}\\[-1em]
+\begin{mathpar}
+  \inferrule*{
+  }{
+    \tnat \subt \tint
+  }
+
+  \inferrule*{
+    \tau_d' \subt \tau_d
+    \\
+    \tau_c \subt \tau_c'
+  }{
+    \tarr{\tau_d}{\tau_c} \subt \tarr{\tau_d'}{\tau_c'}
+  }
+
+  \inferrule*{
+    \tau_0 \subt \tau_0'
+    \\
+    \tau_1 \subt \tau_1'
+  }{
+    \tpair{\tau_0}{\tau_1} \subt \tpair{\tau_0'}{\tau_1'}
+  }
+\end{mathpar}
+
+\bigskip
+\fbox{$e \ccS A$}\\
+$\begin{array}{l@{~~}c@{~~}l}
+  \ctxS{(\vlam{\tann{x}{\tau_d}}{e})~v} & \ccS & \ctxS{\vsubst{e}{x}{v}}
+\\
+  \ctxS{\efst{\vpair{v_0}{v_1}}} & \ccS & \ctxS{v_0}
+\\
+  \ctxS{\esnd{\vpair{v_0}{v_1}}} & \ccS & \ctxS{v_1}
+\\
+  \ctxS{\esum{i_0}{i_1}} & \ccS & \ctxS{i_0 + i_1}
+\\
+  \ctxS{\equotient{i_0}{0}} & \ccS & \valueerror
+\\
+  \ctxS{\equotient{i_0}{i_1}} & \ccS & \ctxS{i_0 \backslash i_1}
+\end{array}$
+
+\medskip
+\fbox{$e \rrSstar A$} reflexive, transitive closure of $\ccS$
+
+\end{flushleft}

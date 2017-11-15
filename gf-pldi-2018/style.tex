@@ -1,6 +1,7 @@
 \usepackage{listings}
 \usepackage{amsmath}
 \usepackage{amssymb}
+%\usepackage{stmaryrd}
 
 \usepackage{mathpartir}
 \mprset{sep=1em,andskip=1em}
@@ -97,6 +98,9 @@ showstringspaces=false            %
 \newcommand{\ES}{E_S}
 \newcommand{\ctxD}[1]{\ED[#1]}
 \newcommand{\ctxS}[1]{\ES[#1]}
+\newcommand{\ctxE}[1]{E[#1]}
+\newcommand{\quinequote}[1]{\llbracket #1 \rrbracket}
+
 
 \newcommand{\tnat}{\mathsf{Nat}}
 \newcommand{\tint}{\mathsf{Int}}
@@ -117,6 +121,7 @@ showstringspaces=false            %
 \newcommand{\edyn}[2]{\vdyn~#1~#2}
 \newcommand{\esta}[2]{\vsta~#1~#2}
 \newcommand{\echk}[2]{\vchk~#1~#2}
+\newcommand{\mchk}[2]{\quinequote{#2}_{#1}}
 
 \newcommand{\arrSD}{\mathrel{\textsc{s}\!\!\Rightarrow\!\!\textsc{d}}}
 \newcommand{\arrDS}{\mathrel{\textsc{d}\!\!\Rightarrow\!\!\textsc{s}}}
@@ -133,9 +138,12 @@ showstringspaces=false            %
 \newcommand{\kint}{\tint}
 \newcommand{\knat}{\tnat}
 
+\newcommand{\cclift}[2]{\quinequote{#2}_{#1}}
+
 \newcommand{\torigin}{\lozenge}
 \newcommand{\uorigin}{\blacklozenge}
 
+\newcommand{\rrR}{\mathrel{\textsc{r}}}
 \newcommand{\rrD}{\mathrel{\textsc{d}}}
 \newcommand{\rrS}{\mathrel{\textsc{s}}}
 \newcommand{\rrEE}{\mathrel{\textsc{e}}}
@@ -152,6 +160,7 @@ showstringspaces=false            %
 \newcommand{\rrKS}{\mathrel{\textsc{s}_K}}
 \newcommand{\rrKE}{\mathrel{\textsc{k}}}
 
+\newcommand{\ccR}{\mathrel{\rightarrow_{\rrR}}}
 \newcommand{\ccD}{\mathrel{\rightarrow_{\rrD}}}
 \newcommand{\ccS}{\mathrel{\rightarrow_{\rrS}}}
 \newcommand{\ccEE}{\mathrel{\rightarrow_{\rrEE}}}

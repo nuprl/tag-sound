@@ -7,8 +7,9 @@
 @; * clarify "boundary to untyped runtime"
 
 @section{Source Languages}
-
-@include-figure*["fig:source-lang.tex" @elem{Base languages, typing rules, and semantics}]
+@include-figure["fig:common-syntax.tex" @elem{Common syntax}]
+@include-figure["fig:dyn-delta.tex" @elem{Dynamic Typing}]
+@include-figure["fig:sta-delta.tex" @elem{Static Typing}]
 
 To begin, @figure-ref{fig:source-lang} presents two base languages.
 Each is a lambda calculus with integers and pairs.
@@ -396,7 +397,7 @@ In short, the combination of monitor values and forgetful semantics
 
 @; -----------------------------------------------------------------------------
 @section{The Locally-Defensive Embedding}
-@include-figure["fig:well-tagged.tex" "Well-Tagged Typing"]
+@include-figure["fig:locally-defensive-delta.tex" "Locally-Defensive Embedding"]
 
 An embedding that combines the co-natural and forgetful strategies
  checks only type-tags at elimination forms.
