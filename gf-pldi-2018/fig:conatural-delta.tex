@@ -10,7 +10,6 @@ $\begin{array}{l@{~~}c@{~~}l}
 \fbox{$\Gamma \wellLE e$} inherits $\Gamma \wellNE e$:
 \begin{mathpar}
   \inferrule*{
-    \Gamma \wellLE v : \tpair{\tau_0}{\tau_1}
   }{
     \Gamma \wellLE \vmonpair{(\tpair{\tau_0}{\tau_1})}{v}
   }
@@ -42,7 +41,6 @@ $\begin{array}{l@{~~}c@{~~}l}
 \fbox{$\Gamma \wellLE e : \tau$} inherits $\Gamma \wellNE e : \tau$:
 \begin{mathpar}
   \inferrule*{
-    \Gamma \wellLE v
   }{
     \Gamma \wellLE \vmonfun{(\tpair{\tau_0}{\tau_1})}{v} : (\tarr{\tau_d}{\tau_c})
   }

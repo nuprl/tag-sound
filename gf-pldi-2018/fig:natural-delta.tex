@@ -10,7 +10,6 @@ $\begin{array}{l@{~~}c@{~~}l}
 \fbox{$\Gamma \wellNE e$} inherits $\Gamma \wellM e$:\\
 \begin{mathpar}
   \inferrule*{
-    \Gamma \wellNE v : \tarr{\tau_d}{\tau_c}
   }{
     \Gamma \wellNE \vmonfun{(\tarr{\tau_d}{\tau_c})}{v}
   }
@@ -30,12 +29,12 @@ $\begin{array}{l@{~~}c@{~~}l}
 
 \medskip
 \fbox{$e \rrNEstar A$} reflexive, transitive closure of ??? %TODO %$\cclift{E_S}{\rrND \cup \ccNS}$
+\smallskip
 \end{minipage}%
 \begin{minipage}[t]{\columnwidth}
 \fbox{$\Gamma \wellNE e : \tau$} inherits $\Gamma \wellM e : \tau$:
 \begin{mathpar}
   \inferrule*{
-    \Gamma \wellNE v
   }{
     \Gamma \wellNE \vmonfun{(\tarr{\tau_d}{\tau_c})}{v} : (\tarr{\tau_d}{\tau_c})
   }

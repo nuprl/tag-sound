@@ -15,7 +15,6 @@ $\begin{array}{l c l}
 \fbox{$\Gamma \wellNE e$} extends $\Gamma \wellM e$:
 \begin{mathpar}
   \inferrule*{
-    \Gamma \wellNE v : \tarr{\tau_d}{\tau_c}
   }{
     \Gamma \wellNE \vmonfun{(\tarr{\tau_d}{\tau_c})}{v}
   }
@@ -25,7 +24,6 @@ $\begin{array}{l c l}
 \fbox{$\Gamma \wellNE e : \tau$} extends $\Gamma \wellM e : \tau$:
 \begin{mathpar}
   \inferrule*{
-    \Gamma \wellNE v
   }{
     \Gamma \wellNE \vmonfun{(\tarr{\tau_d}{\tau_c})}{v} : (\tarr{\tau_d}{\tau_c})
   }
