@@ -396,7 +396,7 @@ In short, the combination of monitor values and forgetful semantics
 
 @; -----------------------------------------------------------------------------
 @section{The Locally-Defensive Embedding}
-@include-figure["fig:locally-defensive-delta.tex" "Locally-Defensive Embedding"]
+@include-figure*["fig:locally-defensive-delta.tex" "Locally-Defensive Embedding"]
 
 An embedding that combines the co-natural and forgetful strategies
  checks only type-tags at elimination forms.

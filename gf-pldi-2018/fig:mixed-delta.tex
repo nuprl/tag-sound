@@ -36,19 +36,25 @@ $\begin{array}{l@{~~}c@{~~}l}
 \end{minipage}
 
 \medskip
-\fbox{$\DSlift{E}{\rrR}{E'}{\rrRp} = \vtuple{\ccR}{\ccRp}$}\\
-$\begin{array}{l@{~~}l}
-\ctxE{\edyn{\tau}{e}} \ccR \ctxE{\edyn{\tau}{e'}} & \mbox{if $e \ccRp e'$}
+\fbox{$\DSlift{E}{\rrR}{E'}{\rrRp}$} $= \vtuple{\ccR}{\ccRp}$ where:\\
+$\begin{array}{l@{~~}c@{~~}l l}
+\ctxE{\edyn{\tau}{e}} & \ccR & \ctxE{\edyn{\tau}{e'}}
+  & \mbox{if $e \ccRp e'$}
 \\
-\ctxE{\edyn{\tau}{e}} \ccR A & \mbox{if $e \ccRp A$ and $A \neq e'$}
+\ctxE{\edyn{\tau}{e}} & \ccR & A
+  & \mbox{if $e \ccRp A$ and $A \neq e'$}
 \\
-e \ccR A & \mbox{if $e \cclift{E}{\rrR} A$}
+e & \ccR & A
+  & \mbox{if $e \cclift{E}{\rrR} A$}
 \\[1ex]
-\ctxEp{\esta{\tau}{e}} \ccRp \ctxEp{\esta{\tau}{e'}} & \mbox{if $e \ccR e'$}
+\ctxEp{\esta{\tau}{e}} & \ccRp & \ctxEp{\esta{\tau}{e'}}
+ & \mbox{if $e \ccR e'$}
 \\
-\ctxEp{\esta{\tau}{e}} \ccRp A & \mbox{if $e \ccR A$ and $A \neq e'$}
+\ctxEp{\esta{\tau}{e}} & \ccRp & A
+ & \mbox{if $e \ccR A$ and $A \neq e'$}
 \\
-e \ccRp A & \mbox{if $e \cclift{E'}{\rrR'} A$}
+e & \ccRp & A
+ & \mbox{if $e \cclift{E'}{\rrR'} A$}
 \end{array}$
 
 \end{flushleft}
