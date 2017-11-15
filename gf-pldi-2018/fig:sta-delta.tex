@@ -2,14 +2,11 @@
 
 \fbox{Language $\langS$}\\
 $\begin{array}{l@{~~}c@{~~}l}
-  v & \Coloneqq & \ldots \mid \vlam{\tann{x}{\tau}}{e}
+  v & \BNFeq & \ldots \mid \vlam{\tann{x}{\tau}}{e}
 \\
-  \tau & \Coloneqq & \tint \mid \tnat \mid \tpair{\tau}{\tau} \mid \tau \tarrow \tau
+  \tau & \BNFeq & \tint \mid \tnat \mid \tpair{\tau}{\tau} \mid \tau \tarrow \tau
 \\
-  \GammaS & \Coloneqq & \cdot \mid \tann{x}{\tau},\GammaS
-\\
-  \ES & \Coloneqq & \holeS \mid \ES\,e \mid v\,\ES \mid \vpair{\ES}{e} \mid \vpair{v}{\ES} \mid
-\\ & & \vunop\,\ES \mid \vbinop\,\ES\,e \mid \vbinop\,v\,\ES
+  \GammaS & \BNFeq & \cdot \mid \tann{x}{\tau},\GammaS
 \end{array}$
 
 \bigskip

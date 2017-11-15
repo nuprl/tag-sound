@@ -3,7 +3,7 @@
 \begin{minipage}[t]{\columnwidth}
 \fbox{Language $\langN$} inherits $\langM$:\\
 $\begin{array}{l@{~~}c@{~~}l}
-  v & \Coloneqq & \ldots \mid \vmonfun{(\tau\tarrow\tau)}{v}
+  v & \BNFeq & \ldots \mid \vmonfun{(\tau\tarrow\tau)}{v}
 \end{array}$
 
 \medskip
@@ -18,20 +18,22 @@ $\begin{array}{l@{~~}c@{~~}l}
 \medskip
 \fbox{$e \rrND A$} extends $e \rrD A$:\\
 $\begin{array}{l@{~~}c@{~~}l}
-  (\vmonfun{\tarr{\tau_d}{\tau_c}}{v_f})~v_{arg} & \rrND & \esta{\tau_c}{(v_f~e_{arg})}
-\\ \multicolumn{3}{l}{\mbox{\quad where $e_{arg} = \edyn{\tau_d}{v_{arg}}$}}
+  (\vmonfun{\tarr{\tau_d}{\tau_c}}{v_f})~v & \rrND & \esta{\tau_c}{(v_f~(\edyn{\tau_d}{v}))}
 \\
   \esta{\tarr{\tau_d}{\tau_c}}{v} & \rrND & \vmonfun{\tarr{\tau_d}{\tau_c}}{v}
 \\
-  \esta{\tau}{v} & \rrND & v
-\\ \multicolumn{3}{l}{\mbox{\quad otherwise}}
+  \esta{\tpair{\tau_0}{\tau_1}}{v} & \rrND & v
+\\
+  \esta{\tint}{v} & \rrND & v
+\\
+  \esta{\tnat}{v} & \rrND & v
 \end{array}$
 
 \medskip
 \fbox{$e \rrNEstar A$} reflexive, transitive closure of $\ccNS$\\
 \mbox{\quad where $\vtuple{\ccNS}{\ccND} = \DSlift{\ES}{\rrNS}{\ED}{\rrND}$}
 \smallskip
-\end{minipage}%
+\end{minipage}\hspace{\columnsep}%
 \begin{minipage}[t]{\columnwidth}
 \fbox{$\Gamma \wellNE e : \tau$} inherits $\Gamma \wellM e : \tau$:
 \begin{mathpar}
@@ -43,18 +45,17 @@ $\begin{array}{l@{~~}c@{~~}l}
 
 \fbox{$e \rrNS A$} extends $e \rrS A$:\\
 $\begin{array}{l@{~~}c@{~~}l}
-  (\vmonfun{\tarr{\tau_d}{\tau_c}}{v_f})~v_{arg} & \rrNS & \edyn{\tau_c}{(v_f~e_{arg}')}
-\\ \multicolumn{3}{l}{\mbox{\quad where $e_{arg}' = \esta{\tau_d}{v_{arg}}$}}
+  (\vmonfun{\tarr{\tau_d}{\tau_c}}{v_f})~v & \rrNS & \edyn{\tau_c}{(v_f~(\esta{\tau_d}{v}))}
+\\
+  \edyn{\tarr{\tau_d}{\tau_c}}{v} & \rrNS & \vmonfun{\tarr{\tau_d}{\tau_c}}{v}
+\\ \multicolumn{3}{l}{\mbox{\quad if $v \sim \vlam{x}{e}$ or $v \sim \vmonfun{\tarr{\tau_d'}{\tau_c'}}{v'}$}}
+\\
+  \edyn{\tpair{\tau_0}{\tau_1}}{\vpair{v_0}{v_1}} & \rrNS & \vpair{\edyn{\tau_0}{v_0}}{\edyn{\tau_1}{v_1}}
 \\
   \edyn{\tint}{i} & \rrNS & i
 \\
   \edyn{\tnat}{i} & \rrNS & i
 \\ \multicolumn{3}{l}{\mbox{\quad if $i \in \naturals$}}
-\\
-  \edyn{\tpair{\tau_0}{\tau_1}}{\vpair{v_0}{v_1}} & \rrNS & \vpair{\edyn{\tau_0}{v_0}}{\edyn{\tau_1}{v_1}}
-\\
-  \edyn{\tarr{\tau_d}{\tau_c}}{v} & \rrNS & \vmonfun{\tarr{\tau_d}{\tau_c}}{v}
-\\ \multicolumn{3}{l}{\mbox{\quad if $v \sim \vlam{x}{e}$ or $v \sim \vmonfun{\tarr{\tau_d'}{\tau_c'}}{v'}$}}
 \\
   \edyn{\tau}{v} & \rrNS & \boundaryerror
 \\ \multicolumn{3}{l}{\mbox{\quad otherwise}}

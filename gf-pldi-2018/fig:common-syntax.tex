@@ -2,17 +2,20 @@
 
 \fbox{Common Syntax}\\
 $\begin{array}{l@{~~}c@{~~}l}
-  e & \Coloneqq & x \mid v \mid e~e \mid \vpair{e}{e} \mid \vunop~e \mid \vbinop~e~e
+  e & \BNFeq & x \mid v \mid e~e \mid \vpair{e}{e} \mid \vunop~e \mid \vbinop~e~e
 \\
-  v & \Coloneqq & i \mid \vpair{v}{v}
+  v & \BNFeq & i \mid \vpair{v}{v}
 \\
-  i & \Coloneqq & 0 \mid 1 \mid -1 \mid \ldots
+  i & \BNFeq & 0 \mid 1 \mid -1 \mid \ldots
 \\
-  \vunop & \Coloneqq & \vfst \mid \vsnd
+  \vunop & \BNFeq & \vfst \mid \vsnd
 \\
-  \vbinop & \Coloneqq & \vsum \mid \vquotient
+  \vbinop & \BNFeq & \vsum \mid \vquotient
 \\
-  A & \Coloneqq & e \mid \boundaryerror \mid \tagerror
+  A & \BNFeq & e \mid \boundaryerror \mid \tagerror
+\\
+  \ED & \BNFeq & \ehole \mid \ED\,e \mid v\,\ED \mid \vpair{\ED}{e} \mid \vpair{v}{\ED} \mid
+\\ & & \vunop\,\ED \mid \vbinop\,\ED\,e \mid \vbinop\,v\,\ED
 \end{array}$
 
 \medskip
@@ -36,11 +39,11 @@ $\begin{array}{l@{~~}c@{~~}l}
 \end{array}$
 \end{minipage}
 
-\fbox{$\cclift{E}{\rrR}$} $= \ccR$ where:\\
+\fbox{$\cclift{E}{\rrR}$}\\
 $\begin{array}{l@{~~}c@{~~}l l}
 \ctxE{e} & \ccR & \ctxE{e'} & \mbox{if $e \rrR e'$}
 \\
-\ctxE{e} & \ccR & A         & \mbox{if $e \rrR A$ and $A \neq e'$}
+\ctxE{e} & \ccR & A         & \mbox{if $e \rrR A$ and $A \not\in e'$}
 \end{array}$
 
 \end{flushleft}

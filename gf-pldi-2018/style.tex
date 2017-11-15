@@ -25,6 +25,7 @@
 \newcommand{\subt}{\mathrel{<:}}
 \newcommand{\subk}{\subt}
 \newcommand{\subteq}{\mathrel{\leqslant\kern-0.3em\raisebox{0.3ex}{:}}}
+\newcommand{\BNFeq}{=}
 
 %% -----------------------------------------------------------------------------
 %% formatting Python code
@@ -94,8 +95,8 @@ showstringspaces=false            %
 \newcommand{\GammaS}{\Gamma}
 \newcommand{\deltaD}{\delta_D}
 \newcommand{\deltaS}{\delta_S}
-\newcommand{\ED}{E_D}
-\newcommand{\ES}{E_S}
+\newcommand{\ED}{E}
+\newcommand{\ES}{E}
 \newcommand{\ctxD}[1]{\ED[#1]}
 \newcommand{\ctxS}[1]{\ES[#1]}
 \newcommand{\ctxE}[1]{E[#1]}
@@ -106,7 +107,7 @@ showstringspaces=false            %
 \newcommand{\tnat}{\mathsf{Nat}}
 \newcommand{\tint}{\mathsf{Int}}
 \newcommand{\tbox}{\mathsf{Box}}
-\newcommand{\tpair}[2]{#1 \times #2}
+\newcommand{\tpair}[2]{#1\!\times\!#2}
 \newcommand{\tlist}{\mathsf{List}}
 \newcommand{\tarrow}{\rightarrow}
 \newcommand{\tarr}[2]{#1 \tarrow #2}
@@ -116,8 +117,8 @@ showstringspaces=false            %
 \newcommand{\tann}[2]{(#1\!:\!#2)}
 
 \newcommand{\deltaC}{\vchk\mhyphen\mathsf{tag}}
-\newcommand{\vdyn}{\mathsf{dynamic}}
-\newcommand{\vsta}{\mathsf{static}}
+\newcommand{\vdyn}{\mathsf{dyn}}
+\newcommand{\vsta}{\mathsf{stat}}
 \newcommand{\vchk}{\mathsf{check}}
 \newcommand{\edyn}[2]{\vdyn~#1~#2}
 \newcommand{\esta}[2]{\vsta~#1~#2}
@@ -139,8 +140,8 @@ showstringspaces=false            %
 \newcommand{\kint}{\tint}
 \newcommand{\knat}{\tnat}
 
-\newcommand{\cclift}[2]{\quinequote{#2}_{#1}}
-\newcommand{\DSlift}[4]{\quinequote{#2}_{#1} \bowtie \quinequote{#4}_{#3}}
+\newcommand{\cclift}[2]{\mapsto_{#2}^{#1}}
+\newcommand{\DSlift}[4]{#2~\bowtie_{#1}\,#4} % ignores argument 3
 \newcommand{\vtuple}[2]{(#1, #2)}
 
 \newcommand{\torigin}{\lozenge}
@@ -177,6 +178,8 @@ showstringspaces=false            %
 \newcommand{\ccFS}{\mathrel{\rightarrow_{\rrFS}}}
 \newcommand{\ccLE}{\mathrel{\rightarrow_{\rrLE}}}
 \newcommand{\ccFE}{\mathrel{\rightarrow_{\rrFE}}}
+\newcommand{\ccKD}{\mathrel{\rightarrow_{\rrKD}}}
+\newcommand{\ccKS}{\mathrel{\rightarrow_{\rrKS}}}
 \newcommand{\ccKE}{\mathrel{\rightarrow_{\rrKE}}}
 
 \newcommand{\rrDstar}{\rightarrow^{*}_{\rrD}}

@@ -7,7 +7,7 @@
 @; * clarify "boundary to untyped runtime"
 
 @section{Source Languages}
-@include-figure["fig:common-syntax.tex" @elem{Common syntax}]
+@include-figure["fig:common-syntax.tex" @elem{Common syntax and semantics}]
 @include-figure["fig:dyn-delta.tex" @elem{Dynamic Typing}]
 @include-figure["fig:sta-delta.tex" @elem{Static Typing}]
 
@@ -426,7 +426,7 @@ So introduce check form to make it so.
 
 
 @subsection{Automatic Completion}
-@include-figure["fig:tagged-completion-delta.tex" @elem{Automatic @${\vchk} Completion}]
+@include-figure["fig:locally-defensive-completion-delta.tex" @elem{Selected completion rules}]
 
 Queue from similar work by Vitousek and Henglein,
  time for completions.
