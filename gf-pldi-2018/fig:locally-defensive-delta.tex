@@ -1,0 +1,228 @@
+\begin{flushleft}
+
+\begin{minipage}[t]{\columnwidth}
+\fbox{Language $\langK$} inherits $\langM$:\\
+$\begin{array}{l c l}
+  e & \BNFeq & \ldots \mid \edyn{\kany}{e} \mid \esta{\kany}{e} \mid \echk~K~e
+\\
+  K & \BNFeq & \knat \mid \kint \mid \kpair \mid \kfun \mid \kany
+\\
+  \ES & \BNFeq & \ldots \mid \echk{K}{\ES}
+\end{array}$
+
+\medskip
+\fbox{$\Gamma \wellKE e$} inherits $\Gamma \welldyn e$:
+\begin{mathpar}
+  \inferrule*{
+    \tann{x}{\tau},\Gamma \wellKE e : \kany
+  }{
+    \Gamma \wellKE \vlam{\tann{x}{\tau}}{e}
+  }
+
+  \inferrule*{
+    \tann{x}{\tau} \in \Gamma
+  }{
+    \Gamma \wellKE x
+  }
+
+  \inferrule*{
+    \Gamma \wellKE e : \tagof{\tau}
+  }{
+    \Gamma \wellKE \esta~\tau~e
+  }
+
+  \inferrule*{
+    \Gamma \wellKE e : \kany
+  }{
+    \Gamma \wellKE \esta~\kany~e
+  }
+\end{mathpar}
+
+\medskip
+\fbox{$e \rrKD A$} extends $e \rrD A$:\\
+$\begin{array}{l@{~~}c@{~~}l}
+  (\vlam{\tann{x}{\tau}}{e})~v & \rrKD & \esta{\kany}{(\vsubst{e}{x}{\mchk{K}{v}})}
+\\ \multicolumn{3}{l}{\mbox{\quad where $K = \tagof{\tau}$}}
+\\
+  \esta{\tau}{v} & \rrKD & \mchk{K}{v}
+\\ \multicolumn{3}{l}{\mbox{\quad where $K = \tagof{\tau}$}}
+\\
+  \esta{\kany}{v} & \rrKD & v
+\end{array}$
+
+\medskip
+\fbox{$e \rrKS A$} extends $e \rrS A$:\\
+$\begin{array}{l@{~~}c@{~~}l}
+  (\vlam{x}{e})~v & \rrKS & \edyn{\kany}{\vsubst{e}{x}{v}}
+\\
+  \edyn{\tau}{v} & \rrKS & \mchk{K}{v}
+\\ \multicolumn{3}{l}{\mbox{\quad where $K = \tagof{\tau}$}}
+\\
+  \edyn{\kany}{v} & \rrKS & v
+\\
+  \echk{K}{v} & \rrKS & \mchk{K}{v}
+\end{array}$
+
+\medskip
+\fbox{$\mchk{K}{v} = A$}\\
+$\begin{array}{l@{~~}c@{~~}l l}
+  \mchk{K}{v} & = & v & \mbox{if $\wellKE v : K$}
+\\
+  \mchk{K}{v} & = & \valueerror & \mbox{otherwise}
+\end{array}$
+
+\end{minipage}\hspace{\columnsep}%
+\begin{minipage}[t]{\columnwidth}
+\fbox{$\tagof{\tau} = \kappa$}\\
+\begin{minipage}[t]{0.5\columnwidth}
+$\begin{array}{l c l}
+  \tagof{\tarr{\tau_d}{\tau_c}} & = & \kfun
+\\
+  \tagof{\tpair{\tau_0}{\tau_1}} & = & \kpair
+\end{array}$
+\end{minipage}%
+\begin{minipage}[t]{0.5\columnwidth}
+$\begin{array}{l c l}
+  \tagof{\tnat} & = & \knat
+\\
+  \tagof{\tint} & = & \kint
+\end{array}$
+\end{minipage}%
+
+\medskip
+\fbox{$K \subk K$}
+\begin{mathpar}
+  \inferrule*{
+  }{
+    \knat \subk \kint
+  }
+
+  \inferrule*{
+  }{
+    K \subk \kany
+  }
+\end{mathpar}
+
+\medskip
+\fbox{$\Gamma \wellKE e : K$} (selected rules):
+\begin{mathpar}
+  %\inferrule*{
+  %  i \in \naturals
+  %}{
+  %  \Gamma \wellKE i : \knat
+  %}
+
+  %\inferrule*{
+  %}{
+  %  \Gamma \wellKE i : \kint
+  %}
+
+  \inferrule*{
+    \Gamma \wellKE e_0 : \kany
+    \\
+    \Gamma \wellKE e_1 : \kany
+  }{
+    \Gamma \wellKE \vpair{e_0}{e_1} : \kpair
+  }
+
+  \inferrule*{
+    x,\Gamma \wellKE e
+  }{
+    \Gamma \wellKE \vlam{x}{e} : \kfun
+  }
+
+  \inferrule*{
+    \tann{x}{\tau},\Gamma \wellKE e : \kany
+  }{
+    \Gamma \wellKE \vlam{\tann{x}{\tau}}{e} : \kfun
+  }
+
+  \inferrule*{
+    x \in \Gamma
+  }{
+    \Gamma \wellKE x : \kany
+  }
+
+  \inferrule*{
+    \tann{x}{\tau} \in \Gamma
+    \\\\
+    \tagof{\tau} = K
+  }{
+    \Gamma \wellKE x : K
+  }
+
+  \inferrule*{
+    \Gamma \wellKE e_0 : \kfun
+    \\\\
+    \Gamma \wellKE e_1 : \kany
+  }{
+    \Gamma \wellKE e_0~e_1 : \kany
+  }
+
+  \inferrule*{
+    \Gamma \wellKE e : \kpair
+  }{
+    \Gamma \wellKE \efst{e} : \kany
+  }
+
+  \inferrule*{
+    \Gamma \wellKE e : \kpair
+  }{
+    \Gamma \wellKE \esnd{e} : \kany
+  }
+
+  %\inferrule*{
+  %  \Gamma \wellKE e_0 : K_0
+  %  \\\\
+  %  \Delta(\vunop, K_0) = K
+  %}{
+  %  \Gamma \wellKE \vunop~e_0 : K
+  %}
+
+  %\inferrule*{
+  %  \Gamma \wellKE e_0 : K_0
+  %  \\
+  %  \Gamma \wellKE e_1 : K_1
+  %  \\\\
+  %  \Delta(\vbinop, K_0, K_1) = K
+  %}{
+  %  \Gamma \wellKE \vbinop~e_0~e_1 : K
+  %}
+
+  \inferrule*{
+    \Gamma \wellKE e
+    \\
+    \tagof{\tau} = K
+  }{
+    \Gamma \wellKE \edyn{\tau}{e} : K
+  }
+
+  \inferrule*{
+    \Gamma \wellKE e
+  }{
+    \Gamma \wellKE \edyn{\kany}{e} : \kany
+  }
+
+  \inferrule*{
+    \Gamma \wellKE e : K'
+  }{
+    \Gamma \wellKE \echk{K}{e} : K
+  }
+
+  \inferrule*{
+    \Gamma \wellKE e : K'
+    \\
+    K' \subk K
+  }{
+    \Gamma \wellKE e : K
+  }
+\end{mathpar}
+
+\bigskip
+\bigskip
+\fbox{$e \rrKEstar A$} reflexive, transitive closure of $\ccKS$\\
+\mbox{\quad where $\vtuple{\ccKS}{\ccKD} = \DSlift{\ES}{\rrKS}{\ED}{\rrKD}$}
+\smallskip
+\end{minipage}
+
+\end{flushleft}

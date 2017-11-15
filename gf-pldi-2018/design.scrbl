@@ -426,7 +426,7 @@ So introduce check form to make it so.
 
 
 @subsection{Automatic Completion}
-@include-figure["fig:locally-defensive-completion-delta.tex" @elem{Selected completion rules}]
+@include-figure["fig:locally-defensive-completion-delta.tex" @elem{Completion (selected rules)}]
 
 Queue from similar work by Vitousek and Henglein,
  time for completions.
