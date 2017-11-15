@@ -2095,5 +2095,5 @@
   (make-bib
    #:title "Function Inheritance: Monadic Memoization Mixins"
    #:author (authors "Daniel Brown" "William R. Cook")
-   #:location (proceedings-location sblp #:pages '())
+   #:location (proceedings-location sblp)
    #:date 2009))
