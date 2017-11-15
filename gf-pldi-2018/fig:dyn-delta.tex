@@ -3,18 +3,17 @@
 \fbox{Language $\langD$}\\
 $\begin{array}{l@{~~}c@{~~}l}
   v & \Coloneqq & \ldots \mid \vlam{x}{e}
-\\ & &
 \\
   A & \Coloneqq & \ldots \mid \typeerror
 \\
   \GammaD & \Coloneqq & \cdot \mid x,\GammaD
 \\
-  \ED & \Coloneqq & \holeD \mid \ED\,e \mid v\,\ED \mid \vpair{\ED}{e} \mid
-\\ & & \vpair{v}{\ED} \mid \vunop\,\ED \mid \vbinop\,\ED\,e \mid \vbinop\,v\,\ED
+  \ED & \Coloneqq & \holeD \mid \ED\,e \mid v\,\ED \mid \vpair{\ED}{e} \mid \vpair{v}{\ED} \mid
+\\ & & \vunop\,\ED \mid \vbinop\,\ED\,e \mid \vbinop\,v\,\ED
 \end{array}$
 
 %% -----------------------------------------------------------------------------
-\bigskip
+\medskip
 \fbox{$\GammaD \welldyn e$}
 \begin{mathpar}
   \inferrule*{
@@ -65,39 +64,23 @@ $\begin{array}{l@{~~}c@{~~}l}
   }
 \end{mathpar}
 
-\bigskip
+\medskip
 \fbox{$e \rrD A$}\\
-$\begin{array}{l@{~~}c@{~~}l}
-  \ctxD{(\vlam{x}{e})~v} & \ccD & \ctxD{\vsubst{e}{x}{v}}
+$\begin{array}{l@{~~}c@{~~}l l}
+  (\vlam{x}{e})~v & \rrD & \vsubst{e}{x}{v} &
 \\
-  \ctxD{v_0~v_1} & \ccD & \typeerror
-\\ \multicolumn{3}{l}{\mbox{\quad if $v \neq \vlam{x}{e}$}}
+  v_0~v_1 & \rrD & \typeerror & \mbox{if $v_0 \neq \vlam{x}{e}$}
 \\
-  \ctxD{\efst{\vpair{v_0}{v_1}}} & \ccD & \ctxD{v_0}
+  \eunop{v} & \rrD & A & \mbox{if $A = \delta(\vunop, v)$}
 \\
-  \ctxD{\efst{v}} & \ccD & \typeerror
-\\ \multicolumn{3}{l}{\mbox{\quad if $v \neq \vpair{v_0}{v_1}$}}
+  \eunop{v} & \rrD & \tagerror & \mbox{otherwise}
 \\
-  \ctxD{\esnd{\vpair{v_0}{v_1}}} & \ccD & \ctxD{v_1}
+  \ebinop{v_0}{v_1} & \rrD & A & \mbox{if $A = \delta(\vbinop, v_0, v_1)$}
 \\
-  \ctxD{\esnd{v}} & \ccD & \typeerror
-\\ \multicolumn{3}{l}{\mbox{\quad if $v \neq \vpair{v_0}{v_1}$}}
-\\
-  \ctxD{\esum{i_0}{i_1}} & \ccD & \ctxD{i_0 + i_1}
-\\
-  \ctxD{\esum{v_0}{v_1}} & \ccD & \tagerror
-\\ \multicolumn{3}{l}{\mbox{\quad if $v_0 \not\in \integers$ or $v_1 \not\in \integers$}}
-\\
-  \ctxD{\equotient{i_0}{0}} & \ccD & \valueerror
-\\
-  \ctxD{\equotient{i_0}{i_1}} & \ccD & \ctxD{i_0 \backslash i_1}
-\\ \multicolumn{3}{l}{\mbox{\quad if $i_1 \neq 0$}}
-\\
-  \ctxD{\equotient{v_0}{v_1}} & \ccD & \tagerror
-\\ \multicolumn{3}{l}{\mbox{\quad if $v_0 \not\in \integers$ or $v_1 \not\in \integers$}}
+  \ebinop{v_0}{v_1} & \rrD & \tagerror & \mbox{otherwise}
 \end{array}$
 
 \medskip
-\fbox{$e \rrDstar A$} reflexive, transitive closure of $\ccD$
+\fbox{$e \rrDstar A$} reflexive, transitive closure of $\cclift{\ED}{\rrD}$
 
 \end{flushleft}

@@ -1,12 +1,12 @@
 \begin{flushleft}
 
+\begin{minipage}[t]{\columnwidth}
 \fbox{Language $\langL$} inherits $\langN$:\\
 $\begin{array}{l@{~~}c@{~~}l}
   v & \Coloneqq & \ldots \mid \vmonpair{(\tpair{\tau}{\tau})}{v}
 \end{array}$
 
 \medskip
-\begin{minipage}[t]{\columnwidth}
 \fbox{$\Gamma \wellLE e$} inherits $\Gamma \wellNE e$:
 \begin{mathpar}
   \inferrule*{
@@ -15,6 +15,28 @@ $\begin{array}{l@{~~}c@{~~}l}
     \Gamma \wellLE \vmonpair{(\tpair{\tau_0}{\tau_1})}{v}
   }
 \end{mathpar}
+
+\medskip
+\fbox{$e \rrLD A$} extends $e \rrD A$:\\
+$\begin{array}{l@{~~}c@{~~}l}
+  \efst{(\vmonpair{\tpair{\tau_0}{\tau_1}}{v})} & \rrLD & \esta{\tau_0}{(\efst{v})}
+\\
+  \esnd{(\vmonpair{\tpair{\tau_0}{\tau_1}}{v})} & \rrLD & \esta{\tau_1}{(\esnd{v})}
+\\
+  (\vmonfun{\tarr{\tau_d}{\tau_c}}{v_f})~v_{arg} & \rrLD & \esta{\tau_c}{(v_f~e_{arg}')}
+\\ \multicolumn{3}{l}{\mbox{\quad where $e_{arg}' = \edyn{\tau_d}{v_{arg}}$}}
+\\[0.8ex]
+  \esta{\tpair{\tau_0}{\tau_1}}{v} & \rrLD & \vmonpair{\tpair{\tau_0}{\tau_1}}{v}
+\\
+  \esta{\tarr{\tau_d}{\tau_c}}{v} & \rrLD & \vmonfun{\tarr{\tau_d}{\tau_c}}{v}
+\\
+  \esta{\tau}{v} & \rrLD & v
+\\ \multicolumn{3}{l}{\mbox{\quad otherwise}}
+\end{array}$
+
+\medskip
+\fbox{$e \rrLEstar A$} reflexive, transitive closure of ??? % TODO % $\ccLD \cup \ccLS$
+\smallskip
 \end{minipage}%
 \begin{minipage}[t]{\columnwidth}
 \fbox{$\Gamma \wellLE e : \tau$} inherits $\Gamma \wellNE e : \tau$:
@@ -25,57 +47,28 @@ $\begin{array}{l@{~~}c@{~~}l}
     \Gamma \wellLE \vmonfun{(\tpair{\tau_0}{\tau_1})}{v} : (\tarr{\tau_d}{\tau_c})
   }
 \end{mathpar}
-\end{minipage}
 
-%% -----------------------------------------------------------------------------
-
-\medskip
-\begin{minipage}[t]{\columnwidth}
-\fbox{$e \ccLD A$} inherits $e \ccD A$:\\
+\fbox{$e \rrLS A$} extends $e \rrS A$:\\
 $\begin{array}{l@{~~}c@{~~}l}
-  \ctxD{\efst{(\vmonpair{\tpair{\tau_0}{\tau_1}}{v})}} & \ccLS & \ctxD{\esta{\tau_0}{(\efst{v})}}
+  \efst{(\vmonpair{\tpair{\tau_0}{\tau_1}}{v})} & \rrLS & \edyn{\tau_0}{(\efst{v})}
 \\
-  \ctxD{\esnd{(\vmonpair{\tpair{\tau_0}{\tau_1}}{v})}} & \ccLS & \ctxD{\esta{\tau_1}{(\esnd{v})}}
+  \esnd{(\vmonpair{\tpair{\tau_0}{\tau_1}}{v})} & \rrLS & \edyn{\tau_1}{(\esnd{v})}
 \\
-  \ctxD{(\vmonfun{\tarr{\tau_d}{\tau_c}}{v_f})~v_{arg}} & \ccLS & \ctxD{\esta{\tau_c}{(v_f~e_{arg}')}}
-\\ \multicolumn{3}{l}{\mbox{\quad where $e_{arg}' = \edyn{\tau_d}{v_{arg}}$}}
-\\[0.8ex]
-  \ctxD{\esta{\tpair{\tau_0}{\tau_1}}{v}} & \ccLS & \ctxD{\vmonpair{\tpair{\tau_0}{\tau_1}}{v}}
-\\
-  \ctxD{\esta{\tarr{\tau_d}{\tau_c}}{v}} & \ccLS & \ctxD{\vmonfun{\tarr{\tau_d}{\tau_c}}{v}}
-\\
-  \ctxD{\esta{\tau}{v}} & \ccLS & \ctxD{v}
-\\ \multicolumn{3}{l}{\mbox{\quad otherwise}}
-\end{array}$
-
-\vspace{6em}
-
-\fbox{$e \rrLEstar A$} reflexive, transitive closure of $\ccLD \cup \ccLS$
-\end{minipage}%
-\begin{minipage}[t]{\columnwidth}
-\fbox{$e \ccLS A$} inherits $e \ccS A$:\\
-$\begin{array}{l@{~~}c@{~~}l}
-  \ctxS{\efst{(\vmonpair{\tpair{\tau_0}{\tau_1}}{v})}} & \ccLS & \ctxS{\edyn{\tau_0}{(\efst{v})}}
-\\
-  \ctxS{\esnd{(\vmonpair{\tpair{\tau_0}{\tau_1}}{v})}} & \ccLS & \ctxS{\edyn{\tau_1}{(\esnd{v})}}
-\\
-  \ctxS{(\vmonfun{\tarr{\tau_d}{\tau_c}}{v_f})~v_{arg}} & \ccLS & \ctxS{\edyn{\tau_c}{(v_f~e_{arg})}}
+  (\vmonfun{\tarr{\tau_d}{\tau_c}}{v_f})~v_{arg} & \rrLS & \edyn{\tau_c}{(v_f~e_{arg})}
 \\ \multicolumn{3}{l}{\mbox{\quad where $e_{arg} = \esta{\tau_d}{v_{arg}}$}}
 \\[0.8ex]
-  \ctxS{\edyn{\tint}{i}} & \ccLD & \ctxS{i}
+  \edyn{\tint}{i} & \rrLS & i
 \\
-  \ctxS{\edyn{\tnat}{i}} & \ccLD & \ctxS{i}
+  \edyn{\tnat}{i} & \rrLS & i
 \\ \multicolumn{3}{l}{\mbox{\quad if $i \in \naturals$}}
 \\
-  \ctxS{\edyn{\tpair{\tau_0}{\tau_1}}{v}} & \ccLD & \ctxS{\vmonpair{\tpair{\tau_0}{\tau_1}}{v}}
-\\ \multicolumn{3}{l}{\mbox{\quad if $v \sim \vpair{v_0}{v_1}$}}
-\\ \multicolumn{3}{l}{\mbox{\quad or $v \sim \vmonpair{\tpair{\tau_0'}{\tau_1'}}{v'}$}}
+  \edyn{\tpair{\tau_0}{\tau_1}}{v} & \rrLS & \vmonpair{\tpair{\tau_0}{\tau_1}}{v}
+\\ \multicolumn{3}{l}{\mbox{\quad if $v \sim \vpair{v_0}{v_1}$ or $v \sim \vmonpair{\tpair{\tau_0'}{\tau_1'}}{v'}$}}
 \\
-  \ctxS{\edyn{\tarr{\tau_d}{\tau_c}}{v}} & \ccLD & \ctxS{\vmonfun{\tarr{\tau_d}{\tau_c}}{v}}
-\\ \multicolumn{3}{l}{\mbox{\quad if $v \sim \vlam{x}{e}$}}
-\\ \multicolumn{3}{l}{\mbox{\quad or $v \sim \vmonfun{\tarr{\tau_d'}{\tau_c'}}{v'}$}}
+  \edyn{\tarr{\tau_d}{\tau_c}}{v} & \rrLS & \vmonfun{\tarr{\tau_d}{\tau_c}}{v}
+\\ \multicolumn{3}{l}{\mbox{\quad if $v \sim \vlam{x}{e}$ or $v \sim \vmonfun{\tarr{\tau_d'}{\tau_c'}}{v'}$}}
 \\
-  \ctxS{\edyn{\tau}{v}} & \ccLD & \boundaryerror
+  \edyn{\tau}{v} & \rrLS & \boundaryerror
 \\ \multicolumn{3}{l}{\mbox{\quad otherwise}}
 \end{array}$
 \end{minipage}

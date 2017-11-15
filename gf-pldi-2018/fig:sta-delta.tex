@@ -8,8 +8,8 @@ $\begin{array}{l@{~~}c@{~~}l}
 \\
   \GammaS & \Coloneqq & \cdot \mid \tann{x}{\tau},\GammaS
 \\
-  \ES & \Coloneqq & \holeS \mid \ES\,e \mid v\,\ES \mid \vpair{\ES}{e} \mid
-\\ & & \vpair{v}{\ES} \mid \vunop\,\ES \mid \vbinop\,\ES\,e \mid \vbinop\,v\,\ES
+  \ES & \Coloneqq & \holeS \mid \ES\,e \mid v\,\ES \mid \vpair{\ES}{e} \mid \vpair{v}{\ES} \mid
+\\ & & \vunop\,\ES \mid \vbinop\,\ES\,e \mid \vbinop\,v\,\ES
 \end{array}$
 
 \bigskip
@@ -126,22 +126,16 @@ $\begin{array}{l@{~~}c@{~~}l}
 \end{mathpar}
 
 \bigskip
-\fbox{$e \ccS A$}\\
+\fbox{$e \rrS A$}\\
 $\begin{array}{l@{~~}c@{~~}l}
-  \ctxS{(\vlam{\tann{x}{\tau_d}}{e})~v} & \ccS & \ctxS{\vsubst{e}{x}{v}}
+  (\vlam{\tann{x}{\tau_d}}{e})~v & \rrS & \vsubst{e}{x}{v}
 \\
-  \ctxS{\efst{\vpair{v_0}{v_1}}} & \ccS & \ctxS{v_0}
+  \eunop{v} & \rrS & \delta(\vunop, v)
 \\
-  \ctxS{\esnd{\vpair{v_0}{v_1}}} & \ccS & \ctxS{v_1}
-\\
-  \ctxS{\esum{i_0}{i_1}} & \ccS & \ctxS{i_0 + i_1}
-\\
-  \ctxS{\equotient{i_0}{0}} & \ccS & \valueerror
-\\
-  \ctxS{\equotient{i_0}{i_1}} & \ccS & \ctxS{i_0 \backslash i_1}
+  \ebinop{v_0}{v_1} & \rrS & \delta(\vbinop, v_0, v_1)
 \end{array}$
 
 \medskip
-\fbox{$e \rrSstar A$} reflexive, transitive closure of $\ccS$
+\fbox{$e \rrSstar A$} reflexive, transitive closure of $\cclift{\ES}{\rrS}$
 
 \end{flushleft}

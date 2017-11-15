@@ -203,7 +203,6 @@ With this invariant and an appropriate typing rule for monitors, one can
 
 @; -----------------------------------------------------------------------------
 @section{Soundness vs. Performance}
-@include-figure["fig:natural-cost.tex" "Approximate cost of the natural embedding"]
 
 The erasure and natural embeddings are opposites in terms of type soundness
  and performance.
