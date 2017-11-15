@@ -1,6 +1,6 @@
 #lang mf-apply racket/base
 
-;; Lazy natural embedding
+;; Co-natural embedding
 ;;
 ;; Solves one performance problem with the natural embedding:
 ;;  the problem that 1 boundary-crossing can take linear time (or worse)
@@ -23,7 +23,10 @@
 ;;       that remember if they are pure and have been "forced"
 
 (provide
-  LM-lazy
+  LM-conatural
+
+  well-typed/conatural
+  well-dyn/conatural
 
   maybe-in-hole
   boundary?
@@ -44,11 +47,11 @@
 
 ;; =============================================================================
 
-(define-extended-language LM-lazy
+(define-extended-language LM-conatural
   LM
   (v ::= .... (mon (× τ τ) v) (mon (→ τ τ) v)))
 
-(define-metafunction LM-lazy
+(define-metafunction LM-conatural
   maybe-in-hole : E A -> A
   [(maybe-in-hole E BE)
    BE]
@@ -57,7 +60,7 @@
   [(maybe-in-hole E e)
    (in-hole E e)])
 
-(define-metafunction LM-lazy
+(define-metafunction LM-conatural
   boundary? : e -> boolean
   [(boundary? (static τ _))
    #true]
@@ -66,7 +69,7 @@
   [(boundary? _)
    #false])
 
-(define-metafunction LM-lazy
+(define-metafunction LM-conatural
   error? : A -> boolean
   [(error? BE)
    #true]
@@ -75,7 +78,7 @@
   [(error? _)
    #false])
 
-(define-metafunction LM-lazy
+(define-metafunction LM-conatural
   pair? : v -> boolean
   [(pair? (× v_0 v_1))
    #true]
@@ -84,7 +87,7 @@
   [(pair? _)
    #false])
 
-(define-metafunction LM-lazy
+(define-metafunction LM-conatural
   procedure? : v -> boolean
   [(procedure? Λ)
    #true]
@@ -95,7 +98,7 @@
 
 ;; -----------------------------------------------------------------------------
 
-(define-metafunction LM-lazy
+(define-metafunction LM-conatural
   static->dynamic : τ v -> A
   [(static->dynamic (→ τ_dom τ_cod) v)
    (mon (→ τ_dom τ_cod) v)]
@@ -104,7 +107,7 @@
   [(static->dynamic τ v)
    v])
 
-(define-metafunction LM-lazy
+(define-metafunction LM-conatural
   dynamic->static : τ v -> A
   [(dynamic->static Nat natural)
    natural]
@@ -128,7 +131,7 @@
 ;; -----------------------------------------------------------------------------
 
 (define dyn-step
-  (reduction-relation LM-lazy
+  (reduction-relation LM-conatural
     #:domain A
     (--> (v_0 v_1)
          e_subst
@@ -200,7 +203,7 @@
          (where #false #{pair? v}))))
 
 (define sta-step
-  (reduction-relation LM-lazy
+  (reduction-relation LM-conatural
     #:domain A
     (--> (v_0 v_1)
          e_subst
@@ -277,7 +280,7 @@
 
 ;; Same as for `little-natural`, just using the new leaf reductions
 (define dyn-boundary-step
-  (reduction-relation LM-lazy
+  (reduction-relation LM-conatural
     #:domain A
     (--> (in-hole E (static τ v))
          (maybe-in-hole E A)
@@ -299,7 +302,7 @@
          (where (A) ,(apply-reduction-relation dyn-step (term e))))))
 
 (define sta-boundary-step
-  (reduction-relation LM-lazy
+  (reduction-relation LM-conatural
     #:domain A
     (--> (in-hole E (dynamic τ v))
          (maybe-in-hole E A)
@@ -327,14 +330,14 @@
                   '(4))
     (check-equal? (apply-reduction-relation dyn-boundary-step (term (static Int 3)))
                   '(3))
-    (check-true (redex-match? LM-lazy A
+    (check-true (redex-match? LM-conatural A
       (term (in-hole hole (static Int (+ 1 2))))))
     (check-equal? (apply-reduction-relation dyn-boundary-step (term (static Int (+ 1 2))))
                   (list (term (static Int 3))))
-    (check-true (redex-match? LM-lazy BE
+    (check-true (redex-match? LM-conatural BE
       (car (apply-reduction-relation dyn-boundary-step (term (/ 1 0))))))
 
-    (check-true (redex-match? LM-lazy BE
+    (check-true (redex-match? LM-conatural BE
       (car (apply-reduction-relation dyn-boundary-step (term (static Int (/ 1 0)))))))
 
     (check-true (stuck? dyn-boundary-step (term (dynamic Int 3))))
@@ -352,7 +355,7 @@
                     (term (static (× Nat Int) (× 1 -1))))
                   (list (term (mon (× Nat Int) (× 1 -1)))))
 
-    (check-true (redex-match? LM-lazy TE
+    (check-true (redex-match? LM-conatural TE
       (car (apply-reduction-relation dyn-boundary-step
              (term (static Int (dynamic Int (fst 0))))))))
   )
@@ -364,15 +367,15 @@
                   '(3))
     (check-equal? (apply-reduction-relation sta-boundary-step (term (dynamic Nat (+ 1 2))))
                   (list (term (dynamic Nat 3))))
-    (check-true (redex-match? LM-lazy BE
+    (check-true (redex-match? LM-conatural BE
       (car (apply-reduction-relation sta-boundary-step (term (/ 1 0))))))
-    (check-true (redex-match? LM-lazy BE
+    (check-true (redex-match? LM-conatural BE
       (car (apply-reduction-relation sta-boundary-step (term (dynamic Int (/ 1 0)))))))
-    (check-true (redex-match? LM-lazy BE
+    (check-true (redex-match? LM-conatural BE
       (car (apply-reduction-relation sta-boundary-step (term (dynamic Int (λ (x) x)))))))
-    (check-true (redex-match? LM-lazy BE
+    (check-true (redex-match? LM-conatural BE
       (car (apply-reduction-relation sta-boundary-step (term (dynamic Int (× 0 0)))))))
-    (check-true (redex-match? LM-lazy BE
+    (check-true (redex-match? LM-conatural BE
       (car (apply-reduction-relation sta-boundary-step (term (dynamic Nat -1))))))
 
     (check-true (stuck? sta-boundary-step (term (static Int 3))))
@@ -380,7 +383,7 @@
                     (term (dynamic (× Nat Int) (× 1 -1))))
                   (list (term (mon (× Nat Int) (× 1 -1)))))
 
-    (check-true (redex-match? LM-lazy TE
+    (check-true (redex-match? LM-conatural TE
       (car (apply-reduction-relation sta-boundary-step
              (term (dynamic Int (fst 0)))))))
   )
@@ -412,19 +415,19 @@
                   14)
     (check-equal? (sta-step* (term (/ 10 (dynamic Nat ((λ (x) (fst x)) (× 2 5))))))
                   5)
-    (check-true (redex-match? LM-lazy BE
+    (check-true (redex-match? LM-conatural BE
       (sta-step* (term ((λ (f : (→ Nat Nat)) (f 0)) (dynamic (→ Nat Nat) (λ (z) -2)))))))
   )
 )
 
 ;; -----------------------------------------------------------------------------
 
-(define-metafunction LM-lazy
-  theorem:lazy-safety : e MAYBE-τ -> any
-  [(theorem:lazy-safety e #f)
+(define-metafunction LM-conatural
+  theorem:conatural-safety : e MAYBE-τ -> any
+  [(theorem:conatural-safety e #f)
    ,(or (not (judgment-holds (well-dyn () e)))
         (safe-step* (term e) #f is-error? assert-well-dyn dyn-boundary-step))]
-  [(theorem:lazy-safety e τ)
+  [(theorem:conatural-safety e τ)
    ,(or (not (judgment-holds (well-typed () e τ)))
         (safe-step* (term e) (term τ) is-error? assert-well-typed sta-boundary-step))])
 
@@ -432,74 +435,72 @@
   (term #{error? ,t}))
 
 (define (assert-well-dyn t dont-care)
-  (unless (judgment-holds (well-dyn/lazy () ,t))
+  (unless (judgment-holds (well-dyn/conatural () ,t))
     (raise-arguments-error 'current-runtime-invariant "expected well-dyn" "term" t)))
 
 (define (assert-well-typed t ty)
-  (unless (judgment-holds (well-typed/lazy () ,t ,ty))
+  (unless (judgment-holds (well-typed/conatural () ,t ,ty))
     (raise-arguments-error 'current-runtime-invariant "expected well-typed"
       "term" t
       "type" ty)))
 
 ;; -----------------------------------------------------------------------------
 
-(define-judgment-form LM-lazy
-  #:mode (well-dyn/lazy I I)
-  #:contract (well-dyn/lazy Γ e)
+(define-judgment-form LM-conatural
+  #:mode (well-dyn/conatural I I)
+  #:contract (well-dyn/conatural Γ e)
   [
    --- D-Int
-   (well-dyn/lazy Γ integer)]
+   (well-dyn/conatural Γ integer)]
   [
-   (well-dyn/lazy Γ e_0)
-   (well-dyn/lazy Γ e_1)
+   (well-dyn/conatural Γ e_0)
+   (well-dyn/conatural Γ e_1)
    --- D-Pair
-   (well-dyn/lazy Γ (× e_0 e_1))]
+   (well-dyn/conatural Γ (× e_0 e_1))]
   [
    (where Γ_x (x Γ))
-   (well-dyn/lazy Γ_x e)
+   (well-dyn/conatural Γ_x e)
    --- D-Fun
-   (well-dyn/lazy Γ (λ (x) e))]
+   (well-dyn/conatural Γ (λ (x) e))]
   [
    (where #true #{type-env-contains Γ x})
    --- D-Var
-   (well-dyn/lazy Γ x)]
+   (well-dyn/conatural Γ x)]
   [
-   (well-dyn/lazy Γ e_0)
-   (well-dyn/lazy Γ e_1)
+   (well-dyn/conatural Γ e_0)
+   (well-dyn/conatural Γ e_1)
    --- D-App
-   (well-dyn/lazy Γ (e_0 e_1))]
+   (well-dyn/conatural Γ (e_0 e_1))]
   [
-   (well-dyn/lazy Γ e_0)
-   (well-dyn/lazy Γ e_1)
+   (well-dyn/conatural Γ e_0)
+   (well-dyn/conatural Γ e_1)
    --- D-Binop
-   (well-dyn/lazy Γ (BINOP e_0 e_1))]
+   (well-dyn/conatural Γ (BINOP e_0 e_1))]
   [
-   (well-dyn/lazy Γ e)
+   (well-dyn/conatural Γ e)
    --- D-Unop
-   (well-dyn/lazy Γ (UNOP e))]
+   (well-dyn/conatural Γ (UNOP e))]
   [
-   (well-typed/lazy Γ e τ)
+   (well-typed/conatural Γ e τ)
    --- D-Static
-   (well-dyn/lazy Γ (static τ e))]
+   (well-dyn/conatural Γ (static τ e))]
   [
-   (well-typed/lazy Γ v (→ τ_dom τ_cod))
    --- D-Mon-Fun
-   (well-dyn/lazy Γ (mon (→ τ_dom τ_cod) v))]
+   (well-dyn/conatural Γ (mon (→ τ_dom τ_cod) v))]
   [
-   (well-typed/lazy Γ v (× τ_0 τ_1))
    --- D-Mon-Pair ;; same as D-Mon-Fun
-   (well-dyn/lazy Γ (mon (× τ_0 τ_1) v))])
+   (well-dyn/conatural Γ (mon (× τ_0 τ_1) v))])
 
-(define-judgment-form LM-lazy
-  #:mode (well-typed/lazy I I I)
-  #:contract (well-typed/lazy Γ e τ)
+(define-judgment-form LM-conatural
+  #:mode (well-typed/conatural I I I)
+  #:contract (well-typed/conatural Γ e τ)
   [
    (infer-type Γ e τ_infer)
    (subtype τ_infer τ)
    ---
-   (well-typed/lazy Γ e τ)])
+   (well-typed/conatural Γ e τ)])
 
-(define-judgment-form LM-lazy
+(define-judgment-form LM-conatural
   #:mode (infer-type I I O)
   #:contract (infer-type Γ e τ)
   [
@@ -554,29 +555,23 @@
    --- I-Snd
    (infer-type Γ (snd e) τ_1)]
   [
-   (well-dyn/lazy Γ e)
+   (well-dyn/conatural Γ e)
    --- I-Dynamic
    (infer-type Γ (dynamic τ e) τ)]
   [
-   (well-dyn/lazy Γ v)
    --- I-Mon-Fun
    (infer-type Γ (mon (→ τ_dom τ_cod) v) (→ τ_dom τ_cod))]
   [
-   (well-dyn/lazy Γ v)
    --- I-Mon-Pair
    (infer-type Γ (mon (× τ_0 τ_1) v) (× τ_0 τ_1))])
 
 (module+ test
   (test-case "well-dyn"
     (check-true (judgment-holds
-      (well-dyn/lazy ()
+      (well-dyn/conatural ()
         (static (→ (→ Nat (→ Int Nat)) Int)
           ((dynamic (→ (→ Nat Int) (→ (→ Nat (→ Nat Int)) Nat)) (λ (bs) bs))
            (λ (C : Int) C))))))
-    (check-false (judgment-holds
-      (well-dyn/lazy ()
-        (mon (→ (× Int Int) (→ Nat Int))
-             (λ (p) (λ (Okp) 2))))))
   )
 
   (test-case "well-typed"
@@ -595,16 +590,16 @@
         (× (→ (→ Nat Int) Nat) (→ Int Nat))
         (× (→ (→ Nat Nat) Nat) (→ Nat Int)))))
     (check-true (judgment-holds
-      (well-typed/lazy ()
+      (well-typed/conatural ()
         ((dynamic (→ (→ Nat Int) (→ (→ Nat (→ Nat Int)) Nat)) (λ (bs) bs))
          (λ (C : Int) C))
         (→ (→ Nat (→ Int Nat)) Int))))
     (check-false (judgment-holds
-      (well-typed/lazy ()
+      (well-typed/conatural ()
         (mon (→ Nat Int) (λ (C : Int) C))
         (→ (→ Nat (→ Nat Int)) Int))))
     (check-true (judgment-holds
-      (well-typed/lazy ()
+      (well-typed/conatural ()
         (dynamic (× (→ (→ Nat Int) Nat) (→ Int Nat)) 3)
         (× (→ (→ Nat Nat) Nat)
            (→ Nat Int)))))
@@ -616,9 +611,9 @@
 (module+ test
 
   (define (safe? t ty)
-    (and (term #{theorem:lazy-safety ,t ,ty}) #true))
+    (and (term #{theorem:conatural-safety ,t ,ty}) #true))
 
-  (test-case "lazy-safety"
+  (test-case "conatural-safety"
     (check-true (safe? (term ((× 0 2) (× 2 1))) #f))
     (check-true (safe? (term (λ (n) (× 0 0))) #f))
     (check-true (safe? (term (λ (n : Nat) (× 0 0))) (term (→ Nat (× Nat Nat)))))
@@ -628,21 +623,21 @@
     (check-true (safe? (term (static (→ (→ Nat (→ Int Nat)) Int) ((dynamic (→ (→ Nat Int) (→ (→ Nat (→ Nat Int)) Nat)) (λ (bs) bs)) (λ (C : Int) C)))) #f))
   )
 
-  (test-case "lazy-can-avoid-errors"
+  (test-case "conatural-can-avoid-errors"
     (check-equal?
-      (term #{theorem:lazy-safety (dynamic (× Int Int) (× 1 (λ (x) x))) (× Int Int)})
+      (term #{theorem:conatural-safety (dynamic (× Int Int) (× 1 (λ (x) x))) (× Int Int)})
       (term (mon (× Int Int) (× 1 (λ (x) x)))))
   )
 
-  (test-case "lazy-safety:auto"
+  (test-case "conatural-safety:auto"
     (check-true
-      (redex-check LM-lazy #:satisfying (well-dyn () e)
-        (term (theorem:lazy-safety e #f))
+      (redex-check LM-conatural #:satisfying (well-dyn () e)
+        (term (theorem:conatural-safety e #f))
         #:attempts 1000
         #:print? #f))
     (check-true
-      (redex-check LM-lazy #:satisfying (well-typed () e τ)
-        (term (theorem:lazy-safety e τ))
+      (redex-check LM-conatural #:satisfying (well-typed () e τ)
+        (term (theorem:conatural-safety e τ))
         #:attempts 1000
         #:print? #f)))
 )

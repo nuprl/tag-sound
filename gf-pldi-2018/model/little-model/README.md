@@ -14,7 +14,7 @@ Series of simple PLT Redex models to describe the key ideas of type-tag soundnes
    Explain & compare _the natural embedding_ vs. _the erasure embedding_.
    Note the performance problem, and where the overhead comes from.
 4. (trade for performance)
-   Systematically increase performance by making run-time type checks lazy,
+   Systematically increase performance by making run-time type checks "lazy",
     "flat", and finally tagged
 
 
@@ -27,8 +27,8 @@ Every `little-*.rkt` file contains a PLT Redex model.
 3. `little-mixed.rkt` combined language "well-formed" rules
 4. `little-erased.rkt` type-erased embedding
 5. `little-natural.rkt` natural (type-directed) embedding
-6. `little-lazy.rkt` lazy natural embedding
-7. `little-forgetful.rkt` lazy forgetful natural embedding
+6. `little-conatural.rkt` co-natural embedding
+7. `little-forgetful.rkt` forgetful final embedding
 8. `little-tagged.rkt` monitor-free lazy-forgetful natural embedding
 
 Other files:
@@ -52,7 +52,7 @@ HOW TO READ, assuming `A` and `B` are module names:
           /      | | \
   little-natural | |  little-erased
                  | |
-                 | little-lazy
+                 | little-conatural
                  | |
                  | little-forgetful
                  |

@@ -1,6 +1,7 @@
 #lang mf-apply racket/base
 
-;; Forgetful lazy natural embedding
+;; Forgetful co-natural embedding
+;;  aka forgetful final embedding
 ;;
 ;; Solves a second performance problem with the natural embedding:
 ;;  the problem that monitors can stack up on a value.
@@ -27,8 +28,10 @@
 ;; - the function goes to untyped code, the runtime forgets the annotation
 
 (require
-  (only-in "little-lazy.rkt"
-    LM-lazy
+  (only-in "little-conatural.rkt"
+    LM-conatural
+    well-typed/conatural
+    well-dyn/conatural
     integer?
     negative?
     procedure?
@@ -52,7 +55,7 @@
 ;; =============================================================================
 
 (define-extended-language LM-forgetful
-  LM-lazy)
+  LM-conatural)
 
 (define (LM-forgetful=? t0 t1)
   (alpha-equivalent? LM-forgetful t0 t1))
@@ -385,116 +388,17 @@
   #:mode (well-dyn/forgetful I I)
   #:contract (well-dyn/forgetful Γ e)
   [
-   --- D-Int
-   (well-dyn/forgetful Γ integer)]
-  [
-   (well-dyn/forgetful Γ e_0)
-   (well-dyn/forgetful Γ e_1)
-   --- D-Pair
-   (well-dyn/forgetful Γ (× e_0 e_1))]
-  [
-   (where Γ_x (x Γ))
-   (well-dyn/forgetful Γ_x e)
-   --- D-Fun
-   (well-dyn/forgetful Γ (λ (x) e))]
-  [
-   (where #true (type-env-contains Γ x))
-   --- D-Var
-   (well-dyn/forgetful Γ x)]
-  [
-   (well-dyn/forgetful Γ e_0)
-   (well-dyn/forgetful Γ e_1)
-   --- D-App
-   (well-dyn/forgetful Γ (e_0 e_1))]
-  [
-   (well-dyn/forgetful Γ e_0)
-   (well-dyn/forgetful Γ e_1)
-   --- D-Binop
-   (well-dyn/forgetful Γ (BINOP e_0 e_1))]
-  [
-   (well-dyn/forgetful Γ e)
-   --- D-Unop
-   (well-dyn/forgetful Γ (UNOP e))]
-  [
-   (well-typed/forgetful Γ e τ)
-   --- D-Static
-   (well-dyn/forgetful Γ (static τ e))]
-  [
-   ;; TRUST ME
-   --- D-Mon
-   (well-dyn/forgetful Γ (mon τ v))])
+   (well-dyn/conatural Γ e)
+   ---
+   (well-dyn/forgetful Γ e)])
 
-(define-judgment-form LM-lazy
+(define-judgment-form LM-forgetful
   #:mode (well-typed/forgetful I I I)
   #:contract (well-typed/forgetful Γ e τ)
   [
-   (infer-type Γ e τ_infer)
-   (subtype τ_infer τ)
+   (well-typed/conatural Γ e τ)
    ---
    (well-typed/forgetful Γ e τ)])
-
-(define-judgment-form LM-lazy
-  #:mode (infer-type I I O)
-  #:contract (infer-type Γ e τ)
-  [
-   (where #true #{negative? integer})
-   --- I-Int
-   (infer-type Γ integer Int)]
-  [
-   --- I-Nat
-   (infer-type Γ natural Nat)]
-  [
-   (infer-type Γ e_0 τ_0)
-   (infer-type Γ e_1 τ_1)
-   --- I-Pair
-   (infer-type Γ (× e_0 e_1) (× τ_0 τ_1))]
-  [
-   (where Γ_x ((x : τ_0) Γ))
-   (infer-type Γ_x e τ_1)
-   --- I-Fun
-   (infer-type Γ (λ (x : τ_0) e) (→ τ_0 τ_1))]
-  [
-   (where τ (type-env-ref Γ x))
-   --- I-Var
-   (infer-type Γ x τ)]
-  [
-   (infer-type Γ e_0 (→ τ_dom τ_cod))
-   (infer-type Γ e_1 τ_1)
-   (subtype τ_1 τ_dom)
-   --- I-App
-   (infer-type Γ (e_0 e_1) τ_cod)]
-  [
-   (infer-type Γ e_0 τ_0)
-   (infer-type Γ e_1 τ_1)
-   (subtype τ_0 Int)
-   (subtype τ_1 Int)
-   (where τ (type-join τ_0 τ_1))
-   --- I-+
-   (infer-type Γ (+ e_0 e_1) τ)]
-  [
-   (infer-type Γ e_0 τ_0)
-   (infer-type Γ e_1 τ_1)
-   (subtype τ_0 Int)
-   (subtype τ_1 Int)
-   (where τ (type-join τ_0 τ_1))
-   --- I-/
-   (infer-type Γ (/ e_0 e_1) τ)]
-  [
-   (infer-type Γ e (× τ_0 τ_1))
-   --- I-Fst
-   (infer-type Γ (fst e) τ_0)]
-  [
-   (infer-type Γ e (× τ_0 τ_1))
-   --- I-Snd
-   (infer-type Γ (snd e) τ_1)]
-  [
-   (well-dyn/forgetful Γ e)
-   --- I-Dynamic
-   (infer-type Γ (dynamic τ e) τ)]
-  [
-   ;; TRUST ME ... TODO remove these!
-   --- I-Mon
-   (infer-type Γ (mon τ v) τ)])
 
 (module+ test
   (test-case "well-dyn"

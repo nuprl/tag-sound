@@ -464,7 +464,6 @@
    --- D-Static
    (well-dyn/natural Γ (static τ e))]
   [
-   (well-typed/natural Γ v (→ τ_dom τ_cod))
    --- D-Mon
    (well-dyn/natural Γ (mon (→ τ_dom τ_cod) v))])
 
@@ -536,7 +535,6 @@
    --- I-Dynamic
    (infer-type Γ (dynamic τ e) τ)]
   [
-   (well-dyn/natural Γ v)
    --- I-Mon
    (infer-type Γ (mon (→ τ_dom τ_cod) v) (→ τ_dom τ_cod))])
 
