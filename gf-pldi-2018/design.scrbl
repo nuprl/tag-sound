@@ -274,8 +274,6 @@ This compilation technique can improve the performance of typed code, however,
 @; -----------------------------------------------------------------------------
 @section{Soundness vs. Performance}
 
-The erasure and natural embeddings are opposites in terms of type soundness
- and performance.
 The erasure embedding promises nothing in the way of type soudness,
  and lets values freely cross boundary expressions.
 The natural embedding is ideally type sound (for a language that makes no
@@ -293,24 +291,13 @@ For example, checking a list structure built from @${N} pair values requires
  (at least) @${2N} recursive calls.
 Function monitors add an @emph{indirection} cost.
 Every call to a monitored function incurs one additional boundary-crossing.
-This single layer of indirection may affect the inlining decisions in a JIT-compiled language;
- furthermore, layers of indirection accumulate as values repeatedly cross boundaries.
-@; TODO really need to emphasize the N-levels,
-@;  important to bring in the JIT, but not at the expense of de-emphasizing
-@;  how important-important the wrapping is
-Finally, the @emph{allocation} cost of building a monitor value at run-time
- may have significant implications for performance.
+If a value repeatedly crosses boundary terms, these type-checking layers
+ can accumulate without bound.@note{In a language with a JIT compiler,
+  layers of indirection may also affect inlining decisions.}
+Finally, the @emph{allocation} cost of building a monitor value
+ may lead to significant performance overhead.
 
-@Figure-ref{fig:natural-cost} summarizes the cost of checking a
- value in terms of the meta-variables @${C}, @${A}, @${I}, and @${O}.
-The variable @${C} denotes the cost of a type-tag check, for example @${i \in \naturals}.
-Similarly, the variable @${A} denotes the cost of allocating one function monitor.
-It may be possible to estimate @${C} and @${A} without running the program.
-The variables @${I} and @${O} denote the number of times a function value crosses a
- boundary and the number of times it is applied.
-The values of @${I} and @${O} depend on the run-time behavior a program.
-
-The embeddings in the following three sections address these costs systematically.
+The following three embeddings address these costs systematically.
 Consequently, they demonstrate that the erasure and natural embeddings lie on
  opposite ends of a spectrum between soundness and performance.
 
