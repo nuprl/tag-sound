@@ -93,7 +93,7 @@ We conjecture that this embedding is a @emph{final algebra semantics}@~cite[w-jc
 
 Two related works led us towards the idea of a spectrum of type soundness.
 @emph{Like types} are static type annotations that are erased before run-time@~cite[bfnorsvw-oopsla-2009 rnv-ecoop-2015].
-Programmers can switch between like types and concrete types to exchange
+Programmers can switch between like types and normal types to exchange
  soundness for performance without sacrificing any static type checking.
 
 The @emph{progressive types} vision paper describes a type system in which
