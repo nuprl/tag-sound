@@ -138,8 +138,7 @@ This improvement, however, is unlikely to convince a programmer than migratory
 
 The @bm{morsecode} benchmark is an anomaly.
 Using @|LD-Racket| doubles the overhead of the slowest configuration;
- its overhead increases from @render-max-overhead['typed 'morsecode] to @render-max-overhead['typed 'morsecode].
-TODO need to investigate exactly why performance.
+ its overhead increases from @render-max-overhead['typed 'morsecode] to @render-max-overhead['tagged 'morsecode].
 This degredation reveals a pitfall of the locally-defensive embedding, which
  we discuss in the following section.
 
