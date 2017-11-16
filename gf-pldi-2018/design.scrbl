@@ -1,60 +1,110 @@
 #lang gf-pldi-2018
-@title[#:tag "sec:design"]{Five Models}
+@title[#:tag "sec:design"]{Five Embeddings}
 
 @include-figure["fig:common-syntax.tex" @elem{Common syntax and semantics}]
+
+The high-level goal of a type-directed embedding is to describe how three
+ classes of values may cross language boundaries:
+ (1) values of a base type,
+ (2) ``finite'' values of a parameterized type,
+ and (3) ``infinite'' values of a parameterized type.@note{By ``finite'' and ``infinite'', we refer to these values' observable behaviors.}
+As representative examples, we use integers, pairs, and (anonymous, single-argument) functions.
+Scaling an embedding to accomodate other types and values is typically straightforward,
+ as we discuss in @section-ref{sec:implementation}.
+
+To begin, @figure-ref{fig:common-syntax} introduces some common syntactic
+ and semantic notions.
+Expressions @${e} include variables, value forms, and the application of a
+ function or primitive operation to arguments.
+The unary primitive operations @${\vfst} and @${\vsnd} are projection functions for pair values;
+ the binary primitives @${\vsum} and @${\vquotient} are integer arithmetic operators.
+
+The semantics of the primitive operations is given by the @${\delta} meta-function.
+In a real language, these primitives would be implemented by a runtime system
+ that manipulates the machine representation of value forms.
+As such, we treat calls to @${\delta} as cross-language function calls.
+The result of such a function call is either a value, a token indicating
+ a cross-language boundary error, or undefined behavior.
+
+Undefined behavior due to @${\delta} is a categorical evil.
+The baseline soundness requirement for our models is that they rule out
+ programs that can lead to undefined behavior.
+
+Other components in @figure-ref{fig:common-syntax} help define semantics.
+An answer @${A} is either an expression or an error token.
+Evaluation contexts @${E} impose a left-to-right, call-by-value order of evaluation.
+Lastly, the meta-function @${\cclift{E}{\rrR}} lifts a
+ notion of reduction@~cite[b-lambda-1981]
+ over evaluation contexts in a way that detects and propagates errors.
+
+
+@section{Source Languages}
 @include-figure["fig:dyn-delta.tex" @elem{Dynamic Typing}]
 @include-figure["fig:sta-delta.tex" @elem{Static Typing}]
 
-To begin, @figure-ref{fig:source-lang} presents two base languages.
-Each is a lambda calculus with integers and pairs.
-Language @${\langD} is dynamically typed; language @${\langS} is statically typed.
-Their syntax is nearly identical, but @${\langS} functions require a type
- annotation on their parameter.
+The language @${\langD} defined in @figure-ref{fig:dyn-delta} is a
+ dynamically-typed lambda calculus.
+An @${\langD} expression @${e} is well-formed according to the typing judgment
+ @${\GammaD \welldyn e} if it contains no free variables.
+The notion of reduction @${\rrD} defines the semantics of well-formed expressions;
+ in essence, it maps a valid application of values to a normal answer and
+ maps an invalid application to a token representing a type-tag error@~cite[henglein-scp-1994].
 
-The types in @${\langS} describe four interesting classes of @${\langD} values:
+The language @${\langS} in @figure-ref{fig:sta-delta} is a statically-typed
+ counterpart to @${\langD}.
+Types in @${\langS} describe four interesting classes of @${\langD} values:
  integers, natural numbers, pairs, and functions.
-Abstractly, these types illustrate: (1) a base type, (2) a refinement of a
- base type, (3) a co-variant type constructor, and (4) a type for a higher-order
- value.
-If a multi-language embedding can handle these four examples, then it can
- scale to almost any type found in a non-dependent programming language.
-See @section-ref{sec:implementation} for discussion of untagged unions,
- recursive types, and parametric polymorphism.
+The type for natural numbers is representative of subset types@~cite[c-lp-1983]
+ that do not have a matching low-level type tag.
+An @${\langS} expression @${e} is well-typed if @${\GammaS \wellsta e : \tau}
+ can be derived using the rules in @figure-ref{fig:sta-delta} for some type
+ @${\tau}.@note{These typing rules are not syntax directed; see the PLT Redex
+ models in our artifact for a syntax-directed implementation.}
+The purpose of this typing judgment is to guarantee that all application forms
+ apply a function and all primitive operations receive arguments for which
+ @${\delta} is defined.
+If this is true, then the notion of reduction @${\rrS} is defined for all
+ well-typed expressions.
 
-Both languages include a syntactic judgment that describes when an expression
- is well formed.
-For @${\langS}, the judgment @${\Gamma \welldyn e} claims that the free
- variables in @${e} are bound in the set @${\Gamma}.
-For @${\langS}, the stronger judgment @${\Gamma \wellsta e : \tau}
- claims that @${e} has the static type @${\tau} in type context @${\Gamma},
- and furthermore all sub-expressions of @${e} have an appropriate static type.
-
-The semantics of each language is defined as the context closure
- of a simpler reduction relation.
-The reduction relation is a partial function from expressions to answers;
- an answer @${A} is either an expression or an error token.
-As the name ``dynamic typing'' suggests, the reduction relation for @${\langD}
- maps ill-typed expressions to a token indicating a type error.
-For example, the application of any integer to any other value @${v} is an
- error, e.g. @${(2~v) \rrD \typeerror}.
-The reduction relation for @${\langS} is undefined for such expressions.
-There is no answer @${A} such that @${(2~v) \rrS A} is defined.
-
-Naturally, there is an important connection between the well-formedness
- judgments and the semantics.
-This can be characterized in an appropriate @emph{term safety} theorem for the languages.
-For @${\langD} one can show that evaluation never reaches an undefined state:
+Both languages are sound in a precise sense.
+For @${\langD}, soundness means that the evaluation of any well-formed expression
+ either produces a valid answer or runs forever.
+Consequently, such expressions cannot send the evaluator to an undefined state.
 
 @|D-SAFETY|
+@;
+@proof-sketch{
+  By progress and preservation lemmas for the @${\welldyn} relation.
+  In other words, @${e \ccD A} is defined for all well-formed expressions
+   @${e} and if it maps @${e} to another expression, then the result is well-formed.
+}
 
-For @${\langS}, one can prove a stronger @emph{type safety} theorem that (1) rules out type errors
- and (2) states that types are preserved in evaluation.
+For @${\langS}, an analogous soundness theorem can guarantee that evaluation
+ via @${\rrSstar} never leads to undefined behavior.
+This is a useful property; however, there are two easy ways to strengthen it.
+First, we can remove the @${\tagerror} clause because the reduction relation
+ @${\ccS} never produces a type-tag error.
+Second, we can prove that evaluation preserves types; if
+ if an expression has type @${\tau} and evaluates to a value @${v}, then
+ @${v} also has type @${\tau}.
+This second enhancement differentiates @emph{strong type soundness} from
+ @emph{weak type soundness} in the literature@~cite[type-soundness],
+ and lets programmers use static type information to reason about the run-time
+ behavior of programs.
 
 @|S-SAFETY|
+@;
+@proof-sketch{
+  By progress and preservation of the @${\wellsta \cdot : \tau} relation.
+  Note that the only source of boundary errors is division by zero.
+}
 
-The embeddings will each have a safety theorem
- that falls somewhere between term safety and type safety.
-@; gee are you finished with intro material yet????
+Proving type soundness for @${\langS} is relatively straightforward.
+But once we allow @${\langS} expressions to contain arbitrary embedded @${\langD} expressions,
+ it will be impossible to prove the same type safety theorem (because an
+ @${\langD} expression can evaluate to a type-tag error).
+The challenge is to find a useful notion of soundness that yields a practical
+ implementation.
 
 
 @; -----------------------------------------------------------------------------

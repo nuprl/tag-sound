@@ -247,7 +247,7 @@
   (make-proof "Proof: " elem*))
 
 (define (make-proof descr elem*)
-  (para (cons (emph descr) elem*)))
+  (para (list (emph descr) elem* @${\hfill \qedsymbol})))
 
 (define well_D
   ($ "\\welldyn"))
@@ -314,7 +314,7 @@
 
 (define D-SAFETY
   (list
-    @theorem[@elem{@${\langD} term safety}]{
+    @theorem[@elem{@${\langD} soundness}]{
       If @${\welldyn e} then either:
     }
     @itemlist[
@@ -325,7 +325,7 @@
 
 (define S-SAFETY
   (list
-    @theorem[@elem{@${\langS} type safety}]{
+    @theorem[@elem{@${\langS} type soundness}]{
       If @${\wellsta e : \tau} then either:
     }
     @itemlist[
@@ -335,7 +335,7 @@
 
 (define N-SAFETY
   (list
-    @theorem[@elem{@${\langN} type safety}]{
+    @theorem[@elem{@${\langN} type soundness}]{
       If @${\wellM e : \tau} then @${\wellNE e : \tau} and either:
     }
     @itemlist[
@@ -346,7 +346,7 @@
 
 (define F-SAFETY
   (list
-    @theorem[@elem{@${\langF} type safety}]{
+    @theorem[@elem{@${\langF} type soundness}]{
       If @${\wellM e : \tau} then @${\wellFE e : \tau} and either:
     }
     @itemlist[
@@ -357,7 +357,7 @@
 
 (define K-SAFETY
   (list
-    @theorem[@elem{@${\langK} type-tag safety}]{
+    @theorem[@elem{@${\langK} type-tag soundness}]{
       If @${\wellM e : \tau}
        and @${\tagof{\tau} = K}, then
        @${\wellM e : \tau \carrow e^+}

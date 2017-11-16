@@ -70,7 +70,9 @@
   (define/short lfp "LFP" "LISP and Functional Programming")
   (define/short lncs "LNCS" "Lecture Notes in Computer Science")
   (define/short lsc "LSC" "LISP and Symbolic Computation")
+  (define/short lp "LP" (string-append Workshop "on Logic of Programs"))
   (define/short ml-workshop "ML" (string-append Workshop "on ML"))
+  (define/short mscs "MSCS" "Mathematical Structures in Computer Science")
   (define/short oopsla "OOPSLA" (string-append ACM Conference "on Object-Oriented Programming, Systems, Languages and Applications"))
   (define/short onward "ONWARD" (string-append ACM Symposium "on New ideas, new paradigms, and reflections on programming and software"))
   (define/short padl "PADL" (string-append Symposium "on Practical Aspects of Declarative Languages"))
@@ -80,7 +82,7 @@
   (define/short sac "SAC" (string-append Symposium "on Applied Computing"))
   (define/short sas "SAS" (string-append International Symposium "on Static Analysis"))
   (define/short sblp "SBLP" "Brazilian Symposium on Programming Languages")
-  (define/short scala "SCALA" (string-append "Workshop on Scala"))
+  (define/short scala "SCALA" (string-append Workshop "on Scala"))
   (define/short scheme-workshop "SFP" (string-append "Scheme and Functional Programming Workshop"))
   (define/short snapl "SNAPL" "Summit oN Advances in Programming Languages")
   (define/short sigmod "SIGMOD" (string-append ACM "SIGMOD " International Conference "on Management of Data"))
@@ -2127,3 +2129,23 @@
    #:location (proceedings-location oopsla #:pages '(231 245))
    #:date 2005))
 
+(define ks-mscs-2017
+  (make-bib
+   #:title "Practical Coinduction"
+   #:author (authors "Dexter Kozen" "Alexandra Silva")
+   #:location (journal-location mscs #:volume 27 #:pages '(1132 1152))
+   #:date 2017))
+
+(define b-lambda-1981
+  (make-bib
+   #:title "The Lambda Calculus: Its Syntax and Semantics"
+   #:author "Henk Barendregt"
+   #:location (book-location #:publisher "North-Holland Publishing Company")
+   #:date 1981))
+
+(define c-lp-1983
+  (make-bib
+   #:title "Mathematics as Programming"
+   #:author "Robert L. Constable"
+   #:location (proceedings-location lp #:pages '(116 128))
+   #:date 1983))
