@@ -419,70 +419,97 @@ To remove this cost, we must remove monitors;
  that is, we must replace the run-time analysis that monitors implement with
  a static analysis that predicts where to insert soundness-enforcing run-time checks.
 
-At first glance, 
+For a typical notion of type soundness in a language with infinitely-obervable
+ values (i.e. first-class functions), predicting such checks is impossible
+ without a whole-program control-flow-analysis.
+The key insight is to pick a sufficiently weak notion of soundness.
+We owe this idea to @citet[vss-popl-2017], who propose a notion of type-tag
+ soundness and define a translation from a typed source language
+ to a monitor-free target language.
+Our contribution is to demonstrate that type-tag soundness arises systematically
+ from the co-natural and forgetful embeddings.
 
 
+@subsection{Monitor-Free Semantics}
 
-The key insight to make this static analysis problem tractable is to aim for
- a sufficiently weak notion of type soundness.
+The co-natural embedding decomposes ``deep'' checks at a boundary expression
+ to one ``shallow'' check at the boundary and a set of shallow checks, one
+ for each time the value is observed.
+The forgetful embedding ignores the history of a value;
+ local type annotations completely determine the type checks in a context.
+Combining these two embeddings yields a semantics that ensures type soundness
+ through local, defensive type-tag checks.
+In @${\langF}, these defensive checks occur in exactly three kinds of expressions:
+  (1) at boundary terms,
+  (2) at function call and return, and
+  (3) at calls to the projections @${\vfst} and @${\vsnd}.
+
+We can statically determine whether an expression @emph{might} require a run-time check
+ with a typing system that assumes any structured value can produce any kind
+ of value.
+Function applications @${(e_0\,e_1)} and projections @${(\efst{e})} in this
+ system need a type that represents any kind of value.
+In order to use these expressions in a context that requires a certain kind of
+ value, for example @${(\esum{2}{\ehole})}, we add a form @${(\echk{K}{e})} to
+ internalize the notion of a type-tag check.
+
+@Figure-ref{fig:locally-defensive-delta} defines a typing system @${\Gamma \wellKE e : K}
+ that makes these ideas precise.
+To begin, type-tags @${K} represent integers, natural numbers, pairs, functions,
+ and unknown values.
+The meta-function @${\tagof{\cdot}} relates a type @${\tau} to a type-tag,
+ and the subtyping relation @${K \subt K'} states when values of tag @${K}
+ can safely be given to a context expecting values of a different tag.
+As for the typing system: (1) the rules for value constructors conclude
+ with a non-trivial tag; (2) the rules for elimination forms require a non-trivial
+ tag and conclude with the @${\kany} tag; and (3) the rules for @${\vdyn} and
+ @${\vchk} conclude a non-trivial tag that will be justified with a run-time check.
+
+@Figure-ref{fig:locally-defensive-delta} additionally defines a semantics for
+ well-tagged expressions.
+The crucial aspect of this semantics is that dynamically-typed arguments
+ to statically-typed functions get tag-checked by the @${\mchk{K}{\cdot}} meta-function.
+A secondary aspect, which is important for proving that type-tag errors only
+ occur in dynamically-typed code, is the addition of the ``dummy'' boundary
+ expressions @${(\edyn{\kany}{e})} and @${(\esta{\kany}{e})}.
+These expressions are a technical device to delimit function bodies from the
+ enclosing context.
 
 
-
-
-
-An embedding that combines the co-natural and forgetful strategies
- checks only type-tags at elimination forms.
-For our multi-language, these elimination forms are function applications
- and pair accessors --- statically-typed functions need protection against arguments
- outside their domain, and statically-typed expressions need protection against
- values produced by dynamically-typed functions and pairs.
-
-The @emph{type-tagging} system in @figure-ref{fig:well-tagged} precisely
- describes where tag checks are required.
-The judgment @${\Gamma \wellKE e : K} holds if the expression @${e} has
- type-tag @${K} in the type context @${\Gamma}, where variables in @${\Gamma}
- are assumed to have the correct tag.
-@; TODO why not just (x:K) in gamma? problem with boundaries?
-A type-tag @${K} either corresponds to a type constructor, or represents
- a dynamically-typed value with an unknown tag.
-The meta-function @${\tagof{\cdot}} maps a type to its tag.
-
-Few well-typed terms are well-tagged.
-So introduce check form to make it so.
-@;The type system ensures that:
-@; (1) functions make no assumptions about their input, and
-@; (2) elimination forms make no assumption about what result they will receive.
-@;If a program type-checks using the rules in @figure-ref{fig:well-tagged},
-@; then it is safe to evaluate without any instrumentation.
-@;No monitors required.
-
-
-@subsection{Automatic Completion}
+@subsection{Check Completion}
 @include-figure["fig:locally-defensive-completion-delta.tex" @elem{Completion (selected rules)}]
 
-Queue from similar work by Vitousek and Henglein,
- time for completions.
+Unlike our previous languages, there is a gap between static typing for
+ the multi-language @${\langM} and the language @${\langK} in @figure-ref{fig:locally-defensive-delta}.
+If an expression @${e} has the static type @${\tau} and the type-tag of @${\tau}
+ is @${K}, it is not necessarily true that @${e} is well-tagged via the @${\wellKE} relation.
 
-Rather than force programmers to insert @${\vchk} expressions,
- we can better support the goals of migratory typing by statically rewriting
- programs.
-See @figure-ref{fig:tagged-completion-delta} for the ideas, the appendix has the details.
-@; WHAT IS IT
-@; WHY NAMED THAT?
-After Henglein, we call this @emph{completion}.
+We bridge this gap with a @emph{completion}@~cite[henglein-scp-1994] function.
+Informally, a completion function @${\carrow} takes a well-typed term @${\wellM e : \tau}
+ and adds @${\vchk} forms to enforce the type-checker's assumptions against
+ dynamically-typed pairs and functions.
+Such a function is correct if it maps well-typed expressions to
+ semantically-equivalent well-tagged expressions.
 
-NOTE: (1) these checks are an overapproximation (2) our completion is not minimal.
+For @${\langK}, the completion function we use inserts checks to the three
+ forms shown in @figure-ref{fig:locally-defensive-completion-delta} and
+ otherwise folds over expressions.
+We leave as open the question of how to define a completion function that
+ generates the minimum number of @${\vchk} expressions.@note{@citet[henglein-scp-1994]
+  defines a rewriting system that is provably optimal, but possibly non-terminating.}
 
 
 @subsection{Type-Tag Soundness}
 
-Bringing it all together, get soundness result for the multi-language.
+We state soundness for @${\langK} in terms of the static typing judgment
+ of the mixed language and the semantics defined in @figure-ref{fig:locally-defensive-delta}.
 
 @|K-SAFETY|
+@proof-sketch{
+  The completion function simply adds checks around every expression with type-tag
+   @${\kany} to enforce the expression's static type.
+  Soundness follows from progress and preservation lemmas for the @${\wellKE \cdot : K} relation.
+}
 
-@emph{Remark}: we conjecture that for all source expressions @${e},
- the forgetful embedding and tagged embedding are observationally equivalent.
-(Isn't there a simple class of counterexamples to rule out?)
-At any rate they are similar to one another and very different from the
- natural embedding ... future work for readers:
- there should be a way to make this precise!
+Type-tag soundness is superficially different from soundness for the forgetful, final language @${\langF}; however,
+ we conjecture that the semantics are observationally equivalent.
