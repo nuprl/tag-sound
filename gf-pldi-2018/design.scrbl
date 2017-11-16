@@ -306,53 +306,46 @@ Consequently, they demonstrate that the erasure and natural embeddings lie on
 @section{The Co-Natural Embedding}
 @include-figure*["fig:conatural-delta.tex" "Co-Natural Embedding"]
 
-The natural embedding checks values eagerly whenever possible.
-Consequently, a boundary expecting values of type @${\tau} typically
- requires one type-tag check for each type constructor in the @${\tau} type.
-For example, if @${\tau} is the pair type @${\tpair{\tint}{\tnat}} then a
- boundary expecting a value of type @${\tau} must perform three type-tag checks.
-
+The natural embedding eagerly checks values that cross a type boundary.
+For most values, this means that a successful boundary-crossing requires
+ a linear-time traversal of the value's components.
 The exception to this linear-cost rule is the function type.
-To check that a dynamically-typed value has type @${(\tarr{\tau_d}{\tau_c})},
- the natural embedding performs one type-tag check and allocates a monitor to
- delay checking the function's domain and codomain.
+To check that a dynamically-typed value matches a function type,
+ the natural embedding performs a type-tag check and allocates a monitor.
 
-Therein lies the insight for a co-natural embedding strategy.
-If a language has one monitor value for each parameterized type,
- then it can check any dynamically-typed value with (at most) one type-tag check and one
- monitor allocation.
+In principle, an embedding can apply the same delayed-checking strategy to values
+ of every parameterized type.
+This reduces the cost of all boundary terms to at most
+ one type-tag check and one monitor application.
 
-@; TODO note no need to protect pairs???
-@; ... well I guess its obvious enough
+@Figure-ref{fig:conatural-delta} gives the details of this @emph{co-natural}
+ embedding as an extension of the natural embedding.
+In total, this language @${\langL} has four kinds of value forms:
+ integers, pairs, functions, function monitors, and pair monitors.
+The reduction rules define how the projections @${\vfst} and @${\vsnd}
+ act on pair monitors; in short, they act as projections across a boundary.
+Finally when a pair value crosses a boundary, it gets wrapping in a checking
+ (or protective) monitor.
 
-@Figure-ref{fig:conatural-delta} outlines the details for our multi-language
- as an extension of the natural embedding language @${\langN}.
-The new value @${\vmonpair{(\tpair{\tau_0}{\tau_1})}{v}} monitors a pair value.
-If @${v_m} is such a monitor, then every call @${(\efst{v_m})} checks that
- the first component of @${v} matches the @${\tau_0} type.
+From a theoretical standpoint, the change from a natural to a co-natural embedding
+ delays error-checking until just before an expression would reach an undefined
+ state.
+The co-natural embedding is still type sound in the same sense as the natural embedding:
 
-Proving natural type soundness for this embedding is straightforward.
-For any expression @${e} with type @${\tau}, if @${e} evaluates to a value
- then the value has type @${\tau} --- either from first principles or because
- the value is a monitor.
+@|C-SAFETY|
+@proof-sketch{ Similar to the natural embedding. }
+@; TODO actual link to appendix
 
-@emph{Remark}:
-whether the natural or co-natural embedding performs fewer type-checks in
- a particular program depends on its data access patterns.
-For example, the following program is at the ``break even'' point between
- the two embeddings:
+There are expressions, however, that reduce to an error in the natural embedding
+ and reduce to a value in the co-natural embedding; for instance
+ @${(\vfst{(\edyn{\tpair{\tnat}{\tnat}}{\vpair{6}{-1}})})}.
 
-@${
-\hfill
- (\vlam{(x:\tpair{\tint}{\tint})}{(\efst{x} + \efst{x})})
-\hfill }
-
-Suppose this function is invoked on a dynamically-typed pair of integers.
-Under the natural embedding, the boundary-crossing will check both components
- of the pair --- even though the function only accesses the first component.
-Under the co-natural embedding, the boundary-crossing will only check the tag.
-The two calls to @${\vfst}, however, will both trigger a type check.
-@emph{End Remark}
+The switch from eager to delayed run-time checks also affects performance.
+Instead of checking the contents of a pair exactly once, at a boundary, the
+ co-natural embedding described in @figure-ref{fig:conatural-delta} performs
+ a check for each application of @${\vfst} or @${\vsnd}.
+@citet[fgr-ifl-2007] have explored one method for dynamically reducing this cost.
+@; ... for our purposes we just care about O(n) -> O(1) ???
 
 
 @; -----------------------------------------------------------------------------
@@ -361,94 +354,59 @@ The two calls to @${\vfst}, however, will both trigger a type check.
 
 The second source of performance overhead in the natural embedding is the
  indirection cost of monitors.
-Each time a function value crosses a boundary, it accumulates a new type-checking
- monitor.
-The same holds true of pairs (or any co-variant, parameterized type) in the
- co-natural embedding.
-Put another way, our type-safe embeddings are space-inefficient.
+Each time a function value crosses a boundary, it accumulates a new monitor.
+Pair values in the co-natural embedding suffer the same overhead;
+ a call to @${\vfst} may factor through an unbounded number of monitor wrappers.
+To reduce the indirection cost, we need a way to collapse layers of monitors.
 
-A direct way to remove the indirection cost is to keep only the most recent monitor.
+A simple, efficient, and type-sound way to reduce the indirection cost
+ is to forget all but the most-recently-applied monitor@~cite[g-popl-2015].
 When a boundary expecting type @${\tau} finds a value of the form
- @${\vmon{\tau}{v}}, we forget the old monitor and return @${\vmon{\tau'}{v}}.
-We call this approach a forgetful embedding, based on Greenbergs similar proposal
- for space-efficient contracts.@note{Greenberg proposes three space-efficient
-  contract calculi: forgetful, heedful, and eidetic. We use forgetful because
-  it admits a monitor-free implementation.}
+ @${(\vmon{\tau'}{v})}, drop the @${\tau'} monitor and return @${(\vmon{\tau}{v})}.
+After all, if a function @${(\vlam{\tann{x}{\tau}}{e})} is well-typed,
+ then the function body @${e} cannot depend on any properties of the old
+ type @${\tau'} for soundness.
 
-It is far less obvious that a forgetful embedding can provide any kind of type
- soundness, given that it neglects to enforce certain static types.
-@;Moreover, collapsing monitors loses the one-to-one correspondence between
-@; boundary-crossings and monitors that was present in the natural embeddings.
-@; TODO ... I mean it wasn't obvious to me that soundness would work,
-@;   and had to add some non-obvious reduction rules to do so (looing under monitors)
+@Figure-ref{fig:forgetful-delta} presents a forgetful, final embedding that
+ co-natural and forgetful monitoring strategies.
+Intuitively, the only difference between the forgetful language @${\langF}
+ and the language in @figure-ref{fig:conatural-delta}
+ is that @${\langF} prevents monitors from stacking up.
+The details in @figure-ref{fig:forgetful-delta} address the fact that monitors
+ in @${\langF} no longer have a one-to-one correspondence with the type boundaries
+ that a value has crossed.
+In particular, if the value @${(\vmon{\tau}{v})} is in a dynamically-typed
+ context, then @${v} is @emph{not} necessarily a statically-typed value.
+@; TODO technically application should be "check type, substitute if OK",
+@;      its not right to just substitute
+We address this potential confusion in two steps.
+First, when the evaluator applies a function monitor to an argument, it
+ checks whether the call is crossing a type boundary.
+If so, it interposes a @${\vdyn} or @${\vsta} boundary between the function
+ body and surrounding context.
+Second, the boundaries @${(\esta{\tau}{v})} and @${(\edyn{\tau}{v})}
+ perform identical checks.
+The @${\mchk{\tau}{\cdot}} meta-function factors out the common work of checking
+ a value and dropping any existing monitor.
 
-@; TODO
-However is possible to prove the natural embedding soundness,
- namely that terms do not get stuck.
-
-The intuition --- due to Greenberg --- is that a forgetful embedding can be type
- sound provided no expression depends on a value having a forgotten type.
-
-To illustrate, consider the statically-typed expression @${(\vsum~1~\efst{x})}.
-This expression is well-typed if the variable @${x} has the static type @${\tpair{\tint}{\tau}}
- for some type @${\tau}.
-With the co-natural embedding, the run-time value of @${x} could be
- any statically type pair, or any monitor of the form @${(\vmonpair{(\tpair{\tint}{\tau})}{v})}
-That @${v} could be a monitor.
-If it is, there's only chance for errors; no chance that @${\deltaS} will get stuck.
-@; TODO would also work for Nat, I don't think this "intuition" is helping anyone
-For functions, need to check the original static domain and the codomain
- that the caller expects.
-@; ok the intuition defs needs to be here
-
-@; TODO call this a "forgetful final embedding"
-@Figure-ref{fig:forgetful-delta} extends our multi-language with a forgetful
- embedding.
-The syntax of value forms prevents nested monitors.
-Consequently, there is no distinction between ${\fromdyn} boundaries and
- @${\fromsta} boundaries; both must check a value against a type.
-The new reduction rules implement the checks necessary to prevent stuck states.
-The reduction rules for pairs check the contents of a monitored pair against
- the expectations of the context.
-The rules for applying a function check that the argument is within the function's
- domain, and introduce a boundary to check the function's codomain.
-With the addition of typing rules for the collapsed monitors, one can
- show that forgetful satisfies a variant of natural type safety:
+The language @${\langF} satisfies the same notion of soundness as the co-natural @${\langC}
+ and the natural @${\langN}:
 
 @|F-SAFETY|
-@proof-sketch{By progress and preservation of the @${\wellFE} judgment. See appendix.}
+@proof-sketch{
+  By progress and preservation of the @${\wellFE \cdot : \tau} relation.
+  The key invariant is that if @${x} is a statically-typed variable of type
+   @${\tau}, then the forgetful semantics ensures that the value substituted
+   for @${x} has the expected type.
+  This value may be different from the value substituted by the natural semantics,
+   but that distinction is not important for proving type soundness.
+}
 
+The forgetful embedding performs just enough run-time type checking to
+ ensure that statically-typed code does not reach an undefined state, nothing more.
 
-@; -----------------------------------------------------------------------------
-@section{Errors Matter!}
-
-The type safety theorem for the forgetful embedding is nearly identical
- to the natural embedding type safety.
-This gives the illusion that we have improved performance without any
- obvious loss.
-In fact, type safety holds because the theorem suffers two significant limitations
- in our context.
-
-First, the delayed type checking of monitors lets many values
- pretend to have an incorrect static type.
-For instance, the value @${(\vmonpair{(\tpair{\tnat}{\tnat})}{\vpair{4}{-4}})}
- is well-typed in the co-natural embedding.
-A statically typed function can return this value; the function's clients
- will only observe an error if they access the second component of this pair.@note{This
-  kind of latent error is analogous to the pitfalls of undiscovered lazy
-  computations in Haskell programs.}
-
-Second, type safety says nothing about how a well-typed value may be used by
- an enclosing expression.
-In a statically-typed language, the type of a value is a complete guarantee;
- any context must respect the type.
-This is not true in the forgetful embedding.
-The well-typed pair value @${(\vmonpair{(\tpair{\tnat}{\tnat})}{\vpair{-1}{\vlam{x}{x}}})}
- may be used as a pair of integers or a pair of functions depending on local type
- annotations and access patterns.
-
-In short, the combination of monitor values and forgetful semantics
- takes the compositional reasoning property out of the static type system.
+@;In short, the combination of monitor values and forgetful semantics
+@; takes the compositional reasoning property out of the static type system.
 
 
 @; -----------------------------------------------------------------------------

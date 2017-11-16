@@ -97,23 +97,7 @@ The languages in subsequent sections extend the syntax of @${\langM}
 @subsection{Co-Natural Embedding}
 @include-figure*["fig:conatural-embedding.tex" "Co-Natural Embedding"]
 
-@theorem[@elem{@${\langL} type safety}]{
-  If @${\wellM e : \tau} then @${\wellLE e : \tau} and either:
-}
-@itemlist[
-@item{
-  @${e \rrLEstar v} and @${\wellLE v : \tau}
-}
-@item{
-  @${e \rrLEstar E[e']} and @${e' \rrD \typeerror}
-}
-@item{
-  @${e \rrLEstar \valueerror}
-}
-@item{
-  @${e} diverges
-}
-]
+@|C-SAFETY|
 @proof{
   TODO
 }

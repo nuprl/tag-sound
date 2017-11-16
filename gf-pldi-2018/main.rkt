@@ -42,6 +42,7 @@
   S-SAFETY
   E-SAFETY
   N-SAFETY
+  C-SAFETY
   F-SAFETY
   K-SAFETY
   bm
@@ -356,6 +357,17 @@
     @item{ @${e \rrNEstar E[e']} and @${(e' \rrD \typeerror)} }
     @item{ @${e \rrNEstar \valueerror} }
     @item{ @${e} diverges } ]))
+
+(define C-SAFETY
+  (list
+    @theorem[@elem{@${\langL} type safety}]{
+      If @${\wellM e : \tau} then @${\wellLE e : \tau} and either:
+    }
+    @itemlist[
+    @item{ @${e \rrLEstar v} and @${\wellLE v : \tau} }
+    @item{ @${e \rrLEstar E[e']} and @${e' \rrD \typeerror} }
+    @item{ @${e \rrLEstar \valueerror} }
+    @item{ @${e} diverges }]))
 
 (define F-SAFETY
   (list
