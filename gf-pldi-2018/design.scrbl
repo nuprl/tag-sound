@@ -109,31 +109,36 @@ The challenge is to find a useful notion of soundness that yields a practical
 
 @; -----------------------------------------------------------------------------
 @section{Multi-Language Syntax}
-
 @include-figure["fig:mixed-delta.tex" @elem{Multi-Language @${\langM}}]
 
 @Figure-ref{fig:mixed-delta} defines the syntax and typing rules of a
  multi-language for @${\langD} and @${\langS}.
-The multi-language @${\langM} extends the common syntax in @figure-ref{fig:source-lang}
+The multi-language @${\langM} recursively extends the common syntax in @figure-ref{fig:common-syntax}
  with boundary expressions, combined value forms, and combined type contexts.
-The mutually-recursive well-formedness rules for @${\langM} control how an
- expression can mix static and dynamic typing.
-Informally, an expression @${e} has type @${\tau} in context @${\GammaS},
- written @${\GammaS \wellM e : \tau}, if all statically-typed sub-expressions
- of @${e} are well-typed and all dynamically-typed sub-expressions are
- well-formed.
+This language comes with two mutually-recursive typing judgments:
+ a well-formedness judgment @${\Gamma \wellM e} for dynamically-typed expressions
+ and a type-checking judgment @${\Gamma \wellM e : \tau} for statically-typed expressions.
 Note that the typing rules prevent a dynamically-typed expression from
- directly referencing a statically-typed variable.
-Cross-context references must go through a boundary.
+ directly referencing a statically-typed variable, and vice-versa.
+Cross-language references must go through a @${\vdyn} or @${\vsta} boundary
+ expression, depending on the context.
 
-In order to turn this multi-language into an embedding,
- we need to instantiate the (partial) functions
- @${\fromdyn} and @${\fromsta} that transport values between static and dynamic contexts.
-@; TODO we are NOT 'exploring' in section 3 of a PLDI submission!!!!!
+The definition of @${\langM} does not include a semantics.
+This is intentional; the rest of this section will introduce @integer->word[NUM-EMBEDDINGS]
+ alternative semantics, each with unique tradeoffs.
 
-@; ... should "recipe" go in the mixed-lang figure?
-@; - static->dyn dyn->sta
-@; - common reduction rules (but ... how to reference those later?)
+@Figure-ref{fig:mixed-delta} does, however, include a meta-function that
+ defines two mutually-recursive reduction relations from two notions of reduction.
+We use @${\DSlift{E}{\rrR}{E'}{\rrRp}}, or ``@${\rrR}-static bowtie-@${E} @${\rrRp}-dynamic'',
+ to build: (1) a reduction relation @${\ccR} for statically-typed expressions,
+ and (2) a reduction relation @${\ccRp} for dynamically-typed expressions.
+The idea is that @${\ccR} applied to a statically-typed expression @${e} will
+ apply @${\rrR} provided @${e} is not currently evaluating a boundary term;
+ otherwise @${\ccR} will dispatch to the analogous @${\ccRp} and the two will
+ flip-flop for nested boundaries.
+The payoff of this technical machinery is that a statically-typed term @${e}
+ cannot step via @${\ccR} to a type-tag error if @${e} does not embed
+ dynamically-typed code.
 
 
 @; -----------------------------------------------------------------------------
