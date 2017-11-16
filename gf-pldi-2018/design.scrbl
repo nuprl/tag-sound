@@ -204,61 +204,71 @@ For example,
 
 @; -----------------------------------------------------------------------------
 @section{The Natural Embedding}
-
 @include-figure*["fig:natural-delta.tex" "Natural Embedding"]
 
-A type-safe embedding must check dynamically-typed values flowing in to typed contexts.
-The natural way to implement checks is to interpret the boundary type as a checking scheme.
-@; in essence, canonical forms
-For base types, the check is typically straightforward.
-For covariant type constructors, it suffices to check outermost type-tag
- of an incoming value and recursively check its components.
+In order to provide some kind of type soundness, an embedding must restrict
+ the dynamically-typed values that can flow in to typed contexts.
+A ``natural'' kind of restriction is to let a value @${v} cross a boundary
+ expecting values of type @${\tau} only if @${v} matches the canonical forms
+ of the static type.
+For base types, this requires a generalized kind of type-tag check.
+For parameterized types that describe finitely-observable values,
+ this requires one tag check and a recursive check of the value's components.
 The recursive check is potentially expensive for large values, but it
- suffices to ensure type safety.
+ suffices to ensure type soundness.
 
-This ``inductive'' checking strategy fails, however, for higher-order values.
-It is generally infeasible to check whether a run-time value @${v} is
- built from an expression with the static type @${(\tarr{\tau_d}{\tau_c})}.
-@; TODO awkward
-More broadly, the same problem arises for any value with unknown size,
- such as a port that delivers an infinite stream of data.
-The classic solution is
- to use a ``coinductive'' strategy and monitor such values@~cite[ff-icfp-2002].
-For function types, this means the boundary type
- @${(\tarr{\tau_d}{\tau_c})} accepts any dynamically-typed function @${v}
- and signals a boundary error if a future application of @${v} produces
+This ``inductive'' checking strategy fails, however, for types that describe
+ values with infinitely many observable behaviors.
+For instance, it is generally impossible to check whether a run-time value @${v}
+ matches a function type.@note{It may be possible
+  to dynamically check the type @${(\tarr{\tau_d}{\tau_c})} in a pure language
+  if @${\tau_d} describes a small number of values, but this check is impossible
+  in any language worth building a migratory typing system for.}
+The same problem arises for types such as @${(\mathsf{Stream}~\tau)} that
+ describe infinite sources of data.
+
+The classic solution is to use a ``coinductive'' strategy and monitor the
+ future behaviors of values@~cite[ff-icfp-2002].
+For function types, this means a boundary expecting values of type
+ @${(\tarr{\tau_d}{\tau_c})} accepts any function value
+ and signals a boundary error if a future application of that value produces
  a result that does not match the @${\tau_c} type.
-Instead of checking that @${v} is well typed, the boundary monitors @${v}
- for any evidence that @${v} is not well typed.
-
-@; TODO fixup
-A type-safe embedding must also defend statically-typed
- functions against dynamically-typed arguments.
-When a function crosses from static to dynamic, its future arguments
- must be monitored.
+Instead of finding a good reason that the value is typed,
+ the language allows the value as long as there is no evidence that the value
+ is not well-typed@~cite[ks-mscs-2017].
 
 @Figure-ref{fig:natural-delta} implements a natural embedding by extending
- the multi-language with monitor values.
-A function monitor @${(\vmonfun{(\tarr{\tau_d}{\tau_c})}{v})} associates a type to a value;
- new reduction rule ensure that applying the monitor to an argument is
+ the multi-language with function monitor values.
+A monitor @${(\vmonfun{(\tarr{\tau_d}{\tau_c})}{v})} associates a type to a value;
+ new reduction rules ensure that applying the monitor to an argument is
  the same as applying the underlying value @${v} across two boundary expressions.
-@; monitor at boundary is the same as a function
+Note that statically-typed functions crossing into dynamically-typed code
+ are also wrapped in monitors.
+Such wrappers check that dynamically-typed arguments match the function's
+ static type.
 
 Monitor values establish a key invariant: every value in statically-typed
- code is either well-typed, or a monitor that encapsulates a dynamically-typed
- expression.
-With this invariant and an appropriate typing rule for monitors, one can
- prove a type safety theorem that guaratees the absence of type errors in
- statically-typed code.
+ code is either a well-typed value or a monitor that encapsulates an
+ evidently-well-typed value.
+This invariant enables a kind of type soundness that is nearly as strong
+ as @${\langS} soundness:
 
 @|N-SAFETY|
 @proof-sketch{
-  By progress and preservation lemmas for the @${\Gamma \wellNE e : \tau} judgment.
-  See the appendix for proof, and the full definition of the @${\rrNEstar} reduction relation.
-  Intuitively, @${\rrNEstar} applies @${\ccD} in dynamically-typed code,
-   @${\ccS} in statically-typed code, and uses boundary expressions to determine
-   which is which.
+  By progress and preservation lemmas for the @${\Gamma \wellNE \cdot : \tau} relation.
+  The lack of type-tag errors in statically-typed code follows from the
+   definition of the @${\ccNS} reduction relation.
 }
+
+@; TODO need to be explicit that TR compiles to R?
+
+Typed Racket implements the natural embedding by compiling static types
+ to contracts that check dynamically-typed code at run-time@~cite[thf-popl-2008].
+Under the protection of the contracts, Typed Racket may replace certain primitive operations
+ with faster, ``unsafe'' versions that are defined for a subset of the Racket value domain@~cite[sthff-padl-2012].
+This compilation technique can improve the performance of typed code, however,
+ the overhead of checking the contracts is a significant problem in
+ mixed programs@~cite[tfgnvf-popl-2016].
 
 
 @; -----------------------------------------------------------------------------
