@@ -413,6 +413,23 @@ The forgetful embedding performs just enough run-time type checking to
 @section{The Locally-Defensive Embedding}
 @include-figure*["fig:locally-defensive-delta.tex" "Locally-Defensive Embedding"]
 
+The final source of performance overhead in the natural embedding is the cost of
+ allocating monitor values.
+To remove this cost, we must remove monitors;
+ that is, we must replace the run-time analysis that monitors implement with
+ a static analysis that predicts where to insert soundness-enforcing run-time checks.
+
+At first glance, 
+
+
+
+The key insight to make this static analysis problem tractable is to aim for
+ a sufficiently weak notion of type soundness.
+
+
+
+
+
 An embedding that combines the co-natural and forgetful strategies
  checks only type-tags at elimination forms.
 For our multi-language, these elimination forms are function applications
