@@ -73,23 +73,19 @@ $\begin{array}{l@{~~}c@{~~}l l}
 
 \end{minipage}\hspace{\columnsep}%
 \begin{minipage}[t]{\columnwidth}
+\begin{minipage}[t]{0.6\columnwidth}
 \fbox{$\tagof{\tau} = \kappa$}\\
-\begin{minipage}[t]{0.5\columnwidth}
 $\begin{array}{l c l}
   \tagof{\tarr{\tau_d}{\tau_c}} & = & \kfun
 \\
   \tagof{\tpair{\tau_0}{\tau_1}} & = & \kpair
-\end{array}$
-\end{minipage}%
-\begin{minipage}[t]{0.5\columnwidth}
-$\begin{array}{l c l}
+\\
   \tagof{\tnat} & = & \knat
 \\
   \tagof{\tint} & = & \kint
 \end{array}$
 \end{minipage}%
-
-\medskip
+\begin{minipage}[t]{0.4\columnwidth}
 \fbox{$K \subk K$}
 \begin{mathpar}
   \inferrule*{
@@ -102,6 +98,8 @@ $\begin{array}{l c l}
     K \subk \kany
   }
 \end{mathpar}
+
+\end{minipage}
 
 \medskip
 \fbox{$\Gamma \wellKE e : K$} (selected rules):

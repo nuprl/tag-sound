@@ -65,6 +65,8 @@ Performance is fine, as long as we avoid contract combinators.
 
 
 @section{Tags for Unguarded Types}
+@; guarded/unguarded is a language-level distinction,
+@;  NOT an innate part of the types
 
 The types @${\tau} in the model all have simple canonical forms.
 For example, the pair type @${(\tpair{\tau_0}{\tau_1})} corresponds to
