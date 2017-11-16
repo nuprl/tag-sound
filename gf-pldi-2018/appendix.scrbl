@@ -79,23 +79,7 @@ The languages in subsequent sections extend the syntax of @${\langM}
 @subsection{Erasure Embedding}
 @include-figure["fig:erasure-embedding.tex" "Erasure Embedding"]
 
-@theorem[@elem{@${\langE} term safety}]{
-  If @${\wellM e : \tau} then @${\wellEE e} and either:
-}
-@itemlist[
-@item{
-  @${e~\rrEEstar~v} and @${\wellEE v}
-}
-@item{
-  @${e~\rrEEstar~\typeerror}
-}
-@item{
-  @${e~\rrEEstar~\valueerror}
-}
-@item{
-  @${e} diverges
-}
-]
+@|E-SAFETY|
 @proof{
   TODO
 }

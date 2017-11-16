@@ -712,6 +712,13 @@
                #:degree "Honour's")
    #:date 2012))
 
+(define bdt-esop-2016
+  (make-bib
+   #:title "Practical Optional Types for Clojure"
+   #:author (authors "Ambrose Bonnaire-Sergeant" "Rowan Davies" "Sam Tobin-Hochstadt")
+   #:location (proceedings-location esop #:pages '(68 94))
+   #:date 2016))
+
 (define mmi-dyla-2014
   (make-bib
    #:title "Typed Lua: An Optional Type System for Lua"

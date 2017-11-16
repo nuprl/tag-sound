@@ -4,6 +4,7 @@
 
 (provide
   ;; --- new stuff
+  blockquote
   MT
   TR
   good
@@ -39,6 +40,7 @@
 
   D-SAFETY
   S-SAFETY
+  E-SAFETY
   N-SAFETY
   F-SAFETY
   K-SAFETY
@@ -333,6 +335,17 @@
       @item{ @${e~\rrSstar~\valueerror} }
       @item{ @${e} diverges } ]))
 
+(define E-SAFETY
+  (list
+    @theorem[@elem{@${\langE} term safety}]{
+      If @${\wellM e : \tau} then @${\wellEE e} and either:
+    }
+    @itemlist[
+    @item{ @${e~\rrEEstar~v} and @${\wellEE v} }
+    @item{ @${e~\rrEEstar~\typeerror} }
+    @item{ @${e~\rrEEstar~\valueerror} }
+    @item{ @${e} diverges } ]))
+
 (define N-SAFETY
   (list
     @theorem[@elem{@${\langN} type soundness}]{
@@ -411,3 +424,6 @@
   (if TECH-REPORT?
     (cdr (syntax-e stx))
     #'(void)))
+
+(define (blockquote . elem*)
+  (nested #:style 'inset (emph elem*)))

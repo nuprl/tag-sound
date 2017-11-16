@@ -143,52 +143,63 @@ The payoff of this technical machinery is that a statically-typed term @${e}
 
 @; -----------------------------------------------------------------------------
 @section{The Erasure Embedding}
-
 @include-figure["fig:erasure-delta.tex" "Erasure Embedding"]
 
-The simplest @|EGOOD| pair of embedding functions lets any value cross any boundary:
+If we can settle for a multi-language that avoids undefined behavior
+ but does not guarantee any kind of type soundness, we can define a semantics
+ in three easy steps.
+First, let any statically-typed value pass into dynamically-typed code.
+Second, let any dynamically-typed value pass into statically-typed code.
+Third, base the evaluator on the dynamically-typed notion of reduction.
 
-@exact|{
-  $\hfill\fromdyn(\tau, v) = v \hfill$
+@Figure-ref{fig:erasure-delta} implements this @emph{erasure semantics} for
+ the @${\langM} language.
+The notion of reduction @${\rrEE} extends the dynamically-typed reduction to handle
+ type-annotated functions and boundary expressions; it ignores the types.
+There is no need to use the @${\bowtie} meta-function to define the evaluator;
+ we just extend evaluation contexts to allow reduction under boundaries
+ and take the appropriate closure of @${\rrEE}.
+The typing judgment @${\Gamma \wellEE e} recursively extends the notion of
+ a well-formed program to ignore any type annotations.
+Using @${\Gamma \wellEE \cdot} as a run-time invariant, we can prove soundness for
+ @${\langE}:
 
-  $\hfill\fromsta(\tau, v) = v \hfill$
-}|
+@|E-SAFETY|
+@proof-sketch{
+ By progress and preservation of @${\wellEE}.
+}
 
-Using these functions, @figure-ref{fig:erasure-delta} defines an @emph{erasure embedding}
- by extending
- the dynamically-typed reduction relation @${\rrD} with new cases for typed
- functions and boundary expressions.
-@; TODO add note that need to update the old rule for applying non-function?
-@;      ... does appendix take care about this?
-The new rules simply ignore the types.
-
-Clearly this embedding is not type safe.
+Clearly, the erasure embedding is unsound with respect to static types.
 One can easily build a well-typed expression that reduces to a value
- with a completely different type, for example @${(\edyn{\tint}{\vlam{x}{x}})}.
-Worse yet, well-typed expressions may produce unexpected errors,
- or silently compute nonsensical results, for example when a function expecting
- a natural number is applied to an integer.
-In short, erased types cannot be used to reason about program behavior.
+ with a completely different type.
+For example, @${(\edyn{\tint}{\vlam{x}{x}})}
+ has the static type @${\tint} but evaluates to a function.
+Worse yet, well-typed expressions may produce unexpected errors (a category I disaster),
+ or silently compute nonsensical results (a category II disaster).
+To illustrate this second kind of danger, recall the story
+ of Professor Bessel@~cite[r-ip-1983]:
 
-@;@exact|{
-@;$ ((\vlam{\tann{x}{\tnat}}{42 / (x + 1)})~\edyn{\tnat}{-1}) $
-@;}|
+@blockquote{
+  Professor Bessel announced that a complex number was an ordered pair of reals
+  the first of which was nonnegative
+}
+@;
+A student might use the type @${(\tpair{\tint}{\tnat})}
+ to model (truncated) Bessel numbers and define a few functions based on the lecture notes.
+Calling one of these functions with the dynamically-typed value @${\vpair{1}{-4}}
+ may give a result, but probably not the right one!
 
-Despite the lack of type safety, the erasure embedding does satisfy a term
- safety theorem:
- for any expression @${e} such that @${\wellM e : \tau}, evaluation of
- @${e} never reaches an undefined state.
-The proof follows by progress and preservation of the @${\Gamma \wellEE e}
- judgment sketched in @figure-ref{fig:erasure-delta}.
+Despite the lack of type safety, the erasure embedding has found increasingly widespread use.
+For example,
+ Hack@note{@url{http://hacklang.org/}},
+ TypeScript@note{@url{https://www.typescriptlang.org/}},
+ and Typed Clojure@~cite[bdt-esop-2016] implement this embedding@exact{\textemdash}by
+ statically erasing types and re-using the PHP, JavaScript, or Clojure
+ runtime.
+@; @note{Anecdotal evidence of nasty TypeScript bugs from the @href["http://plasma.cs.umass.edu/"]{PLASMA group} at UMass.}
 
-@emph{Remark}:
-An equivalent way to define the erasure embedding is to first remove the type
- annotations and second re-use the dynamically-typed reduction relation.
-This simple idea has found increasingly widespread use; see, for example,
- TypeScript,@note{@url{https://www.typescriptlang.org/}}
- the Python function annotations API,@note{@url{https://www.python.org/dev/peps/pep-3107/}}
- and Pluggable Type Systems@~cite[bracha-pluggable-types].
-@emph{End Remark}
+@; python annotations API @note{@url{https://www.python.org/dev/peps/pep-3107/}}
+@; pluggable type systems @~cite[bracha-pluggable-types].
 
 
 @; -----------------------------------------------------------------------------
