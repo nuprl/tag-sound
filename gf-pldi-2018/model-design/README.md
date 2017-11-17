@@ -1,4 +1,4 @@
-little-model
+Models for _The Spectrum of Soundness and Performance_
 ===
 
 Series of simple PLT Redex models to describe the key ideas of type-tag soundness.
@@ -20,16 +20,16 @@ Series of simple PLT Redex models to describe the key ideas of type-tag soundnes
 
 ### Outline
 
-Every `little-*.rkt` file contains a PLT Redex model.
+Most `*.rkt` files contains a PLT Redex model.
 
-1. `little-dyn.rkt` dynamically typed language, term safety theorem
-2. `little-sta.rkt` statically typed language, type safety theorem
-3. `little-mixed.rkt` combined language "well-formed" rules
-4. `little-erased.rkt` type-erased embedding
-5. `little-natural.rkt` natural (type-directed) embedding
-6. `little-conatural.rkt` co-natural embedding
-7. `little-forgetful.rkt` forgetful final embedding
-8. `little-tagged.rkt` monitor-free lazy-forgetful natural embedding
+1. `dyn.rkt` dynamically typed language, term safety theorem
+2. `sta.rkt` statically typed language, type safety theorem
+3. `mixed.rkt` combined language "well-formed" rules
+4. `erased.rkt` type-erased embedding
+5. `natural.rkt` natural (type-directed) embedding
+6. `conatural.rkt` co-natural embedding
+7. `forgetful.rkt` forgetful final embedding
+8. `tagged.rkt` monitor-free lazy-forgetful natural embedding
 
 Other files:
 
@@ -45,16 +45,16 @@ HOW TO READ, assuming `A` and `B` are module names:
   at least for my conception of things
 
 ```
-     little-dyn   little-sta
-           \      /
-            \    /
-          little-mixed
-          /      | | \
-  little-natural | |  little-erased
-                 | |
-                 | little-conatural
-                 | |
-                 | little-forgetful
-                 |
-                 little-tagged
+     dyn   sta
+      \     /
+       \   /
+       mixed
+     /   | | \
+ natural | |  erased
+         | |
+         | conatural
+         | |
+         | forgetful
+         |
+         tagged
 ```
