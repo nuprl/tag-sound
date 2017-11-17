@@ -31,7 +31,6 @@ $\begin{array}{l@{~~}c@{~~}l}
   }
 
   \inferrule*{
-    i \in \integers
   }{
     \GammaS \wellsta i : \tint
   }
@@ -79,7 +78,7 @@ $\begin{array}{l@{~~}c@{~~}l}
   }
 \end{mathpar}
 
-\medskip
+\smallskip
 \begin{minipage}[t]{0.5\columnwidth}
 \fbox{$\Delta(\vunop, \tau) = \tau$}\\
 $\begin{array}{l@{~~}c@{~~}l}
@@ -97,8 +96,8 @@ $\begin{array}{l@{~~}c@{~~}l}
 \end{array}$
 \end{minipage}
 
-\medskip
-\fbox{$\tau \subt \tau$}\\[-1em]
+\smallskip
+\fbox{$\tau \subt \tau$}\\[-4ex]
 \begin{mathpar}
   \inferrule*{
   }{
@@ -122,7 +121,7 @@ $\begin{array}{l@{~~}c@{~~}l}
   }
 \end{mathpar}
 
-\medskip
+\smallskip
 \fbox{$e \rrS A$}\\
 $\begin{array}{l@{~~}c@{~~}l}
   (\vlam{\tann{x}{\tau_d}}{e})~v & \rrS & \vsubst{e}{x}{v}
@@ -132,7 +131,7 @@ $\begin{array}{l@{~~}c@{~~}l}
   \ebinop{v_0}{v_1} & \rrS & \delta(\vbinop, v_0, v_1)
 \end{array}$
 
-\medskip
+\smallskip
 \fbox{$e \rrSstar A$} reflexive, transitive closure of $\cclift{\ES}{\rrS}$
 
 \end{flushleft}

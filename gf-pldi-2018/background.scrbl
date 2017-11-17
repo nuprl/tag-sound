@@ -39,13 +39,12 @@ like the host language with syntax for explicit type annotations.  The
 foreign-function interface (FFI) is typically part of a runtime system that
 monitors interactions between statically-typed and dynamically-typed
 values. The FFI @emph{introduces} the boundary (and therefore run-time)
-checks as needed for the desired level of type soundness. 
+checks that ensure type soundness.
 
-From the literature on multi-language semantics we know that an FFI demands
+From the literature on multi-language semantics we know that an FFI requires
 a well-specified embedding of values from one language in the other and
-that this embedding supports a soundness guarantee (or doesn't). Since
-@${\langD} and @${\langL} share values, the FFI does not need to worry
-about value conversion@~cite[gff-oopsla-2005 bbdt-ecoop-2016].
+that this embedding aims to provide a soundness guarantee. Since
+@${\langD} and @${\langS} share values, value conversion is not a problem for us@~cite[gff-oopsla-2005 bbdt-ecoop-2016].
 
 @bold{Note} We must make a choice concerning which values may cross
 these special boundaries. To keep the boundaries as inexpensive as
@@ -61,10 +60,8 @@ An @emph{embedding} in this sense may consist of static and dynamic
 components.  On the static end, the multi-language may add expression and
 value forms, as well as typing rules for the new additions.  At a minimum,
 the extension must include so-called @emph{boundary terms} to draw a line
-between code from either source language:
-
-@$|{\hfill \edyn{\tau}{e} \qquad \esta{\tau}{e} \hfill}|
-@;
+between code from either source language; we use @${(\edyn{\tau}{e})} and
+@${\esta{\tau}{e}}.
 A @${\vdyn} expression embeds a dynamically-typed expression @${e} into a
 statically-typed context that expects a value of type @${\tau}. 
 A @${\vsta} expression embeds a statically-typed expression @${e}

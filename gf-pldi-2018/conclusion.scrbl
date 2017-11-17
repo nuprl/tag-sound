@@ -9,7 +9,7 @@ The paper contributes two major results. First, the idea of viewing
  type-soundness conditions, depending on which kind of ``foreign-function
  interface'' we choose. Each soundness condition has different implications
  for how a developer can reason about the code, especially when it comes to
- searching for error. 
+ diagnosing the cause of a run-time error.
 @itemlist[
 
 @item{Running a Typed Racket program as a Racket program (via erasure)
@@ -17,7 +17,7 @@ The paper contributes two major results. First, the idea of viewing
  information in the code does @emph{not} reduce the search space. Indeed, a
  violation of the types in the source code may go unnoticed.}
 
-@item{Running a Typed Racket program in LD Racket is guaranteed to reveal a
+@item{Running a Typed Racket program in @|LD-Racket| is guaranteed to reveal a
  violation of types @emph{eventually} if it affects the execution. The
  delayed checking schema may completely obscure the source of the error,
  however.}
@@ -30,10 +30,10 @@ The paper contributes two major results. First, the idea of viewing
 ]
 
 Second, our measurements are the first ``apples-to-apples'' comparison, and
-they confirm that a ``locally defensive' semantics reduces the cost of a
+they confirm that a locally defensive semantics reduces the cost of a
 migratory run-time checking by at least an order of magnitude. We
-conjecture that additional improvements on the checking scheme and the LD
-implementation may bring the performance well within a rather reasonable D
+conjecture that additional improvements on the checking scheme and the @|LD-Racket|
+implementation may bring the performance within a reasonable overhead
 factor for every mixed-typed configuration.
 
 The question for researchers is thus what developers really want from a

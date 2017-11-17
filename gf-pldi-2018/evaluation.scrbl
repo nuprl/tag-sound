@@ -4,7 +4,7 @@
 
 Based on the models, the natural, locally-defensive, and erased embeddings seem to occupy
  three distinct points on a spectrum between soundness and performance.
-To measure how these embeddings stack up in an ``apples to apples'' comparison@note{@citet[gm-pepm-2018] measure the performance of tag-sound Reticulated and speculate it out-performs Typed Racket.}
+To measure how these embeddings stack up
  as competing implementation strategies for the same host language and typing system,
  we have implemented a locally-defensive embedding as an extension of Typed Racket.
 Since Typed Racket implements a natural embedding, this allows us to compare the three approaches:
@@ -35,11 +35,8 @@ Our implementation of the locally-defensive embedding exists as a fork of Typed 
 @|LD-Racket| extends Typed Racket with a type-to-tag compiler and a completion
  function for type-annotated programs.
 
-The type-to-tag function compiles a static
+The type-to-tag function compiles a representation of a static
  type to a Racket predicate that checks whether a value matches the type.
-This function follows the specification described by the @${\tagof{\cdot}}
- function from @section-ref{sec:implementation}.
-
 The completion function traverses a well-typed program and inserts two kinds of checks.
 It adds an @tt{assert} statement to every statically-typed function to defend
  the function body against dynamically-typed arguments.
@@ -71,11 +68,11 @@ The baseline we use is the performance of Racket.
 We refer to this as the untyped configuration.
 Its performance corresponds to an erasure embedding.
 
-@emph{Remark} the premise of the @deliverable{D} measure is that programmers
+@emph{Remark} The premise of the @deliverable{D} measure is that programmers
  have a fixed performance requirement.
 Certain applications may have strict performance requirements and can
- only tolerate a 10% overhead, corresponding to @${D = 1.1x}.
-Others may accept overhead as high as @${D = 10x}.
+ only tolerate a 10% overhead, corresponding to @${D\,=\,1.1x}.
+Others may accept overhead as high as @${D\,=\,10x}.
 No matter the requirement, any programmer can instantiate @${D} and check whether
  the proportion of @deliverable{D} configurations is high enough to enable
  an incremental transition to a typed codebase.
@@ -132,7 +129,7 @@ Using @|LD-Racket|
  increases its worst-case overhead from @render-max-overhead['typed 'morsecode #:precision '(= 1)]
  to @render-max-overhead['tagged 'morsecode #:precision '(= 1)].
 This degredation occurs because the pervasive type-tag checks of @|LD-Racket|
- introduce more overhead than Typed Racket's boundary checks.
+ introduce more overhead than the boundary checks inserted by Typed Racket.
 
 More broadly, the overhead in @bm{morsecode} speaks to a general trend:
  as the amount of statically-typed code increases, the performance overhead

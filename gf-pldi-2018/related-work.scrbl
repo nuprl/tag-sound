@@ -22,7 +22,6 @@ This led to a series of works on designing types to accomodate the idioms
  of dynamically-typed Racket; see @citet[tfffgksst-snapl-2017] for an overview.
 Other migratory typing systems target
  JavaScript@~cite[bat-ecoop-2014],
- PHP,
  Python@~cite[vksb-dls-2014], and
  Smalltalk@~cite[acftd-scp-2013].
 
@@ -47,8 +46,7 @@ They apply the method to Typed Racket and find that its performance is a serious
 @parag{Type-Tag Soundness}
 
 @citet[vss-popl-2017] present a compiler from a statically-typed source language
- to a Python-like target language and prove that compiled programs satisfy
- a theorem similar to our type-tag soundness.
+ to a Python-like target language and prove a type-tag soundness theorem.
 Using the ideas from the calculus, they implement a locally-defensive embedding
  of Reticulated (a statically typed variant of Python) into Python 3.
 Their so-called transient semantics is the motivation for our work;
@@ -61,11 +59,10 @@ The idea of rewriting an expression to add explicit safety checks goes back
  at least to @citet[henglein-scp-1994], from whom we adopt the name @emph{completion}.
 
 
-@parag{Space-Efficient Contracts}
-
-The forgetful embedding is due to Greenberg's semantics for space-efficient
- manifest contracts@~cite[g-popl-2015].
-
+@;@parag{Space-Efficient Contracts}
+@;
+@;The forgetful embedding is due to Greenberg's semantics for space-efficient
+@; manifest contracts@~cite[g-popl-2015].
 
 @;@parag{Multi-Language Semantics}
 @;@citet[mf-toplas-2007] introduce the first formal semantics for a multi-language.
@@ -80,8 +77,8 @@ The forgetful embedding is due to Greenberg's semantics for space-efficient
 
 The co-natural embedding is directly inspired by Findler and Felleisen's technique
  for higher-order contracts@~cite[ff-icfp-2002] and prior work on lazy contract checking@~cite[fgr-ifl-2007].
-We conjecture that this embedding could be viewed as a @emph{final algebra semantics}@~cite[w-jcss-1979],
- in contrast to the natural embedding.
+We conjecture that this embedding could be viewed as a @emph{final algebra semantics}@~cite[w-jcss-1979].
+@; in contrast to the natural embedding.
 
 
 @parag{Spectrum of Type Soundness}
