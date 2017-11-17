@@ -7,14 +7,11 @@
 In the broad sense, the term gradual typing@~cite[st-sfp-2006] describes
  any research that combines static and dynamic typing.
 In the more precise sense defined by @citet[svcb-snapl-2015], a gradual typing
- system includes: (1) a ``dynamic'' type that may be implicitly cast to
+ system includes: (1) a dynamic type that may be implicitly cast to
  any other type; (2) a relation between types that are equal up to occurrences
  of the dynamic type; and (3) a proof that replacing any
  static type with the dynamic type can only affect the semantics of a term
  by removing a boundary error.
-We leave open the question of how our type soundness and performance
- results apply to a true gradual typing system;
- we conjecture that the two areas are orthogonal.
 
 
 @parag{Migratory Typing}
@@ -32,11 +29,11 @@ Other migratory typing systems target
 
 @parag{Gradual Typing Performance}
 
-@citet[tfgnvf-popl-2016] introduce an method for systematically evaluating
+@citet[tfgnvf-popl-2016] introduce a method for systematically evaluating
  the performance of a gradual typing system.
 They apply the method to Typed Racket and find that its performance is a serious
  problem.
-@citet[bbst-oopsla-2017] apply the method to a tracing JIT back-end for Typed
+@citet[bbst-oopsla-2017] apply the method to a tracing JIT back-end for a subset of Typed
  Racket and report order-of-magnitude improvements without sacrificing soundness,
  performance, or error messages.
 
@@ -44,7 +41,7 @@ They apply the method to Typed Racket and find that its performance is a serious
  and find that the overhead of type-tag soundness is within 10x on their benchmarks.
 @citet[mt-oopsla-2018] evaluate the performance of an object calculus and
  report that natural-embedding gradual typing can yield an efficient implementation
- if the language of types is limited to a nominal class hierarchy.
+ if the language of types is restricted to a finite set of (unparameterized) class names.
 
 
 @parag{Type-Tag Soundness}
@@ -66,10 +63,8 @@ The idea of rewriting an expression to add explicit safety checks goes back
 
 @parag{Space-Efficient Contracts}
 
-The forgetful embedding is based on Greenberg's semantics for space-efficient
+The forgetful embedding is due to Greenberg's semantics for space-efficient
  manifest contracts@~cite[g-popl-2015].
-Prior work has explored different techniques to prevent higher-order
- contracts from stacking up without bound@~cite[htf-hosc-2010 sw-popl-2010].
 
 
 @;@parag{Multi-Language Semantics}
@@ -84,8 +79,8 @@ Prior work has explored different techniques to prevent higher-order
 @parag{Final Algebra Semantics}
 
 The co-natural embedding is directly inspired by Findler and Felleisen's technique
- for higher-order contracts@~cite[fgr-ifl-2007] and prior work on lazy contract checking@~cite[ff-icfp-2002].
-We conjecture that this embedding is a @emph{final algebra semantics}@~cite[w-jcss-1979],
+ for higher-order contracts@~cite[ff-icfp-2002] and prior work on lazy contract checking@~cite[fgr-ifl-2007].
+We conjecture that this embedding could be viewed as a @emph{final algebra semantics}@~cite[w-jcss-1979],
  in contrast to the natural embedding.
 
 
@@ -99,5 +94,5 @@ Programmers can switch between like types and normal types to exchange
 The @emph{progressive types} vision paper describes a type system in which
  programmers can decide whether certain errors are caught statically or dynamically@~cite[pqk-onward-2012].
 This offers a choice between (1) statically proving an expression is universally correct,
- and (2) letting the run-time dynamically check the whether the code is safe in practice.
+ and (2) letting the run-time dynamically check whether the code is safe in practice.
 
