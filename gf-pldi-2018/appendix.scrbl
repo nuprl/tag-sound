@@ -30,10 +30,60 @@ This appendix contains:
 @section{Benchmark Descriptions}
 
 @bm-desc[
-  "FSM"
-  "Lihn Chi Nguyen"
+  "sieve"
+  "Ben Greenman"
   '()]{
-  "Automata"
+  Computes prime numbers using the sieve of Eratosthenes.
+}
+@bm-desc[
+  "fsm"
+  "Linh Chi Nguyen"
+  '()]{
+  Simulates the interactions of economic agents modeled as finite-state automata.
+}
+@bm-desc[
+  "morsecode"
+  "John B. Clements & Neil Van Dyke"
+  '()]{
+    Computes Levenshtein distances and morse code translations for a fixed
+    sequence of pairs of words.
+}
+@bm-desc[
+  "zombie"
+  "David Van Horn"
+  '()]{
+  Implements a game where players dodge computer-controlled ``zombie'' tokens.
+  The benchmark runs a fixed sequence of moves (representing user input).
+}
+@bm-desc[
+  "suffixtree"
+  "Danny Yoo"
+  '()]{
+    Computes longest common subsequences between strings.
+}
+@bm-desc[
+  "kcfa"
+  "Matt Might"
+  '()]{
+    Performs 1-CFA on a lambda calculus equation built from Church numerals.
+}
+@bm-desc[
+  "snake"
+  "David Van Horn"
+  '()]{
+    Implements the Snake game; the benchmark replays a fixed sequence of moves.
+}
+@bm-desc[
+  "tetris"
+  "David Van Horn"
+  '()]{
+    Replays a pre-recorded game of Tetris.
+}
+@bm-desc[
+  "synth"
+  "Vincent St. Amour & Neil Toronto"
+  '()]{
+  Converts a description of notes and drum beats to @tt{WAV} format.
 }
 
 @figure["fig:benchmark-static" "Benchmark Size"
