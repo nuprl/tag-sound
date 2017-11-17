@@ -55,7 +55,7 @@
 (define RKT-VERSION "6.10.1")
 (define NUM-SAMPLES 200)
 (define TAG-VERSION "v0.14")
-(define OVERHEADS-HEIGHT 600)
+(define OVERHEADS-HEIGHT 670)
 (define OVERHEADS-HSPACE 30)
 (define OVERHEADS-VSPACE 6)
 (define OVERHEADS-WIDTH 600)
@@ -138,6 +138,7 @@
                  [*GRID-Y-SKIP* OVERHEADS-VSPACE]
                  [*GRID-NUM-COLUMNS* NUM-COLUMNS]
                  [*LEGEND?* #false]
+                 [*LEGEND-VSPACE* 4]
                  [*FONT-SIZE* 8]
                  [*COLOR-CONVERTER* my-color-converter]
                  [*with-cache-fasl?* #f]
