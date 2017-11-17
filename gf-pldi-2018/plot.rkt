@@ -16,6 +16,7 @@
   NUM-ITERS
   X-MAX
   overhead-plot*
+  exact-plot*
   models-roadmap
   render-max-overhead)
 
@@ -126,7 +127,7 @@
   ;; TODO
   8)
 
-(define (overhead-plot* x*)
+(define (make-plot* make-f x* [extra-tag #f])
   (define base-cache-keys (list *GRID-X* *GRID-Y* *OVERHEAD-MAX*))
   (parameterize ([*OVERHEAD-SHOW-RATIO* #f]
                  [*OVERHEAD-SAMPLES* NUM-SAMPLES]
@@ -144,13 +145,25 @@
                  [*with-cache-fasl?* #f]
                  [*current-cache-directory* (build-path CWD CACHE-DIR)])
     (define (make-overhead-plot/cache x)
-      (define filename (data->filename x))
+      (define filename
+        (let ((base (data->filename x)))
+          (if extra-tag
+            (string-append extra-tag "-" base)
+            base)))
       (define current-md5 (data->md5sum x))
       (parameterize ([*current-cache-keys* (cons (λ () current-md5) base-cache-keys)])
         (with-cache (cachefile filename)
           (λ ()
-            (data->plot x)))))
+            (make-f x)))))
     (grid-plot make-overhead-plot/cache x*)))
+
+(define (overhead-plot* x*)
+  (make-plot* data->plot x*))
+
+(define (exact-plot* x*)
+  (parameterize ([*OVERHEAD-FREEZE-BODY* #true]
+                 [*POINT-COLOR* START-COLOR])
+    (make-plot* data->exact-plot x* "exact")))
 
 (define (data->filename x)
   (cond
@@ -197,6 +210,15 @@
     (overhead-plot (map make-typed-racket-info x))]
    [else
     (raise-argument-error 'data->plot "unrecognized data format" x)]))
+
+(define (data->exact-plot x)
+  (cond
+   [(path-string? x)
+    (exact-runtime-plot (make-typed-racket-info x))]
+   [(pair? x)
+    (exact-runtime-plot (map make-typed-racket-info x))]
+   [else
+    (raise-argument-error 'data->exact-plot "unrecognized data format" x)]))
 
 (define (models-roadmap #:D dyn-name
                         #:S sta-name
