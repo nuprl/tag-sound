@@ -4,6 +4,8 @@
 
 (provide
   ;; --- new stuff
+  bm-desc
+  lib
   blockquote
   MT
   TR
@@ -36,6 +38,7 @@
   deliverable
   LD-Racket
   x-axis
+  y-axis
   IF-TECHREPORT
 
   D-SAFETY
@@ -425,6 +428,9 @@
 (define x-axis
   (exact "\\emph{x}-axis"))
 
+(define y-axis
+  (exact "\\emph{y}-axis"))
+
 (define (bm str)
   (define sym (string->symbol str))
   (unless (memq sym BM-NAME*)
@@ -439,3 +445,36 @@
 
 (define (blockquote . elem*)
   (nested #:style 'inset (emph elem*)))
+
+(define (bm-desc title author lib . descr)
+  ;(void (->benchmark title)) ;; assert that 'title' is the name of a benchmark
+  (elem
+    (parag title)  (smaller "from " author)
+    (linebreak)
+    ;ignore `url`
+    (format-deps lib)
+    (linebreak)
+    descr))
+
+(define (format-deps dep*)
+  (if (null? dep*)
+    "No dependencies."
+    (let-values ([(lib* other*) (partition lib? dep*)])
+      (list "Depends on "
+            (cond
+             [(null? lib*)
+              other*]
+             [(null? other*)
+              (format-lib lib*)]
+             [else
+              (list (format-lib lib*) ", and " other*)])
+            "."))))
+
+(define (format-lib lib*)
+  (define n*
+    (for/list ([l (in-list lib*)])
+      (hyperlink (lib-url l) (tt (lib-name l)))))
+  (define l-str (if (null? (cdr lib*)) "library" "libraries"))
+  (list "the " (authors* n*) " " l-str))
+
+(struct lib [name url] #:transparent)
