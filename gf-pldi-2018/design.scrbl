@@ -235,7 +235,7 @@ For function types, this means a boundary expecting values of type
  a result that does not match the @${\tau_c} type.
 Instead of finding a good reason that the value is typed,
  the language allows the value as long as there is no evidence that the value
- is not well-typed@~cite[ks-mscs-2017].
+ is not well-typed.
 
 @Figure-ref{fig:natural-delta} implements a natural embedding by extending
  the multi-language with function monitor values.

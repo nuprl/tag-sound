@@ -1,148 +1,84 @@
 #lang gf-pldi-2018
 @title[#:tag "sec:implementation"]{Scaling the Model to an Implementation}
 
-@; Notes:
-@; - separate compilation
-@; - near-constant time checks
-@; - no space
-@; - "minimize" checks, fully-typed should be fast
-
 @; -----------------------------------------------------------------------------
 
-The general recipe for scaling the model of the locally-defensive embedding
- to an implementation in a practical language has three steps:
- (1) define a type-tag for each static type,
- (2) tag-check the actual parameters of every typed function,
- and (3) tag-check the result of every elimination form.
-In practice, there are some design decisions to consider.
-
-@; hints for implementors?
-@; lessons
-@; clarifications
-@; ... ?
+The models make a few technical simplifications, and do not address
+ the full range of types found in practical languages.
+Here we sketch how to overcome these limitations.
 
 
-@section{ERASE TYPES}
+@section{Compiling to a Host Language}
 
-Real implementations do not have 2 interpreters, just one.
+The semantics of the models are specified as small-step operational semantics
+ for an expression language.
+Futhermore, the type-sound embeddings (natural, co-natural, forgetful, and locally-defensive)
+ use two mutually-recursive reduction relations.
+In practice, a migratory typing system for a language @${\langD}
+ compiles statically-typed code to the host language, @${\langD}, and uses
+ its operational semantics.
+This raises two questions for our models.
 
-Because we proved no segfaults can make ->D and ->S the same
+The first question is how to represent the static types
+ that the models use in monitor values and function applications.
+For a monitor value @${(\vmonfun{\tarr{\tau_d}{\tau_c}}{v})}, a suitable
+ compiled representation is @${(\vmonfun{\vpair{e_d}{e_c}}{v})} where
+ @${e_d} is a host-language function that checks whether a value matches the
+ domain type.
+For functions @${(\vlam{\tann{x}{\tau}}{e})} in the forgetful embedding,
+ the function domain @${\tau} can replace the domain type in its enclosing monitor.
+ @;because the domain that the context expects is only important for proving type soundness.
+Finally, a function @${(\vlam{\tann{x}{\tau}}{e})} in the locally-defensive
+ embedding can compile to a function that checks the actual value of
+ @${x} against the type @${\tau} before executing the function body@~cite[vss-popl-2017].
 
-Theorem ... go over mixed type term,
- run ->D implies same first-order result,
- (functions have different type annotations)
-
-
-@section{More Simple Type-Tags}
-
-Mutable is no problem
-Objects, check the fields
-Functions, design choices
-
-@subsection{Invariant Types}
-
-Invariant datatypes, such as those representing a mutable array,
- pose no extra difficulty.
-A mutable data structure must be tag-checked the same way as an immutable one;
- all reads must be guarded.
-This defense means that writes can be unguarded.
-
-Put another way, an array is just like a function that accepts any input.
-Writing to an array is the same as calling a total function.
-The write can never fail, so there is no need to interpose a tag check.
-
-
-@subsection{Function Types}
-
-The model has exactly one kind of function type, and assigns it a simple tag.
-Real languages may have many function types,
- N-ary functions,
- variable-arity functions,
- and functions expecting keyword arguments.
-
-For the Racket implementation, we check the number of args and kwards.
-Performance is fine, as long as we avoid contract combinators.
+The second question is whether it is type-sound to use the @${\langD} reduction relation
+ on statically-typed terms.
+This is sound for all the models in this paper.
+Intuitively, the only difference between static and dynamic reduction in the models
+ is how they interpose boundary terms and the number of run-time checks they
+ perform.
+The boundaries are irrelevant in an implementation because there is only one
+ notion of reduction.
+As for the run-time checks, the static reduction can skip checks that the
+ dynamic reduction must perform.
+Thus it is safe to use the more conservative, dynamically-typed reduction relation.
 
 
-@section{Tags for Unguarded Types}
-@; guarded/unguarded is a language-level distinction,
-@;  NOT an innate part of the types
+@section{Tags for Additional Types}
 
-The types @${\tau} in the model all have simple canonical forms.
-For example, the pair type @${(\tpair{\tau_0}{\tau_1})} corresponds to
- values of the form @${\vpair{v_0}{v_1}}; these match the tag @${\kpair}.
+The literature on migratory typing describes methods for implementing
+ a variety of types, including untagged union types@~cite[thf-popl-2008]
+ and structural class types@~cite[tfdffthf-ecoop-2015].
+Those techniques apply to the co-natural and forgetful embeddings.
+@; WHAT ABOUT BLAME???
 
-@; TOO MEANDERING
+Techniques for the locally-defensive embedding are less well-known, so we describe a few here.
+To support @emph{types for mutable data}, it suffices to tag-check every
+ read from a mutable data structure.
+If all reads are checked, then writes to a mutable value do not require a tag check.
 
-A type is @emph{trivially tagged} if the definition of @${\tagof{\tau}} is not
- recursive.
-Some common types are not trivially tagged.
-We describe how to handle these below.
+To support @emph{structural class types} and functions with @emph{optional and keyword arguments},
+ a language designer has two choices.
+One choice is to simply check that the incoming value is a class or procedure.
+A second is to use reflective operations (if the language supports them)
+ to count the methods and arity of the incoming value.
+In our experience, the latter does not add significant overhead.
 
+To support @emph{untagged union types}, the language of tags @${K} requires
+ a matching tag combinator.
+Let @${\mathsf{or}} be this constructor; the
+ tag for a union type @${(\cup~\tau_0~\tau_1)} is then @${(\mathsf{or}~K_0~K_1)}
+ where @${K_i} is the tag of type @${\tau_i}.
 
-@subsection{Untagged Union}
+To support @emph{recursive types} of the form @${(\trec{\alpha}{\tau})},
+ a suitable type-tag is the tag of @${(\vsubst{\tau}{\alpha}{\trec{\alpha}{\tau}})}.
+This definition is well-founded provided the type variable @${\alpha} appears
+ only as the parameter to a @emph{guarded} type.
+A parameterized type is guarded if its type-tag does not depend on its argument types.
 
-@; unions
-@; recursive types
-@; parametric polymorphism
+To support @emph{universal types} of the form @${\tall{\alpha}{\tau}}, we
+ use the tag @${\tagof{\tau}} and define @${\tagof{\alpha} = \kany}.
+Intuitively, there is no need to tag-check the use of a type variable because
+ type variables have no elimination forms.
 
-Any surprises with base types?
-
-Untagged unions need union-tags.
-Tidiness: must be discriminative --- wait not sure that matters.
-
-
-@subsection{Parametric Polymorphism}
-
-If a statically-typed expression has type @${\tall{\alpha}{\tau}}, the type
- checker ensures that @${e} is defined for any substitution for @${\alpha}.
-A function from @${\tarr{\alpha}{\tau}} is defined for any input,
- and @${e} cannot assume anything about the result of @${\efst{z}} where
- @${z} has type @${(\tpair{\alpha}{\tau'})}.
-This leads to a simple definition of type tags for all-types:
-
-@${\hfill \tagof{\alpha} = \kany \qquad \tagof{\tall{\alpha}{\tau}} = \tagof{\tau} \hfill}
-
-Any client code that instantiates @${\alpha} with a concrete type
- will come with its own tag checks to make sure that @${e} is actually polymorphic.
-This delays errors just like the co-natural embedding.
-
-
-@subsection{Recursive Types}
-
-The type-tag for a recursive type @${\trec{\alpha}{\tau}} is simply the tag
- of @${\tau} after unfolding the recursive type:
-
-@${\hfill \tagof{\trec{\alpha}{\tau}} = \tagof{\vsubst{\tau}{\alpha}{\trec{\alpha}{\tau}}} \hfill}
-
-To ensure the above definition is well-founded, all recursive types must
- be contractive.
-That is, any occurrence of @${\alpha} in @${\tau} must be guarded by a type
- constructor and that constructor cannot be
- @${\tunion}, @${\forall}, or @${\mu}.
-
-
-Did not implement for objects and classes,
- a few questions about how to do in reasonable time.
-
-
-@subsection{User-Defined Types}
-
-Make sure eliminators for user-defined types are recognized as such.
-
-
-@section{Completion, Error Messages}
-
-
-@section{Compilation}
-
-
-@section{Require}
-
-Check required data.
-
-@;@section{Further Improvements}
-@;@; trusted cod
-@;@; already-checked dom (unify?)
-@;Redundant tag checks, remove.
-@;Slogan is, @emph{you can trust the tags}.
