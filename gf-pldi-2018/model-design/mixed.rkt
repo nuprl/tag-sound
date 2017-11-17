@@ -30,7 +30,7 @@
 
   subtype
   type-join
-  ;; TODO it **should** be possible to import these from `little-sta.rkt`,
+  ;; TODO it **should** be possible to import these from `sta.rkt`,
   ;;  but when I do that and run the redex-check tests, I get an error:
   ;;  `unify: nonterminal x:τ not found for provided language... nts found: (e v UNOP BINOP τ E Γ A BE TE MAYBE-τ x)`
   ;; Will debug it LATER.

@@ -20,7 +20,7 @@
 ;;   this safety allows type errors in (embedded) untyped code
 
 (require
-  "little-mixed.rkt"
+  "mixed.rkt"
   "redex-helpers.rkt"
   redex/reduction-semantics)
 
@@ -418,7 +418,7 @@
       "type" ty)))
 
 ;; -----------------------------------------------------------------------------
-;; --- TODO: these judgments are very similar to the ones in `little-mixed.rkt`,
+;; --- TODO: these judgments are very similar to the ones in `mixed.rkt`,
 ;;      just add new rules for monitors and dispatch to the correct judgment
 ;;      for the mutual recursion.
 ;;

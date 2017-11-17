@@ -7,7 +7,7 @@
 ;; - use a dynamically-typed semantics; always check e.g. that + gets 2 integers
 
 (require
-  "little-mixed.rkt"
+  "mixed.rkt"
   "redex-helpers.rkt"
   redex/reduction-semantics)
 

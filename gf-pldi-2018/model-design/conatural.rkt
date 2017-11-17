@@ -38,7 +38,7 @@
 )
 
 (require
-  "little-mixed.rkt"
+  "mixed.rkt"
   "redex-helpers.rkt"
   redex/reduction-semantics)
 
@@ -278,7 +278,7 @@
   )
 )
 
-;; Same as for `little-natural`, just using the new leaf reductions
+;; Same as for `natural`, just using the new leaf reductions
 (define dyn-boundary-step
   (reduction-relation LM-conatural
     #:domain A

@@ -28,7 +28,7 @@
 ;; - the function goes to untyped code, the runtime forgets the annotation
 
 (require
-  (only-in "little-conatural.rkt"
+  (only-in "conatural.rkt"
     LM-conatural
     well-typed/conatural
     well-dyn/conatural
@@ -39,7 +39,7 @@
     maybe-in-hole
     boundary?
     error?)
-  (only-in "little-mixed.rkt"
+  (only-in "mixed.rkt"
     subtype
     type-join
     type-env-contains

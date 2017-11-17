@@ -23,7 +23,7 @@
 ;;  to a value with the same type-tag as `τ`
 
 (require
-  "little-mixed.rkt"
+  "mixed.rkt"
   "redex-helpers.rkt"
   redex/reduction-semantics)
 
