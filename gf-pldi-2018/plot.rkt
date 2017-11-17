@@ -63,6 +63,11 @@
 (define CACHE-DIR "cache")
 (define START-COLOR 3)
 
+(define (my-color-converter i)
+  (if (= i START-COLOR)
+    "CornflowerBlue"
+    i))
+
 (define BM-NAME* '(
   fsm kcfa morsecode sieve snake suffixtree synth tetris zombie))
 
@@ -72,10 +77,10 @@
   (filled-rounded-rectangle 8 8 #:color fill-color #:border-color border-color #:border-width 1))
 
 (define tr-color-sample
-  (color-sample START-COLOR))
+  (color-sample (my-color-converter START-COLOR)))
 
 (define tag-color-sample
-  (color-sample (+ 1 START-COLOR)))
+  (color-sample (my-color-converter (+ 1 START-COLOR))))
 
 ;; -----------------------------------------------------------------------------
 
@@ -133,6 +138,7 @@
                  [*GRID-NUM-COLUMNS* NUM-COLUMNS]
                  [*LEGEND?* #false]
                  [*FONT-SIZE* 8]
+                 [*COLOR-CONVERTER* my-color-converter]
                  [*with-cache-fasl?* #f]
                  [*current-cache-directory* (build-path CWD CACHE-DIR)])
     (define (make-overhead-plot/cache x)
