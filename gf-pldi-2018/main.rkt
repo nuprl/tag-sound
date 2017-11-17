@@ -354,7 +354,7 @@
     }
     @itemlist[
     @item{ @${e \rrNEstar v} and @${\wellNE v : \tau} }
-    @item{ @${e \rrNEstar E[e']} and @${(e' \rrD \typeerror)} }
+    @item{ @${e \rrNEstar E[e'] \ccND \typeerror} }
     @item{ @${e \rrNEstar \valueerror} }
     @item{ @${e} diverges } ]))
 
@@ -365,7 +365,7 @@
     }
     @itemlist[
     @item{ @${e \rrLEstar v} and @${\wellLE v : \tau} }
-    @item{ @${e \rrLEstar E[e']} and @${e' \rrD \typeerror} }
+    @item{ @${e \rrLEstar E[e'] \ccLD \typeerror} }
     @item{ @${e \rrLEstar \valueerror} }
     @item{ @${e} diverges }]))
 
@@ -376,7 +376,7 @@
     }
     @itemlist[
     @item{ @${e \rrFEstar v} and @${\wellFE v : \tau} }
-    @item{ @${e \rrFEstar E[e']} and @${e' \rrD \typeerror} }
+    @item{ @${e \rrFEstar E[e'] \ccFD \typeerror} }
     @item{ @${e \rrFEstar \valueerror} }
     @item{ @${e} diverges } ]))
 
@@ -392,7 +392,7 @@
     }
     @itemlist[
     @item{ @${e^+ \rrKEstar v} and @${\wellKE v : K} }
-    @item{ @${e^+ \rrKEstar E[e']} and @${e' \rrD \typeerror} }
+    @item{ @${e^+ \rrKEstar E[e'] \ccKD \typeerror} }
     @item{ @${e^+ \rrKEstar \valueerror} }
     @item{ @${e^+} diverges } ]))
 

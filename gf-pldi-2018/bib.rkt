@@ -1047,6 +1047,7 @@
    #:author (authors "Martin Abadi" "Luca Cardelli")
    #:title "A Theory of Objects"
    #:date 1996
+   #:is-book? #t
    #:location (book-location #:publisher "Springer-Verlag")))
 
 ;; ----------------------------------------
@@ -1392,6 +1393,7 @@
    #:author (authors "Ole Lehrmann Madsen" "Birger Møller-Pedersen"
                      "Kristen Nygaard")
    #:date 1993
+   #:is-book? #true
    #:location (book-location #:publisher "Addison-Wesley Publishing Co.")))
 
 (define gff-oopsla-2004
@@ -1477,6 +1479,7 @@
   (make-bib
    #:author "Michael Scriven"
    #:title "The Methodology of Evaluation. Perspectives of Curriculum Evaluation"
+   #:is-book? #true
    #:location (book-location #:publisher "Rand McNally")
    #:date 1967))
 
@@ -1788,6 +1791,7 @@
   (make-bib
     #:title "The Standard ML Base Library"
     #:author (authors "Emden R. Gansner" "John H. Reppy")
+    #:is-book? #true
     #:location (book-location #:edition "1st" #:publisher "Cambridge University Press")
     #:date 2004))
 
@@ -2147,6 +2151,7 @@
   (make-bib
    #:title "The Lambda Calculus: Its Syntax and Semantics"
    #:author "Henk Barendregt"
+   #:is-book? #true
    #:location (book-location #:publisher "North-Holland Publishing Company")
    #:date 1981))
 

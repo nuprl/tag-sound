@@ -1,5 +1,5 @@
 #lang gf-pldi-2018
-@title[#:tag "sec:background"]{The FFI Problem}
+@title[#:tag "sec:background"]{The Multi-Language Approach}
 @; embedding problem?
 
 @; TODO
