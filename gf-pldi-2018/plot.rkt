@@ -27,6 +27,7 @@
     max-overhead)
   with-cache
   racket/runtime-path
+  (only-in racket/format ~r)
   pict
   gtp-plot/util
   (only-in gtp-plot/system
@@ -238,7 +239,7 @@
       (car src+dst) cb-find
       (cdr src+dst) ct-find)))
 
-(define (render-max-overhead kind bm-name)
+(define (render-max-overhead kind bm-name #:precision [psc #f])
   (unless (valid-embedding? kind)
     (raise-argument-error 'max-overhead "valid-embedding?" 0 kind bm-name))
   (unless (memq bm-name BM-NAME*)
@@ -253,7 +254,11 @@
       (error 'impossible)]))
   (define pi (make-typed-racket-info rktd))
   (define o (max-overhead pi))
-  (string-append (number->string (exact-round o)) "x"))
+  (define rounded
+    (if psc
+      (~r o #:precision psc)
+      (number->string (exact-round o))))
+  (string-append rounded "x"))
 
 (define (valid-embedding? k)
   (memq k '(typed tagged)))

@@ -417,7 +417,7 @@
   (elem ($ d-str) "-deliverable"))
 
 (define LD-Racket
-  "LD Racket")
+  "Tagged Racket")
 
 (define TR
   "Typed Racket")
