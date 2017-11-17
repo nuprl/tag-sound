@@ -1,149 +1,250 @@
 \begin{flushleft}
 
-\fbox{Language $\langF$} $= \langL$\\
-
-%% -----------------------------------------------------------------------------
-\medskip
-\begin{minipage}[t]{0.5\textwidth}
-\fbox{$\Gamma \wellFE e$} extends $\Gamma \welldyn e$:
-\begin{mathpar}
-  \inferrule*{
-  }{
-    \Gamma \wellFE \vmon{\tau}{v}
-  }
-\end{mathpar}
-\end{minipage}%
-\begin{minipage}[t]{0.5\textwidth}
-\fbox{$\Gamma \wellFE e : \tau$} extends $\Gamma \wellsta e : \tau$:
-\begin{mathpar}
-  \inferrule*{
-  }{
-    \Gamma \wellFE \vmon{\tau}{v} : \tau
-  }
-\end{mathpar}
-\end{minipage}
-
-%% -----------------------------------------------------------------------------
-\medskip
-\begin{minipage}[t]{0.5\textwidth}
-\fbox{$e \rrFD A$} extends $e \rrD A$:
-\begin{mathpar}
-  \inferrule*{
-    v_{f} = \vlam{x}{e}
-  }{
-    (\vmonfun{(\tarr{\tau_d}{\tau_c})}{v_f})~v_{arg} \rrFD \vsubst{e}{x}{v_{arg}}
-  }
-
-  \inferrule*{
-    v_{f} = \vlam{\tann{x}{\tau}}{e}
-    \\
-    e_{arg} = (\edyn{\tau}{v_{arg}})
-    %% TODO correct?
-  }{
-    (\vmonfun{(\tarr{\tau_d}{\tau_c})}{v_f})~v_{arg} \rrFD \esta{\tau_c}{v_f~e_{arg}}
-  }
-
-  \inferrule*{
-  }{
-    \efst{(\vmonpair{(\tpair{\tau_0}{\tau_1})}{\vpair{v_0}{v_1}})} \rrFD \esta{\tau_0}{v_0}
-  }
-
-  \inferrule*{
-  }{
-    \esnd{(\vmonpair{(\tpair{\tau_0}{\tau_1})}{\vpair{v_0}{v_1}})} \rrFD \esta{\tau_1}{v_1}
-  }
-\end{mathpar}
-\end{minipage}%
-\begin{minipage}[t]{0.5\textwidth}
-\fbox{$e \rrFS A$} extends $e \rrS A$:
-\begin{mathpar}
-  \inferrule*{
-    v_{f} = \vlam{\tann{x}{\tau}}{e}
-    \\
-    e_{arg} = (\edyn{\tau}{v_{arg}})
-  }{
-    (\vmonfun{(\tarr{\tau_d}{\tau_c})}{v_f})~v_{arg} \rrFS v_f~e_{arg}
-  }
-
-  \inferrule*{
-    v_{f} = \vlam{x}{e}
-    \\
-    e_{arg} = (\esta{\tau_d}{v_{arg}})
-  }{
-    (\vmonfun{(\tarr{\tau_d}{\tau_c})}{v_f})~v_{arg} \rrFS \edyn{\tau_c}{v_f~e_{arg}}
-  }
-
-  \inferrule*{
-  }{
-    \efst{(\vmonpair{(\tpair{\tau_0}{\tau_1})}{\vpair{v_0}{v_1}})} \rrFS \edyn{\tau_0}{v_0}
-  }
-
-  \inferrule*{
-  }{
-    \esnd{(\vmonpair{(\tpair{\tau_0}{\tau_1})}{\vpair{v_0}{v_1}})} \rrFS \edyn{\tau_1}{v_1}
-  }
-\end{mathpar}
-\end{minipage}%
-
-%% -----------------------------------------------------------------------------
-\medskip
-\fbox{$\wellSD{v}{\tau}{v}$}
-\begin{mathpar}
-  \inferrule*{
-    v \in \naturals
-  }{
-    \wellSD{v}{\tnat}{v}
-  }
-
-  \inferrule*{
-    v \in \integers
-  }{
-    \wellSD{v}{\tint}{v}
-  }
-
-  \inferrule*{
-    v = \vpair{v_0}{v_1}
-  }{
-    \wellSD{v}{(\tpair{\tau_0}{\tau_1})}{\vmonpair{(\tpair{\tau_0}{\tau_1})}{v}}
-  }
-
-  \inferrule*{
-    v = \vmonpair{\tau}{v'}
-  }{
-    \wellSD{v}{(\tpair{\tau_0}{\tau_1})}{\vmonpair{(\tpair{\tau_0}{\tau_1})}{v'}}
-  }
-
-  \inferrule*{
-    v = \vlam{\tann{x}{\tau}}{e}
-    \\
-    \vee
-    \\
-    v = \vlam{x}{e}
-  }{
-    \wellSD{v}{(\tarr{\tau_d}{\tau_c})}{\vmonfun{(\tarr{\tau_d}{\tau_c})}{v}}
-  }
-
-  \inferrule*{
-    v = \vmonfun{\tau}{v'}
-  }{
-    \wellSD{v}{(\tarr{\tau_d}{\tau_c})}{\vmonfun{(\tarr{\tau_d}{\tau_c})}{v'}}
-  }
-\end{mathpar}
-
-%% -----------------------------------------------------------------------------
-\medskip
-\fbox{$\wellDS{v}{\tau}{v}$}
-\begin{mathpar}
-  \inferrule*{
-    \wellSD{v}{\tau}{v'}
-  }{
-    \wellDS{v}{\tau}{v'}
-  }
-\end{mathpar}
-
-\medskip
-$\begin{array}{l c l}
-  \rrFEstar & \triangleq & \mbox{analogous to $\rrNEstar$}
+\fbox{Language $\langF$}\\
+$\begin{array}{l@{~~}c@{~~}l}
+  e & \BNFeq & x \mid v \mid e~e \mid \vpair{e}{e} \mid \vunop~e \mid \vbinop~e~e \mid
+ \edyn{\tau}{e} \mid \esta{\tau}{e}
+\\
+  v & \BNFeq & i \mid \vpair{v}{v} \mid \vlam{x}{e} \mid \vlam{\tann{x}{\tau}}{e} \mid
+      \vmonfun{(\tarr{\tau}{\tau})}{(\vlam{x}{e})} \mid
+      \vmonfun{(\tarr{\tau}{\tau})}{(\vlam{\tann{x}{\tau}}{e})} \mid
+      \vmonpair{(\tpair{\tau}{\tau})}{\vpair{v}{v}}
+\\
+  \tau & \BNFeq & \tnat \mid \tint \mid \tpair{\tau}{\tau} \mid \tau \tarrow \tau
+\\
+  \Gamma & \BNFeq & \cdot \mid x,\Gamma \mid \tann{x}{\tau},\Gamma
+\\
+  E & \BNFeq & \ehole \mid E~e \mid v~E \mid
+                  \vpair{E}{e} \mid \vpair{v}{E} \mid \vunop~E \mid
+\\ & &            \ebinop{E}{e} \mid \ebinop{v}{E}
 \end{array}$
 
+\bigskip
+\begin{minipage}[t]{\columnwidth}
+\fbox{$\Gamma \wellFE e$}\\
+\begin{mathpar}
+  \inferrule*{
+  }{
+    \Gamma \wellFE \vmonpair{(\tpair{\tau_0}{\tau_1})}{v}
+  }
+
+  \inferrule*{
+    \Gamma \wellFE e : \tau
+  }{
+    \Gamma \wellFE \esta{\tau}{e}
+  }
+
+  \inferrule*{
+  }{
+    \Gamma \wellFE \vmonfun{(\tarr{\tau_d}{\tau_c})}{v}
+  }
+
+  \inferrule*{
+    x \in \GammaD
+  }{
+    \GammaD \wellFE x
+  }
+
+  \inferrule*{
+    x,\GammaD \wellFE e
+  }{
+    \GammaD \wellFE \vlam{x}{e}
+  }
+
+  \inferrule*{
+  }{
+    \GammaD \wellFE i
+  }
+
+  \inferrule*{
+    \GammaD \wellFE e_0
+    \\
+    \GammaD \wellFE e_1
+  }{
+    \GammaD \wellFE \vpair{e_0}{e_1}
+  }
+
+  \inferrule*{
+    \GammaD \wellFE e_0
+    \\
+    \GammaD \wellFE e_1
+  }{
+    \GammaD \wellFE e_0~e_1
+  }
+
+  \inferrule*{
+    \GammaD \wellFE e
+  }{
+    \GammaD \wellFE \vunop~e
+  }
+
+  \inferrule*{
+    \GammaD \wellFE e_0
+    \\
+    \GammaD \wellFE e_1
+  }{
+    \GammaD \wellFE \vbinop~e_0~e_1
+  }
+\end{mathpar}
+
+\medskip
+\fbox{$e \rrFD A$}\\
+$\begin{array}{l@{~~}c@{~~}l l}
+  (\vmonfun{\tarr{\tau_d}{\tau_c}}{(\vlam{x}{e})})~v & \rrFD & \vsubst{e}{x}{\mchk{\tau_d}{v}} &
+\\
+  (\vmonfun{\tarr{\tau_d}{\tau_c}}{(\vlam{\tann{x}{\tau}}{e})})~v & \rrFD & \esta{\tau_c}{\vsubst{e}{x}{\mchk{\tau}{v}}} &
+\\
+  \efst{(\vmonpair{\tpair{\tau_0}{\tau_1}}{\vpair{v_0}{v_1}})} & \rrFD & \mchk{\tau_0}{v_0} &
+\\
+  \esnd{(\vmonpair{\tpair{\tau_0}{\tau_1}}{\vpair{v_0}{v_1}})} & \rrFD & \mchk{\tau_1}{v_1} &
+\\
+  \esta{\tau}{v} & \rrFD & \mchk{\tau}{v} &
+\\
+  (\vlam{x}{e})~v & \rrFD & \vsubst{e}{x}{v} &
+\\
+  v_0~v_1 & \rrFD & \typeerror &
+\\\multicolumn{3}{l}{\mbox{\quad if $v_0 \sim i$ or $v_0 \sim \vpair{v}{v'}$}}
+\\
+  \eunop{v} & \rrFD & A &
+\\\multicolumn{3}{l}{\mbox{\quad if $A = \delta(\vunop, v)$}}
+\\
+  \eunop{v} & \rrFD & \tagerror &
+\\\multicolumn{3}{l}{\mbox{\quad otherwise}}
+\\
+  \ebinop{v_0}{v_1} & \rrFD & A &
+\\\multicolumn{3}{l}{\mbox{\quad if $A = \delta(\vbinop, v_0, v_1)$}}
+\\
+  \ebinop{v_0}{v_1} & \rrFD & \tagerror &
+\\\multicolumn{3}{l}{\mbox{\quad otherwise}}
+\end{array}$
+\fbox{$\mchk{\tau}{v} = A$}\\
+$\begin{array}{l@{~~}c@{~~}l}
+  \mchk{\tarr{\tau_d}{\tau_c}}{v} & = & \vmonfun{\tarr{\tau_d}{\tau_c}}{v}
+\\ \multicolumn{3}{l}{\mbox{\quad if $v \sim \vlam{x}{e}$ or $v \sim \vlam{\tann{x}{\tau}}{e}$}}
+\\
+  \mchk{\tarr{\tau_d}{\tau_c}}{\vmonfun{\tarr{\tau_d'}{\tau_c'}}{v'}} & = & \vmonfun{\tarr{\tau_d}{\tau_c}}{v'}
+\\
+  \mchk{\tpair{\tau_0}{\tau_1}}{\vpair{v_0}{v_1}} & = & \vmonpair{\tpair{\tau_0}{\tau_1}}{\vpair{v_0}{v_1}}
+\\
+  \mchk{\tpair{\tau_0}{\tau_1}}{\vmonpair{\tpair{\tau_0'}{\tau_1'}}{v'}} & = & \vmonpair{\tpair{\tau_0}{\tau_1}}{v'}
+\\
+  \mchk{\tint}{i} & = & i
+\\
+  \mchk{\tnat}{i} & = & i
+\\ \multicolumn{3}{l}{\mbox{\quad if $i \in \naturals$}}
+\\
+  \mchk{\tau}{v} & = & \boundaryerror
+\\ \multicolumn{3}{l}{\mbox{\quad otherwise}}
+\end{array}$
+\end{minipage}\hspace{\columnsep}%
+\begin{minipage}[t]{\columnwidth}
+\fbox{$\Gamma \wellFE e : \tau$}\\
+\begin{mathpar}
+  \inferrule*{
+  }{
+    \Gamma \wellFE \vmonfun{(\tpair{\tau_0}{\tau_1})}{v} : (\tarr{\tau_d}{\tau_c})
+  }
+
+  \inferrule*{
+  }{
+    \Gamma \wellFE \vmonfun{(\tarr{\tau_d}{\tau_c})}{v} : (\tarr{\tau_d}{\tau_c})
+  }
+
+  \inferrule*{
+    \Gamma \wellFE e
+  }{
+    \Gamma \wellFE \edyn{\tau}{e} : \tau
+  }
+
+  \inferrule*{
+    \tann{x}{\tau} \in \GammaS
+  }{
+    \GammaS \wellFE x : \tau
+  }
+
+  \inferrule*{
+    \tann{x}{\tau_d},\GammaS \wellFE e : \tau_c
+  }{
+    \GammaS \wellFE \vlam{\tann{x}{\tau_d}}{e} : \tau_d \tarrow \tau_c
+  }
+
+  \inferrule*{
+    i \in \naturals
+  }{
+    \GammaS \wellFE i : \tnat
+  }
+
+  \inferrule*{
+    i \in \integers
+  }{
+    \GammaS \wellFE i : \tint
+  }
+
+  \inferrule*{
+    \GammaS \wellFE e_0 : \tau_0
+    \\\\
+    \GammaS \wellFE e_1 : \tau_1
+  }{
+    \GammaS \wellFE \vpair{e_0}{e_1} : \tpair{\tau_0}{\tau_1}
+  }
+
+  \inferrule*{
+    \GammaS \wellFE e_0 : \tau_d \tarrow \tau_c
+    \\\\
+    \GammaS \wellFE e_1 : \tau_d
+  }{
+    \GammaS \wellFE e_0~e_1 : \tau_c
+  }
+
+  \inferrule*{
+    \GammaS \wellFE e_0 : \tau_0
+    \\\\
+    \Delta(\vunop, \tau_0) = \tau
+  }{
+    \GammaS \wellFE \vunop~e_0 : \tau
+  }
+
+  \inferrule*{
+    \GammaS \wellFE e_0 : \tau_0
+    \\\\
+    \GammaS \wellFE e_1 : \tau_1
+    \\\\
+    \Delta(\vbinop, \tau_0, \tau_1) = \tau
+  }{
+    \GammaS \wellFE \vbinop~e_0~e_1 : \tau
+  }
+
+  \inferrule*{
+    \GammaS \wellFE e : \tau'
+    \\\\
+    \tau' \subt \tau
+  }{
+    \GammaS \wellFE e : \tau
+  }
+\end{mathpar}
+
+\medskip
+\fbox{$e \rrFS A$}\\
+$\begin{array}{l@{~~}c@{~~}l}
+  (\vmonfun{\tarr{\tau_d}{\tau_c}}{(\vlam{\tann{x}{\tau}}{e})})~v & \rrFS & \vsubst{e}{x}{\mchk{\tau}{v}}
+\\
+  (\vmonfun{\tarr{\tau_d}{\tau_c}}{(\vlam{x}{e})})~v & \rrFS & \edyn{\tau_c}{\vsubst{e}{x}{\mchk{\tau_d}{v}}}
+\\
+  \efst{(\vmonpair{\tpair{\tau_0}{\tau_1}}{\vpair{v_0}{v_1}})} & \rrFS & \mchk{\tau_0}{v_0}
+\\
+  \esnd{(\vmonpair{\tpair{\tau_0}{\tau_1}}{\vpair{v_0}{v_1}})} & \rrFS & \mchk{\tau_1}{v_1}
+\\
+  \edyn{\tau}{v} & \rrFS & \mchk{\tau}{v}
+\\
+  (\vlam{\tann{x}{\tau_d}}{e})~v & \rrFS & \vsubst{e}{x}{v}
+\\
+  \eunop{v} & \rrFS & \delta(\vunop, v)
+\\
+  \ebinop{v_0}{v_1} & \rrFS & \delta(\vbinop, v_0, v_1)
+\end{array}$
+
+\medskip
+\fbox{$e \rrFEstar A$} reflexive, transitive closure of $\ccFS$\\
+\mbox{\quad where $\vtuple{\ccFS}{\ccFD} = \DSlift{\ES}{\rrFS}{\ED}{\rrFD}$}
+\end{minipage}
 \end{flushleft}

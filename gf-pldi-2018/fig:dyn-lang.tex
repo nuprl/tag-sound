@@ -1,28 +1,28 @@
 \begin{flushleft}
 
-\fbox{Language $\langD$}
+\fbox{Language $\langD$}\\
 $\begin{array}{l c l}
-  e & \Coloneqq & x \mid v \mid e~e \mid \vpair{e}{e} \mid \vunop~e \mid \vbinop~e~e
+  e & \BNFeq & x \mid v \mid e~e \mid \vpair{e}{e} \mid \vunop~e \mid \vbinop~e~e
 \\
-  v & \Coloneqq & \vlam{x}{e} \mid i \mid \vpair{v}{v}
+  v & \BNFeq & \vlam{x}{e} \mid i \mid \vpair{v}{v}
 \\
-  i & \Coloneqq & 0 \mid 1 \mid -1 \mid \ldots
+  i & \BNFeq & 0 \mid 1 \mid -1 \mid \ldots
 \\
-  \vunop & \Coloneqq & \vfst \mid \vsnd
+  \vunop & \BNFeq & \vfst \mid \vsnd
 \\
-  \vbinop & \Coloneqq & \vsum \mid \vquotient
+  \vbinop & \BNFeq & \vsum \mid \vquotient
 \\
-  \GammaD & \Coloneqq & \cdot \mid x,\GammaD
+  \GammaD & \BNFeq & \cdot \mid x,\GammaD
 \\
-  A & \Coloneqq & e \mid \typeerror \mid \valueerror
+  A & \BNFeq & e \mid \typeerror \mid \valueerror
 \\
-  E & \Coloneqq & \bullet \mid E~e \mid v~E \mid
+  E & \BNFeq & \ehole \mid E~e \mid v~E \mid
                   \vpair{E}{e} \mid \vpair{v}{E} \mid \vunop~E \mid
 \\ & &            \vbinop~E~e \mid \vbinop~v~E
 \end{array}$
 
 \medskip
-\fbox{$\GammaD \welldyn e$}
+\fbox{$\GammaD \welldyn e$}\\
 \begin{mathpar}
   \inferrule*{
     x \in \GammaD
@@ -74,71 +74,52 @@ $\begin{array}{l c l}
 \end{mathpar}
 
 \medskip
-\fbox{$\deltaD(\vunop, v) = A$} \\
-$\begin{array}{l c l}
-  \deltaD(\vfst, \vpair{v_0}{v_1}) & = & v_0
+\begin{minipage}[t]{0.38\columnwidth}
+\fbox{$\delta(\vunop, v) = A$}
+$\begin{array}{l@{~~}c@{~~}l}
+  \delta(\vfst, \vpair{v_0}{v_1}) & = & v_0
 \\
-  \deltaD(\vfst, v) & = & \typeerror
-\\[0.5ex]
-  \deltaD(\vsnd, \vpair{v_0}{v_1}) & = & v_1
+  \delta(\vsnd, \vpair{v_0}{v_1}) & = & v_1
+\end{array}$
+\end{minipage}%
+\begin{minipage}[t]{0.5\columnwidth}
+\fbox{$\delta(\vbinop, v, v) = A$}
+$\begin{array}{l@{~~}c@{~~}l}
+  \delta(\vsum, i_0, i_1) & = & i_0 + i_1
 \\
-  \deltaD(\vsnd, v) & = & \typeerror
+  \delta(\vquotient, i_0, 0) & = & \boundaryerror
+\\
+  \delta(\vquotient, i_0, i_1) & = & \floorof{i_0 / i_1}
+\\ \multicolumn{3}{l}{\mbox{\quad if $i_1 \neq 0$}}
+\end{array}$
+\end{minipage}
+
+
+\medskip
+\fbox{$e \rrD A$}\\
+$\begin{array}{l@{~~}c@{~~}l l}
+  (\vlam{x}{e})~v & \rrD & \vsubst{e}{x}{v} &
+\\
+  v_0~v_1 & \rrD & \typeerror & \mbox{if $v_0 \sim i$ or $v_0 \sim \vpair{v}{v'}$}
+\\
+  \eunop{v} & \rrD & A & \mbox{if $A = \delta(\vunop, v)$}
+\\
+  \eunop{v} & \rrD & \tagerror & \mbox{otherwise}
+\\
+  \ebinop{v_0}{v_1} & \rrD & A & \mbox{if $A = \delta(\vbinop, v_0, v_1)$}
+\\
+  \ebinop{v_0}{v_1} & \rrD & \tagerror & \mbox{otherwise}
 \end{array}$
 
 \medskip
-\fbox{$\deltaD(\vbinop, v, v) = A$}
-$\begin{array}{l c l}
-  \deltaD(\vsum, i_0, i_1) & = & i_0 + i_1
+\fbox{$e \cclift{E}{\rrD} A$}\\
+$\begin{array}{l@{~~}c@{~~}l l}
+\ctxE{e} & \cclift{E}{\rrD} & \ctxE{e'} & \mbox{if $e \rrD e'$}
 \\
-  \deltaD(\vsum, v_0, v_1) & = & \typeerror
-\\[0.5ex]
-  \deltaD(\vquotient, i_0, 0) & = & \valueerror
-\\
-  \deltaD(\vquotient, i_0, i_1) & = & \floorof{i_0 / i_1}
-\\
-  \deltaD(\vquotient, v_0, v_1) & = & \typeerror
+\ctxE{e} & \cclift{E}{\rrD} & A         & \mbox{if $e \rrD A$ and $A \not\in e$}
 \end{array}$
 
-\medskip
-\fbox{$e \rrD A$}
-\begin{mathpar}
-  \inferrule*{
-  }{
-    (\vlam{x}{e})~v \rrD \vsubst{e}{x}{v}
-  }
-
-  \inferrule*{
-    v_0 \neq \vlam{x}{e}
-  }{
-    v_0~v_1 \rrD \typeerror
-  }
-
-  \inferrule*{
-    A = \deltaD(\vunop, v)
-  }{
-    \vunop~v \rrD A
-  }
-
-  \inferrule*{
-    A = \deltaD(\vbinop, v_0, v_1)
-  }{
-    \vbinop~v_0~v_1 \rrD A
-  }
-\end{mathpar}
-
-\medskip
-$\begin{array}{l c l}
-  \ccD & \triangleq & \mbox{context closure of $\rrD$ in $E$}
-\\
-  \rrDstar & \triangleq & \mbox{reflexive, transitive closure of $\ccD$}
-\end{array}$
-
-
-%\medskip
-%$\vevalD(e) = \left\{ \begin{array}{l l}
-%  v & \emph{if}~~e~\rrDstar~v \\
-%  \typeerror & \emph{if}~~e~\rrDstar~\typeerror \\
-%  \valueerror & \emph{if}~~e~\rrDstar~\valueerror
-%\end{array}\right.$
+\smallskip
+\fbox{$e \rrDstar A$} reflexive, transitive closure of $\cclift{\ED}{\rrD}$
 
 \end{flushleft}

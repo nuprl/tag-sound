@@ -3,23 +3,23 @@
 \begin{minipage}[t]{0.6\textwidth}
 \fbox{Language $\langS$}\\
 $\begin{array}{l c l}
-  e & \Coloneqq & x \mid v \mid e~e \mid \vpair{e}{e} \mid \vunop~e \mid \vbinop~e~e
+  e & \BNFeq & x \mid v \mid e~e \mid \vpair{e}{e} \mid \vunop~e \mid \vbinop~e~e
 \\
-  v & \Coloneqq & \vlam{\tann{x}{\tau}}{e} \mid i \mid \vpair{v}{v}
+  v & \BNFeq & \vlam{\tann{x}{\tau}}{e} \mid i \mid \vpair{v}{v}
 \\
-  \tau & \Coloneqq & \tnat \mid \tint \mid \tpair{\tau}{\tau} \mid \tau \tarrow \tau
+  \tau & \BNFeq & \tnat \mid \tint \mid \tpair{\tau}{\tau} \mid \tau \tarrow \tau
 \\
-  i & \Coloneqq & 0 \mid 1 \mid -1 \mid \ldots
+  i & \BNFeq & 0 \mid 1 \mid -1 \mid \ldots
 \\
-  \vunop & \Coloneqq & \vfst \mid \vsnd
+  \vunop & \BNFeq & \vfst \mid \vsnd
 \\
-  \vbinop & \Coloneqq & \vsum \mid \vquotient
+  \vbinop & \BNFeq & \vsum \mid \vquotient
 \\
-  \GammaS & \Coloneqq & \cdot \mid \tann{x}{\tau},\GammaS
+  \GammaS & \BNFeq & \cdot \mid \tann{x}{\tau},\GammaS
 \\
-  A & \Coloneqq & e \mid \valueerror
+  A & \BNFeq & e \mid \valueerror
 \\
-  E & \Coloneqq & \bullet \mid E~e \mid v~E \mid
+  E & \BNFeq & \ehole \mid E~e \mid v~E \mid
                   \vpair{E}{e} \mid \vpair{v}{E} \mid \vunop~E \mid
                   \ebinop{E}{e} \mid \ebinop{v}{E}
 \end{array}$
@@ -57,36 +57,21 @@ $\begin{array}{l c l}
 
 %% -----------------------------------------------------------------------------
 \medskip
-\begin{minipage}[t]{0.5\textwidth}
-\fbox{$\Delta(\vunop, \tau) = \tau$}
-\begin{mathpar}
-  \inferrule*{
-  }{
-    \Delta(\vfst, \tpair{\tau_0}{\tau_1}) = \tau_0
-  }
-
-  \inferrule*{
-  }{
-    \Delta(\vsnd, \tpair{\tau_0}{\tau_1}) = \tau_1
-  }
-\end{mathpar}
+\begin{minipage}[t]{0.5\columnwidth}
+\fbox{$\Delta(\vunop, \tau) = \tau$}\\
+$\begin{array}{l@{~~}c@{~~}l}
+  \Delta(\vfst, \tpair{\tau_0}{\tau_1}) & = & \tau_0
+\\
+  \Delta(\vsnd, \tpair{\tau_0}{\tau_1}) & = & \tau_1
+\end{array}$
 \end{minipage}%
-\begin{minipage}[t]{0.5\textwidth}
-\fbox{$\Delta(\vbinop, \tau, \tau) = \tau$}
-\begin{mathpar}
-  \inferrule*{
-  }{
-    \Delta(\vbinop, \tnat, \tnat) = \tnat
-  }
-
-  \inferrule*{
-    \tau_0 \subt \tint
-    \\
-    \tau_1 \subt \tint
-  }{
-    \Delta(\vbinop, \tau_0, \tau_1) = \tint
-  }
-\end{mathpar}
+\begin{minipage}[t]{0.5\columnwidth}
+\fbox{$\Delta(\vbinop, \tau, \tau) = \tau$}\\
+$\begin{array}{l@{~~}c@{~~}l}
+  \Delta(\vbinop, \tnat, \tnat) & = & \tnat
+\\
+  \Delta(\vbinop, \tint, \tint) & = & \tint
+\end{array}$
 \end{minipage}
 
 %% -----------------------------------------------------------------------------
@@ -161,57 +146,46 @@ $\begin{array}{l c l}
 \end{mathpar}
 
 \medskip
-\begin{minipage}[t]{0.5\textwidth}
-\fbox{$\deltaS(\vunop, v) = A$}\\
-$\begin{array}{l c l}
-  \deltaS(\vfst, \vpair{v_0}{v_1}) & = & v_0
+\begin{minipage}[t]{0.38\columnwidth}
+\fbox{$\delta(\vunop, v) = A$}
+$\begin{array}{l@{~~}c@{~~}l}
+  \delta(\vfst, \vpair{v_0}{v_1}) & = & v_0
 \\
-  \deltaS(\vsnd, \vpair{v_0}{v_1}) & = & v_1
+  \delta(\vsnd, \vpair{v_0}{v_1}) & = & v_1
 \end{array}$
 \end{minipage}%
-\begin{minipage}[t]{0.5\textwidth}
-\fbox{$\deltaS(\vbinop, v, v) = A$}\\
-$\begin{array}{l c l}
-  \deltaS(\vsum, i_0, i_1) & = & i_0 + i_1
+\begin{minipage}[t]{0.5\columnwidth}
+\fbox{$\delta(\vbinop, v, v) = A$}
+$\begin{array}{l@{~~}c@{~~}l}
+  \delta(\vsum, i_0, i_1) & = & i_0 + i_1
 \\
-  \deltaS(\vquotient, i_0, 0) & = & \valueerror
+  \delta(\vquotient, i_0, 0) & = & \boundaryerror
 \\
-  \deltaS(\vquotient, i_0, i_1) & = & \tagof{i_0 / i_1}
+  \delta(\vquotient, i_0, i_1) & = & \floorof{i_0 / i_1}
+\\ \multicolumn{3}{l}{\mbox{\quad if $i_1 \neq 0$}}
 \end{array}$
 \end{minipage}
 
-\medskip
-\fbox{$e \rrS A$}
-\begin{mathpar}
-  \inferrule*{
-  }{
-    (\vlam{x:\tau}{e})~v \rrS \vsubst{e}{x}{v}
-  }
-
-  \inferrule*{
-    A = \deltaS(\vunop, v)
-  }{
-    \vunop~v \rrS A
-  }
-
-  \inferrule*{
-    A = \deltaS(\vbinop, v_0, v_1)
-  }{
-    \vbinop~v_0~v_1 \rrS A
-  }
-\end{mathpar}
 
 \medskip
-$\begin{array}{l c l}
-  \ccS & \triangleq & \mbox{context closure of $\rrS$ in $E$}
+\fbox{$e \rrS A$}\\
+$\begin{array}{l@{~~}c@{~~}l}
+  (\vlam{\tann{x}{\tau_d}}{e})~v & \rrS & \vsubst{e}{x}{v}
 \\
-  \rrSstar & \triangleq & \mbox{reflexive, transitive closure of $\ccS$}
+  \eunop{v} & \rrS & \delta(\vunop, v)
+\\
+  \ebinop{v_0}{v_1} & \rrS & \delta(\vbinop, v_0, v_1)
 \end{array}$
 
-%\medskip
-%$\vevalS(e) = \left\{ \begin{array}{l l}
-%  v & \emph{if}~~e~\rrSstar~v \\
-%  \valueerror & \emph{if}~~e~\rrSstar~\valueerror
-%\end{array}\right.$
+\medskip
+\fbox{$e \cclift{E}{\rrS} A$}\\
+$\begin{array}{l@{~~}c@{~~}l l}
+\ctxE{e} & \cclift{E}{\rrS} & \ctxE{e'} & \mbox{if $e \rrS e'$}
+\\
+\ctxE{e} & \cclift{E}{\rrS} & A         & \mbox{if $e \rrS A$ and $A \not\in e$}
+\end{array}$
+
+\smallskip
+\fbox{$e \rrSstar A$} reflexive, transitive closure of $\cclift{\ES}{\rrS}$
 
 \end{flushleft}

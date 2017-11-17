@@ -190,9 +190,8 @@ The structure of the check is based on the domain type of the function.
 @; =============================================================================
 @section{Language Models}
 
-See @figure-ref{fig:models-outline} for an illustration.
+Road map:
 
-@figure["fig:models-outline" "Models Roadmap"
   @models-roadmap[
     #:D "Dynamic"
     #:S "Static"
@@ -201,83 +200,80 @@ See @figure-ref{fig:models-outline} for an illustration.
     #:N "Natural Embedding"
     #:L "Co-Natural Embedding"
     #:F "Forgetful Embedding"
-    #:K "Tagged Embedding"]]
+    #:K "Tagged Embedding"]
 
 
-@subsection{Definitions}
+@;@subsection{Definitions}
+@;
+@;@definition[@elem{@${R}-divergence}]{
+@;  An expression @${e} diverges for the reduction relation @${R} if for
+@;   all @${e'} such that @${e~R~e'} there exists an @${e''} such that
+@;   @${e'~R~e''}.
+@;}
 
-@definition[@elem{@${R}-divergence}]{
-  An expression @${e} diverges for the reduction relation @${R} if for
-   all @${e'} such that @${e~R~e'} there exists an @${e''} such that
-   @${e'~R~e''}.
-}
 
+@;@subsection{Dynamic Typing}
+@include-figure*["fig:dyn-lang.tex" @elem{Dynamically-typed @${\langD}}]
 
-@subsection{Dynamic Typing}
-@include-figure["fig:dyn-lang.tex" @elem{Dynamically-typed @${\langD}}]
-
-@|D-SAFETY|
+@;@|D-SAFETY|
 @;@proof{
 @;  TODO
 @;}
 
 
-@subsection{Static Typing}
+@;@subsection{Static Typing}
 @include-figure*["fig:sta-lang.tex" @elem{Statically-typed @${\langS}}]
 
-@|S-SAFETY|
+@;@|S-SAFETY|
 @;@proof{
 @;  TODO
 @;}
 
 
-@subsection{Multi-Language}
-@include-figure["fig:mixed-lang.tex" @elem{Static/Dynamic Multi-language}]
-
-The languages in subsequent sections extend the syntax of @${\langM}
- and use its typing judgments to formulate safety guarantees.
+@;@subsection{Multi-Language}
+@;@include-figure*["fig:mixed-lang.tex" @elem{Static/Dynamic Multi-language}]
 
 
-@subsection{Erasure Embedding}
-@include-figure["fig:erasure-embedding.tex" "Erasure Embedding"]
+@;@subsection{Erasure Embedding}
+@include-figure*["fig:erasure-embedding.tex" "Erasure Embedding"]
 
-@|E-SAFETY|
+@;@|E-SAFETY|
 @;@proof{
 @;  TODO
 @;}
 
 
-@subsection{Natural Embedding}
+@;@subsection{Natural Embedding}
 @include-figure*["fig:natural-embedding.tex" "Natural Embedding"]
 
-@|N-SAFETY|
+@;@|N-SAFETY|
 @;@proof{
 @;  TODO
 @;}
 
 
-@subsection{Co-Natural Embedding}
+@;@subsection{Co-Natural Embedding}
 @include-figure*["fig:conatural-embedding.tex" "Co-Natural Embedding"]
 
-@|C-SAFETY|
+@;@|C-SAFETY|
 @;@proof{
 @;  TODO
 @;}
 
 
-@subsection{Forgetful Embedding}
+@;@subsection{Forgetful Embedding}
 @include-figure*["fig:forgetful-embedding.tex" "Forgetful Embedding"]
 
-@|F-SAFETY|
+@;@|F-SAFETY|
 @;@proof{
 @;  TODO
 @;}
 
 
-@subsection{Tagged Embedding}
-@include-figure*["fig:tagged-embedding.tex" "Tagged Embedding"]
-@include-figure*["fig:tagged-completion.tex" "Tagged Completion"]
+@;@subsection{Tagged Embedding}
+@include-figure*["fig:locally-defensive-embedding.tex" "Tagged Embedding"]
+@include-figure*["fig:locally-defensive-completion.tex" "Tagged Completion"]
 
-@|K-SAFETY|
+@;@|K-SAFETY|
 
 

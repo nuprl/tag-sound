@@ -1,15 +1,23 @@
 \begin{flushleft}
 
-\fbox{Language $\langE$} extends $\langM$:
+\fbox{Language $\langE$}\\
 $\begin{array}{l c l}
-  E & \Coloneqq & \bullet \mid E~e \mid v~E \mid
+  e & \BNFeq & x \mid v \mid e~e \mid \vpair{e}{e} \mid \vunop~e \mid \vbinop~e~e \mid \edyn{\tau}{e} \mid \esta{\tau}{e}
+\\
+  v & \BNFeq & i \mid \vpair{v}{v} \mid \vlam{x}{e} \mid \vlam{\tann{x}{\tau}}{e}
+\\
+  \tau & \BNFeq & \tnat \mid \tint \mid \tpair{\tau}{\tau} \mid \tau \tarrow \tau
+\\
+  \Gamma & \BNFeq & \cdot \mid x,\Gamma \mid \tann{x}{\tau},\Gamma
+\\
+  E & \BNFeq & \ehole \mid E~e \mid v~E \mid
                   \vpair{E}{e} \mid \vpair{v}{E} \mid \vunop~E \mid
 \\ & &            \ebinop{E}{e} \mid \ebinop{v}{E} \mid \edyn{\tau}{E} \mid \esta{\tau}{E}
 \end{array}$
 
 %% -----------------------------------------------------------------------------
 \medskip
-\fbox{$\Gamma \wellEE e$} extends $\Gamma \welldyn e$:\\
+\fbox{$\Gamma \wellEE e$}:\\
 \begin{mathpar}
   \inferrule*{
     x,\Gamma \wellEE e
@@ -28,41 +36,110 @@ $\begin{array}{l c l}
   }{
     \Gamma \wellEE \esta{\tau}{e}
   }
+
+  \inferrule*{
+    x \in \GammaD
+  }{
+    \GammaD \welldyn x
+  }
+
+  \inferrule*{
+    x,\GammaD \welldyn e
+  }{
+    \GammaD \welldyn \vlam{x}{e}
+  }
+
+  \inferrule*{
+  }{
+    \GammaD \welldyn i
+  }
+
+  \inferrule*{
+    \GammaD \welldyn e_0
+    \\
+    \GammaD \welldyn e_1
+  }{
+    \GammaD \welldyn \vpair{e_0}{e_1}
+  }
+
+  \inferrule*{
+    \GammaD \welldyn e_0
+    \\
+    \GammaD \welldyn e_1
+  }{
+    \GammaD \welldyn e_0~e_1
+  }
+
+  \inferrule*{
+    \GammaD \welldyn e
+  }{
+    \GammaD \welldyn \vunop~e
+  }
+
+  \inferrule*{
+    \GammaD \welldyn e_0
+    \\
+    \GammaD \welldyn e_1
+  }{
+    \GammaD \welldyn \vbinop~e_0~e_1
+  }
 \end{mathpar}
 
-%% -----------------------------------------------------------------------------
 \medskip
-\fbox{$e \rrEE A$} extends $e \rrD A$:\\
-\begin{mathpar}
-  \inferrule*{
-  }{
-    \edyn{\tau}{v} \rrEE v
-  }
-
-  \inferrule*{
-  }{
-    \esta{\tau}{v} \rrEE v
-  }
-
-  \inferrule*{
-  }{
-    (\vlam{\tann{x}{\tau}}{e})~v \rrEE \vsubst{e}{x}{v}
-  }
-\end{mathpar}
-
-%% -----------------------------------------------------------------------------
-\medskip
-$\begin{array}{l c l}
-  \ccEE & \triangleq & \mbox{context closure of $\rrEE$ in $E$}
+\begin{minipage}[t]{0.38\columnwidth}
+\fbox{$\delta(\vunop, v) = A$}
+$\begin{array}{l@{~~}c@{~~}l}
+  \delta(\vfst, \vpair{v_0}{v_1}) & = & v_0
 \\
-  \rrEEstar & \triangleq & \mbox{reflexive, transitive closure of $\ccEE$}
+  \delta(\vsnd, \vpair{v_0}{v_1}) & = & v_1
+\end{array}$
+\end{minipage}%
+\begin{minipage}[t]{0.5\columnwidth}
+\fbox{$\delta(\vbinop, v, v) = A$}
+$\begin{array}{l@{~~}c@{~~}l}
+  \delta(\vsum, i_0, i_1) & = & i_0 + i_1
+\\
+  \delta(\vquotient, i_0, 0) & = & \boundaryerror
+\\
+  \delta(\vquotient, i_0, i_1) & = & \floorof{i_0 / i_1}
+\\ \multicolumn{3}{l}{\mbox{\quad if $i_1 \neq 0$}}
+\end{array}$
+\end{minipage}
+
+%% -----------------------------------------------------------------------------
+\medskip
+\fbox{$e \rrEE A$}\\
+$\begin{array}{l@{~~}c@{~~}l l}
+  (\vlam{\tann{x}{\tau_d}}{e})~v & \rrEE & \vsubst{e}{x}{v} &
+\\
+  \edyn{\tau}{v} & \rrEE & v &
+\\
+  \esta{\tau}{v} & \rrEE & v &
+\\
+  (\vlam{x}{e})~v & \rrEE & \vsubst{e}{x}{v} &
+\\
+  v_0~v_1 & \rrEE & \typeerror & \mbox{if $v_0 \sim i$ or $v_0 \sim \vpair{v}{v'}$}
+\\
+  \eunop{v} & \rrEE & A & \mbox{if $A = \delta(\vunop, v)$}
+\\
+  \eunop{v} & \rrEE & \tagerror & \mbox{otherwise}
+\\
+  \ebinop{v_0}{v_1} & \rrEE & A & \mbox{if $A = \delta(\vbinop, v_0, v_1)$}
+\\
+  \ebinop{v_0}{v_1} & \rrEE & \tagerror & \mbox{otherwise}
 \end{array}$
 
-%\medskip
-%$\vevalEE(e) = \left\{ \begin{array}{l l}
-%  v & \emph{if}~~e~\rrEEstar~v \\
-%  \typeerror & \emph{if}~~e~\rrEEstar~\typeerror \\
-%  \valueerror & \emph{if}~~e~\rrEEstar~\valueerror
-%\end{array}\right.$
+%% -----------------------------------------------------------------------------
+\medskip
+\fbox{$e \cclift{E}{\rrEE} A$}\\
+$\begin{array}{l@{~~}c@{~~}l l}
+\ctxE{e} & \cclift{E}{\rrEE} & \ctxE{e'} & \mbox{if $e \rrEE e'$}
+\\
+\ctxE{e} & \cclift{E}{\rrEE} & A         & \mbox{if $e \rrEE A$ and $A \not\in e$}
+\end{array}$
+
+\smallskip
+\fbox{$e \rrEEstar A$} reflexive, transitive closure of $\cclift{\ED}{\rrEE}$
+
 
 \end{flushleft}
