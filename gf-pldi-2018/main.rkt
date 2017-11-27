@@ -4,6 +4,8 @@
 
 (provide
   ;; --- new stuff
+  tech
+
   bm-desc
   blockquote
   MT
@@ -24,6 +26,7 @@
   dyn*
   step*
   definition
+  convention
   theorem
   fake-theorem
   type-error
@@ -225,26 +228,35 @@
 (define (path-string->input ps)
   (exact (format "\\input{~a}" ps)))
 
-(define (definition term . defn*)
-  (make-thing "Definition" term defn*))
+(define (definition term #:key [key #f] . defn*)
+  (make-thing "Definition" term defn* key))
 
-(define (theorem term . defn*)
-  (make-thing "Theorem" term defn*))
+(define (convention term #:key [key #f] . defn*)
+  (make-thing "Convention" term defn* key))
 
-(define (fake-theorem term . defn*)
-  (make-thing "Theorem Sketch" term defn*))
+(define (theorem term #:key [key #f] . defn*)
+  (make-thing "Theorem" term defn* key))
+
+(define (lemma term #:key [key #f] . defn*)
+  (make-thing "Theorem" term defn* key))
+
+(define (fake-theorem term #:key [key #f] . defn*)
+  (make-thing "Theorem Sketch" term defn* key))
 
 (define (good str)
   ($ (format "\\emph{good}(~a)" str)))
 
-(define (make-thing title term defn*)
+;; TODO add a deftech?
+(define (make-thing title term defn* [key #f])
   (para #:style plain
     (list
       (exact "\\vspace{1ex}\n")
       (bold title)
       (cons (element #f (list " (" (emph term) ") ")) defn*))))
 
-;; TODO say "proof sketch" instead of "proof"
+;; TODO just use tech?
+(define tech emph)
+
 (define (proof-sketch . elem*)
   (make-proof "Proof Sketch: " elem*))
 
@@ -384,7 +396,7 @@
 
 (define K-SAFETY
   (list
-    @theorem[@elem{@${\langK} type-tag soundness}]{
+    @theorem[@elem{@${\langK} type-tag soundness} #:key "LK-soundness"]{
       If @${\wellM e : \tau}
        and @${\tagof{\tau} = K}, then
        @${\wellM e : \tau \carrow e^+}
