@@ -34,6 +34,10 @@
   value-error
   proof
   proofcase
+  proofif
+  proofthen
+  proofand
+  proofelse
   proof-sketch
   include-figure
   include-figure*
@@ -267,10 +271,33 @@
   (make-proof "Proof: " elem*))
 
 (define (make-proof descr elem*)
-  (para (list (emph descr) elem* @${\hfill \qedsymbol})))
+  (list (emph descr) elem* @${\hfill \qedsymbol}))
 
 (define (proofcase title . pc*)
-  (list (bold "Case ") title ": " pc*))
+  (list (bold "Case ") title ": "
+    (nested #:style 'inset pc*)))
+
+(define (proofif cond . pc*)
+  (list (bold "if ") cond ": "
+    (nested #:style 'inset pc*)))
+
+(define (proofand elem . reason*)
+  (cons
+    (list "and " elem)
+    (proofreason reason*)))
+
+(define (proofthen elem . reason*)
+  (cons
+    (list "then " elem)
+    (proofreason reason*)))
+
+(define (proofreason reason*)
+  (for/list ([r (in-list reason*)])
+    (list (linebreak) "because " r)))
+
+(define (proofelse cond . pc*)
+  (list (bold "else ") cond ": "
+    (nested #:style 'inset pc*)))
 
 (define well_D
   ($ "\\welldyn"))

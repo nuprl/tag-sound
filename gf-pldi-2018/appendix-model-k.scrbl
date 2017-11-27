@@ -16,16 +16,39 @@
   If @${\wellKE e : K} then either @${e} is a value or @${e \ccKS A}.
 }
 @proof{
-  By case analysis on the structure of @${e}.
-  The definition of @${\ccKS} lists three ways to step: two by @${\ccKD} and one by @${\cclift{E}{\rrKS}}.
-  By the unique evaluation contexts lemma for @${\langK} there are seven cases to consider.
+  @; TODO better sketch
+  Proceed by case analysis on the structure of @${e}.
+  The definition of @${\ccKS} lists three ways to step: two by @${\ccKD} and one by @${\liftKS}.
+
+  By the unique evaluation contexts lemma for @${\langK}, there are seven cases to consider.
 
   @proofcase[@${e = \ctxE{\edyn{\tau}{e'}}}]{
-    If @${e'} is a value, then @${e \rrKS \ctxE{e'}}
-     if @${\mchk{\tagof{\tau}}{e'}}
-     and @${e \rrKS \boundaryerror} otherwise.
-    If @${e'} is not a value, then steps by @${\ccKD} to either
-     @${\ctxE{\edyn{\tau}{e''}}} or a @${\boundaryerror}.
+    @proofif[@${e' \in v}]{
+      @proofif[@${\mchk{\tagof{\tau}}{e'} = e'}]{
+        @proofthen[
+          @${e \ccKS \ctxE{e'}}
+          @${\ctxE{\edyn{\tau}{e'}} \liftKS \ctxE{e'}}
+        ]
+      }
+      @proofelse[@${\mchk{\tagof{\tau}}{e'} = \boundaryerror}]{
+        @proofthen[
+          @${e \ccKS \boundaryerror}
+          @${\ctxE{\edyn{\tau}{e'}} \liftKS \boundaryerror}
+        ]
+      }
+    }
+    @proofelse[@${e' \not\in v}]{
+      @proofif[@${e' \ccKD e''}]{
+        @proofthen[
+          @${e \ccKS \ctxE{\edyn{\tau}{e''}}}
+        ]
+      }
+      @proofelse[@${e' \ccKD A}]{
+        @proofthen[
+          @${e \ccKS A}
+        ]
+      }
+    }
   }
 
   @proofcase[@${e = \edyn{\kany}{v}}]{
