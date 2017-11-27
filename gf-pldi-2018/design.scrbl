@@ -74,7 +74,7 @@ For @${\langD}, soundness means that the evaluation of any well-formed expressio
  either produces a valid answer or runs forever.
 Expressions cannot send the evaluator to an undefined state.
 
-@|D-SAFETY|
+@|D-SOUNDNESS|
 @;
 @proof-sketch{
   By progress and preservation lemmas@~cite[type-soundness] for the @${\welldyn} relation.
@@ -92,7 +92,7 @@ Additionally, we can prove that evaluation preserves types; if
 This enhancement allows programmers to use static type information to reason about the run-time
  behavior of programs.
 
-@|S-SAFETY|
+@|S-SOUNDNESS|
 @;
 @proof-sketch{
   By progress and preservation of the @${\wellsta \cdot : \tau} relation.
@@ -156,7 +156,7 @@ The typing judgment @${\Gamma \wellEE e} recursively extends the notion of
 Using @${\Gamma \wellEE \cdot} as a run-time invariant, we can state a soundness theorem for
  @${\langE}:
 
-@|E-SAFETY|
+@|E-SOUNDNESS|
 @;@proof-sketch{
 @; By progress and preservation of @${\wellEE}.
 @;}
@@ -241,7 +241,7 @@ Monitor values establish a key invariant: every value in statically-typed
 This invariant yields a kind of type soundness that is nearly as strong
  as @${\langS} soundness.
 
-@|N-SAFETY|
+@|N-SOUNDNESS|
 @proof-sketch{
   By progress and preservation lemmas for the @${\Gamma \wellNE \cdot : \tau} relation.
   The lack of type-tag errors in statically-typed code follows from the
@@ -320,7 +320,7 @@ From a theoretical standpoint, the change from a natural to a co-natural embeddi
  state.
 The co-natural embedding is still type sound in the same sense as the natural embedding:
 
-@|C-SAFETY|
+@|C-SOUNDNESS|
 @proof-sketch{ Similar to the natural embedding. }
 @; TODO actual link to appendix
 
@@ -378,7 +378,7 @@ The @${\mchk{\tau}{\cdot}} meta-function factors out the common work of checking
 The language @${\langF} satisfies the same notion of soundness as the co-natural @${\langC}
  and the natural @${\langN}:
 
-@|F-SAFETY|
+@|F-SOUNDNESS|
 @proof-sketch{
   By progress and preservation of the @${\wellFE \cdot : \tau} relation.
   The key invariant is that if @${x} is a variable of type
@@ -485,7 +485,7 @@ We leave as open the question of how to define a completion function that
 We state soundness for @${\langK} in terms of the static typing judgment
  of the mixed language and the semantics of @${\langK}.
 
-@|K-SAFETY|
+@|K-SOUNDNESS|
 @proof-sketch{
   The completion function simply adds checks around every expression with type-tag
    @${\kany} to enforce the expression's static type.

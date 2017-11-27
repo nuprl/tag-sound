@@ -3,7 +3,7 @@
 @;@subsection{Dynamic Typing}
 @include-figure*["fig:dyn-lang.tex" @elem{Dynamically-typed @${\langD}}]
 
-@;@|D-SAFETY|
+@;@|D-SOUNDNESS|
 @;@proof{
 @;  TODO
 @;}

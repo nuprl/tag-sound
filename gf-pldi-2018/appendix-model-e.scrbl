@@ -3,7 +3,7 @@
 @;@subsection{Erasure Embedding}
 @include-figure*["fig:erasure-embedding.tex" "Erasure Embedding"]
 
-@;@|E-SAFETY|
+@;@|E-SOUNDNESS|
 @;@proof{
 @;  TODO
 @;}

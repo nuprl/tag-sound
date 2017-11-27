@@ -3,7 +3,7 @@
 @;@subsection{Co-Natural Embedding}
 @include-figure*["fig:conatural-embedding.tex" "Co-Natural Embedding"]
 
-@;@|C-SAFETY|
+@;@|C-SOUNDNESS|
 @;@proof{
 @;  TODO
 @;}

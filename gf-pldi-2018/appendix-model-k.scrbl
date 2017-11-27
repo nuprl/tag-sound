@@ -4,7 +4,7 @@
 @include-figure*["fig:locally-defensive-embedding.tex" "Tagged Embedding"]
 @include-figure*["fig:locally-defensive-completion.tex" "Tagged Completion"]
 
-@|K-SAFETY|
+@|K-SOUNDNESS|
 @proof{
   TODO
 }

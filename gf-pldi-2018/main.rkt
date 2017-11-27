@@ -44,13 +44,13 @@
   y-axis
   IF-TECHREPORT
 
-  D-SAFETY
-  S-SAFETY
-  E-SAFETY
-  N-SAFETY
-  C-SAFETY
-  F-SAFETY
-  K-SAFETY
+  D-SOUNDNESS
+  S-SOUNDNESS
+  E-SOUNDNESS
+  N-SOUNDNESS
+  C-SOUNDNESS
+  F-SOUNDNESS
+  K-SOUNDNESS
   bm
 
   ~a
@@ -331,7 +331,7 @@
 (define (MT x)
   (bold (format "MT(~a)" x)))
 
-(define D-SAFETY
+(define D-SOUNDNESS
   (list
     @theorem[@elem{@${\langD} soundness}]{
       If @${\welldyn e} then either:
@@ -342,7 +342,7 @@
     @item{ @${e~\rrDstar~\valueerror} }
     @item{ @${e} diverges } ]))
 
-(define S-SAFETY
+(define S-SOUNDNESS
   (list
     @theorem[@elem{@${\langS} type soundness}]{
       If @${\wellsta e : \tau} then either:
@@ -352,7 +352,7 @@
       @item{ @${e~\rrSstar~\valueerror} }
       @item{ @${e} diverges } ]))
 
-(define E-SAFETY
+(define E-SOUNDNESS
   (list
     @theorem[@elem{@${\langE} term safety}]{
       If @${\wellM e : \tau} then @${\wellEE e} and either:
@@ -363,7 +363,7 @@
     @item{ @${e~\rrEEstar~\valueerror} }
     @item{ @${e} diverges } ]))
 
-(define N-SAFETY
+(define N-SOUNDNESS
   (list
     @theorem[@elem{@${\langN} type soundness}]{
       If @${\wellM e : \tau} then @${\wellNE e : \tau} and either:
@@ -374,7 +374,7 @@
     @item{ @${e \rrNEstar \valueerror} }
     @item{ @${e} diverges } ]))
 
-(define C-SAFETY
+(define C-SOUNDNESS
   (list
     @theorem[@elem{@${\langL} type safety}]{
       If @${\wellM e : \tau} then @${\wellLE e : \tau} and either:
@@ -385,7 +385,7 @@
     @item{ @${e \rrLEstar \valueerror} }
     @item{ @${e} diverges }]))
 
-(define F-SAFETY
+(define F-SOUNDNESS
   (list
     @theorem[@elem{@${\langF} type soundness}]{
       If @${\wellM e : \tau} then @${\wellFE e : \tau} and either:
@@ -396,7 +396,7 @@
     @item{ @${e \rrFEstar \valueerror} }
     @item{ @${e} diverges } ]))
 
-(define K-SAFETY
+(define K-SOUNDNESS
   (list
     @theorem[@elem{@${\langK} type-tag soundness} #:key "LK-soundness"]{
       If @${\wellM e : \tau}

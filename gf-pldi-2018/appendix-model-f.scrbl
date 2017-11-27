@@ -3,7 +3,7 @@
 @;@subsection{Forgetful Embedding}
 @include-figure*["fig:forgetful-embedding.tex" "Forgetful Embedding"]
 
-@;@|F-SAFETY|
+@;@|F-SOUNDNESS|
 @;@proof{
 @;  TODO
 @;}

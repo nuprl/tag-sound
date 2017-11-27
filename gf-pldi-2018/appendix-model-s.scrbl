@@ -3,7 +3,7 @@
 @;@subsection{Static Typing}
 @include-figure*["fig:sta-lang.tex" @elem{Statically-typed @${\langS}}]
 
-@;@|S-SAFETY|
+@;@|S-SOUNDNESS|
 @;@proof{
 @;  TODO
 @;}

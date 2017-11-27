@@ -3,7 +3,7 @@
 @;@subsection{Natural Embedding}
 @include-figure*["fig:natural-embedding.tex" "Natural Embedding"]
 
-@;@|N-SAFETY|
+@;@|N-SOUNDNESS|
 @;@proof{
 @;  TODO
 @;}
