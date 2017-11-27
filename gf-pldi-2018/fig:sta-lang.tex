@@ -34,23 +34,26 @@ $\begin{array}{l c l}
 
   \inferrule*{
     \tau_d' \subt \tau_d
-    \\\\
-    \tau_c \subt \tau_c'
   }{
-    \tarr{\tau_d}{\tau_c} \subt \tarr{\tau_d'}{\tau_c'}
+    \tarr{\tau_d}{\tau_c} \subt \tarr{\tau_d'}{\tau_c}
   }
 
   \inferrule*{
+    \tau_c \subt \tau_c'
   }{
-    \tau \subt \tau
+    \tarr{\tau_d}{\tau_c} \subt \tarr{\tau_d}{\tau_c'}
   }
 
   \inferrule*{
     \tau_0 \subt \tau_0'
-    \\\\
+  }{
+    \tpair{\tau_0}{\tau_1} \subt \tpair{\tau_0'}{\tau_1}
+  }
+
+  \inferrule*{
     \tau_1 \subt \tau_1'
   }{
-    \tpair{\tau_0}{\tau_1} \subt \tpair{\tau_0'}{\tau_1'}
+    \tpair{\tau_0}{\tau_1} \subt \tpair{\tau_0}{\tau_1'}
   }
 \end{mathpar}
 \end{minipage}
@@ -97,7 +100,6 @@ $\begin{array}{l@{~~}c@{~~}l}
   }
 
   \inferrule*{
-    i \in \integers
   }{
     \GammaS \wellsta i : \tint
   }

@@ -14,5 +14,6 @@
   All chains @${K_0 \subt \cdots \subt K_n} are finite.
 }
 @proof{
-  By definition. The longest chain is @${\knat \subt \kint \subt \kany}.
+  By definition.
+  The longest chain has three tags: @${\knat \subt \kint \subt \kany}.
 }

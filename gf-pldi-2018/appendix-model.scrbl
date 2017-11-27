@@ -5,7 +5,7 @@
 @;@include-section{appendix-model-background.scrbl}
 @;@include-section{appendix-model-d.scrbl}
 @;@include-section{appendix-model-s.scrbl}
-@;@include-section{appendix-model-m.scrbl}
+@include-section{appendix-model-m.scrbl}
 @;@include-section{appendix-model-e.scrbl}
 @;@include-section{appendix-model-n.scrbl}
 @;@include-section{appendix-model-c.scrbl}
