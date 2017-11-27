@@ -248,7 +248,7 @@
   (make-thing "Theorem" term defn* key))
 
 (define (lemma term #:key [key #f] . defn*)
-  (make-thing "Theorem" term defn* key))
+  (make-thing "Lemma" term defn* key))
 
 (define (fake-theorem term #:key [key #f] . defn*)
   (make-thing "Theorem Sketch" term defn* key))

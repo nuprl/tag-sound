@@ -13,15 +13,24 @@
 }
 
 @lemma[@elem{@${\langK} static progress} #:key "LK-S-progress"]{
-  If @${\wellKE e : K} then either @${e} is a value or @${e \ccKS A}.
-}
+  If @${\wellKE e : K} then either:}
+  @itemlist[
+    @item{ @${e} is a value }
+    @item{ @${e \ccKS e'} }
+    @item{ @${e \ccKS \boundaryerror} }
+    @item{ @${e \eeq \ctxE{\edyn{\tau}{e'}} \mbox{ and } e' \ccKD \tagerror} }
+  ]
 @proof{
   @; TODO better sketch
   Proceed by case analysis on the structure of @${e}.
-  The definition of @${\ccKS} lists three ways to step: two by @${\ccKD} and one by @${\liftKS}.
+  The definition of @${\ccKS} lists three ways to step:
+   two by @${\ccKD} and one by @${\liftKS}.
+  By the unique evaluation contexts lemma for @${\langK},
+   there are seven cases to consider.
 
-  By the unique evaluation contexts lemma for @${\langK}, there are seven cases to consider.
-
+  @proofcase[@${e \eeq v}]{
+    immediate
+  }
   @proofcase[@${e \eeq \ctxE{\edyn{\tau}{e'}}}]{
     @proofif[@${e' \in v}]{
       @proofif[@${\mchk{\tagof{\tau}}{e'} = e'}]{
@@ -108,14 +117,64 @@
     }
   }
 
-  @proofcase[@${e \eeq \eunop{v}}]{
+  @proofcase[@${e \eeq \ctxE{\eunop{v}}}]{
+    @proofitems[
+      @item{
+        @${\vunop \eeq \vfst} or @${\vunop \eeq \vsnd}
+        @proofby["def:LK"]
+      }
+      @item{
+        @${\exists K' \mbox{ such that } \wellKE \eunop{v} : K'}
+        @proofby["lemma:LK-hole-typing" @${\wellKE \ctxE{\eunop{v}} : K}]
+      }
+      @item{
+        @${\wellKE v : \kpair}
+        @proofby["lemma:LK-inversion" @${\wellKE \eunop{v} : K'}]
+      }
+      @item{
+        @${v \eeq \vpair{v_0}{v_1}}
+        @proofby["lemma:LK-canonical" @${\wellKE v : \kpair}]
+      }
+      @item{
+        @${\delta(\vunop, v) = v_i} where @${i \in \{0,1\}}
+        @proofby["def:LK"]
+      }
+    ]
+    @proofthen
+      @${e \ccKS \ctxE{v_i}}
+    @proofbecause
+      @${(\eunop{v}) \rrKS v_i}
   }
 
-  @proofcase[@${e \eeq \ebinop{v_0}{v_1}}]{
-  }
-
-  @proofcase[@${e \eeq v}]{
-    Otherwise @${e} is an integer, pair, or function literal.
+  @proofcase[@${e \eeq \ctxE{\ebinop{v_0}{v_1}}}]{
+    @proofitems[
+      @item{
+        @${\exists K' \mbox{ such that } \wellKE \ebinop{v_0}{v_1} : K'}
+        @proofby["lemma:LK-hole-typing" @${\wellKE \ctxE{\ebinop{v_0}{v_1}} : K}]
+      }
+      @item{
+        @${\exists K_0 K_1 K_2 \mbox{ such that } \wellKE v_0 : K_0
+           \mbox{ and } \wellKE v_1 : K_1
+           \mbox{ and } \Delta(\vbinop, K_0, K_1) = K_2}
+        @proofby["lemma:LK-inversion" @${\wellKE \ebinop{v_0}{v_1} : K'}]
+      }
+      @item{
+        @${\delta(\vbinop, v_0, v_1) = v \mbox{ or } \delta(\vbinop, v_0, v_1) = \boundaryerror}
+        @proofby["lemma:Delta-soundness"]
+      }
+    ]
+    @proofif[@${\delta(\vbinop, v_0, v_1) = v}]{
+      @proofthen
+        @${e \ccKS \ctxE{v}}
+      @proofbecause
+        @${(\ebinop{v_0}{v_1}) \rrKS v}
+    }
+    @proofelse[@${\delta(\vbinop, v_0, v_1) = \boundaryerror}]{
+      @proofthen
+        @${e \ccKS \boundaryerror}
+      @proofbecause
+        @${(\ebinop{v_0}{v_1}) \rrKS \boundaryerror}
+    }
   }
 }
 
