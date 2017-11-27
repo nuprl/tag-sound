@@ -26,6 +26,7 @@
   dyn*
   step*
   definition
+  lemma
   convention
   theorem
   fake-theorem
@@ -254,8 +255,9 @@
       (bold title)
       (cons (element #f (list " (" (emph term) ") ")) defn*))))
 
-;; TODO just use tech?
-(define tech emph)
+;; TODO just use Scribble's tech?
+(define (tech #:key [key #f] . pc*)
+  (emph pc*))
 
 (define (proof-sketch . elem*)
   (make-proof "Proof Sketch: " elem*))

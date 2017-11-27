@@ -3,9 +3,9 @@
 \begin{minipage}[t]{0.44\textwidth}
 \fbox{Language $\langK$}\\
 $\begin{array}{l c l}
-  e & \BNFeq & x \mid v \mid e~e \mid \vpair{e}{e} \mid \vunop~e \mid \vbinop~e~e \mid
-\\ & & \edyn{\tau}{e} \mid \esta{\tau}{e} \mid
-\\ & &   \edyn{\kany}{e} \mid \esta{\kany}{e} \mid \echk~K~e
+  e & \BNFeq & x \mid v \mid e~e \mid \vpair{e}{e} \mid \vunop~e \mid \vbinop~e~e \mid \edyn{\tau}{e} \mid
+\\ & & \esta{\tau}{e} \mid \edyn{\kany}{e} \mid \esta{\kany}{e} \mid
+\\ & & \echk~K~e
 \\
   v & \BNFeq & i \mid \vpair{v}{v} \mid \vlam{x}{e} \mid \vlam{\tann{x}{\tau}}{e}
 \\
@@ -17,8 +17,8 @@ $\begin{array}{l c l}
 \\
   E & \BNFeq & \ehole \mid E~e \mid v~E \mid
                   \vpair{E}{e} \mid \vpair{v}{E} \mid \vunop~E \mid
-\\ & &            \ebinop{E}{e} \mid \ebinop{v}{E} \mid
-\\ & & \edyn{\kany}{E} \mid \esta{\kany}{E} \mid \echk{K}{E}
+\\ & &            \ebinop{E}{e} \mid \ebinop{v}{E} \mid \edyn{\kany}{E} \mid
+\\ & & \esta{\kany}{E} \mid \echk{K}{E}
 \end{array}$
 \end{minipage}%
 \begin{minipage}[t]{0.3\textwidth}
@@ -37,6 +37,7 @@ $\begin{array}{l c l}
 \fbox{$K \subk K$}
 \begin{mathpar}
   \inferrule*{
+    K \neq \kany
   }{
     K \subk \kany
   }
@@ -44,11 +45,6 @@ $\begin{array}{l c l}
   \inferrule*{
   }{
     \knat \subk \kint
-  }
-
-  \inferrule*{
-  }{
-    K \subk K
   }
 \end{mathpar}
 \end{minipage}
@@ -207,7 +203,7 @@ $\begin{array}{l c l}
     %\\
     %\tau_1 = K_1
     \\\\
-    \Delta(\vbinop, \tau_0, \tau_1) = K
+    \Delta(\vbinop, K_0, K_1) = K
   }{
     \Gamma \wellKE \vbinop~e_0~e_1 : K
   }
@@ -227,7 +223,7 @@ $\begin{array}{l c l}
   }
 
   \inferrule*{
-    \Gamma \wellKE e : K'
+    \Gamma \wellKE e : \kany
   }{
     \Gamma \wellKE \echk{K}{e} : K
   }
@@ -275,7 +271,7 @@ $\begin{array}{l@{~~}c@{~~}l}
 \medskip
 \fbox{$e \rrKS A$}\\
 $\begin{array}{l@{~~}c@{~~}l}
-  (\vlam{x}{e})~v & \rrKS & \edyn{\kany}{\vsubst{e}{x}{v}}
+  (\vlam{x}{e})~v & \rrKS & \edyn{\kany}{(\vsubst{e}{x}{v})}
 \\
   \edyn{\tau}{v} & \rrKS & \mchk{K}{v}
 \\ \multicolumn{3}{l}{\mbox{\quad where $K = \tagof{\tau}$}}
@@ -284,11 +280,14 @@ $\begin{array}{l@{~~}c@{~~}l}
 \\
   \echk{K}{v} & \rrKS & \mchk{K}{v}
 \\
-  (\vlam{\tann{x}{\tau_d}}{e})~v & \rrKS & \vsubst{e}{x}{v}
+  (\vlam{\tann{x}{\tau_d}}{e})~v & \rrKS & \vsubst{e}{x}{\mchk{K}{v}}
+\\ \multicolumn{3}{l}{\mbox{\quad where $K = \tagof{\tau_d}$}}
 \\
-  \eunop{v} & \rrKS & \delta(\vunop, v)
+  \eunop{v} & \rrKS & A
+\\ \multicolumn{3}{l}{\mbox{\quad if $A = \delta(\vunop, v)$}}
 \\
   \ebinop{v_0}{v_1} & \rrKS & \delta(\vbinop, v_0, v_1)
+\\ \multicolumn{3}{l}{\mbox{\quad if $A = \delta(\vbinop, v_0, v_1)$}}
 \end{array}$
 
 \medskip
@@ -303,5 +302,6 @@ $\begin{array}{l@{~~}c@{~~}l l}
 \fbox{$e \rrKEstar A$} reflexive, transitive closure of $\ccKS$\\
 \mbox{\quad where $\vtuple{\ccKS}{\ccKD} = \DSlift{\ES}{\rrKS}{\ED}{\rrKD}$}
 \end{minipage}
+\smallskip
 
 \end{flushleft}

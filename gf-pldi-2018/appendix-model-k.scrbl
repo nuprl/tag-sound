@@ -1,6 +1,6 @@
 #lang gf-pldi-2018
 
-@;@subsection{Tagged Embedding}
+@section{Locally-Defensive Embedding}
 @include-figure*["fig:locally-defensive-embedding.tex" "Tagged Embedding"]
 @include-figure*["fig:locally-defensive-completion.tex" "Tagged Completion"]
 
@@ -10,5 +10,9 @@
 }
 
 
-Hello you know @tech{that theorem} it was great.
-
+@lemma[@elem{@${K \subt K} finite}]{
+  All chains @${K_0 \subt \cdots \subt K_n} are finite.
+}
+@proof{
+  By definition. The longest chain is @${\knat \subt \kint \subt \kany}.
+}
