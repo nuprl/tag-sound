@@ -12,7 +12,8 @@
    for the @${\wellKE} relation.
 }
 
-@lemma[@elem{@${\langK} static progress} #:key "LK-S-progress"]{
+@; -----------------------------------------------------------------------------
+@lemma[@elem{@${\langK} static progress} #:key "lemma:LK-S-progress"]{
   If @${\wellKE e : K} then either:}
   @itemlist[
     @item{ @${e} is a value }
@@ -25,12 +26,12 @@
   Proceed by case analysis on the structure of @${e}.
   The definition of @${\ccKS} lists three ways to step:
    two by @${\ccKD} and one by @${\liftKS}.
-  By the unique evaluation contexts lemma for @${\langK},
-   there are seven cases to consider.
+  By @tech{LK-uec} there are seven cases to consider.
 
   @proofcase[@${e \eeq v}]{
     immediate
   }
+
   @proofcase[@${e \eeq \ctxE{\edyn{\tau}{e'}}}]{
     @proofif[@${e' \in v}]{
       @proofif[@${\mchk{\tagof{\tau}}{e'} = e'}]{
@@ -47,6 +48,8 @@
       }
     }
     @proofelse[@${e' \not\in v}]{
+      @proofby["lemma:LK-D-progress"]
+
       @proofif[@${e' \ccKD e''}]{
         @proofthen
           @${e \ccKS \ctxE{\edyn{\tau}{e''}}}
@@ -58,11 +61,25 @@
     }
   }
 
-  @proofcase[@${e \eeq \ctxE{\edyn{\kany}{v}}}]{
-    @proofthen
-      @${e \ccKS \ctxE{v}}
-    @proofbecause
-      @${(\edyn{\kany}{v}) \rrKS v}
+  @proofcase[@${e \eeq \ctxE{\edyn{\kany}{e'}}}]{
+    @proofif[@${e' \in v}]{
+      @proofthen
+        @${e \ccKS \ctxE{v}}
+      @proofbecause
+        @${(\edyn{\kany}{v}) \rrKS v}
+    }
+    @proofelse[@${e' \not\in v}]{
+      @proofby["lemma:LK-D-progress"]
+
+      @proofif[@${e' \ccKD e''}]{
+        @proofthen
+          @${e \ccKS \ctxE{\edyn{\kany}{e''}}}
+      }
+      @proofelse[@${e' \ccKD A}]{
+        @proofthen
+          @${e \ccKS A}
+      }
+    }
   }
 
   @proofcase[@${e \eeq \ctxE{\echk{K}{v}}}]{
@@ -178,13 +195,141 @@
   }
 }
 
-@lemma[@elem{@${\langK} dynamic progress} #:key "LK-D-progress"]{
-  If @${\wellKE e} then either @${e} is a value or @${e \ccKD A}.
-}
+@; -----------------------------------------------------------------------------
+@lemma[@elem{@${\langK} dynamic progress} #:key "lemma:LK-D-progress"]{
+  If @${\wellKE e} then either @${e} is a value or @${e \ccKD A}.}
 @proof{
-  
+  Proceed by case analysis on the structure of @${e}.
+  By @tech{lemma:LK-uec} there are seven cases to consider.
+
+  @proofcase[@${e \eeq v}]{
+    Immediate
+  }
+
+  @proofcase[@${e \eeq \ctxE{\esta{\tau}{e'}}}]{
+    @proofif[@${e' \in v}]{
+      @proofif[@${\mchk{\tagof{\tau}}{e'} = e'}]{
+        @proofthen
+          @${e \ccKD \ctxE{e'}}
+        @proofbecause
+          @${(\esta{\tau}{e'}) \rrKD e'}
+      }
+      @proofelse[@${\mchk{\tagof{\tau}}{e'} = \boundaryerror}]{
+        @proofthen
+          @${e \ccKD \boundaryerror}
+        @proofbecause
+          @${(\esta{\tau}{e'}) \rrKD \boundaryerror}
+      }
+    }
+    @proofelse[@${e' \not\in v}]{
+      @proofby["lemma:LK-S-progress"]
+
+      @proofif[@${e' \ccKS e''}]{
+        @proofthen
+          @${e \ccKD \ctxE{\esta{\tau}{e''}}}
+      }
+      @proofelse[@${e' \ccKS A}]{
+        @proofthen
+          @${e \ccKD A}
+      }
+    }
+  }
+
+  @proofcase[@${e \eeq \ctxE{\esta{\kany}{e'}}}]{
+    @proofif[@${e' \in v}]{
+      @proofthen
+        @${e \ccKD \ctxE{e'}}
+      @proofbecause
+        @${(\esta{\kany}{e'}) \rrKD e'}
+    }
+    @proofelse[@${e' \not\in v}]{
+      @proofby["lemma:LK-S-progress"]
+
+      @proofif[@${e' \ccKS e''}]{
+        @proofthen
+          @${e \ccKD \ctxE{\esta{\kany}{e''}}}
+      }
+      @proofelse[@${e' \ccKS A}]{
+        @proofthen @${e \ccKD A}
+      }
+    }
+  }
+
+  @proofcase[@${e \eeq \ctxE{\echk{K}{v}}}]{
+    @proofif[@${\mchk{K}{v} = v}]{
+      @proofthen
+        @${e \ccKD \ctxE{v}}
+      @proofbecause
+        @${(\echk{K}{v}) \rrKD v}
+    }
+    @proofelse[@${\mchk{K}{v} = \boundaryerror}]{
+      @proofthen
+        @${e \ccKD \boundaryerror}
+      @proofbecause
+        @${(\echk{K}{v}) \rrKD \boundaryerror}
+    }
+  }
+
+  @proofcase[@${e \eeq \ctxE{v_0~v_1}}]{
+    @proofif[@${v_0 \eeq \vlam{x}{e_0}}]{
+      @proofthen
+        @${e \ccKD \ctxE{\vsubst{e_0}{x}{v_1}}}
+      @proofbecause
+        @${(\vlam{x}{e_0}~v_1) \rrKD \vsubst{e_0}{x}{v_1}}
+    }
+    @proofif[@${v_0 \eeq \vlam{\tann{x}{\tau_d}}{e_0}}]{
+      @proofif[@${\mchk{\tagof{\tau_d}}{v_1} = v_1}]{
+        @proofthen
+          @${e \ccKD \ctxE{\esta{\kany}{(\vsubst{e_0}{x}{v_1})}}}
+        @proofbecause
+          @${(\vlam{\tann{x}{\tau_d}}{e_0}~v_1) \rrKD (\esta{\kany}{\vsubst{e_0}{x}{v_1}})}
+      }
+      @proofelse[@${\mchk{\tagof{\tau_d}}{v_1} = \boundaryerror}]{
+        @proofthen
+          @${e \ccKD \boundaryerror}
+        @proofbecause
+          @${(\vlam{\tann{x}{\tau_d}}{e_0}~v_1) \rrKD \boundaryerror}
+      }
+    }
+    @proofelse[@${v_0 \eeq i \mbox{ or } v_0 \eeq \vpair{v}{v'}}]{
+      @proofthen
+        @${e \ccKD \tagerror}
+      @proofbecause
+        @${v_0~v_1 \rrKD \tagerror}
+    }
+  }
+
+  @proofcase[@${e = \ctxE{\eunop{v}}}]{
+    @proofif[@${\delta(\vunop, v) = v'}]{
+      @proofthen
+        @${e \ccKD \ctxE{v'}}
+      @proofbecause
+        @${(\eunop{v}) \rrKD v'}
+    }
+    @proofelse[@${\delta(\vunop, v) \mbox{ is undefined}}]{
+      @proofthen
+        @${e \ccKD \tagerror}
+      @proofbecause @${(\eunop{v}) \rrKD \tagerror}
+    }
+  }
+
+  @proofcase[@${e = \ctxE{\ebinop{v_0}{v_1}}}]{
+    @proofif[@${\delta(\vbinop, v_0, v_1) = v'}]{
+      @proofthen @${e \ccKD \ctxE{v'}}
+      @proofbecause @${(\ebinop{v_0}{v_1}) \rrKD v'}
+    }
+    @proofif[@${\delta(\vbinop, v_0, v_1) = \boundaryerror}]{
+      @proofthen @${e \ccKD \boundaryerror}
+      @proofbecause @${(\ebinop{v_0}{v_1}) \rrKD \boundaryerror}
+    }
+    @proofelse[@${\delta(\vbinop, v_0, v_1) \mbox{ is undefined}}]{
+      @proofthen @${e \ccKD \tagerror}
+      @proofbecause @${(\ebinop{v_0}{v_1}) \rrKD \tagerror}
+    }
+  }
 }
 
+@; -----------------------------------------------------------------------------
 @lemma[@elem{@${\langK} preservation} #:key "LK-preservation"]{
 }
 @proof{
