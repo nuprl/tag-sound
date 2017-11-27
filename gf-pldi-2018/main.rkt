@@ -33,6 +33,7 @@
   type-error
   value-error
   proof
+  proofcase
   proof-sketch
   include-figure
   include-figure*
@@ -267,6 +268,9 @@
 
 (define (make-proof descr elem*)
   (para (list (emph descr) elem* @${\hfill \qedsymbol})))
+
+(define (proofcase title . pc*)
+  (list (bold "Case ") title ": " pc*))
 
 (define well_D
   ($ "\\welldyn"))
