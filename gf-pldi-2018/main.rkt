@@ -32,13 +32,6 @@
   fake-theorem
   type-error
   value-error
-  proof
-  proofcase
-  proofif
-  proofthen
-  proofand
-  proofelse
-  proof-sketch
   include-figure
   include-figure*
   NUM-EMBEDDINGS
@@ -61,6 +54,17 @@
   ~a
 
   note-to-self
+
+  proof
+  proofcase
+  proofif
+  proofthen
+  proofbecause
+  proofand
+  proofby
+  proofelse
+  proofitems
+  proof-sketch
 
   ;; ---------------------------------------------------------------------------
   ;; --- old stuff
@@ -281,23 +285,27 @@
   (list (bold "if ") cond ": "
     (nested #:style 'inset pc*)))
 
-(define (proofand elem . reason*)
-  (cons
-    (list "and " elem)
-    (proofreason reason*)))
+(define proofand
+  (list "and "))
 
-(define (proofthen elem . reason*)
-  (cons
-    (list "then " elem)
-    (proofreason reason*)))
+(define (proofby tag [thing #f])
+  (list* (linebreak) "by " (tech tag)
+    (if thing
+      (list " applied to " thing)
+      (list))))
 
-(define (proofreason reason*)
-  (for/list ([r (in-list reason*)])
-    (list (linebreak) "because " r)))
+(define proofthen
+  "then ")
+
+(define proofbecause
+  (list (linebreak) "because "))
 
 (define (proofelse cond . pc*)
   (list (bold "else ") cond ": "
     (nested #:style 'inset pc*)))
+
+(define (proofitems . item*)
+  (apply itemlist #:style 'ordered item*))
 
 (define well_D
   ($ "\\welldyn"))
