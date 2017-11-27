@@ -86,7 +86,7 @@ The analogous soundness theorem for @${\langS} guarantees
  that evaluation via @${\rrSstar} never leads to undefined behavior
  even though the reduction relation calls the partial @${\delta} function
  and never raises tag errors.
-Additionally, we can prove that evaluation preserves types; if
+Additionally, we can prove that evaluation preserves types;
  if an expression has type @${\tau} and evaluates to a value @${v}, then
  @${v} also has type @${\tau}.
 This enhancement allows programmers to use static type information to reason about the run-time
@@ -267,7 +267,7 @@ The erasure embedding promises nothing in the way of type soudness,
 The natural embedding is ideally type sound (for a language that makes no
  attempt to connect run-time boundary errors to source-program boundary terms@~cite[tfffgksst-snapl-2017])
  but imposes a large performance overhead.
-In the context of Typed Racket, Takikawa etal observed that a straightforward
+In the context of Typed Racket, Takikawa @|etal| observed that a straightforward
  implementation of the natural embedding can slow down a working program
  by two orders of magnitude.
 
