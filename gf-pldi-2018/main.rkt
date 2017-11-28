@@ -62,8 +62,12 @@
   proofbecause
   proofand
   proofby
+  proofbyIH
   proofelse
   proofitems
+  proofqed
+  proofcontradiction
+
   proof-sketch
 
   ;; ---------------------------------------------------------------------------
@@ -294,6 +298,12 @@
       (list " applied to " thing)
       (list))))
 
+(define (proofbyIH)
+  (list (linebreak) "by the induction hypothesis"))
+
+(define proofqed
+  "QED ")
+
 (define proofthen
   "then ")
 
@@ -306,6 +316,9 @@
 
 (define (proofitems . item*)
   (apply itemlist #:style 'ordered item*))
+
+(define (proofcontradiction why)
+  @elem{Impossible, contradiction with @|why|})
 
 (define well_D
   ($ "\\welldyn"))

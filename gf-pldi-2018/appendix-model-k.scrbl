@@ -26,7 +26,7 @@
   Proceed by case analysis on the structure of @${e}.
   The definition of @${\ccKS} lists three ways to step:
    two by @${\ccKD} and one by @${\liftKS}.
-  By @tech{LK-uec} there are seven cases to consider.
+  By @tech{lemma:LK-S-uec} there are seven cases to consider.
 
   @proofcase[@${e \eeq v}]{
     immediate
@@ -200,7 +200,7 @@
   If @${\wellKE e} then either @${e} is a value or @${e \ccKD A}.}
 @proof{
   Proceed by case analysis on the structure of @${e}.
-  By @tech{lemma:LK-uec} there are seven cases to consider.
+  By @tech{lemma:LK-D-uec} there are seven cases to consider.
 
   @proofcase[@${e \eeq v}]{
     Immediate
@@ -336,6 +336,8 @@
   TBA
 }
 
+
+@; -----------------------------------------------------------------------------
 @lemma[@elem{@${\carrow}-soundness} #:key "lemma:completion-soundness"]{
   TBA
 }
@@ -343,7 +345,455 @@
   TBA
 }
 
+@; -----------------------------------------------------------------------------
+@lemma[@elem{@${\langK} unique static evaluation contexts} #:key "lemma:LK-S-uec"]{
+  If @${\wellKE e : K} then either:
+}
+  @itemlist[
+    @item{ @${e} is a value }
+    @item{ @${e = \ctxE{v_0~v_1}} }
+    @item{ @${e = \ctxE{\eunop{v}}} }
+    @item{ @${e = \ctxE{\ebinop{v_0}{v_1}}} }
+    @item{ @${e = \ctxE{\edyn{\tau}{e'}}} }
+    @item{ @${e = \ctxE{\edyn{\kany}{e'}}} }
+    @item{ @${e = \ctxE{\echk{K}{v}}} }
+  ]
+@proof{
+  By induction on the structure of @${e}.
 
+  @proofcase[@${e = x}]{
+    @proofcontradiction[@${\wellKE e : K}]
+  }
+
+  @proofcase[@${e = i \mbox{ or }
+                e = \vlam{x}{e'} \mbox{ or }
+                e = \vlam{\tann{x}{\tau_d}}{e'}}]{
+    @proofthen @${e} is a value
+  }
+
+  @proofcase[@${e = \esta{\tau}{e'} \mbox{ or } e = \esta{\kany}{e'}}]{
+    @proofcontradiction[@${\wellKE e : K}]
+  }
+
+  @proofcase[@${e = \vpair{e_0}{e_1}}]{
+    @proofif[@${e_0 \not\in v}]{
+      @proofitems[
+        @item{
+          @${e_0 = \ES_0[e_0']}
+          @proofbyIH[]
+        }
+        @item{
+          @${E = \vpair{\ES_0}{e_1}}
+        }
+      ]
+      @proofthen @${e = \ctxE{e_0'}}
+    }
+    @proofif[@${e_0 \in v \mbox{ and } e_1 \not\in v}]{
+      @proofitems[
+        @item{
+          @${e_1 = \ES_1[e_1']}
+          @proofbyIH[]
+        }
+        @item{
+          @${E = \vpair{e_0}{\ES_1}}
+        }
+      ]
+      @proofthen @${e = \ctxE{e_1'}}
+    }
+    @proofelse[@${e_0 \in v \mbox{ and } e_1 \in v}]{
+      @proofthen @${e} is a value
+    }
+  }
+
+  @proofcase[@${e = e_0~e_1}]{
+    @proofif[@${e_0 \not\in v}]{
+      @proofitems[
+        @item{
+          @${e_0 = \ED_0[e_0']}
+          @proofbyIH[]
+        }
+        @item{
+          @${\ED = \ED_0~e_1}
+        }
+      ]
+      @proofthen @${e = \ctxE{e_0'}}
+    }
+    @proofif[@${e_0 \in v \mbox{ and } e_1 \not\in v}]{
+      @proofitems[
+        @item{
+          @${e_1 = \ED_1[e_1']}
+          @proofbyIH[]
+        }
+        @item{
+          @${\ED = e_0~\ED_1}
+        }
+      ]
+      @proofthen @${e = \ctxE{e_1'}}
+    }
+    @proofelse[@${e_0 \in v \mbox{ and } e_1 \in v}]{
+      @proofitems[@item{ @${\ED = \ehole} }]
+      @proofthen @${e = \ctxE{e_0~e_1}}
+    }
+  }
+
+  @proofcase[@${e = \eunop{e_0}}]{
+    @proofif[@${e_0 \not\in v}]{
+      @proofitems[
+        @item{
+          @${e_0 = \ED_0[e_0']}
+          @proofbyIH[]
+        }
+        @item{
+          @${\ED = \eunop{\ED_0}}
+        }
+      ]
+      @proofthen @${e = \ctxE{e_0'}}
+    }
+    @proofelse[@${e_0 \in v}]{
+      @proofitems[@item{ @${E = \ehole} }]
+      @proofthen @${e = \ctxE{\eunop{e_0}}}
+    }
+  }
+
+  @proofcase[@${e = \ebinop{e_0}{e_1}}]{
+    @proofif[@${e_0 \not\in v}]{
+      @proofitems[
+        @item{
+          @${e_0 = \ED_0[e_0']}
+          @proofbyIH[]
+        }
+        @item{
+          @${\ED = \ebinop{\ED_0}{e_1}}
+        }
+      ]
+      @proofthen @${e = \ctxE{e_0'}}
+    }
+    @proofif[@${e_0 \in v \mbox{ and } e_1 \not\in v}]{
+      @proofitems[
+        @item{
+          @${e_1 = \ED_1[e_1']}
+          @proofbyIH[]
+        }
+        @item{
+          @${\ED = \ebinop{e_0}{\ED_1}}
+        }
+      ]
+      @proofthen @${e = \ctxE{e_1'}}
+    }
+    @proofelse[@${e_0 \in v \mbox{ and } e_1 \in v}]{
+      @proofitems[ @item{ @${\ED = \ehole} } ]
+      @proofthen @${e = \ctxE{\ebinop{e_0}{e_1}}}
+    }
+  }
+
+  @proofcase[@${e = \edyn{\tau}{e_0}}]{
+    @proofif[@${e_0 \not\in v}]{
+      @proofitems[
+        @item{
+          @${e_0 = \ED_0[e_0']}
+          @proofbyIH[]
+        }
+        @item{
+          @${\ED = \edyn{\tau}{\ED_0}}
+        }
+      ]
+      @proofthen @${e = \ctxE{e_0'}}
+    }
+    @proofelse[@${e_0 \in v}]{
+      @proofitems[@item{ @${\ED = \ehole} }]
+      @proofthen @${e = \ctxE{\edyn{\tau}{e_0}}}
+    }
+  }
+
+  @proofcase[@${e = \edyn{\kany}{e_0}}]{
+    @proofif[@${e_0 \not\in v}]{
+      @proofitems[
+        @item{
+          @${e_0 = \ED_0[e_0']}
+          @proofbyIH[]
+        }
+        @item{
+          @${\ED = \edyn{\kany}{\ED_0}}
+        }
+      ]
+      @proofthen @${e = \ctxE{e_0'}}
+    }
+    @proofelse[@${e_0 \in v}]{
+      @proofitems[@item{ @${\ED = \ehole} }]
+      @proofthen @${e = \ctxE{\edyn{\kany}{e_0}}}
+    }
+  }
+
+  @proofcase[@${e = \echk{K}{e_0}}]{
+    @proofif[@${e_0 \not\in v}]{
+      @proofitems[
+        @item{
+          @${e_0 = \ED_0[e_0']}
+          @proofbyIH[]
+        }
+        @item{
+          @${\ED = \echk{K}{\ED_0}}
+        }
+      ]
+      @proofthen @${e = \ctxE{e_0'}}
+    }
+    @proofelse[@${e_0 \in v}]{
+      @proofitems[@item{ @${\ED = \ehole} }]
+      @proofthen @${e = \ctxE{\echk{K}{e_0}}}
+    }
+  }
+}
+
+@; -----------------------------------------------------------------------------
+@lemma[@elem{@${\langK} unique dynamic evaluation contexts} #:key "lemma:LK-D-uec"]{
+  If @${\wellKE e} then either:
+}
+  @itemlist[
+    @item{ @${e} is a value }
+    @item{ @${e = \ctxE{v_0~v_1}} }
+    @item{ @${e = \ctxE{\eunop{v}}} }
+    @item{ @${e = \ctxE{\ebinop{v_0}{v_1}}} }
+    @item{ @${e = \ctxE{\esta{\tau}{e'}}} }
+    @item{ @${e = \ctxE{\esta{\kany}{e'}}} }
+    @item{ @${e = \ctxE{\echk{K}{v}}} }
+  ]
+@proof{
+  By induction on the structure of @${e}.
+
+  @proofcase[@${e = x}]{
+    @proofcontradiction[@${\wellKE e}]
+  }
+
+  @proofcase[@${e = i \mbox{ or }
+                e = \vlam{x}{e'} \mbox{ or }
+                e = \vlam{\tann{x}{\tau_d}}{e'}}]{
+    @proofqed @${e} is a value
+  }
+
+  @proofcase[@${e = \edyn{\tau}{e'} \mbox{ or } e = \edyn{\kany}{e'}}]{
+    @proofcontradiction[@${\wellKE e}]
+  }
+
+  @proofcase[@${e = \vpair{e_0}{e_1}}]{
+    @proofif[@${e_0 \not\in v}]{
+      @proofitems[
+        @item{
+          @${e_0 = \ES_0[e_0']}
+          @proofbyIH[]
+        }
+        @item{
+          @${E = \vpair{\ES_0}{e_1}}
+        }
+        @item{
+          @proofqed @${e = \ctxE{e_0'}}
+        }
+      ]
+    }
+    @proofif[@${e_0 \in v \mbox{ and } e_1 \not\in v}]{
+      @proofitems[
+        @item{
+          @${e_1 = \ES_1[e_1']}
+          @proofbyIH[]
+        }
+        @item{
+          @${E = \vpair{e_0}{\ES_1}}
+        }
+        @item{
+          @proofqed @${e = \ctxE{e_1'}}
+        }
+      ]
+    }
+    @proofelse[@${e_0 \in v \mbox{ and } e_1 \in v}]{
+      @proofitems[@item{@proofqed @${e} is a value}]
+    }
+  }
+
+  @proofcase[@${e = e_0~e_1}]{
+    @proofif[@${e_0 \not\in v}]{
+      @proofitems[
+        @item{
+          @${e_0 = \ED_0[e_0']}
+          @proofbyIH[]
+        }
+        @item{
+          @${\ED = \ED_0~e_1}
+        }
+        @item{
+          @proofqed @${e = \ctxE{e_0'}}
+        }
+      ]
+    }
+    @proofif[@${e_0 \in v \mbox{ and } e_1 \not\in v}]{
+      @proofitems[
+        @item{
+          @${e_1 = \ED_1[e_1']}
+          @proofbyIH[]
+        }
+        @item{
+          @${\ED = e_0~\ED_1}
+        }
+        @item{
+          @proofqed @${e = \ctxE{e_1'}}
+        }
+      ]
+    }
+    @proofelse[@${e_0 \in v \mbox{ and } e_1 \in v}]{
+      @proofitems[
+        @item{ @${\ED = \ehole} }
+        @item{ @proofqed @${e = \ctxE{e_0~e_1}} }
+      ]
+    }
+  }
+
+  @proofcase[@${e = \eunop{e_0}}]{
+    @proofif[@${e_0 \not\in v}]{
+      @proofitems[
+        @item{
+          @${e_0 = \ED_0[e_0']}
+          @proofbyIH[]
+        }
+        @item{
+          @${\ED = \eunop{\ED_0}}
+        }
+        @item{
+          @proofqed @${e = \ctxE{e_0'}}
+        }
+      ]
+    }
+    @proofelse[@${e_0 \in v}]{
+      @proofitems[
+        @item{ @${E = \ehole} }
+        @item{ @proofqed @${e = \ctxE{\eunop{e_0}}} }
+      ]
+    }
+  }
+
+  @proofcase[@${e = \ebinop{e_0}{e_1}}]{
+    @proofif[@${e_0 \not\in v}]{
+      @proofitems[
+        @item{
+          @${e_0 = \ED_0[e_0']}
+          @proofbyIH[]
+        }
+        @item{
+          @${\ED = \ebinop{\ED_0}{e_1}}
+        }
+        @item{
+          @proofqed @${e = \ctxE{e_0'}}
+        }
+      ]
+    }
+    @proofif[@${e_0 \in v \mbox{ and } e_1 \not\in v}]{
+      @proofitems[
+        @item{
+          @${e_1 = \ED_1[e_1']}
+          @proofbyIH[]
+        }
+        @item{
+          @${\ED = \ebinop{e_0}{\ED_1}}
+        }
+        @item{
+          @proofqed @${e = \ctxE{e_1'}}
+        }
+      ]
+    }
+    @proofelse[@${e_0 \in v \mbox{ and } e_1 \in v}]{
+      @proofitems[
+        @item{ @${\ED = \ehole} }
+        @item{ @proofqed @${e = \ctxE{\ebinop{e_0}{e_1}}} }
+      ]
+    }
+  }
+
+  @proofcase[@${e = \esta{\tau}{e_0}}]{
+    @proofif[@${e_0 \not\in v}]{
+      @proofitems[
+        @item{
+          @${e_0 = \ED_0[e_0']}
+          @proofbyIH[]
+        }
+        @item{
+          @${\ED = \esta{\tau}{\ED_0}}
+        }
+        @item{
+          @proofqed @${e = \ctxE{e_0'}}
+        }
+      ]
+    }
+    @proofelse[@${e_0 \in v}]{
+      @proofitems[
+        @item{ @${\ED = \ehole} }
+        @item{ @proofqed @${e = \ctxE{\esta{\tau}{e_0}}} }
+      ]
+    }
+  }
+
+  @proofcase[@${e = \esta{\kany}{e_0}}]{
+    @proofif[@${e_0 \not\in v}]{
+      @proofitems[
+        @item{
+          @${e_0 = \ED_0[e_0']}
+          @proofbyIH[]
+        }
+        @item{
+          @${\ED = \esta{\kany}{\ED_0}}
+        }
+        @item{
+          @proofqed @${e = \ctxE{e_0'}}
+        }
+      ]
+    }
+    @proofelse[@${e_0 \in v}]{
+      @proofitems[
+        @item{ @${\ED = \ehole} }
+        @item{
+          @proofqed @${e = \ctxE{\esta{\kany}{e_0}}}
+        }
+      ]
+    }
+  }
+
+  @proofcase[@${e = \echk{K}{e_0}}]{
+    @proofif[@${e_0 \not\in v}]{
+      @proofitems[
+        @item{
+          @${e_0 = \ED_0[e_0']}
+          @proofbyIH[]
+        }
+        @item{
+          @${\ED = \echk{K}{\ED_0}}
+        }
+        @item{
+          @proofqed @${e = \ctxE{e_0'}}
+        }
+      ]
+    }
+    @proofelse[@${e_0 \in v}]{
+      @proofitems[
+        @item{ @${\ED = \ehole} }
+        @item{ @proofqed @${e = \ctxE{\echk{K}{e_0}}} }
+      ]
+    }
+  }
+}
+
+@; -----------------------------------------------------------------------------
+@lemma[@elem{} #:key "lemma:LK-hole-typing"]{
+}
+
+@; -----------------------------------------------------------------------------
+@lemma[@elem{} #:key "lemma:LK-inversion"]{
+}
+
+@; -----------------------------------------------------------------------------
+@lemma[@elem{} #:key "lemma:LK-canonical"]{
+}
+
+@; -----------------------------------------------------------------------------
+@lemma[@elem{} #:key "lemma:LK-Delta-soundness"]{
+}
+
+@; -----------------------------------------------------------------------------
 @lemma[@elem{@${K \subt K} finite}]{
   All chains @${K_0 \subt \cdots \subt K_n} are finite.
 }
