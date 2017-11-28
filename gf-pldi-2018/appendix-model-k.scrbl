@@ -1109,16 +1109,104 @@
     }
     @item{
       If @${\wellKE v : \knat}
-      then @${v \eeq i}
+      then @${v \eeq i} and @${v \in \naturals}
     }
   ]
 @proof{
   Immediate from the definition of @${\wellKE \cdot : K}
+
+  @; more like ... if you look at all the rules for wellKE
+  @;  then you see there's only one that applies for each value form,
+  @;  and the premises of that rule establish what we want to know
 }
 
 @; -----------------------------------------------------------------------------
-@lemma[@elem{@${\Delta} soundness} #:key "lemma:LK-Delta-soundness"]{
-  TODO
+@lemma[@elem{@${\Delta} tag soundness} #:key "lemma:LK-Delta-soundness"]{
+  If @${\wellKE v_0 : K_0 \mbox{ and }
+        \wellKE v_1 : K_1 \mbox{ and }
+        \Delta(\vbinop, K_0, K_1) = K}
+  then either:}
+  @proofitems[
+    @item{ @${\delta(\vbinop, v_0, v_1) = v \mbox{ and } \wellKE v : K}, or }
+    @item{ @${\delta(\vbinop, v_0, v_1) = \boundaryerror } }
+  ]
+
+@proof{
+  By case analysis on @${\Delta}.
+
+  @proofcase[@${\Delta(\vsum, \knat, \knat) = \knat}]{
+    @proofitems[
+      @item{
+        @${v_0 = i_0 \mbox{ and } v_1 = i_1 \mbox{ and } i_0,i_1 \in \naturals}
+        @proofby["lemma:LK-canonical"]
+      }
+      @item{
+        @${\delta(\vsum, i_0, i_1) = i_0 + i_1 = i}
+      }
+      @item{
+        @${i \in \naturals}
+      }
+      @item{
+        @proofqed by @${\wellKE i : \knat}
+      }
+    ]
+  }
+
+  @proofcase[@${\Delta(\vsum, \kint, \kint) = \kint}]{
+    @proofitems[
+      @item{
+        @${v_0 = i_0 \mbox{ and } v_1 = i_1}
+        @proofby["lemma:LK-canonical"]
+      }
+      @item{
+        @${\delta(\vsum, i_0, i_1) = i_0 + i_1 = i}
+      }
+      @item{
+        @proofqed by @${\wellKE i : \kint}
+      }
+    ]
+  }
+
+  @proofcase[@${\Delta(\vquotient, \knat, \knat) = \knat}]{
+    @proofitems[
+      @item{
+        @${v_0 = i_0 \mbox{ and } v_1 = i_1 \mbox{ and } i_0,i_1 \in \naturals}
+        @proofby["lemma:LK-canonical"]
+      }
+    ]
+    @proofif[@${i_1 = 0}]{
+      @proofitems[
+        @item{ @proofqed by @${\delta(\vquotient, i_0, i_1) = \boundaryerror} }
+      ]
+    }
+    @proofelse[@${i_1 \neq 0}]{
+      @proofitems[
+        @item{ @${\delta(\vquotient, i_0, i_1) = \floorof{i_0 / i_1}} = i }
+        @item{ @${i \in \naturals} }
+        @item{ @proofqed by @${\wellKE i : \knat} }
+      ]
+    }
+  }
+
+  @proofcase[@${\Delta(\vquotient, \kint, \kint) = \kint}]{
+    @proofitems[
+      @item{
+        @${v_0 = i_0 \mbox{ and } v_1 = i_1}
+        @proofby["lemma:LK-canonical"]
+      }
+    ]
+    @proofif[@${i_1 = 0}]{
+      @proofitems[
+        @item{ @proofqed by @${\delta(\vquotient, i_0, i_1) = \boundaryerror} }
+      ]
+    }
+    @proofelse[@${i_1 \neq 0}]{
+      @proofitems[
+        @item{ @${\delta(\vquotient, i_0, i_1) = \floorof{i_0 / i_1}} = i }
+        @item{ @proofqed by @${\wellKE i : \kint} }
+      ]
+    }
+  }
 }
 
 @; -----------------------------------------------------------------------------
