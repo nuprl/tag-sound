@@ -1023,19 +1023,106 @@
 }
 
 @; -----------------------------------------------------------------------------
-@lemma[@elem{} #:key "lemma:LK-inversion"]{
+@lemma[@elem{@${\langK} static inversion} #:key "lemma:LK-S-inversion"]{
+}
+  @itemlist[
+    @item{
+      If @${\wellKE \vpair{e_0}{e_1} : K} then
+       @${\wellKE e_0 : \kany} and
+       @${\wellKE e_1 : \kany}
+    }
+    @item{
+      If @${\wellKE e_0~e_1 : K} then
+       @${K = \kany} and
+       @${\wellKE e_0 : \kfun} and
+       @${\wellKE e_1 : \kany}
+    }
+    @item{
+      If @${\wellKE \eunop{e_0} : K} then
+       @${K = \kany} and
+       @${\wellKE e_0 : \kpair}
+    }
+    @item{
+      If @${\wellKE \ebinop{e_0}{e_1} : K} then
+       @${\wellKE e_0 : K_0} and
+       @${\wellKE e_1 : K_1} and
+       @${\Delta(\vbinop, K_0, K_1) = K'} and
+       @${K' \subt K}
+    }
+    @item{
+      If @${\wellKE \echk{K'}{e_0} : K} then
+       @${\wellKE e_0 : \kany}
+    }
+  ]
+@proof{
+  By induction on the structure of @${\wellKE e : K}.
+  The desired conclusion either follows immediately from the last rule used,
+   or the last rule is the subsumption rule and we have @${\wellKE e : K'}
+   and @${K' \subt K}.
+  In the latter case, apply the induction hypothesis to @${\wellKE e : K'}.
+  The induction is well-founded by @tech{lemma:LK-finite-lattice}.
 }
 
 @; -----------------------------------------------------------------------------
-@lemma[@elem{} #:key "lemma:LK-canonical"]{
+@lemma[@elem{@${\langK} dynamic inversion} #:key "lemma:LK-D-inversion"]{
+}
+  @itemlist[
+    @item{
+      If @${\wellKE \vpair{e_0}{e_1}} then
+       @${\wellKE e_0} and
+       @${\wellKE e_1}
+    }
+    @item{
+      If @${\wellKE e_0~e_1} then
+       @${\wellKE e_0} and
+       @${\wellKE e_1}
+    }
+    @item{
+      If @${\wellKE \eunop{e_0}} then
+       @${\wellKE e_0}
+    }
+    @item{
+      If @${\wellKE \ebinop{e_0}{e_1}} then
+       @${\wellKE e_0} and
+       @${\wellKE e_1}
+    }
+  ]
+@proof{
+  Immediate from the definition of @${\wellKE e}.
 }
 
 @; -----------------------------------------------------------------------------
-@lemma[@elem{} #:key "lemma:LK-Delta-soundness"]{
+@lemma[@elem{@${\langK} canonical forms} #:key "lemma:LK-canonical"]{
+}
+  @itemlist[
+    @item{
+      If @${\wellKE v : \kpair}
+      then @${v \eeq \vpair{v_0}{v_1}}
+    }
+    @item{
+      If @${\wellKE v : \kfun}
+      then @${v \eeq \vlam{x}{e'} \mbox{ or } v \eeq \vlam{\tann{x}{\tau_d}}{e'}}
+    }
+    @item{
+      If @${\wellKE v : \kint}
+      then @${v \eeq i}
+    }
+    @item{
+      If @${\wellKE v : \knat}
+      then @${v \eeq i}
+    }
+  ]
+@proof{
+  Immediate from the definition of @${\wellKE \cdot : K}
 }
 
 @; -----------------------------------------------------------------------------
-@lemma[@elem{@${K \subt K} finite}]{
+@lemma[@elem{@${\Delta} soundness} #:key "lemma:LK-Delta-soundness"]{
+  TODO
+}
+
+@; -----------------------------------------------------------------------------
+@lemma[@elem{@${K \subt K} finite} #:key "lemma:LK-finite-lattice"]{
   All chains @${K_0 \subt \cdots \subt K_n} are finite.
 }
 @proof{
