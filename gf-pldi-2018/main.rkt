@@ -26,6 +26,7 @@
   dyn*
   step*
   definition
+  counterexample
   lemma
   convention
   theorem
@@ -245,6 +246,9 @@
 (define (definition term #:key [key #f] . defn*)
   (make-thing "Definition" term defn* key))
 
+(define (counterexample term #:key [key #f] . defn*)
+  (make-thing "Counterexample" term defn* key))
+
 (define (convention term #:key [key #f] . defn*)
   (make-thing "Convention" term defn* key))
 
@@ -298,8 +302,9 @@
       (list " applied to " thing)
       (list))))
 
-(define (proofbyIH)
-  (list (linebreak) "by the induction hypothesis"))
+(define (proofbyIH [why #f])
+  (list* (linebreak) "by the induction hypothesis"
+    (if why (list " applied to " why) '())))
 
 (define proofqed
   "QED ")

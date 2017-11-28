@@ -570,7 +570,9 @@
     @proofqed @${e} is a value
   }
 
-  @proofcase[@${e = \edyn{\tau}{e'} \mbox{ or } e = \edyn{\kany}{e'}}]{
+  @proofcase[@${e = \edyn{\tau}{e'} \mbox{ or }
+                e = \edyn{\kany}{e'} \mbox{ or }
+                e = \echk{K}{e'}}]{
     @proofcontradiction[@${\wellKE e}]
   }
 
@@ -752,33 +754,272 @@
       ]
     }
   }
+}
 
-  @proofcase[@${e = \echk{K}{e_0}}]{
-    @proofif[@${e_0 \not\in v}]{
-      @proofitems[
-        @item{
-          @${e_0 = \ED_0[e_0']}
-          @proofbyIH[]
-        }
-        @item{
-          @${\ED = \echk{K}{\ED_0}}
-        }
-        @item{
-          @proofqed @${e = \ctxE{e_0'}}
-        }
-      ]
-    }
-    @proofelse[@${e_0 \in v}]{
-      @proofitems[
-        @item{ @${\ED = \ehole} }
-        @item{ @proofqed @${e = \ctxE{\echk{K}{e_0}}} }
-      ]
-    }
+@; -----------------------------------------------------------------------------
+@lemma[@elem{@${\langK} static hole typing} #:key "lemma:LK-S-hole-typing"]{
+  If @${\wellKE \ctxE{e} : K} then the typing derivation contains a sub-term
+   @${\wellKE e : K'} for some @${K'}.
+}
+@proof{
+  By induction on the structure of @${\ED}.
+
+  @proofcase[@${\ED = \ehole}]{
+    @proofqed @${\ctxE{e} = e}
+  }
+
+  @proofcase[@${\ED = \ED_0~e_1}]{
+    @proofitems[
+      @item{
+        @${\ctxE{e} = \ED_0[e]~e_1}
+      }
+      @item{
+        @${\wellKE \ED_0[e] : \kfun}
+        @proofby["lemma:LK-S-inversion" @${\wellKE \ED_0[e]~e_1 : K}]
+      }
+      @item{
+        @proofqed @proofbyIH{2}
+      }
+    ]
+  }
+
+  @proofcase[@${\ED = v_0~\ED_1}]{
+    @proofitems[
+      @item{
+        @${\ctxE{e} = v_0~\ED_1[e]}
+      }
+      @item{
+        @${\wellKE \ED_1[e] : \kany}
+        @proofby["lemma:LK-S-inversion" @${\wellKE v_0~\ED_1[e] : K}]
+      }
+      @item{
+        @proofqed @proofbyIH{2}
+      }
+    ]
+  }
+
+  @proofcase[@${\ED = \vpair{\ED_0}{e_1}}]{
+    @proofitems[
+      @item{
+        @${\ctxE{e} = \vpair{\ED_0[e]}{e_1}}
+      }
+      @item{
+        @${\wellKE \ED_0[e] : \kany}
+        @proofby["lemma:LK-S-inversion" @${\wellKE \vpair{\ED_0[e]}{e_1} : K}]
+      }
+      @item{
+        @proofqed @proofbyIH{2}
+      }
+    ]
+  }
+
+  @proofcase[@${\ED = \vpair{v_0}{\ED_1}}]{
+    @proofitems[
+      @item{
+        @${\ctxE{e} = \vpair{v_0}{\ED_1[e]}}
+      }
+      @item{
+        @${\wellKE \ED_1[e] : \kany}
+        @proofby["lemma:LK-S-inversion" @${\wellKE \vpair{v_0}{\ED_1[e]} : K}]
+      }
+      @item{
+        @proofqed @proofbyIH{2}
+      }
+    ]
+  }
+
+  @proofcase[@${\ED = \eunop{\ED_0}}]{
+    @proofitems[
+      @item{
+        @${\ctxE{e} = \eunop{\ED_0[e]}}
+      }
+      @item{
+        @${\wellKE \ED_0[e] : \kpair}
+        @proofby["lemma:LK-S-inversion" @${\wellKE \eunop{\ED_0[e]} : K}]
+      }
+      @item{
+        @proofqed @proofbyIH{2}
+      }
+    ]
+  }
+
+  @proofcase[@${\ED = \ebinop{\ED_0}{e_1}}]{
+    @proofitems[
+      @item{
+        @${\ctxE{e} = \ebinop{\ED_0[e]}{e_1}}
+      }
+      @item{
+        @${\wellKE \ED_0[e] : K_0}
+        @proofby["lemma:LK-S-inversion" @${\wellKE \ebinop{\ED_0[e]}{e_1} : K}]
+      }
+      @item{
+        @proofqed @proofbyIH{2}
+      }
+    ]
+  }
+
+  @proofcase[@${\ED = \ebinop{v_0}{\ED_1}}]{
+    @proofitems[
+      @item{
+        @${\ctxE{e} = \ebinop{v_0}{\ED_1[e]}}
+      }
+      @item{
+        @${\wellKE \ED_1[e] : K_1}
+        @proofby["lemma:LK-S-inversion" @${\wellKE \ebinop{v_0}{\ED_1[e]} : K}]
+      }
+      @item{
+        @proofqed @proofbyIH{2}
+      }
+    ]
+  }
+
+  @proofcase[@${\ED = \echk{K}{\ED_0}}]{
+    @proofitems[
+      @item{
+        @${\ctxE{e} = \echk{K}{\ED_0[e]}}
+      }
+      @item{
+        @${\wellKE \ED_0[e] : \kany}
+        @proofby["lemma:LK-S-inversion" @${\wellKE \echk{K}{\ED_0[e]} : K}]
+      }
+      @item{
+        @proofqed @proofbyIH{2}
+      }
+    ]
   }
 }
 
 @; -----------------------------------------------------------------------------
-@lemma[@elem{} #:key "lemma:LK-hole-typing"]{
+@lemma[@elem{@${\langK} dynamic hole typing} #:key "lemma:LK-D-hole-typing"]{
+  If @${\wellKE \ctxE{e}} then the derivation contains a sub-term
+   @${\wellKE e}
+}
+@proof{
+  By induction on the structure of @${\ED}.
+
+  @proofcase[@${\ED = \ehole}]{
+    @proofqed @${\ctxE{e} = e}
+  }
+
+  @proofcase[@${\ED = \ED_0~e_1}]{
+    @proofitems[
+      @item{
+        @${\ctxE{e} = \ED_0[e]~e_1}
+      }
+      @item{
+        @${\wellKE \ED_0[e]}
+        @proofby["lemma:LK-D-inversion" @${\wellKE \ED_0[e]~e_1}]
+      }
+      @item{
+        @proofqed @proofbyIH{2}
+      }
+    ]
+  }
+
+  @proofcase[@${\ED = v_0~\ED_1}]{
+    @proofitems[
+      @item{
+        @${\ctxE{e} = v_0~\ED_1[e]}
+      }
+      @item{
+        @${\wellKE \ED_1[e]}
+        @proofby["lemma:LK-D-inversion" @${\wellKE v_0~\ED_1[e]}]
+      }
+      @item{
+        @proofqed @proofbyIH{2}
+      }
+    ]
+  }
+
+  @proofcase[@${\ED = \vpair{\ED_0}{e_1}}]{
+    @proofitems[
+      @item{
+        @${\ctxE{e} = \vpair{\ED_0[e]}{e_1}}
+      }
+      @item{
+        @${\wellKE \ED_0[e]}
+        @proofby["lemma:LK-D-inversion" @${\wellKE \vpair{\ED_0[e]}{e_1}}]
+      }
+      @item{
+        @proofqed @proofbyIH{2}
+      }
+    ]
+  }
+
+  @proofcase[@${\ED = \vpair{v_0}{\ED_1}}]{
+    @proofitems[
+      @item{
+        @${\ctxE{e} = \vpair{v_0}{\ED_1[e]}}
+      }
+      @item{
+        @${\wellKE \ED_1[e]}
+        @proofby["lemma:LK-D-inversion" @${\wellKE \vpair{v_0}{\ED_1[e]}}]
+      }
+      @item{
+        @proofqed @proofbyIH{2}
+      }
+    ]
+  }
+
+  @proofcase[@${\ED = \eunop{\ED_0}}]{
+    @proofitems[
+      @item{
+        @${\ctxE{e} = \eunop{\ED_0[e]}}
+      }
+      @item{
+        @${\wellKE \ED_0[e]}
+        @proofby["lemma:LK-D-inversion" @${\wellKE \eunop{\ED_0[e]}}]
+      }
+      @item{
+        @proofqed @proofbyIH{2}
+      }
+    ]
+  }
+
+  @proofcase[@${\ED = \ebinop{\ED_0}{e_1}}]{
+    @proofitems[
+      @item{
+        @${\ctxE{e} = \ebinop{\ED_0[e]}{e_1}}
+      }
+      @item{
+        @${\wellKE \ED_0[e]}
+        @proofby["lemma:LK-D-inversion" @${\wellKE \ebinop{\ED_0[e]}{e_1}}]
+      }
+      @item{
+        @proofqed @proofbyIH{2}
+      }
+    ]
+  }
+
+  @proofcase[@${\ED = \ebinop{v_0}{\ED_1}}]{
+    @proofitems[
+      @item{
+        @${\ctxE{e} = \ebinop{v_0}{\ED_1[e]}}
+      }
+      @item{
+        @${\wellKE \ED_1[e]}
+        @proofby["lemma:LK-D-inversion" @${\wellKE \ebinop{v_0}{\ED_1[e]}}]
+      }
+      @item{
+        @proofqed @proofbyIH{2}
+      }
+    ]
+  }
+
+  @proofcase[@${\ED = \echk{K}{\ED_0}}]{
+    @proofitems[
+      @item{
+        @${\ctxE{e} = \echk{K}{\ED_0[e]}}
+      }
+      @item{
+        @${\wellKE \ED_0[e]}
+        @proofby["lemma:LK-D-inversion" @${\wellKE \echk{K}{\ED_0[e]}}]
+      }
+      @item{
+        @proofqed @proofbyIH{2}
+      }
+    ]
+  }
 }
 
 @; -----------------------------------------------------------------------------
