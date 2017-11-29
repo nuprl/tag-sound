@@ -5,6 +5,7 @@
 (provide
   ;; --- new stuff
   tech
+  lemmaref
   fbox$
 
   bm-desc
@@ -62,6 +63,7 @@
   proofif
   proofthen
   proofbecause
+  proofwhere
   proofand
   proofby
   proofbyIH
@@ -277,6 +279,9 @@
 (define (tech #:key [key #f] . pc*)
   (emph pc*))
 
+(define (lemmaref what)
+  (emph what))
+
 (define (proof-sketch . elem*)
   (make-proof "Proof Sketch: " elem*))
 
@@ -315,6 +320,9 @@
 
 (define proofbecause
   (list (linebreak) "because "))
+
+(define proofwhere
+  (list (linebreak) "where "))
 
 (define (proofelse cond . pc*)
   (list (bold "else ") cond ": "

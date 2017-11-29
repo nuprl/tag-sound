@@ -105,7 +105,7 @@
       }
       @item{
         @${\wellKE v_0 : \kfun}
-        @proofby["lemma:LK-inversion" @${\wellKE v_0~v_1 : K'}]
+        @proofby["lemma:LK-S-inversion" @${\wellKE v_0~v_1 : K'}]
       }
       @item{
         @${v_0 \eeq \vlam{x}{e'}} or @${v_0 \eeq \vlam{\tann{x}{\tau_d}}{e'}}
@@ -146,7 +146,7 @@
       }
       @item{
         @${\wellKE v : \kpair}
-        @proofby["lemma:LK-inversion" @${\wellKE \eunop{v} : K'}]
+        @proofby["lemma:LK-S-inversion" @${\wellKE \eunop{v} : K'}]
       }
       @item{
         @${v \eeq \vpair{v_0}{v_1}}
@@ -173,7 +173,7 @@
         @${\exists K_0 K_1 K_2 \mbox{ such that } \wellKE v_0 : K_0
            \mbox{ and } \wellKE v_1 : K_1
            \mbox{ and } \Delta(\vbinop, K_0, K_1) = K_2}
-        @proofby["lemma:LK-inversion" @${\wellKE \ebinop{v_0}{v_1} : K'}]
+        @proofby["lemma:LK-S-inversion" @${\wellKE \ebinop{v_0}{v_1} : K'}]
       }
       @item{
         @${\delta(\vbinop, v_0, v_1) = v \mbox{ or } \delta(\vbinop, v_0, v_1) = \boundaryerror}
@@ -330,10 +330,485 @@
 }
 
 @; -----------------------------------------------------------------------------
-@lemma[@elem{@${\langK} preservation} #:key "LK-preservation"]{
+@lemma[@elem{@${\langK} static preservation} #:key "lemma:LK-S-preservation"]{
+  If @${\wellKE e : K} and @${e \ccKS e'} then @${\wellKE e' : K}
 }
+
 @proof{
-  TBA
+  By @tech{lemma:LK-S-uec} there are six cases to consider.
+
+  @proofcase[@${e = \ctxE{\edyn{\tau}{e'}}}]{
+    @proofif[@${\ctxE{\edyn{\tau}{e'}} \ccKS \ctxE{\edyn{\tau}{e''}}}]{
+      @proofitems[
+        @item{
+          @${\wellKE \edyn{\tau}{e'} : K'}
+          @proofby{lemma:LK-S-hole-typing}
+        }
+        @item{
+          @${\tagof{\tau} \subt K' \mbox{ or } \tagof{\tau} = K'}
+          @proofby{lemma:LK-S-inversion}
+        }
+        @item{
+          @${\wellKE e'}
+          @proofby{lemma:LK-S-inversion}
+        }
+        @item{
+          @${\wellKE e''}
+          @proofby{lemma:LK-D-preservation}
+        }
+        @item{
+          @${\wellKE \edyn{\tau}{e''} : \tagof{\tau}}
+          @proofbecause 4
+        }
+        @item{
+          @proofqed by 2,5,@tech{lemma:LK-S-hole-subst}
+        }
+      ]
+    }
+    @proofelse[@${\ctxE{\edyn{\tau}{v}} \ccKS \ctxE{v}}]{
+      @proofitems[
+        @item{
+          @${\wellKE \edyn{\tau}{v} : K'}
+          @proofby{lemma:LK-S-hole-typing}
+        }
+        @item{
+          @${\tagof{\tau} \subt K'}
+          @proofby{lemma:LK-S-inversion}
+        }
+        @item{
+          @${\wellKE v : \tagof{\tau}}
+          @proofbecause @${\mchk{\tagof{\tau}}{v} = v}
+        }
+        @item{
+          @proofqed by 2,3,@tech{lemma:LK-S-hole-subst}
+        }
+      ]
+    }
+  }
+
+  @proofcase[@${e = \ctxE{\edyn{\kany}{e'}}}]{
+    @proofif[@${\ctxE{\edyn{\kany}{e'}} \ccKS \ctxE{\edyn{\kany}{e''}}}]{
+      @proofitems[
+        @item{
+          @${\wellKE \edyn{\kany}{e'} : \kany}
+          @proofby{lemma:LK-S-hole-typing}
+        }
+        @item{
+          @${\wellKE e'}
+          @proofby{lemma:LK-inversion}
+        }
+        @item{
+          @${\wellKE e''}
+          @proofby{lemma:LK-D-preservation}
+        }
+        @item{
+          @${\wellKE \edyn{\kany}{e''} : \kany}
+          @proofbecause 3
+        }
+        @item{
+          @proofqed by 4,@tech{lemma:LK-S-hole-subst}
+        }
+      ]
+    }
+    @proofelse[@${\ctxE{\edyn{\kany}{v}} \ccKS \ctxE{v}}]{
+      @proofitems[
+        @item{
+          @${\wellKE \edyn{\kany}{v} : \kany}
+          @proofby{lemma:LK-S-hole-typing}
+        }
+        @item{
+          @${\wellKE v}
+          @proofby{lemma:LK-S-inversion}
+        }
+        @item{
+          @${\wellKE v : \kany}
+          @proofby{lemma:LK-val-tagging}
+        }
+        @item{
+          @proofqed by 3,@tech{lemma:LK-S-hole-subst}
+        }
+      ]
+    }
+  }
+
+  @proofcase[@${e = \ctxE{\echk{K'}{v}}}]{
+    @proofitems[
+      @item{
+        @${\ctxE{\echk{K'}{v}} \ccKS \ctxE{v}}
+      }
+      @item{
+        @${\wellKE \echk{K'}{v} : K''}
+        @proofby{lemma:LK-S-hole-typing}
+      }
+      @item{
+        @${K' \subt K''}
+        @proofby{lemma:LK-S-inversion}
+      }
+      @item{
+        @${\wellKE v : K'}
+        @proofbecause @${\mchk{K'}{v} = v}
+      }
+      @item{
+        @proofqed by 3,4,@tech{lemma:LK-S-hole-subst}
+      }
+    ]
+  }
+
+  @proofcase[@${e = \ctxE{v_0~v_1}}]{
+    @proofitems[
+      @item{
+        @${\wellKE v_0~v_1 : \kany}
+        @proofby{lemma:LK-S-hole-typing}
+      }
+      @item{
+        @${\wellKE v_0 : \kfun \mbox{ and } \wellKE v_1 : \kany}
+        @proofby{lemma:LK-S-inversion}
+      }
+      @item{
+        @${v_0 = \vlam{x}{e} \mbox{ or } v_0 = \vlam{\tann{x}{\tau}}{e}}
+        @proofby{lemma:LK-canonical}
+      }
+    ]
+
+    @proofif[@${v_0 = \vlam{x}{e}}]{
+      @proofitems[
+        @item{
+          @${\ctxE{v_0~v_1} \ccKS \ctxE{\edyn{\kany}{\vsubst{e}{x}{v_1}}}}
+        }
+        @item{
+          @${x \wellKE e}
+          @proofby{lemma:LK-S-inversion}
+        }
+        @item{
+          @${\wellKE v_1}
+          @proofby{lemma:val-wellformed} 2
+        }
+        @item{
+          @${\wellKE \vsubst{e}{x}{v_1}}
+          @proofby{lemma:LK-D-subst} 4,5
+        }
+        @item{
+          @${\wellKE \edyn{\kany}{\vsubst{e}{x}{v_1}} : \kany}
+          @proofbecause 7
+        }
+        @item{
+          @proofqed by @tech{lemma:LK-S-hole-subst}
+        }
+      ]
+    }
+
+    @proofelse[@${v_0 = \vlam{\tann{x}{\tau}}{e}}]{
+      @proofitems[
+        @item{
+          @${\ctxE{v_0~v_1} \ccKS \ctxE{\vsubst{e}{x}{v_1}}
+             \\\mbox{and } \mchk{\tagof{\tau}}{v_1} = v_1}
+        }
+        @item{
+          @${\wellKE v_1 : \tagof{\tau}}
+          @proofbecause 4
+        }
+        @item{
+          @${\tann{x}{\tau} \wellKE e : \kany}
+          @proofby{lemma:LK-S-inversion}
+        }
+        @item{
+          @${\wellKE \vsubst{e}{x}{v_1} : \kany}
+          @proofby{lemma:LK-S-subst} 5,6
+        }
+        @item{
+          @proofqed by @lemmaref{lemma:LK-S-hole-subst}
+        }
+      ]
+    }
+  }
+
+  @proofcase[@${e = \ctxE{\eunop{v}}}]{
+    @proofitems[
+      @item{
+        @${\ctxE{\eunop{v}} \ccKS \ctxE{v'}}
+        @proofwhere @${\delta(\vunop, v) = v'}
+      }
+      @item{
+        @${\wellKE \eunop{v} : \kany}
+        @proofby{lemma:LK-S-hole-typing}
+      }
+      @item{
+        @${\wellKE v : \kpair}
+        @proofby{lemma:LK-S-inversion}
+      }
+      @item{
+        @${v = \vpair{v_0}{v_1}}
+        @proofby{lemma:LK-canonical}
+      }
+      @item{
+        @${\wellKE v_0 : \kany \mbox{ and } \wellKE v_1 : \kany}
+        @proofby{lemma:LK-S-inversion} 3,4
+      }
+    ]
+    @proofif[@${\vunop = \vfst}]{
+      @proofitems[
+        @item{
+          @${\delta(\vfst, v) = v_0}
+        }
+        @item{
+          @proofqed by @lemmaref{lemma:LK-S-hole-subst} (5)
+        }
+      ]
+    }
+    @proofelse[@${\vunop = \vsnd}]{
+      @proofitems[
+        @item{
+          @${\delta(\vsnd, v) = v_1}
+        }
+        @item{
+          @proofqed by @lemmaref{lemma:LK-S-hole-subst} (5)
+        }
+      ]
+    }
+  }
+
+  @proofcase[@${e = \ctxE{\ebinop{v_0}{v_1}}}]{
+    @proofitems[
+      @item{
+        @${\ctxE{\ebinop{v_0}{v_1}} \ccKS v}
+        @proofwhere @${\delta(\vbinop, v_0, v_1) = v}
+      }
+      @item{
+        @${\wellKE \ebinop{v_0}{v_1} : K'}
+        @proofby{lemma:LK-S-hole-typing}
+      }
+      @item{
+        @${\wellKE v_0 : K_0 \mbox{ and } \wellKE v_1 : K_1 \mbox{ and }
+           \Delta(\vbinop, K_0, K_1) = K'' \mbox{ and } K'' \subt K'}
+        @proofby{lemma:LK-S-inversion}
+      }
+      @item{
+        @${\wellKE v : K''}
+        @proofby{lemma:LK-Delta-soundness} (3)
+      }
+      @item{
+        @${\wellKE v : K'}
+        @proofbecause 3
+      }
+      @item{
+        @proofqed by @lemmaref{lemma:LK-S-hole-subst}
+      }
+    ]
+  }
+}
+
+@; -----------------------------------------------------------------------------
+@lemma[@elem{@${\langK} dynamic preservation} #:key "lemma:LK-D-preservation"]{
+  If @${\wellKE e} and @${e \ccKD e'} then @${\wellKE e'}
+}
+
+@proof{
+  By @lemmaref{lemma:LK-D-uec} there are five cases.
+
+  @proofcase[@${e = \ctxE{\esta{\tau}{e'}}}]{
+    @proofif[@${\ctxE{\esta{\tau}{e'}} \ccKD \ctxE{\esta{\tau}{e''}}}]{
+      @proofitems[
+        @item{
+          @${\wellKE \esta{\tau}{e'}}
+          @proofby{lemma:LK-D-hole-typing}
+        }
+        @item{
+          @${\wellKE e' : \tagof{\tau}}
+          @proofby{lemma:LK-D-inversion}
+        }
+        @item{
+          @${\wellKE e'' : \tagof{\tau}}
+          @proofby{lemma:LK-S-preservation}
+        }
+        @item{
+          @${\wellKE \esta{\tau}{e''}}
+          @proofbecause 3
+        }
+        @item{
+          @proofqed by @lemmaref{lemma:LK-D-hole-subst}
+        }
+      ]
+    }
+
+    @proofelse[@${\ctxE{\esta{\tau}{v}} \ccKD \ctxE{v}}]{
+      @proofitems[
+        @item{
+          @${\wellKE \esta{\tau}{v}}
+          @proofby{lemma:LK-D-hole-typing}
+        }
+        @item{
+          @${\wellKE v : \tagof{\tau}}
+          @proofby{lemma:LK-D-inversion}
+        }
+        @item{
+          @${\wellKE v}
+          @proofby{lemma:LK-val-wellformed}
+        }
+        @item{
+          @proofqed by @lemmaref{lemma:LK-D-hole-subst}
+        }
+      ]
+    }
+  }
+
+  @proofcase[@${e = \ctxE{\esta{\kany}{e'}}}]{
+    @proofif[@${\ctxE{\esta{\kany}{e'}} \ccKD \ctxE{\esta{\kany}{e''}}}]{
+      @proofitems[
+        @item{
+          @${\wellKE \esta{\kany}{e'}}
+          @proofby{lemma:LK-D-hole-typing}
+        }
+        @item{
+          @${\wellKE e' : \kany}
+          @proofby{lemma:LK-D-inversion}
+        }
+        @item{
+          @${\wellKE e'' : \kany}
+          @proofby{lemma:LK-S-preservation}
+        }
+        @item{
+          @${\wellKE \esta{\kany}{e''}}
+          @proofbecause 3
+        }
+        @item{
+          @proofqed by @lemmaref{lemma:LK-D-hole-subst}
+        }
+      ]
+    }
+
+    @proofelse[@${\ctxE{\esta{\kany}{v}} \ccKD v}]{
+      @proofitems[
+        @item{
+          @${\wellKE \esta{\kany}{v}}
+          @proofby{lemma:LK-D-hole-typing}
+        }
+        @item{
+          @${\wellKE v : \kany}
+          @proofby{lemma:LK-D-inversion}
+        }
+        @item{
+          @${\wellKE v}
+          @proofby{lemma:LK-val-wellformed}
+        }
+        @item{
+          @proofqed by @lemmaref{lemma:LK-D-hole-subst}
+        }
+      ]
+    }
+  }
+
+  @proofcase[@${e = \ctxE{v_0~v_1}}]{
+    @proofif[@${v_0 = \vlam{x}{e}}]{
+      @proofitems[
+        @item{
+          @${\ctxE{v_0~v_1} \ccKD \ctxE{\vsubst{e}{x}{v_1}}}
+        }
+        @item{
+          @${\wellKE v_0~v_1}
+          @proofby{lemma:LK-D-hole-typing}
+        }
+        @item{
+          @${\wellKE v_0 \mbox{ and } \wellKE v_1}
+          @proofby{lemma:LK-D-inversion} (2)
+        }
+        @item{
+          @${x \wellKE e}
+          @proofby{lemma:LK-D-inversion} (3)
+        }
+        @item{
+          @${\wellKE \vsubst{e}{x}{v_1}}
+          @proofby{lemma:LK-D-subst} (3,4)
+        }
+        @item{
+          @proofqed by @lemmaref{lemma:LK-D-hole-subst}
+        }
+      ]
+    }
+
+    @proofelse[@${v_0 = \vlam{\tann{x}{\tau}}{e}}]{
+      @proofitems[
+        @item{
+          @${\ctxE{v_0~v_1} \ccKD \ctxE{\esta{\kany}{(\vsubst{e}{x}{v_1})}}
+             \\\mbox{and } \mchk{\tagof{\tau}}{v_1} = v_1}
+        }
+        @item{
+          @${\wellKE v_1 : \tagof{\tau}}
+          @proofbecause 1
+        }
+        @item{
+          @${\wellKE v_0~v_1}
+          @proofby{lemma:LK-D-hole-typing}
+        }
+        @item{
+          @${\wellKE v_0}
+          @proofby{lemma:LK-D-inversion} (3)
+        }
+        @item{
+          @${\tann{x}{\tau} \wellKE e : \kany}
+          @proofby{lemma:LK-D-inversion} (4)
+        }
+        @item{
+          @${\wellKE \vsubst{e}{x}{v_1} : \kany}
+          @proofby{lemma:LK-D-subst} (2, 5)
+        }
+        @item{
+          @${\wellKE \esta{\kany}{(\vsubst{e}{x}{v_1})}}
+          @proofbecause 6
+        }
+        @item{
+          @proofqed by @lemmaref{lemma:LK-D-hole-subst}
+        }
+      ]
+    }
+  }
+
+  @proofcase[@${e = \ctxE{\eunop{v}}}]{
+    @proofitems[
+      @item{
+        @${\ctxE{\eunop{v}} \ccKD \ctxE{v'}}
+        @proofwhere @${\delta(\vunop, v) = v'}
+      }
+      @item{
+        @${\wellKE \eunop{v}}
+        @proofby{lemma:LK-D-hole-typing}
+      }
+      @item{
+        @${\wellKE v}
+        @proofby{lemma:LK-D-inversion}
+      }
+      @item{
+        @${\wellKE v'}
+        @proofby{lemma:LK-delta-preservation}
+      }
+      @item{
+        @proofqed by @lemmaref{lemma:LK-D-hole-subst}
+      }
+    ]
+  }
+
+  @proofcase[@${e = \ctxE{\ebinop{v_0}{v_1}}}]{
+    @proofitems[
+      @item{
+        @${\ctxE{\ebinop{v_0}{v_1}} \ccKD \ctxE{v'}}
+        @proofwhere @${\delta(\vbinop, v_0, v_1) = v'}
+      }
+      @item{
+        @${\wellKE \ebinop{v_0}{v_1}}
+        @proofby{lemma:LK-D-hole-typing}
+      }
+      @item{
+        @${\wellKE v_0 \mbox{ and } \wellKE v_1}
+        @proofby{lemma:LK-D-inversion}
+      }
+      @item{
+        @${\wellKE v'}
+        @proofby{lemma:LK-delta-preservation} (3)
+      }
+      @item{
+        @proofqed by @lemmaref{lemma:LK-D-hole-subst}
+      }
+    ]
+  }
 }
 
 
@@ -883,9 +1358,65 @@
 }
 
 @; -----------------------------------------------------------------------------
+@lemma[@elem{@${\delta} preservation} #:key "lemma:delta-preservation"]{
+}
+  @itemlist[
+    @item{
+      If @${\wellKE v} and @${\delta(\vunop, v) = v'} then @${\wellKE v'}
+    }
+    @item{
+      If @${\wellKE v_0} and @${\wellKE v_1} and @${\delta(\vbinop, v_0, v_1) = v'}
+       then @${\wellKE v'}
+    }
+  ]
+
+@proof{
+
+  @proofcase[@${\delta(\vfst, \vpair{v_0}{v_1}) = v_0}]{
+    @proofitems[
+      @item{
+        @${\wellKE v_0}
+        @proofby{lemma:LK-D-inversion}
+      }
+      @item{
+        @proofqed by 1
+      }
+    ]
+  }
+
+  @proofcase[@${\delta(\vsnd, \vpair{v_0}{v_1}) = v_1}]{
+    @proofitems[
+      @item{
+        @${\wellKE v_1}
+        @proofby{lemma:LK-D-inversion}
+      }
+      @item{
+        @proofqed by 1
+      }
+    ]
+  }
+
+  @proofcase[@${\delta(\vsum, v_0, v_1) = v_0 + v_1}]{
+    @proofitems[
+      @item{
+        @proofqed
+      }
+    ]
+  }
+
+  @proofcase[@${\delta(\vquotient, v_0, v_1) = \floorof{v_0 / v_1}}]{
+    @proofitems[
+      @item{
+        @proofqed
+      }
+    ]
+  }
+}
+
+@; -----------------------------------------------------------------------------
 @lemma[@elem{@${\Delta} preservation} #:key "lemma:Delta-preservation"]{
-  If @${\Delta(\tau_0, \tau_1) = \tau} then
-     @${\Delta(\tagof{\tau_0}, \tagof{\tau_1}) = \tagof{\tau}}.
+  If @${\Delta(\vbinop, \tau_0, \tau_1) = \tau} then
+     @${\Delta(\vbinop, \tagof{\tau_0}, \tagof{\tau_1}) = \tagof{\tau}}.
 }
 
 @proof{
@@ -1149,7 +1680,6 @@
     @item{ @${e = \ctxE{\ebinop{v_0}{v_1}}} }
     @item{ @${e = \ctxE{\esta{\tau}{e'}}} }
     @item{ @${e = \ctxE{\esta{\kany}{e'}}} }
-    @item{ @${e = \ctxE{\echk{K}{v}}} }
   ]
 @proof{
   By induction on the structure of @${e}.
@@ -1626,6 +2156,14 @@
        @${\wellKE e_1 : \kany}
     }
     @item{
+      If @${\wellKE \vlam{x}{e} : K} then
+       @${x \wellKE e}
+    }
+    @item{
+      If @${\wellKE \vlam{\tann{x}{\tau}}{e} : K} then
+       @${\tann{x}{\tau} \wellKE e : \kany}
+    }
+    @item{
       If @${\wellKE e_0~e_1 : K} then
        @${K = \kany} and
        @${\wellKE e_0 : \kfun} and
@@ -1645,7 +2183,13 @@
     }
     @item{
       If @${\wellKE \echk{K'}{e_0} : K} then
-       @${\wellKE e_0 : \kany}
+       @${\wellKE e_0 : \kany} and
+       @${K' \subt K}
+    }
+    @item{
+      If @${\wellKE \edyn{\tau}{e} : K} then
+       @${\wellKE e} and
+       @${\tagof{\tau} \subt K}
     }
   ]
 @proof{
@@ -1667,6 +2211,14 @@
        @${\wellKE e_1}
     }
     @item{
+      If @${\wellKE \vlam{x}{e}} then
+       @${x \wellKE e}
+    }
+    @item{
+      If @${\wellKE \vlam{\tann{x}{\tau}}{e}} then
+       @${\tann{x}{\tau} \wellKE e : \kany}
+    }
+    @item{
       If @${\wellKE e_0~e_1} then
        @${\wellKE e_0} and
        @${\wellKE e_1}
@@ -1679,6 +2231,14 @@
       If @${\wellKE \ebinop{e_0}{e_1}} then
        @${\wellKE e_0} and
        @${\wellKE e_1}
+    }
+    @item{
+      If @${\wellKE \esta{\tau}{e}} then
+       @${\wellKE e : \tagof{\tau}}
+    }
+    @item{
+      If @${\wellKE \esta{\kany}{e}} then
+       @${\wellKE e : \kany}
     }
   ]
 @proof{
@@ -1804,12 +2364,142 @@
 }
 
 @; -----------------------------------------------------------------------------
-@lemma[@elem{@${\langK} static substitution} #:key "lemma:LK-S-substitution"]{
+@; TODO rename this
+@lemma[@elem{@${\langK} value tag inference} #:key "lemma:LK-val-tagging"]{
+  If @${\wellKE v} then @${\wellKE v : \kany}
+}
+@proof{
+  By induction on the structure of @${v}.
+
+  @proofcase[@${v = i}]{
+    @proofitems[
+      @item{
+        @${\wellKE v : \kint}
+      }
+      @item{
+        @proofqed by @${\kint \subt \kany}
+      }
+    ]
+  }
+
+  @proofcase[@${v = \vpair{v_0}{v_1}}]{
+    @proofitems[
+      @item{
+        @${\wellKE v_0 \mbox{ and } \wellKE v_1}
+        @proofby{lemma:LK-D-inversion}
+      }
+      @item{
+        @${\wellKE v_0 : \kany \mbox{ and } \wellKE v_1 : \kany}
+        @proofbyIH[]
+      }
+      @item{
+        @${\wellKE \vpair{v_0}{v_1} : \kpair}
+        @proofbecause 2
+      }
+      @item{
+        @proofqed by @${\kpair \subt \kany}
+      }
+    ]
+  }
+
+  @proofcase[@${v = \vlam{x}{e}}]{
+    @proofitems[
+      @item{
+        @${x \wellKE e}
+        @proofby{lemma:LK-D-inversion}
+      }
+      @item{
+        @${\wellKE \vlam{x}{e} : \kfun}
+        @proofbecause 1
+      }
+      @item{
+        @proofqed by @${\kfun \subt \kany}
+      }
+    ]
+  }
+
+  @proofcase[@${v = \vlam{\tann{x}{\tau}}{e}}]{
+    @proofitems[
+      @item{
+        @${\tann{x}{\tau} \wellKE e : \kany}
+        @proofby{lemma:LK-D-inversion}
+      }
+      @item{
+        @${\wellKE \vlam{\tann{x}{\tau}}{e} : \kfun}
+        @proofbecause 1
+      }
+      @item{
+        @proofqed by @${\kfun \subt \kany}
+      }
+    ]
+  }
+}
+
+@; -----------------------------------------------------------------------------
+@; TODO rename this
+@lemma[@elem{@${\langK} value tag implies} #:key "lemma:LK-val-wellformed"]{
+  If @${\wellKE v : \kany} then @${\wellKE v}
+}
+
+@proof{
+  By induction on the structure of @${v}.
+
+  @proofcase[@${v = i}]{
+    @proofitems[
+      @item{
+        @proofqed by @${\wellKE v}
+      }
+    ]
+  }
+
+  @proofcase[@${v = \vpair{v_0}{v_1}}]{
+    @proofitems[
+      @item{
+        @${\wellKE v_0 : \kany \mbox{ and } \wellKE v_1 : \kany}
+        @proofby{lemma:LK-S-inversion}
+      }
+      @item{
+        @${\wellKE v_0 \mbox{ and } \wellKE v_1}
+        @proofbyIH[]
+      }
+      @item{
+        @proofqed by 2
+      }
+    ]
+  }
+
+  @proofcase[@${v = \vlam{x}{e}}]{
+    @proofitems[
+      @item{
+        @${x \wellKE e}
+        @proofby{lemma:LK-S-inversion}
+      }
+      @item{
+        @proofqed by 1
+      }
+    ]
+  }
+
+  @proofcase[@${v = \vlam{\tann{x}{\tau}}{e}}]{
+    @proofitems[
+      @item{
+        @${\tann{x}{\tau} \wellKE e : \kany}
+        @proofby{lemma:LK-S-inversion}
+      }
+      @item{
+        @proofqed by 1
+      }
+    ]
+  }
+}
+
+@; -----------------------------------------------------------------------------
+@lemma[@elem{@${\langK} static substitution} #:key "lemma:LK-S-subst"]{
   ???
 }
 
 @; -----------------------------------------------------------------------------
-@lemma[@elem{@${\langK} dynamic substitution} #:key "lemma:LK-D-substitution"]{
+@lemma[@elem{@${\langK} dynamic substitution} #:key "lemma:LK-D-subst"]{
   ???
 }
 
