@@ -5,6 +5,7 @@
 (provide
   ;; --- new stuff
   tech
+  fbox$
 
   bm-desc
   blockquote
@@ -307,7 +308,7 @@
     (if why (list " applied to " why) '())))
 
 (define proofqed
-  "QED ")
+  (sc "qed "))
 
 (define proofthen
   "then ")
@@ -522,3 +523,6 @@
     (parag title)  (smaller "from " author)
     (linebreak)
     descr))
+
+(define (fbox$ . elem*)
+  @exact{\fbox{@(apply $ elem*)}})

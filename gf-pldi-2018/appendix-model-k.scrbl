@@ -338,11 +338,605 @@
 
 
 @; -----------------------------------------------------------------------------
-@lemma[@elem{@${\carrow}-soundness} #:key "lemma:completion-soundness"]{
-  TBA
+@lemma[@elem{@${\carrow} static soundness} #:key "lemma:LK-S-completion-soundness"]{
+  If @${\Gamma \wellM e : \tau} then @${\Gamma \vdash e : \tau \carrow e'}
+   and @${\Gamma \wellKE e' : \tagof{\tau}}.
 }
+
 @proof{
-  TBA
+  By induction on the structure of @${\Gamma \wellM e : \tau}.
+  Proceed by cases on the last rule used.
+
+  @proofcase[@fbox${
+              \inferrule*{
+                \tann{x}{\tau} \in \Gamma
+              }{
+                \Gamma \wellM x : \tau
+              }}]{
+    @proofitems[
+      @item{
+        @${\Gamma \vdash x \carrow x}
+      }
+      @item{
+        @${\Gamma \wellKE x : \tagof{\tau}}
+        @proofby[@${\tann{x}{\tau} \in \Gamma}]
+      }
+    ]
+  }
+
+  @proofcase[@fbox${
+              \inferrule*{
+                \tann{x}{\tau_d},\Gamma \wellM e : \tau_c
+              }{
+                \Gamma \wellM \vlam{\tann{x}{\tau_d}}{e} : \tau_d \tarrow \tau_c
+              }}]{
+    @proofitems[
+      @item{
+        @${\Gamma \vdash e : \tau_c \carrow e' \mbox{ and }
+           \tann{x}{\tau_d},\Gamma \vdash e' : \tagof{\tau_c}}
+        @proofbyIH[]
+      }
+      @item{
+        @${\tann{x}{\tau_d},\Gamma \vdash e' : \kany}
+        @proofby[@${\tagof{\tau_c} \subt \kany}]
+      }
+      @item{
+        @${\vlam{\tann{x}{\tau_d}}{e} : \tarr{\tau_d}{\tau_c} \carrow \vlam{\tann{x}{\tau_d}}{e'}}
+      }
+      @item{
+        @${\Gamma \wellKE \vlam{\tann{x}{\tau_d}}{e'} : \kfun}
+        @proofby{2}
+      }
+      @item{
+        @proofqed by 3,4
+      }
+    ]
+  }
+
+  @proofcase[@fbox${
+              \inferrule*{
+                i \in \naturals
+              }{
+                \Gamma \wellM i : \tnat
+              }}]{
+    @proofitems[
+      @item{
+        @${\Gamma \vdash i : \tnat \carrow i}
+      }
+      @item{
+        @proofqed by @${\Gamma \wellKE i : \knat}
+      }
+    ]
+  }
+
+  @proofcase[@fbox${
+              \inferrule*{
+              }{
+                \Gamma \wellM i : \tint
+              }}]{
+    @proofitems[
+      @item{
+        @${\Gamma \vdash i : \tint \carrow i}
+      }
+      @item{
+        @proofqed by @${\Gamma \wellKE i : \kint}
+      }
+    ]
+  }
+
+  @proofcase[@fbox${
+              \inferrule*{
+                \Gamma \wellM e_0 : \tau_0
+                \\
+                \Gamma \wellM e_1 : \tau_1
+              }{
+                \Gamma \wellM \vpair{e_0}{e_1} : \tpair{\tau_0}{\tau_1}
+              }}]{
+    @proofitems[
+      @item{
+        @${\Gamma \wellM e_0 : \tau_0 \carrow e_0' \mbox{ and }
+           \Gamma \wellM e_0' : \tagof{\tau_0}}
+        @proofbyIH[]
+      }
+      @item{
+        @${\Gamma \wellM e_1 : \tau_1 \carrow e_1' \mbox{ and }
+           \Gamma \wellM e_1' : \tagof{\tau_1}}
+        @proofbyIH[]
+      }
+      @item{
+        @${\Gamma \wellKE e_0 : \kany}
+        @proofbecause @${\tagof{\tau_0} \subt \kany}
+      }
+      @item{
+        @${\Gamma \wellKE e_1 : \kany}
+        @proofbecause @${\tagof{\tau_1} \subt \kany}
+      }
+      @item{
+        @${\Gamma \wellM \vpair{e_0}{e_1} : \tau \carrow \vpair{e_0'}{e_1'}}
+        @proofbecause 1,2
+      }
+      @item{
+        @${\Gamma \wellKE \vpair{e_0'}{e_1'} : \kpair}
+        @proofbecause 3,4
+      }
+      @item{
+        @proofqed by 5,6
+      }
+    ]
+  }
+
+  @proofcase[@fbox${
+              \inferrule*{
+                \Gamma \wellM e_0 : \tau_d \tarrow \tau_c
+                \\
+                \Gamma \wellM e_1 : \tau_d
+              }{
+                \Gamma \wellM e_0~e_1 : \tau_c
+              }}]{
+    @proofitems[
+      @item{
+        @${\Gamma \wellM e_0 : \tarr{\tau_d}{\tau_c} \carrow e_0' \\ \mbox{ and }
+           \Gamma \wellKE e_0' : \tagof{\tarr{\tau_d}{\tau_c}}}
+        @proofbyIH[]
+      }
+      @item{
+        @${\Gamma \wellM e_1 : \tau_d \carrow e_1' \\ \mbox{ and }
+           \Gamma \wellKE e_1' : \tagof{\tau_c}}
+        @proofbyIH[]
+      }
+      @item{
+        @${\Gamma \wellKE e_0' : \kfun}
+        @proofbecause @${\tagof{\tarr{\tau_d}{\tau_c}} = \kfun}
+      }
+      @item{
+        @${\Gamma \wellKE e_1' : \kany}
+        @proofbecause @${\tagof{\tau_d} \subt \kany}
+      }
+      @item{
+        @${\Gamma \wellM e_0~e_1 : \tau_c \carrow \echk{\tagof{\tau_c}}{(e_0'~e_1')}}
+        @proofbecause 1,2
+      }
+      @item{
+        @${\Gamma \wellKE \echk{\tagof{\tau_c}}{(e_0'~e_1')} : \tagof{\tau_c}}
+        @proofbecause 3,4
+      }
+      @item{
+        @proofqed by 5,6
+      }
+    ]
+  }
+
+  @proofcase[@fbox${
+              \inferrule*{
+                \Gamma \wellM e_0 : \tau_0
+                \\
+                \Delta(\vunop, \tau_0) = \tau
+              }{
+                \Gamma \wellM \vunop~e_0 : \tau
+              }}]{
+    @proofif[@${\vunop = \vfst}]{
+      @proofitems[
+        @item{
+          @${\tau_0 = \tpair{\tau}{\tau'}}
+          @proofby["lemma:LM-inversion" @${\Delta(\vfst, \tau_0) = \tau}]
+        }
+        @item{
+          @${\Gamma \wellM e_0 : \tpair{\tau}{\tau'} \carrow e_0' \mbox{ and }
+             \Gamma \wellKE e_0' : \tagof{\tpair{\tau}{\tau'}}}
+          @proofbyIH[]
+        }
+        @item{
+          @${\Gamma \wellKE e_0' : \kpair}
+          @proofbecause @${\tagof{\tpair{\tau}{\tau'}} = \kpair}
+        }
+        @item{
+          @${\Gamma \wellM \efst{e_0} : \tau \carrow \echk{\tagof{\tau}}{(\efst{e_0'})}}
+          @proofbecause 2
+        }
+        @item{
+          @${\Gamma \wellKE \echk{\tagof{\tau}}{(\efst{e_0'})} : \tagof{\tau}}
+          @proofbecause 3
+        }
+        @item{
+          @proofqed by 4,5
+        }
+      ]
+    }
+    @proofelse[@${\vunop = \vsnd}]{
+      @proofitems[
+        @item{
+          @${\tau_0 = \tpair{\tau'}{\tau}}
+          @proofby["lemma:LM-inversion" @${\Delta(\vsnd, \tau_0) = \tau}]
+        }
+        @item{
+          @${\Gamma \wellM e_0 : \tpair{\tau'}{\tau} \carrow e_0' \mbox{ and }
+             \Gamma \wellKE e_0' : \tagof{\tpair{\tau'}{\tau}}}
+          @proofbyIH[]
+        }
+        @item{
+          @${\Gamma \wellKE e_0' : \kpair}
+          @proofbecause @${\tagof{\tpair{\tau'}{\tau}} = \kpair}
+        }
+        @item{
+          @${\Gamma \wellM \esnd{e_0} : \tau \carrow \echk{\tagof{\tau}}{(\esnd{e_0'})}}
+          @proofbecause 2
+        }
+        @item{
+          @${\Gamma \wellKE \echk{\tagof{\tau}}{(\esnd{e_0'})} : \tagof{\tau}}
+          @proofbecause 3
+        }
+        @item{
+          @proofqed by 4,5
+        }
+      ]
+    }
+  }
+
+  @proofcase[@fbox${
+              \inferrule*{
+                \Gamma \wellM e_0 : \tau_0
+                \\
+                \Gamma \wellM e_1 : \tau_1
+                \\
+                \Delta(\vbinop, \tau_0, \tau_1) = \tau
+              }{
+                \Gamma \wellM \vbinop~e_0~e_1 : \tau
+              }}]{
+    @proofitems[
+      @item{
+        @${\Gamma \wellM e_0 : \tau_0 \carrow e_0' \\ \mbox{ and }
+           \Gamma \wellKE e_0' : \tagof{\tau_0}}
+        @proofbyIH[]
+      }
+      @item{
+        @${\Gamma \wellM e_1 : \tau_1 \carrow e_1' \\ \mbox{ and }
+           \Gamma \wellKE e_1' : \tagof{\tau_1}}
+        @proofbyIH[]
+      }
+      @item{
+        @${\Delta(\vbinop, \tagof{\tau_0}, \tagof{\tau_1}) = \tagof{\tau}}
+        @proofby["lemma:Delta-preservation"]
+      }
+      @item{
+        @${\Gamma \wellM \ebinop{e_0}{e_1} : \tau \carrow \ebinop{e_0'}{e_1'}}
+        @proofbecause 1,2
+      }
+      @item{
+        @${\Gamma \wellKE \ebinop{e_0'}{e_1'} : \tagof{\tau}}
+        @proofbecause 1,2,3
+      }
+      @item{
+        @proofqed by 5,6
+      }
+    ]
+  }
+
+  @proofcase[@fbox${
+               \inferrule*{
+                 \Gamma \wellM e : \tau'
+                 \\
+                 \tau' \subt \tau
+               }{
+                 \Gamma \wellM e : \tau
+               }}]{
+    @proofitems[
+      @item{
+        @${\Gamma \wellM e : \tau' \carrow e' \\\mbox{ and }
+           \Gamma \wellKE e' : \tagof{\tau'}}
+        @proofbyIH[]
+      }
+      @item{
+        @${\tagof{\tau'} \eeq \tagof{\tau} \mbox{ or } \tagof{\tau'} \subt \tagof{\tau}}
+        @proofby{lemma:subt-preservation}
+      }
+      @item{
+        @${\Gamma \wellKE e' : \tagof{\tau}}
+        @proofbecause 2
+      }
+      @item{
+        @proofqed by 1,3
+      }
+    ]
+  }
+
+  @proofcase[@fbox${
+               \inferrule*{
+                 \Gamma \wellM e
+               }{
+                 \Gamma \wellM \edyn{\tau}{e} : \tau
+               }}]{
+    @proofitems[
+      @item{
+        @${\Gamma \wellM e \carrow e' \mbox{ and } \Gamma \wellKE e'}
+        @proofby{lemma:LK-D-completion-soundness}
+      }
+      @item{
+        @${\Gamma \wellM \edyn{\tau}{e} : \tau \carrow \edyn{\tau}{e'}}
+        @proofbecause 1
+      }
+      @item{
+        @${\Gamma \wellKE \edyn{\tau}{e'} : \tagof{\tau}}
+        @proofbecause 1
+      }
+      @item{
+        @proofqed by 2,3
+      }
+    ]
+  }
+
+}
+
+@; -----------------------------------------------------------------------------
+@lemma[@elem{@${\carrow} dynamic soundness} #:key "lemma:LK-D-completion-soundness"]{
+  If @${\Gamma \wellM e} then @${\Gamma \wellM e \carrow e'} and @${\Gamma \wellKE e'}
+}
+
+@proof{
+  By induction on the structure of @${\Gamma \wellM e}.
+  Proceed by cases on the last rule used.
+
+  @proofcase[@fbox${
+                \inferrule*{
+                  x \in \Gamma
+                }{
+                  \Gamma \wellM x
+                }}]{
+    @proofitems[
+      @item{
+        @${\Gamma \wellM x \carrow x}
+      }
+      @item{
+        @${\Gamma \wellKE x}
+      }
+      @item{
+        @proofqed
+      }
+    ]
+  }
+
+  @proofcase[@fbox${
+                \inferrule*{
+                  x,\Gamma \wellM e
+                }{
+                  \Gamma \wellM \vlam{x}{e}
+                }}]{
+    @proofitems[
+      @item{
+        @${x,\Gamma \wellM e \carrow e' \\\mbox{and }
+           x,\Gamma \wellKE e'}
+        @proofbyIH[]
+      }
+      @item{
+        @${\Gamma \wellM \vlam{x}{e} \carrow \vlam{x}{e'}}
+        @proofbecause 1
+      }
+      @item{
+        @${\Gamma \wellKE \vlam{x}{e'}}
+        @proofbecause 1
+      }
+      @item{
+        @proofqed by 2,3
+      }
+    ]
+  }
+
+  @proofcase[@fbox${
+              \inferrule*{
+              }{
+                \Gamma \wellM i
+              } }]{
+    @proofitems[
+      @item{
+        @${\Gamma \wellM i \carrow i}
+      }
+      @item{
+        @${\Gamma \wellKE i}
+      }
+      @item{
+        @proofqed
+      }
+    ]
+  }
+
+  @proofcase[@fbox${
+              \inferrule*{
+                \Gamma \wellM e_0
+                \\
+                \Gamma \wellM e_1
+              }{
+                \Gamma \wellM \vpair{e_0}{e_1}
+              }}]{
+    @proofitems[
+      @item{
+        @${\Gamma \wellM e_0 \carrow e_0' \mbox{ and } \Gamma \wellKE e_0'}
+        @proofbyIH[]
+      }
+      @item{
+        @${\Gamma \wellM e_1 \carrow e_1' \mbox{ and } \Gamma \wellKE e_1'}
+        @proofbyIH[]
+      }
+      @item{
+        @${\Gamma \wellM \vpair{e_0}{e_1} \carrow \vpair{e_0'}{e_1'}}
+        @proofbecause 1,2
+      }
+      @item{
+        @${\Gamma \wellKE \vpair{e_0'}{e_1'}}
+        @proofbecause 1,2
+      }
+      @item{
+        @proofqed by 3,4
+      }
+    ]
+  }
+
+  @proofcase[@fbox${
+              \inferrule*{
+                \Gamma \wellM e_0
+                \\
+                \Gamma \wellM e_1
+              }{
+                \Gamma \wellM e_0~e_1
+              }}]{
+    @proofitems[
+      @item{
+        @${\Gamma \wellM e_0 \carrow e_0' \mbox{ and } \Gamma \wellKE e_0'}
+        @proofbyIH[]
+      }
+      @item{
+        @${\Gamma \wellM e_1 \carrow e_1' \mbox{ and } \Gamma \wellKE e_1'}
+        @proofbyIH[]
+      }
+      @item{
+        @${\Gamma \wellM \vapp{e_0}{e_1} \carrow \vapp{e_0'}{e_1'}}
+        @proofbecause 1,2
+      }
+      @item{
+        @${\Gamma \wellKE \vapp{e_0'}{e_1'}}
+        @proofbecause 1,2
+      }
+      @item{
+        @proofqed by 3,4
+      }
+    ]
+  }
+
+  @proofcase[@fbox${
+              \inferrule*{
+                \Gamma \wellM e
+              }{
+                \Gamma \wellM \vunop~e
+              }}]{
+    @proofitems[
+      @item{
+        @${\Gamma \wellM e \carrow e' \mbox{ and } \Gamma \wellKE e'}
+        @proofbyIH[]
+      }
+      @item{
+        @${\Gamma \wellM \eunop{e} \carrow \eunop{e'}}
+        @proofbecause 1
+      }
+      @item{
+        @${\Gamma \wellKE \eunop{e'}}
+        @proofbecause 1
+      }
+      @item{
+        @proofqed by 2,3
+      }
+    ]
+  }
+
+  @proofcase[@fbox${
+  \inferrule*{
+    \Gamma \wellM e_0
+    \\
+    \Gamma \wellM e_1
+  }{
+    \Gamma \wellM \vbinop~e_0~e_1
+  }}]{
+    @proofitems[
+      @item{
+        @${\Gamma \wellM e_0 \carrow e_0' \mbox{ and } \Gamma \wellKE e_0'}
+        @proofbyIH[]
+      }
+      @item{
+        @${\Gamma \wellM e_1 \carrow e_1' \mbox{ and } \Gamma \wellKE e_1'}
+        @proofbyIH[]
+      }
+      @item{
+        @${\Gamma \wellM \ebinop{e_0}{e_1} \carrow \ebinop{e_0'}{e_1'}}
+        @proofbecause 1,2
+      }
+      @item{
+        @${\Gamma \wellKE \ebinop{e_0'}{e_1'}}
+        @proofbecause 1,2
+      }
+      @item{
+        @proofqed by 3,4
+      }
+    ]
+  }
+
+  @proofcase[@fbox${
+              \inferrule*{
+                \Gamma \wellM e : \tau
+              }{
+                \Gamma \wellM \esta{\tau}{e}
+              }}]{
+    @proofitems[
+      @item{
+        @${\Gamma \wellM e : \tau \carrow e' \mbox{ and } \Gamma \wellKE e' : \tagof{\tau}}
+        @proofby{lemma:LK-S-completion-soundness}
+      }
+      @item{
+        @${\Gamma \wellM \esta{\tau}{e} \carrow \esta{\tau}{e'}}
+        @proofbecause 1
+      }
+      @item{
+        @${\Gamma \wellKE \esta{\tau}{e}}
+        @proofbecause 1
+      }
+      @item{
+        @proofqed by 2,3
+      }
+    ]
+  }
+}
+
+@; -----------------------------------------------------------------------------
+@lemma[@elem{@${\Delta} preservation} #:key "lemma:Delta-preservation"]{
+  If @${\Delta(\tau_0, \tau_1) = \tau} then
+     @${\Delta(\tagof{\tau_0}, \tagof{\tau_1}) = \tagof{\tau}}.
+}
+
+@proof{
+  By case analysis on the definition of @${\Delta}
+
+  @proofcase[@${\Delta(\vbinop, \tnat, \tnat) = \tnat}]{
+    @proofqed by @${\tagof{\tnat} = \tnat}
+  }
+
+  @proofcase[@${\Delta(\vbinop, \tint, \tint) = \tint}]{
+    @proofqed by @${\tagof{\tnat} = \tnat}
+  }
+}
+
+@; -----------------------------------------------------------------------------
+@lemma[@elem{@${\subt} preservation} #:key "lemma:subt-preservation"]{
+  If @${\tau \subt \tau'} then
+   @${\tagof{\tau} \eeq \tagof{\tau'}}
+   or @${\tagof{\tau} \subt \tagof{\tau'}}
+}
+
+@proof{
+  By case analysis on the last rule used to show @${\tau \subt \tau'}.
+
+  @proofcase[@${\tnat \subt \tint}]{
+    @proofqed @${\tagof{\tnat} \subt \tagof{\tint}}
+  }
+
+  @proofcase[@${\tarr{\tau_d}{\tau_c} \subt \tarr{\tau_d'}{\tau_c'}}]{
+    @proofitems[
+      @item{
+        @${\tagof{\tarr{\tau_d}{\tau_c}} = \kfun \mbox{ and }
+           \tagof{\tarr{\tau_d'}{\tau_c'}} = \kfun}
+      }
+      @item{
+        @proofqed
+      }
+    ]
+  }
+
+  @proofcase[@${\tpair{\tau_0}{\tau_1} \subt \tpair{\tau_0'}{\tau_1'}}]{
+    @proofitems[
+      @item{
+        @${\tagof{\tpair{\tau_0}{\tau_1}} = \kpair \mbox{ and }
+           \tagof{\tpair{\tau_0'}{\tau_1'}} = \kpair}
+      }
+      @item{
+        @proofqed
+      }
+    ]
+  }
 }
 
 @; -----------------------------------------------------------------------------
@@ -1207,6 +1801,16 @@
       ]
     }
   }
+}
+
+@; -----------------------------------------------------------------------------
+@lemma[@elem{@${\langK} static substitution} #:key "lemma:LK-S-substitution"]{
+  ???
+}
+
+@; -----------------------------------------------------------------------------
+@lemma[@elem{@${\langK} dynamic substitution} #:key "lemma:LK-D-substitution"]{
+  ???
 }
 
 @; -----------------------------------------------------------------------------
