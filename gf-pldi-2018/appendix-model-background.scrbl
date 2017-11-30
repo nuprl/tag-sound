@@ -3,10 +3,23 @@
 
 @title[#:tag "appendix:preliminaries"]{Preliminaries}
 
-@definition[@elem{@${R}-divergence}]{
+Here is a forward-reference to a definition @tr-ref{def:divergence}.
+
+@tr-definition[#:key "def:divergence" @elem{@${R}-divergence}]{
   An expression @${e} diverges for the reduction relation @${R} if for
    all @${e'} such that @${e~R~e'} there exists an @${e''} such that
    @${e'~R~e''}.
+}
+
+Here is some text that follows a definition.
+
+Here is a back-reference to a definition @tr-ref{def:divergence}.
+
+@tr-definition[@elem{Test Def}]{
+  @itemlist[
+    @item{ WhAT }
+    @item{ THEHECK }
+  ]
 }
 
 When @${R} is clear from the context, we will just say ``@${e} diverges''.

@@ -4,25 +4,75 @@
 ;;    https://lamport.azurewebsites.net/pubs/proof.pdf
 
 (provide
+  tr-definition
+  tr-ref
 )
 
 (require
   scribble/core
+  scribble/base
+  (only-in scribble/manual
+    defidform
+    deftech
+    tech)
+  (only-in scribble/decode
+    make-splice)
+  ;scribble/struct
 )
 
 ;; =============================================================================
 
-(define THE-NUMBERER
+(define UID
   (mcons 0 0))
 
-(define (num+)
-  (define old (mcdr THE-NUMBERER))
-  (set-mcdr! THE-NUMBERER (+ old 1))
+(define (UID+)
+  (define old (mcdr UID))
+  (set-mcdr! UID (+ old 1))
   (void))
 
-(define (num++)
-  (define old (mcar THE-NUMBERER))
-  (set-mcar! THE-NUMBERER (+ old 1))
-  (set-mcdr! THE-NUMBERER 0)
+(define (UID++)
+  (define old (mcar UID))
+  (set-mcar! UID (+ old 1))
+  (set-mcdr! UID 0)
   (void))
 
+(define (next-UID)
+  (begin0
+    (format "~a.~a" (mcar UID) (mcdr UID))
+    (UID+)))
+
+;; -----------------------------------------------------------------------------
+
+(define-logger techreport)
+
+;; -----------------------------------------------------------------------------
+
+(define boxed-style
+  (make-style 'boxed '()))
+
+(define (exact str*)
+  (make-element (make-style "relax" '(exact-chars)) str*))
+
+(define smallskip
+  @exact{\smallskip})
+
+;; -----------------------------------------------------------------------------
+
+(define (tr-definition name-elem
+                       #:key [key-str #f]
+                       . content*)
+  (unless key-str
+    (log-techreport-warning "missing key for definition ~a" name-elem))
+  (define uid (next-UID))
+  (nested
+    (list
+      @para{@linebreak[]
+            @bold{Definition @|uid|} : @deftech[#:key (or key-str "") name-elem]
+            @|smallskip|}
+      (make-table
+        boxed-style
+        (list (list (nested content*))))
+      @para[@linebreak[]])))
+
+(define (tr-ref tag)
+  (tech #:key tag tag))
