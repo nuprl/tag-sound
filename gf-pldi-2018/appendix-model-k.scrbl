@@ -2176,6 +2176,61 @@
     ]
   }
 
+  @proofcase[@${\ED = \vpair{\ED_0}{e_1}}]{
+    @proofitems[
+      @item{
+        @${\ctxE{e} = \vpair{\ED_0[e]}{e_1}
+          \\\mbox{and } \ctxE{e'} = \vpair{\ED_0[e']}{e_1}}
+      }
+      @item{
+        @${\wellKE \vpair{\ED_0[e]}{e_1} : K}
+      }
+      @item{
+        @${\wellKE \ED_0[e] : K_0
+           \mbox{ and } \wellKE e_1 : K_1}
+        @proofby{lemma:LK-S-inversion}
+      }
+      @item{
+        @${\wellKE \ED_0[e'] : K_0}
+        @proofbyIH[] (3)
+      }
+      @item{
+        @${\wellKE \vpair{\ED_0[e']}{e_1} : K}
+        @proofbecause 2,3,4
+      }
+      @item{
+        @proofqed by 1,5
+      }
+    ]
+  }
+
+  @proofcase[@${\ED = \vpair{v_0}{\ED_1}}]{
+    @proofitems[
+      @item{
+        @${\ctxE{e} = \vpair{v_0}{\ED_1[e]}
+           \\\mbox{and } \ctxE{e'} = \vpair{v_0}{\ED_1[e']}}
+      }
+      @item{
+        @${\wellKE \vpair{v_0}{\ED_1[e]} : K}
+      }
+      @item{
+        @${\wellKE v_0 : K_0 \mbox{ and } \wellKE \ED_1[e] : K_1}
+        @proofby{lemma:LK-S-inversion}
+      }
+      @item{
+        @${\wellKE \ED_1[e'] : K_1}
+        @proofbyIH[] (3)
+      }
+      @item{
+        @${\wellKE \vpair{v_0}{\ED_1[e']} : K}
+        @proofbecause 2,3,4
+      }
+      @item{
+        @proofqed by 1,5
+      }
+    ]
+  }
+
   @proofcase[@${\ED = \ED_0~e_1}]{
     @proofitems[
       @item{
@@ -2345,8 +2400,216 @@
 @lemma[@elem{@${\langK} dynamic hole substitution} #:key "lemma:LK-D-hole-subst"]{
   If @${\wellKE \ctxE{e}} and @${\wellKE e'} then @${\wellKE \ctxE{e'}}
 }
-@; TODO
 @proof{
+  By induction on the structure of @${\ED}.
+
+  @proofcase[@${\ED = \ehole}]{
+    @proofitems[
+      @item{
+        @proofqed by @${\ctxE{e'} = e'}
+      }
+    ]
+  }
+
+  @proofcase[@${\ED = \vpair{\ED_0}{e_1}}]{
+    @proofitems[
+      @item{
+        @${\ctxE{e} = \vpair{\ED_0[e]}{e_1}
+          \\\mbox{and } \ctxE{e'} = \vpair{\ED_0[e']}{e_1}}
+      }
+      @item{
+        @${\wellKE \vpair{\ED_0[e]}{e_1}}
+      }
+      @item{
+        @${\wellKE \ED_0[e]
+           \mbox{ and } \wellKE e_1}
+        @proofby{lemma:LK-D-inversion}
+      }
+      @item{
+        @${\wellKE \ED_0[e']}
+        @proofbyIH[] (3)
+      }
+      @item{
+        @${\wellKE \vpair{\ED_0[e']}{e_1}}
+        @proofbecause 3,4
+      }
+      @item{
+        @proofqed by 1,5
+      }
+    ]
+  }
+
+  @proofcase[@${\ED = \vpair{v_0}{\ED_1}}]{
+    @proofitems[
+      @item{
+        @${\ctxE{e} = \vpair{v_0}{\ED_1[e]}
+           \\\mbox{and } \ctxE{e'} = \vpair{v_0}{\ED_1[e']}}
+      }
+      @item{
+        @${\wellKE \vpair{v_0}{\ED_1[e]}}
+      }
+      @item{
+        @${\wellKE v_0 \mbox{ and } \wellKE \ED_1[e]}
+        @proofby{lemma:LK-D-inversion}
+      }
+      @item{
+        @${\wellKE \ED_1[e']}
+        @proofbyIH[] (3)
+      }
+      @item{
+        @${\wellKE \vpair{v_0}{\ED_1[e']}}
+        @proofbecause 3,4
+      }
+      @item{
+        @proofqed by 1,5
+      }
+    ]
+  }
+
+  @proofcase[@${\ED = \ED_0~e_1}]{
+    @proofitems[
+      @item{
+        @${\ctxE{e} = \ED_0[e]~e_1
+          \\\mbox{and } \ctxE{e'} = \ED_0[e']~e_1}
+      }
+      @item{
+        @${\wellKE \ED_0[e]~e_1}
+      }
+      @item{
+        @${\wellKE \ED_0[e]
+           \mbox{ and } \wellKE e_1}
+        @proofby{lemma:LK-D-inversion}
+      }
+      @item{
+        @${\wellKE \ED_0[e']}
+        @proofbyIH[] (3)
+      }
+      @item{
+        @${\wellKE \ED_0[e']~e_1}
+        @proofbecause 3,4
+      }
+      @item{
+        @proofqed by 1,5
+      }
+    ]
+  }
+
+  @proofcase[@${\ED = v_0~\ED_1}]{
+    @proofitems[
+      @item{
+        @${\ctxE{e} = v_0~\ED_1[e] \\\mbox{and } \ctxE{e'} = v_0~\ED_1[e']}
+      }
+      @item{
+        @${\wellKE v_0~\ED_1[e]}
+      }
+      @item{
+        @${\wellKE v_0 \mbox{ and } \wellKE \ED_1[e]}
+        @proofby{lemma:LK-D-inversion}
+      }
+      @item{
+        @${\wellKE \ED_1[e']}
+        @proofbyIH[] (3)
+      }
+      @item{
+        @${\wellKE v_0~\ED_1[e']}
+        @proofbecause 3,4
+      }
+      @item{
+        @proofqed by 1,5
+      }
+    ]
+  }
+
+  @proofcase[@${\ED = \eunop{\ED_0}}]{
+    @proofitems[
+      @item{
+        @${\ctxE{e} = \eunop{\ED_0[e]}
+          \\\mbox{and } \ctxE{e'} = \eunop{\ED_0[e']}}
+      }
+      @item{
+        @${\wellKE \eunop{\ED_0[e]}}
+      }
+      @item{
+        @${\wellKE \ED_0[e]}
+        @proofby{lemma:LK-D-inversion}
+      }
+      @item{
+        @${\wellKE \ED_0[e']}
+        @proofbyIH[] (3)
+      }
+      @item{
+        @${\wellKE \eunop{\ED_0[e']}}
+        @proofbecause 3,4
+      }
+      @item{
+        @proofqed by 1,5
+      }
+    ]
+  }
+
+  @proofcase[@${\ED = \ebinop{\ED_0}{e_1}}]{
+    @proofitems[
+      @item{
+        @${\ctxE{e} = \ebinop{\ED_0[e]}{e_1}
+          \\\mbox{and } \ctxE{e'} = \ebinop{\ED_0[e']}{e_1}}
+      }
+      @item{
+        @${\wellKE \ebinop{\ED_0[e]}{e_1}}
+      }
+      @item{
+        @${\wellKE \ED_0[e]
+           \mbox{ and } \wellKE e_1}
+        @proofby{lemma:LK-D-inversion}
+      }
+      @item{
+        @${\wellKE \ED_0[e']}
+        @proofbyIH[] (3)
+      }
+      @item{
+        @${\wellKE \ebinop{\ED_0[e']}{e_1}}
+        @proofbecause 3,4
+      }
+      @item{
+        @proofqed by 1,5
+      }
+    ]
+  }
+
+  @proofcase[@${\ED = \ebinop{v_0}{\ED_1}}]{
+    @proofitems[
+      @item{
+        @${\ctxE{e} = \ebinop{v_0}{\ED_1[e]}
+           \\\mbox{and } \ctxE{e'} = \ebinop{v_0}{\ED_1[e']}}
+      }
+      @item{
+        @${\wellKE \ebinop{v_0}{\ED_1[e]}}
+      }
+      @item{
+        @${\wellKE v_0 \mbox{ and } \wellKE \ED_1[e]}
+        @proofby{lemma:LK-D-inversion}
+      }
+      @item{
+        @${\wellKE \ED_1[e']}
+        @proofbyIH[] (3)
+      }
+      @item{
+        @${\wellKE \ebinop{v_0}{\ED_1[e']}}
+        @proofbecause 3,4
+      }
+      @item{
+        @proofqed by 1,5
+      }
+    ]
+  }
+
+  @proofcase[@${\ED = \echk{K_c}{\ED_0}}]{
+    @proofitems[
+      @item{
+        @proofcontradiction[@${\wellKE \ctxE{e}}]
+      }
+    ]
+  }
+
 }
 
 @; -----------------------------------------------------------------------------
