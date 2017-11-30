@@ -2147,6 +2147,209 @@
 }
 
 @; -----------------------------------------------------------------------------
+@lemma[@elem{@${\langK} static hole substitution} #:key "lemma:LK-S-hole-subst"]{
+  If @${\wellKE \ctxE{e} : K} and @${\wellKE e : K'} and @${\wellKE e' : K'} then @${\wellKE \ctxE{e'} : K}
+}
+@proof{
+  By induction on the structure of @${\ED}.
+
+  @proofcase[@${\ED = \ehole}]{
+    @proofitems[
+      @item{
+        @${\ctxE{e} = e \mbox{ and } \ctxE{e'} = e'}
+      }
+      @item{
+        @${\wellKE e : K}
+        @proofbecause 1
+      }
+      @item{
+        @${K' = K \mbox{ or } K' \subt K}
+        @proofbecause 2
+      }
+      @item{
+        @${\wellKE e' : K}
+        @proofbyIH[] (3)
+      }
+      @item{
+        @proofqed by 1,4
+      }
+    ]
+  }
+
+  @proofcase[@${\ED = \ED_0~e_1}]{
+    @proofitems[
+      @item{
+        @${\ctxE{e} = \ED_0[e]~e_1
+          \\\mbox{and } \ctxE{e'} = \ED_0[e']~e_1}
+      }
+      @item{
+        @${\wellKE \ED_0[e]~e_1 : K}
+      }
+      @item{
+        @${\wellKE \ED_0[e] : K_0
+           \mbox{ and } \wellKE e_1 : K_1}
+        @proofby{lemma:LK-S-inversion}
+      }
+      @item{
+        @${\wellKE \ED_0[e'] : K_0}
+        @proofbyIH[] (3)
+      }
+      @item{
+        @${\wellKE \ED_0[e']~e_1 : K}
+        @proofbecause 2,3,4
+      }
+      @item{
+        @proofqed by 1,5
+      }
+    ]
+  }
+
+  @proofcase[@${\ED = v_0~\ED_1}]{
+    @proofitems[
+      @item{
+        @${\ctxE{e} = v_0~\ED_1[e] \\\mbox{and } \ctxE{e'} = v_0~\ED_1[e']}
+      }
+      @item{
+        @${\wellKE v_0~\ED_1[e] : K}
+      }
+      @item{
+        @${\wellKE v_0 : K_0 \mbox{ and } \wellKE \ED_1[e] : K_1}
+        @proofby{lemma:LK-S-inversion}
+      }
+      @item{
+        @${\wellKE \ED_1[e'] : K_1}
+        @proofbyIH[] (3)
+      }
+      @item{
+        @${\wellKE v_0~\ED_1[e'] : K}
+        @proofbecause 2,3,4
+      }
+      @item{
+        @proofqed by 1,5
+      }
+    ]
+  }
+
+  @proofcase[@${\ED = \eunop{\ED_0}}]{
+    @proofitems[
+      @item{
+        @${\ctxE{e} = \eunop{\ED_0[e]}
+          \\\mbox{and } \ctxE{e'} = \eunop{\ED_0[e']}}
+      }
+      @item{
+        @${\wellKE \eunop{\ED_0[e]} : K}
+      }
+      @item{
+        @${\wellKE \ED_0[e] : K_0}
+        @proofby{lemma:LK-S-inversion}
+      }
+      @item{
+        @${\wellKE \ED_0[e'] : K_0}
+        @proofbyIH[] (3)
+      }
+      @item{
+        @${\wellKE \eunop{\ED_0[e']} : K}
+        @proofbecause 2,3,4
+      }
+      @item{
+        @proofqed by 1,5
+      }
+    ]
+  }
+
+  @proofcase[@${\ED = \ebinop{\ED_0}{e_1}}]{
+    @proofitems[
+      @item{
+        @${\ctxE{e} = \ebinop{\ED_0[e]}{e_1}
+          \\\mbox{and } \ctxE{e'} = \ebinop{\ED_0[e']}{e_1}}
+      }
+      @item{
+        @${\wellKE \ebinop{\ED_0[e]}{e_1} : K}
+      }
+      @item{
+        @${\wellKE \ED_0[e] : K_0
+           \mbox{ and } \wellKE e_1 : K_1}
+        @proofby{lemma:LK-S-inversion}
+      }
+      @item{
+        @${\wellKE \ED_0[e'] : K_0}
+        @proofbyIH[] (3)
+      }
+      @item{
+        @${\wellKE \ebinop{\ED_0[e']}{e_1} : K}
+        @proofbecause 2,3,4
+      }
+      @item{
+        @proofqed by 1,5
+      }
+    ]
+  }
+
+  @proofcase[@${\ED = \ebinop{v_0}{\ED_1}}]{
+    @proofitems[
+      @item{
+        @${\ctxE{e} = \ebinop{v_0}{\ED_1[e]}
+           \\\mbox{and } \ctxE{e'} = \ebinop{v_0}{\ED_1[e']}}
+      }
+      @item{
+        @${\wellKE \ebinop{v_0}{\ED_1[e]} : K}
+      }
+      @item{
+        @${\wellKE v_0 : K_0 \mbox{ and } \wellKE \ED_1[e] : K_1}
+        @proofby{lemma:LK-S-inversion}
+      }
+      @item{
+        @${\wellKE \ED_1[e'] : K_1}
+        @proofbyIH[] (3)
+      }
+      @item{
+        @${\wellKE \ebinop{v_0}{\ED_1[e']} : K}
+        @proofbecause 2,3,4
+      }
+      @item{
+        @proofqed by 1,5
+      }
+    ]
+  }
+
+  @proofcase[@${\ED = \echk{K_c}{\ED_0}}]{
+    @proofitems[
+      @item{
+        @${\ctxE{e} = \echk{K_c}{\ED_0[e]}
+          \\\mbox{and } \ctxE{e'} = \echk{K_c}{\ED_0[e']}}
+      }
+      @item{
+        @${\wellKE \echk{K_c}{\ED_0[e]} : K}
+      }
+      @item{
+        @${\wellKE \ED_0[e] : K_0}
+        @proofby{lemma:LK-S-inversion}
+      }
+      @item{
+        @${\wellKE \ED_0[e'] : K_0}
+        @proofbyIH[] (3)
+      }
+      @item{
+        @${\wellKE \echk{K_c}{\ED_0[e']} : K}
+        @proofbecause 2,3,4
+      }
+      @item{
+        @proofqed by 1,5
+      }
+    ]
+  }
+
+}
+
+@; -----------------------------------------------------------------------------
+@lemma[@elem{@${\langK} dynamic hole substitution} #:key "lemma:LK-D-hole-subst"]{
+  If @${\wellKE \ctxE{e}} and @${\wellKE e'} then @${\wellKE \ctxE{e'}}
+}
+@; TODO
+@proof{
+}
+
+@; -----------------------------------------------------------------------------
 @lemma[@elem{@${\langK} static inversion} #:key "lemma:LK-S-inversion"]{
 }
   @itemlist[
