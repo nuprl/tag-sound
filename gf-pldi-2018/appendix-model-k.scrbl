@@ -485,7 +485,7 @@
         }
         @item{
           @${\wellKE \vsubst{e}{x}{v_1}}
-          @proofby{lemma:LK-D-subst} 4,5
+          @proofby{lemma:LK-DD-subst} 4,5
         }
         @item{
           @${\wellKE \edyn{\kany}{\vsubst{e}{x}{v_1}} : \kany}
@@ -513,7 +513,7 @@
         }
         @item{
           @${\wellKE \vsubst{e}{x}{v_1} : \kany}
-          @proofby{lemma:LK-S-subst} 5,6
+          @proofby{lemma:LK-SS-subst} 5,6
         }
         @item{
           @proofqed by @lemmaref{lemma:LK-S-hole-subst}
@@ -717,7 +717,7 @@
         }
         @item{
           @${\wellKE \vsubst{e}{x}{v_1}}
-          @proofby{lemma:LK-D-subst} (3,4)
+          @proofby{lemma:LK-DD-subst} (3,4)
         }
         @item{
           @proofqed by @lemmaref{lemma:LK-D-hole-subst}
@@ -749,7 +749,7 @@
         }
         @item{
           @${\wellKE \vsubst{e}{x}{v_1} : \kany}
-          @proofby{lemma:LK-D-subst} (2, 5)
+          @proofby{lemma:LK-SS-subst} (2, 5)
         }
         @item{
           @${\wellKE \esta{\kany}{(\vsubst{e}{x}{v_1})}}
@@ -2960,13 +2960,1067 @@
 }
 
 @; -----------------------------------------------------------------------------
-@lemma[@elem{@${\langK} static substitution} #:key "lemma:LK-S-subst"]{
-  ???
+@lemma[@elem{@${\langK} static-static substitution} #:key "lemma:LK-SS-subst"]{
+      If @${\tann{x}{\tau},\Gamma \wellKE e : K}
+      and @${\wellKE v : \tagof{\tau}}
+      then @${\Gamma \wellKE \vsubst{e}{x}{v} : K}
+}
+@proof{
+  By induction on the structure of @${e}.
+
+  @proofcase[@${e = x}]{
+    @proofitems[
+      @item{
+        @${\tagof{\tau} = K \mbox{ or } \tagof{\tau} \subt K}
+        @proofbecause @${\tann{x}{\tau},\Gamma \wellKE x : K}
+      }
+      @item{
+        @${\vsubst{e}{x}{v} = v}
+      }
+      @item{
+        @${\wellKE v : K}
+        @proofbecause 1
+      }
+      @item{
+        @${\Gamma \wellKE v : K}
+        @proofby{lemma:weakening} 3
+      }
+      @item{
+        @proofqed
+      }
+    ]
+  }
+
+  @proofcase[@${e = x'}]{
+    @proofitems[
+      @item{
+        @proofqed by @${(\vsubst{x'}{x}{v}) = x'}
+      }
+    ]
+  }
+
+  @proofcase[@${e = i}]{
+    @proofitems[
+      @item{
+        @proofqed by @${\vsubst{i}{x}{v} = i}
+      }
+    ]
+  }
+
+  @proofcase[@${e = \vlam{x}{e'}}]{
+    @proofitems[
+      @item{
+        @proofqed by @${\vsubst{(\vlam{x}{e'})}{x}{v} = \vlam{x}{e'}}
+      }
+    ]
+  }
+
+  @proofcase[@${e = \vlam{x'}{e'}}]{
+    @proofitems[
+      @item{
+        @${\vsubst{e}{x}{v} = \vlam{x'}{(\vsubst{e'}{x}{v})}}
+      }
+      @item{
+        @${x',\tann{x}{\tau},\Gamma \wellKE e'}
+        @proofby{lemma:LK-S-inversion}
+      }
+      @item{
+        @${x',\Gamma \wellKE \vsubst{e'}{x}{v}}
+        @proofby{lemma:LK-DS-subst}
+      }
+      @item{
+        @${\Gamma \wellKE \vlam{x'}{\vsubst{e'}{x}{v}} : K}
+        @proofbecause (3)
+      }
+      @item{
+        @proofqed
+      }
+    ]
+  }
+
+  @proofcase[@${e = \vlam{\tann{x'}{\tau'}}{e'}}]{
+    @proofitems[
+      @item{
+        @${\vsubst{e}{x}{v} = \vlam{\tann{x'}{\tau'}}{(\vsubst{e'}{x}{v})}}
+      }
+      @item{
+        @${\tann{x'}{\tau'},\tann{x}{\tau},\Gamma \wellKE e' : \kany}
+        @proofby{lemma:LK-S-inversion}
+      }
+      @item{
+        @${\tann{x'}{\tau'},\Gamma \wellKE \vsubst{e'}{x}{v} : \kany}
+        @proofbyIH[] (2)
+      }
+      @item{
+        @${\Gamma \wellKE \vlam{\tann{x'}{\tau'}}{(\vsubst{e'}{x}{v})} : K}
+      }
+      @item{
+        @proofqed
+      }
+    ]
+  }
+
+  @proofcase[@${e = \vpair{e_0}{e_1}}]{
+    @proofitems[
+      @item{
+        @${\vsubst{e}{x}{v} = \vpair{\vsubst{e_0}{x}{v}}{\vsubst{e_1}{x}{v}}}
+      }
+      @item{
+        @${\tann{x}{\tau},\Gamma \wellKE e_0 : \kany
+           \\\mbox{and } \tann{x}{\tau},\Gamma \wellKE e_1 : \kany}
+        @proofby{lemma:LK-S-inversion}
+      }
+      @item{
+        @${\Gamma \wellKE \vsubst{e_0}{x}{v} : \kany
+           \\\mbox{and } \Gamma \wellKE \vsubst{e_1}{x}{v} : \kany}
+        @proofbyIH[] (2)
+      }
+      @item{
+        @${\Gamma \wellKE \vpair{\vsubst{e_0}{x}{v}}{\vsubst{e_1}{x}{v}} : K}
+        @proofbecause (3)
+      }
+      @item{
+        @proofqed
+      }
+    ]
+  }
+
+  @proofcase[@${e = \vapp{e_0}{e_1}}]{
+    @proofitems[
+      @item{
+        @${\vsubst{e}{x}{v} = \vapp{\vsubst{e_0}{x}{v}}{\vsubst{e_1}{x}{v}}}
+      }
+      @item{
+        @${\tann{x}{\tau},\Gamma \wellKE e_0 : K_0
+           \\\mbox{and } \tann{x}{\tau},\Gamma \wellKE e_1 : K_1}
+        @proofby{lemma:LK-S-inversion}
+      }
+      @item{
+        @${\Gamma \wellKE \vsubst{e_0}{x}{v} : K_0
+           \\\mbox{and } \Gamma \wellKE \vsubst{e_1}{x}{v} : K_1}
+        @proofbyIH[] (2)
+      }
+      @item{
+        @${\Gamma \wellKE \vapp{\vsubst{e_0}{x}{v}}{\vsubst{e_1}{x}{v}} : K}
+        @proofbecause (3)
+      }
+      @item{
+        @proofqed
+      }
+    ]
+  }
+
+  @proofcase[@${e = \eunop{e_0}}]{
+    @proofitems[
+      @item{
+        @${\vsubst{e}{x}{v} = \eunop{\vsubst{e_0}{x}{v}}}
+      }
+      @item{
+        @${\tann{x}{\tau},\Gamma \wellKE e_0 : K_0}
+        @proofby{lemma:LK-S-inversion}
+      }
+      @item{
+        @${\Gamma \wellKE \vsubst{e_0}{x}{v} : K_0}
+        @proofbyIH[] (2)
+      }
+      @item{
+        @${\Gamma \wellKE \eunop{\vsubst{e_0}{x}{v}} : K}
+        @proofbecause (3)
+      }
+      @item{
+        @proofqed
+      }
+    ]
+  }
+
+  @proofcase[@${e = \ebinop{e_0}{e_1}}]{
+    @proofitems[
+      @item{
+        @${\vsubst{e}{x}{v} = \ebinop{\vsubst{e_0}{x}{v}}{\vsubst{e_1}{x}{v}}}
+      }
+      @item{
+        @${\tann{x}{\tau},\Gamma \wellKE e_0 : K_0
+           \\\mbox{and } \tann{x}{\tau},\Gamma \wellKE e_1 : K_1}
+        @proofby{lemma:LK-S-inversion}
+      }
+      @item{
+        @${\Gamma \wellKE \vsubst{e_0}{x}{v} : K_0
+           \\\mbox{and } \Gamma \wellKE \vsubst{e_1}{x}{v} : K_1}
+        @proofbyIH[] (2)
+      }
+      @item{
+        @${\Gamma \wellKE \ebinop{\vsubst{e_0}{x}{v}}{\vsubst{e_1}{x}{v}} : K}
+        @proofbecause (3)
+      }
+      @item{
+        @proofqed
+      }
+    ]
+  }
+
+  @proofcase[@${e = \edyn{\tau'}{e'}}]{
+    @proofitems[
+      @item{
+        @${\vsubst{e}{x}{v} = \edyn{\tau'}{\vsubst{e'}{x}{v}}}
+      }
+      @item{
+        @${\tann{x}{\tau},\Gamma \wellKE e'}
+        @proofby{lemma:LK-S-inversion}
+      }
+      @item{
+        @${\Gamma \wellKE \vsubst{e'}{x}{v}}
+        @proofby{lemma:LK-DS-subst} (2)
+      }
+      @item{
+        @${\Gamma \wellKE \edyn{\tau'}{(\vsubst{e'}{x}{v})} : K}
+        @proofbecause (3)
+      }
+      @item{
+        @proofqed
+      }
+    ]
+  }
+
+  @proofcase[@${e = \edyn{\kany}{e'}}]{
+    @proofitems[
+      @item{
+        @${\vsubst{e}{x}{v} = \edyn{\kany}{\vsubst{e'}{x}{v}}}
+      }
+      @item{
+        @${\tann{x}{\tau},\Gamma \wellKE e'}
+        @proofby{lemma:LK-S-inversion}
+      }
+      @item{
+        @${\Gamma \wellKE \vsubst{e'}{x}{v}}
+        @proofby{lemma:LK-DS-subst} (2)
+      }
+      @item{
+        @${\Gamma \wellKE \edyn{\kany}{(\vsubst{e'}{x}{v})} : K}
+        @proofbecause (3)
+      }
+      @item{
+        @proofqed
+      }
+    ]
+  }
+
+  @proofcase[@${e = \echk{K'}{e'}}]{
+    @proofitems[
+      @item{
+        @${\vsubst{e}{x}{v} = \echk{K'}{(\vsubst{e'}{x}{v})}}
+      }
+      @item{
+        @${\tann{x}{\tau},\Gamma \wellKE e' : \kany}
+        @proofby{lemma:LK-S-inversion}
+      }
+      @item{
+        @${\Gamma \wellKE \vsubst{e'}{x}{v} : \kany}
+        @proofbyIH[] (2)
+      }
+      @item{
+        @${\Gamma \wellKE \echk{K'}{(\vsubst{e'}{x}{v})} : K}
+        @proofbecause (3)
+      }
+      @item{
+        @proofqed
+      }
+    ]
+  }
+
+  @proofcase[@${e = \esta{\tau'}{e'} \mbox{ or } e = \esta{\kany}{e'}}]{
+    @proofitems[
+      @item{
+        @proofcontradiction{@${\Gamma \wellKE e : K}}
+      }
+    ]
+  }
+
 }
 
 @; -----------------------------------------------------------------------------
-@lemma[@elem{@${\langK} dynamic substitution} #:key "lemma:LK-D-subst"]{
-  ???
+@lemma[@elem{@${\langK} static-dynamic substitution} #:key "lemma:LK-SD-subst"]{
+      If @${x,\Gamma \wellKE e : K}
+      and @${\wellKE v}
+      then @${\Gamma \wellKE \vsubst{e}{x}{v} : K}
+}
+@proof{
+  By induction on the structure of @${e}.
+
+  @proofcase[@${e = x}]{
+    @proofitems[
+      @item{
+        @${K = \kany}
+        @proofbecause @${x,\Gamma \wellKE x : K}
+      }
+      @item{
+        @${\vsubst{e}{x}{v} = v}
+      }
+      @item{
+        @${\wellKE v : K}
+        @proofbecause @lemmaref{lemma:LK-val-tagging}
+      }
+      @item{
+        @${\Gamma \wellKE v : K}
+        @proofby{lemma:weakening} 3
+      }
+      @item{
+        @proofqed
+      }
+    ]
+  }
+
+  @proofcase[@${e = x'}]{
+    @proofitems[
+      @item{
+        @proofqed by @${\vsubst{x'}{x}{v} = x'}
+      }
+    ]
+  }
+
+  @proofcase[@${e = i}]{
+    @proofitems[
+      @item{
+        @proofqed by @${\vsubst{i}{x}{v} = i}
+      }
+    ]
+  }
+
+  @proofcase[@${e = \vlam{x}{e'}}]{
+    @proofitems[
+      @item{
+        @proofqed by @${\vsubst{(\vlam{x}{e'})}{x}{v} = \vlam{x}{e'}}
+      }
+    ]
+  }
+
+  @proofcase[@${e = \vlam{x'}{e'}}]{
+    @proofitems[
+      @item{
+        @${\vsubst{e}{x}{v} = \vlam{x'}{(\vsubst{e'}{x}{v})}}
+      }
+      @item{
+        @${x',x,\Gamma \wellKE e'}
+        @proofby{lemma:LK-S-inversion}
+      }
+      @item{
+        @${x',\Gamma \wellKE \vsubst{e'}{x}{v}}
+        @proofby{lemma:LK-DD-subst}
+      }
+      @item{
+        @${\Gamma \wellKE \vlam{x'}{\vsubst{e'}{x}{v}} : K}
+        @proofbecause (3)
+      }
+      @item{
+        @proofqed
+      }
+    ]
+  }
+
+  @proofcase[@${e = \vlam{\tann{x'}{\tau'}}{e'}}]{
+    @proofitems[
+      @item{
+        @${\vsubst{e}{x}{v} = \vlam{\tann{x'}{\tau'}}{(\vsubst{e'}{x}{v})}}
+      }
+      @item{
+        @${\tann{x'}{\tau'},x,\Gamma \wellKE e' : \kany}
+        @proofby{lemma:LK-S-inversion}
+      }
+      @item{
+        @${\tann{x'}{\tau'},\Gamma \wellKE \vsubst{e'}{x}{v} : \kany}
+        @proofby{lemma:LK-SD-subst}
+      }
+      @item{
+        @${\Gamma \wellKE \vlam{\tann{x'}{\tau'}}{(\vsubst{e'}{x}{v})} : K}
+      }
+      @item{
+        @proofqed
+      }
+    ]
+  }
+
+  @proofcase[@${e = \vpair{e_0}{e_1}}]{
+    @proofitems[
+      @item{
+        @${\vsubst{e}{x}{v} = \vpair{\vsubst{e_0}{x}{v}}{\vsubst{e_1}{x}{v}}}
+      }
+      @item{
+        @${x,\Gamma \wellKE e_0 : \kany
+           \\\mbox{and } x,\Gamma \wellKE e_1 : \kany}
+        @proofby{lemma:LK-S-inversion}
+      }
+      @item{
+        @${\Gamma \wellKE \vsubst{e_0}{x}{v} : \kany
+           \\\mbox{and } \Gamma \wellKE \vsubst{e_1}{x}{v} : \kany}
+        @proofbyIH[] (2)
+      }
+      @item{
+        @${\Gamma \wellKE \vpair{\vsubst{e_0}{x}{v}}{\vsubst{e_1}{x}{v}} : K}
+        @proofbecause (3)
+      }
+      @item{
+        @proofqed
+      }
+    ]
+  }
+
+  @proofcase[@${e = \vapp{e_0}{e_1}}]{
+    @proofitems[
+      @item{
+        @${\vsubst{e}{x}{v} = \vapp{\vsubst{e_0}{x}{v}}{\vsubst{e_1}{x}{v}}}
+      }
+      @item{
+        @${x,\Gamma \wellKE e_0 : K_0
+           \\\mbox{and } x,\Gamma \wellKE e_1 : K_1}
+        @proofby{lemma:LK-S-inversion}
+      }
+      @item{
+        @${\Gamma \wellKE \vsubst{e_0}{x}{v} : K_0
+           \\\mbox{and } \Gamma \wellKE \vsubst{e_1}{x}{v} : K_1}
+        @proofbyIH[] (2)
+      }
+      @item{
+        @${\Gamma \wellKE \vapp{\vsubst{e_0}{x}{v}}{\vsubst{e_1}{x}{v}} : K}
+        @proofbecause (3)
+      }
+      @item{
+        @proofqed
+      }
+    ]
+  }
+
+  @proofcase[@${e = \eunop{e_0}}]{
+    @proofitems[
+      @item{
+        @${\vsubst{e}{x}{v} = \eunop{\vsubst{e_0}{x}{v}}}
+      }
+      @item{
+        @${x,\Gamma \wellKE e_0 : K_0}
+        @proofby{lemma:LK-S-inversion}
+      }
+      @item{
+        @${\Gamma \wellKE \vsubst{e_0}{x}{v} : K_0}
+        @proofbyIH[] (2)
+      }
+      @item{
+        @${\Gamma \wellKE \eunop{\vsubst{e_0}{x}{v}} : K}
+        @proofbecause (3)
+      }
+      @item{
+        @proofqed
+      }
+    ]
+  }
+
+  @proofcase[@${e = \ebinop{e_0}{e_1}}]{
+    @proofitems[
+      @item{
+        @${\vsubst{e}{x}{v} = \ebinop{\vsubst{e_0}{x}{v}}{\vsubst{e_1}{x}{v}}}
+      }
+      @item{
+        @${x,\Gamma \wellKE e_0 : K_0
+           \\\mbox{and } x,\Gamma \wellKE e_1 : K_1}
+        @proofby{lemma:LK-S-inversion}
+      }
+      @item{
+        @${\Gamma \wellKE \vsubst{e_0}{x}{v} : K_0
+           \\\mbox{and } \Gamma \wellKE \vsubst{e_1}{x}{v} : K_1}
+        @proofbyIH[] (2)
+      }
+      @item{
+        @${\Gamma \wellKE \ebinop{\vsubst{e_0}{x}{v}}{\vsubst{e_1}{x}{v}} : K}
+        @proofbecause (3)
+      }
+      @item{
+        @proofqed
+      }
+    ]
+  }
+
+  @proofcase[@${e = \edyn{\tau'}{e'}}]{
+    @proofitems[
+      @item{
+        @${\vsubst{e}{x}{v} = \edyn{\tau'}{\vsubst{e'}{x}{v}}}
+      }
+      @item{
+        @${x,\Gamma \wellKE e'}
+        @proofby{lemma:LK-S-inversion}
+      }
+      @item{
+        @${\Gamma \wellKE \vsubst{e'}{x}{v}}
+        @proofby{lemma:LK-DD-subst} (2)
+      }
+      @item{
+        @${\Gamma \wellKE \edyn{\tau'}{(\vsubst{e'}{x}{v})} : K}
+        @proofbecause (3)
+      }
+      @item{
+        @proofqed
+      }
+    ]
+  }
+
+  @proofcase[@${e = \edyn{\kany}{e'}}]{
+    @proofitems[
+      @item{
+        @${\vsubst{e}{x}{v} = \edyn{\kany}{\vsubst{e'}{x}{v}}}
+      }
+      @item{
+        @${x,\Gamma \wellKE e'}
+        @proofby{lemma:LK-S-inversion}
+      }
+      @item{
+        @${\Gamma \wellKE \vsubst{e'}{x}{v}}
+        @proofby{lemma:LK-DD-subst} (2)
+      }
+      @item{
+        @${\Gamma \wellKE \edyn{\kany}{(\vsubst{e'}{x}{v})} : K}
+        @proofbecause (3)
+      }
+      @item{
+        @proofqed
+      }
+    ]
+  }
+
+  @proofcase[@${e = \echk{K'}{e'}}]{
+    @proofitems[
+      @item{
+        @${\vsubst{e}{x}{v} = \echk{K'}{(\vsubst{e'}{x}{v})}}
+      }
+      @item{
+        @${x,\Gamma \wellKE e' : \kany}
+        @proofby{lemma:LK-S-inversion}
+      }
+      @item{
+        @${\Gamma \wellKE \vsubst{e'}{x}{v} : \kany}
+        @proofbyIH[] (2)
+      }
+      @item{
+        @${\Gamma \wellKE \echk{K'}{(\vsubst{e'}{x}{v})} : K}
+        @proofbecause (3)
+      }
+      @item{
+        @proofqed
+      }
+    ]
+  }
+
+  @proofcase[@${e = \esta{\tau'}{e'} \mbox{ or } e = \esta{\kany}{e'}}]{
+    @proofitems[
+      @item{
+        @proofcontradiction{@${\Gamma \wellKE e : K}}
+      }
+    ]
+  }
+
+}
+
+@; -----------------------------------------------------------------------------
+@lemma[@elem{@${\langK} dynamic-static substitution} #:key "lemma:LK-DS-subst"]{
+      If @${\tann{x}{\tau},\Gamma \wellKE e}
+      and @${\wellKE v : \tagof{\tau}}
+      then @${\Gamma \wellKE \vsubst{e}{x}{v}}
+}
+@proof{
+  By induction on the structure of @${e}.
+
+  @proofcase[@${e = x}]{
+    @proofitems[
+      @item{
+        @${\vsubst{e}{x}{v} = v}
+      }
+      @item{
+        @${\wellKE v : \kany}
+        @proofbecause @${\tagof{\tau} \subt \kany}
+      }
+      @item{
+        @${\wellKE v}
+        @proofbecause @lemmaref{lemma:LK-val-wellformed} (2)
+      }
+      @item{
+        @${\Gamma \wellKE v}
+        @proofby{lemma:weakening} (3)
+      }
+      @item{
+        @proofqed
+      }
+    ]
+  }
+
+  @proofcase[@${e = x'}]{
+    @proofitems[
+      @item{
+        @proofqed by @${\vsubst{x'}{x}{v} = x'}
+      }
+    ]
+  }
+
+  @proofcase[@${e = i}]{
+    @proofitems[
+      @item{
+        @proofqed by @${\vsubst{i}{x}{v} = i}
+      }
+    ]
+  }
+
+  @proofcase[@${e = \vlam{x}{e'}}]{
+    @proofitems[
+      @item{
+        @proofqed by @${\vsubst{(\vlam{x}{e'})}{x}{v} = \vlam{x}{e'}}
+      }
+    ]
+  }
+
+  @proofcase[@${e = \vlam{x'}{e'}}]{
+    @proofitems[
+      @item{
+        @${\vsubst{e}{x}{v} = \vlam{x'}{(\vsubst{e'}{x}{v})}}
+      }
+      @item{
+        @${x',\tann{x}{\tau},\Gamma \wellKE e'}
+        @proofby{lemma:LK-S-inversion}
+      }
+      @item{
+        @${x',\Gamma \wellKE \vsubst{e'}{x}{v}}
+        @proofby{lemma:LK-DS-subst}
+      }
+      @item{
+        @${\Gamma \wellKE \vlam{x'}{\vsubst{e'}{x}{v}}}
+        @proofbecause (3)
+      }
+      @item{
+        @proofqed
+      }
+    ]
+  }
+
+  @proofcase[@${e = \vlam{\tann{x'}{\tau'}}{e'}}]{
+    @proofitems[
+      @item{
+        @${\vsubst{e}{x}{v} = \vlam{\tann{x'}{\tau'}}{(\vsubst{e'}{x}{v})}}
+      }
+      @item{
+        @${\tann{x'}{\tau'},\tann{x}{\tau},\Gamma \wellKE e' : \kany}
+        @proofby{lemma:LK-S-inversion}
+      }
+      @item{
+        @${\tann{x'}{\tau'},\Gamma \wellKE \vsubst{e'}{x}{v} : \kany}
+        @proofby{lemma:LK-SS-subst}
+      }
+      @item{
+        @${\Gamma \wellKE \vlam{\tann{x'}{\tau'}}{(\vsubst{e'}{x}{v})}}
+      }
+      @item{
+        @proofqed
+      }
+    ]
+  }
+
+  @proofcase[@${e = \vpair{e_0}{e_1}}]{
+    @proofitems[
+      @item{
+        @${\vsubst{e}{x}{v} = \vpair{\vsubst{e_0}{x}{v}}{\vsubst{e_1}{x}{v}}}
+      }
+      @item{
+        @${\tann{x}{\tau},\Gamma \wellKE e_0
+           \\\mbox{and } \tann{x}{\tau},\Gamma \wellKE e_1}
+        @proofby{lemma:LK-S-inversion}
+      }
+      @item{
+        @${\Gamma \wellKE \vsubst{e_0}{x}{v}
+           \\\mbox{and } \Gamma \wellKE \vsubst{e_1}{x}{v}}
+        @proofbyIH[] (2)
+      }
+      @item{
+        @${\Gamma \wellKE \vpair{\vsubst{e_0}{x}{v}}{\vsubst{e_1}{x}{v}}}
+        @proofbecause (3)
+      }
+      @item{
+        @proofqed
+      }
+    ]
+  }
+
+  @proofcase[@${e = \vapp{e_0}{e_1}}]{
+    @proofitems[
+      @item{
+        @${\vsubst{e}{x}{v} = \vapp{\vsubst{e_0}{x}{v}}{\vsubst{e_1}{x}{v}}}
+      }
+      @item{
+        @${\tann{x}{\tau},\Gamma \wellKE e_0
+           \\\mbox{and } \tann{x}{\tau},\Gamma \wellKE e_1}
+        @proofby{lemma:LK-S-inversion}
+      }
+      @item{
+        @${\Gamma \wellKE \vsubst{e_0}{x}{v}
+           \\\mbox{and } \Gamma \wellKE \vsubst{e_1}{x}{v}}
+        @proofbyIH[] (2)
+      }
+      @item{
+        @${\Gamma \wellKE \vapp{\vsubst{e_0}{x}{v}}{\vsubst{e_1}{x}{v}}}
+        @proofbecause (3)
+      }
+      @item{
+        @proofqed
+      }
+    ]
+  }
+
+  @proofcase[@${e = \eunop{e_0}}]{
+    @proofitems[
+      @item{
+        @${\vsubst{e}{x}{v} = \eunop{\vsubst{e_0}{x}{v}}}
+      }
+      @item{
+        @${\tann{x}{\tau},\Gamma \wellKE e_0}
+        @proofby{lemma:LK-S-inversion}
+      }
+      @item{
+        @${\Gamma \wellKE \vsubst{e_0}{x}{v}}
+        @proofbyIH[] (2)
+      }
+      @item{
+        @${\Gamma \wellKE \eunop{\vsubst{e_0}{x}{v}}}
+        @proofbecause (3)
+      }
+      @item{
+        @proofqed
+      }
+    ]
+  }
+
+  @proofcase[@${e = \ebinop{e_0}{e_1}}]{
+    @proofitems[
+      @item{
+        @${\vsubst{e}{x}{v} = \ebinop{\vsubst{e_0}{x}{v}}{\vsubst{e_1}{x}{v}}}
+      }
+      @item{
+        @${\tann{x}{\tau},\Gamma \wellKE e_0
+           \\\mbox{and } \tann{x}{\tau},\Gamma \wellKE e_1}
+        @proofby{lemma:LK-S-inversion}
+      }
+      @item{
+        @${\Gamma \wellKE \vsubst{e_0}{x}{v}
+           \\\mbox{and } \Gamma \wellKE \vsubst{e_1}{x}{v}}
+        @proofbyIH[] (2)
+      }
+      @item{
+        @${\Gamma \wellKE \ebinop{\vsubst{e_0}{x}{v}}{\vsubst{e_1}{x}{v}}}
+        @proofbecause (3)
+      }
+      @item{
+        @proofqed
+      }
+    ]
+  }
+
+  @proofcase[@${e = \edyn{\tau'}{e'}
+                \mbox{ or } e = \edyn{\kany}{e'}
+                \mbox{ or } e = \echk{K'}{e'}
+               }]{
+    @proofitems[
+      @item{
+        @proofcontradiction{@${\tann{x}{\tau},\Gamma \wellKE e}}
+      }
+    ]
+  }
+
+  @proofcase[@${e = \esta{\tau'}{e'}}]{
+    @proofitems[
+      @item{
+        @${\vsubst{e}{x}{v} = \esta{\tau'}{\vsubst{e'}{x}{v}}}
+      }
+      @item{
+        @${\tann{x}{\tau},\Gamma \wellKE e' : \tagof{\tau'}}
+        @proofby{lemma:LK-S-inversion}
+      }
+      @item{
+        @${\Gamma \wellKE \vsubst{e'}{x}{v} : \tagof{\tau'}}
+        @proofby{lemma:LK-SS-subst} (2)
+      }
+      @item{
+        @${\Gamma \wellKE \esta{\tau'}{(\vsubst{e'}{x}{v})}}
+        @proofbecause (3)
+      }
+      @item{
+        @proofqed
+      }
+    ]
+  }
+
+  @proofcase[@${e = \esta{\kany}{e'}}]{
+    @proofitems[
+      @item{
+        @${\vsubst{e}{x}{v} = \esta{\kany}{\vsubst{e'}{x}{v}}}
+      }
+      @item{
+        @${\tann{x}{\tau},\Gamma \wellKE e' : \kany}
+        @proofby{lemma:LK-S-inversion}
+      }
+      @item{
+        @${\Gamma \wellKE \vsubst{e'}{x}{v} : \kany}
+        @proofby{lemma:LK-SS-subst} (2)
+      }
+      @item{
+        @${\Gamma \wellKE \esta{\kany}{(\vsubst{e'}{x}{v})}}
+        @proofbecause (3)
+      }
+      @item{
+        @proofqed
+      }
+    ]
+  }
+
+}
+
+@; -----------------------------------------------------------------------------
+@lemma[@elem{@${\langK} dynamic-dynamic substitution} #:key "lemma:LK-DD-subst"]{
+      If @${x,\Gamma \wellKE e}
+      and @${\wellKE v}
+      then @${\Gamma \wellKE \vsubst{e}{x}{v}}
+}
+@proof{
+  By induction on the structure of @${e}.
+
+  @proofcase[@${e = x}]{
+    @proofitems[
+      @item{
+        @${\vsubst{e}{x}{v} = v}
+      }
+      @item{
+        @${\Gamma \wellKE v}
+        @proofby{lemma:weakening} 3
+      }
+      @item{
+        @proofqed
+      }
+    ]
+  }
+
+  @proofcase[@${e = x'}]{
+    @proofitems[
+      @item{
+        @proofqed by @${\vsubst{x'}{x}{v} = x'}
+      }
+    ]
+  }
+
+  @proofcase[@${e = i}]{
+    @proofitems[
+      @item{
+        @proofqed by @${\vsubst{i}{x}{v} = i}
+      }
+    ]
+  }
+
+  @proofcase[@${e = \vlam{x}{e'}}]{
+    @proofitems[
+      @item{
+        @proofqed by @${(\vsubst{\vlam{x}{e'}}{x}{v}) = \vlam{x}{e'}}
+      }
+    ]
+  }
+
+  @proofcase[@${e = \vlam{x'}{e'}}]{
+    @proofitems[
+      @item{
+        @${\vsubst{e}{x}{v} = \vlam{x'}{(\vsubst{e'}{x}{v})}}
+      }
+      @item{
+        @${x',x,\Gamma \wellKE e'}
+        @proofby{lemma:LK-S-inversion}
+      }
+      @item{
+        @${x',\Gamma \wellKE \vsubst{e'}{x}{v}}
+        @proofbyIH[] (2)
+      }
+      @item{
+        @${\Gamma \wellKE \vlam{x'}{\vsubst{e'}{x}{v}}}
+        @proofbecause (3)
+      }
+      @item{
+        @proofqed
+      }
+    ]
+  }
+
+  @proofcase[@${e = \vlam{\tann{x'}{\tau'}}{e'}}]{
+    @proofitems[
+      @item{
+        @${\vsubst{e}{x}{v} = \vlam{\tann{x'}{\tau'}}{(\vsubst{e'}{x}{v})}}
+      }
+      @item{
+        @${\tann{x'}{\tau'},x,\Gamma \wellKE e' : \kany}
+        @proofby{lemma:LK-S-inversion}
+      }
+      @item{
+        @${\tann{x'}{\tau'},\Gamma \wellKE \vsubst{e'}{x}{v} : \kany}
+        @proofby{lemma:LK-SD-subst}
+      }
+      @item{
+        @${\Gamma \wellKE \vlam{\tann{x'}{\tau'}}{(\vsubst{e'}{x}{v})}}
+      }
+      @item{
+        @proofqed
+      }
+    ]
+  }
+
+  @proofcase[@${e = \vpair{e_0}{e_1}}]{
+    @proofitems[
+      @item{
+        @${\vsubst{e}{x}{v} = \vpair{\vsubst{e_0}{x}{v}}{\vsubst{e_1}{x}{v}}}
+      }
+      @item{
+        @${x,\Gamma \wellKE e_0
+           \\\mbox{and } x,\Gamma \wellKE e_1}
+        @proofby{lemma:LK-S-inversion}
+      }
+      @item{
+        @${\Gamma \wellKE \vsubst{e_0}{x}{v}
+           \\\mbox{and } \Gamma \wellKE \vsubst{e_1}{x}{v}}
+        @proofbyIH[] (2)
+      }
+      @item{
+        @${\Gamma \wellKE \vpair{\vsubst{e_0}{x}{v}}{\vsubst{e_1}{x}{v}}}
+        @proofbecause (3)
+      }
+      @item{
+        @proofqed
+      }
+    ]
+  }
+
+  @proofcase[@${e = \vapp{e_0}{e_1}}]{
+    @proofitems[
+      @item{
+        @${\vsubst{e}{x}{v} = \vapp{\vsubst{e_0}{x}{v}}{\vsubst{e_1}{x}{v}}}
+      }
+      @item{
+        @${x,\Gamma \wellKE e_0
+           \\\mbox{and } x,\Gamma \wellKE e_1}
+        @proofby{lemma:LK-S-inversion}
+      }
+      @item{
+        @${\Gamma \wellKE \vsubst{e_0}{x}{v}
+           \\\mbox{and } \Gamma \wellKE \vsubst{e_1}{x}{v}}
+        @proofbyIH[] (2)
+      }
+      @item{
+        @${\Gamma \wellKE \vapp{\vsubst{e_0}{x}{v}}{\vsubst{e_1}{x}{v}}}
+        @proofbecause (3)
+      }
+      @item{
+        @proofqed
+      }
+    ]
+  }
+
+  @proofcase[@${e = \eunop{e_0}}]{
+    @proofitems[
+      @item{
+        @${\vsubst{e}{x}{v} = \eunop{\vsubst{e_0}{x}{v}}}
+      }
+      @item{
+        @${x,\Gamma \wellKE e_0}
+        @proofby{lemma:LK-S-inversion}
+      }
+      @item{
+        @${\Gamma \wellKE \vsubst{e_0}{x}{v}}
+        @proofbyIH[] (2)
+      }
+      @item{
+        @${\Gamma \wellKE \eunop{\vsubst{e_0}{x}{v}}}
+        @proofbecause (3)
+      }
+      @item{
+        @proofqed
+      }
+    ]
+  }
+
+  @proofcase[@${e = \ebinop{e_0}{e_1}}]{
+    @proofitems[
+      @item{
+        @${\vsubst{e}{x}{v} = \ebinop{\vsubst{e_0}{x}{v}}{\vsubst{e_1}{x}{v}}}
+      }
+      @item{
+        @${x,\Gamma \wellKE e_0
+           \\\mbox{and } x,\Gamma \wellKE e_1}
+        @proofby{lemma:LK-S-inversion}
+      }
+      @item{
+        @${\Gamma \wellKE \vsubst{e_0}{x}{v}
+           \\\mbox{and } \Gamma \wellKE \vsubst{e_1}{x}{v}}
+        @proofbyIH[] (2)
+      }
+      @item{
+        @${\Gamma \wellKE \ebinop{\vsubst{e_0}{x}{v}}{\vsubst{e_1}{x}{v}}}
+        @proofbecause (3)
+      }
+      @item{
+        @proofqed
+      }
+    ]
+  }
+
+  @proofcase[@${e = \edyn{\tau'}{e'}
+                \mbox{ or } e = \edyn{\kany}{e'}
+                \mbox{ or } e = \echk{K'}{e'}
+               }]{
+    @proofitems[
+      @item{
+        @proofcontradiction{@${\Gamma \wellKE e}}
+      }
+    ]
+  }
+
+  @proofcase[@${e = \esta{\tau'}{e'}}]{
+    @proofitems[
+      @item{
+        @${\vsubst{e}{x}{v} = \esta{\tau'}{\vsubst{e'}{x}{v}}}
+      }
+      @item{
+        @${x,\Gamma \wellKE e' : \tagof{\tau'}}
+        @proofby{lemma:LK-S-inversion}
+      }
+      @item{
+        @${\Gamma \wellKE \vsubst{e'}{x}{v} : \tagof{\tau'}}
+        @proofby{lemma:LK-SD-subst} (2)
+      }
+      @item{
+        @${\Gamma \wellKE \esta{\tau'}{(\vsubst{e'}{x}{v})}}
+        @proofbecause (3)
+      }
+      @item{
+        @proofqed
+      }
+    ]
+  }
+
+  @proofcase[@${e = \esta{\kany}{e'}}]{
+    @proofitems[
+      @item{
+        @${\vsubst{e}{x}{v} = \esta{\kany}{\vsubst{e'}{x}{v}}}
+      }
+      @item{
+        @${x,\Gamma \wellKE e' : \kany}
+        @proofby{lemma:LK-S-inversion}
+      }
+      @item{
+        @${\Gamma \wellKE \vsubst{e'}{x}{v} : \kany}
+        @proofby{lemma:LK-SD-subst} (2)
+      }
+      @item{
+        @${\Gamma \wellKE \esta{\kany}{(\vsubst{e'}{x}{v})}}
+        @proofbecause (3)
+      }
+      @item{
+        @proofqed
+      }
+    ]
+  }
+
 }
 
 @; -----------------------------------------------------------------------------

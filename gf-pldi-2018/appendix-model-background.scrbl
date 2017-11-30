@@ -29,6 +29,43 @@ When @${R} is clear from the context, we will just say ``@${e} diverges''.
    another, and from any free variables in the expression.
 }
 
+Implies weakening lemmas.
+
+Permutation lemmas?
+
+  @;  @lemma[@elem{@${\langK} weakening} #:key "lemma:LK-weakening"]{
+  @;  }
+  @;    @itemlist[
+  @;      @item{
+  @;        If @${\Gamma \wellKE e : K}
+  @;         and @${\not\exists \tau} such that @${\tann{x}{\tau} \in \Gamma}
+  @;         then @${\tann{x}{\tau},\Gamma \wellKE e : K} for any type @${\tau}
+  @;      }
+  @;      @item{
+  @;        If @${\Gamma \wellKE e : K}
+  @;         and @${x \not\in \Gamma}
+  @;         then @${x,\Gamma \wellKE e : K}.
+  @;      }
+  @;      @item{
+  @;        If @${\Gamma \wellKE e}
+  @;         and @${\not\exists \tau} such that @${\tann{x}{\tau} \in \Gamma}
+  @;         then @${\tann{x}{\tau},\Gamma \wellKE e} for any type @${\tau}
+  @;      }
+  @;      @item{
+  @;        If @${\Gamma \wellKE e}
+  @;         and @${x \not in \Gamma}
+  @;         then @${x,\Gamma \wellKE e}
+  @;      }
+  @;    ]
+  @;  @proof{
+  @;    Immediate, because
+  @;     @${\Gamma \wellKE e : K}
+  @;     and/or
+  @;     @${\Gamma \wellKE e}
+  @;     imply that @${e} is closed under @${\Gamma}.
+  @;  }
+
+
 
 Need this:
 
