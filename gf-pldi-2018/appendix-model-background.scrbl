@@ -1,6 +1,7 @@
 #lang gf-pldi-2018
+@require{techreport.rkt}
 
-@title{Preliminaries}
+@title[#:tag "appendix:preliminaries"]{Preliminaries}
 
 @definition[@elem{@${R}-divergence}]{
   An expression @${e} diverges for the reduction relation @${R} if for
@@ -84,18 +85,3 @@ e & \ccRp & A
 
 \end{flushleft}
 }|
-
-
-
-@; -----------------------------------------------------------------------------
-
-@figure["fig:model-roadmap" "Models Roadmap"
-  @models-roadmap[
-    #:D "Dynamic"
-    #:S "Static"
-    #:M "Multi-Language"
-    #:E "Erasure Embedding"
-    #:N "Natural Embedding"
-    #:L "Co-Natural Embedding"
-    #:F "Forgetful Embedding"
-    #:K "Tagged Embedding"]]

@@ -245,8 +245,8 @@
       (ht-append 20 D S)
       M
       (ht-append 35
-        (vc-append 8 N L F)
-        E)
+        E
+        (vc-append 8 N L F))
       K))
   (define arrow-spec*
     (list (cons D M)
