@@ -4,4 +4,3 @@
 @subtitle{Supplementary Material}
 
 @include-section{appendix.scrbl}
-

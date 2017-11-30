@@ -8,6 +8,11 @@
   lemmaref
   fbox$
 
+  appendix-title
+
+  clearpage
+  newpage
+
   bm-desc
   blockquote
   MT
@@ -292,7 +297,7 @@
   (list (emph descr) elem* @${\hfill \qedsymbol}))
 
 (define (proofcase title . pc*)
-  (list (bold "Case ") title ": "
+  (list (bold (sc "case ")) title ": "
     (nested #:style 'inset pc*)))
 
 (define (proofif cond . pc*)
@@ -534,3 +539,14 @@
 
 (define (fbox$ . elem*)
   @exact{\fbox{@(apply $ elem*)}})
+
+(define clearpage
+  (exact "\\clearpage"))
+
+(define newpage
+  (exact "\\newpage"))
+
+(define-syntax-rule (appendix-title stuff ...)
+  (list
+    (para #:style 'pretitle clearpage)
+    (title stuff ...)))

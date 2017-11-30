@@ -1,5 +1,5 @@
 #lang gf-pldi-2018
-@title[#:style 'unnumbered]{Appendix}
+@title{Appendix}
 
 This appendix contains:
 @itemlist[
@@ -24,6 +24,9 @@ This appendix contains:
 @; scripts to collect data,
 @; the source code for Tag-Sound Racket,
 @; a diff between Typed Racket and Tag-Sound Racket.
+
+
+
 
 @;@include-section{appendix-descriptions.scrbl}
 @;@include-section{appendix-linear.scrbl}

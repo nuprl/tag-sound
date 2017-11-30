@@ -1,8 +1,15 @@
 #lang gf-pldi-2018
 
-@section{Locally-Defensive Embedding}
+@appendix-title{Locally-Defensive Embedding}
 @include-figure*["fig:locally-defensive-embedding.tex" "Tagged Embedding"]
 @include-figure*["fig:locally-defensive-completion.tex" "Tagged Completion"]
+
+@; -----------------------------------------------------------------------------
+@section{Definitions}
+
+@; -----------------------------------------------------------------------------
+@|clearpage|
+@section{Properties}
 
 @|K-SOUNDNESS|
 @proof{
