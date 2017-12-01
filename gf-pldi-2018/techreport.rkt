@@ -4,6 +4,8 @@
 ;;    https://lamport.azurewebsites.net/pubs/proof.pdf
 
 (provide
+  UID++
+
   clearpage
   smallskip
   newpage
@@ -21,7 +23,7 @@
 
   tr-proof
   tr-case (rename-out [tr-case proofcase])
-  
+
   tr-qed
 
 )
@@ -62,7 +64,7 @@
     (UID+)))
 
 (define NAME+UID
-  (make-hasheq))
+  (make-hash))
 
 (define kind?
   symbol?)
@@ -72,11 +74,11 @@
     (log-techreport-error "duplicate key ~a" user-key))
   (hash-set! NAME+UID user-key (cons kind uid)))
 
-(define (symbol->key user-key)
-  #;(define kind+uid
-    (hash-ref NAME+UID user-key (λ () (log-techreport-warning "undefined key ~a" user-key) '(??? . "???"))))
-  (symbol->string user-key)
-  #;(format "~a ~a: ~a" (kind->abbrev (car kind+uid)) (cdr kind+uid) user-key))
+(define (key->string user-key)
+  ;;(define kind+uid
+  ;;  (hash-ref NAME+UID user-key (λ () (log-techreport-warning "undefined key ~a" user-key) '(??? . "???"))))
+  ;;(format "~a ~a: ~a" (kind->abbrev (car kind+uid)) (cdr kind+uid) user-key)
+  user-key)
 
 (define (kind->abbrev k)
   (case k
@@ -147,40 +149,42 @@
 ;; -----------------------------------------------------------------------------
 
 (define (tr-ref str #:key user-key)
-  (define k (symbol->key user-key))
+  (define k (key->string user-key))
   (tech #:key k (emph str)))
 
 (define (tr-definition name-elem #:key [user-key #f] . content*)
-  (tr-thing name-elem 'definition #:key user-key content*))
+  (tr-def name-elem 'definition #:key user-key content*))
 
 (define (tr-counterexample name-elem #:key [user-key #f] . content*)
-  (tr-thing name-elem 'counterexample #:key user-key content*))
+  (tr-def name-elem 'counterexample #:key user-key content*))
 
 (define (tr-convention name-elem #:key [key #f] . content*)
-  (tr-thing name-elem 'convention #:key key content*))
+  (tr-def name-elem 'convention #:key key content*))
 
 (define (tr-theorem name-elem #:key [key #f] . content*)
-  (tr-thing name-elem 'theorem #:key key content*))
+  (tr-def name-elem 'theorem #:key key content*))
 
 (define (tr-lemma name-elem #:key [key #f] . content*)
-  (tr-thing name-elem 'lemma #:key key content*))
+  (tr-def name-elem 'lemma #:key key content*))
 
-(define (tr-thing name-elem
-                       kind
-                       #:key [user-key #f]
-                       content*)
-  (unless (symbol? user-key)
+(define (tr-def name-elem
+                kind
+                #:key [user-key #f]
+                content*)
+  (define pre-key
+    (or user-key (if (string? name-elem) name-elem #f)))
+  (unless pre-key
     (log-techreport-warning "missing key for ~a ~a" kind name-elem))
   (define uid (next-UID))
   (define key-str
-    (if user-key
+    (if pre-key
       (begin
-        (register-key! user-key kind uid)
-        (symbol->key user-key))
+        (register-key! pre-key kind uid)
+        (key->string pre-key))
       ""))
   (nested #:style 'block
     (list
-      @para{@exact{\vspace{1ex}}
+      @elem{@exact{\vspace{0.4ex}}
             @bold{@kind->long-name[kind] @|uid|} : @deftech[#:key key-str name-elem]
             @|smallskip|}
       (make-table

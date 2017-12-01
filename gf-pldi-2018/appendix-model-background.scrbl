@@ -3,75 +3,28 @@
 
 @title[#:tag "appendix:preliminaries"]{Preliminaries}
 
-Here is a forward-reference to a definition @tr-ref[#:key 'divergence]{divr}.
 
-@tr-definition[#:key 'divergence @elem{@${R}-divergence}]{
-  An expression @${e} diverges for the reduction relation @${R} if for
-   all @${e'} such that @${e~R~e'} there exists an @${e''} such that
-   @${e'~R~e''}.
+@tr-definition[#:key "divergence" @elem{@${\rastar}-divergence}]{
+  An expression @${e} diverges for the reduction relation @${\rastar} if for
+   all @${e'} such that @${e\!\rastar\!e'} there exists an @${e''} such that
+   @${e'\!\rightarrow\!e''}.
 }@|smallskip|
 
-Here is some text that follows a definition.
-
-Here is a back-reference to @tr-ref[#:key 'divergence]{definition divergence}.
-
-@tr-definition[@elem{Test Def}]{
-  @itemlist[
-    @item{ WhAT }
-    @item{ THEHECK }
-  ]
-}@|smallskip|
-
-When @${R} is clear from the context, we will just say ``@${e} diverges''.
-
-
-@;Barendregt's variable convention@~cite[b-lambda-1981]:
-
-@convention["variables"]{
+@tr-convention["variable convention"]{
   All @${\lambda}-bound variables in an expression are distinct from one
    another, and from any free variables in the expression.
-}
+}@|smallskip|
 
-Implies weakening lemmas.
+@tr-lemma["weakening"]{
+  If @${\Gamma \vdash e} then @${x,\Gamma \vdash e}
+}@|smallskip|
 
-Permutation lemmas?
-
-  @;  @lemma[@elem{@${\langK} weakening} #:key "lemma:LK-weakening"]{
-  @;  }
-  @;    @itemlist[
-  @;      @item{
-  @;        If @${\Gamma \wellKE e : K}
-  @;         and @${\not\exists \tau} such that @${\tann{x}{\tau} \in \Gamma}
-  @;         then @${\tann{x}{\tau},\Gamma \wellKE e : K} for any type @${\tau}
-  @;      }
-  @;      @item{
-  @;        If @${\Gamma \wellKE e : K}
-  @;         and @${x \not\in \Gamma}
-  @;         then @${x,\Gamma \wellKE e : K}.
-  @;      }
-  @;      @item{
-  @;        If @${\Gamma \wellKE e}
-  @;         and @${\not\exists \tau} such that @${\tann{x}{\tau} \in \Gamma}
-  @;         then @${\tann{x}{\tau},\Gamma \wellKE e} for any type @${\tau}
-  @;      }
-  @;      @item{
-  @;        If @${\Gamma \wellKE e}
-  @;         and @${x \not in \Gamma}
-  @;         then @${x,\Gamma \wellKE e}
-  @;      }
-  @;    ]
-  @;  @proof{
-  @;    Immediate, because
-  @;     @${\Gamma \wellKE e : K}
-  @;     and/or
-  @;     @${\Gamma \wellKE e}
-  @;     imply that @${e} is closed under @${\Gamma}.
-  @;  }
+@tr-lemma["permutation"]{
+  If @${x,x',\Gamma \vdash e} then @${x',x,\Gamma \vdash e}
+}@|smallskip|
 
 
-
-Need this:
-
+@;Need this:
 @; TODO find a home for this "bowtie" metafunction
 @;@exact|{
 @;\begin{flushleft}
