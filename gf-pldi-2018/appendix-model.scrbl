@@ -1,4 +1,5 @@
 #lang gf-pldi-2018
+@require{techreport.rkt}
 
 @appendix-title{Models}
 

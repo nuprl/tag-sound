@@ -2,17 +2,10 @@
 
 ;; Utilities / setup for acmart-style Scribble papers
 
+;; TODO clear this damn file
+
 (provide
   ;; --- new stuff
-  tech
-  lemmaref
-  fbox$
-
-  appendix-title
-
-  clearpage
-  newpage
-
   bm-desc
   blockquote
   MT
@@ -62,20 +55,6 @@
   ~a
 
   note-to-self
-
-  proof
-  proofcase
-  proofif
-  proofthen
-  proofbecause
-  proofwhere
-  proofand
-  proofby
-  proofbyIH
-  proofelse
-  proofitems
-  proofqed
-  proofcontradiction
 
   proof-sketch
 
@@ -296,49 +275,6 @@
 (define (make-proof descr elem*)
   (list (emph descr) elem* @${\hfill \qedsymbol}))
 
-(define (proofcase title . pc*)
-  (list (bold (sc "case ")) title ": "
-    (nested #:style 'inset pc*)))
-
-(define (proofif cond . pc*)
-  (list (bold "if ") cond ": "
-    (nested #:style 'inset pc*)))
-
-(define proofand
-  (list "and "))
-
-(define (proofby tag [thing #f])
-  (list* (linebreak) "by " (tech tag)
-    (if thing
-      (list " applied to " thing)
-      (list))))
-
-(define (proofbyIH [why #f])
-  (list* (linebreak) "by the induction hypothesis"
-    (if why (list " applied to " why) '())))
-
-(define proofqed
-  (sc "qed "))
-
-(define proofthen
-  "then ")
-
-(define proofbecause
-  (list (linebreak) "because "))
-
-(define proofwhere
-  (list (linebreak) "where "))
-
-(define (proofelse cond . pc*)
-  (list (bold "else ") cond ": "
-    (nested #:style 'inset pc*)))
-
-(define (proofitems . item*)
-  (apply itemlist #:style 'ordered item*))
-
-(define (proofcontradiction why)
-  @elem{Impossible, contradiction with @|why|})
-
 (define well_D
   ($ "\\welldyn"))
 
@@ -537,16 +473,3 @@
     (linebreak)
     descr))
 
-(define (fbox$ . elem*)
-  @exact{\fbox{@(apply $ elem*)}})
-
-(define clearpage
-  (exact "\\clearpage"))
-
-(define newpage
-  (exact "\\newpage"))
-
-(define-syntax-rule (appendix-title stuff ...)
-  (list
-    (para #:style 'pretitle clearpage)
-    (title stuff ...)))
