@@ -4,13 +4,12 @@
 ;;    https://lamport.azurewebsites.net/pubs/proof.pdf
 
 (provide
-  UID++
-
   clearpage
   smallskip
   newpage
 
   appendix-title
+  appendix-title++
 
   tr-ref
   tr-definition
@@ -142,6 +141,11 @@
   (list
     (para #:style 'pretitle clearpage)
     (title stuff ...)))
+
+(define-syntax-rule (appendix-title++ stuff ...)
+  (begin
+    (UID++)
+    (appendix-title stuff ...)))
 
 (define (fbox$ . elem*)
   @exact{\fbox{@$[elem*]}})

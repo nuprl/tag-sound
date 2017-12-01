@@ -39,4 +39,4 @@ Aside from the common notions in @section-ref{appendix:preliminaries},
 @;@include-section{appendix-model-c.scrbl}
 @;@include-section{appendix-model-f.scrbl}
 
-@;@include-section{appendix-model-k.scrbl}
+@include-section{appendix-model-k.scrbl}

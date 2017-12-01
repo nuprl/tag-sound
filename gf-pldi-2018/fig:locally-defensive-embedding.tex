@@ -1,7 +1,6 @@
 \begin{flushleft}
 
-\begin{minipage}[t]{0.44\textwidth}
-\fbox{Language $\langK$}\\
+\lbl{Language $\langK$}{
 $\begin{array}{l c l}
   e & \BNFeq & x \mid v \mid e~e \mid \vpair{e}{e} \mid \vunop~e \mid \vbinop~e~e \mid \edyn{\tau}{e} \mid
 \\ & & \esta{\tau}{e} \mid \edyn{\kany}{e} \mid \esta{\kany}{e} \mid
@@ -19,28 +18,190 @@ $\begin{array}{l c l}
                   \vpair{E}{e} \mid \vpair{v}{E} \mid \vunop~E \mid
 \\ & &            \ebinop{E}{e} \mid \ebinop{v}{E} \mid \echk{K}{E}
 \end{array}$
-\end{minipage}%
-\begin{minipage}[t]{0.3\textwidth}
-\fbox{$\tagof{\tau} = \kappa$}\\
-$\begin{array}{l c l}
-  \tagof{\tnat} & = & \knat
+}
+
+%% -----------------------------------------------------------------------------
+%% --- static typing
+
+\lblmathpar{$\tau \subt \tau$}{
+  \inferrule*{
+  }{
+    \tnat \subt \tint
+  }
+
+  \inferrule*{
+    \tau_d' \subt \tau_d
+  }{
+    \tarr{\tau_d}{\tau_c} \subt \tarr{\tau_d'}{\tau_c}
+  }
+
+  \inferrule*{
+    \tau_c \subt \tau_c'
+  }{
+    \tarr{\tau_d}{\tau_c} \subt \tarr{\tau_d}{\tau_c'}
+  }
+
+  \inferrule*{
+    \tau_0 \subt \tau_0'
+  }{
+    \tpair{\tau_0}{\tau_1} \subt \tpair{\tau_0'}{\tau_1}
+  }
+
+  \inferrule*{
+    \tau_1 \subt \tau_1'
+  }{
+    \tpair{\tau_0}{\tau_1} \subt \tpair{\tau_0}{\tau_1'}
+  }
+}
+
+\lbl{$\Delta(\vunop, \tau) = \tau$}{
+$\begin{array}{l@{~~}c@{~~}l}
+  \Delta(\vfst, \tpair{\tau_0}{\tau_1}) & = & \tau_0
 \\
-  \tagof{\tint} & = & \kint
-\\
-  \tagof{\tpair{\tau_0}{\tau_1}} & = & \kpair
-\\
-  \tagof{\tarr{\tau_d}{\tau_c}} & = & \kfun
+  \Delta(\vsnd, \tpair{\tau_0}{\tau_1}) & = & \tau_1
 \end{array}$
+}
 
-\smallskip
-\fbox{$\delta$}
-\smallskip
-\fbox{$\Delta$}
+\lbl{$\Delta(\vbinop, \tau, \tau) = \tau$}{
+$\begin{array}{l@{~~}c@{~~}l}
+  \Delta(\vbinop, \tnat, \tnat) & = & \tnat
+\\
+  \Delta(\vbinop, \tint, \tint) & = & \tint
+\end{array}$
+}
 
-\end{minipage}%
-\begin{minipage}[t]{0.2\textwidth}
-\fbox{$K \subk K$}
-\begin{mathpar}
+\lblmathpar{$\Gamma \wellM e$}{
+  \inferrule*{
+    x \in \Gamma
+  }{
+    \Gamma \wellM x
+  }
+
+  \inferrule*{
+    x,\Gamma \wellM e
+  }{
+    \Gamma \wellM \vlam{x}{e}
+  }
+
+  \inferrule*{
+  }{
+    \Gamma \wellM i
+  }
+
+  \inferrule*{
+    \Gamma \wellM e_0
+    \\
+    \Gamma \wellM e_1
+  }{
+    \Gamma \wellM \vpair{e_0}{e_1}
+  }
+
+  \inferrule*{
+    \Gamma \wellM e_0
+    \\
+    \Gamma \wellM e_1
+  }{
+    \Gamma \wellM e_0~e_1
+  }
+
+  \inferrule*{
+    \Gamma \wellM e
+  }{
+    \Gamma \wellM \vunop~e
+  }
+
+  \inferrule*{
+    \Gamma \wellM e_0
+    \\
+    \Gamma \wellM e_1
+  }{
+    \Gamma \wellM \vbinop~e_0~e_1
+  }
+
+  \inferrule*{
+    \Gamma \wellM e : \tau
+  }{
+    \Gamma \wellM \esta{\tau}{e}
+  }
+}
+
+\lblmathpar{$\Gamma \wellM e : \tau$}{
+  \inferrule*{
+    \tann{x}{\tau} \in \Gamma
+  }{
+    \Gamma \wellM x : \tau
+  }
+
+  \inferrule*{
+    \tann{x}{\tau_d},\Gamma \wellM e : \tau_c
+  }{
+    \Gamma \wellM \vlam{\tann{x}{\tau_d}}{e} : \tau_d \tarrow \tau_c
+  }
+
+  \inferrule*{
+    i \in \naturals
+  }{
+    \Gamma \wellM i : \tnat
+  }
+
+  \inferrule*{
+  }{
+    \Gamma \wellM i : \tint
+  }
+
+  \inferrule*{
+    \Gamma \wellM e_0 : \tau_0
+    \\\\
+    \Gamma \wellM e_1 : \tau_1
+  }{
+    \Gamma \wellM \vpair{e_0}{e_1} : \tpair{\tau_0}{\tau_1}
+  }
+
+  \inferrule*{
+    \Gamma \wellM e_0 : \tau_d \tarrow \tau_c
+    \\\\
+    \Gamma \wellM e_1 : \tau_d
+  }{
+    \Gamma \wellM e_0~e_1 : \tau_c
+  }
+
+  \inferrule*{
+    \Gamma \wellM e_0 : \tau_0
+    \\\\
+    \Delta(\vunop, \tau_0) = \tau
+  }{
+    \Gamma \wellM \vunop~e_0 : \tau
+  }
+
+  \inferrule*{
+    \Gamma \wellM e_0 : \tau_0
+    \\
+    \Gamma \wellM e_1 : \tau_1
+    \\\\
+    \Delta(\vbinop, \tau_0, \tau_1) = \tau
+  }{
+    \Gamma \wellM \vbinop~e_0~e_1 : \tau
+  }
+
+  \inferrule*{
+    \Gamma \wellM e : \tau'
+    \\\\
+    \tau' \subt \tau
+  }{
+    \Gamma \wellM e : \tau
+  }
+
+  \inferrule*{
+    \Gamma \wellM e
+  }{
+    \Gamma \wellM \edyn{\tau}{e} : \tau
+  }
+}
+
+%% -----------------------------------------------------------------------------
+%% --- tags, completion
+
+\lblmathpar{$K \subk K$}{
   \inferrule*{
     K \neq \kany
   }{
@@ -51,13 +212,150 @@ $\begin{array}{l c l}
   }{
     \knat \subk \kint
   }
-\end{mathpar}
-\end{minipage}
+}
+
+\lbl{$\tagof{\tau} = \kappa$}{
+$\begin{array}{l c l}
+  \tagof{\tnat} & = & \knat
+\\
+  \tagof{\tint} & = & \kint
+\\
+  \tagof{\tpair{\tau_0}{\tau_1}} & = & \kpair
+\\
+  \tagof{\tarr{\tau_d}{\tau_c}} & = & \kfun
+\end{array}$
+}
 
 %% -----------------------------------------------------------------------------
-\medskip
-\fbox{$\Gamma \wellKE e$}
-\begin{mathpar}
+\lblmathpar{$\Gamma \wellM e \carrow e$}{
+  \inferrule*{
+  }{
+    \Gamma \wellM i \carrow i
+  }
+
+  \inferrule*{
+    \Gamma \wellM e_0 \carrow e_0'
+    \\\\
+    \Gamma \wellM e_1 \carrow e_1'
+  }{
+    \Gamma \wellM \vpair{e_0}{e_1} \carrow \vpair{e_0'}{e_1'}
+  }
+
+  \inferrule*{
+    x,\Gamma \wellM e \carrow e'
+  }{
+    \Gamma \wellM \vlam{x}{e} \carrow \vlam{x}{e'}
+  }
+
+  \inferrule*{
+  }{
+    \Gamma \wellM x \carrow x
+  }
+
+  \inferrule*{
+    \Gamma \wellM e_0 \carrow e_0'
+    \\\\
+    \Gamma \wellM e_1 \carrow e_1'
+  }{
+    \Gamma \wellM e_0~e_1 \carrow e_0'~e_1'
+  }
+
+  \inferrule*{
+    \Gamma \wellM e \carrow e'
+  }{
+    \Gamma \wellM \vunop~e \carrow \vunop~e'
+  }
+
+  \inferrule*{
+    \Gamma \wellM e_0 \carrow e_0'
+    \\\\
+    \Gamma \wellM e_1 \carrow e_1'
+  }{
+    \Gamma \wellM \ebinop{e_0}{e_1} \carrow \ebinop{e_0'}{e_1'}
+  }
+
+  \inferrule*{
+    \Gamma \wellM e : \tau \carrow e'
+  }{
+    \Gamma \wellM \esta{\tau}{e} \carrow \esta{\tau}{e'}
+  }
+}
+
+%% -----------------------------------------------------------------------------
+\lblmathpar{$\Gamma \wellM e : \tau \carrow e$}{
+  \inferrule*{
+  }{
+    \Gamma \wellM i : \tnat \carrow i
+  }
+
+  \inferrule*{
+  }{
+    \Gamma \wellM i : \tint \carrow i
+  }
+
+  \inferrule*{
+    \Gamma \wellM e_0 : \tau_0 \carrow e_0'
+    \\\\
+    \Gamma \wellM e_1 : \tau_1 \carrow e_1'
+  }{
+    \Gamma \wellM \vpair{e_0}{e_1} : \tpair{\tau_0}{\tau_1} \carrow \vpair{e_0'}{e_1'}
+  }
+
+  \inferrule*{
+    \tann{x}{\tau_d},\Gamma \wellM e : \tau_c \carrow e'
+  }{
+    \Gamma \wellM \vlam{\tann{x}{\tau_d}}{e} : \tarr{\tau_d}{\tau_c} \carrow \vlam{\tann{x}{\tau_d}}{e'}
+  }
+
+  \inferrule*{
+  }{
+    \Gamma \wellM x : \tau \carrow x
+  }
+
+  \inferrule*{
+    \Gamma \wellM e_0 : \tarr{\tau_d}{\tau_c} \carrow e_0'
+    \\\\
+    \Gamma \wellM e_1 : \tau_d \carrow e_1'
+    \\
+    \tagof{\tau_c} = K
+  }{
+    \Gamma \wellM e_0~e_1 : \tau_c \carrow \echk{K}{(e_0'~e_1')}
+  }
+
+  \inferrule*{
+    \Gamma \wellM e : \tpair{\tau_0}{\tau_1} \carrow e'
+    \\\\
+    \tagof{\tau_0} = K
+  }{
+    \Gamma \wellM \efst{e} : \tau_0 \carrow \echk{K}{(\efst{e'})}
+  }
+
+  \inferrule*{
+    \Gamma \wellM e : \tpair{\tau_0}{\tau_1} \carrow e'
+    \\\\
+    \tagof{\tau_1} = K
+  }{
+    \Gamma \wellM \esnd{e} : \tau_1 \carrow \echk{K}{(\esnd{e'})}
+  }
+
+  \inferrule*{
+    \Gamma \wellM e_0 : \tau_0 \carrow e_0'
+    \\\\
+    \Gamma \wellM e_1 : \tau_1 \carrow e_1'
+    %\\\\
+    %\Delta(\vbinop, \tau_0, \tau_1) = \tau
+  }{
+    \Gamma \wellM \vbinop~e_0~e_1 : \tau \carrow \vbinop~e_0'~e_1'
+  }
+
+  \inferrule*{
+    \Gamma \wellM e \carrow e'
+  }{
+    \Gamma \wellM \edyn{\tau}{e} : \tau \carrow \edyn{\tau}{e'}
+  }
+}
+
+\lblmathpar{$\Gamma \wellKE e$}{
   \inferrule*{
   }{
     \Gamma \wellKE i
@@ -128,12 +426,9 @@ $\begin{array}{l c l}
   }{
     \Gamma \wellKE \esta~\kany~e
   }
+}
 
-\end{mathpar}
-
-\medskip
-\fbox{$\Gamma \wellKE e : K$}
-\begin{mathpar}
+\lblmathpar{$\Gamma \wellKE e : K$}{
   \inferrule*{
     i \in \naturals
   }{
@@ -240,14 +535,45 @@ $\begin{array}{l c l}
   }{
     \Gamma \wellKE e : K
   }
-\end{mathpar}
+}
 
 %% -----------------------------------------------------------------------------
-\begin{minipage}[t]{\columnwidth}
-\fbox{$e \rrKD A$}\\
+%% --- semantics
+
+\lbl{$\delta(\vunop, v) = A$}{
 $\begin{array}{l@{~~}c@{~~}l}
-  (\vlam{\tann{x}{\tau}}{e})~v & \rrKD & \esta{\kany}{(\vsubst{e}{x}{\mchk{K}{v}})}
-\\ \multicolumn{3}{l}{\mbox{\quad where $K = \tagof{\tau}$}}
+  \delta(\vfst, \vpair{v_0}{v_1}) & = & v_0
+\\
+  \delta(\vsnd, \vpair{v_0}{v_1}) & = & v_1
+\end{array}$
+}
+
+\lbl{$\delta(\vbinop, v, v) = A$}{
+$\begin{array}{l@{~~}c@{~~}l}
+  \delta(\vsum, i_0, i_1) & = & i_0 + i_1
+\\
+  \delta(\vquotient, i_0, 0) & = & \boundaryerror
+\\
+  \delta(\vquotient, i_0, i_1) & = & \floorof{i_0 / i_1}
+\\ \multicolumn{3}{l}{\mbox{\quad if $i_1 \neq 0$}}
+\end{array}$
+}
+
+\lbl{$\mchk{K}{v} = A$}{
+$\begin{array}{l@{~~}c@{~~}l l}
+  \mchk{K}{v} & = & v & \mbox{if $\wellKE v : K$}
+\\
+  \mchk{K}{v} & = & \valueerror & \mbox{otherwise}
+\end{array}$
+}
+
+\lbl{$e \rrKD A$}{
+$\begin{array}{l@{~~}c@{~~}l}
+  (\vlam{\tann{x}{\tau}}{e})~v & \rrKD & \esta{\kany}{(\vsubst{e}{x}{v})}
+\\ \multicolumn{3}{l}{\mbox{\quad if $K = \tagof{\tau}$ and $v = \mchk{K}{v}$}}
+\\
+  (\vlam{\tann{x}{\tau}}{e})~v & \rrKD & \boundaryerror
+\\ \multicolumn{3}{l}{\mbox{\quad otherwise}}
 \\
   \esta{\tau}{v} & \rrKD & v
 \\
@@ -270,10 +596,9 @@ $\begin{array}{l@{~~}c@{~~}l}
   \ebinop{v_0}{v_1} & \rrKD & \tagerror
 \\\multicolumn{3}{l}{\mbox{\quad otherwise}}
 \end{array}$
-\end{minipage}%
-\hspace{\columnsep}\begin{minipage}[t]{\columnwidth}
-\medskip
-\fbox{$e \rrKS A$}\\
+}
+
+\lbl{$e \rrKS A$}{
 $\begin{array}{l@{~~}c@{~~}l}
   (\vlam{x}{e})~v & \rrKS & \edyn{\kany}{(\vsubst{e}{x}{v})}
 \\
@@ -284,8 +609,11 @@ $\begin{array}{l@{~~}c@{~~}l}
 \\
   \echk{K}{v} & \rrKS & \mchk{K}{v}
 \\
-  (\vlam{\tann{x}{\tau_d}}{e})~v & \rrKS & \vsubst{e}{x}{\mchk{K}{v}}
-\\ \multicolumn{3}{l}{\mbox{\quad where $K = \tagof{\tau_d}$}}
+  (\vlam{\tann{x}{\tau_d}}{e})~v & \rrKS & \vsubst{e}{x}{v}
+\\ \multicolumn{3}{l}{\mbox{\quad if $K = \tagof{\tau_d}$ and $v = \mchk{K}{v}$}}
+\\
+  (\vlam{\tann{x}{\tau_d}}{e})~v & \rrKS & \boundaryerror
+\\ \multicolumn{3}{l}{\mbox{\quad otherwise}}
 \\
   \eunop{v} & \rrKS & A
 \\ \multicolumn{3}{l}{\mbox{\quad if $A = \delta(\vunop, v)$}}
@@ -293,19 +621,36 @@ $\begin{array}{l@{~~}c@{~~}l}
   \ebinop{v_0}{v_1} & \rrKS & \delta(\vbinop, v_0, v_1)
 \\ \multicolumn{3}{l}{\mbox{\quad if $A = \delta(\vbinop, v_0, v_1)$}}
 \end{array}$
+}
 
-\medskip
-\fbox{$\mchk{K}{v} = A$}\\
-$\begin{array}{l@{~~}c@{~~}l l}
-  \mchk{K}{v} & = & v & \mbox{if $\wellKE v : K$}
-\\
-  \mchk{K}{v} & = & \valueerror & \mbox{otherwise}
-\end{array}$
+\lbl{$e \ccKS A$}{
+  $\begin{array}{l@{~~}c@{~~}l@{~~}l}
+  \ctxE{\edyn{\tau}{e}} & \ccKS & \ctxE{\edyn{\tau}{e'}}
+    & \mbox{if $e \ccKD e'$}
+  \\
+  \ctxE{\edyn{\tau}{e}} & \ccKS & A
+    & \mbox{if $e \ccKD A$ and $A \not\in e'$}
+  \\
+  \ctxE{e} & \ccKS & \ctxE{e'} & \mbox{if $e \rrKS e'$}
+  \\
+  \ctxE{e} & \ccKS & A         & \mbox{if $e \rrKS A$ and $A \not\in e$}
+  \end{array}$
+}
 
-\medskip
-\fbox{$e \rrKEstar A$} reflexive, transitive closure of $\ccKS$\\
-\mbox{\quad where $\vtuple{\ccKS}{\ccKD} = \DSlift{\ES}{\rrKS}{\ED}{\rrKD}$}
-\end{minipage}
-\smallskip
+\lbl{$e \ccKD A$}{
+  $\begin{array}{l@{~~}c@{~~}l@{~~}l}
+  \ctxE{\esta{\tau}{e}} & \ccKD & \ctxE{\esta{\tau}{e'}}
+   & \mbox{if $e \ccKS e'$}
+  \\
+  \ctxE{\esta{\tau}{e}} & \ccKD & A
+   & \mbox{if $e \ccKS A$ and $A \not\in e'$}
+  \\
+  \ctxE{e} & \ccKD & \ctxE{e'} & \mbox{if $e \rrKD e'$}
+  \\
+  \ctxE{e} & \ccKD & A         & \mbox{if $e \rrKD A$ and $A \not\in e$}
+  \end{array}$
+}
+
+\fbox{$e \rrKEstar A$} reflexive, transitive closure of $\ccKS$
 
 \end{flushleft}

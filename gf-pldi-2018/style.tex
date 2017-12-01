@@ -6,6 +6,8 @@
 \usepackage{mathpartir}
 \mprset{sep=1em,andskip=1em}
 \newcommand{\twoline}[2]{\parbox[s]{1.8cm}{\flushright\hfill #1\newline#2}}
+\newcommand{\lblmathpar}[2]{\parbox[t]{\columnwidth}{\fbox{#1}\\[-2ex]\begin{mathpar}#2\end{mathpar}}}
+\newcommand{\lbl}[2]{\parbox[t]{\columnwidth}{\fbox{#1}\\#2}}
 
 %% To show overfull, turn off for production!!!
 \overfullrule=1mm
