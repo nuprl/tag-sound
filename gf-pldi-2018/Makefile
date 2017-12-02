@@ -19,15 +19,20 @@ pkg:
 setup:
 	raco setup ${PKG}
 
-supplement: texstyle-appendix.tex
-	raco make ${SUPPLEMENT}.scrbl
+supplement: supplement-compile texstyle-appendix.tex
 	${PLT_FLAGS} scribble ++style texstyle-appendix.tex ${SCRIBBLE_FLAGS} --pdf ${SUPPLEMENT}.scrbl
+
+supplement-tex: supplement-compile texstyle-appendix.tex
+	${PLT_FLAGS} scribble ++style texstyle-appendix.tex ${SCRIBBLE_FLAGS} --latex ${SUPPLEMENT}.scrbl
 
 test:
 	raco test -c ${PKG}
 
 compile:
 	raco make ${PAPER}.scrbl
+
+supplement-compile:
+	raco make ${SUPPLEMENT}.scrbl
 
 clean:
 	rm -r compiled

@@ -19,9 +19,12 @@
   tr-theorem
   tr-if
   tr-else
-
+  tr-step
+  tr-IH
   tr-proof
-  tr-case (rename-out [tr-case proofcase])
+  tr-case
+  tr-and
+  tr-or
 
   tr-qed
 
@@ -152,9 +155,9 @@
 
 ;; -----------------------------------------------------------------------------
 
-(define (tr-ref str #:key user-key)
+(define (tr-ref #:key user-key . pc*)
   (define k (key->string user-key))
-  (tech #:key k (emph str)))
+  (tech #:key k (emph pc*)))
 
 (define (tr-definition name-elem #:key [user-key #f] . content*)
   (tr-def name-elem 'definition #:key user-key content*))
@@ -201,19 +204,20 @@
   (nested
     (emph "Proof") ": "
     (nested #:style 'inset elem*)
-    @${\qedsymbol}))
+    @exact{\raisebox{0.5ex}{$\qedsymbol$}}))
 
 (define (tr-case #:itemize? [itemize? #true] #:box? [box? #false] title . content*)
   (tr-labeled "case" box? itemize? title content*))
 
-(define (tr-if cond . content*)
-  (tr-labeled "if" #false #true cond content*))
+(define (tr-if #:itemize? [itemize? #true] cond . content*)
+  (tr-labeled "if" #false itemize? cond content*))
 
-(define (tr-else cond . content*)
-  (tr-labeled "else" #false #true cond content*))
+(define (tr-else #:itemize? [itemize? #true] cond . content*)
+  (tr-labeled "else" #false itemize? cond content*))
 
 (define (tr-labeled name box? itemize? title content*)
-  (define width "2.4em")
+  (define width
+    (make-hpad (string-length name)))
   (list
     @elem{@exact{@~a{\makebox[@|width|][l]{\textbf{\textsc{@|name|}}}}}
           @(if box?
@@ -231,10 +235,16 @@
         (apply itemlist #:style 'ordered (content*->items content*))
         content*))))
 
+(define (make-hpad n)
+  (format "~aem" (* 0.6 n)))
+
 (define (content*->items content*)
   (for/list ([c (in-list content*)]
-             #:when (not (empty-content? c)))
+             #:when (non-empty-content? c))
     (item c)))
+
+(define (non-empty-content? c)
+  (not (empty-content? c)))
 
 (define (empty-content? c)
   (and (string? c) (whitespace? c)))
@@ -246,31 +256,27 @@
          (for/sum ((c (in-string str)))
            (if (memq c WHITESPACE) 0 1))))))
 
-(define tr-and
-  (list "and "))
+(define (tr-step what . why*)
+  (list* what (linebreak) "by " (filter non-empty-content? why*)))
 
-(define (tr-by tag [thing #f])
-  (list* (linebreak) "by " (tech tag)
-    (if thing
-      (list " applied to " thing)
-      (list))))
-
-(define (proofbyIH [why #f])
-  (list* (linebreak) "by the induction hypothesis"
-    (if why (list " applied to " why) '())))
+(define tr-IH
+  "the induction hypothesis")
 
 (define (tr-qed . content*)
-  (make-element 'no-break (cons (sc "qed ") content*)))
+  (elem (cons (sc "qed ") content*)))
 
-(define proofthen
-  "then ")
+(define (tr-and [n #f])
+  (tr-conjunction "\\wedge" n))
 
-(define proofbecause
-  (list (linebreak) "because "))
+(define (tr-or [n #f])
+  (tr-conjunction "\\vee" n))
 
-(define proofwhere
-  (list (linebreak) "where "))
+(define (tr-conjunction str n)
+  (string-append
+    "\\\\"
+    (if n (format "\\hspace*{~a}" (make-hpad n)) "")
+    str))
 
-(define (proofcontradiction why)
+(define (tr-contradiction why)
   @elem{Impossible, contradiction with @|why|})
 
