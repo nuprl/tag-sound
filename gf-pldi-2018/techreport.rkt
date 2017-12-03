@@ -193,7 +193,7 @@
     (list
       @elem{@exact{\vspace{0.4ex}}
             @bold{@kind->long-name[kind] @|uid|} : @deftech[#:key key-str name-elem]
-            @|smallskip|}
+            @exact{\vspace{0.0ex}}}
       (make-table
         boxed-style
         (list (list (nested content*)))))))
