@@ -27,7 +27,7 @@
   tr-or
 
   tr-qed
-
+  tr-contradiction
 )
 
 (require
@@ -256,14 +256,14 @@
          (for/sum ((c (in-string str)))
            (if (memq c WHITESPACE) 0 1))))))
 
-(define (tr-step what . why*)
-  (list* what (linebreak) "by " (filter non-empty-content? why*)))
+(define (tr-step what . pre-why*)
+  (define why* (filter non-empty-content? pre-why*))
+  (if (null? why*)
+    what
+    (list* what (linebreak) "by " why*)))
 
 (define tr-IH
   "the induction hypothesis")
-
-(define (tr-qed . content*)
-  (elem (cons (sc "qed ") content*)))
 
 (define (tr-and [n #f])
   (tr-conjunction "\\wedge" n))
@@ -277,6 +277,8 @@
     (if n (format "\\hspace*{~a}" (make-hpad n)) "")
     str))
 
-(define (tr-contradiction why)
-  @elem{Impossible, contradiction with @|why|})
+(define (tr-qed . content*)
+  (elem (cons (sc "qed ") content*)))
 
+(define (tr-contradiction . why*)
+  (elem (cons "Contradiction by " why*)))
