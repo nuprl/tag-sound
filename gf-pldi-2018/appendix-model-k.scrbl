@@ -520,8 +520,9 @@
 
   @tr-case[@${e = \ctxE{\eunop{v}}}]{
     @tr-step{
-      @${\ctxE{\eunop{v}} \ccKS \ctxE{v'}}
-      @${\delta(\vunop, v) = v'}
+      @${\ctxE{\eunop{v}} \ccKS \ctxE{v'}
+         @tr-and[]
+         \delta(\vunop, v) = v'}
     }
     @tr-step{
       @${\wellKE \eunop{v} : \kany}
@@ -737,8 +738,9 @@
 
   @tr-case[@${e = \ctxE{\eunop{v}}}]{
     @tr-step{
-      @${\ctxE{\eunop{v}} \ccKD \ctxE{v'}}
-      @${\delta(\vunop, v) = v'}
+      @${\ctxE{\eunop{v}} \ccKD \ctxE{v'}
+         @tr-and[]
+         \delta(\vunop, v) = v'}
     }
     @tr-step{
       @${\wellKE \eunop{v}}
@@ -759,8 +761,9 @@
 
   @tr-case[@${e = \ctxE{\ebinop{v_0}{v_1}}}]{
     @tr-step{
-      @${\ctxE{\ebinop{v_0}{v_1}} \ccKD \ctxE{v'}}
-      @${\delta(\vbinop, v_0, v_1) = v'}
+      @${\ctxE{\ebinop{v_0}{v_1}} \ccKD \ctxE{v'}
+         @tr-and[]
+         \delta(\vbinop, v_0, v_1) = v'}
     }
     @tr-step{
       @${\wellKE \ebinop{v_0}{v_1}}
@@ -2497,7 +2500,7 @@
     }
     @tr-step{
       @${\wellKE \ebinop{\ED_0[e']}{e_1}}
-      (3, )4
+      (3, 4)
     }
     @tr-qed{
       by (1, 5)
@@ -3376,11 +3379,11 @@
     }
     @tr-step{
       @${\wellKE v}
-      @|K-S-value-inversion| (2)
+      @elem{@|K-S-value-inversion| (2)}
     }
     @tr-step{
       @${\Gamma \wellKE v}
-      @|K-weakening| (3)
+      @elem{@|K-weakening| (3)}
     }
     @tr-qed[]
   }
@@ -3400,6 +3403,12 @@
   @tr-case[@${e = \vlam{x}{e'}}]{
     @tr-qed{
       by @${\vsubst{(\vlam{x}{e'})}{x}{v} = \vlam{x}{e'}}
+    }
+  }
+
+  @tr-case[@${e = \vlam{\tann{x}{\tau'}}{e'}}]{
+    @tr-qed{
+      by @${(\vsubst{\vlam{\tann{x}{\tau'}}{e'}}{x}{v}) = \vlam{\tann{x}{\tau'}}{e'}}
     }
   }
 
@@ -3581,9 +3590,9 @@
 
 @; -----------------------------------------------------------------------------
 @tr-lemma[#:key "K-DD-subst" @elem{@${\langK} dynamic-dynamic substitution}]{
-      If @${x,\Gamma \wellKE e}
-      and @${\wellKE v}
-      then @${\Gamma \wellKE \vsubst{e}{x}{v}}
+  If @${x,\Gamma \wellKE e}
+  and @${\wellKE v}
+  then @${\Gamma \wellKE \vsubst{e}{x}{v}}
 }@tr-proof{
   By induction on the structure of @${e}.
 
@@ -3613,6 +3622,12 @@
   @tr-case[@${e = \vlam{x}{e'}}]{
     @tr-qed{
       by @${(\vsubst{\vlam{x}{e'}}{x}{v}) = \vlam{x}{e'}}
+    }
+  }
+
+  @tr-case[@${e = \vlam{\tann{x}{\tau'}}{e'}}]{
+    @tr-qed{
+      by @${(\vsubst{\vlam{\tann{x}{\tau'}}{e'}}{x}{v}) = \vlam{\tann{x}{\tau'}}{e'}}
     }
   }
 

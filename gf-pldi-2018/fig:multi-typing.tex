@@ -1,0 +1,174 @@
+\lblmathpar{$\tau \subt \tau$}{
+  \inferrule*{
+  }{
+    \tnat \subt \tint
+  }
+
+  \inferrule*{
+    \tau_d' \subt \tau_d
+  }{
+    \tarr{\tau_d}{\tau_c} \subt \tarr{\tau_d'}{\tau_c}
+  }
+
+  \inferrule*{
+    \tau_c \subt \tau_c'
+  }{
+    \tarr{\tau_d}{\tau_c} \subt \tarr{\tau_d}{\tau_c'}
+  }
+
+  \inferrule*{
+    \tau_0 \subt \tau_0'
+  }{
+    \tpair{\tau_0}{\tau_1} \subt \tpair{\tau_0'}{\tau_1}
+  }
+
+  \inferrule*{
+    \tau_1 \subt \tau_1'
+  }{
+    \tpair{\tau_0}{\tau_1} \subt \tpair{\tau_0}{\tau_1'}
+  }
+}
+
+\lbl{$\Delta(\vunop, \tau) = \tau$}{
+$\begin{array}{l@{~~}c@{~~}l}
+  \Delta(\vfst, \tpair{\tau_0}{\tau_1}) & = & \tau_0
+\\
+  \Delta(\vsnd, \tpair{\tau_0}{\tau_1}) & = & \tau_1
+\end{array}$
+}
+
+\lbl{$\Delta(\vbinop, \tau, \tau) = \tau$}{
+$\begin{array}{l@{~~}c@{~~}l}
+  \Delta(\vbinop, \tnat, \tnat) & = & \tnat
+\\
+  \Delta(\vbinop, \tint, \tint) & = & \tint
+\end{array}$
+}
+
+\lblmathpar{$\Gamma \wellM e$}{
+  \inferrule*{
+    x \in \Gamma
+  }{
+    \Gamma \wellM x
+  }
+
+  \inferrule*{
+    x,\Gamma \wellM e
+  }{
+    \Gamma \wellM \vlam{x}{e}
+  }
+
+  \inferrule*{
+  }{
+    \Gamma \wellM i
+  }
+
+  \inferrule*{
+    \Gamma \wellM e_0
+    \\
+    \Gamma \wellM e_1
+  }{
+    \Gamma \wellM \vpair{e_0}{e_1}
+  }
+
+  \inferrule*{
+    \Gamma \wellM e_0
+    \\
+    \Gamma \wellM e_1
+  }{
+    \Gamma \wellM e_0~e_1
+  }
+
+  \inferrule*{
+    \Gamma \wellM e
+  }{
+    \Gamma \wellM \vunop~e
+  }
+
+  \inferrule*{
+    \Gamma \wellM e_0
+    \\
+    \Gamma \wellM e_1
+  }{
+    \Gamma \wellM \vbinop~e_0~e_1
+  }
+
+  \inferrule*{
+    \Gamma \wellM e : \tau
+  }{
+    \Gamma \wellM \esta{\tau}{e}
+  }
+}
+
+\lblmathpar{$\Gamma \wellM e : \tau$}{
+  \inferrule*{
+    \tann{x}{\tau} \in \Gamma
+  }{
+    \Gamma \wellM x : \tau
+  }
+
+  \inferrule*{
+    \tann{x}{\tau_d},\Gamma \wellM e : \tau_c
+  }{
+    \Gamma \wellM \vlam{\tann{x}{\tau_d}}{e} : \tau_d \tarrow \tau_c
+  }
+
+  \inferrule*{
+    i \in \naturals
+  }{
+    \Gamma \wellM i : \tnat
+  }
+
+  \inferrule*{
+  }{
+    \Gamma \wellM i : \tint
+  }
+
+  \inferrule*{
+    \Gamma \wellM e_0 : \tau_0
+    \\\\
+    \Gamma \wellM e_1 : \tau_1
+  }{
+    \Gamma \wellM \vpair{e_0}{e_1} : \tpair{\tau_0}{\tau_1}
+  }
+
+  \inferrule*{
+    \Gamma \wellM e_0 : \tau_d \tarrow \tau_c
+    \\\\
+    \Gamma \wellM e_1 : \tau_d
+  }{
+    \Gamma \wellM e_0~e_1 : \tau_c
+  }
+
+  \inferrule*{
+    \Gamma \wellM e_0 : \tau_0
+    \\\\
+    \Delta(\vunop, \tau_0) = \tau
+  }{
+    \Gamma \wellM \vunop~e_0 : \tau
+  }
+
+  \inferrule*{
+    \Gamma \wellM e_0 : \tau_0
+    \\
+    \Gamma \wellM e_1 : \tau_1
+    \\\\
+    \Delta(\vbinop, \tau_0, \tau_1) = \tau
+  }{
+    \Gamma \wellM \vbinop~e_0~e_1 : \tau
+  }
+
+  \inferrule*{
+    \Gamma \wellM e : \tau'
+    \\\\
+    \tau' \subt \tau
+  }{
+    \Gamma \wellM e : \tau
+  }
+
+  \inferrule*{
+    \Gamma \wellM e
+  }{
+    \Gamma \wellM \edyn{\tau}{e} : \tau
+  }
+}

@@ -1,8 +1,9 @@
 \begin{flushleft}
 
-\fbox{Language $\langE$}\\
+\lbl{Language $\langE$}{
 $\begin{array}{l c l}
-  e & \BNFeq & x \mid v \mid e~e \mid \vpair{e}{e} \mid \vunop~e \mid \vbinop~e~e \mid \edyn{\tau}{e} \mid \esta{\tau}{e}
+  e & \BNFeq & x \mid v \mid e~e \mid \vpair{e}{e} \mid \vunop~e \mid \vbinop~e~e \mid
+\\ & & \edyn{\tau}{e} \mid \esta{\tau}{e}
 \\
   v & \BNFeq & i \mid \vpair{v}{v} \mid \vlam{x}{e} \mid \vlam{\tann{x}{\tau}}{e}
 \\
@@ -11,18 +12,71 @@ $\begin{array}{l c l}
   \Gamma & \BNFeq & \cdot \mid x,\Gamma \mid \tann{x}{\tau},\Gamma
 \\
   E & \BNFeq & \ehole \mid E~e \mid v~E \mid
-                  \vpair{E}{e} \mid \vpair{v}{E} \mid \vunop~E \mid
-\\ & &            \ebinop{E}{e} \mid \ebinop{v}{E} \mid \edyn{\tau}{E} \mid \esta{\tau}{E}
+               \vpair{E}{e} \mid \vpair{v}{E} \mid \vunop~E \mid
+\\ & &         \ebinop{E}{e} \mid \ebinop{v}{E} \mid \edyn{\tau}{E} \mid \esta{\tau}{E}
 \end{array}$
+}
 
-%% -----------------------------------------------------------------------------
-\medskip
-\fbox{$\Gamma \wellEE e$}:\\
-\begin{mathpar}
+\input{fig:multi-typing.tex}
+
+\lblmathpar{$\Gamma \wellEE e$}{
   \inferrule*{
-    x,\Gamma \wellEE e
+    x \in \GammaD
+  }{
+    \GammaD \wellEE x
+  }
+
+  \inferrule*{
+    \tann{x}{\tau} \in \GammaD
+  }{
+    \GammaD \wellEE x
+  }
+
+  \inferrule*{
+    x,\GammaD \wellEE e
+  }{
+    \GammaD \wellEE \vlam{x}{e}
+  }
+
+  \inferrule*{
+    \tann{x}{\tau},\Gamma \wellEE e
   }{
     \Gamma \wellEE \vlam{\tann{x}{\tau}}{e}
+  }
+
+  \inferrule*{
+  }{
+    \GammaD \wellEE i
+  }
+
+  \inferrule*{
+    \GammaD \wellEE e_0
+    \\
+    \GammaD \wellEE e_1
+  }{
+    \GammaD \wellEE \vpair{e_0}{e_1}
+  }
+
+  \inferrule*{
+    \GammaD \wellEE e_0
+    \\
+    \GammaD \wellEE e_1
+  }{
+    \GammaD \wellEE \vapp{e_0}{e_1}
+  }
+
+  \inferrule*{
+    \GammaD \wellEE e
+  }{
+    \GammaD \wellEE \eunop{e}
+  }
+
+  \inferrule*{
+    \GammaD \wellEE e_0
+    \\
+    \GammaD \wellEE e_1
+  }{
+    \GammaD \wellEE \ebinop{e_0}{e_1}
   }
 
   \inferrule*{
@@ -36,110 +90,45 @@ $\begin{array}{l c l}
   }{
     \Gamma \wellEE \esta{\tau}{e}
   }
+}
 
-  \inferrule*{
-    x \in \GammaD
-  }{
-    \GammaD \welldyn x
-  }
+\input{fig:delta.tex}
 
-  \inferrule*{
-    x,\GammaD \welldyn e
-  }{
-    \GammaD \welldyn \vlam{x}{e}
-  }
-
-  \inferrule*{
-  }{
-    \GammaD \welldyn i
-  }
-
-  \inferrule*{
-    \GammaD \welldyn e_0
-    \\
-    \GammaD \welldyn e_1
-  }{
-    \GammaD \welldyn \vpair{e_0}{e_1}
-  }
-
-  \inferrule*{
-    \GammaD \welldyn e_0
-    \\
-    \GammaD \welldyn e_1
-  }{
-    \GammaD \welldyn e_0~e_1
-  }
-
-  \inferrule*{
-    \GammaD \welldyn e
-  }{
-    \GammaD \welldyn \vunop~e
-  }
-
-  \inferrule*{
-    \GammaD \welldyn e_0
-    \\
-    \GammaD \welldyn e_1
-  }{
-    \GammaD \welldyn \vbinop~e_0~e_1
-  }
-\end{mathpar}
-
-\medskip
-\begin{minipage}[t]{0.38\columnwidth}
-\fbox{$\delta(\vunop, v) = A$}
+\lbl{$e \rrEE A$}{
 $\begin{array}{l@{~~}c@{~~}l}
-  \delta(\vfst, \vpair{v_0}{v_1}) & = & v_0
+  (\vlam{x}{e})~v & \rrEE & \vsubst{e}{x}{v}
 \\
-  \delta(\vsnd, \vpair{v_0}{v_1}) & = & v_1
+  (\vlam{\tann{x}{\tau_d}}{e})~v & \rrEE & \vsubst{e}{x}{v}
+\\
+  v_0~v_1 & \rrEE & \typeerror
+\\\multicolumn{3}{l}{\mbox{\quad if $v_0 \sim i$ or $v_0 \sim \vpair{v}{v'}$}}
+\\
+  \eunop{v} & \rrEE & A
+\\\multicolumn{3}{l}{\mbox{\quad if $A = \delta(\vunop, v)$}}
+\\
+  \eunop{v} & \rrEE & \tagerror
+\\ \multicolumn{3}{l}{\mbox{\quad otherwise}}
+\\
+  \ebinop{v_0}{v_1} & \rrEE & A
+\\\multicolumn{3}{l}{\mbox{\quad if $A = \delta(\vbinop, v_0, v_1)$}}
+\\
+  \ebinop{v_0}{v_1} & \rrEE & \tagerror
+\\ \multicolumn{3}{l}{\mbox{\quad otherwise}}
+\\
+  \edyn{\tau}{v} & \rrEE & v
+\\
+  \esta{\tau}{v} & \rrEE & v
 \end{array}$
-\end{minipage}%
-\begin{minipage}[t]{0.5\columnwidth}
-\fbox{$\delta(\vbinop, v, v) = A$}
-$\begin{array}{l@{~~}c@{~~}l}
-  \delta(\vsum, i_0, i_1) & = & i_0 + i_1
-\\
-  \delta(\vquotient, i_0, 0) & = & \boundaryerror
-\\
-  \delta(\vquotient, i_0, i_1) & = & \floorof{i_0 / i_1}
-\\ \multicolumn{3}{l}{\mbox{\quad if $i_1 \neq 0$}}
-\end{array}$
-\end{minipage}
+}
 
-%% -----------------------------------------------------------------------------
-\medskip
-\fbox{$e \rrEE A$}\\
+\lbl{$e \ccEE A$}{
 $\begin{array}{l@{~~}c@{~~}l l}
-  (\vlam{\tann{x}{\tau_d}}{e})~v & \rrEE & \vsubst{e}{x}{v} &
+\ctxE{e} & \ccEE & \ctxE{e'} & \mbox{if $e \rrEE e'$}
 \\
-  \edyn{\tau}{v} & \rrEE & v &
-\\
-  \esta{\tau}{v} & \rrEE & v &
-\\
-  (\vlam{x}{e})~v & \rrEE & \vsubst{e}{x}{v} &
-\\
-  v_0~v_1 & \rrEE & \typeerror & \mbox{if $v_0 \sim i$ or $v_0 \sim \vpair{v}{v'}$}
-\\
-  \eunop{v} & \rrEE & A & \mbox{if $A = \delta(\vunop, v)$}
-\\
-  \eunop{v} & \rrEE & \tagerror & \mbox{otherwise}
-\\
-  \ebinop{v_0}{v_1} & \rrEE & A & \mbox{if $A = \delta(\vbinop, v_0, v_1)$}
-\\
-  \ebinop{v_0}{v_1} & \rrEE & \tagerror & \mbox{otherwise}
+\ctxE{e} & \ccEE & A         & \mbox{if $e \rrEE A$ and $A \not\in e$}
 \end{array}$
+}
 
-%% -----------------------------------------------------------------------------
-\medskip
-\fbox{$e \cclift{E}{\rrEE} A$}\\
-$\begin{array}{l@{~~}c@{~~}l l}
-\ctxE{e} & \cclift{E}{\rrEE} & \ctxE{e'} & \mbox{if $e \rrEE e'$}
-\\
-\ctxE{e} & \cclift{E}{\rrEE} & A         & \mbox{if $e \rrEE A$ and $A \not\in e$}
-\end{array}$
-
-\smallskip
-\fbox{$e \rrEEstar A$} reflexive, transitive closure of $\cclift{\ED}{\rrEE}$
-
+\fbox{$e \rrEEstar A$} reflexive, transitive closure of $\ccEE$
 
 \end{flushleft}
