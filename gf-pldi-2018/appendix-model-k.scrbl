@@ -3171,6 +3171,12 @@
     }
   }
 
+  @tr-case[@${e = \vlam{\tann{x}{\tau'}}{e'}}]{
+    @tr-qed{
+      by @${\vsubst{(\vlam{\tann{x}{\tau'}}{e'})}{x}{v} = \vlam{\tann{x}{\tau'}}{e'}}
+    }
+  }
+
   @tr-case[@${e = \vlam{x'}{e'}}]{
     @tr-step{
       @${\vsubst{e}{x}{v} = \vlam{x'}{(\vsubst{e'}{x}{v})}}
@@ -3408,7 +3414,7 @@
 
   @tr-case[@${e = \vlam{\tann{x}{\tau'}}{e'}}]{
     @tr-qed{
-      by @${(\vsubst{\vlam{\tann{x}{\tau'}}{e'}}{x}{v}) = \vlam{\tann{x}{\tau'}}{e'}}
+      by @${\vsubst{(\vlam{\tann{x}{\tau'}}{e'})}{x}{v} = \vlam{\tann{x}{\tau'}}{e'}}
     }
   }
 
@@ -3621,13 +3627,13 @@
 
   @tr-case[@${e = \vlam{x}{e'}}]{
     @tr-qed{
-      by @${(\vsubst{\vlam{x}{e'}}{x}{v}) = \vlam{x}{e'}}
+      by @${\vsubst{(\vlam{x}{e'})}{x}{v} = \vlam{x}{e'}}
     }
   }
 
   @tr-case[@${e = \vlam{\tann{x}{\tau'}}{e'}}]{
     @tr-qed{
-      by @${(\vsubst{\vlam{\tann{x}{\tau'}}{e'}}{x}{v}) = \vlam{\tann{x}{\tau'}}{e'}}
+      by @${\vsubst{(\vlam{\tann{x}{\tau'}}{e'})}{x}{v} = \vlam{\tann{x}{\tau'}}{e'}}
     }
   }
 
