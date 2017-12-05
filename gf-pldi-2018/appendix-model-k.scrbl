@@ -62,7 +62,7 @@
    and either:
 @itemlist[
   @item{ @${e^+ \rrKEstar v} and @${\wellKE v : K} }
-  @item{ @${e^+ \rrKEstar E[e'] \ccKD \tagerror} }
+  @item{ @${e^+ \rrKEstar E[\edyn{\tau'}{e'}] \mbox{ and } e' \ccKD \tagerror} }
   @item{ @${e^+ \rrKEstar \boundaryerror} }
   @item{ @${e^+} diverges }
 ]}@tr-proof{
@@ -80,7 +80,7 @@
     @item{ @${e} is a value }
     @item{ @${e \ccKS e'} }
     @item{ @${e \ccKS \boundaryerror} }
-    @item{ @${e \eeq \ctxE{\edyn{\tau}{e'}} \mbox{ and } e' \ccKD \tagerror} }
+    @item{ @${e \eeq \ctxE{\edyn{\tau'}{e'}} \mbox{ and } e' \ccKD \tagerror} }
 ]}@tr-proof{
   By case analysis on the structure of @${e};
    by the @|K-S-uec| lemma,
@@ -110,7 +110,7 @@
     @tr-else[@${e' \not\in v}]{
       @tr-step[
         @${e' \ccKD A}
-        @|K-S-progress|
+        @|K-D-progress|
       ]
       @tr-qed{
         by @${e \ccKS \ctxE{\edyn{\tau}{A}}} if @${A \in e}
@@ -1429,6 +1429,7 @@
 }
 
 @; -----------------------------------------------------------------------------
+@; TODO missing inversion steps
 @tr-lemma[#:key "K-S-uec" @elem{@${\langK} unique static evaluation contexts}]{
   If @${\wellKE e : K} then either:
   @itemlist[
@@ -1581,42 +1582,16 @@
   }
 
   @tr-case[@${e = \edyn{\tau}{e_0}}]{
-    @tr-if[@${e_0 \not\in v}]{
-      @tr-step{
-        @${e_0 = \ED_0[e_0']}
-        @tr-IH
-      }
-      @tr-step{
-        @${\ED = \edyn{\tau}{\ED_0}}
-      }
-      @tr-qed{
-        @${e = \ctxE{e_0'}}
-      }
-    }
-    @tr-else[@${e_0 \in v}]{
-      @tr-step{
-        @${\ED = \ehole}
-      }
-      @tr-qed[]
+    @${\ED = \ehole}
+    @tr-qed{
+      @${e = \ctxE{\edyn{\tau}{e_0}}}
     }
   }
 
-  @tr-case[@${e = \edyn{\kany}{e_0}} #:itemize? #f]{
-    @tr-if[@${e_0 \not\in v}]{
-      @tr-step{
-        @${e_0 = \ED_0[e_0']}
-        @tr-IH
-      }
-      @tr-step{
-        @${\ED = \edyn{\kany}{\ED_0}}
-      }
-      @tr-qed{
-        @${e = \ctxE{e_0'}}
-      }
-    }
-    @tr-else[@${e_0 \in v}]{
-      @${\ED = \ehole}
-      @tr-qed[]
+  @tr-case[@${e = \edyn{\kany}{e_0}}]{
+    @${\ED = \ehole}
+    @tr-qed{
+      @${e = \ctxE{\edyn{\kany}{e_0}}}
     }
   }
 
@@ -2077,7 +2052,7 @@
 
 @; -----------------------------------------------------------------------------
 @tr-lemma[#:key "K-S-hole-subst" @elem{@${\langK} static hole substitution}]{
-  If @${\wellKE \ctxE{e} : K} and @${\wellKE e : K'} and @${\wellKE e' : K'}
+  If @${\wellKE \ctxE{e} : K} and contains @${\wellKE e : K'}, and furthermore @${\wellKE e' : K'},
   then @${\wellKE \ctxE{e'} : K}
 }@tr-proof{
   By induction on the structure of @${\ED}.
@@ -2100,7 +2075,7 @@
     }
     @tr-step{
       @${\wellKE e' : K}
-      @tr-IH (3)
+      (3)
     }
     @tr-qed{
       by (1, 4)
@@ -2766,6 +2741,53 @@
 }
 
 @; -----------------------------------------------------------------------------
+@tr-lemma[#:key "K-S-value-inversion" @elem{@${\langK} static value inversion}]{
+  If @${\wellKE v : \kany} then @${\wellKE v}
+}@tr-proof{
+  By induction on the structure of @${v}.
+
+  @tr-case[@${v = i}]{
+    @tr-qed{
+      by @${\wellKE v}
+    }
+  }
+
+  @tr-case[@${v = \vpair{v_0}{v_1}}]{
+    @tr-step{
+      @${\wellKE v_0 : \kany
+         @tr-and[]
+         \wellKE v_1 : \kany}
+      @|K-S-inversion|
+    }
+    @tr-step{
+      @${\wellKE v_0
+         @tr-and[]
+         \wellKE v_1}
+      @tr-IH
+    }
+    @tr-qed{
+      by (2)
+    }
+  }
+
+  @tr-case[@${v = \vlam{x}{e}}]{
+    @tr-step{
+      @${x \wellKE e}
+      @|K-S-inversion|
+    }
+    @tr-qed[]
+  }
+
+  @tr-case[@${v = \vlam{\tann{x}{\tau}}{e}}]{
+    @tr-step{
+      @${\tann{x}{\tau} \wellKE e : \kany}
+      @|K-S-inversion|
+    }
+    @tr-qed[]
+  }
+}
+
+@; -----------------------------------------------------------------------------
 @tr-lemma[#:key "K-D-value-inversion" @elem{@${\langK} dynamic value inversion}]{
   If @${\wellKE v} then @${\wellKE v : \kany}
 }@tr-proof{
@@ -2828,53 +2850,6 @@
     @tr-qed{
       by @${\kfun \subt \kany}
     }
-  }
-}
-
-@; -----------------------------------------------------------------------------
-@tr-lemma[#:key "K-S-value-inversion" @elem{@${\langK} static value inversion}]{
-  If @${\wellKE v : \kany} then @${\wellKE v}
-}@tr-proof{
-  By induction on the structure of @${v}.
-
-  @tr-case[@${v = i}]{
-    @tr-qed{
-      by @${\wellKE v}
-    }
-  }
-
-  @tr-case[@${v = \vpair{v_0}{v_1}}]{
-    @tr-step{
-      @${\wellKE v_0 : \kany
-         @tr-and[]
-         \wellKE v_1 : \kany}
-      @|K-S-inversion|
-    }
-    @tr-step{
-      @${\wellKE v_0
-         @tr-and[]
-         \wellKE v_1}
-      @tr-IH
-    }
-    @tr-qed{
-      by (2)
-    }
-  }
-
-  @tr-case[@${v = \vlam{x}{e}}]{
-    @tr-step{
-      @${x \wellKE e}
-      @|K-S-inversion|
-    }
-    @tr-qed[]
-  }
-
-  @tr-case[@${v = \vlam{\tann{x}{\tau}}{e}}]{
-    @tr-step{
-      @${\tann{x}{\tau} \wellKE e : \kany}
-      @|K-S-inversion|
-    }
-    @tr-qed[]
   }
 }
 
