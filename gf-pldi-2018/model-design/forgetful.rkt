@@ -567,9 +567,18 @@
              (snd (dynamic (× (→ (× Nat Int) (→ Int Nat)) (→ Int (→ Nat Nat))) (static Int 0)))))))
       (term Nat)))
 
+    (check-true (safe? (term
+      ((dynamic (→ Nat (× Nat Nat)) (static (→ Int Int) (λ (x : Int) -4)))
+       7))
+      (term (× Nat Nat))))
+
+    (check-true (safe? (term
+      ((dynamic (→ (× Nat Nat) (× Nat Nat)) (static (→ Int Int) (λ (x : Int) -4)))
+       (× 1 1)))
+      (term (× Nat Nat))))
   )
 
-  (test-case "forgetful-safety:auto"
+  #;(test-case "forgetful-safety:auto"
     (check-true
       (redex-check LM-forgetful #:satisfying (well-dyn () e)
         (term (theorem:forgetful-safety e #f))
