@@ -690,6 +690,119 @@
   @tr-case[@${e = \ctxE{\vapp{v_0}{v_1}}}]{
 
   }
+
+  @tr-case[@${e = \ctxE{\eunop{v}}} #:itemize? #f]{
+    @tr-if[@${v = \vmonpair{(\tpair{\tau_0}{\tau_1})}{\vpair{v_0}{v_1}}
+              @tr-and[2]
+              \vunop = \vfst}]{
+      @tr-step{
+        @${e \ccFS \mchk{\tau_0}{v_0}}
+        @${\efst{(\vmonpair{(\tpair{\tau_0}{\tau_1})}{\vpair{v_0}{v_1}})}
+           \rrFS \mchk{\tau_0}{v_0}}}
+      @tr-step{
+        @${\wellFE \efst{v} : \tau'}
+        @|F-hole-typing|}
+      @tr-step{
+        @${\wellFE v : \tpair{\tau_0'}{\tau_1'}
+           @tr-and[]
+           \tau_0' \subt \tau'}
+        @elem{@|F-S-inversion| (2)}}
+      @tr-step{
+        @${\wellFE v_0 : \tau_0}
+        @|F-check-soundness| (1)}
+      @tr-step{
+        @${\tau_0' \subt \tau_0}
+        ???}
+      @tr-step{
+        @${\wellFE v_0 : \tau'}
+        ???}
+      @tr-qed{
+        by @|F-hole-subst|}
+    }
+    @tr-if[@${v = \vmonpair{(\tpair{\tau_0}{\tau_1})}{\vpair{v_0}{v_1}}
+              @tr-and[2]
+              \vunop = \vsnd}]{
+      TODO
+    }
+
+    @tr-if[@${v = \vpair{v_0}{v_1}
+              @tr-and[2]
+              \vunop = \vfst}]{
+      @tr-step{
+        @${\eunop{\vpair{v_0}{v_1}} \rrFS v_0}
+        @${\delta(\vsnd, v_0, v_1) = v_0}}
+      @tr-step{
+        @${e \ccFS \ctxE{v_0}}
+        (1)}
+      @tr-step{
+        @${\wellFE \eunop{\vpair{v_0}{v_1}} : \tau'}
+        @|F-S-hole-typing|}
+      @tr-step{
+        @${\wellFE \vpair{v_0}{v_1} : \tpair{\tau_0}{\tau_1}
+           @tr-and[]
+           @${\tau_0 \subteq \tau'}}
+        @elem{@|F-S-inversion| (3)}}
+      @tr-step{
+        @${\wellFE v_0 : \tau'}
+        (1, 3, 4)}
+      @tr-qed{
+        by @|F-S-hole-subst| (6)}
+    }
+
+    @tr-else[@${v = \vpair{v_0}{v_1}
+                @tr-and[4]
+                \vunop = \vsnd}]{
+      @tr-step{
+        @${\eunop{\vpair{v_0}{v_1}} \rrFS v_1}
+        @${\delta(\vsnd, v_0, v_1) = v_1}}
+      @tr-step{
+        @${e \ccFS \ctxE{v_1}}
+        (1)}
+      @tr-step{
+        @${\wellFE \eunop{\vpair{v_0}{v_1}} : \tau'}
+        @|F-S-hole-typing|}
+      @tr-step{
+        @${\wellFE \vpair{v_0}{v_1} : \tpair{\tau_0}{\tau_1}
+           @tr-and[]
+           @${\tau_1 \subteq \tau'}}
+        @elem{@|F-S-inversion| (3)}}
+      @tr-step{
+        @${\wellFE v_1 : \tau'}
+        (1, 3, 4)}
+      @tr-qed{
+        by @|F-S-hole-subst| (6)}
+    }
+  }
+
+  @tr-case[@${e = \ctxE{\ebinop{v_0}{v_1}}}]{
+    @tr-step{
+      @${e \ccFS \ctxE{v}}
+      @${\delta(\vbinop, v_0, v_1) = v}}
+    @tr-step{
+      @${\wellFE \ebinop{v_0}{v_1} : \tau'}
+      @|F-S-hole-typing|}
+    @tr-step{
+      @${\wellFE v_0 : \tau_0
+         @tr-and[]
+         \wellFE v_1 : \tau_1
+         @tr-and[]
+         \Delta(\vbinop, \tau_0, \tau_1) = \tau''
+         @tr-and[]
+         \tau'' \subteq \tau'}
+      @|F-S-inversion|}
+    @tr-step{
+      @${\wellFE v : \tau''}
+      @elem{@|F-Delta-soundness| (1, 3)}}
+    @tr-step{
+      @${\wellFE v : \tau'}
+      (3, 4)}
+    @tr-qed{
+      by @|F-S-hole-subst| (5)}
+  }
+
+  @tr-case[@${e = \ctxE{\edyn{\tau'}{e'}}}]{
+
+  }
 }
 
 @tr-lemma[#:key "F-D-preservation" @elem{${\langF} dynamic preservation}]{
