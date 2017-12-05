@@ -15,6 +15,8 @@
    (define F-S-preservation @tr-ref[#:key "F-S-preservation"]{static preservation})
    (define F-D-preservation @tr-ref[#:key "F-D-preservation"]{dynamic preservation})
 
+   (define F-check-soundness @tr-ref[#:key "F-check-soundness"]{check soundness})
+
    (define F-S-implies @tr-ref[#:key "F-S-implies"]{static implies})
    (define F-D-implies @tr-ref[#:key "F-D-implies"]{dynamic implies})
 
@@ -33,6 +35,7 @@
    (define F-S-canonical @tr-ref[#:key "F-S-canonical"]{canonical forms})
 
    (define F-Delta-soundness @tr-ref[#:key "F-Delta-soundness"]{@${\Delta} tag soundness})
+   (define F-delta-preservation @tr-ref[#:key "F-delta-preservation"]{@${\delta} preservation})
 
    @; TODO need these?
    @;(define F-S-value-inversion @tr-ref[#:key "F-S-value-inversion"]{static value inversion})
@@ -571,11 +574,76 @@
     @tr-qed[]
   }
 
-  @tr-case[@${e = \ctxE{\vapp{v_0}{v_1}}}]{
+  @tr-case[@${e = \ctxE{\vapp{v_0}{v_1}}} #:itemize? #f]{
+    @tr-if[@${v_0 = \vlam{x}{e'}}]{
+      @tr-step{
+        @${e \ccFD \ctxE{\vsubst{e'}{x}{v_1}}}
+        @${\vapp{(\vlam{x}{e'})}{v_1} \rrFD \vsubst{e'}{x}{v_1}}}
+      @tr-qed[]
+    }
+    @tr-if[${v_0 \eeq \vmonfun{(\tarr{\tau_d}{\tau_c})}{(\vlam{x}{e'})}
+             @tr-and[2]
+             \mchk{\tau_d}{v_1} = v_1'}]{
+      @tr-step{
+        @${e \ccFD \ctxE{\vsubst{e'}{x}{v_1'}}}
+        @${\vapp{(\vmonfun{(\tarr{\tau_d}{\tau_c})}{(\vlam{x}{e'})})}{v_1}
+           \rrFD \vsubst{e'}{x}{v_1'}}}
+      @tr-qed[]
+    }
+    @tr-if[${v_0 \eeq \vmonfun{(\tarr{\tau_d}{\tau_c})}{(\vlam{x}{e'})}
+             @tr-and[2]
+             \mchk{\tau_d}{v_1} = \boundaryerror}]{
+      @tr-step[
+        @${e \ccFD \boundaryerror}
+        @${\vapp{(\vmonfun{(\tarr{\tau_d}{\tau_c})}{(\vlam{x}{e'})})}{v_1} \rrFD \boundaryerror}]
+      @tr-qed[]
+    }
+    @tr-if[${v_0 \eeq \vmonfun{(\tarr{\tau_d}{\tau_c})}{(\vlam{\tann{x}{\tau_x}}{e'})}
+             @tr-and[2]
+             \mchk{\tau_x}{v_1} = v_1'}]{
+      @tr-step{
+        @${e \ccFD \ctxE{\vsubst{e'}{x}{v_1'}}}
+        @${\vapp{(\vmonfun{(\tarr{\tau_d}{\tau_c})}{(\vlam{\tann{x}{\tau_x}}{e'})})}{v_1}
+           \rrFD \vsubst{e'}{x}{v_1'}}}
+      @tr-qed[]
+    }
+    @tr-if[${v_0 \eeq \vmonfun{(\tarr{\tau_d}{\tau_c})}{(\vlam{\tann{x}{\tau_x}}{e'})}
+             @tr-and[2]
+             \mchk{\tau_x}{v_1} = \boundaryerror}]{
+      @tr-step[
+        @${e \ccFD \boundaryerror}
+        @${\vapp{(\vmonfun{(\tarr{\tau_d}{\tau_c})}{(\vlam{\tann{x}{\tau_x}}{e'})})}{v_1}
+           \rrFD \boundaryerror}]
+      @tr-qed[]
+    }
+    @tr-if[@${v_0 \eeq \vlam{\tann{x}{\tau_x}}{e'}}]{
+      @tr-contradiction{@${\wellFE e}}
+    }
+    @tr-else[@${v_0 \eeq i
+                @tr-or[4]
+                v_0 \eeq \vpair{v}{v'}}]{
+      @tr-step{
+        @${e \ccFD \tagerror}
+        @${(\vapp{v_0}{v_1}) \rrFD \tagerror}}
+      @tr-qed[]
+    }
   }
 
-  @tr-case[@${e = \ctxE\eunop{v}}}]{
-    
+  @tr-case[@${e = \ctxE{\eunop{v}}} #:itemize? #f]{
+    @tr-if[@${\delta(\vunop, v) = A}]{
+      @tr-step{
+        @${(\eunop{v}) \rrFD A}}
+      @tr-qed{
+        by @${e \ccFD \ctxE{A}} if @${A \in v}
+        @linebreak[]
+        and by @${e \ccFD A} otherwise}
+    }
+    @tr-else[@${\delta(\vunop, v) \mbox{ is undefined}}]{
+      @tr-step{
+        @${e \ccFD \tagerror}
+        @${(\eunop{v}) \rrFD \tagerror}}
+      @tr-qed[]
+    }
   }
 
   @tr-case[@${e = \ctxE{\ebinop{v_0}{v_1}}}]{
@@ -617,13 +685,55 @@
 @tr-lemma[#:key "F-S-preservation" @elem{${\langF} static preservation}]{
   If @${\wellFE e : \tau} and @${e \ccFS e'} then @${\wellFE e' : \tau}
 }@tr-proof{
-  TODO
+  By the @|F-S-uec| lemma there are TODO cases.
+
+  @tr-case[@${e = \ctxE{\vapp{v_0}{v_1}}}]{
+
+  }
 }
 
 @tr-lemma[#:key "F-D-preservation" @elem{${\langF} dynamic preservation}]{
   If @${\wellFE e} and @${e \ccFD e'} then @${\wellFE e'}
 }@tr-proof{
   TODO
+}
+
+@tr-lemma[#:key "F-check-soundness" @elem{@${\mchk{\cdot}{\cdot}} soundness}]{
+  If @${\mchk{\tau}{v} = v'} then @${\wellFE v' : \tau}
+}@tr-proof{
+  By case analysis of the definition of @${\mchk{\cdot}{\cdot}}.
+
+  @tr-case[@${\mchk{\tarr{\tau_d}{\tau_c}}{v} = \vmonfun{(\tarr{\tau_d}{\tau_c})}{v}}]{
+    @tr-qed[
+      @${\wellFE \vmonfun{(\tarr{\tau_d}{\tau_c})}{v} : \tarr{\tau_d}{\tau_c}}]
+    }
+
+  @tr-case[@${\mchk{\tarr{\tau_d}{\tau_c}}{(\vmonfun{\tau'}{v})} = \vmonfun{(\tarr{\tau_d}{\tau_c})}{v}}]{
+    @tr-qed[
+      @${\wellFE \vmonfun{(\tarr{\tau_d}{\tau_c})}{v} : \tarr{\tau_d}{\tau_c}}]
+  }
+
+  @tr-case[@${\mchk{\tpair{\tau_0}{\tau_1}}{v} = \vmonpair{(\tpair{\tau_0}{\tau_1})}{v}}]{
+    @tr-qed[
+      @${\wellFE \vmonpair{(\tpair{\tau_0}{\tau_1})}{v} : \tpair{\tau_0}{\tau_1}}]
+  }
+
+  @tr-case[@${\mchk{\tpair{\tau_0}{\tau_1}}{(\vmonpair{\tau'}{v})} = \vmonpair{(\tpair{\tau_0}{\tau_1})}{v}}]{
+    @tr-qed[
+      @${\wellFE \vmonpair{(\tpair{\tau_0}{\tau_1})}{v} : \tpair{\tau_0}{\tau_1}}]
+  }
+
+  @tr-case[@${\mchk{\tint}{i} = i}]{
+    @tr-qed[
+      @${\wellFE i : \tint}]
+  }
+
+  @tr-case[@${\mchk{\tnat}{i} = i} @tr-and[4] i \in \naturals]{
+    @tr-step[
+      @${\wellFE i : \tnat}
+      @${i \in \naturals}]
+    @tr-qed[]
+  }
 }
 
 @tr-lemma[#:key "F-S-uec" @elem{@${\langF} unique static evaluation contexts}]{
@@ -1645,10 +1755,16 @@
       and @${\tau_c' \subteq \tau_c}
     }
     @item{
-      If @${\Gamma \wellFE \eunop{e} : \tau}
+      If @${\Gamma \wellFE \efst{e} : \tau}
       then @${\Gamma \wellFE e : \tpair{\tau_0}{\tau_1}}
-      and @${\Delta(\vunop, \tpair{\tau_0}{\tau_1}) = \tau'}
-      and @${\tau' \subteq \tau}
+      and @${\Delta(\vfst, \tpair{\tau_0}{\tau_1}) = \tau_0}
+      and @${\tau_0 \subteq \tau}
+    }
+    @item{
+      If @${\Gamma \wellFE \esnd{e} : \tau}
+      then @${\Gamma \wellFE e : \tpair{\tau_0}{\tau_1}}
+      and @${\Delta(\vsnd, \tpair{\tau_0}{\tau_1}) = \tau_1}
+      and @${\tau_1 \subteq \tau}
     }
     @item{
       If @${\Gamma \wellFE \ebinop{e_0}{e_1} : \tau}
@@ -1931,7 +2047,7 @@
 
   @tr-case[@${v = \vlam{\tann{x}{\tau}}{e}}]{
     @tr-step{
-      @${\tann{x}{\tau} \wellKE e : \kany}
+      @${\tann{x}{\tau} \wellFE e : \kany}
       @|F-D-inversion|
     }
     @tr-step{
@@ -1941,6 +2057,43 @@
     @tr-qed{
       by @${\kfun \subt \kany}
     }
+  }
+}
+
+@tr-lemma[#:key "F-delta-preservation" @elem{@${\delta} preservation}]{
+  @itemlist[
+    @item{
+      If @${\wellFE v} and @${\delta(\vunop, v) = v'} then @${\wellFE v'}
+    }
+    @item{
+      If @${\wellFE v_0} and @${\wellFE v_1} and @${\delta(\vbinop, v_0, v_1) = v'}
+       then @${\wellFE v'}
+    }
+  ]
+}@tr-proof{
+
+  @tr-case[@${\delta(\vfst, \vpair{v_0}{v_1}) = v_0}]{
+    @tr-step{
+      @${\wellFE v_0}
+      @|F-D-inversion|
+    }
+    @tr-qed[]
+  }
+
+  @tr-case[@${\delta(\vsnd, \vpair{v_0}{v_1}) = v_1}]{
+    @tr-step{
+      @${\wellFE v_1}
+      @|F-D-inversion|
+    }
+    @tr-qed[]
+  }
+
+  @tr-case[@${\delta(\vsum, v_0, v_1) = v_0 + v_1}]{
+    @tr-qed[]
+  }
+
+  @tr-case[@${\delta(\vquotient, v_0, v_1) = \floorof{v_0 / v_1}}]{
+    @tr-qed[]
   }
 }
 

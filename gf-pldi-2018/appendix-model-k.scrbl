@@ -551,7 +551,7 @@
 
   @tr-case[@${e = \ctxE{\ebinop{v_0}{v_1}}}]{
     @tr-step{
-      @${\ctxE{\ebinop{v_0}{v_1}} \ccKS v}
+      @${\ctxE{\ebinop{v_0}{v_1}} \ccKS \ctxE{v}}
       @${\delta(\vbinop, v_0, v_1) = v}
     }
     @tr-step{
