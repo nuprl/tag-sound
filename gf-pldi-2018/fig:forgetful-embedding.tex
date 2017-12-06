@@ -202,11 +202,13 @@ $\begin{array}{l@{~~}c@{~~}l}
 $\begin{array}{l@{~~}c@{~~}l}
   (\vmonfun{\tarr{\tau_d}{\tau_c}}{(\vlam{x}{e})})~v & \rrFD & \vsubst{e}{x}{v}
 \\\multicolumn{3}{l}{\mbox{\quad if $\mchk{\tau_d}{v} = v$}}
+\\
   (\vmonfun{\tarr{\tau_d}{\tau_c}}{(\vlam{x}{e})})~v & \rrFD & \boundaryerror
 \\\multicolumn{3}{l}{\mbox{\quad if $\mchk{\tau_d}{v} = \boundaryerror$}}
 \\
   (\vmonfun{\tarr{\tau_d}{\tau_c}}{(\vlam{\tann{x}{\tau}}{e})})~v & \rrFD & \esta{\tau_c}{\vsubst{e}{x}{v}}
 \\\multicolumn{3}{l}{\mbox{\quad if $\mchk{\tau}{v} = v$}}
+\\
   (\vmonfun{\tarr{\tau_d}{\tau_c}}{(\vlam{\tann{x}{\tau}}{e})})~v & \rrFD & \boundaryerror
 \\\multicolumn{3}{l}{\mbox{\quad if $\mchk{\tau}{v} = \boundaryerror$}}
 \\
