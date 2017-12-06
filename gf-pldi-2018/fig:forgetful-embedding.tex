@@ -3,7 +3,8 @@
 \lbl{Language $\langF$}{
 $\begin{array}{l@{~~}c@{~~}l}
   e & \BNFeq & x \mid v \mid e~e \mid \vpair{e}{e} \mid \vunop~e \mid \vbinop~e~e \mid
- \edyn{\tau}{e} \mid \esta{\tau}{e}
+               \edyn{\tau}{e} \mid
+\\ & &         \esta{\tau}{e} \mid \echk{\tau}{e}
 \\
   v & \BNFeq & i \mid \vpair{v}{v} \mid \vlam{x}{e} \mid \vlam{\tann{x}{\tau}}{e} \mid
                \vmonfun{(\tarr{\tau}{\tau})}{(\vlam{x}{e})} \mid
@@ -16,7 +17,7 @@ $\begin{array}{l@{~~}c@{~~}l}
 \\
   E & \BNFeq & \ehole \mid E~e \mid v~E \mid
                \vpair{E}{e} \mid \vpair{v}{E} \mid \vunop~E \mid
-\\ & &         \ebinop{E}{e} \mid \ebinop{v}{E}
+\\ & &         \ebinop{E}{e} \mid \ebinop{v}{E} \mid \echk{\tau}{E}
 \end{array}$
 }
 
@@ -72,12 +73,13 @@ $\begin{array}{l@{~~}c@{~~}l}
 
   \inferrule*{
   }{
-    \Gamma \wellFE \vmonpair{(\tpair{\tau_0}{\tau_1})}{v}
+    \Gamma \wellFE \vmonpair{(\tpair{\tau_0}{\tau_1})}{\vpair{v_0}{v_1}}
   }
 
   \inferrule*{
+    \Gamma \wellFE \vlam{\tann{x}{\tau_d'}}{e} : \tarr{\tau_d'}{\tau_c'}
   }{
-    \Gamma \wellFE \vmonfun{(\tarr{\tau_d}{\tau_c})}{v}
+    \Gamma \wellFE \vmonfun{(\tarr{\tau_d}{\tau_c})}{\vlam{\tann{x}{\tau_d'}}{e}}
   }
 
   \inferrule*{
@@ -155,19 +157,32 @@ $\begin{array}{l@{~~}c@{~~}l}
   }
 
   \inferrule*{
+  }{
+    \Gamma \wellFE \vmonpair{(\tpair{\tau_0}{\tau_1})}{\vpair{v_0}{v_1}} : (\tpair{\tau_0}{\tau_1})
+  }
+
+  \inferrule*{
+    \Gamma \wellFE \vlam{x}{e}
+  }{
+    \Gamma \wellFE \vmonfun{(\tarr{\tau_d}{\tau_c})}{\vlam{x}{e}} : (\tarr{\tau_d}{\tau_c})
+  }
+
+  \inferrule*{
+    \Gamma \wellFE \vlam{\tann{x}{\tau_d'}}{e} : \tarr{\tau_d'}{\tau_c'}
+  }{
+    \Gamma \wellFE \vmonfun{(\tarr{\tau_d}{\tau_c})}{\vlam{\tann{x}{\tau_d'}}{e}} : (\tarr{\tau_d}{\tau_c})
+  }
+
+  \inferrule*{
     \Gamma \wellFE e
   }{
     \Gamma \wellFE \edyn{\tau}{e} : \tau
   }
 
   \inferrule*{
+    \Gamma \wellFE e : \tau'
   }{
-    \Gamma \wellFE \vmonpair{(\tpair{\tau_0}{\tau_1})}{v} : (\tpair{\tau_0}{\tau_1})
-  }
-
-  \inferrule*{
-  }{
-    \Gamma \wellFE \vmonfun{(\tarr{\tau_d}{\tau_c})}{v} : (\tarr{\tau_d}{\tau_c})
+    \Gamma \wellFE \echk{\tau}{e} : \tau
   }
 
 }
@@ -201,13 +216,10 @@ $\begin{array}{l@{~~}c@{~~}l}
 \lbl{$e \rrFD A$}{
 $\begin{array}{l@{~~}c@{~~}l}
   (\vmonfun{\tarr{\tau_d}{\tau_c}}{(\vlam{x}{e})})~v & \rrFD & \vsubst{e}{x}{v}
-\\\multicolumn{3}{l}{\mbox{\quad if $\mchk{\tau_d}{v} = v$}}
 \\
-  (\vmonfun{\tarr{\tau_d}{\tau_c}}{(\vlam{x}{e})})~v & \rrFD & \boundaryerror
-\\\multicolumn{3}{l}{\mbox{\quad if $\mchk{\tau_d}{v} = \boundaryerror$}}
-\\
-  (\vmonfun{\tarr{\tau_d}{\tau_c}}{(\vlam{\tann{x}{\tau}}{e})})~v & \rrFD & \esta{\tau_c}{\vsubst{e}{x}{v}}
-\\\multicolumn{3}{l}{\mbox{\quad if $\mchk{\tau}{v} = v$}}
+  (\vmonfun{\tarr{\tau_d}{\tau_c}}{(\vlam{\tann{x}{\tau}}{e})})~v
+  & \rrFD & \esta{\tau_c}{(\echk{\tau_c}{\vsubst{e}{x}{v'}})}
+\\\multicolumn{3}{l}{\mbox{\quad if $\mchk{\tau}{v} = v'$}}
 \\
   (\vmonfun{\tarr{\tau_d}{\tau_c}}{(\vlam{\tann{x}{\tau}}{e})})~v & \rrFD & \boundaryerror
 \\\multicolumn{3}{l}{\mbox{\quad if $\mchk{\tau}{v} = \boundaryerror$}}
@@ -239,31 +251,26 @@ $\begin{array}{l@{~~}c@{~~}l}
 
 \lbl{$e \rrFS A$}{
 $\begin{array}{l@{~~}c@{~~}l}
-  (\vmonfun{\tarr{\tau_d}{\tau_c}}{(\vlam{\tann{x}{\tau}}{e})})~v & \rrFS & \vsubst{e}{x}{v'}
-\\\multicolumn{3}{l}{\mbox{\quad if $\mchk{\tau}{v} = v'$}}
-\\
-  (\vmonfun{\tarr{\tau_d}{\tau_c}}{(\vlam{\tann{x}{\tau}}{e})})~v & \rrFS & \boundaryerror
-\\\multicolumn{3}{l}{\mbox{\quad if $\mchk{\tau}{v} = \boundaryerror$}}
-\\
   (\vmonfun{\tarr{\tau_d}{\tau_c}}{(\vlam{x}{e})})~v & \rrFS & \edyn{\tau_c}{\vsubst{e}{x}{v'}}
 \\\multicolumn{3}{l}{\mbox{\quad if $\mchk{\tau}{v} = v'$}}
 \\
   (\vmonfun{\tarr{\tau_d}{\tau_c}}{(\vlam{x}{e})})~v & \rrFS & \boundaryerror
 \\\multicolumn{3}{l}{\mbox{\quad if $\mchk{\tau}{v} = \boundaryerror$}}
 \\
-  \efst{(\vmonpair{\tpair{\tau_0}{\tau_1}}{\vpair{v_0}{v_1}})} & \rrFS & v_0'
-\\\multicolumn{3}{l}{\mbox{\quad if $\mchk{\tau_0}{v_0} = v_0'$}}
+  (\vmonfun{\tarr{\tau_d}{\tau_c}}{(\vlam{\tann{x}{\tau}}{e})})~v
+  & \rrFS & \echk{\tau_c}{\vsubst{e}{x}{v'}}
+\\\multicolumn{3}{l}{\mbox{\quad if $\mchk{\tau}{v} = v'$}}
 \\
-  \efst{(\vmonpair{\tpair{\tau_0}{\tau_1}}{\vpair{v_0}{v_1}})} & \rrFS & \boundaryerror
-\\\multicolumn{3}{l}{\mbox{\quad if $\mchk{\tau_0}{v_0} = \boundaryerror$}}
+  (\vmonfun{\tarr{\tau_d}{\tau_c}}{(\vlam{\tann{x}{\tau}}{e})})~v & \rrFS & \boundaryerror
+\\\multicolumn{3}{l}{\mbox{\quad if $\mchk{\tau}{v} = \boundaryerror$}}
 \\
-  \esnd{(\vmonpair{\tpair{\tau_0}{\tau_1}}{\vpair{v_0}{v_1}})} & \rrFS & {v_1'}
-\\\multicolumn{3}{l}{\mbox{\quad if $\mchk{\tau_1}{v_1} = v_1'$}}
+  \efst{(\vmonpair{\tpair{\tau_0}{\tau_1}}{\vpair{v_0}{v_1}})} & \rrFS & \mchk{\tau_0}{v_0}
 \\
-  \esnd{(\vmonpair{\tpair{\tau_0}{\tau_1}}{\vpair{v_0}{v_1}})} & \rrFS & \boundaryerror
-\\\multicolumn{3}{l}{\mbox{\quad if $\mchk{\tau_1}{v_1} = \boundaryerror$}}
+  \esnd{(\vmonpair{\tpair{\tau_0}{\tau_1}}{\vpair{v_0}{v_1}})} & \rrFS & \mchk{\tau_1}{v_1}
 \\
   \edyn{\tau}{v} & \rrFS & \mchk{\tau}{v}
+\\
+  \echk{\tau}{v} & \rrFS & \mchk{\tau}{v}
 \\
   (\vlam{\tann{x}{\tau_d}}{e})~v & \rrFS & \vsubst{e}{x}{v}
 \\
