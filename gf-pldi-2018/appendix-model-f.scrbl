@@ -15,7 +15,7 @@
    (define F-S-preservation @tr-ref[#:key "F-S-preservation"]{static preservation})
    (define F-D-preservation @tr-ref[#:key "F-D-preservation"]{dynamic preservation})
 
-   (define F-check-soundness @tr-ref[#:key "F-check-soundness"]{check soundness})
+   (define F-check @tr-ref[#:key "F-check"]{check soundness})
 
    (define F-S-implies @tr-ref[#:key "F-S-implies"]{static implies})
    (define F-D-implies @tr-ref[#:key "F-D-implies"]{dynamic implies})
@@ -709,7 +709,7 @@
         @elem{@|F-S-inversion| (2)}}
       @tr-step{
         @${\wellFE v_0 : \tau_0}
-        @|F-check-soundness| (1)}
+        @|F-check| (1)}
       @tr-step{
         @${\tau_0' \subt \tau_0}
         ???}
@@ -811,39 +811,47 @@
   TODO
 }
 
-@tr-lemma[#:key "F-check-soundness" @elem{@${\mchk{\cdot}{\cdot}} soundness}]{
-  If @${\mchk{\tau}{v} = v'} then @${\wellFE v' : \tau}
+@tr-lemma[#:key "F-check" @elem{@${\mchk{\cdot}{\cdot}} soundness}]{
+  If @${\mchk{\tau}{v} = v'} then @${\wellFE v' : \tau} and @${\wellFE v'}
 }@tr-proof{
   By case analysis of the definition of @${\mchk{\cdot}{\cdot}}.
 
   @tr-case[@${\mchk{\tarr{\tau_d}{\tau_c}}{v} = \vmonfun{(\tarr{\tau_d}{\tau_c})}{v}}]{
-    @tr-qed[
-      @${\wellFE \vmonfun{(\tarr{\tau_d}{\tau_c})}{v} : \tarr{\tau_d}{\tau_c}}]
+    @${\wellFE \vmonfun{(\tarr{\tau_d}{\tau_c})}{v} : \tarr{\tau_d}{\tau_c}}
+    @${\wellFE \vmonfun{(\tarr{\tau_d}{\tau_c})}{v}}
+    @tr-qed[]
     }
 
   @tr-case[@${\mchk{\tarr{\tau_d}{\tau_c}}{(\vmonfun{\tau'}{v})} = \vmonfun{(\tarr{\tau_d}{\tau_c})}{v}}]{
-    @tr-qed[
-      @${\wellFE \vmonfun{(\tarr{\tau_d}{\tau_c})}{v} : \tarr{\tau_d}{\tau_c}}]
+    @${\wellFE \vmonfun{(\tarr{\tau_d}{\tau_c})}{v} : \tarr{\tau_d}{\tau_c}}
+    @${\wellFE \vmonfun{(\tarr{\tau_d}{\tau_c})}{v}}
+    @tr-qed[]
   }
 
   @tr-case[@${\mchk{\tpair{\tau_0}{\tau_1}}{v} = \vmonpair{(\tpair{\tau_0}{\tau_1})}{v}}]{
-    @tr-qed[
-      @${\wellFE \vmonpair{(\tpair{\tau_0}{\tau_1})}{v} : \tpair{\tau_0}{\tau_1}}]
+    @${\wellFE \vmonpair{(\tpair{\tau_0}{\tau_1})}{v} : \tpair{\tau_0}{\tau_1}}
+    @${\wellFE \vmonpair{(\tpair{\tau_0}{\tau_1})}{v}}
+    @tr-qed[]
   }
 
   @tr-case[@${\mchk{\tpair{\tau_0}{\tau_1}}{(\vmonpair{\tau'}{v})} = \vmonpair{(\tpair{\tau_0}{\tau_1})}{v}}]{
-    @tr-qed[
-      @${\wellFE \vmonpair{(\tpair{\tau_0}{\tau_1})}{v} : \tpair{\tau_0}{\tau_1}}]
+    @${\wellFE \vmonpair{(\tpair{\tau_0}{\tau_1})}{v} : \tpair{\tau_0}{\tau_1}}
+    @${\wellFE \vmonpair{(\tpair{\tau_0}{\tau_1})}{v}}
+    @tr-qed[}
   }
 
   @tr-case[@${\mchk{\tint}{i} = i}]{
-    @tr-qed[
-      @${\wellFE i : \tint}]
+    @${\wellFE i : \tint}
+    @${\wellFE i}
+    @tr-qed[]
   }
 
   @tr-case[@${\mchk{\tnat}{i} = i} @tr-and[4] i \in \naturals]{
     @tr-step[
       @${\wellFE i : \tnat}
+      @${i \in \naturals}]
+    @tr-step[
+      @${\wellFE i}
       @${i \in \naturals}]
     @tr-qed[]
   }
