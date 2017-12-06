@@ -339,6 +339,15 @@ Instead of checking the contents of a pair exactly once, at a boundary, the
 @; -----------------------------------------------------------------------------
 @section{The Forgetful Embedding}
 
+%%% INTERLUDE
+% - need to know typed functions under a monitor "have a typing"
+% - because functions are delayed computations
+% - and need to know that after substitution, they will compute _some result_ safely
+%   (doesn't matter what the result it, just need to get there safely)
+% ...
+% - monitor annotations allowed to diverge because
+%   Importing module doesn't know origin of value (looks untyped to me)
+
 The second source of performance overhead in the natural embedding is the
  indirection cost of monitors.
 Each time a function value crosses a boundary, it accumulates a new monitor.
