@@ -843,13 +843,55 @@
   }
 
   @tr-case[@${e = \ctxE{\eunop{v}}} #:itemize? #f]{
+    @tr-if[@${v = \vpair{v_0}{v_1}
+              @tr-and[2]
+              \vunop = \vfst
+              @tr-and[2]
+              e \ccFS \ctxE{v_0}}]{
+      @tr-step{
+        @${\wellFE \efst{\vpair{v_0}{v_1}} : \tau'}
+        @|F-S-hole-typing|}
+      @tr-step{
+        @${\wellFE \vpair{v_0}{v_1} : \tpair{\tau_0}{\tau_1}
+           @tr-and[]
+           \tau_0 \subteq \tau'}
+        @elem{@|F-S-inversion|}}
+      @tr-step{
+        @${\wellFE v_0 : \tau_0}
+        @|F-S-inversion|}
+      @tr-step{
+        @${\wellFE v_0 : \tau'}
+        (2)}
+      @tr-qed{
+        by @|F-S-hole-subst|}
+    }
+    @tr-if[@${v = \vpair{v_0}{v_1}
+              @tr-and[2]
+              \vunop = \vsnd
+              @tr-and[2]
+              e \ccFS \ctxE{v_1}}]{
+      @tr-step{
+        @${\wellFE \esnd{\vpair{v_0}{v_1}} : \tau'}
+        @|F-S-hole-typing|}
+      @tr-step{
+        @${\wellFE \vpair{v_0}{v_1} : \tpair{\tau_0}{\tau_1}
+           @tr-and[]
+           \tau_1 \subteq \tau'}
+        @elem{@|F-S-inversion|}}
+      @tr-step{
+        @${\wellFE v_1 : \tau_1}
+        @|F-S-inversion|}
+      @tr-step{
+        @${\wellFE v_1 : \tau'}
+        (2)}
+      @tr-qed{
+        by @|F-S-hole-subst|}
+    }
     @tr-if[@${v = \vmonpair{(\tpair{\tau_0}{\tau_1})}{\vpair{v_0}{v_1}}
               @tr-and[2]
-              \vunop = \vfst}]{
-      @tr-step{
-        @${e \ccFS \mchk{\tau_0}{v_0}}
-        @${\efst{(\vmonpair{(\tpair{\tau_0}{\tau_1})}{\vpair{v_0}{v_1}})}
-           \rrFS \mchk{\tau_0}{v_0}}}
+              \vunop = \vfst
+              @tr-and[2]
+              e \ccFS \ctxE{\mchk{\tau_0}{v_0}}}]{
       @tr-step{
         @${\wellFE \efst{v} : \tau'}
         @|F-S-hole-typing|}
@@ -857,70 +899,47 @@
         @${\wellFE v : \tpair{\tau_0'}{\tau_1'}
            @tr-and[]
            \tau_0' \subt \tau'}
-        @elem{@|F-S-inversion| (2)}}
+        @elem{@|F-S-inversion|}}
       @tr-step{
-        @${\wellFE v_0 : \tau_0}
-        @|F-check| (1)}
+        @${\tpair{\tau_0}{\tau_1} \subteq \tpair{\tau_0'}{\tau_1'}}
+        @|F-S-inversion|}
       @tr-step{
-        @${\tau_0' \subt \tau_0}
-        ???}
+        @${\tau_0 \subteq \tau_0'}}
       @tr-step{
-        @${\wellFE v_0 : \tau'}
-        ???}
+        @${\wellFE \mchk{\tau_0}{v_0} : \tau_0}
+        @|F-check|}
+      @tr-step{
+        @${\wellFE \mchk{\tau_0}{v_0} : \tau'}
+        (2, 4)}
       @tr-qed{
         by @|F-S-hole-subst|}
     }
-    @tr-if[@${v = \vmonpair{(\tpair{\tau_0}{\tau_1})}{\vpair{v_0}{v_1}}
-              @tr-and[2]
-              \vunop = \vsnd}]{
-      TODO
-    }
-    @tr-if[@${v = \vpair{v_0}{v_1}
-              @tr-and[2]
-              \vunop = \vfst}]{
-      @tr-step{
-        @${\eunop{\vpair{v_0}{v_1}} \rrFS v_0}
-        @${\delta(\vsnd, v_0, v_1) = v_0}}
-      @tr-step{
-        @${e \ccFS \ctxE{v_0}}
-        (1)}
-      @tr-step{
-        @${\wellFE \eunop{\vpair{v_0}{v_1}} : \tau'}
-        @|F-S-hole-typing|}
-      @tr-step{
-        @${\wellFE \vpair{v_0}{v_1} : \tpair{\tau_0}{\tau_1}
-           @tr-and[]
-           \tau_0 \subteq \tau'}
-        @elem{@|F-S-inversion| (3)}}
-      @tr-step{
-        @${\wellFE v_0 : \tau'}
-        (1, 3, 4)}
-      @tr-qed{
-        by @|F-S-hole-subst| (6)}
-    }
-
-    @tr-else[@${v = \vpair{v_0}{v_1}
+    @tr-else[@${v = \vmonpair{(\tpair{\tau_0}{\tau_1})}{\vpair{v_0}{v_1}}
                 @tr-and[4]
-                \vunop = \vsnd}]{
+                \vunop = \vsnd
+                @tr-and[4]
+                e \ccFS \ctxE{\mchk{\tau_1}{v_1}}}]{
       @tr-step{
-        @${\eunop{\vpair{v_0}{v_1}} \rrFS v_1}
-        @${\delta(\vsnd, v_0, v_1) = v_1}}
-      @tr-step{
-        @${e \ccFS \ctxE{v_1}}
-        (1)}
-      @tr-step{
-        @${\wellFE \eunop{\vpair{v_0}{v_1}} : \tau'}
+        @${\wellFE \esnd{v} : \tau'}
         @|F-S-hole-typing|}
       @tr-step{
-        @${\wellFE \vpair{v_0}{v_1} : \tpair{\tau_0}{\tau_1}
+        @${\wellFE v : \tpair{\tau_0'}{\tau_1'}
            @tr-and[]
-           \tau_1 \subteq \tau'}
-        @elem{@|F-S-inversion| (3)}}
+           \tau_1' \subt \tau'}
+        @elem{@|F-S-inversion|}}
       @tr-step{
-        @${\wellFE v_1 : \tau'}
-        (1, 3, 4)}
+        @${\tpair{\tau_0}{\tau_1} \subteq \tpair{\tau_0'}{\tau_1'}}
+        @|F-S-inversion|}
+      @tr-step{
+        @${\tau_1 \subteq \tau_1'}}
+      @tr-step{
+        @${\wellFE \mchk{\tau_1}{v_1} : \tau_1}
+        @|F-check|}
+      @tr-step{
+        @${\wellFE \mchk{\tau_1}{v_1} : \tau'}
+        (2, 4)}
       @tr-qed{
-        by @|F-S-hole-subst| (6)}
+        by @|F-S-hole-subst|}
     }
   }
 
@@ -950,8 +969,69 @@
       by @|F-S-hole-subst| (5)}
   }
 
-  @tr-case[@${e = \ctxE{\edyn{\tau'}{e'}}}]{
+  @tr-case[@${e = \ctxE{\edyn{\tau'}{e'}}} #:itemize? #f]{
+    @tr-if[@${e \in v
+              @tr-and[2]
+              e \ccFS \ctxE{\mchk{\tau'}{v}}}]{
+      @tr-step{
+        @${\wellFE \edyn{\tau'}{e'} : \tau''}
+        @|F-S-hole-typing|}
+      @tr-step{
+        @${\tau' \subteq \tau''}
+        @|F-S-inversion|}
+      @tr-step{
+        @${\wellFE \mchk{\tau'}{v} : \tau'}
+        @|F-check|}
+      @tr-step{
+        @${\wellFE \mchk{\tau'}{v} : \tau''}
+        (2, 3)}
+      @tr-qed{
+        by @|F-S-hole-subst| (4)}
+    }
+    @tr-else[@${e \not\in v
+                @tr-and[4]
+                e' \ccFD e''
+                @tr-and[4]
+                e \ccFS \ctxE{\edyn{\tau'}{e''}}}]{
+      @tr-step{
+        @${\wellFE \edyn{\tau'}{e'} : \tau''}
+        @|F-S-hole-typing|}
+      @tr-step{
+        @${\wellFE e'
+           @tr-and[]
+           \tau' \subteq \tau''}
+        @|F-S-inversion|}
+      @tr-step{
+        @${\wellFE e''}
+        @|F-D-preservation|}
+      @tr-step{
+        @${\wellFE \edyn{\tau'}{e''} : \tau'}
+        (3)}
+      @tr-step{
+        @${\wellFE \edyn{\tau'}{e''} : \tau''}
+        (2, 4)}
+      @tr-qed{
+        by @|F-S-hole-subst|}
+    }
+  }
 
+  @tr-case[@${e = \ctxE{\echk{\tau'}{v}}}]{
+    @tr-step{
+      @${e \ccFS \ctxE{\mchk{\tau'}{v}}}}
+    @tr-step{
+      @${\wellFE \echk{\tau'}{e'} : \tau''}
+      @|F-S-hole-typing|}
+    @tr-step{
+      @${\tau' \subt \tau''}
+      @|F-S-inversion|}
+    @tr-step{
+      @${\wellFE \mchk{\tau'}{v} : \tau'}
+      @|F-check|}
+    @tr-step{
+      @${\wellFE \mchk{\tau'}{v} : \tau''}
+      (2, 3)}
+    @tr-qed{
+      by @|F-S-hole-subst| (4)}
   }
 }
 
@@ -2125,6 +2205,10 @@
       and @${\Gamma \wellFE e_1 : \tau_1}
       and @${\Delta(\vbinop, \tau_0, \tau_1) = \tau'}
       and @${\tau' \subteq \tau}
+    }
+    @item{
+      If @${\Gamma \wellFE \vmonpair{\tpair{\tau_0'}{\tau_1'}}{\vpair{v_0}{v_1}} : \tpair{\tau_0}{\tau_1}}
+      then @${\tpair{\tau_0'}{\tau_1'} \subteq \tpair{\tau_0}{\tau_1}}
     }
     @item{
       If @${\Gamma \wellFE \vmonfun{\tarr{\tau_d'}{\tau_c'}}{\vlam{x}{e}} : \tarr{\tau_d}{\tau_c}}
