@@ -15,9 +15,11 @@
   (null? (apply-reduction-relation r t)))
 
 (define (safe-step* A ty done? check-invariant step)
+  #;(printf "SAFE STEP ~a~n" A)
   (let loop ([A A])
     (cond
      [(done? A)
+      #;(printf "DONE ~a~n" A)
       A]
      [else
       (check-invariant A ty)
