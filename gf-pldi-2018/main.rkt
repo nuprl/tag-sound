@@ -383,13 +383,13 @@
 
 (define C-SOUNDNESS
   (list
-    @theorem[@elem{@${\langL} type safety}]{
-      If @${\wellM e : \tau} then @${\wellLE e : \tau} and either:
+    @theorem[@elem{@${\langC} type safety}]{
+      If @${\wellM e : \tau} then @${\wellCE e : \tau} and either:
     }
     @itemlist[
-    @item{ @${e \rrLEstar v} and @${\wellLE v : \tau} }
-    @item{ @${e \rrLEstar E[e'] \ccLD \typeerror} }
-    @item{ @${e \rrLEstar \valueerror} }
+    @item{ @${e \rrCEstar v} and @${\wellCE v : \tau} }
+    @item{ @${e \rrCEstar E[e'] \ccCD \typeerror} }
+    @item{ @${e \rrCEstar \valueerror} }
     @item{ @${e} diverges }]))
 
 (define F-SOUNDNESS
