@@ -3,6 +3,12 @@
 ;; Definitions for writing 21st-century proofs.
 ;;    https://lamport.azurewebsites.net/pubs/proof.pdf
 
+;; TODO
+;; - names for steps, auto-links
+;; - names for assumptions
+;; - structured theorems, instead of this free-form English
+;;   (what to do about the all-important disjunctions???)
+
 (provide
   clearpage
   smallskip
