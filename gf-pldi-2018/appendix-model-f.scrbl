@@ -613,7 +613,9 @@
     }
     @tr-else[@${v_0 \eeq i
                 @tr-or[4]
-                v_0 \eeq \vpair{v}{v'}}]{
+                v_0 \eeq \vpair{v}{v'}
+                @tr-or[4]
+                v_0 \eeq \vmonpair{\tpair{\tau_0}{\tau_1}}{v'} }]{
       @tr-step{
         @${e \ccFD \tagerror}
         @${(\vapp{v_0}{v_1}) \rrFD \tagerror}}
@@ -969,7 +971,7 @@
   }
 
   @tr-case[@${e = \ctxE{\edyn{\tau'}{e'}}} #:itemize? #f]{
-    @tr-if[@${e \in v
+    @tr-if[@${e' \in v
               @tr-and[2]
               e \ccFS \ctxE{\mchk{\tau'}{e'}}}]{
       @tr-step{
@@ -989,7 +991,7 @@
       @tr-qed{
         by @|F-S-hole-subst| (4)}
     }
-    @tr-else[@${e \not\in v
+    @tr-else[@${e' \not\in v
                 @tr-and[4]
                 e' \ccFD e''
                 @tr-and[4]
@@ -2532,7 +2534,7 @@
   ]
 }@tr-proof{
   @tr-qed{
-    by the definition of @${\Gamma \wellFE e : \tau}
+    by the definition of @${\Gamma \wellFE e : \tau} and by @|C-finite-subtyping|
   }
 }
 
