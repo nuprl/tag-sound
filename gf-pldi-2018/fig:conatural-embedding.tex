@@ -106,7 +106,6 @@ $\begin{array}{l@{~~}c@{~~}l}
   }
 
   \inferrule*{
-    i \in \integers
   }{
     \GammaS \wellCE i : \tint
   }
@@ -196,7 +195,7 @@ $\begin{array}{l@{~~}c@{~~}l}
   (\vlam{x}{e})~v & \rrCD & \vsubst{e}{x}{v}
 \\
   v_0~v_1 & \rrCD & \tagerror
-\\\multicolumn{3}{l}{\mbox{\quad if $v_0 \sim i$ or $v_0 \sim \vpair{v}{v'}$}}
+\\\multicolumn{3}{l}{\mbox{\quad if $v_0 \sim i$ or $v_0 \sim \vpair{v}{v'}$ or $v_0 \sim \vmonpair{\tpair{\tau_0}{\tau_1}}{v'}$}}
 \\
   \eunop{v} & \rrCD & A
 \\\multicolumn{3}{l}{\mbox{\quad if $A = \delta(\vunop, v)$}}
