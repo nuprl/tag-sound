@@ -72,8 +72,25 @@ $\begin{array}{l@{~~}c@{~~}l}
   }
 
   \inferrule*{
+    \Gamma \wellFE v_0 : \tau_0'
+    \\
+    \Gamma \wellFE v_1 : \tau_1'
   }{
     \Gamma \wellFE \vmonpair{(\tpair{\tau_0}{\tau_1})}{\vpair{v_0}{v_1}}
+  }
+
+  \inferrule*{
+    \Gamma \wellFE v_0
+    \\
+    \Gamma \wellFE v_1
+  }{
+    \Gamma \wellFE \vmonpair{(\tpair{\tau_0}{\tau_1})}{\vpair{v_0}{v_1}}
+  }
+
+  \inferrule*{
+    \Gamma \wellFE \vlam{x}{e}
+  }{
+    \Gamma \wellFE \vmonfun{(\tarr{\tau_d}{\tau_c})}{\vlam{x}{e}}
   }
 
   \inferrule*{
