@@ -373,7 +373,7 @@ $\begin{array}{l c l}
 $\begin{array}{l@{~~}c@{~~}l l}
   \mchk{K}{v} & = & v & \mbox{if $\wellKE v : K$}
 \\
-  \mchk{K}{v} & = & \valueerror & \mbox{otherwise}
+  \mchk{K}{v} & = & \boundaryerror & \mbox{otherwise}
 \end{array}$
 }
 
@@ -391,7 +391,7 @@ $\begin{array}{l@{~~}c@{~~}l}
 \\
   (\vlam{x}{e})~v & \rrKD & \vsubst{e}{x}{v}
 \\
-  v_0~v_1 & \rrKD & \typeerror
+  v_0~v_1 & \rrKD & \tagerror
 \\\multicolumn{3}{l}{\mbox{\quad if $v_0 \sim i$ or $v_0 \sim \vpair{v}{v'}$}}
 \\
   \eunop{v} & \rrKD & A
@@ -439,7 +439,7 @@ $\begin{array}{l@{~~}c@{~~}l}
     & \mbox{if $e \ccKD e'$}
   \\
   \ctxE{\edyn{\tau}{e}} & \ccKS & A
-    & \mbox{if $e \ccKD A$ and $A \not\in e'$}
+    & \mbox{if $e \ccKD A$ and $A \not\in e$}
   \\
   \ctxE{e} & \ccKS & \ctxE{e'} & \mbox{if $e \rrKS e'$}
   \\
@@ -453,7 +453,7 @@ $\begin{array}{l@{~~}c@{~~}l}
    & \mbox{if $e \ccKS e'$}
   \\
   \ctxE{\esta{\tau}{e}} & \ccKD & A
-   & \mbox{if $e \ccKS A$ and $A \not\in e'$}
+   & \mbox{if $e \ccKS A$ and $A \not\in e$}
   \\
   \ctxE{e} & \ccKD & \ctxE{e'} & \mbox{if $e \rrKD e'$}
   \\

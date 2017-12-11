@@ -253,22 +253,21 @@ showstringspaces=false            %
 
 \newcommand{\stastep}{\rightarrow_S}
 \newcommand{\dynstep}{\rightarrow_D}
-\newcommand{\welldyn}{\vdash_D}
-\newcommand{\wellsta}{\vdash_S}
+
+\newcommand{\myvdash}[1]{\mathrel{\vdash\kern-0.8em{\raisebox{-0.7ex}{\textsc{\scriptsize #1}}}}}
+\newcommand{\welldyn}{\myvdash{d}}
+\newcommand{\wellsta}{\myvdash{s}}
 \newcommand{\wellD}{\welldyn}
 \newcommand{\wellS}{\wellsta}
 \newcommand{\wellM}{\vdash}
-\newcommand{\wellEE}{\vdash_E}
-\newcommand{\wellNE}{\vdash_N}
-\newcommand{\wellCE}{\vdash_C}
+\newcommand{\wellEE}{\myvdash_{e}}
+\newcommand{\wellNE}{\myvdash{n}}
+\newcommand{\wellCE}{\myvdash_{c}}
 \newcommand{\wellLE}{\wellCE}
-\newcommand{\wellFE}{\vdash_F}
-\newcommand{\wellk}{\vdash_k}
-\newcommand{\wellKE}{\vdash_K}
+\newcommand{\wellFE}{\myvdash_{f}}
+\newcommand{\wellKE}{\myvdash_{k}}
 \newcommand{\tagerror}{\mathsf{TagError}}
-\newcommand{\typeerror}{\tagerror}
 \newcommand{\boundaryerror}{\mathsf{BoundaryError}}
-\newcommand{\valueerror}{\boundaryerror}
 \newcommand{\costDS}[1]{\mathbf{cost}_{DS}(#1)}
 \newcommand{\costSD}[1]{\mathbf{cost}_{SD}(#1)}
 \newcommand{\eunop}[1]{\vunop~#1}

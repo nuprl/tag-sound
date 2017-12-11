@@ -23,31 +23,3 @@
   If @${x,x',\Gamma \vdash e} then @${x',x,\Gamma \vdash e}
 }@|smallskip|
 
-
-@;Need this:
-@; TODO find a home for this "bowtie" metafunction
-@;@exact|{
-@;\begin{flushleft}
-@;\fbox{$\DSlift{E}{\rrR}{E'}{\rrRp}$} $= \vtuple{\ccR}{\ccRp}$ where:\\
-@;$\begin{array}{l@{~~}c@{~~}l@{~~}l}
-@;\ctxE{\edyn{\tau}{e}} & \ccR & \ctxE{\edyn{\tau}{e'}}
-@;  & \mbox{if $e \ccRp e'$}
-@;\\
-@;\ctxE{\edyn{\tau}{e}} & \ccR & A
-@;  & \mbox{if $e \ccRp A$ and $A \not\in e'$}
-@;\\
-@;e & \ccR & A
-@;  & \mbox{if $e \cclift{E}{\rrR} A$}
-@;\\[1ex]
-@;\ctxE{\esta{\tau}{e}} & \ccRp & \ctxE{\esta{\tau}{e'}}
-@; & \mbox{if $e \ccR e'$}
-@;\\
-@;\ctxE{\esta{\tau}{e}} & \ccRp & A
-@; & \mbox{if $e \ccR A$ and $A \not\in e'$}
-@;\\
-@;e & \ccRp & A
-@; & \mbox{if $e \cclift{E}{\rrR'} A$}
-@;\end{array}$
-@;
-@;\end{flushleft}
-@;}|
