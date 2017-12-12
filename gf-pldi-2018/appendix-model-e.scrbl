@@ -73,7 +73,7 @@
       @${\tann{x}{\tau_d},\Gamma \wellEE e}
       @tr-IH]
     @tr-step{
-      @${\Gamma \wellM \vlam{\tann{x}{\tau_d}}{e}}
+      @${\Gamma \wellEE \vlam{\tann{x}{\tau_d}}{e}}
       (1)}
     @tr-qed[]
   }
@@ -90,7 +90,7 @@
   @tr-case[#:box? #true
            @${\inferrule*{
               }{
-                \Gamma \wellM i : \tint
+                \Gamma \wellEE i : \tint
               }}]{
     @tr-qed[]
   }
@@ -104,7 +104,7 @@
                 \Gamma \wellM \vpair{e_0}{e_1} : \tpair{\tau_0}{\tau_1}
               }}]{
     @tr-step[
-      @${\Gamma \wellEE e_0 @tr-and[] \Gamma \wellM e_1}
+      @${\Gamma \wellEE e_0 @tr-and[] \Gamma \wellEE e_1}
       @tr-IH]
     @tr-step{
       @${\Gamma \wellEE \vpair{e_0}{e_1}}
@@ -121,7 +121,7 @@
                 \Gamma \wellM e_0~e_1 : \tau_c
               }}]{
     @tr-step[
-      @${\Gamma \wellEE e_0 @tr-and[] \Gamma \wellM e_1}
+      @${\Gamma \wellEE e_0 @tr-and[] \Gamma \wellEE e_1}
       @tr-IH]
     @tr-step{
       @${\Gamma \wellEE \vapp{e_0}{e_1}}
@@ -157,7 +157,7 @@
                 \Gamma \wellM \ebinop{e_0}{e_1} : \tau
               }}]{
     @tr-step[
-      @${\Gamma \wellEE e_0 @tr-and[] \Gamma \wellM e_1}
+      @${\Gamma \wellEE e_0 @tr-and[] \Gamma \wellEE e_1}
       @tr-IH]
     @tr-step{
       @${\Gamma \wellEE \ebinop{e_0}{e_1}}
@@ -195,7 +195,7 @@
   }
 }
 
-@tr-lemma[#:key "E-D-implies" @elem{@${\wellM} implies @${\wellEE}}]{
+@tr-lemma[#:key "E-D-implies" @elem{dynamic implies}]{
   If @${\Gamma \wellM e} then @${\Gamma \wellEE e}.
 }@tr-proof{
   By structural induction on the @${\wellM} relation.
@@ -336,14 +336,14 @@
   @tr-case[@${e = \ctxE{\vapp{v_0}{v_1}}} #:itemize? #f]{
     @tr-if[@${v_0 = \vlam{x}{e'}}]{
       @tr-step[
-        @${e \ccEE \ctxE{\vsubst{e'}{x}{v}}}
-        @${\vapp{v_0}{v_1} \rrEE \vsubst{e'}{x}{v}}]
+        @${e \ccEE \ctxE{\vsubst{e'}{x}{v_1}}}
+        @${\vapp{v_0}{v_1} \rrEE \vsubst{e'}{x}{v_1}}]
       @tr-qed[]
     }
     @tr-if[@${v_0 = \vlam{\tann{x}{\tau}}{e'}}]{
       @tr-step[
-        @${e \ccEE \ctxE{\vsubst{e'}{x}{v}}}
-        @${\vapp{v_0}{v_1} \rrEE \vsubst{e'}{x}{v}}]
+        @${e \ccEE \ctxE{\vsubst{e'}{x}{v_1}}}
+        @${\vapp{v_0}{v_1} \rrEE \vsubst{e'}{x}{v_1}}]
       @tr-qed[]
     }
     @tr-else[@${v_0 \eeq i
@@ -411,7 +411,7 @@
 @tr-lemma[#:key "E-preservation" @elem{@${\langE} preservation}]{
   If @${\wellEE e} and @${e \ccEE e'} then @${\wellEE e'}.
 }@tr-proof{
-  By @|E-uec| there are six cases.
+  By @|E-uec| there are five cases.
 
   @tr-case[@${e = \ctxE{\vapp{v_0}{v_1}}}]{
     @tr-step{
@@ -435,13 +435,10 @@
     ]
     @tr-step[
       @${\wellEE \vsubst{e'}{x}{v_1}}
-      @elem{@|E-subst| (2, 3)}
+      @elem{@|E-subst| (3, 4)}
     ]
-    @tr-step[
-      @${\wellEE \ctxE{\vsubst{e'}{x}{v_1}}}
-      @elem{@|E-hole-subst| (5)}
-    ]
-    @tr-qed[]
+    @tr-qed{
+      by @|E-hole-subst| (5)}
   }
 
   @tr-case[@${e = \ctxE{\eunop{v}}}]{
@@ -460,11 +457,8 @@
       @${\wellEE v'}
       @elem{@|E-delta-preservation| (1,3)}
     ]
-    @tr-step[
-      @${\wellEE \ctxE{v'}}
-      @elem{@|E-hole-subst| (4)}
-    ]
-    @tr-qed[]
+    @tr-qed{
+      by @|E-hole-subst| (4)}
   }
 
   @tr-case[@${e = \ctxE{\ebinop{v_0}{v_1}}}]{
@@ -483,11 +477,8 @@
       @${\wellEE v'}
       @elem{@|E-delta-preservation| (3)}
     ]
-    @tr-step[
-      @${\wellEE \ctxE{v'}}
-      @elem{@|E-hole-subst| (4)}
-    ]
-    @tr-qed[]
+    @tr-qed{
+      by @|E-hole-subst| (4)}
   }
 
   @tr-case[@${e = \ctxE{\edyn{\tau}{v}}}]{
@@ -500,11 +491,8 @@
       @${\wellEE v}
       @elem{@|E-inversion| (2)}
     ]
-    @tr-step[
-      @${\wellEE \ctxE{v}}
-      @elem{@|E-hole-subst| (3)}
-    ]
-    @tr-qed[]
+    @tr-qed{
+      by @|E-hole-subst| (3)}
   }
 
   @tr-case[@${e = \ctxE{\esta{\tau}{v}}}]{
@@ -517,11 +505,8 @@
       @${\wellEE v}
       @elem{@|E-inversion| (2)}
     ]
-    @tr-step[
-      @${\wellEE \ctxE{v}}
-      @elem{@|E-hole-subst| (3)}
-    ]
-    @tr-qed[]
+    @tr-qed{
+      by @|E-hole-subst| (3)}
   }
 }
 
@@ -553,6 +538,9 @@
   @tr-case[@${e = \vpair{e_0}{e_1}} #:itemize? #f]{
     @tr-if[@${e_0 \not\in v}]{
       @tr-step{
+        @${\wellEE e_0}
+        @|E-inversion|}
+      @tr-step{
         @${e_0 = \ES_0[e_0']}
         @tr-IH
       }
@@ -566,6 +554,9 @@
     @tr-if[@${e_0 \in v
               @tr-and[2]
               e_1 \not\in v}]{
+      @tr-step{
+        @${\wellEE e_1}
+        @|E-inversion|}
       @tr-step{
         @${e_1 = \ES_1[e_1']}
         @tr-IH
@@ -587,6 +578,9 @@
   @tr-case[@${e = e_0~e_1} #:itemize? #f]{
     @tr-if[@${e_0 \not\in v}]{
       @tr-step{
+        @${\wellEE e_0}
+        @|E-inversion|}
+      @tr-step{
         @${e_0 = \ED_0[e_0']}
         @tr-IH
       }
@@ -600,6 +594,9 @@
     @tr-if[@${e_0 \in v
               @tr-and[2]
               e_1 \not\in v}]{
+      @tr-step{
+        @${\wellEE e_1}
+        @|E-inversion|}
       @tr-step{
         @${e_1 = \ED_1[e_1']}
         @tr-IH
@@ -624,6 +621,9 @@
   @tr-case[@${e = \eunop{e_0}}]{
     @tr-if[@${e_0 \not\in v}]{
       @tr-step{
+        @${\wellEE e_0}
+        @|E-inversion|}
+      @tr-step{
         @${e_0 = \ED_0[e_0']}
         @tr-IH
       }
@@ -643,6 +643,9 @@
   @tr-case[@${e = \ebinop{e_0}{e_1}} #:itemize? #f]{
     @tr-if[@${e_0 \not\in v}]{
       @tr-step{
+        @${\wellEE e_0}
+        @|E-inversion|}
+      @tr-step{
         @${e_0 = \ED_0[e_0']}
         @tr-IH
       }
@@ -656,6 +659,9 @@
     @tr-if[@${e_0 \in v
               @tr-and[2]
               e_1 \not\in v}]{
+      @tr-step{
+        @${\wellEE e_1}
+        @|E-inversion|}
       @tr-step{
         @${e_1 = \ED_1[e_1']}
         @tr-IH
@@ -678,6 +684,9 @@
   @tr-case[@${e = \edyn{\tau}{e_0}} #:itemize? #f]{
     @tr-if[@${e_0 \not\in v}]{
       @tr-step{
+        @${\wellEE e_0}
+        @|E-inversion|}
+      @tr-step{
         @${e_0 = \ED_0[e_0']}
         @tr-IH
       }
@@ -697,6 +706,9 @@
 
   @tr-case[@${e = \esta{\tau}{e_0}} #:itemize? #f]{
     @tr-if[@${e_0 \not\in v}]{
+      @tr-step{
+        @${\wellEE e_0}
+        @|E-inversion|}
       @tr-step{
         @${e_0 = \ED_0[e_0']}
         @tr-IH
@@ -1145,7 +1157,7 @@
     }
     @tr-step{
       @${\Gamma \wellEE v}
-      @elem{@|E-weakening| (3)}
+      @elem{@|E-weakening|}
     }
     @tr-qed[]
   }
@@ -1198,11 +1210,11 @@
       @${\vsubst{e}{x}{v} = \vlam{\tann{x'}{\tau'}}{(\vsubst{e'}{x}{v})}}
     }
     @tr-step{
-      @${\tann{x'}{\tau'},x,\Gamma \wellEE e' : \kany}
+      @${\tann{x'}{\tau'},x,\Gamma \wellEE e'}
       @|E-inversion|
     }
     @tr-step{
-      @${\tann{x'}{\tau'},\Gamma \wellEE \vsubst{e'}{x}{v} : \kany}
+      @${\tann{x'}{\tau'},\Gamma \wellEE \vsubst{e'}{x}{v}}
       @elem{@tr-IH (2)}
     }
     @tr-step{
@@ -1384,18 +1396,6 @@
     }
     @item{
       If @${\Gamma \wellEE e} then @${\tann{x}{\tau},\Gamma \wellEE e}
-    }
-  ]
-}@tr-proof{
-  @; TODO good enough?
-  @itemize[
-    @item{
-      @tr-step[
-        @${e \mbox{ is closed under } \Gamma}
-        @${\Gamma \wellEE e
-           @tr-or[]
-           \Gamma \wellEE e : \tau}
-      ]
     }
   ]
 }

@@ -15,9 +15,9 @@
    another, and from any free variables in the expression.
 }@|smallskip|
 
-@tr-lemma["weakening"]{
-  If @${\Gamma \vdash e} then @${x,\Gamma \vdash e}
-}@|smallskip|
+@;@tr-lemma["weakening"]{
+@;  If @${\Gamma \vdash e} then @${x,\Gamma \vdash e}
+@;}@|smallskip|
 
 @tr-lemma["permutation"]{
   If @${x,x',\Gamma \vdash e} then @${x',x,\Gamma \vdash e}
