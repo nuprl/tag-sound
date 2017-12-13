@@ -10,6 +10,8 @@
 ;;   (what to do about the all-important disjunctions???)
 
 (provide
+  UID++
+
   clearpage
   smallskip
   newpage
@@ -199,7 +201,7 @@
     (list
       @elem{@exact{\vspace{0.4ex}}
             @bold{@kind->long-name[kind] @|uid|} : @deftech[#:key key-str name-elem]
-            @exact{\vspace{0.0ex}}}
+            @exact{\vspace{0.2ex}}}
       (make-table
         boxed-style
         (list (list (nested content*)))))))

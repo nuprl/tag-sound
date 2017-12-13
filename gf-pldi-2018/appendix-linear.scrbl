@@ -1,6 +1,6 @@
 #lang gf-pldi-2018
-
-@title{Performance vs. Number of Typed Modules}
+@require{techreport.rkt}
+@appendix-title{Performance vs. Number of Typed Modules}
 
 @figure*["fig:locally-defensive-linear"
          @elem{@|LD-Racket| (orange @|tag-color-sample| ) vs. Typed Racket (blue @|tr-color-sample| )}

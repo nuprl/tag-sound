@@ -1,4 +1,5 @@
 #lang gf-pldi-2018
+@require{techreport.rkt}
 
 @title{Benchmark Descriptions}
 
@@ -25,7 +26,7 @@
   "zombie"
   "David Van Horn"
   '()]{
-  Implements a game where players dodge computer-controlled ``zombie'' tokens.
+  Implements a game where players avoid enemies.
   The benchmark runs a fixed sequence of moves (representing user input).
 }
 @bm-desc[

@@ -1,5 +1,5 @@
 #lang gf-pldi-2018
-
+@require{techreport.rkt}
 @title{Implementing Tagged Racket}
 
 High-level architecture of Typed Racket:
