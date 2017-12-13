@@ -2087,7 +2087,7 @@
 (define bbst-oopsla-2017
   (make-bib
    #:title "Sound Gradual Typing: Only Mostly Dead"
-   #:author (authors "Spenser Bauman" "Sam Tobin-Hochstadt" "Carl Friedrich Bolz-Tereick" "Jeremy Siek" "Sam Tobin-Hochstadt")
+   #:author (authors "Spenser Bauman" "Carl Friedrich Bolz-Tereick" "Jeremy Siek" "Sam Tobin-Hochstadt")
    #:location (proceedings-location oopsla)
    #:date 2017))
 
