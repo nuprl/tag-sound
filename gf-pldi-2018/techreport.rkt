@@ -4,10 +4,14 @@
 ;;    https://lamport.azurewebsites.net/pubs/proof.pdf
 
 ;; TODO
-;; - names for steps, auto-links
-;; - names for assumptions
 ;; - structured theorems, instead of this free-form English
-;;   (what to do about the all-important disjunctions???)
+;; - names for steps,
+;;   names for assumptions
+;; - clearer "by" ... this is a mini proof
+;; - comments, between steps
+;; - HTML backend
+;;   - configure math renderer
+;;   - click to show/hide proof/cases
 
 (provide
   UID++
