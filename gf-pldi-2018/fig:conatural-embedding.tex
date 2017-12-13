@@ -74,16 +74,17 @@ $\begin{array}{l@{~~}c@{~~}l}
   }
 
   \inferrule*{
+    \Gamma \wellCE v : \tarr{\tau_d}{\tau_c}
+  }{
+    \Gamma \wellCE \vmonfun{(\tarr{\tau_d}{\tau_c})}{v}
+  }
+
+  \inferrule*{
     \Gamma \wellCE e : \tau
   }{
     \Gamma \wellCE \esta{\tau}{e}
   }
 
-  \inferrule*{
-    \Gamma \wellCE v : \tarr{\tau_d}{\tau_c}
-  }{
-    \Gamma \wellCE \vmonfun{(\tarr{\tau_d}{\tau_c})}{v}
-  }
 }
 
 \lblmathpar{$\Gamma \wellCE e : \tau$}{
@@ -243,20 +244,6 @@ $\begin{array}{l@{~~}c@{~~}l}
 \end{array}$
 }
 
-\lbl{$e \ccCS A$}{
-  $\begin{array}{l@{~~}c@{~~}l@{~~}l}
-  \ctxE{\edyn{\tau}{e}} & \ccCS & \ctxE{\edyn{\tau}{e'}}
-    & \mbox{if $e \ccCD e'$}
-  \\
-  \ctxE{\edyn{\tau}{e}} & \ccCS & A
-    & \mbox{if $e \ccCD A$ and $A \not\in e$}
-  \\
-  \ctxE{e} & \ccCS & \ctxE{e'} & \mbox{if $e \rrCS e'$}
-  \\
-  \ctxE{e} & \ccCS & A         & \mbox{if $e \rrCS A$ and $A \not\in e$}
-  \end{array}$
-}
-
 \lbl{$e \ccCD A$}{
   $\begin{array}{l@{~~}c@{~~}l@{~~}l}
   \ctxE{\esta{\tau}{e}} & \ccCD & \ctxE{\esta{\tau}{e'}}
@@ -268,6 +255,20 @@ $\begin{array}{l@{~~}c@{~~}l}
   \ctxE{e} & \ccCD & \ctxE{e'} & \mbox{if $e \rrCD e'$}
   \\
   \ctxE{e} & \ccCD & A         & \mbox{if $e \rrCD A$ and $A \not\in e$}
+  \end{array}$
+}
+
+\lbl{$e \ccCS A$}{
+  $\begin{array}{l@{~~}c@{~~}l@{~~}l}
+  \ctxE{\edyn{\tau}{e}} & \ccCS & \ctxE{\edyn{\tau}{e'}}
+    & \mbox{if $e \ccCD e'$}
+  \\
+  \ctxE{\edyn{\tau}{e}} & \ccCS & A
+    & \mbox{if $e \ccCD A$ and $A \not\in e$}
+  \\
+  \ctxE{e} & \ccCS & \ctxE{e'} & \mbox{if $e \rrCS e'$}
+  \\
+  \ctxE{e} & \ccCS & A         & \mbox{if $e \rrCS A$ and $A \not\in e$}
   \end{array}$
 }
 

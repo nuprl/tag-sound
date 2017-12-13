@@ -1,6 +1,8 @@
 #lang gf-pldi-2018
 @require{techreport.rkt}
 
+@; TODO use inversion to conclude (e0 e1) : Any, etc ?
+
 @appendix-title++{Locally-Defensive Embedding}
 
 @; -----------------------------------------------------------------------------
@@ -17,6 +19,11 @@
   (define K-S-preservation @tr-ref[#:key "K-S-preservation"]{static preservation})
   (define K-D-preservation @tr-ref[#:key "K-D-preservation"]{dynamic preservation})
 
+  (define K-check @tr-ref[#:key "K-check"]{check soundness})
+
+  (define K-S-completion @tr-ref[#:key "K-S-completion"]{@${\carrow} static soundness})
+  (define K-D-completion @tr-ref[#:key "K-D-completion"]{@${\carrow} dynamic soundness})
+
   (define K-S-canonical @tr-ref[#:key "K-S-canonical"]{canonical forms})
 
   (define K-S-inversion @tr-ref[#:key "K-S-inversion"]{inversion})
@@ -32,10 +39,10 @@
 
   (define K-subt-preservation @tr-ref[#:key "K-subt-preservation"]{subtype preservation})
 
-  (define K-DD-subst @tr-ref[#:key "K-DD-subst"]{substitution lemma})
-  (define K-DS-subst @tr-ref[#:key "K-DS-subst"]{substitution lemma})
-  (define K-SS-subst @tr-ref[#:key "K-SS-subst"]{substitution lemma})
-  (define K-SD-subst @tr-ref[#:key "K-SD-subst"]{substitution lemma})
+  (define K-DD-subst @tr-ref[#:key "K-DD-subst"]{substitution})
+  (define K-DS-subst @tr-ref[#:key "K-DS-subst"]{substitution})
+  (define K-SS-subst @tr-ref[#:key "K-SS-subst"]{substitution})
+  (define K-SD-subst @tr-ref[#:key "K-SD-subst"]{substitution})
 
   (define K-Delta-soundness @tr-ref[#:key "K-Delta-soundness"]{@${\Delta} tag soundness})
   (define K-Delta-inversion @tr-ref[#:key "K-Delta-inversion"]{@${\Delta} inversion})
@@ -46,10 +53,7 @@
   (define K-S-uec @tr-ref[#:key "K-S-uec"]{unique evaluation contexts})
   (define K-D-uec @tr-ref[#:key "K-D-uec"]{unique evaluation contexts})
 
-  (define K-S-completion @tr-ref[#:key "K-S-completion"]{@${\carrow} static soundness})
-  (define K-D-completion @tr-ref[#:key "K-D-completion"]{@${\carrow} dynamic soundness})
-
-  (define K-finite-subtyping @tr-ref[#:key "K-finite-subtyping"]{@${\subt} finite})
+  (define K-finite-subtyping @tr-ref[#:key "K-finite-subtyping"]{@${\subk} finite})
   (define K-weakening @tr-ref[#:key "K-weakening"]{weakening})
 )
 
@@ -66,725 +70,18 @@
   @item{ @${e^+ \rrKEstar \boundaryerror} }
   @item{ @${e^+} diverges }
 ]}@tr-proof{
-  Both @${\wellM e : \tau \carrow e^+} and @${\wellKE e^+ : K} follow from
-   @tr-ref[#:key "K-S-completion"]{soundness of @${\carrow}}.
-  The outcomes for @${\rrKEstar} follow from @tr-ref[#:key "K-S-progress"]{progress}
-   and @tr-ref[#:key "K-S-preservation"]{preservation} lemmas
-   for the @${\wellKE} relation.
+  @itemlist[#:style 'ordered
+    @item{@tr-step{
+      @${\wellKE e : \tau \carrow e^+
+         @tr-and[]
+         \wellKE e^+ : K}
+      @|K-S-completion|
+    }}
+    @item{@tr-qed{
+      by @|K-S-progress| and @|K-S-preservation|
+    }}
+  ]
 }
-
-@; -----------------------------------------------------------------------------
-@tr-lemma[#:key "K-S-progress" @elem{@${\langK} static progress}]{
-  If @${\wellKE e : K} then either:
-  @itemlist[
-    @item{ @${e} is a value }
-    @item{ @${e \ccKS e'} }
-    @item{ @${e \ccKS \boundaryerror} }
-    @item{ @${e \eeq \ctxE{\edyn{\tau'}{e'}} \mbox{ and } e' \ccKD \tagerror} }
-]}@tr-proof{
-  By case analysis on the structure of @${e};
-   by the @|K-S-uec| lemma,
-   there are seven cases to consider.
-
-  @tr-case[@${e \eeq v}]{
-    @tr-qed{}
-  }
-
-  @tr-case[@${e \eeq \ctxE{\edyn{\tau}{e'}}}
-           #:itemize? #false ]{
-    @tr-if[@${e' \in v}
-           #:itemize? #false ]{
-      @tr-if[@${\mchk{\tagof{\tau}}{e'} = e'}]{
-        @tr-step[
-          @${e \ccKS \ctxE{e'}}
-          @${(\edyn{\tau}{e'}) \rrKS e'}]
-        @tr-qed[]
-      }
-      @tr-else[@${\mchk{\tagof{\tau}}{e'} = \boundaryerror}]{
-        @tr-step[
-          @${e \ccKS \boundaryerror}
-          @${(\edyn{\tau}{e'}) \rrKS \boundaryerror}]
-        @tr-qed[]
-      }
-    }
-    @tr-else[@${e' \not\in v}]{
-      @tr-step[
-        @${e' \ccKD A}
-        @|K-D-progress|
-      ]
-      @tr-qed{
-        by @${e \ccKS \ctxE{\edyn{\tau}{A}}} if @${A \in e}
-        @linebreak[]
-        and by @${e \ccKS A} otherwise}
-    }
-  }
-
-  @tr-case[@${e \eeq \ctxE{\edyn{\kany}{e'}}} #:itemize? #f]{
-    @tr-if[@${e' \in v}]{
-      @tr-step[
-        @${e \ccKS \ctxE{v}}
-        @${(\edyn{\kany}{v}) \rrKS v}]
-      @tr-qed[]}
-    @tr-else[@${e' \not\in v}]{
-      @tr-step[
-        @${e' \ccKD A}
-        @|K-D-progress|]
-      @tr-qed{
-        by @${e \ccKS \ctxE{\edyn{\kany}{A}}} if @${A \in e}
-        @linebreak[]
-        and by @${e \ccKS A} otherwise}
-    }
-  }
-
-  @tr-case[@${e \eeq \ctxE{\echk{K}{v}}} #:itemize? #f]{
-    @tr-if[@${\mchk{K}{v} = v}]{
-      @tr-step[
-        @${e \ccKS \ctxE{v}}
-        @${(\echk{K}{v}) \rrKS v}]
-      @tr-qed[]
-    }
-    @tr-else[@${\mchk{K}{v} = \boundaryerror}]{
-      @tr-step[
-        @${e \ccKS \boundaryerror}
-        @${(\echk{K}{v}) \rrKS \boundaryerror}]
-      @tr-qed[]
-    }
-  }
-
-  @tr-case[@${e \eeq \ctxE{v_0~v_1}}]{
-    @tr-step[
-      @${\wellKE v_0~v_1 : K'}
-      @|K-S-hole-typing|]
-    @tr-step{
-      @${\wellKE v_0 : \kfun}
-      @|K-S-inversion| (1)}
-    @tr-step{
-      @${v_0 \eeq \vlam{x}{e'} @tr-or[] v_0 \eeq \vlam{\tann{x}{\tau_d}}{e'}}
-      @|K-S-canonical| (2)}
-    @list[
-      @tr-if[@${v_0 \eeq \vlam{x}{e'}}]{
-        @tr-step[
-          @${e \ccKS \ctxE{\edyn{\kany}{(\vsubst{e'}{x}{v_1})}}}
-          @${(\vlam{x}{e'}~v_1) \rrKS (\edyn{\kany}{(\vsubst{e'}{x}{v_1})})}]
-        @tr-qed[]
-      }
-      @tr-if[@${v_0 \eeq \vlam{\tann{x}{\tau_d}}{e'}
-                @tr-and[2]
-                \mchk{\tagof{\tau_d}}{v_1} = v_1}]{
-        @tr-step[
-          @${e \ccKS \ctxE{\vsubst{e'}{x}{v_1}}}
-          @${(\vlam{\tann{x}{\tau_d}}{e'})~v_1 \rrKS \vsubst{e'}{x}{v_1}}]
-        @tr-qed[]
-      }
-      @tr-else[@${v_0 \eeq \vlam{\tann{x}{\tau_d}}{e'}
-                  @tr-and[4]
-                  \mchk{\tagof{\tau_d}}{v_1} = \boundaryerror}]{
-        @tr-step[
-          @${e \ccKS \boundaryerror}
-          @${(\vlam{\tann{x}{\tau_d}}{e'})~v_1 \rrKS \boundaryerror}]
-        @tr-qed[]
-      }
-    ]
-  }
-
-  @tr-case[@${e \eeq \ctxE{\eunop{v}}}]{
-    @${\vunop \eeq \vfst @tr-or[] \vunop \eeq \vsnd}
-    @tr-step[
-      @${\wellKE \eunop{v} : K'}
-      @|K-S-hole-typing|]
-    @tr-step{
-      @${\wellKE v : \kpair}
-      @|K-S-inversion| (2)}
-    @tr-step{
-      @${v \eeq \vpair{v_0}{v_1}}
-      @|K-S-canonical| (3)}
-    @tr-step{
-      @${\delta(\vunop, v) = v_i \mbox{ where } i \in \{0,1\}}
-      (1, 3)}
-    @tr-step{
-      @${e \ccKS \ctxE{v_i}}
-      @${(\eunop{v}) \rrKS v_i}}
-    @tr-qed[]
-  }
-
-  @tr-case[@${e \eeq \ctxE{\ebinop{v_0}{v_1}}}]{
-    @tr-step{
-      @${\wellKE \ebinop{v_0}{v_1} : K'}
-      @|K-S-hole-typing|}
-    @tr-step{
-      @${\wellKE v_0 : K_0
-         @tr-and[] \wellKE v_1 : K_1
-         @tr-and[] \Delta(\vbinop, K_0, K_1) = K_2}
-      @|K-S-inversion| (1)}
-    @tr-step{
-      @${\delta(\vbinop, v_0, v_1) = v
-         @tr-or[] \delta(\vbinop, v_0, v_1) = \boundaryerror}
-      @|K-Delta-soundness|}
-    @tr-qed{
-      by @${e \ccKS \ctxE{v}} if @${\delta(\vbinop, v_0, v_1)}
-      @linebreak[]
-      and by @${e \ccKS \boundaryerror} otherwise}
-  }
-}
-
-@; -----------------------------------------------------------------------------
-@tr-lemma[#:key "K-D-progress" @elem{@${\langK} dynamic progress}]{
-  If @${\wellKE e} then either @${e} is a value or @${e \ccKD A}.
-}@tr-proof{
-  By case analysis on the structure of @${e};
-   by the @|K-D-uec| lemma,
-   there are six cases to consider.
-
-  @tr-case[@${e \eeq v}]{
-    @tr-qed[]
-  }
-
-  @tr-case[@${e \eeq \ctxE{\esta{\tau}{e'}}} #:itemize? #f]{
-    @tr-if[@${e' \in v} #:itemize? #f]{
-      @tr-if[@${\mchk{\tagof{\tau}}{e'} = e'}]{
-        @tr-step[
-          @${e \ccKD \ctxE{e'}}
-          @${(\esta{\tau}{e'}) \rrKD e'}]
-        @tr-qed[]
-      }
-      @tr-else[@${\mchk{\tagof{\tau}}{e'} = \boundaryerror}]{
-        @tr-step[
-          @${e \ccKD \boundaryerror}
-          @${(\esta{\tau}{e'}) \rrKD \boundaryerror}]
-        @tr-qed[]
-      }
-    }
-    @tr-else[@${e' \not\in v}]{
-      @tr-step[
-        @${e' \ccKS A}
-        @|K-S-progress|]
-      @tr-qed{by @${e \ccKD \ctxE{\esta{\tau}{A}}} if @${A \in e}
-        @linebreak[] and by @${e' \ccKD A} otherwise}
-    }
-  }
-
-  @tr-case[@${e \eeq \ctxE{\esta{\kany}{e'}}} #:itemize? #f]{
-    @tr-if[@${e' \in v}]{
-      @tr-step[
-        @${e \ccKD \ctxE{e'}}
-        @${(\esta{\kany}{e'}) \rrKD e'}
-      ]
-      @tr-qed[]
-    }
-    @tr-else[@${e' \not\in v}]{
-      @tr-step[
-        @${e' \ccKS A}
-        @|K-S-progress|]
-      @tr-qed{by @${e \ccKD \ctxE{\esta{\kany}{A}}} if @${A \in e}
-        @linebreak[] and by @${e \ccKD A} otherwise}
-    }
-  }
-
-  @tr-case[@${e \eeq \ctxE{v_0~v_1}}]{
-    @tr-if[@${v_0 \eeq \vlam{x}{e_0}}]{
-      @tr-step[
-        @${e \ccKD \ctxE{\vsubst{e_0}{x}{v_1}}}
-        @${(\vlam{x}{e_0})~v_1 \rrKD \vsubst{e_0}{x}{v_1}}]
-      @tr-qed[]
-    }
-    @tr-if[@${v_0 \eeq \vlam{\tann{x}{\tau_d}}{e_0}
-              @tr-and[2]
-              \mchk{\tagof{\tau_d}}{v_1} = v_1}]{
-      @tr-step[
-        @${e \ccKD \ctxE{\esta{\kany}{(\vsubst{e_0}{x}{v_1})}}}
-        @${(\vlam{\tann{x}{\tau_d}}{e_0})~v_1 \rrKD (\esta{\kany}{\vsubst{e_0}{x}{v_1}})}]
-      @tr-qed[]
-    }
-    @tr-if[@${v_0 \eeq \vlam{\tann{x}{\tau_d}}{e_0}
-              @tr-and[2]
-              \mchk{\tagof{\tau_d}}{v_1} = \boundaryerror}]{
-      @tr-step[
-        @${e \ccKD \boundaryerror}
-        @${(\vlam{\tann{x}{\tau_d}}{e_0})~v_1 \rrKD \boundaryerror}]
-      @tr-qed[]
-    }
-    @tr-else[@${v_0 \eeq i
-                @tr-or[4]
-                v_0 \eeq \vpair{v}{v'}}]{
-      @tr-step[
-        @${e \ccKD \tagerror}
-        @${v_0~v_1 \rrKD \tagerror}]
-      @tr-qed[]
-    }
-  }
-
-  @tr-case[@${e = \ctxE{\eunop{v}}} #:itemize? #f]{
-    @tr-if[@${\delta(\vunop, v) = v'}]{
-      @tr-step[
-        @${e \ccKD \ctxE{v'}}
-        @${(\eunop{v}) \rrKD v'}]
-      @tr-qed[]
-    }
-    @tr-else[@${\delta(\vunop, v) \mbox{ is undefined}}]{
-      @tr-step[
-        @${e \ccKD \tagerror}
-        @${(\eunop{v}) \rrKD \tagerror}]
-      @tr-qed[]
-    }
-  }
-
-  @tr-case[@${e = \ctxE{\ebinop{v_0}{v_1}}} #:itemize? #f]{
-    @tr-if[@${\delta(\vbinop, v_0, v_1) = v'}]{
-      @tr-step[
-        @${e \ccKD \ctxE{v'}}
-        @${(\ebinop{v_0}{v_1}) \rrKD v'}]
-      @tr-qed[]
-    }
-    @tr-if[@${\delta(\vbinop, v_0, v_1) = \boundaryerror}]{
-      @tr-step[
-        @${e \ccKD \boundaryerror}
-        @${(\ebinop{v_0}{v_1}) \rrKD \boundaryerror}]
-      @tr-qed[]
-    }
-    @tr-else[@${\delta(\vbinop, v_0, v_1) \mbox{ is undefined}}]{
-      @tr-step[
-        @${e \ccKD \tagerror}
-        @${(\ebinop{v_0}{v_1}) \rrKD \tagerror}]
-      @tr-qed[]
-    }
-  }
-}
-
-@; -----------------------------------------------------------------------------
-@tr-lemma[#:key "K-S-preservation" @elem{@${\langK} static preservation}]{
-  If @${\wellKE e : K} and @${e \ccKS e'} then @${\wellKE e' : K}
-}@tr-proof{
-  By the @|K-S-uec| lemma, there are six cases to consider.
-
-  @tr-case[@${e = \ctxE{\edyn{\tau}{e'}}} #:itemize? #f]{
-    @tr-if[@${\ctxE{\edyn{\tau}{e'}} \ccKS \ctxE{\edyn{\tau}{e''}}}]{
-      @tr-step[
-        @${\wellKE \edyn{\tau}{e'} : K'}
-        @|K-S-hole-typing|]
-      @tr-step[
-        @${\tagof{\tau} \subt K' @tr-or[] \tagof{\tau} = K'}
-        @|K-S-inversion|]
-      @tr-step[
-        @${\wellKE e'}
-        @|K-S-inversion|]
-      @tr-step[
-        @${\wellKE e''}
-        @|K-D-preservation|]
-      @tr-step{
-        @${\wellKE \edyn{\tau}{e''} : \tagof{\tau}}
-        (4)}
-      @tr-qed{by (2, 5, @|K-S-hole-subst|)}
-    }
-    @tr-else[@${\ctxE{\edyn{\tau}{v}} \ccKS \ctxE{v}}]{
-      @tr-step{
-        @${\wellKE \edyn{\tau}{v} : K'}
-        @|K-S-hole-typing|
-      }
-      @tr-step{
-        @${\tagof{\tau} \subt K'}
-        @|K-S-inversion|
-      }
-      @tr-step{
-        @${\wellKE v : \tagof{\tau}}
-        @${\mchk{\tagof{\tau}}{v} = v}
-      }
-      @tr-qed{
-        by (2, 3, @|K-S-hole-subst|)
-      }
-    }
-  }
-
-  @tr-case[@${e = \ctxE{\edyn{\kany}{e'}}} #:itemize? #f]{
-    @tr-if[@${\ctxE{\edyn{\kany}{e'}} \ccKS \ctxE{\edyn{\kany}{e''}}}]{
-      @tr-step{
-        @${\wellKE \edyn{\kany}{e'} : \kany}
-        @|K-S-hole-typing|
-      }
-      @tr-step{
-        @${\wellKE e'}
-        @|K-S-inversion|
-      }
-      @tr-step{
-        @${\wellKE e''}
-        @|K-D-preservation|
-      }
-      @tr-step{
-        @${\wellKE \edyn{\kany}{e''} : \kany}
-        (3)
-      }
-      @tr-qed{
-        by (4, @|K-S-hole-subst|)
-      }
-    }
-    @tr-else[@${\ctxE{\edyn{\kany}{v}} \ccKS \ctxE{v}}]{
-      @tr-step{
-        @${\wellKE \edyn{\kany}{v} : \kany}
-        @|K-S-hole-typing|
-      }
-      @tr-step{
-        @${\wellKE v}
-        @|K-S-inversion|
-      }
-      @tr-step{
-        @${\wellKE v : \kany}
-        @|K-S-value-inversion|
-      }
-      @tr-qed{
-        by (3, @|K-S-hole-subst|)}
-    }
-  }
-
-  @tr-case[@${e = \ctxE{\echk{K'}{v}}}]{
-    @tr-step{
-      @${\ctxE{\echk{K'}{v}} \ccKS \ctxE{v}}
-    }
-    @tr-step{
-      @${\wellKE \echk{K'}{v} : K''}
-      @|K-S-hole-typing|
-    }
-    @tr-step{
-      @${K' \subt K''}
-      @|K-S-inversion|
-    }
-    @tr-step{
-      @${\wellKE v : K'}
-      @${\mchk{K'}{v} = v}
-    }
-    @tr-qed{
-      by (3, 4, @|K-S-hole-subst|)
-    }
-  }
-
-  @tr-case[@${e = \ctxE{v_0~v_1}}]{
-    @tr-step{
-      @${\wellKE v_0~v_1 : \kany}
-      @|K-S-hole-typing|
-    }
-    @tr-step{
-      @${\wellKE v_0 : \kfun @tr-and[] \wellKE v_1 : \kany}
-      @|K-S-inversion|
-    }
-    @tr-step{
-      @${v_0 = \vlam{x}{e} @tr-or[] v_0 = \vlam{\tann{x}{\tau}}{e}}
-      @|K-S-canonical|
-    }
-    @list[
-      @tr-if[@${v_0 = \vlam{x}{e}}]{
-        @tr-step{
-          @${\ctxE{v_0~v_1} \ccKS \ctxE{\edyn{\kany}{\vsubst{e}{x}{v_1}}}}
-        }
-        @tr-step{
-          @${x \wellKE e}
-          @|K-S-inversion|
-        }
-        @tr-step{
-          @${\wellKE v_1}
-          @|K-S-value-inversion| (2)
-        }
-        @tr-step{
-          @${\wellKE \vsubst{e}{x}{v_1}}
-          @|K-DD-subst| (4, 5)
-        }
-        @tr-step{
-          @${\wellKE \edyn{\kany}{(\vsubst{e}{x}{v_1})} : \kany}
-          (7)
-        }
-        @tr-qed{
-          by @|K-S-hole-subst|
-        }
-      }
-
-      @tr-else[@${v_0 = \vlam{\tann{x}{\tau}}{e}}]{
-        @tr-step{
-          @${\ctxE{v_0~v_1} \ccKS \ctxE{\vsubst{e}{x}{v_1}}
-             @tr-and[] \mchk{\tagof{\tau}}{v_1} = v_1}
-        }
-        @tr-step{
-          @${\wellKE v_1 : \tagof{\tau}}
-          (4)
-        }
-        @tr-step{
-          @${\tann{x}{\tau} \wellKE e : \kany}
-          @|K-S-inversion|
-        }
-        @tr-step{
-          @${\wellKE \vsubst{e}{x}{v_1} : \kany}
-          @|K-SS-subst| (5, 6)
-        }
-        @tr-qed{
-          by @|K-S-hole-subst|
-        }
-      }
-    ]
-  }
-
-  @tr-case[@${e = \ctxE{\eunop{v}}}]{
-    @tr-step{
-      @${\ctxE{\eunop{v}} \ccKS \ctxE{v'}
-         @tr-and[]
-         \delta(\vunop, v) = v'}
-    }
-    @tr-step{
-      @${\wellKE \eunop{v} : \kany}
-      @|K-S-hole-typing|
-    }
-    @tr-step{
-      @${\wellKE v : \kpair}
-      @|K-S-inversion|
-    }
-    @tr-step{
-      @${v = \vpair{v_0}{v_1}}
-      @|K-S-canonical|
-    }
-    @tr-step{
-      @${\wellKE v_0 : \kany @tr-and[] \wellKE v_1 : \kany}
-      @|K-S-inversion| (3, 4)
-    }
-    @tr-step{
-      @${v' = v_0 @tr-or[] v' = v_1}
-      @${\delta(\vfst, v) = v_0 @tr-and[] \delta(\vsnd, v) = v_1}
-    }
-    @tr-qed{
-      by @|K-S-hole-subst| (5)
-    }
-  }
-
-  @tr-case[@${e = \ctxE{\ebinop{v_0}{v_1}}}]{
-    @tr-step{
-      @${\ctxE{\ebinop{v_0}{v_1}} \ccKS \ctxE{v}}
-      @${\delta(\vbinop, v_0, v_1) = v}
-    }
-    @tr-step{
-      @${\wellKE \ebinop{v_0}{v_1} : K'}
-      @|K-S-hole-typing|
-    }
-    @tr-step{
-      @${\wellKE v_0 : K_0
-         @tr-and[]
-         \wellKE v_1 : K_1
-         @tr-and[]
-         \Delta(\vbinop, K_0, K_1) = K''
-         @tr-and[]
-         K'' \subt K'}
-      @|K-S-inversion|
-    }
-    @tr-step{
-      @${\wellKE v : K''}
-      @|K-Delta-soundness| (3)
-    }
-    @tr-step{
-      @${\wellKE v : K'}
-      (3)
-    }
-    @tr-qed{
-      by @|K-S-hole-subst|
-    }
-  }
-}
-
-@; -----------------------------------------------------------------------------
-@tr-lemma[#:key "K-D-preservation" @elem{@${\langK} dynamic preservation}]{
-  If @${\wellKE e} and @${e \ccKD e'} then @${\wellKE e'}
-}@tr-proof{
-  By @|K-D-uec| there are five cases.
-
-  @tr-case[@${e = \ctxE{\esta{\tau}{e'}}} #:itemize? #false]{
-    @tr-if[@${\ctxE{\esta{\tau}{e'}} \ccKD \ctxE{\esta{\tau}{e''}}}]{
-      @tr-step{
-        @${\wellKE \esta{\tau}{e'}}
-        @|K-D-hole-typing|
-      }
-      @tr-step{
-        @${\wellKE e' : \tagof{\tau}}
-        @|K-D-inversion|
-      }
-      @tr-step{
-        @${\wellKE e'' : \tagof{\tau}}
-        @|K-S-preservation|
-      }
-      @tr-step{
-        @${\wellKE \esta{\tau}{e''}}
-        (3)
-      }
-      @tr-qed{
-        by @|K-D-hole-subst|
-      }
-    }
-
-    @tr-else[@${\ctxE{\esta{\tau}{v}} \ccKD \ctxE{v}}]{
-      @tr-step{
-        @${\wellKE \esta{\tau}{v}}
-        @|K-D-hole-typing|
-      }
-      @tr-step{
-        @${\wellKE v : \tagof{\tau}}
-        @|K-D-inversion|
-      }
-      @tr-step{
-        @${\wellKE v}
-        @|K-S-value-inversion|
-      }
-      @tr-qed{
-        by @|K-D-hole-subst|
-      }
-    }
-  }
-
-  @tr-case[@${e = \ctxE{\esta{\kany}{e'}}} #:itemize? #f]{
-    @tr-if[@${\ctxE{\esta{\kany}{e'}} \ccKD \ctxE{\esta{\kany}{e''}}}]{
-      @tr-step{
-        @${\wellKE \esta{\kany}{e'}}
-        @|K-D-hole-typing|
-      }
-      @tr-step{
-        @${\wellKE e' : \kany}
-        @|K-D-inversion|
-      }
-      @tr-step{
-        @${\wellKE e'' : \kany}
-        @|K-S-preservation|
-      }
-      @tr-step{
-        @${\wellKE \esta{\kany}{e''}}
-        (3)
-      }
-      @tr-qed{
-        by @|K-D-hole-subst|
-      }
-    }
-
-    @tr-else[@${\ctxE{\esta{\kany}{v}} \ccKD v}]{
-      @tr-step{
-        @${\wellKE \esta{\kany}{v}}
-        @|K-D-hole-typing|
-      }
-      @tr-step{
-        @${\wellKE v : \kany}
-        @|K-D-inversion|
-      }
-      @tr-step{
-        @${\wellKE v}
-        @|K-S-value-inversion|
-      }
-      @tr-qed{
-        by @|K-D-hole-subst|
-      }
-    }
-  }
-
-  @tr-case[@${e = \ctxE{v_0~v_1}}]{
-    @tr-if[@${v_0 = \vlam{x}{e}}]{
-      @tr-step{
-        @${\ctxE{v_0~v_1} \ccKD \ctxE{\vsubst{e}{x}{v_1}}}
-      }
-      @tr-step{
-        @${\wellKE v_0~v_1}
-        @|K-D-hole-typing|
-      }
-      @tr-step{
-        @${\wellKE v_0
-           @tr-and[]
-           \wellKE v_1}
-        @|K-D-inversion| (2)
-      }
-      @tr-step{
-        @${x \wellKE e}
-        @|K-D-inversion| (3)
-      }
-      @tr-step{
-        @${\wellKE \vsubst{e}{x}{v_1}}
-        @|K-DD-subst| (3, 4)
-      }
-      @tr-qed{
-        by @|K-D-hole-subst|
-      }
-    }
-
-    @tr-else[@${v_0 = \vlam{\tann{x}{\tau}}{e}}]{
-      @tr-step{
-        @${\ctxE{v_0~v_1} \ccKD \ctxE{\esta{\kany}{(\vsubst{e}{x}{v_1})}}
-           @tr-and[]
-           \mchk{\tagof{\tau}}{v_1} = v_1}
-      }
-      @tr-step{
-        @${\wellKE v_1 : \tagof{\tau}}
-        (1)
-      }
-      @tr-step{
-        @${\wellKE v_0~v_1}
-        @|K-D-hole-typing|
-      }
-      @tr-step{
-        @${\wellKE v_0}
-        @|K-D-inversion| (3)
-      }
-      @tr-step{
-        @${\tann{x}{\tau} \wellKE e : \kany}
-        @|K-D-inversion| (4)
-      }
-      @tr-step{
-        @${\wellKE \vsubst{e}{x}{v_1} : \kany}
-        @|K-SS-subst| (2, 5)
-      }
-      @tr-step{
-        @${\wellKE \esta{\kany}{(\vsubst{e}{x}{v_1})}}
-        (6)
-      }
-      @tr-qed{
-        by @|K-D-hole-subst|
-      }
-    }
-  }
-
-  @tr-case[@${e = \ctxE{\eunop{v}}}]{
-    @tr-step{
-      @${\ctxE{\eunop{v}} \ccKD \ctxE{v'}
-         @tr-and[]
-         \delta(\vunop, v) = v'}
-    }
-    @tr-step{
-      @${\wellKE \eunop{v}}
-      @|K-D-hole-typing|
-    }
-    @tr-step{
-      @${\wellKE v}
-      @|K-D-inversion|
-    }
-    @tr-step{
-      @${\wellKE v'}
-      @|K-delta-preservation|
-    }
-    @tr-qed{
-      by @|K-D-hole-subst|
-    }
-  }
-
-  @tr-case[@${e = \ctxE{\ebinop{v_0}{v_1}}}]{
-    @tr-step{
-      @${\ctxE{\ebinop{v_0}{v_1}} \ccKD \ctxE{v'}
-         @tr-and[]
-         \delta(\vbinop, v_0, v_1) = v'}
-    }
-    @tr-step{
-      @${\wellKE \ebinop{v_0}{v_1}}
-      @|K-D-hole-typing|
-    }
-    @tr-step{
-      @${\wellKE v_0
-         @tr-and[]
-         \wellKE v_1}
-      @|K-D-inversion|
-    }
-    @tr-step{
-      @${\wellKE v'}
-      @|K-delta-preservation| (3)
-    }
-    @tr-qed{
-      by @|K-D-hole-subst|
-    }
-  }
-}
-
 
 @; -----------------------------------------------------------------------------
 @tr-lemma[#:key "K-S-completion" @elem{@${\carrow} static soundness}]{
@@ -792,7 +89,6 @@
    and @${\Gamma \wellKE e' : \tagof{\tau}}.
 }@tr-proof{
   By induction on the structure of @${\Gamma \wellM e : \tau}.
-  Proceed by cases on the last rule used.
 
   @tr-case[#:box? #true
            @${\inferrule*{
@@ -824,7 +120,7 @@
     }
     @tr-step{
       @${\tann{x}{\tau_d},\Gamma \vdash e' : \kany}
-      @${\tagof{\tau_c} \subt \kany}
+      @${\tagof{\tau_c} \subk \kany}
     }
     @tr-step{
       @${\vlam{\tann{x}{\tau_d}}{e} : \tarr{\tau_d}{\tau_c} \carrow \vlam{\tann{x}{\tau_d}}{e'}}
@@ -887,11 +183,11 @@
     }
     @tr-step{
       @${\Gamma \wellKE e_0 : \kany}
-      @${\tagof{\tau_0} \subt \kany}
+      @${\tagof{\tau_0} \subk \kany}
     }
     @tr-step{
       @${\Gamma \wellKE e_1 : \kany}
-      @${\tagof{\tau_1} \subt \kany}
+      @${\tagof{\tau_1} \subk \kany}
     }
     @tr-step{
       @${\Gamma \wellM \vpair{e_0}{e_1} : \tau \carrow \vpair{e_0'}{e_1'}}
@@ -912,7 +208,7 @@
                 \\
                 \Gamma \wellM e_1 : \tau_d
               }{
-                \Gamma \wellM e_0~e_1 : \tau_c
+                \Gamma \wellM \vapp{e_0}{e_1} : \tau_c
               }}]{
     @tr-step{
       @${\Gamma \wellM e_0 : \tarr{\tau_d}{\tau_c} \carrow e_0'
@@ -932,7 +228,7 @@
     }
     @tr-step{
       @${\Gamma \wellKE e_1' : \kany}
-      @${\tagof{\tau_d} \subt \kany}
+      @${\tagof{\tau_c} \subk \kany}
     }
     @tr-step{
       @${\Gamma \wellM e_0~e_1 : \tau_c \carrow \echk{\tagof{\tau_c}}{(e_0'~e_1')}}
@@ -1072,9 +368,7 @@
       @|tr-IH|
     }
     @tr-step{
-      @${\tagof{\tau'} \eeq \tagof{\tau}
-         @tr-or[]
-         \tagof{\tau'} \subt \tagof{\tau}}
+      @${\tagof{\tau'} \subkeq \tagof{\tau}}
       @|K-subt-preservation|
     }
     @tr-step{
@@ -1117,7 +411,6 @@
   If @${\Gamma \wellM e} then @${\Gamma \wellM e \carrow e'} and @${\Gamma \wellKE e'}
 }@tr-proof{
   By induction on the structure of @${\Gamma \wellM e}.
-  Proceed by cases on the last rule used.
 
   @tr-case[#:box? #true
            @${\inferrule*{
@@ -1130,6 +423,7 @@
     }
     @tr-step{
       @${\Gamma \wellKE x}
+      @${x \in \Gamma}
     }
     @tr-qed{
     }
@@ -1141,17 +435,17 @@
               }{
                 \Gamma \wellM \vlam{x}{e}
               }}]{
-    @tr-case{
+    @tr-step{
       @${x,\Gamma \wellM e \carrow e'
          @tr-and[]
          x,\Gamma \wellKE e'}
       @|tr-IH|
     }
-    @tr-case{
+    @tr-step{
       @${\Gamma \wellM \vlam{x}{e} \carrow \vlam{x}{e'}}
       (1)
     }
-    @tr-case{
+    @tr-step{
       @${\Gamma \wellKE \vlam{x}{e'}}
       (1)
     }
@@ -1326,110 +620,711 @@
 }
 
 @; -----------------------------------------------------------------------------
-@tr-lemma[#:key "K-delta-preservation" @elem{@${\delta} preservation}]{
+@tr-lemma[#:key "K-S-progress" @elem{@${\langK} static progress}]{
+  If @${\wellKE e : K} then either:
   @itemlist[
-    @item{
-      If @${\wellKE v} and @${\delta(\vunop, v) = v'} then @${\wellKE v'}
-    }
-    @item{
-      If @${\wellKE v_0} and @${\wellKE v_1} and @${\delta(\vbinop, v_0, v_1) = v'}
-       then @${\wellKE v'}
-    }
-  ]
-}@tr-proof{
+    @item{ @${e} is a value }
+    @item{ @${e \ccKS e'} }
+    @item{ @${e \ccKS \boundaryerror} }
+    @item{ @${e \eeq \ctxE{\edyn{\tau'}{e'}} \mbox{ and } e' \ccKD \tagerror} }
+]}@tr-proof{
+  By the @|K-S-uec| lemma,
+   there are seven cases.
 
-  @tr-case[@${\delta(\vfst, \vpair{v_0}{v_1}) = v_0}]{
+  @tr-case[@${e \eeq v}]{
+    @tr-qed{}
+  }
+
+  @tr-case[@${e \eeq \ctxE{v_0~v_1}}]{
+    @tr-step[
+      @${\wellKE v_0~v_1 : K'}
+      @|K-S-hole-typing|]
     @tr-step{
-      @${\wellKE v_0}
-      @|K-D-inversion|
-    }
-    @tr-qed[]
-  }
-
-  @tr-case[@${\delta(\vsnd, \vpair{v_0}{v_1}) = v_1}]{
+      @${\wellKE v_0 : \kfun}
+      @|K-S-inversion| (1)}
     @tr-step{
-      @${\wellKE v_1}
-      @|K-D-inversion|
-    }
+      @${v_0 \eeq \vlam{x}{e'} @tr-or[] v_0 \eeq \vlam{\tann{x}{\tau_d}}{e'}}
+      @|K-S-canonical| (2)}
+    @list[
+      @tr-if[@${v_0 \eeq \vlam{x}{e'}}]{
+        @tr-step[
+          @${e \ccKS \ctxE{\edyn{\kany}{(\vsubst{e'}{x}{v_1})}}}
+          @${\vapp{(\vlam{x}{e'})}{v_1} \rrKS (\edyn{\kany}{(\vsubst{e'}{x}{v_1})})}]
+        @tr-qed[]
+      }
+      @tr-if[@${v_0 \eeq \vlam{\tann{x}{\tau_d}}{e'}
+                @tr-and[2]
+                \mchk{\tagof{\tau_d}}{v_1} = v_1}]{
+        @tr-step[
+          @${e \ccKS \ctxE{\vsubst{e'}{x}{v_1}}}
+          @${(\vlam{\tann{x}{\tau_d}}{e'})~v_1 \rrKS \vsubst{e'}{x}{v_1}}]
+        @tr-qed[]
+      }
+      @tr-else[@${v_0 \eeq \vlam{\tann{x}{\tau_d}}{e'}
+                  @tr-and[4]
+                  \mchk{\tagof{\tau_d}}{v_1} = \boundaryerror}]{
+        @tr-step[
+          @${e \ccKS \boundaryerror}
+          @${(\vlam{\tann{x}{\tau_d}}{e'})~v_1 \rrKS \boundaryerror}]
+        @tr-qed[]
+      }
+    ]
+  }
+
+  @tr-case[@${e \eeq \ctxE{\eunop{v}}}]{
+    @${\vunop \eeq \vfst @tr-or[] \vunop \eeq \vsnd}
+    @tr-step[
+      @${\wellKE \eunop{v} : K'}
+      @|K-S-hole-typing|]
+    @tr-step{
+      @${\wellKE v : \kpair}
+      @|K-S-inversion| (2)}
+    @tr-step{
+      @${v \eeq \vpair{v_0}{v_1}}
+      @|K-S-canonical| (3)}
+    @tr-step{
+      @${\delta(\vunop, v) = v_i \mbox{ where } i \in \{0,1\}}
+      (1, 3)}
+    @tr-step{
+      @${e \ccKS \ctxE{v_i}}
+      @${(\eunop{v}) \rrKS v_i}}
     @tr-qed[]
   }
 
-  @tr-case[@${\delta(\vsum, v_0, v_1) = v_0 + v_1}]{
-    @tr-qed[]
-  }
-
-  @tr-case[@${\delta(\vquotient, v_0, v_1) = \floorof{v_0 / v_1}}]{
-    @tr-qed[]
-  }
-}
-
-@; -----------------------------------------------------------------------------
-@; TODO better name ... was thinking "preserve/reflect"
-@tr-lemma[#:key "K-Delta-tag-preservation" @elem{@${\Delta} preservation}]{
-  If @${\Delta(\vbinop, \tau_0, \tau_1) = \tau} then
-     @${\Delta(\vbinop, \tagof{\tau_0}, \tagof{\tau_1}) = \tagof{\tau}}.
-}@tr-proof{
-  By case analysis on the definition of @${\Delta}
-
-  @tr-case[@${\Delta(\vbinop, \tnat, \tnat) = \tnat}]{
+  @tr-case[@${e \eeq \ctxE{\ebinop{v_0}{v_1}}}]{
+    @tr-step{
+      @${\wellKE \ebinop{v_0}{v_1} : K'}
+      @|K-S-hole-typing|}
+    @tr-step{
+      @${\wellKE v_0 : K_0
+         @tr-and[] \wellKE v_1 : K_1
+         @tr-and[] \Delta(\vbinop, K_0, K_1) = K_2}
+      @|K-S-inversion| (1)}
+    @tr-step{
+      @${\delta(\vbinop, v_0, v_1) = A}
+      @|K-Delta-soundness|}
     @tr-qed{
-      by @${\tagof{\tnat} = \tnat}
+      by @${e \ccKS \ctxE{A}} if @${A \in e}
+      @linebreak[]
+      and by @${e \ccKS A} otherwise}
+  }
+
+  @tr-case[@${e \eeq \ctxE{\edyn{\tau}{e'}}}
+           #:itemize? #false ]{
+    @tr-if[@${e' \in v}
+           #:itemize? #false ]{
+      @tr-if[@${\mchk{\tagof{\tau}}{e'} = e'}]{
+        @tr-step[
+          @${e \ccKS \ctxE{e'}}
+          @${(\edyn{\tau}{e'}) \rrKS e'}]
+        @tr-qed[]
+      }
+      @tr-else[@${\mchk{\tagof{\tau}}{e'} = \boundaryerror}]{
+        @tr-step[
+          @${e \ccKS \boundaryerror}
+          @${(\edyn{\tau}{e'}) \rrKS \boundaryerror}]
+        @tr-qed[]
+      }
+    }
+    @tr-else[@${e' \not\in v}]{
+      @tr-step[
+        @${e' \ccKD A}
+        @|K-D-progress|
+      ]
+      @tr-qed{
+        by @${e \ccKS \ctxE{\edyn{\tau}{A}}} if @${A \in e}
+        @linebreak[]
+        and by @${e \ccKS A} otherwise}
     }
   }
 
-  @tr-case[@${\Delta(\vbinop, \tint, \tint) = \tint}]{
+  @tr-case[@${e \eeq \ctxE{\edyn{\kany}{e'}}} #:itemize? #f]{
+    @tr-if[@${e' \in v}]{
+      @tr-step[
+        @${e \ccKS \ctxE{v}}
+        @${(\edyn{\kany}{v}) \rrKS v}]
+      @tr-qed[]}
+    @tr-else[@${e' \not\in v}]{
+      @tr-step[
+        @${e' \ccKD A}
+        @|K-D-progress|]
+      @tr-qed{
+        by @${e \ccKS \ctxE{\edyn{\kany}{A}}} if @${A \in e}
+        @linebreak[]
+        and by @${e \ccKS A} otherwise}
+    }
+  }
+
+  @tr-case[@${e \eeq \ctxE{\echk{K}{v}}} #:itemize? #f]{
+    @tr-if[@${\mchk{K}{v} = v}]{
+      @tr-step[
+        @${e \ccKS \ctxE{v}}
+        @${(\echk{K}{v}) \rrKS v}]
+      @tr-qed[]
+    }
+    @tr-else[@${\mchk{K}{v} = \boundaryerror}]{
+      @tr-step[
+        @${e \ccKS \boundaryerror}
+        @${(\echk{K}{v}) \rrKS \boundaryerror}]
+      @tr-qed[]
+    }
+  }
+
+}
+
+@; -----------------------------------------------------------------------------
+@tr-lemma[#:key "K-D-progress" @elem{@${\langK} dynamic progress}]{
+  If @${\wellKE e} then either @${e} is a value or @${e \ccKD A}.
+}@tr-proof{
+  By the @|K-D-uec| lemma, there are six cases.
+
+  @tr-case[@${e \eeq v}]{
+    @tr-qed[]
+  }
+
+  @tr-case[@${e \eeq \ctxE{v_0~v_1}}]{
+    @tr-if[@${v_0 \eeq \vlam{x}{e_0}}]{
+      @tr-step[
+        @${e \ccKD \ctxE{\vsubst{e_0}{x}{v_1}}}
+        @${(\vlam{x}{e_0})~v_1 \rrKD \vsubst{e_0}{x}{v_1}}]
+      @tr-qed[]
+    }
+    @tr-if[@${v_0 \eeq \vlam{\tann{x}{\tau_d}}{e_0}
+              @tr-and[2]
+              \mchk{\tagof{\tau_d}}{v_1} = v_1}]{
+      @tr-step[
+        @${e \ccKD \ctxE{\esta{\kany}{(\vsubst{e_0}{x}{v_1})}}}
+        @${(\vlam{\tann{x}{\tau_d}}{e_0})~v_1 \rrKD (\esta{\kany}{\vsubst{e_0}{x}{v_1}})}]
+      @tr-qed[]
+    }
+    @tr-if[@${v_0 \eeq \vlam{\tann{x}{\tau_d}}{e_0}
+              @tr-and[2]
+              \mchk{\tagof{\tau_d}}{v_1} = \boundaryerror}]{
+      @tr-step[
+        @${e \ccKD \boundaryerror}
+        @${(\vlam{\tann{x}{\tau_d}}{e_0})~v_1 \rrKD \boundaryerror}]
+      @tr-qed[]
+    }
+    @tr-else[@${v_0 \eeq i
+                @tr-or[4]
+                v_0 \eeq \vpair{v}{v'}}]{
+      @tr-step[
+        @${e \ccKD \tagerror}
+        @${v_0~v_1 \rrKD \tagerror}]
+      @tr-qed[]
+    }
+  }
+
+  @tr-case[@${e = \ctxE{\eunop{v}}} #:itemize? #f]{
+    @tr-if[@${\delta(\vunop, v) = v'}]{
+      @tr-step[
+        @${e \ccKD \ctxE{v'}}
+        @${(\eunop{v}) \rrKD v'}]
+      @tr-qed[]
+    }
+    @tr-else[@${\delta(\vunop, v) \mbox{ is undefined}}]{
+      @tr-step[
+        @${e \ccKD \tagerror}
+        @${(\eunop{v}) \rrKD \tagerror}]
+      @tr-qed[]
+    }
+  }
+
+  @tr-case[@${e = \ctxE{\ebinop{v_0}{v_1}}} #:itemize? #f]{
+    @tr-if[@${\delta(\vbinop, v_0, v_1) = A}]{
+      @tr-qed{
+        by @${e \ccKD \ctxE{A}} if @${A \in e}
+        and by @${e \ccKD A} otherwise}
+    }
+    @tr-else[@${\delta(\vbinop, v_0, v_1) \mbox{ is undefined}}]{
+      @tr-step[
+        @${e \ccKD \tagerror}
+        @${(\ebinop{v_0}{v_1}) \rrKD \tagerror}]
+      @tr-qed[]
+    }
+  }
+
+  @tr-case[@${e \eeq \ctxE{\esta{\tau}{e'}}} #:itemize? #f]{
+    @tr-if[@${e' \in v} #:itemize? #f]{
+      @tr-if[@${\mchk{\tagof{\tau}}{e'} = e'}]{
+        @tr-step[
+          @${e \ccKD \ctxE{e'}}
+          @${(\esta{\tau}{e'}) \rrKD e'}]
+        @tr-qed[]
+      }
+      @tr-else[@${\mchk{\tagof{\tau}}{e'} = \boundaryerror}]{
+        @tr-step[
+          @${e \ccKD \boundaryerror}
+          @${(\esta{\tau}{e'}) \rrKD \boundaryerror}]
+        @tr-qed[]
+      }
+    }
+    @tr-else[@${e' \not\in v}]{
+      @tr-step[
+        @${e' \ccKS A}
+        @|K-S-progress|]
+      @tr-qed{by @${e \ccKD \ctxE{\esta{\tau}{A}}} if @${A \in e}
+        @linebreak[] and by @${e' \ccKD A} otherwise}
+    }
+  }
+
+  @tr-case[@${e \eeq \ctxE{\esta{\kany}{e'}}} #:itemize? #f]{
+    @tr-if[@${e' \in v}]{
+      @tr-step[
+        @${e \ccKD \ctxE{e'}}
+        @${(\esta{\kany}{e'}) \rrKD e'}
+      ]
+      @tr-qed[]
+    }
+    @tr-else[@${e' \not\in v}]{
+      @tr-step[
+        @${e' \ccKS A}
+        @|K-S-progress|]
+      @tr-qed{by @${e \ccKD \ctxE{\esta{\kany}{A}}} if @${A \in e}
+        @linebreak[] and by @${e \ccKD A} otherwise}
+    }
+  }
+
+}
+
+@; -----------------------------------------------------------------------------
+@tr-lemma[#:key "K-S-preservation" @elem{@${\langK} static preservation}]{
+  If @${\wellKE e : K} and @${e \ccKS e'} then @${\wellKE e' : K}
+}@tr-proof{
+  By the @|K-S-uec| lemma, there are six cases to consider.
+
+  @tr-case[@${e = \ctxE{v_0~v_1}}]{
+    @tr-if[@${v_0 \eeq \vlam{x}{e'}
+              @tr-and[2]
+              e \ccKS \ctxE{\edyn{\kany}{\vsubst{e'}{x}{v_1}}}}]{
+      @tr-step{
+        @${\wellKE v_0~v_1 : \kany}
+        @|K-S-hole-typing|
+      }
+      @tr-step{
+        @${\wellKE v_0 : \kfun @tr-and[] \wellKE v_1 : \kany}
+        @|K-S-inversion|
+      }
+      @tr-step{
+        @${x \wellKE e'}
+        @|K-S-inversion| (2)
+      }
+      @tr-step{
+        @${\wellKE v_1}
+        @|K-S-value-inversion| (2)
+      }
+      @tr-step{
+        @${\wellKE \vsubst{e'}{x}{v_1}}
+        @|K-DD-subst| (3, 4)
+      }
+      @tr-step{
+        @${\wellKE \edyn{\kany}{(\vsubst{e'}{x}{v_1})} : \kany}
+        (5)
+      }
+      @tr-qed{
+        by @|K-S-hole-subst|
+      }
+    }
+    @tr-else[@${v_0 = \vlam{\tann{x}{\tau}}{e'}
+                @tr-and[4]
+                e \ccKS \ctxE{\vsubst{e'}{x}{\mchk{\tagof{\tau}}{v_1}}}}]{
+      @tr-step{
+        @${\wellKE v_0~v_1 : \kany}
+        @|K-S-hole-typing|
+      }
+      @tr-step{
+        @${\wellKE v_0 : \kfun @tr-and[] \wellKE v_1 : \kany}
+        @|K-S-inversion| (1)
+      }
+      @tr-step{
+        @${\tann{x}{\tau} \wellKE e' : \kany}
+        @|K-S-inversion| (2)}
+      @tr-step{
+        @${\wellKE \mchk{\tagof{\tau}}{v_1} : \tagof{\tau}}
+        @|K-check| (2)}
+      @tr-step{
+        @${\wellKE \vsubst{e}{x}{\mchk{\tagof{\tau}}{v_1}} : \kany}
+        @|K-SS-subst| (3, 4)}
+      @tr-qed{
+        by @|K-S-hole-subst|
+      }
+    }
+  }
+
+  @tr-case[@${e = \ctxE{\eunop{v}}
+              @tr-and[4]
+              \delta(\vunop, v) = v'
+              @tr-and[4]
+              e \ccKS \ctxE{v'}}]{
+    @tr-step{
+      @${\wellKE \eunop{v} : \kany}
+      @|K-S-hole-typing|
+    }
+    @tr-step{
+      @${\wellKE v : \kpair}
+      @|K-S-inversion|
+    }
+    @tr-step{
+      @${v = \vpair{v_0}{v_1}}
+      @|K-S-canonical|
+    }
+    @tr-step{
+      @${\wellKE v_0 : \kany @tr-and[] \wellKE v_1 : \kany}
+      @|K-S-inversion| (2, 3)
+    }
+    @tr-step{
+      @${v' = v_0 @tr-or[] v' = v_1}
+      @${\delta(\vfst, v) = v_0 @tr-and[] \delta(\vsnd, v) = v_1}
+    }
     @tr-qed{
-      by @${\tagof{\tnat} = \tnat}
+      by @|K-S-hole-subst| (5)
     }
   }
-}
 
-@tr-lemma[#:key "K-Delta-inversion" @elem{@${\Delta} inversion}]{
-  @itemlist[
-    @item{
-      If @${\Delta(\vfst, \tau) = \tau'} then @${\tau = \tpair{\tau_0}{\tau_1}} and @${\tau' = \tau_0}
+  @tr-case[@${e = \ctxE{\ebinop{v_0}{v_1}}
+              @tr-and[4]
+              \delta(\vbinop, v_0, v_1) = v
+              @tr-and[4]
+              e \ccKS \ctxE{v}}]{
+    @tr-step{
+      @${\wellKE \ebinop{v_0}{v_1} : K'}
+      @|K-S-hole-typing|
     }
-    @item{
-      If @${\Delta(\vsnd, \tau) = \tau'} then @${\tau = \tpair{\tau_0}{\tau_1}} and @${\tau' = \tau_1}
+    @tr-step{
+      @${\wellKE v_0 : K_0
+         @tr-and[]
+         \wellKE v_1 : K_1
+         @tr-and[]
+         \Delta(\vbinop, K_0, K_1) = K''
+         @tr-and[]
+         K'' \subk K'}
+      @|K-S-inversion| (1)
     }
-  ]
-}@tr-proof{
-  @tr-qed{by the definition of @${\Delta}}
+    @tr-step{
+      @${\wellKE v : K''}
+      @|K-Delta-soundness| (3)
+    }
+    @tr-step{
+      @${\wellKE v : K'}
+      (2, 3)
+    }
+    @tr-qed{
+      by @|K-S-hole-subst| (4)
+    }
+  }
+
+  @tr-case[@${e = \ctxE{\edyn{\tau}{e'}}} #:itemize? #f]{
+    @tr-if[@${\ctxE{\edyn{\tau}{e'}} \ccKS \ctxE{\edyn{\tau}{e''}}}]{
+      @tr-step[
+        @${\wellKE \edyn{\tau}{e'} : K'}
+        @|K-S-hole-typing|]
+      @tr-step[
+        @${\wellKE e'
+           @tr-and[]
+           \tagof{\tau} \subkeq K'}
+        @|K-S-inversion|]
+      @tr-step[
+        @${\wellKE e''}
+        @|K-D-preservation|]
+      @tr-step{
+        @${\wellKE \edyn{\tau}{e''} : K'}
+        (2, 3)}
+      @tr-qed{
+        by @|K-S-hole-subst|}
+    }
+    @tr-else[@${\ctxE{\edyn{\tau}{v}} \ccKS \ctxE{v}
+                @tr-and[]
+                \mchk{\tagof{\tau}}{v} = v}]{
+      @tr-step{
+        @${\wellKE \edyn{\tau}{v} : K'}
+        @|K-S-hole-typing|
+      }
+      @tr-step{
+        @${\tagof{\tau} \subk K'}
+        @|K-S-inversion|
+      }
+      @tr-step{
+        @${\wellKE v : \tagof{\tau}}
+        @${\mchk{\tagof{\tau}}{v} = v}
+      }
+      @tr-qed{
+        by (2, 3, @|K-S-hole-subst|)
+      }
+    }
+  }
+
+  @tr-case[@${e = \ctxE{\edyn{\kany}{e'}}} #:itemize? #f]{
+    @tr-if[@${\ctxE{\edyn{\kany}{e'}} \ccKS \ctxE{\edyn{\kany}{e''}}}]{
+      @tr-step{
+        @${\wellKE \edyn{\kany}{e'} : \kany}
+        @|K-S-hole-typing|
+      }
+      @tr-step{
+        @${\wellKE e'}
+        @|K-S-inversion|
+      }
+      @tr-step{
+        @${\wellKE e''}
+        @|K-D-preservation|
+      }
+      @tr-step{
+        @${\wellKE \edyn{\kany}{e''} : \kany}
+        (3)
+      }
+      @tr-qed{
+        by (4, @|K-S-hole-subst|)
+      }
+    }
+    @tr-else[@${\ctxE{\edyn{\kany}{v}} \ccKS \ctxE{v}}]{
+      @tr-step{
+        @${\wellKE \edyn{\kany}{v} : \kany}
+        @|K-S-hole-typing|
+      }
+      @tr-step{
+        @${\wellKE v}
+        @|K-S-inversion|
+      }
+      @tr-step{
+        @${\wellKE v : \kany}
+        @|K-D-value-inversion|
+      }
+      @tr-qed{
+        by @|K-S-hole-subst|}
+    }
+  }
+
+  @tr-case[@${e = \ctxE{\echk{K'}{v}}}]{
+    @tr-step{
+      @${\ctxE{\echk{K'}{v}} \ccKS \ctxE{v}}
+    }
+    @tr-step{
+      @${\wellKE \echk{K'}{v} : K''}
+      @|K-S-hole-typing|
+    }
+    @tr-step{
+      @${K' \subkeq K''}
+      @|K-S-inversion|
+    }
+    @tr-step{
+      @${\wellKE v : K'}
+      @${\mchk{K'}{v} = v}
+    }
+    @tr-qed{
+      by (3, 4, @|K-S-hole-subst|)
+    }
+  }
+
 }
 
 @; -----------------------------------------------------------------------------
-@tr-lemma[#:key "K-subt-preservation" @elem{@${\subt} preservation}]{
-  If @${\tau \subt \tau'} then
-   @${\tagof{\tau} \eeq \tagof{\tau'}}
-   or @${\tagof{\tau} \subt \tagof{\tau'}}
+@tr-lemma[#:key "K-D-preservation" @elem{@${\langK} dynamic preservation}]{
+  If @${\wellKE e} and @${e \ccKD e'} then @${\wellKE e'}
 }@tr-proof{
-  By case analysis on the last rule used to show @${\tau \subt \tau'}.
+  By @|K-D-uec| there are five cases.
 
-  @tr-case[@${\tnat \subt \tint}]{
-    @tr-qed[@${\tagof{\tnat} \subt \tagof{\tint}}]
-  }
-
-  @tr-case[@${\tarr{\tau_d}{\tau_c} \subt \tarr{\tau_d'}{\tau_c'}}]{
-    @tr-step{
-      @${\tagof{\tarr{\tau_d}{\tau_c}} = \kfun
-         @tr-and[]
-         \tagof{\tarr{\tau_d'}{\tau_c'}} = \kfun}
+  @tr-case[@${e = \ctxE{v_0~v_1}} #:itemize? #f]{
+    @tr-if[@${v_0 = \vlam{x}{e'}
+              @tr-and[2]
+              e \ccKD \ctxE{\vsubst{e'}{x}{v_1}}}]{
+      @tr-step{
+        @${\wellKE v_0~v_1}
+        @|K-D-hole-typing|
+      }
+      @tr-step{
+        @${\wellKE v_0
+           @tr-and[]
+           \wellKE v_1}
+        @|K-D-inversion| (1)
+      }
+      @tr-step{
+        @${x \wellKE e'}
+        @|K-D-inversion| (2)
+      }
+      @tr-step{
+        @${\wellKE \vsubst{e'}{x}{v_1}}
+        @|K-DD-subst| (2, 3)
+      }
+      @tr-qed{
+        by @|K-D-hole-subst|
+      }
     }
-    @tr-qed[]
+
+    @tr-else[@${v_0 = \vlam{\tann{x}{\tau}}{e'}
+                @tr-and[4]
+                e \ccKD \ctxE{\esta{\kany}{(\vsubst{e'}{x}{\mchk{\tagof{\tau}}{v_1}})}}}]{
+      @tr-step{
+        @${\wellKE v_0~v_1}
+        @|K-D-hole-typing|
+      }
+      @tr-step{
+        @${\wellKE v_0
+           @tr-and[]
+           \wellKE v_1}
+        @|K-D-inversion| (1)
+      }
+      @tr-step{
+        @${\tann{x}{\tau} \wellKE e : \kany}
+        @|K-D-inversion| (2)
+      }
+      @tr-step{
+        @${\wellKE \mchk{\tagof{\tau}}{v_1} : \tagof{\tau}}
+        @|K-check| (2)}
+      @tr-step{
+        @${\wellKE \vsubst{e}{x}{\mchk{\tagof{\tau}}{v_1}} : \kany}
+        @|K-SS-subst| (3, 4)
+      }
+      @tr-step{
+        @${\wellKE \esta{\kany}{(\vsubst{e}{x}{\mchk{\tagof{\tau}}{v_1}})}}
+        (5)
+      }
+      @tr-qed{
+        by @|K-D-hole-subst| (6)
+      }
+    }
   }
 
-  @tr-case[@${\tpair{\tau_0}{\tau_1} \subt \tpair{\tau_0'}{\tau_1'}}]{
+  @tr-case[@${e = \ctxE{\eunop{v}}
+              @tr-and[4]
+              \delta(\vunop, v) = v'
+              @tr-and[4]
+              e \ccKD \ctxE{v'}}]{
     @tr-step{
-      @${\tagof{\tpair{\tau_0}{\tau_1}} = \kpair
-         @tr-and[]
-         \tagof{\tpair{\tau_0'}{\tau_1'}} = \kpair}
+      @${\wellKE \eunop{v}}
+      @|K-D-hole-typing|
     }
-    @tr-qed[]
+    @tr-step{
+      @${\wellKE v}
+      @|K-D-inversion| (1)
+    }
+    @tr-step{
+      @${\wellKE v'}
+      @|K-delta-preservation| (2)
+    }
+    @tr-qed{
+      by @|K-D-hole-subst| (3)
+    }
   }
+
+  @tr-case[@${e = \ctxE{\ebinop{v_0}{v_1}}
+              @tr-and[4]
+              \delta(\vbinop, v_0, v_1) = v'
+              @tr-and[4]
+              e \ccKD \ctxE{v'}}]{
+    @tr-step{
+      @${\wellKE \ebinop{v_0}{v_1}}
+      @|K-D-hole-typing|
+    }
+    @tr-step{
+      @${\wellKE v_0
+         @tr-and[]
+         \wellKE v_1}
+      @|K-D-inversion| (1)
+    }
+    @tr-step{
+      @${\wellKE v'}
+      @|K-delta-preservation| (2)
+    }
+    @tr-qed{
+      by @|K-D-hole-subst| (3)
+    }
+  }
+
+  @tr-case[@${e = \ctxE{\esta{\tau}{e'}}} #:itemize? #false]{
+    @tr-if[@${\ctxE{\esta{\tau}{e'}} \ccKD \ctxE{\esta{\tau}{e''}}}]{
+      @tr-step{
+        @${\wellKE \esta{\tau}{e'}}
+        @|K-D-hole-typing|
+      }
+      @tr-step{
+        @${\wellKE e' : \tagof{\tau}}
+        @|K-D-inversion| (1)
+      }
+      @tr-step{
+        @${\wellKE e'' : \tagof{\tau}}
+        @|K-S-preservation| (2)
+      }
+      @tr-step{
+        @${\wellKE \esta{\tau}{e''}}
+        (3)
+      }
+      @tr-qed{
+        by @|K-D-hole-subst| (4)
+      }
+    }
+
+    @tr-else[@${\ctxE{\esta{\tau}{v}} \ccKD \ctxE{v}}]{
+      @tr-step{
+        @${\wellKE \esta{\tau}{v}}
+        @|K-D-hole-typing|
+      }
+      @tr-step{
+        @${\wellKE v : \tagof{\tau}}
+        @|K-D-inversion| (1)
+      }
+      @tr-step{
+        @${\wellKE v}
+        @|K-S-value-inversion| (2)
+      }
+      @tr-qed{
+        by @|K-D-hole-subst| (3)
+      }
+    }
+  }
+
+  @tr-case[@${e = \ctxE{\esta{\kany}{e'}}} #:itemize? #f]{
+    @tr-if[@${\ctxE{\esta{\kany}{e'}} \ccKD \ctxE{\esta{\kany}{e''}}}]{
+      @tr-step{
+        @${\wellKE \esta{\kany}{e'}}
+        @|K-D-hole-typing|
+      }
+      @tr-step{
+        @${\wellKE e' : \kany}
+        @|K-D-inversion| (1)
+      }
+      @tr-step{
+        @${\wellKE e'' : \kany}
+        @|K-S-preservation| (2)
+      }
+      @tr-step{
+        @${\wellKE \esta{\kany}{e''}}
+        (3)
+      }
+      @tr-qed{
+        by @|K-D-hole-subst| (4)
+      }
+    }
+
+    @tr-else[@${\ctxE{\esta{\kany}{v}} \ccKD v}]{
+      @tr-step{
+        @${\wellKE \esta{\kany}{v}}
+        @|K-D-hole-typing|
+      }
+      @tr-step{
+        @${\wellKE v : \kany}
+        @|K-D-inversion| (1)
+      }
+      @tr-step{
+        @${\wellKE v}
+        @|K-S-value-inversion| (2)
+      }
+      @tr-qed{
+        by @|K-D-hole-subst| (3)
+      }
+    }
+  }
+
 }
 
 @; -----------------------------------------------------------------------------
-@; TODO missing inversion steps
+@tr-lemma[#:key "K-check" @elem{@${\mchk{\cdot}{\cdot}} soundness}]{
+  If @${\mchk{K}{v} = v}
+   @linebreak[]
+   then @${\wellKE v : K}
+}@tr-proof{
+  @tr-qed{by definition of @${\mchk{K}{v}}}
+}
+
+@; -----------------------------------------------------------------------------
 @tr-lemma[#:key "K-S-uec" @elem{@${\langK} unique static evaluation contexts}]{
   If @${\wellKE e : K} then either:
   @itemlist[
@@ -1453,7 +1348,7 @@
               e = \vlam{x}{e'}
               @tr-or[4]
               e = \vlam{\tann{x}{\tau_d}}{e'}}]{
-    @tr-qed[]
+    @tr-qed{@${e} is a value}
   }
 
   @tr-case[@${e = \esta{\tau}{e'}
@@ -1490,18 +1385,19 @@
     @tr-else[@${e_0 \in v
                 @tr-and[4]
                 e_1 \in v}]{
-      @tr-qed[]
+      @tr-step{@${\ED = \ehole}}
+      @tr-qed{@${e = \ctxE{\vpair{e_0}{e_1}}}}
     }
   }
 
-  @tr-case[@${e = e_0~e_1} #:itemize? #f]{
+  @tr-case[@${e = \vapp{e_0}{e_1}} #:itemize? #f]{
     @tr-if[@${e_0 \not\in v}]{
       @tr-step{
         @${e_0 = \ED_0[e_0']}
         @|tr-IH|
       }
       @tr-step{
-        @${\ED = \ED_0~e_1}
+        @${\ED = \vapp{\ED_0}{e_1}}
       }
       @tr-qed{
         by @${e = \ctxE{e_0'}}
@@ -1515,7 +1411,7 @@
         @|tr-IH|
       }
       @tr-step{
-        @${\ED = e_0~\ED_1}
+        @${\ED = \vapp{e_0}{\ED_1}}
       }
       @tr-qed{
         by @${e = \ctxE{e_1'}}
@@ -1525,7 +1421,7 @@
                 @tr-and[4]
                 e_1 \in v}]{
       @${\ED = \ehole}
-      @tr-qed[]
+      @tr-qed{@${e = \ctxE{\vapp{e_0}{e_1}}}}
     }
   }
 
@@ -1544,7 +1440,7 @@
     }
     @tr-else[@${e_0 \in v}]{
       @${E = \ehole}
-      @tr-qed[]
+      @tr-qed{@${e = \ctxE{\eunop{e_0}}}}
     }
   }
 
@@ -1577,7 +1473,7 @@
                 @tr-and[4]
                 e_1 \in v}]{
       @${\ED = \ehole}
-      @tr-qed[]
+      @tr-qed{@${e = \ctxE{\ebinop{e_0}{e_1}}}}
     }
   }
 
@@ -1610,7 +1506,7 @@
     }
     @tr-else[@${e_0 \in v}]{
       @${\ED = \ehole}
-      @tr-qed[]
+      @tr-qed{@${e = \ctxE{\echk{K}{e_0}}}}
     }
   }
 }
@@ -1638,7 +1534,7 @@
               e = \vlam{x}{e'}
               @tr-or[4]
               e = \vlam{\tann{x}{\tau_d}}{e'}}]{
-    @tr-qed[]
+    @tr-qed{@${e} is a value}
   }
 
   @tr-case[@${e = \edyn{\tau}{e'}
@@ -1679,7 +1575,8 @@
     @tr-else[@${e_0 \in v
                 @tr-and[4]
                 e_1 \in v}]{
-      @tr-qed[]
+      @tr-step{@${\ED = \ehole}}
+      @tr-qed{@${e = \ctxE{\vpair{e_0}{e_1}}}}
     }
   }
 
@@ -1716,7 +1613,7 @@
       @tr-step{
         @${\ED = \ehole}
       }
-      @tr-qed[]
+      @tr-qed{@${e = \ctxE{\vapp{e_0}{e_1}}}}
     }
   }
 
@@ -1735,7 +1632,7 @@
     }
     @tr-else[@${e_0 \in v}]{
       @${E = \ehole}
-      @tr-qed[]
+      @tr-qed{@${e = \ctxE{\eunop{e_0}}}}
     }
   }
 
@@ -2068,18 +1965,9 @@
       (1)
     }
     @tr-step{
-      @${K' = K
-         @tr-or[]
-         K' \subt K}
-      (2)
+      @${K' = K}
     }
-    @tr-step{
-      @${\wellKE e' : K}
-      (3)
-    }
-    @tr-qed{
-      by (1, 4)
-    }
+    @tr-qed{ }
   }
 
   @tr-case[@${\ED = \vpair{\ED_0}{e_1}}]{
@@ -2550,27 +2438,23 @@
        @${\wellKE e_0 : K_0} and
        @${\wellKE e_1 : K_1} and
        @${\Delta(\vbinop, K_0, K_1) = K'} and
-       @${K' \subt K}
-    }
-    @item{
-      If @${\wellKE \echk{K'}{e_0} : K} then
-       @${\wellKE e_0 : \kany} and
-       @${K' \subt K}
+       @${K' \subk K}
     }
     @item{
       If @${\wellKE \edyn{\tau}{e} : K} then
        @${\wellKE e} and
-       @${\tagof{\tau} \subt K \mbox{ or } \tagof{\tau} = K}
+       @${\tagof{\tau} \subkeq K}
+    }
+    @item{
+      If @${\wellKE \echk{K'}{e_0} : K} then
+       @${\wellKE e_0 : \kany} and
+       @${K' \subkeq K}
     }
   ]
 }@tr-proof{
-  By induction on the structure of @${\wellKE e : K}.
-  The desired conclusion either follows immediately from the last rule used,
-   or the last rule is the subsumption rule and we have @${\wellKE e : K'}
-   and @${K' \subt K}.
-  In the latter case, apply the induction hypothesis to @${\wellKE e : K'}.
-  The induction is well-founded by @|K-finite-subtyping|.
-  @; TODO awkward
+  @tr-qed{
+    by the definition of @${\Gamma \wellKE e : \tau} and by @|K-finite-subtyping|
+  }
 }
 
 @; -----------------------------------------------------------------------------
@@ -2635,7 +2519,7 @@
     }
     @item{
       If @${\wellKE v : \knat}
-      then @${v \eeq i} and @${v \in \naturals}
+      then @${v \in \naturals}
     }
   ]
 }@tr-proof{
@@ -2669,14 +2553,9 @@
       @|K-S-canonical|
     }
     @tr-step{
-      @${\delta(\vsum, i_0, i_1) = i_0 + i_1 = i}
+      @${\delta(\vsum, i_0, i_1) = i_0 + i_1 \in \naturals}
     }
-    @tr-step{
-      @${i \in \naturals}
-    }
-    @tr-qed{
-      by @${\wellKE i : \knat}
-    }
+    @tr-qed{ }
   }
 
   @tr-case[@${\Delta(\vsum, \kint, \kint) = \kint}]{
@@ -2687,11 +2566,9 @@
       @|K-S-canonical|
     }
     @tr-step{
-      @${\delta(\vsum, i_0, i_1) = i_0 + i_1 = i}
+      @${\delta(\vsum, i_0, i_1) = i_0 + i_1 \in i}
     }
-    @tr-qed{
-      by @${\wellKE i : \kint}
-    }
+    @tr-qed{ }
   }
 
   @tr-case[@${\Delta(\vquotient, \knat, \knat) = \knat}]{
@@ -2709,11 +2586,8 @@
       }
       @tr-else[@${i_1 \neq 0}]{
         @tr-step{
-          @${\delta(\vquotient, i_0, i_1) = \floorof{i_0 / i_1}} = i }
-        @tr-step{
-          @${i \in \naturals} }
-        @tr-qed{
-          by @${\wellKE i : \knat} }
+          @${\delta(\vquotient, i_0, i_1) = \floorof{i_0 / i_1} \in \naturals }}
+        @tr-qed{}
       }
     ]
   }
@@ -2732,11 +2606,112 @@
       }
       @tr-else[@${i_1 \neq 0}]{
         @tr-step{
-          @${\delta(\vquotient, i_0, i_1) = \floorof{i_0 / i_1}} = i }
-        @tr-qed{
-          by @${\wellKE i : \kint} }
+          @${\delta(\vquotient, i_0, i_1) = \floorof{i_0 / i_1}} \in i }
+        @tr-qed{}
       }
     ]
+  }
+}
+
+@; -----------------------------------------------------------------------------
+@tr-lemma[#:key "K-delta-preservation" @elem{@${\delta} preservation}]{
+  @itemlist[
+    @item{
+      If @${\wellKE v} and @${\delta(\vunop, v) = v'} then @${\wellKE v'}
+    }
+    @item{
+      If @${\wellKE v_0} and @${\wellKE v_1} and @${\delta(\vbinop, v_0, v_1) = v'}
+       then @${\wellKE v'}
+    }
+  ]
+}@tr-proof{
+
+  @tr-case[@${\delta(\vfst, \vpair{v_0}{v_1}) = v_0}]{
+    @tr-step{
+      @${\wellKE v_0}
+      @|K-D-inversion|
+    }
+    @tr-qed[]
+  }
+
+  @tr-case[@${\delta(\vsnd, \vpair{v_0}{v_1}) = v_1}]{
+    @tr-step{
+      @${\wellKE v_1}
+      @|K-D-inversion|
+    }
+    @tr-qed[]
+  }
+
+  @tr-case[@${\delta(\vsum, v_0, v_1) = v_0 + v_1}]{
+    @tr-qed[]
+  }
+
+  @tr-case[@${\delta(\vquotient, v_0, v_1) = \floorof{v_0 / v_1}}]{
+    @tr-qed[]
+  }
+}
+
+@; -----------------------------------------------------------------------------
+@; TODO better name ... was thinking "preserve/reflect"
+@tr-lemma[#:key "K-Delta-tag-preservation" @elem{@${\Delta} preservation}]{
+  If @${\Delta(\vbinop, \tau_0, \tau_1) = \tau} then
+     @${\Delta(\vbinop, \tagof{\tau_0}, \tagof{\tau_1}) = \tagof{\tau}}.
+}@tr-proof{
+  By case analysis on the definition of @${\Delta}
+
+  @tr-case[@${\Delta(\vbinop, \tnat, \tnat) = \tnat}]{
+    @tr-qed{
+      by @${\tagof{\tnat} = \tnat}
+    }
+  }
+
+  @tr-case[@${\Delta(\vbinop, \tint, \tint) = \tint}]{
+    @tr-qed{
+      by @${\tagof{\tint} = \tint}
+    }
+  }
+}
+
+@tr-lemma[#:key "K-Delta-inversion" @elem{@${\Delta} inversion}]{
+  @itemlist[
+    @item{
+      If @${\Delta(\vfst, \tau) = \tau'} then @${\tau = \tpair{\tau_0}{\tau_1}} and @${\tau' = \tau_0}
+    }
+    @item{
+      If @${\Delta(\vsnd, \tau) = \tau'} then @${\tau = \tpair{\tau_0}{\tau_1}} and @${\tau' = \tau_1}
+    }
+  ]
+}@tr-proof{
+  @tr-qed{by the definition of @${\Delta}}
+}
+
+@; -----------------------------------------------------------------------------
+@tr-lemma[#:key "K-subt-preservation" @elem{@${\subk} preservation}]{
+  If @${\tau \subt \tau'} then
+   @${\tagof{\tau} \subkeq \tagof{\tau'}}
+}@tr-proof{
+  By case analysis on the last rule used to show @${\tau \subt \tau'}.
+
+  @tr-case[@${\tnat \subt \tint}]{
+    @tr-qed[@${\tagof{\tnat} \subk \tagof{\tint}}]
+  }
+
+  @tr-case[@${\tarr{\tau_d}{\tau_c} \subt \tarr{\tau_d'}{\tau_c'}}]{
+    @tr-step{
+      @${\tagof{\tarr{\tau_d}{\tau_c}} = \kfun
+         @tr-and[]
+         \tagof{\tarr{\tau_d'}{\tau_c'}} = \kfun}
+    }
+    @tr-qed[]
+  }
+
+  @tr-case[@${\tpair{\tau_0}{\tau_1} \subt \tpair{\tau_0'}{\tau_1'}}]{
+    @tr-step{
+      @${\tagof{\tpair{\tau_0}{\tau_1}} = \kpair
+         @tr-and[]
+         \tagof{\tpair{\tau_0'}{\tau_1'}} = \kpair}
+    }
+    @tr-qed[]
   }
 }
 
@@ -2798,7 +2773,7 @@
       @${\wellKE v : \kint}
     }
     @tr-qed{
-      by @${\kint \subt \kany}
+      by @${\kint \subk \kany}
     }
   }
 
@@ -2820,7 +2795,7 @@
       (2)
     }
     @tr-qed{
-      by @${\kpair \subt \kany}
+      by @${\kpair \subk \kany}
     }
   }
 
@@ -2834,7 +2809,7 @@
       (1)
     }
     @tr-qed{
-      by @${\kfun \subt \kany}
+      by @${\kfun \subk \kany}
     }
   }
 
@@ -2848,7 +2823,7 @@
       (1)
     }
     @tr-qed{
-      by @${\kfun \subt \kany}
+      by @${\kfun \subk \kany}
     }
   }
 }
@@ -2863,9 +2838,7 @@
 
   @tr-case[@${e = x}]{
     @tr-step{
-      @${\tagof{\tau} = K
-         @tr-or[]
-         \tagof{\tau} \subt K}
+      @${\tagof{\tau} \subkeq K}
       @${\tann{x}{\tau},\Gamma \wellKE x : K}
     }
     @tr-step{
@@ -3121,7 +3094,11 @@
       @|K-D-value-inversion|
     }
     @tr-step{
-      @${\Gamma \wellKE v : K}
+      @${\wellKE v : \kany}
+      @${K \subteq \kany}
+    }
+    @tr-step{
+      @${\Gamma \wellKE v : \kany}
       @|K-weakening| (3)
     }
     @tr-qed{
@@ -3356,7 +3333,7 @@
     }
     @tr-step{
       @${\wellKE v : \kany}
-      @${\tagof{\tau} \subt \kany}
+      @${\tagof{\tau} \subk \kany}
     }
     @tr-step{
       @${\wellKE v}
@@ -3789,12 +3766,12 @@
 }
 
 @; -----------------------------------------------------------------------------
-@tr-lemma[#:key "K-finite-subtyping" @elem{@${K \subt K} finite}]{
-  All chains @${K_0 \subt \cdots \subt K_{n-1}} are finite.
+@tr-lemma[#:key "K-finite-subtyping" @elem{@${K \subk K} finite}]{
+  All chains @${K_0 \subk \cdots \subk K_{n-1}} are finite.
 }@tr-proof{
   @tr-qed{
     by definition; the longest chain is
-    @${\knat \subt \kint \subt \kany}.
+    @${\knat \subk \kint \subk \kany}.
   }
 }
 
@@ -3820,4 +3797,4 @@
     }
   ]
 }
-
+@|clearpage|

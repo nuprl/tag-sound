@@ -1352,7 +1352,7 @@
         @${e = \ED[e_0']}
       }
     }
-    @tr-if[@${e_0 \not\in v @tr-and[2] e_1 \in v}]{
+    @tr-if[@${e_0 \in v @tr-and[2] e_1 \not\in v}]{
       @tr-step[
         @${\wellNE e_1}
         @|N-D-inversion|]
@@ -1389,7 +1389,7 @@
         @${e = \ED[e_0']}
       }
     }
-    @tr-if[@${e_0 \not\in v @tr-and[2] e_1 \in v}]{
+    @tr-if[@${e_0 \in v @tr-and[2] e_1 \not\in v}]{
       @tr-step[
         @${\wellNE e_1}
         @|N-D-inversion|]
@@ -1450,7 +1450,7 @@
         @${e = \ED[e_0']}
       }
     }
-    @tr-if[@${e_0 \not\in v @tr-and[2] e_1 \in v}]{
+    @tr-if[@${e_0 \in v @tr-and[2] e_1 \not\in v}]{
       @tr-step[
         @${\wellNE e_1}
         @|N-D-inversion|]
@@ -2336,7 +2336,7 @@
       }
       @tr-else[@${i_1 \neq 0}]{
         @tr-step{
-          @${\delta(\vquotient, i_0, i_1) = \floorof{i_0 / i_1}} \in i }
+          @${\delta(\vquotient, i_0, i_1) = \floorof{i_0 / i_1} \in i }}
         @tr-qed{}
       }
     ]
