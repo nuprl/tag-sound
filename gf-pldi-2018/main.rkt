@@ -312,10 +312,10 @@
   ($ (format "~a~~~a^*~~~a" src arr tgt)))
 
 (define type-error
-  "\\typeerror")
+  "\\tagerror")
 
 (define value-error
-  "\\valueerror")
+  "\\boundaryerror")
 
 (define (embed-sta t e)
   ($ (format "\\esta{~a}{~a}" t e)))
@@ -345,8 +345,8 @@
     }
     @itemlist[
     @item{ @${e~\rrDstar~v} }
-    @item{ @${e~\rrDstar~\typeerror} }
-    @item{ @${e~\rrDstar~\valueerror} }
+    @item{ @${e~\rrDstar~\tagerror} }
+    @item{ @${e~\rrDstar~\boundaryerror} }
     @item{ @${e} diverges } ]))
 
 (define S-SOUNDNESS
@@ -356,7 +356,7 @@
     }
     @itemlist[
       @item{ @${e~\rrSstar~v} and @${\wellsta v} }
-      @item{ @${e~\rrSstar~\valueerror} }
+      @item{ @${e~\rrSstar~\boundaryerror} }
       @item{ @${e} diverges } ]))
 
 (define E-SOUNDNESS
@@ -366,8 +366,8 @@
     }
     @itemlist[
     @item{ @${e~\rrEEstar~v} and @${\wellEE v} }
-    @item{ @${e~\rrEEstar~\typeerror} }
-    @item{ @${e~\rrEEstar~\valueerror} }
+    @item{ @${e~\rrEEstar~\tagerror} }
+    @item{ @${e~\rrEEstar~\boundaryerror} }
     @item{ @${e} diverges } ]))
 
 (define N-SOUNDNESS
@@ -377,8 +377,8 @@
     }
     @itemlist[
     @item{ @${e \rrNEstar v} and @${\wellNE v : \tau} }
-    @item{ @${e \rrNEstar E[e'] \ccND \typeerror} }
-    @item{ @${e \rrNEstar \valueerror} }
+    @item{ @${e \rrNEstar E[e'] \ccND \tagerror} }
+    @item{ @${e \rrNEstar \boundaryerror} }
     @item{ @${e} diverges } ]))
 
 (define C-SOUNDNESS
@@ -388,8 +388,8 @@
     }
     @itemlist[
     @item{ @${e \rrCEstar v} and @${\wellCE v : \tau} }
-    @item{ @${e \rrCEstar E[e'] \ccCD \typeerror} }
-    @item{ @${e \rrCEstar \valueerror} }
+    @item{ @${e \rrCEstar E[e'] \ccCD \tagerror} }
+    @item{ @${e \rrCEstar \boundaryerror} }
     @item{ @${e} diverges }]))
 
 (define F-SOUNDNESS
@@ -399,8 +399,8 @@
     }
     @itemlist[
     @item{ @${e \rrFEstar v} and @${\wellFE v : \tau} }
-    @item{ @${e \rrFEstar E[e'] \ccFD \typeerror} }
-    @item{ @${e \rrFEstar \valueerror} }
+    @item{ @${e \rrFEstar E[e'] \ccFD \tagerror} }
+    @item{ @${e \rrFEstar \boundaryerror} }
     @item{ @${e} diverges } ]))
 
 (define K-SOUNDNESS
@@ -415,8 +415,8 @@
     }
     @itemlist[
     @item{ @${e^+ \rrKEstar v} and @${\wellKE v : K} }
-    @item{ @${e^+ \rrKEstar E[e'] \ccKD \typeerror} }
-    @item{ @${e^+ \rrKEstar \valueerror} }
+    @item{ @${e^+ \rrKEstar E[e'] \ccKD \tagerror} }
+    @item{ @${e^+ \rrKEstar \boundaryerror} }
     @item{ @${e^+} diverges } ]))
 
 (define EMBEDDINGS
