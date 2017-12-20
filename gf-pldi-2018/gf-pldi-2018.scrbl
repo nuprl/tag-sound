@@ -36,7 +36,7 @@
 @;{NOTE remove 'novel' when paper is accepted}
 
 In this paper, we develop the novel idea of a spectrum of type soundness and
- demonstrate that a form of whole-program, non-compositional form of
+ demonstrate that a tag-level, non-compositional form of
  soundness vastly improves the performance of Typed Racket, the most mature
  implementation of sound gradual typing. Specifically, we develop a series
  of theoretical models of gradual typing, starting with a classically sound

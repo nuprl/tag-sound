@@ -10,11 +10,9 @@ TODO
 
 
 TYPESETTING
-- e D A ... more space ... between notions of reduction and their arguments
-  - same for fusion reduction
+- redo typing rules, since appendix
 - "flushleft" the typing rules
-- arrow types closer together
-- lang E looks too much like evaluation contexts
+- rename A to R (for "result"?) .. maybe see mason/talcott for ideas
 
 - - -
 
@@ -22,6 +20,8 @@ imagine car manufacturer, certified vehicle, consumer buys it and
  starts replacing/modifying the parts. "Just trust me" he tells the car.
 after changes maybe runs maybe doesn't, can make any guarantees about how
  it runs?
+
+or, factory recycling
 
 MT: replace parts of program with "trust me" things in the gamma.
  could be very useful, like z3 or some fast library for fast things.

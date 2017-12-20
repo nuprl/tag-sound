@@ -48,6 +48,8 @@ They apply the method to Typed Racket and find that its performance is a serious
 
 @parag{Type-Tag Soundness}
 
+@; TODO colors are weird
+
 @citet[vss-popl-2017] present a compiler from a statically-typed source language
  to a Python-like target language and prove a type-tag soundness theorem.
 Using the ideas from the calculus, they implement a locally-defensive embedding

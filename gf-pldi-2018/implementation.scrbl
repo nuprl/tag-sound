@@ -34,7 +34,7 @@ The second question is whether it is sound to use the @${\langD} reduction
  preceding section.  The reductions differ in two minor aspects: how they
  interpose boundary terms and how many run-time checks they perform.  As
  for the boundaries, they become irrelevant in an implementation because
- the set of values are the same.As for the run-time checks, the static
+ the set of values are the same. As for the run-time checks, the static
  reduction can skip checks that the dynamic reduction must perform, i.e., 
  it is safe to use the more conservative, dynamically-typed reduction
  relation.
@@ -53,6 +53,7 @@ Techniques for implementing the locally-defensive variant are less
  If all reads are checked, then writes to a mutable value do not require a
  tag check.
 
+@; TODO synonym for 'incoming' ?
 To support @emph{structural class types} and functions with @emph{optional
  and keyword arguments}, a language designer has two choices.  One choice
  is to simply check that the incoming value is a class or procedure.  A

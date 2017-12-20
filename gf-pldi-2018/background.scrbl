@@ -46,6 +46,7 @@ a well-specified embedding of values from one language in the other and
 that this embedding aims to provide a soundness guarantee. Since
 @${\langD} and @${\langS} share values, value conversion is not a problem for us@~cite[gff-oopsla-2005 bbdt-ecoop-2016].
 
+@; TODO make the choices clearer, via 'on one hand' / 'other hand' ?
 @bold{Note} We must make a choice concerning which values may cross
 these special boundaries. To keep the boundaries as inexpensive as
 possible, we might wish to restrict the set of FFI values to just numbers

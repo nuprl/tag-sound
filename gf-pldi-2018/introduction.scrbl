@@ -1,6 +1,7 @@
 #lang gf-pldi-2018
 
 @title[#:tag "sec:introduction"]{Three Flavors of Migratory Typing}
+@; TODO new title
 
 Over the past two decades, software developers have migrated from the world
  of C++ and Java to the broad world of untyped languages: JavaScript, Perl,

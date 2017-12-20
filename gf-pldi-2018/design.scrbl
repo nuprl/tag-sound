@@ -19,6 +19,8 @@ Expressions @${e} include variables, value forms, and the application of a
 The unary primitive operations @${\vfst} and @${\vsnd} are projection functions for pair values;
  the binary primitives @${\vsum} and @${\vquotient} are integer arithmetic operators.
 
+@; TODO 'boundary error' isn't clear enough ... I think need to explain boundary
+@;  first, then we can say what \delta is one instance of a boundary
 The semantics of the primitive operations is given by the partial @${\delta} function.
 In a real language, these primitives would be implemented by a runtime system
  that manipulates the machine representation of values.
@@ -43,13 +45,14 @@ Lastly, the meta-function @${\cclift{E}{\rrR}} lifts a
 @include-figure["fig:dyn-delta.tex" @elem{Dynamic Typing}]
 @include-figure["fig:sta-delta.tex" @elem{Static Typing}]
 
+@; TODO explain type-tag error
 The language @${\langD} defined in @figure-ref{fig:dyn-delta} is
  dynamically-typed.
 An @${\langD} expression @${e} is well-formed according to the typing judgment
  @${\GammaD \welldyn e} if it contains no free variables.
 The notion of reduction @${\rrD} defines the semantics of well-formed expressions;
  in essence, it reduces a valid application of values to a normal answer and
- maps an invalid application to a token representing a type-tag error@~cite[henglein-scp-1994].
+ maps an invalid application to a token representing a type-tag error.
 
 The language @${\langS} in @figure-ref{fig:sta-delta} is a statically-typed
  counterpart to @${\langD}.
@@ -61,8 +64,8 @@ Migratory typing systems must accomodate such types, because they have emerged
  in dynamically-typed programming languages.
 An @${\langS} expression @${e} is well-typed if @${\GammaS \wellsta e : \tau}
  can be derived using the rules in @figure-ref{fig:sta-delta} for some type
- @${\tau}.@note{These typing rules are not syntax directed; see the PLT Redex
- models in our artifact for a syntax-directed implementation.}
+ @${\tau}.@note{These typing rules are not syntax directed; @; because of subsumption
+ see the PLT Redex models in our artifact for an implementation.}
 The purpose of this typing judgment is to guarantee that all application forms
  apply a function and all primitive operations receive arguments for which
  @${\delta} is defined.
@@ -141,6 +144,7 @@ Informally, @${\ccR} applied to a statically-typed expression @${e}
  applies @${\rrR} provided @${e} is not currently evaluating a boundary term;
  otherwise @${\ccR} dispatches to the analogous @${\ccRp} and the two
  flip-flop for nested boundaries.
+@; TODO flip-flop is not really clear
 The payoff of this technical machinery is that a statically-typed term @${e}
  cannot step via @${\ccR} to a type-tag error if @${e} does not embed
  dynamically-typed code, which facilitates the proof of the soundness theorems.
@@ -191,13 +195,14 @@ For example, @${(\edyn{\tint}{\vlam{x}{x}})}
 Worse yet, well-typed expressions may produce unexpected errors (a category I disaster)
  or silently compute nonsensical results (a category II disaster).
 
+@; TODO remove this, silliness
 To illustrate this second kind of danger, recall the classic story of
  Professor Bessel, who @emph{
   announced that a complex number was an ordered pair of reals
   the first of which was nonnegative}@~cite[r-ip-1983].
-A student might use the type @${(\tpair{\tint}{\tnat})}
+A student might use the type @${(\tpair{\tnat}{\tint})}
  to model (truncated) Bessel numbers and define a few functions based on the lecture notes.
-Calling one of these functions with the dynamically-typed value @${\vpair{1}{-4}}
+Calling one of these functions with the dynamically-typed value @${\vpair{-1}{1}}
  may give a result, but probably not the right one.
 
 Despite the lack of safety, the erasure embedding has found increasingly widespread use.
@@ -221,7 +226,7 @@ In order to provide some kind of type soundness, an embedding must restrict
  the dynamically-typed values that can flow in to typed contexts.
 A natural kind of restriction is to let a value @${v} cross a boundary
  expecting values of type @${\tau} only if @${v} matches the canonical forms
- of the static type.
+ of the static type, and raise a @${\boundaryerror} otherwise.
 For base types, this requires a generalized kind of type-tag check.
 For parameterized types that describe finitely-observable values,
  this requires one tag check and a recursive check of the value's components.
@@ -291,6 +296,7 @@ This compilation technique can improve the performance of typed code.
 
 
 @; -----------------------------------------------------------------------------
+@; TODO make new section? idk ... I like this as is and will like it better with simulation theorems
 @section{Soundness vs. Performance}
 
 The erasure embedding promises nothing in the way of type soudness,
@@ -339,8 +345,10 @@ This reduces the cost of all boundary terms to at most
 
 @Figure-ref{fig:conatural-delta} gives the details of this @emph{co-natural}
  embedding as an extension of the natural embedding.
-In total, this language @${\langL} has four kinds of value forms:
- integers, pairs, functions, function monitors, and pair monitors.
+@(let ((value-forms '("integers" "pairs" "functions" "function monitors" "pair monitors")))
+  @elem{
+    In total, this language @${\langL} has @integer->word[@length[value-forms]]
+     kinds of value forms: @authors*[value-forms]. })
 The reduction rules define how the projections @${\vfst} and @${\vsnd}
  act on pair monitors; in short, they act as projections across a boundary.
 Finally when a pair value crosses a boundary, it gets wrapping in a checking
@@ -404,7 +412,7 @@ After all, if a function @${(\vlam{\tann{x}{\tau}}{e})} is well-typed,
  type @${\tau'} for soundness.
 
 @Figure-ref{fig:forgetful-delta} presents a forgetful, final embedding that
- co-natural and forgetful monitoring strategies.
+ combines the co-natural and forgetful monitoring strategies.
 Intuitively, the only difference between the forgetful language @${\langF}
  and the language in @figure-ref{fig:conatural-delta}
  is that @${\langF} prevents monitors from stacking up.
@@ -504,6 +512,7 @@ As for the typing system: (1) the rules for value constructors conclude
  tag and conclude with the @${\kany} tag; and (3) the rules for @${\vdyn} and
  @${\vchk} conclude a non-trivial tag that is justified with a run-time check.
 
+@; TODO horrible paragraph, rewrite this
 @Figure-ref{fig:locally-defensive-delta} additionally defines a semantics for
  well-tagged expressions.
 Crucially, dynamically-typed arguments
