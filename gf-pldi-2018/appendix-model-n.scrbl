@@ -50,7 +50,7 @@
   If @${\wellM e : \tau} then @${\wellNE e : \tau} and either:
   @itemlist[
     @item{ @${e \rrNEstar v \mbox{ and } \wellNE v : \tau} }
-    @item{ @${e \rrNEstar \ctxE{e'} \mbox{ and } e' \ccND \tagerror} }
+    @item{ @${e \rrNEstar \ctxE{\edyn{\tau'}{e'}} \mbox{ and } e' \ccND \tagerror} }
     @item{ @${e \rrNEstar \boundaryerror} }
     @item{ @${e} diverges}
   ]

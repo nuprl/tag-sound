@@ -51,7 +51,7 @@
   If @${\wellM e : \tau} then @${\wellFE e : \tau} and either:
   @itemlist[
     @item{ @${e \rrFEstar v \mbox{ and } \wellFE v : \tau} }
-    @item{ @${e \rrFEstar \ctxE{e'} \mbox{ and } e' \ccFD \tagerror} }
+    @item{ @${e \rrFEstar \ctxE{\edyn{\tau'}{e'}} \mbox{ and } e' \ccFD \tagerror} }
     @item{ @${e \rrFEstar \boundaryerror} }
     @item{ @${e} diverges}
   ]

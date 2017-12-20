@@ -66,7 +66,7 @@
    and either:
 @itemlist[
   @item{ @${e^+ \rrKEstar v} and @${\wellKE v : K} }
-  @item{ @${e^+ \rrKEstar E[\edyn{\tau'}{e'}] \mbox{ and } e' \ccKD \tagerror} }
+  @item{ @${e^+ \rrKEstar \ctxE{\edyn{\tau'}{e'}} \mbox{ and } e' \ccKD \tagerror} }
   @item{ @${e^+ \rrKEstar \boundaryerror} }
   @item{ @${e^+} diverges }
 ]}@tr-proof{

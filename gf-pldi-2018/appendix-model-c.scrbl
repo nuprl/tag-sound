@@ -50,7 +50,7 @@
   If @${\wellM e : \tau} then @${\wellCE e : \tau} and either:
   @itemlist[
     @item{ @${e \rrCEstar v \mbox{ and } \wellCE v : \tau} }
-    @item{ @${e \rrCEstar \ctxE{e'} \mbox{ and } e' \ccCD \tagerror} }
+    @item{ @${e \rrCEstar \ctxE{\edyn{\tau'}{e'}} \mbox{ and } e' \ccCD \tagerror} }
     @item{ @${e \rrCEstar \boundaryerror} }
     @item{ @${e} diverges}
   ]
