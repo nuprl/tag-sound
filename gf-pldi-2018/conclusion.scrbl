@@ -1,12 +1,17 @@
 #lang gf-pldi-2018
 @title[#:tag "sec:conclusion"]{Finding Balance}
 
+@; TODO future work
+@;  We leave as open the question of how to define a completion function that
+@;   generates the minimum number of @${\vchk} expressions.@note{@citet[henglein-scp-1994]
+@;    defines a rewriting system that is provably optimal, but possibly non-terminating.}
+
 @; -----------------------------------------------------------------------------
 
 The paper contributes two major results. First, the idea of viewing
  migratory typing as a multi-language problem demonstrates that a language
  with a migratory type system may satisfy at least five different
- type-soundness conditions, depending on which kind of ``foreign-function
+ type-soundness conditions, depending on which kind of ``foreign function
  interface'' we choose. Each soundness condition has different implications
  for how a developer can reason about the code, especially when it comes to
  diagnosing the cause of a run-time error.

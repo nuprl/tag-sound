@@ -35,28 +35,28 @@ From a type-theoretic perspective, academic migratory type systems use a
  context@~cite[mf-toplas-2007]. Roughly speaking, when an untyped value
  mixes with typed code, it gets ``type checked'' at run time; viewed from
  the typed perspective, a typed value gets protected with a checking
- wrapper when it flows into an untyped context. All of these checks add a
- significant overhead when mixed-typed code is run; the performance
+ wrapper when it flows into an untyped context. All of these checks and wrappers
+ add a significant overhead when mixed-typed code is run; the performance
  improves only when (almost) the entire code base is equipped with
  types. Industrial variants of these type systems use an ``erasure
  embedding.''  The result is code that does not detect when a run-time
  state violates the type invariant of the source code; indeed, it may never
  signal such a violation; but, it relies on the existing run-time checks of
  the underlying untyped language to prevent type violations from turning
- into segmentation faults (of unsafe languages such as C++).
+ into the segmentation faults (of unsafe languages such as C++).
 
 This paper contributes (1) several models of migratory type systems that
- sit between these two extremes (see sec. @secref{sec:design}). The
+ sit between these extremes (see @section-ref{sec:design}). The
  development is inspired by Reticulated Python@~cite[vksb-dls-2014],
  a pre-processor implementation of a gradual type system for Python. We state
  theorems that demonstrate to what extent each model is type-sound.  (2) We
  explain how to implement the most promising variant in Typed Racket so
  that we can compare ``apples with apples'' (see
- sec. @secref{sec:implementation}). And finally, we present the results of
+ @section-ref{sec:implementation}). And finally, we present the results of
  applying Takikawa et al.'s method to this implementation (see
- sec. @secref{sec:evaluation}). The speed-up improvements are dramatic;
+ sec. @section-ref{sec:evaluation}). The speed-up improvements are dramatic,
  typically an order-of-magnitude improvement. We thus consider these results
  a first step toward the creation of a feasible, sound migratory type
- system.  @Secref{sec:background} starts the paper with a presentation of
- the background, and section @secref{sec:related-work} explains the context
+ system.  @Section-ref{sec:background} starts the paper with a presentation of
+ the background, and section @section-ref{sec:related-work} explains the context
  in some detail.

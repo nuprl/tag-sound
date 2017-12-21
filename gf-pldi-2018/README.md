@@ -26,3 +26,7 @@ or, factory recycling
 MT: replace parts of program with "trust me" things in the gamma.
  could be very useful, like z3 or some fast library for fast things.
  what guarantees about "mixed" programs?
+
+- - -
+
+conclusion / open 

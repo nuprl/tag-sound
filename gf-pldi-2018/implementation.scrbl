@@ -70,7 +70,7 @@ To support @emph{recursive types} of the form @${(\trec{\alpha}{\tau})}, a
  suitable type-tag is the tag of
  @${(\vsubst{\tau}{\alpha}{\trec{\alpha}{\tau}})}.  This definition is
  well-founded provided the type variable @${\alpha} appears only as the
- parameter to a @emph{guarded} type.  A parameterized type is guarded if
+ parameter to a @emph{guarded} type.  A non-base type is guarded if
  its type-tag does not depend on its argument types.
 
 To support @emph{universal types} of the form @${\tall{\alpha}{\tau}}, we

@@ -3,25 +3,26 @@
 
 @include-figure["fig:common-syntax.tex" @elem{Common syntax and semantic notions}]
 
+@; TODO I'm assuming base types are O(1) to check no matter what ... that they're taggged ... don't think this comes across
 The goal of a type-directed embedding is to describe how three
  classes of values may cross language boundaries:
  (1) values of a base type,
- (2) finite values of a parameterized type,
- and (3) infinite values of a parameterized type.@note{By finite and infinite, we refer to these values' observable behaviors.}
-As representative examples, we use integers, pairs, and (anonymous, single-argument) functions.
+ (2) finite values of a non-base type,
+ and (3) infinite values of a non-base type.
+As representative examples, we use integers, pairs, and anonymous functions.
 Scaling an embedding to accomodate other types and values is usually straightforward,
- as we discuss in @section-ref{sec:implementation}.
+ see @section-ref{sec:implementation}.
 
-@Figure-ref{fig:common-syntax} introduces the common syntactic
- and semantic notions.
-Expressions @${e} include variables, value forms, and the application of a
- function or primitive operation to arguments.
-The unary primitive operations @${\vfst} and @${\vsnd} are projection functions for pair values;
+@Figure-ref{fig:common-syntax} introduces the syntactic
+ and semantic notions common to all the embeddings.
+Expressions @${e} include variables, values, and the application of a
+ function or primitive.
+The unary primitives @${\vfst} and @${\vsnd} are projections for pair values;
  the binary primitives @${\vsum} and @${\vquotient} are integer arithmetic operators.
 
 @; TODO 'boundary error' isn't clear enough ... I think need to explain boundary
 @;  first, then we can say what \delta is one instance of a boundary
-The semantics of the primitive operations is given by the partial @${\delta} function.
+The semantics of the primitives is given by the partial @${\delta} function.
 In a real language, these primitives would be implemented by a runtime system
  that manipulates the machine representation of values.
 As such, we treat calls to @${\delta} as cross-language function calls.
@@ -30,12 +31,11 @@ The result of such a function call is either a value, a token indicating
 
 Undefined behavior due to @${\delta} is a categorical evil.
 The baseline soundness requirement for our models is that they rule out
- programs that can lead to undefined behavior.
+ programs that can lead to such evil.
 
-Other components in @figure-ref{fig:common-syntax} help define semantics.
+Other components in @figure-ref{fig:common-syntax} help define a reduction semantics.
 An answer @${A} is either an expression or an error token.
-Evaluation contexts @${E} impose a left-to-right order of evaluation for the
- extension of this base with call-by-value functions.
+Evaluation contexts @${E} impose the standard order of evaluation.
 Lastly, the meta-function @${\cclift{E}{\rrR}} lifts a
  notion of reduction@~cite[b-lambda-1981]
  over evaluation contexts in a way that detects and propagates errors@~cite[redex-book].
@@ -46,13 +46,13 @@ Lastly, the meta-function @${\cclift{E}{\rrR}} lifts a
 @include-figure["fig:sta-delta.tex" @elem{Static Typing}]
 
 @; TODO explain type-tag error
-The language @${\langD} defined in @figure-ref{fig:dyn-delta} is
- dynamically-typed.
+The language @${\langD} defined in @figure-ref{fig:dyn-delta} is a
+ dynamically-typed extension of @figure-ref{fig:common-syntax}.
 An @${\langD} expression @${e} is well-formed according to the typing judgment
  @${\GammaD \welldyn e} if it contains no free variables.
 The notion of reduction @${\rrD} defines the semantics of well-formed expressions;
- in essence, it reduces a valid application of values to a normal answer and
- maps an invalid application to a token representing a type-tag error.
+ in essence, it reduces a valid application of values to a value and
+ maps an invalid application to a type-tag error.
 
 The language @${\langS} in @figure-ref{fig:sta-delta} is a statically-typed
  counterpart to @${\langD}.
@@ -66,9 +66,9 @@ An @${\langS} expression @${e} is well-typed if @${\GammaS \wellsta e : \tau}
  can be derived using the rules in @figure-ref{fig:sta-delta} for some type
  @${\tau}.@note{These typing rules are not syntax directed; @; because of subsumption
  see the PLT Redex models in our artifact for an implementation.}
-The purpose of this typing judgment is to guarantee that all application forms
+The purpose of this typing judgment is to guarantee that all applications
  apply a function and all primitive operations receive arguments for which
- @${\delta} is defined.
+ @${\delta} yields an answer.
 If this is true, then the notion of reduction @${\rrS} is defined for all
  well-typed expressions.
 
@@ -88,14 +88,10 @@ Expressions cannot send the evaluator to an undefined state.
 }@;
 @proof-sketch{
   By progress and preservation lemmas@~cite[type-soundness] for the @${\welldyn} relation.
-  In other words, @${e \ccD A} is defined for all well-formed expressions
-   @${e} and if it maps @${e} to another expression, then the result is well-formed.
 }
 
-The analogous soundness theorem for @${\langS} guarantees
- that evaluation via @${\rrSstar} never leads to undefined behavior
- even though the reduction relation calls the partial @${\delta} function
- and never raises tag errors.
+The analogous soundness theorem for @${\langS} strengthens @${\langD} soundness
+ in that no program raises a type-tag error.
 Additionally, we can prove that evaluation preserves types;
  if an expression has type @${\tau} and evaluates to a value @${v}, then
  @${v} also has type @${\tau}.
@@ -122,15 +118,16 @@ This enhancement allows programmers to use static type information to reason abo
 
 @Figure-ref{fig:mixed-delta} defines the syntax and typing rules of a
  multi-language based on @${\langD} and @${\langS}.
-The multi-language @${\langM} recursively extends the common syntax in @figure-ref{fig:common-syntax}
+The multi-language @${\langM} extends the common syntax in @figure-ref{fig:common-syntax}
  with boundary expressions, combined value forms, and combined type contexts.
-This language comes with two mutually-recursive typing judgments:
+This language comes with two mutually-recursive typing judgments, extending
+ the judgments in @figure-ref["fig:dyn-delta.tex" "fig:sta-delta.tex"]:
  a well-formedness judgment @${\Gamma \wellM e} for dynamically-typed expressions
  and a type-checking judgment @${\Gamma \wellM e : \tau} for statically-typed expressions.
-Note that the typing rules prevent a dynamically-typed expression from
+Those typing rules prevent a dynamically-typed expression from
  directly referencing a statically-typed variable, and vice-versa.
 Cross-language references must go through a @${\vdyn} or @${\vsta} boundary
- expression, depending on the context.
+ expression.
 
 By intention, the definition of @${\langM} does not include a semantics.
 The rest of this section introduces @integer->word[NUM-EMBEDDINGS]
@@ -147,7 +144,7 @@ Informally, @${\ccR} applied to a statically-typed expression @${e}
 @; TODO flip-flop is not really clear
 The payoff of this technical machinery is that a statically-typed term @${e}
  cannot step via @${\ccR} to a type-tag error if @${e} does not embed
- dynamically-typed code, which facilitates the proof of the soundness theorems.
+ dynamically-typed code, facilitating a proof of soundness.
 
 
 @; -----------------------------------------------------------------------------
@@ -156,7 +153,7 @@ The payoff of this technical machinery is that a statically-typed term @${e}
 @include-figure*["fig:natural-delta.tex" "Natural Embedding"]
 
 Intuitively, we can create a multi-language that avoids undefined behavior
- but does not guarantee any kind of type soundness
+ but ignores type annotations
  in two easy steps.
 First, let statically-typed values and dynamically-typed values freely cross boundary terms.
 Second, base the evaluator on the dynamically-typed notion of reduction.
@@ -164,14 +161,13 @@ Second, base the evaluator on the dynamically-typed notion of reduction.
 @Figure-ref{fig:erasure-delta} specifies this @emph{erasure semantics} for
  the @${\langM} language.
 The notion of reduction @${\rrEE} extends the dynamically-typed reduction to handle
- type-annotated functions and boundary expressions; it ignores the types.
+ type-annotated functions and boundary expressions.
 Its definition relies on an extension of evaluation contexts
  to allow reduction under boundaries
- and take the appropriate closure of @${\rrEE}.
-The typing judgment @${\Gamma \wellEE e} recursively extends the notion of
+ and takes the appropriate closure of @${\rrEE}.
+The typing judgment @${\Gamma \wellEE e} extends the notion of
  a well-formed program to ignore any type annotations.
-Using @${\Gamma \wellEE \cdot} as a run-time invariant, we can state a soundness theorem for
- @${\langE}:
+As a result, the soundness theorem for @${\langE} resembles that of @${\langD}.
 
 @theorem[@elem{@${\langE} soundness}]{
   If @${\wellM e : \tau}
@@ -187,9 +183,9 @@ Using @${\Gamma \wellEE \cdot} as a run-time invariant, we can state a soundness
 @; By progress and preservation of @${\wellEE}.
 @;}
 
-Clearly, the erasure embedding is unsound with respect to static types.
+Clearly, the erasure embedding completely lacks predictability with respect to static types.
 One can easily build a well-typed expression that reduces to a value
- with a completely different type.
+ of a completely different type.
 For example, @${(\edyn{\tint}{\vlam{x}{x}})}
  has the static type @${\tint} but evaluates to a function.
 Worse yet, well-typed expressions may produce unexpected errors (a category I disaster)
@@ -205,7 +201,7 @@ A student might use the type @${(\tpair{\tnat}{\tint})}
 Calling one of these functions with the dynamically-typed value @${\vpair{-1}{1}}
  may give a result, but probably not the right one.
 
-Despite the lack of safety, the erasure embedding has found increasingly widespread use.
+Despite its disrespect for types, the erasure embedding has found increasingly widespread use.
 For example,
  Hack, @;@note{@url{http://hacklang.org/}},
  TypeScript, @;@note{@url{https://www.typescriptlang.org/}},
@@ -223,17 +219,17 @@ For example,
 @include-figure*["fig:conatural-delta.tex" "Co-Natural Embedding"]
 
 In order to provide some kind of type soundness, an embedding must restrict
- the dynamically-typed values that can flow in to typed contexts.
+ the dynamically-typed values that can flow into typed contexts.
 A natural kind of restriction is to let a value @${v} cross a boundary
  expecting values of type @${\tau} only if @${v} matches the canonical forms
  of the static type, and raise a @${\boundaryerror} otherwise.
 For base types, this requires a generalized kind of type-tag check.
-For parameterized types that describe finitely-observable values,
+For non-base types that describe finitely-observable values,
  this requires one tag check and a recursive check of the value's components.
 
 This inductive checking strategy fails, however, for types that describe
  values with infinitely many observable behaviors, such as a function
-  or a stream.
+  or an object.
 @;;For instance, it is generally impossible to check whether a run-time value @${v}
 @;; matches a function type.
 @;;@;@note{It may be possible
@@ -257,16 +253,19 @@ Instead of finding a good reason that the value is typed,
 A monitor @${(\vmonfun{\tarr{\tau_d}{\tau_c}}{v})} associates a type to a value;
  new reduction rules ensure that applying the monitor to an argument is
  the same as applying the underlying value @${v} across two boundary expressions.
+
 Statically-typed functions crossing into dynamically-typed code
- are also wrapped in monitors.
+ are wrapped in monitors.
 Such wrappers check that dynamically-typed arguments match the function's
  static type.
-
+Dynamically-typed functions that enter statically-typed code are wrapped
+ in monitors to check the results they produce.
 Monitor values establish a key invariant: every value in statically-typed
  code is either a well-typed value or a monitor that encapsulates a
  potentially-dangerous value.
-This invariant yields a kind of type soundness that is nearly as strong
- as @${\langS} soundness.
+This invariant yields a soundness like that of @${\langS}, in which only dynamically-typed
+ code can raise a type-tag error.
+@; TODO still unclear, this previous sentence
 
 @theorem[@elem{@${\langE} type soundness}]{
   If @${\wellM e : \tau}
@@ -301,8 +300,7 @@ This compilation technique can improve the performance of typed code.
 
 The erasure embedding promises nothing in the way of type soudness,
  and lets values freely cross boundary expressions.
-The natural embedding is ideally type sound (for a language that makes no
- attempt to connect run-time boundary errors to source-program boundary terms@~cite[tfffgksst-snapl-2017])
+The natural embedding is ideally type sound@~cite[tfffgksst-snapl-2017]
  but imposes a large performance overhead.
 In the context of Typed Racket, Takikawa @|etal| observed that a straightforward
  implementation of the natural embedding can slow down a working program
@@ -318,9 +316,11 @@ Function monitors add an @emph{indirection} cost.
 Every call to a monitored function incurs one additional boundary-crossing.
 If a value repeatedly crosses boundary terms, these type-checking layers
  can accumulate without bound.@note{In a language with a JIT compiler,
-  layers of indirection may also affect inlining decisions.}
+  indirection may also affect inlining decisions.
+  @; TODO does Spenser's work validate this?
+  }
 Finally, the @emph{allocation} cost of building a monitor value
- may lead to significant performance overhead.
+ also adds to the performance overhead.
 
 The following three embeddings address these costs systematically.
 Consequently, they demonstrate that the erasure and natural embeddings lie on
@@ -339,19 +339,19 @@ To check that a dynamically-typed value matches a function type,
  the natural embedding performs a type-tag check and allocates a monitor.
 
 In principle, an embedding can apply the same delayed-checking strategy to values
- of every parameterized type.
+ of every non-base type.
 This reduces the cost of all boundary terms to at most
  one type-tag check and one monitor application.
 
-@Figure-ref{fig:conatural-delta} gives the details of this @emph{co-natural}
+@Figure-ref{fig:conatural-delta} specifies the details of this @emph{co-natural}
  embedding as an extension of the natural embedding.
 @(let ((value-forms '("integers" "pairs" "functions" "function monitors" "pair monitors")))
   @elem{
     In total, this language @${\langL} has @integer->word[@length[value-forms]]
-     kinds of value forms: @authors*[value-forms]. })
+     kinds of values: @authors*[value-forms]. })
 The reduction rules define how the projections @${\vfst} and @${\vsnd}
- act on pair monitors; in short, they act as projections across a boundary.
-Finally when a pair value crosses a boundary, it gets wrapping in a checking
+ act on pair monitors.
+Finally when a pair value crosses a boundary, it gets wrapped in a checking
  (or protective) monitor.
 
 From a theoretical standpoint, the change from a natural to a co-natural embedding
@@ -380,6 +380,8 @@ The switch from eager to delayed run-time checks also affects performance.
 Instead of checking the contents of a pair exactly once, at a boundary, the
  co-natural embedding described in @figure-ref{fig:conatural-delta} performs
  a check for each application of @${\vfst} or @${\vsnd}.
+An implementation might improve this performance through caching, but its
+ performance will likely be close to that of the natural embedding.
 @;@citet[fgr-ifl-2007] have explored one method for dynamically reducing this cost.
 @; ... for our purposes we just care about O(n) -> O(1) ???
 
@@ -399,9 +401,8 @@ Instead of checking the contents of a pair exactly once, at a boundary, the
 The second source of performance overhead in the natural embedding is the
  indirection cost of monitors.
 Each time a function value crosses a boundary, it accumulates a new monitor.
-Pair values in the co-natural embedding suffer the same overhead;
- a call to @${\vfst} may factor through an unbounded number of monitor wrappers.
-To reduce the indirection cost, we need a way to collapse layers of monitors.
+Repeated crossings means function calls must penetrate several layers of indirection.
+To reduce this cost, we need a way to collapse layers of monitors.
 
 A simple, efficient, and type-sound way to reduce the indirection cost
  is to forget all but the most-recently-applied monitor@~cite[g-popl-2015].
@@ -455,6 +456,7 @@ The language @${\langF} satisfies the same notion of soundness as the co-natural
 
 The forgetful embedding performs just enough run-time type checking to
  ensure that statically-typed code does not reach an undefined state, nothing more.
+@; TODO example
 
 @;In short, the combination of monitor values and forgetful semantics
 @; takes the compositional reasoning property out of the static type system.
@@ -466,8 +468,12 @@ The forgetful embedding performs just enough run-time type checking to
 
 The final source of performance overhead in the natural embedding is the cost of
  allocating monitor values.
+@; TODO probably incorrect, definitely too loose
 To remove this cost, we must replace the run-time analysis that monitors implement with
  a static analysis that predicts where to insert soundness-enforcing run-time checks.
+@; TODO trying to say two things at once ...
+@;  1. a whole-program approach is needed (because need the whole typing derivation)
+@;  2. want to weaken the soundness criteria
 
 For a typical notion of type soundness in a language with
 first-class functions, predicting such checks is impossible
@@ -502,11 +508,12 @@ In order to use these expressions in a context that requires a certain kind of
 
 @Figure-ref{fig:locally-defensive-delta} defines a typing system @${\Gamma \wellKE e : K}
  that makes these ideas precise.
-To begin, type-tags @${K} represent integers, natural numbers, pairs, functions,
+The type-tags @${K} represent integers, natural numbers, pairs, functions,
  and unknown values.
 The meta-function @${\tagof{\cdot}} relates a type @${\tau} to a type-tag,
  and the subtyping relation @${K \subt K'} states when values of tag @${K}
- can safely be given to a context expecting values of a different tag.
+ can safely be given to a context expecting values with a different tag.
+@; TODO stop saying 'trivial' ... just use 'Any' at least
 As for the typing system: (1) the rules for value constructors conclude
  with a non-trivial tag; (2) the rules for elimination forms require a non-trivial
  tag and conclude with the @${\kany} tag; and (3) the rules for @${\vdyn} and
@@ -517,10 +524,9 @@ As for the typing system: (1) the rules for value constructors conclude
  well-tagged expressions.
 Crucially, dynamically-typed arguments
  to typed functions get tag-checked by the @${\mchk{K}{\cdot}} meta-function.
-Also important for proving that type-tag errors only
- occur in dynamically-typed code is the addition of the ``dummy'' boundary
+To prove that type-tag errors only
+ occur in dynamically-typed code, we add the ``dummy'' boundary
  expressions @${(\edyn{\kany}{e})} and @${(\esta{\kany}{e})}.
-These expressions are a technical device to quarantine function bodies.
 
 
 @subsection{Check Completion}
@@ -531,19 +537,16 @@ Unlike our previous languages, there is a gap between static typing for
 If an expression @${e} has the static type @${\tau} and the type-tag of @${\tau}
  is @${K}, it is not necessarily true that @${e} is well-tagged via the @${\wellKE} relation.
 
-We bridge this gap with a @emph{completion}@~cite[henglein-scp-1994] function.
-Informally, a completion function @${\carrow} takes a well-typed term @${\wellM e : \tau}
+@; TODO check usage of 'completion'
+We bridge this gap with a @emph{completion}@~cite[henglein-scp-1994] elaboration pass.
+Informally, a completion takes a well-typed term @${\wellM e : \tau}
  and adds @${\vchk} forms to enforce the type-checker's assumptions against
  dynamically-typed pairs and functions.
-Such a function is correct if it maps well-typed expressions to
- semantically-equivalent well-tagged expressions.
-
-For @${\langK}, the completion function we use inserts checks to the three
+Such an elaboration is sound if it maps well-typed expressions to
+ a similar, well-tagged expressions.
+For @${\langK}, the completion elaborator we use inserts checks to the three
  forms shown in @figure-ref{fig:locally-defensive-completion-delta} and
  otherwise folds over expressions.
-We leave as open the question of how to define a completion function that
- generates the minimum number of @${\vchk} expressions.@note{@citet[henglein-scp-1994]
-  defines a rewriting system that is provably optimal, but possibly non-terminating.}
 
 
 @subsection{Type-Tag Soundness}
@@ -565,7 +568,7 @@ We state soundness for @${\langK} in terms of the static typing judgment
   @item{ @${e^+} diverges }
 ]}@;
 @proof-sketch{
-  The completion function simply adds checks around every expression with type-tag
+  The completion simply adds checks around every expression with type-tag
    @${\kany} to enforce the expression's static type.
   Soundness follows from progress and preservation lemmas for the @${\wellKE \cdot : K} relation.
 }
