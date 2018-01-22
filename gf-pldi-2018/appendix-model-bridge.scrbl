@@ -1,59 +1,103 @@
 #lang gf-pldi-2018
 @require{techreport.rkt}
 
-@appendix-title++{Bridge Lemmas}
+@appendix-title++{The Big Picture}
 
-@section{Spectrum of Performance}
+The paragraphs in this section summarize the five embeddings with four slogans.
+Each slogan pertains to one aspect of the embedding:
+@itemlist[#:style 'ordered
+@item{
+  What kinds of checks does the embedding perform when a value reaches a type boundary?
+}
+@item{
+  When, if ever, does the embedding wrap a value in a monitor?
+}
+@item{
+  If an ill-typed value reaches a type boundary, when does the embedding signal an error?
+}
+@item{
+  How do types affect behavior?
+}
+]
 
-@subsection{Notions of Cost}
+These embeddings are ordered on a speculative scale from "most guarantees, worst performance" to "least guarantees, best performance".
 
-A reduction rule is a @emph{check rule} if its left-hand-side has the form
- @${\esta{\cdot}{\cdot}} or @${\edyn{\cdot}{\cdot}} or @${\echk{\cdot}{\cdot}}
- or if it invokes the @${\mchk{\cdot}{\cdot}} metafunction.
+@parag{Natural embedding}
+@itemlist[#:style 'ordered
+@item{
+  recursively check read-only values;
+}
+@item{
+  monitor functional and mutable values;
+}
+@item{
+  detect boundary errors as early as possible;
+}
+@item{
+  types globally constrain behavior.
+}
+]
 
-A reduction rule is an @emph{allocation rule} if its right-hand-side introduces
- a monitor @${\vmon{\cdot}{\cdot}}.
+@parag{Co-Natural embedding}
+@itemlist[#:style 'ordered
+@item{
+  tag-check all values;
+}
+@item{
+  monitor all data structures and functions;
+}
+@item{
+  detect boundary errors as late as possible; *
+}
+@item{
+  types globally constrain behavior
+}
+]
 
-A reduction rule is an @emph{indirection rule} if its left-hand-side expects
- a monitor.
+@parag{Forgetful embedding}
+@itemlist[#:style 'ordered
+@item{
+  tag-check all values;
+}
+@item{
+  apply at most 1 monitor to each value;
+}
+@item{
+  detect boundary errors as late as possible;
+}
+@item{
+  types locally constrain behavior.
+}
+]
 
-Note that one reduction rule may be, e.g., both an allocation rule and an
- indirection rule.
+@parag{Locally-Defensive embedding}
+@itemlist[#:style 'ordered
+@item{
+  tag-check all values;
+}
+@item{
+  never allocate a monitor;
+}
+@item{
+  detect boundary errors as late as possible;
+}
+@item{
+  types locally constrain behavior.
+}
+]
 
-
-@subsection{Relative Cost}
-
-N <=alloc  C
-N >=check  C
-N <=indir  C
-
-C ==alloc  F
-C ==check  F
-C >=indir  F
-
-F >=alloc  K
-F ==check  K
-F >=indir  K
-
-K  >check  E
-
-The "intuition" for each comes from the embedding strategy:
-
-- C does not recur
-- F does not double-wrap
-- K does not monitor
-- E erases types
-
-Actual proof I guess will be like:
-
-for all e such that e -->*x A and e -->*y A' then
- [[ (e -->*x A) <= (e -->*y A') ]]
-
-Proved bisimulation.
-
-
-@section{Spectrum of Soundness}
-
-??? this isn't even the right title
-
-... idea is, weaker soudnness allows some bad programs
+@parag{Erasure embedding}
+@itemlist[#:style 'ordered
+@item{
+  never check values;
+}
+@item{
+  never allocate a monitor;
+}
+@item{
+  never detect a type boundary error;
+}
+@item{
+  types do not affect behavior
+}
+]
