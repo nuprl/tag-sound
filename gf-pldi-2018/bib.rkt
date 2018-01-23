@@ -76,6 +76,7 @@
   (define/short oopsla "OOPSLA" (string-append ACM Conference "on Object-Oriented Programming, Systems, Languages and Applications"))
   (define/short onward "ONWARD" (string-append ACM Symposium "on New ideas, new paradigms, and reflections on programming and software"))
   (define/short padl "PADL" (string-append Symposium "on Practical Aspects of Declarative Languages"))
+  (define/short pepm "PEPM" (string-append ACM Workshop "on Partial Evaluation and Program Manipulation"))
   (define/short pldi "PLDI" (string-append ACM Conference "on Programming Language Design and Implementation"))
   (define/short plpv "PLPV" (string-append ACM Workshop "Programming Languages meets Program Verification"))
   (define/short popl "POPL" (string-append ACM Symposium "on Principles of Programming Languages"))
@@ -1917,10 +1918,9 @@
 
 (define cgk-popl-2017
   (make-bib
-   #:title "Macros as Types"
+   #:title "Type Systems as Macros"
    #:author (authors "Stephen Chang" "Alex Knauth" "Ben Greenman")
-   #:location (proceedings-location popl)
-   #:note "To appear."
+   #:location (proceedings-location popl #:pages '(694 705))
    #:date 2017))
 
 (define cks-jfp-2009
@@ -2067,7 +2067,7 @@
   (make-bib
     #:title "On the Cost of Type-Tag Soundness"
     #:author (authors "Ben Greenman" "Zeina Migeed")
-    #:location "To appear in PEPM"
+    #:location (proceedings-location pepm #:pages '(30 39))
     #:date 2018))
 
 (define r-ip-1983
