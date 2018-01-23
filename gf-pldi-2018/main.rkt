@@ -43,13 +43,6 @@
   y-axis
   IF-TECHREPORT
 
-  D-SOUNDNESS
-  S-SOUNDNESS
-  E-SOUNDNESS
-  N-SOUNDNESS
-  C-SOUNDNESS
-  F-SOUNDNESS
-  K-SOUNDNESS
   bm
 
   ~a
@@ -253,7 +246,7 @@
 
 ;; TODO add a deftech?
 (define (make-thing title term defn* [key #f])
-  (para #:style plain
+  (nested
     (list
       (exact "\\vspace{1ex}\n")
       (bold title)
@@ -337,87 +330,6 @@
 
 (define (MT x)
   (bold (format "MT(~a)" x)))
-
-(define D-SOUNDNESS
-  (list
-    @theorem[@elem{@${\langD} soundness}]{
-      If @${\welldyn e} then either:
-    }
-    @itemlist[
-    @item{ @${e~\rrDstar~v} }
-    @item{ @${e~\rrDstar~\tagerror} }
-    @item{ @${e~\rrDstar~\boundaryerror} }
-    @item{ @${e} diverges } ]))
-
-(define S-SOUNDNESS
-  (list
-    @theorem[@elem{@${\langS} type soundness}]{
-      If @${\wellsta e : \tau} then either:
-    }
-    @itemlist[
-      @item{ @${e~\rrSstar~v} and @${\wellsta v} }
-      @item{ @${e~\rrSstar~\boundaryerror} }
-      @item{ @${e} diverges } ]))
-
-(define E-SOUNDNESS
-  (list
-    @theorem[@elem{@${\langE} term safety}]{
-      If @${\wellM e : \tau} then @${\wellEE e} and either:
-    }
-    @itemlist[
-    @item{ @${e~\rrEEstar~v} and @${\wellEE v} }
-    @item{ @${e~\rrEEstar~\tagerror} }
-    @item{ @${e~\rrEEstar~\boundaryerror} }
-    @item{ @${e} diverges } ]))
-
-(define N-SOUNDNESS
-  (list
-    @theorem[@elem{@${\langN} type soundness}]{
-      If @${\wellM e : \tau} then @${\wellNE e : \tau} and either:
-    }
-    @itemlist[
-    @item{ @${e \rrNEstar v} and @${\wellNE v : \tau} }
-    @item{ @${e \rrNEstar E[e'] \ccND \tagerror} }
-    @item{ @${e \rrNEstar \boundaryerror} }
-    @item{ @${e} diverges } ]))
-
-(define C-SOUNDNESS
-  (list
-    @theorem[@elem{@${\langC} type safety}]{
-      If @${\wellM e : \tau} then @${\wellCE e : \tau} and either:
-    }
-    @itemlist[
-    @item{ @${e \rrCEstar v} and @${\wellCE v : \tau} }
-    @item{ @${e \rrCEstar E[e'] \ccCD \tagerror} }
-    @item{ @${e \rrCEstar \boundaryerror} }
-    @item{ @${e} diverges }]))
-
-(define F-SOUNDNESS
-  (list
-    @theorem[@elem{@${\langF} type soundness}]{
-      If @${\wellM e : \tau} then @${\wellFE e : \tau} and either:
-    }
-    @itemlist[
-    @item{ @${e \rrFEstar v} and @${\wellFE v : \tau} }
-    @item{ @${e \rrFEstar E[e'] \ccFD \tagerror} }
-    @item{ @${e \rrFEstar \boundaryerror} }
-    @item{ @${e} diverges } ]))
-
-(define K-SOUNDNESS
-  (list
-    @theorem[@elem{@${\langK} type-tag soundness} #:key "LK-soundness"]{
-      If @${\wellM e : \tau}
-       and @${\tagof{\tau} = K}, then
-       @${\wellM e : \tau \carrow e^+}
-       and
-       @${\wellKE e^+ : K}
-       and either:
-    }
-    @itemlist[
-    @item{ @${e^+ \rrKEstar v} and @${\wellKE v : K} }
-    @item{ @${e^+ \rrKEstar E[e'] \ccKD \tagerror} }
-    @item{ @${e^+ \rrKEstar \boundaryerror} }
-    @item{ @${e^+} diverges } ]))
 
 (define EMBEDDINGS
   '("erased" "natural" "co-natural" "forgetful" "tagged"))

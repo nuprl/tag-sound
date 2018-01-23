@@ -1,7 +1,7 @@
 #lang gf-pldi-2018
 @title[#:tag "sec:design"]{Five Embeddings}
 
-@include-figure["fig:common-syntax.tex" @elem{Common syntax and semantics}]
+@include-figure["fig:common-syntax.tex" @elem{Common syntax and semantic notions}]
 
 The goal of a type-directed embedding is to describe how three
  classes of values may cross language boundaries:
@@ -74,8 +74,15 @@ For @${\langD}, soundness means that the evaluation of any well-formed expressio
  either produces a valid answer or runs forever.
 Expressions cannot send the evaluator to an undefined state.
 
-@|D-SOUNDNESS|
-@;
+@theorem[@elem{@${\langD} soundness}]{
+  If @${\welldyn e} then either:
+  @itemlist[
+    @item{ @${e \rrDstar v} and @${\welldyn v} }
+    @item{ @${e \rrDstar \tagerror} }
+    @item{ @${e \rrDstar \boundaryerror} }
+    @item{ @${e} diverges }
+  ]
+}@;
 @proof-sketch{
   By progress and preservation lemmas@~cite[type-soundness] for the @${\welldyn} relation.
   In other words, @${e \ccD A} is defined for all well-formed expressions
@@ -92,8 +99,14 @@ Additionally, we can prove that evaluation preserves types;
 This enhancement allows programmers to use static type information to reason about the run-time
  behavior of programs.
 
-@|S-SOUNDNESS|
-@;
+@theorem[@elem{@${\langS} soundness}]{
+  If @${\wellsta e : \tau} then either:
+  @itemlist[
+    @item{ @${e \rrSstar v} and @${\wellsta v : \tau} }
+    @item{ @${e \rrSstar \boundaryerror} }
+    @item{ @${e} diverges }
+  ]
+}@;
 @proof-sketch{
   By progress and preservation of the @${\wellsta \cdot : \tau} relation.
   (The only boundary error is division by zero.)
@@ -156,7 +169,16 @@ The typing judgment @${\Gamma \wellEE e} recursively extends the notion of
 Using @${\Gamma \wellEE \cdot} as a run-time invariant, we can state a soundness theorem for
  @${\langE}:
 
-@|E-SOUNDNESS|
+@theorem[@elem{@${\langE} soundness}]{
+  If @${\wellM e : \tau}
+   then @${\wellEE e} and either:
+  @itemlist[
+    @item{ @${e \rrEEstar v} and @${\wellEE v} }
+    @item{ @${e \rrEEstar \tagerror} }
+    @item{ @${e \rrEEstar \boundaryerror} }
+    @item{ @${e} diverges }
+  ]
+}@;
 @;@proof-sketch{
 @; By progress and preservation of @${\wellEE}.
 @;}
@@ -241,7 +263,16 @@ Monitor values establish a key invariant: every value in statically-typed
 This invariant yields a kind of type soundness that is nearly as strong
  as @${\langS} soundness.
 
-@|N-SOUNDNESS|
+@theorem[@elem{@${\langE} type soundness}]{
+  If @${\wellM e : \tau}
+   then @${\wellNE e : \tau} and either:
+  @itemlist[
+    @item{ @${e \rrNEstar v \mbox{ and } \wellNE v : \tau} }
+    @item{ @${e \rrNEstar \ctxE{e'} \mbox{ and } e' \ccND \tagerror} }
+    @item{ @${e \rrNEstar \boundaryerror} }
+    @item{ @${e} diverges}
+  ]
+}@;
 @proof-sketch{
   By progress and preservation lemmas for the @${\Gamma \wellNE \cdot : \tau} relation.
   The lack of type-tag errors in statically-typed code follows from the
@@ -320,7 +351,16 @@ From a theoretical standpoint, the change from a natural to a co-natural embeddi
  state.
 The co-natural embedding is still type sound in the same sense as the natural embedding:
 
-@|C-SOUNDNESS|
+
+@theorem[@elem{@${\langC} type soundness}]{
+  If @${\wellM e : \tau} then @${\wellCE e : \tau} and either:
+  @itemlist[
+    @item{ @${e \rrCEstar v \mbox{ and } \wellCE v : \tau} }
+    @item{ @${e \rrCEstar \ctxE{e'} \mbox{ and } e' \ccCD \tagerror} }
+    @item{ @${e \rrCEstar \boundaryerror} }
+    @item{ @${e} diverges}
+  ]
+}@;
 @proof-sketch{ Similar to the natural embedding. }
 @; TODO actual link to appendix
 
@@ -387,7 +427,15 @@ The @${\mchk{\tau}{\cdot}} meta-function factors out the common work of checking
 The language @${\langF} satisfies the same notion of soundness as the co-natural @${\langC}
  and the natural @${\langN}:
 
-@|F-SOUNDNESS|
+@theorem[@elem{@${\langF} type soundness}]{
+  If @${\wellM e : \tau} then @${\wellFE e : \tau} and either:
+  @itemlist[
+    @item{ @${e \rrFEstar v \mbox{ and } \wellFE v : \tau} }
+    @item{ @${e \rrFEstar \ctxE{e'} \mbox{ and } e' \ccFD \tagerror} }
+    @item{ @${e \rrFEstar \boundaryerror} }
+    @item{ @${e} diverges}
+  ]
+}@;
 @proof-sketch{
   By progress and preservation of the @${\wellFE \cdot : \tau} relation.
   The key invariant is that if @${x} is a variable of type
@@ -494,7 +542,19 @@ We leave as open the question of how to define a completion function that
 We state soundness for @${\langK} in terms of the static typing judgment
  of the mixed language and the semantics of @${\langK}.
 
-@|K-SOUNDNESS|
+@theorem[@elem{@${\langK} type-tag soundness}]{
+  If @${\wellM e : \tau}
+   and @${\tagof{\tau} = K}, then
+   @${\wellM e : \tau \carrow e'}
+   and
+   @${\wellKE e' : K}
+   and either:
+@itemlist[
+  @item{ @${e^+ \rrKEstar v} and @${\wellKE v : K} }
+  @item{ @${e^+ \rrKEstar E[\edyn{\tau'}{e'}] \mbox{ and } e' \ccKD \tagerror} }
+  @item{ @${e^+ \rrKEstar \boundaryerror} }
+  @item{ @${e^+} diverges }
+]}@;
 @proof-sketch{
   The completion function simply adds checks around every expression with type-tag
    @${\kany} to enforce the expression's static type.

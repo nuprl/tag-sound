@@ -1,32 +1,31 @@
 \begin{flushleft}
 
-\fbox{$\Gamma \wellsta e : \tau \carrow e$}\\
-\begin{mathpar}
+\lblmathpar{$\Gamma \wellM e : \tau \carrow e$}{
   \inferrule*{
-    \Gamma \vdash e_0 : \tarr{\tau_d}{\tau_c} \carrow e_0'
+    \Gamma \wellM e_0 : \tarr{\tau_d}{\tau_c} \carrow e_0'
     \\\\
-    \Gamma \vdash e_1 : \tau_d \carrow e_1'
+    \Gamma \wellM e_1 : \tau_d \carrow e_1'
     \\
     \tagof{\tau_c} = K
   }{
-    \Gamma \vdash e_0~e_1 : \tau_c \carrow \echk{K}{e_0'~e_1'}
+    \Gamma \wellM e_0~e_1 : \tau_c \carrow \echk{K}{(e_0'~e_1')}
   }
 
   \inferrule*{
-    \Gamma \vdash e : \tpair{\tau_0}{\tau_1} \carrow e'
-    \\
+    \Gamma \wellM e : \tpair{\tau_0}{\tau_1} \carrow e'
+    \\\\
     \tagof{\tau_0} = K
   }{
-    \Gamma \vdash \efst{e} : \tau_0 \carrow \echk{K}{\efst{e'}}
+    \Gamma \wellM \efst{e} : \tau_0 \carrow \echk{K}{(\efst{e'})}
   }
 
   \inferrule*{
-    \Gamma \vdash e : \tpair{\tau_0}{\tau_1} \carrow e'
-    \\
+    \Gamma \wellM e : \tpair{\tau_0}{\tau_1} \carrow e'
+    \\\\
     \tagof{\tau_1} = K
   }{
-    \Gamma \vdash \esnd{e} : \tau_1 \carrow \echk{K}{\esnd{e'}}
+    \Gamma \wellM \esnd{e} : \tau_1 \carrow \echk{K}{(\esnd{e'})}
   }
+}
 
-\end{mathpar}
 \end{flushleft}

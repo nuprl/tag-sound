@@ -5,12 +5,11 @@ paper
 
 TODO
 ---
+- need <:K in the paper, or just the appendix?
+- is the bowtie relation always correct?
 
 - investigate performance of morsecode
-- converting to typed "not guaranteed to improve performance"
-  ... second-system syndrome?
 
-- intro: "sound" => "conventionally sound"
 
 TYPESETTING
 - e D A ... more space ... between notions of reduction and their arguments

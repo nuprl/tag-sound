@@ -1,6 +1,6 @@
 \begin{flushleft}
 
-\fbox{Language $\langM$} inherits Common Syntax:\\
+\lblextra{Language $\langM$}{ inherits Common Syntax:}{
 $\begin{array}{l@{~~}c@{~~}l}
   e & \BNFeq & \ldots \mid \edyn{\tau}{e} \mid \esta{\tau}{e}
 \\
@@ -10,33 +10,31 @@ $\begin{array}{l@{~~}c@{~~}l}
 \\
   \Gamma & \BNFeq & \cdot \mid x,\Gamma \mid \tann{x}{\tau},\Gamma
 \end{array}$
+}
 
 %% -----------------------------------------------------------------------------
 \smallskip
 \begin{minipage}[t]{0.5\columnwidth}
-\fbox{$\Gamma \wellM e$}~~inherits $\Gamma \welldyn e$:\\
-\begin{mathpar}
+\lblmathparextra{$\Gamma \wellM e$}{ inherits $\Gamma \welldyn e$:}{
   \inferrule*{
     \Gamma \wellM e : \tau
   }{
     \Gamma \wellM \esta{\tau}{e}
   }
-\end{mathpar}
+}
 \end{minipage}%
 \begin{minipage}[t]{0.5\columnwidth}
-\fbox{$\Gamma \wellM e : \tau$}~~inherits $\Gamma \wellsta e : \tau$:\\
-\begin{mathpar}
-
+\lblmathparextra{$\Gamma \wellM e : \tau$}{ inherits $\Gamma \wellsta e : \tau$:}{
   \inferrule*{
     \Gamma \wellM e
   }{
     \Gamma \wellM \edyn{\tau}{e} : \tau
   }
-\end{mathpar}
+}
 \end{minipage}
 
 \smallskip
-\fbox{$\DSlift{E}{\rrR}{E'}{\rrRp}$} $= \vtuple{\ccR}{\ccRp}$ where:\\
+\lblextra{$\DSlift{E}{\rrR}{E'}{\rrRp}$}{ $= \vtuple{\ccR}{\ccRp}$ where:}{
 $\begin{array}{l@{~~}c@{~~}l@{~~}l}
 \ctxE{\edyn{\tau}{e}} & \ccR & \ctxE{\edyn{\tau}{e'}}
   & \mbox{if $e \ccRp e'$}
@@ -56,5 +54,6 @@ e & \ccR & A
 e & \ccRp & A
  & \mbox{if $e \cclift{E}{\rrR'} A$}
 \end{array}$
+}
 
 \end{flushleft}

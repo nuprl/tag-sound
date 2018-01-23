@@ -1,15 +1,22 @@
 \begin{flushleft}
 
-\fbox{Language $\langE$} inherits $\langM$:\\
+\lblextra{Language $\langE$}{ inherits $\langM$:}{
 $\begin{array}{l@{~~}c@{~~}l}
   \ED & \BNFeq & \ldots \mid \esta{\tau}{\ED} \mid \edyn{\tau}{\ED}
 \end{array}$
+}
 
 \smallskip
-\fbox{$\Gamma \wellEE e$} inherits $\Gamma \wellD e$:
-\begin{mathpar}
+\lblmathparextra{$\Gamma \wellEE e$}{ inherits $\Gamma \wellD e$:}{
+
   \inferrule*{
-    x,\Gamma \wellEE e
+    \tann{x}{\tau} \in \GammaD
+  }{
+    \GammaD \wellEE x
+  }
+
+  \inferrule*{
+    \tann{x}{\tau},\Gamma \wellEE e
   }{
     \Gamma \wellEE \vlam{\tann{x}{\tau}}{e}
   }
@@ -25,10 +32,10 @@ $\begin{array}{l@{~~}c@{~~}l}
   }{
     \Gamma \wellEE \esta{\tau}{e}
   }
-\end{mathpar}
+}
 
 \smallskip
-\fbox{$e \rrEE A$} extends $e \rrD A$:\\
+\lblextra{$e \rrEE A$}{ extends $e \rrD A$:}{
 $\begin{array}{l@{~~}c@{~~}l}
   (\vlam{\tann{x}{\tau_d}}{e})~v & \rrEE & \vsubst{e}{x}{v}
 \\
@@ -36,6 +43,7 @@ $\begin{array}{l@{~~}c@{~~}l}
 \\
   \esta{\tau}{v} & \rrEE & v
 \end{array}$
+}
 
 \smallskip
 \fbox{$e \rrEEstar A$} reflexive, transitive closure of $\cclift{\ED}{\rrEE}$

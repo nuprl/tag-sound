@@ -1,33 +1,35 @@
 \begin{flushleft}
 
 \begin{minipage}[t]{\columnwidth}
-\fbox{Language $\langN$} inherits $\langM$:\\
+\lblextra{Language $\langN$}{ inherits $\langM$:}{
 $\begin{array}{l@{~~}c@{~~}l}
-  v & \BNFeq & \ldots \mid \vmonfun{(\tau\tarrow\tau)}{v}
+  v & \BNFeq & \ldots \mid \vmonfun{(\tarr{\tau}{\tau})}{v}
 \end{array}$
+}
 
 \smallskip
-\fbox{$\Gamma \wellNE e$} inherits $\Gamma \wellM e$:\\[-1.4ex]
-\begin{mathpar}
+\lblmathparextra{$\Gamma \wellNE e$}{ inherits $\Gamma \wellM e$:}{
   \inferrule*{
+    \Gamma \wellNE v : \tarr{\tau_d}{\tau_c}
   }{
     \Gamma \wellNE \vmonfun{(\tarr{\tau_d}{\tau_c})}{v}
   }
-\end{mathpar}
+}
 
 \smallskip
-\fbox{$e \rrND A$} extends $e \rrD A$:\\
+\lblextra{$e \rrND A$}{ extends $e \rrD A$:}{
 $\begin{array}{l@{~~}c@{~~}l}
   (\vmonfun{\tarr{\tau_d}{\tau_c}}{v_f})~v & \rrND & \esta{\tau_c}{(v_f~(\edyn{\tau_d}{v}))}
 \\
   \esta{\tarr{\tau_d}{\tau_c}}{v} & \rrND & \vmonfun{\tarr{\tau_d}{\tau_c}}{v}
 \\
-  \esta{\tpair{\tau_0}{\tau_1}}{v} & \rrND & v
+  \esta{\tpair{\tau_0}{\tau_1}}{\vpair{v_0}{v_1}} & \rrND & \vpair{\esta{\tau_0}{v_0}}{\esta{\tau_1}{v_1}}
 \\
   \esta{\tint}{v} & \rrND & v
 \\
   \esta{\tnat}{v} & \rrND & v
 \end{array}$
+}
 
 \smallskip
 \fbox{$e \rrNEstar A$} reflexive, transitive closure of $\ccNS$\\
@@ -35,15 +37,15 @@ $\begin{array}{l@{~~}c@{~~}l}
 \smallskip
 \end{minipage}\hspace{\columnsep}%
 \begin{minipage}[t]{\columnwidth}
-\fbox{$\Gamma \wellNE e : \tau$} inherits $\Gamma \wellM e : \tau$:\\[-1.4ex]
-\begin{mathpar}
+\lblmathparextra{$\Gamma \wellNE e : \tau$}{ inherits $\Gamma \wellM e : \tau$:}{
   \inferrule*{
+    \Gamma \wellNE v
   }{
     \Gamma \wellNE \vmonfun{(\tarr{\tau_d}{\tau_c})}{v} : (\tarr{\tau_d}{\tau_c})
   }
-\end{mathpar}
+}
 
-\fbox{$e \rrNS A$} extends $e \rrS A$:\\
+\lblextra{$e \rrNS A$}{  extends $e \rrS A$:}{
 $\begin{array}{l@{~~}c@{~~}l}
   (\vmonfun{\tarr{\tau_d}{\tau_c}}{v_f})~v & \rrNS & \edyn{\tau_c}{(v_f~(\esta{\tau_d}{v}))}
 \\
@@ -60,6 +62,7 @@ $\begin{array}{l@{~~}c@{~~}l}
   \edyn{\tau}{v} & \rrNS & \boundaryerror
 \\ \multicolumn{3}{l}{\mbox{\quad otherwise}}
 \end{array}$
+}
 \end{minipage}
 
 \end{flushleft}

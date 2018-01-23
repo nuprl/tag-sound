@@ -1,16 +1,16 @@
 \begin{flushleft}
 
-\fbox{Language $\langD$}\\
+\lblextra{Language $\langD$}{ extends Common Syntax:}{
 $\begin{array}{l@{~~}c@{~~}l}
   v & \BNFeq & \ldots \mid \vlam{x}{e}
 \\
   \GammaD & \BNFeq & \cdot \mid x,\GammaD
 \end{array}$
+}
 
 %% -----------------------------------------------------------------------------
 \smallskip
-\fbox{$\GammaD \welldyn e$}
-\begin{mathpar}
+\lblmathpar{$\GammaD \welldyn e$}{
   \inferrule*{
     x \in \GammaD
   }{
@@ -57,10 +57,10 @@ $\begin{array}{l@{~~}c@{~~}l}
   }{
     \GammaD \welldyn \vbinop~e_0~e_1
   }
-\end{mathpar}
+}
 
 \smallskip
-\fbox{$e \rrD A$}\\
+\lbl{$e \rrD A$}{
 $\begin{array}{l@{~~}c@{~~}l l}
   (\vlam{x}{e})~v & \rrD & \vsubst{e}{x}{v} &
 \\
@@ -74,6 +74,7 @@ $\begin{array}{l@{~~}c@{~~}l l}
 \\
   \ebinop{v_0}{v_1} & \rrD & \tagerror & \mbox{otherwise}
 \end{array}$
+}
 
 \smallskip
 \fbox{$e \rrDstar A$} reflexive, transitive closure of $\cclift{\ED}{\rrD}$
