@@ -68,9 +68,9 @@ $\begin{array}{l@{~~}c@{~~}l}
 \end{minipage}
 
 \smallskip
-\fbox{$\mchk{\tau}{v} = A$}
 \begin{minipage}[t]{\columnwidth}
-{$\begin{array}{l@{~~}c@{~~}l}
+\lbl{$\mchk{\tau}{v} = A$}{
+$\begin{array}{l@{~~}c@{~~}l}
   \mchk{\tarr{\tau_d}{\tau_c}}{v} & = & \vmonfun{\tarr{\tau_d}{\tau_c}}{v}
 \\ \multicolumn{3}{l}{\mbox{\quad if $v \sim \vlam{x}{e}$ or $v \sim \vlam{\tann{x}{\tau}}{e}$}}
 \\
@@ -83,6 +83,7 @@ $\begin{array}{l@{~~}c@{~~}l}
 }
 \end{minipage}\hspace{\columnsep}%
 \begin{minipage}[t]{\columnwidth}
+{
 $\begin{array}{l@{~~}c@{~~}l}
   \mchk{\tint}{i} & = & i
 \\
@@ -92,6 +93,7 @@ $\begin{array}{l@{~~}c@{~~}l}
   \mchk{\tau}{v} & = & \boundaryerror
 \\ \multicolumn{3}{l}{\mbox{\quad otherwise}}
 \end{array}$
+}
 \end{minipage}
 
 \smallskip

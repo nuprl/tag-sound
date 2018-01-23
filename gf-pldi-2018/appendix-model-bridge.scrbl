@@ -60,7 +60,7 @@ These embeddings are ordered on a speculative scale from "most guarantees, worst
   tag-check all values;
 }
 @item{
-  apply at most 1 monitor to each value;
+  apply at most one monitor to each value;
 }
 @item{
   detect boundary errors as late as possible;
