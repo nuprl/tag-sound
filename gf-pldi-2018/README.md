@@ -5,9 +5,7 @@ paper
 
 TODO
 ---
-- need <:K in the paper, or just the appendix?
 - is the bowtie relation always correct?
-
 - investigate performance of morsecode
 
 

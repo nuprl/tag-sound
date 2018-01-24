@@ -38,9 +38,12 @@ They apply the method to Typed Racket and find that its performance is a serious
 
 @citet[gm-pepm-2018] apply the Takikawa evaluation method to Reticulated
  and find that the overhead of type-tag soundness is within 10x on their benchmarks.
-@citet[mt-oopsla-2018] evaluate the performance of an object calculus and
+@citet[mt-oopsla-2017] evaluate the performance of an object calculus and
  report that natural-embedding gradual typing can yield an efficient implementation
  if the language of types is restricted to a finite set of (unparameterized) class names.
+@citet[rat-oopsla-2017] demonstrate that an optimizing virtual machine for
+ JavaScript@~cite[cf-ecoop-2016] can efficiently support a co-natural embedding
+ when static types match the virtual machine's runtime types.
 
 
 @parag{Type-Tag Soundness}

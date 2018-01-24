@@ -2091,7 +2091,7 @@
    #:location (proceedings-location oopsla)
    #:date 2017))
 
-(define mt-oopsla-2018
+(define mt-oopsla-2017
   (make-bib
    #:title "Sound Gradual Typing is Nominally Alive and Well"
    #:author (authors "Fabian Muehlboeck" "Ross Tate")
@@ -2161,3 +2161,17 @@
    #:author "Robert L. Constable"
    #:location (proceedings-location lp #:pages '(116 128))
    #:date 1983))
+
+(define rat-oopsla-2017
+  (make-bib
+    #:title "The VM Already Knew That: Leveraging Compile-Time Knowledge to Optimize Gradual Typing"
+    #:author (authors "Gregor Richards" "Ellen Arteca" "Alexi Turcotte")
+    #:location (proceedings-location oopsla)
+    #:date 2017))
+
+(define cf-ecoop-2016
+  (make-bib
+    #:title "Interprocedural Type Specialization of JavaScript Programs Without Type Analysis"
+    #:author (authors "Maxime Chevalier-Boisvert" "Marc Feeley")
+    #:location (proceedings-location ecoop)
+    #:date 2016))
