@@ -63,26 +63,34 @@
 (define NUM-COLUMNS 3)
 (define X-MAX 10)
 (define CACHE-DIR "cache")
+
 (define START-COLOR 3)
 
-(define (my-color-converter i)
-  (if (= i START-COLOR)
-    "CornflowerBlue"
-    i))
+(define ((my-color-converter kind) i)
+  (case kind
+   [(brush)
+    (->brush-color (if (= i START-COLOR) "CornflowerBlue" i))]
+   [(pen)
+    (->pen-color i)]
+   [else
+    (raise-argument-error 'my-color-converter "unknown kind" 0 kind i)]))
 
 (define BM-NAME* '(
   fsm kcfa morsecode sieve snake suffixtree synth tetris zombie))
 
-(define (color-sample i)
-  (define border-color (apply make-color (->pen-color i)))
-  (define fill-color (apply make-color (->brush-color i)))
-  (filled-rounded-rectangle 8 8 #:color fill-color #:border-color border-color #:border-width 1))
+(define color-sample
+  (let ([->pen (my-color-converter 'pen)]
+        [->brush (my-color-converter 'brush)])
+    (lambda (i)
+      (define border-color (apply make-color (->pen i)))
+      (define fill-color (apply make-color (->brush i)))
+      (filled-rounded-rectangle 8 8 #:color fill-color #:border-color border-color #:border-width 1))))
 
 (define tr-color-sample
-  (color-sample (my-color-converter START-COLOR)))
+  (color-sample START-COLOR))
 
 (define tag-color-sample
-  (color-sample (my-color-converter (+ 1 START-COLOR))))
+  (color-sample (+ 1 START-COLOR)))
 
 ;; -----------------------------------------------------------------------------
 
@@ -141,7 +149,8 @@
                  [*LEGEND?* #false]
                  [*LEGEND-VSPACE* 4]
                  [*FONT-SIZE* 8]
-                 [*COLOR-CONVERTER* my-color-converter]
+                 [*BRUSH-COLOR-CONVERTER* (my-color-converter 'brush)]
+                 [*PEN-COLOR-CONVERTER* (my-color-converter 'pen)]
                  [*with-cache-fasl?* #f]
                  [*current-cache-directory* (build-path CWD CACHE-DIR)])
     (define (make-overhead-plot/cache x)
