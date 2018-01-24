@@ -45,18 +45,19 @@ Lastly, the meta-function @${\cclift{E}{\rrR}} lifts a
 @include-figure["fig:dyn-delta.tex" @elem{Dynamic Typing}]
 @include-figure["fig:sta-delta.tex" @elem{Static Typing}]
 
-@; TODO explain type-tag error
 The language @${\langD} defined in @figure-ref{fig:dyn-delta} is a
  dynamically-typed extension of @figure-ref{fig:common-syntax}.
 An @${\langD} expression @${e} is well-formed according to the typing judgment
  @${\GammaD \welldyn e} if it contains no free variables.
 The notion of reduction @${\rrD} defines the semantics of well-formed expressions;
  in essence, it reduces a valid application of values to a value and
- maps an invalid application to a type-tag error.
+ maps an invalid application to a type-tag error.@note{The phrase @emph{type-tag}
+ refers to an implementation technique for distinguishing the bit-level
+ representations of values@~cite[a-cc-1992].}
 
 The language @${\langS} in @figure-ref{fig:sta-delta} is a statically-typed
  counterpart to @${\langD}.
-Types in @${\langS} describe four interesting classes of @${\langD} values:
+Types in @${\langS} (@figure-ref{fig:common-syntax}) describe four interesting classes of @${\langD} values:
  integers, natural numbers, pairs, and functions.
 The type for natural numbers is representative of subset types
  that do not have a matching low-level type tag@~cite[c-lp-1983].

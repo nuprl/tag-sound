@@ -2182,3 +2182,10 @@
     #:author (authors "Markus Degen" "Peter Thiemann" "Stefan Wehr")
     #:location (proceedings-location pepm #:pages '(97 106))
     #:date 2012))
+
+(define a-cc-1992
+  (make-bib
+    #:title "Compiling with Continuations"
+    #:author "Andrew W. Appel"
+    #:location (book-location #:edition 1 #:publisher "Cambridge University Press")
+    #:date 1992))
