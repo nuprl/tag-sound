@@ -487,7 +487,7 @@
    #:location (proceedings-location popl #:pages '(456 468))
    #:date 2016))
 
-(define greenman-jfp-2017
+(define gtnffvf-jfp-2017
   (make-bib
    #:author (authors "Ben Greenman"
                      "Asumu Takikawa"

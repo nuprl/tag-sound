@@ -23,11 +23,11 @@ In theory, these type systems provide developers with an ideal pathway to
  merely forces developers to go through the whole development process
  again---without improving the well-tested system. All this theory can work
  only if the performance of the mixed-type code base remains acceptable. As
- Takikawa et al. have recently shown@~cite[tfgnvf-popl-2016], however, the
+ Takikawa et al. have recently shown@~cite[gtnffvf-jfp-2017], however, the
  performance is definitely @emph{not} acceptable when the underlying type
  system is @emph{sound}.  By comparison, industrial implementations of
  gradual typing come without performance problems because they do not
- insist on type soundness. 
+ insist on conventional type soundness. 
 
 From a type-theoretic perspective, academic migratory type systems use a
  type-directed ``natural'' embedding of typed code into an untyped

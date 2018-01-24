@@ -53,7 +53,7 @@ The promise of migratory typing is that programmers can freely mix statically-ty
  and dynamically-typed code.
 A performance evaluation of a migratory typing system must therefore give
  programmers a sense of the performance they can expect as they add static
- typing to a program@~cite[greenman-jfp-2017 tfgnvf-popl-2016].
+ typing to a program@~cite[gtnffvf-jfp-2017 tfgnvf-popl-2016].
 
 To meet this goal, we measure the performance of all configurations of
  statically-typed and dynamically-typed code in a suite of Racket programs.

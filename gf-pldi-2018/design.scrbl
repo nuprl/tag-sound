@@ -287,7 +287,7 @@ Under the protection of the contracts, Typed Racket may replace certain primitiv
  with faster, unsafe versions that are defined for a subset of the Racket value domain@~cite[sthff-padl-2012].
 This compilation technique can improve the performance of typed code.
  However, the overhead of checking the contracts is a significant problem in
- mixed programs@~cite[greenman-jfp-2017 tfgnvf-popl-2016].
+ mixed programs@~cite[gtnffvf-jfp-2017 tfgnvf-popl-2016].
 
 
 @; -----------------------------------------------------------------------------
