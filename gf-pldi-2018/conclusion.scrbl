@@ -17,6 +17,8 @@ The paper contributes two major results. First, the idea of viewing
  diagnosing the cause of a run-time error.
 @itemlist[
 
+@; TODO this list should connect to the _embeddings_ and NOT the implementations
+
 @item{Running a Typed Racket program as a Racket program (via erasure)
  gives a developer no clue as to what triggers an error; the type
  information in the code does @emph{not} reduce the search space. Indeed, a

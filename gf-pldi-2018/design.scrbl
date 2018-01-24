@@ -121,7 +121,7 @@ This enhancement allows programmers to use static type information to reason abo
 The multi-language @${\langM} extends the common syntax in @figure-ref{fig:common-syntax}
  with boundary expressions, combined value forms, and combined type contexts.
 This language comes with two mutually-recursive typing judgments, extending
- the judgments in @figure-ref["fig:dyn-delta.tex" "fig:sta-delta.tex"]:
+ the judgments in @figure-ref["fig:dyn-delta" "fig:sta-delta"]:
  a well-formedness judgment @${\Gamma \wellM e} for dynamically-typed expressions
  and a type-checking judgment @${\Gamma \wellM e : \tau} for statically-typed expressions.
 Those typing rules prevent a dynamically-typed expression from

@@ -204,18 +204,17 @@
   (sc "mmt"))
 
 (define (include-figure ps caption)
-  (unless (and (string? ps) (file-exists? ps))
-    (raise-argument-error 'include-figure "(and/c string? file-exists?)" ps))
-  (define tag (path-string->tag ps))
-  (define tex (path-string->input ps))
-  (figure tag caption tex))
+  (include-?figure figure ps caption))
 
 (define (include-figure* ps caption)
+  (include-?figure figure* ps caption))
+
+(define (include-?figure make-fig ps caption)
   (unless (and (string? ps) (file-exists? ps))
-    (raise-argument-error 'include-figure* "(and/c string? file-exists?)" ps))
+    (raise-argument-error (object-name make-fig) "(and/c string? file-exists?)" ps))
   (define tag (path-string->tag ps))
   (define tex (path-string->input ps))
-  (figure* tag caption tex))
+  (make-fig tag caption tex))
 
 (define (path-string->tag ps)
   (path->string (path-replace-extension ps #"")))
