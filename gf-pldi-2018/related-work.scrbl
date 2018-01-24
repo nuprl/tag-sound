@@ -79,8 +79,8 @@ The idea of rewriting an expression to add explicit safety checks goes back
 @parag{Final Algebra Semantics}
 
 The co-natural embedding is directly inspired by Findler and Felleisen's technique
- for higher-order contracts@~cite[ff-icfp-2002] and prior work on lazy contract checking@~cite[fgr-ifl-2007].
-We conjecture that this embedding could be viewed as a @emph{final algebra semantics}@~cite[w-jcss-1979].
+ for higher-order contracts@~cite[ff-icfp-2002] and prior work on lazy contract checking@~cite[fgr-ifl-2007 dtw-pepm-2012].
+We conjecture that this embedding could be viewed as a final algebra semantics@~cite[w-jcss-1979].
 @; in contrast to the natural embedding.
 
 

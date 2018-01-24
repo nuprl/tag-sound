@@ -2175,3 +2175,10 @@
     #:author (authors "Maxime Chevalier-Boisvert" "Marc Feeley")
     #:location (proceedings-location ecoop)
     #:date 2016))
+
+(define dtw-pepm-2012
+  (make-bib
+    #:title "The Interaction of Contracts and Laziness"
+    #:author (authors "Markus Degen" "Peter Thiemann" "Stefan Wehr")
+    #:location (proceedings-location pepm #:pages '(97 106))
+    #:date 2012))
