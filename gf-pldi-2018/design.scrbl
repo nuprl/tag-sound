@@ -1,7 +1,7 @@
 #lang gf-pldi-2018
 @title[#:tag "sec:design"]{Five Embeddings}
 
-@include-figure["fig:common-syntax.tex" @elem{Common syntax and semantic notions}]
+@include-figure["fig:common-syntax.tex" @elem{Common syntax, types, and semantics}]
 
 @; TODO I'm assuming base types are O(1) to check no matter what ... that they're taggged ... don't think this comes across
 The goal of a type-directed embedding is to describe how three
@@ -150,7 +150,6 @@ The payoff of this technical machinery is that a statically-typed term @${e}
 @; -----------------------------------------------------------------------------
 @section{The Erasure Embedding}
 @include-figure["fig:erasure-delta.tex" "Erasure Embedding"]
-@include-figure*["fig:natural-delta.tex" "Natural Embedding"]
 
 Intuitively, we can create a multi-language that avoids undefined behavior
  but ignores type annotations
@@ -216,7 +215,7 @@ For example,
 
 @; -----------------------------------------------------------------------------
 @section{The Natural Embedding}
-@include-figure*["fig:conatural-delta.tex" "Co-Natural Embedding"]
+@include-figure*["fig:natural-delta.tex" "Natural Embedding"]
 
 In order to provide some kind of type soundness, an embedding must restrict
  the dynamically-typed values that can flow into typed contexts.
@@ -329,7 +328,7 @@ Consequently, they demonstrate that the erasure and natural embeddings lie on
 
 @; -----------------------------------------------------------------------------
 @section{The Co-Natural Embedding}
-@include-figure*["fig:forgetful-delta.tex" "Forgetful Embedding"]
+@include-figure*["fig:conatural-delta.tex" "Co-Natural Embedding"]
 
 The natural embedding eagerly checks values that cross a type boundary.
 For most values, this means that a successful boundary-crossing requires
@@ -388,6 +387,7 @@ An implementation might improve this performance through caching, but its
 
 @; -----------------------------------------------------------------------------
 @section{The Forgetful Embedding}
+@include-figure*["fig:forgetful-delta.tex" "Forgetful Embedding"]
 
 @; === INTERLUDE
 @; - need to know typed functions under a monitor "have a typing"
@@ -579,7 +579,7 @@ We state soundness for @${\langK} in terms of the static typing judgment
 
 @section{Spectrum of Soundness and Performance}
 
-In summary, here are the main characteristics of each embedding:
+In summary, main differences between the embeddings are with respect to four characteristics:
 @itemlist[#:style 'ordered
 @item{
   What kinds of checks does the embedding perform when a value reaches a type boundary?

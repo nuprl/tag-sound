@@ -72,11 +72,11 @@ A @${\vsta} expression embeds a statically-typed expression @${e}
 of type @${\tau} into a dynamically-typed context.
 
 @; TODO still unclear
-On the dynamic end, the multi-language needs type-directed reduction strategies
+On the dynamic end, the multi-language requires type-directed strategies
 for moving value forms across boundary terms.
 Depending on the chosen strategy, the multi-language may need a way of associating
-type information with a value; for example, to say things like ``@${v} is an
-dynamically-typed function that typed code expects will map integers to integers.''
+type information with a value; for example, to assert claims such as ``@${v} is an
+dynamically-typed function that typed code expects to receive integers from.''
 
 The following section develops several different strategies in the context
 of several lambda-calculus based language models. Each embedding strategy comes with

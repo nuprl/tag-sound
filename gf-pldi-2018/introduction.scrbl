@@ -1,7 +1,6 @@
 #lang gf-pldi-2018
 
-@title[#:tag "sec:introduction"]{Three Flavors of Migratory Typing}
-@; TODO new title
+@title[#:tag "sec:introduction"]{Flavors of Migratory Typing}
 
 Over the past two decades, software developers have migrated from the world
  of C++ and Java to the broad world of untyped languages: JavaScript, Perl,
@@ -54,7 +53,7 @@ This paper contributes (1) several models of migratory type systems that
  that we can compare ``apples with apples'' (see
  @section-ref{sec:implementation}). And finally, we present the results of
  applying Takikawa et al.'s method to this implementation (see
- sec. @section-ref{sec:evaluation}). The speed-up improvements are dramatic,
+ @section-ref{sec:evaluation}). The speed-up improvements are dramatic,
  typically an order-of-magnitude improvement. We thus consider these results
  a first step toward the creation of a feasible, sound migratory type
  system.  @Section-ref{sec:background} starts the paper with a presentation of
