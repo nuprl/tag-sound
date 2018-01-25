@@ -29,15 +29,15 @@ TODO
 - L 461 what is category 1 category 2?
 - L 463 typo in reynolds example
 - L 685 could cache results of successful check?
-- L 705 does not make sense
+X L 705 does not make sense (missing 'that combines')
 - L 904 example of well-typed that is not well-tagged (impossible)
 - L 1046 what about object-oriented?
+
 - is the bowtie relation always correct?
 - investigate performance of morsecode
 
 
 TYPESETTING
-- redo typing rules, since appendix
 - "flushleft" the typing rules
 - rename A to R (for "result"?) .. maybe see mason/talcott for ideas
 
