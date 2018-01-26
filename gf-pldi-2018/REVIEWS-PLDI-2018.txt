@@ -49,7 +49,8 @@ fundamental, I expected some new observations or insights about the significant
 slowdown of the natural embedding (Typed Racket) over the 
 erasure embedding (Racket). This paper talks about three reasons: checking, indirection,
 and allocation, which are, however, have already been observed. The idea in this paper
-thus looks more like developing a theoretical understanding of yet observed, practical phenomena. This is useful, too, of course.  
+thus looks more like developing a theoretical understanding of yet observed,
+practical phenomena. This is useful, too, of course.  
 
 Second, in the context of the recent progress on performance improvement, 
 the result from this paper is not as important as it seems to be. In particular,
@@ -58,14 +59,16 @@ of a feasible, sound migratory type system". While the locally-defensive embeddi
 in this paper improves the performance of the natural embedding by about a magnitude, 
 the recent work by Pycket has already achieved this. Also, the transient strategy
 of ensuring type soundness exhibits much more competitive performance. Maybe 
-transient typed Racket would be a good direction to make gradual typing (migratory typing) for Racket more feasible? 
+transient typed Racket would be a good direction to make gradual typing
+(migratory typing) for Racket more feasible? 
 
 Finally, I would like to see a discussion about how to stack the three different
 optimization opportunities on each other. For example, how hard it is to implement
 the idea of the forgetful and co-natural embeddings on top of locally-defensive 
 embedding. Since the paper views the locally-defensive embedding as the most
-promising way to implement sound Typed Racket, it is important to know if we can make further significant performance improvement of it to make sure this direction leads
-to a "feasible, sound migratory typing".
+promising way to implement sound Typed Racket, it is important to know if we
+can make further significant performance improvement of it to make sure this
+direction leads to a "feasible, sound migratory typing".
 
 Minor points:
 
@@ -102,19 +105,35 @@ X. Expert
 
 Paper summary
 -------------
-This paper discusses five implementation choices for a gradually typed language that lie on a "spectrum" between soundness and performance. At the two ends are "natural" and "erasure": in between lie "co-natural," "forgetful," and a combination of those that is the most promising in terms of performance while providing reasonable soundness guarantees. This is confirmed by an implementation and direct comparison with Typed Racket. Together, these choices cover the original implementation with proxies, space-efficient optimizations, transient semantics, and industrial optionally typed languages.
+This paper discusses five implementation choices for a gradually typed language
+that lie on a "spectrum" between soundness and performance. At the two ends are
+"natural" and "erasure": in between lie "co-natural," "forgetful," and a
+combination of those that is the most promising in terms of performance while
+providing reasonable soundness guarantees. This is confirmed by an
+implementation and direct comparison with Typed Racket. Together, these choices
+cover the original implementation with proxies, space-efficient optimizations,
+transient semantics, and industrial optionally typed languages.
 
 Comments for author
 -------------------
-This paper is beautifully written, with a very elegant development of the aforementioned spectrum over the same language by adapting ideas from foreign function interfaces.
+This paper is beautifully written, with a very elegant development of the
+aforementioned spectrum over the same language by adapting ideas from foreign
+function interfaces.
 
-My overall criticism of the paper is that I did not find much in terms of novel contributions. It is more of a "pearl."
+My overall criticism of the paper is that I did not find much in terms of novel
+contributions. It is more of a "pearl."
 
-The main result is a confirmation that the transient semantics of Vitousek (POPL 2017) is indeed better-performing than the usual semantics with eager casts. This is hardly surprising given the experiments in that paper.
+The main result is a confirmation that the transient semantics of Vitousek
+(POPL 2017) is indeed better-performing than the usual semantics with eager
+casts. This is hardly surprising given the experiments in that paper.
 
-The other claimed contribution is the idea that there is in fact a spectrum of soundness and performance: but this has been previously explored in the work on like types, at least.
+The other claimed contribution is the idea that there is in fact a spectrum of
+soundness and performance: but this has been previously explored in the work on
+like types, at least.
 
-Finally, neither the ideas around or the formalizations of the various implementation choices are new: described in a uniform framework, they are expositions of previously known approaches.
+Finally, neither the ideas around or the formalizations of the various
+implementation choices are new: described in a uniform framework, they are
+expositions of previously known approaches.
 
 
 
@@ -132,36 +151,84 @@ Y. Knowledgeable
 
 Paper summary
 -------------
-The contribution of this paper is, I think, to put a number of different variants of gradual typing into a single framework, and measure their performance overheads.
+The contribution of this paper is, I think, to put a number of different
+variants of gradual typing into a single framework, and measure their
+performance overheads.
 
-There is perhaps another contribution: the idea of "locally-defensive" embedding.  Frustratingly, I can't figure out if this is an original contribution of the paper, or if it's taken from somewhere else.   I can see neither a claim that it's original, nor a citation of its source.   (The related work mentions Vitousek et al [32].)  This matters because it's the system that the authors advocate as having the best balance of soundness and performance, significantly out-performing the standard "natural embedding".  So if it's new, it seems like a significant contribution.  But I can't tell.  And, if it is new, it's not well explained (see below).
+There is perhaps another contribution: the idea of "locally-defensive"
+embedding.  Frustratingly, I can't figure out if this is an original
+contribution of the paper, or if it's taken from somewhere else.   I can see
+neither a claim that it's original, nor a citation of its source.   (The
+related work mentions Vitousek et al [32].)  This matters because it's the
+system that the authors advocate as having the best balance of soundness and
+performance, significantly out-performing the standard "natural embedding".  So
+if it's new, it seems like a significant contribution.  But I can't tell.  And,
+if it is new, it's not well explained (see below).
 
-The other frustrating thing about the locally-defensive embedding is that I never really understood it.  Of course, since I'm reviewing several papers I'm not devoting many hours to each one, but I think I should have been able to grok the intuition behind 3.8, but I never did.  In section 7, for the first time, we get a useful statement of the properties of the locally-defensive solution ("eventually will show an error") but it is brief and cryptic.  E.g. I assume that blame would be much less well attributed than with the natural embedding?
-If the locally-defensive story is a contribution, it needs much more careful explanation.  If not, then I suppose you can say "go read [X] for the details".
+The other frustrating thing about the locally-defensive embedding is that I
+never really understood it.  Of course, since I'm reviewing several papers I'm
+not devoting many hours to each one, but I think I should have been able to
+grok the intuition behind 3.8, but I never did.  In section 7, for the first
+time, we get a useful statement of the properties of the locally-defensive
+solution ("eventually will show an error") but it is brief and cryptic.  E.g. I
+assume that blame would be much less well attributed than with the natural
+embedding?  If the locally-defensive story is a contribution, it needs much
+more careful explanation.  If not, then I suppose you can say "go read [X] for
+the details".
 
-The performance measurements are indicative but not conclusive: it's always hard to know what to conclude about absolute speedups when so much depends on the constant factors, and may be dramatically affected by decent compilation.  For example, perhaps a simple static analysis of a natural embedding could remove many checks.  This is mentioned in the (welcome) section 5.4, but still the threats look fairly big to me.
+The performance measurements are indicative but not conclusive: it's always
+hard to know what to conclude about absolute speedups when so much depends on
+the constant factors, and may be dramatically affected by decent compilation.
+For example, perhaps a simple static analysis of a natural embedding could
+remove many checks.  This is mentioned in the (welcome) section 5.4, but still
+the threats look fairly big to me.
 
-Overall, putting things in a common framework is useful.  And the perf measurements are suggestive.  But it's not  heart-pounding stuff.
+Overall, putting things in a common framework is useful.  And the perf
+measurements are suggestive.  But it's not  heart-pounding stuff.
 
 Comments for author
 -------------------
-There is a big literature on gradual typing, but only one form appears to have had practical impact.  That's the one that is here called the "erasure embedding": typecheck the static bits, but at runtime simply discard all the static info.  Typescript does this, and a number of others.  (Am I right that this is the only one that is deployed in production?)  The obvious question is: are the other approaches worth pursuing at all?T  That's not to discount the pure-research aspect of this paper, but given the maturity of the field I'd appreciate the authors' perspective on the potential impact of their work.
+There is a big literature on gradual typing, but only one form appears to have
+had practical impact.  That's the one that is here called the "erasure
+embedding": typecheck the static bits, but at runtime simply discard all the
+static info.  Typescript does this, and a number of others.  (Am I right that
+this is the only one that is deployed in production?)  The obvious question is:
+are the other approaches worth pursuing at all?T  That's not to discount the
+pure-research aspect of this paper, but given the maturity of the field I'd
+appreciate the authors' perspective on the potential impact of their work.
 
-There are theorems in the paper, but no proofs.  Can we assume that proofs exist?  Are they typeset somewhere?  Or in Coq?  This isn't do-or-die, but I'd like to know the status.
-I'd have thought that a helpful application of your framework would be to identify hot-spots: values that move to and fro a lot, or "if you just make this bit of code statically checked, then your whole program would run faster".   A kind of gradual profiler.  You have the machinery in hand... and it'd be useful
+There are theorems in the paper, but no proofs.  Can we assume that proofs
+exist?  Are they typeset somewhere?  Or in Coq?  This isn't do-or-die, but I'd
+like to know the status.  I'd have thought that a helpful application of your
+framework would be to identify hot-spots: values that move to and fro a lot, or
+"if you just make this bit of code statically checked, then your whole program
+would run faster".   A kind of gradual profiler.  You have the machinery in
+hand... and it'd be useful
 
-Lines 245-250, The last para before 3.1, about the meta function that lifts a notion of reduction, was pretty obscure.  I read it several times, but never really "got it".
+Lines 245-250, The last para before 3.1, about the meta function that lifts a
+notion of reduction, was pretty obscure.  I read it several times, but never
+really "got it".
 
-Line 256 "..if it contains no free variables".  No: if al the free variables of e are bound by \Gamma.
+Line 256 "..if it contains no free variables".  No: if al the free variables of
+e are bound by \Gamma.
 
-line 265 "...representative of subset types that do not have a matching low level type tag".  I have no idea what this means.
+line 265 "...representative of subset types that do not have a matching low
+level type tag".  I have no idea what this means.
 
-line 380 "...definition of LM  does not include a semantics".  What does it mean to "include a semantics".  By "a semantics" I think you mean a definition of R and R'.
+line 380 "...definition of LM  does not include a semantics".  What does it
+mean to "include a semantics".  By "a semantics" I think you mean a definition
+of R and R'.
 
-(Incidentally, why use R and R' for static and dynamic rather than R^S and R^D? I kept stumbling over which was which.)
-Line 284. I have not clue what the bow-tie thing is doing.  It did not seem to be used subsequently.
+(Incidentally, why use R and R' for static and dynamic rather than R^S and R^D?
+I kept stumbling over which was which.) Line 284. I have not clue what the
+bow-tie thing is doing.  It did not seem to be used subsequently.
 
-3.6 (co-natural) and 3.7 (forgetful).  co-natural affects semantics (line 655) but I believe that forgetful does not.  Correct?  Please say so.    The type-safety theorems have an identical form in each case (same in 3.5) so it'd be helpful to have a formal statement of how they differ!  Perhaps, if the natural embedding converges to a value then the co-natural one does too, and to the same value?
+3.6 (co-natural) and 3.7 (forgetful).  co-natural affects semantics (line 655)
+but I believe that forgetful does not.  Correct?  Please say so.    The
+type-safety theorems have an identical form in each case (same in 3.5) so it'd
+be helpful to have a formal statement of how they differ!  Perhaps, if the
+natural embedding converges to a value then the co-natural one does too, and to
+the same value?
 
 
 Sub-review (from a well-informed graduate student)
@@ -251,19 +318,39 @@ Z. Some familiarity
 
 Paper summary
 -------------
-This paper develops the novel idea of a spectrum of type soundness and demonstrates that a form of whole-program, non-compositional form of soundness vastly improves the performance of Typed Racket. A series of theoretical models of gradual typing, starting with a classically sound gradual core language is proposed.Results of measuring on the Takikawa-Greenman benchmarks are shown.
+This paper develops the novel idea of a spectrum of type soundness and
+demonstrates that a form of whole-program, non-compositional form of soundness
+vastly improves the performance of Typed Racket. A series of theoretical models
+of gradual typing, starting with a classically sound gradual core language is
+proposed. Results of measuring on the Takikawa-Greenman benchmarks are shown.
 
 Comments for author
 -------------------
-This paper is carefully written and is well-positioned in comparison to reIated work. It is also clearly a paper about language implementation, something that we don't see at PLDI all that much. However, I find it lacking in a number of important dimensions
+This paper is carefully written and is well-positioned in comparison to reIated
+work. It is also clearly a paper about language implementation, something that
+we don't see at PLDI all that much. However, I find it lacking in a number of
+important dimensions
 
-* the work is incremental -- the authors themselves mention a lot of related work, for example, "Gradual typing performance" on pg. 12. However, just like with some other mentioned related work, they fail to clearly accentuate the differences between that work and this paper.  Given that, and the work under "Spectrum of type soundness", it is a little tough to claim as much novelty here.
+* the work is incremental -- the authors themselves mention a lot of related
+  work, for example, "Gradual typing performance" on pg. 12. However, just like
+  with some other mentioned related work, they fail to clearly accentuate the
+  differences between that work and this paper.  Given that, and the work under
+  "Spectrum of type soundness", it is a little tough to claim as much novelty
+  here.
 
-* the scope and scale of evaluation is small, as the authors admit, as well. Namely, the benchmarks are not very large and
+* the scope and scale of evaluation is small, as the authors admit, as well.
+  Namely, the benchmarks are not very large and
 
-* no input from actual developers is ever collected (user studies, observations via check-ins, etc.) so it is quite difficult to hypothesize both the amount of labor that goes into annotations and the demands in terms of acceptable overhead. Lastly, the level of difficulty that's involved in pipointing a type violation is also hard to measure -- very much depends on the size and structure of the program
+* no input from actual developers is ever collected (user studies, observations
+  via check-ins, etc.) so it is quite difficult to hypothesize both the amount
+  of labor that goes into annotations and the demands in terms of acceptable
+  overhead. Lastly, the level of difficulty that's involved in pipointing a
+  type violation is also hard to measure -- very much depends on the size and
+  structure of the program
 
-* I like the notion of D-deliverable configurations from [27], however, no guidance is given for selecting D in practice even for the small and simple benchmarks that you show
+* I like the notion of D-deliverable configurations from [27], however, no
+  guidance is given for selecting D in practice even for the small and simple
+  benchmarks that you show
 
 Questions for Authors
 ---------------------
@@ -284,42 +371,68 @@ Y. Knowledgeable
 
 Paper summary
 -------------
-This paper explores tradeoffs between type soundness and performance for gradual (or migratory) type systems.  Specifically, the paper develops five different systems that offer increasing guarantees of type correctness at the cost of increased cost (name erasure, natural, co-natural, forgetful, and locally-defensive embeddings, respectively).  The paper proves type soundness results for each of these semantics and measures the performance of three of them (erasure, natural, and locally-defensive), concluding that the tag-level correctness offered by the locally-defensive scheme offers significant performance improvements while still providing better type correctness than the erasure variant that is often used in practice.  Tagged Racket implements the locally-defensive version.
+This paper explores tradeoffs between type soundness and performance for
+gradual (or migratory) type systems.  Specifically, the paper develops five
+different systems that offer increasing guarantees of type correctness at the
+cost of increased cost (name erasure, natural, co-natural, forgetful, and
+locally-defensive embeddings, respectively).  The paper proves type soundness
+results for each of these semantics and measures the performance of three of
+them (erasure, natural, and locally-defensive), concluding that the tag-level
+correctness offered by the locally-defensive scheme offers significant
+performance improvements while still providing better type correctness than the
+erasure variant that is often used in practice.  Tagged Racket implements the
+locally-defensive version.
 
 Comments for author
 -------------------
 Strengths
 
-+ Reducing the cost of the checks that preserve type safety in the presence of gradual typing would make sound gradual type systems much more practical, which is a very worthy goal. 
++ Reducing the cost of the checks that preserve type safety in the presence of
+  gradual typing would make sound gradual type systems much more practical, which
+  is a very worthy goal. 
 
-+ The paper presents a clean framework for defining the five different embeddings and includes type soundness results for each of them. 
++ The paper presents a clean framework for defining the five different
+  embeddings and includes type soundness results for each of them. 
 
 + The paper describes a thorough performance evaluation. 
 
-+ The paper does a good job explaining the intuitions behind the five different embeddings. 
++ The paper does a good job explaining the intuitions behind the five different
+  embeddings. 
 
 Weaknesses
 
-- The paper does not apply these approaches to the object-oriented features of Racket, which are the source of the most significant performance degradations during gradual typing. 
+- The paper does not apply these approaches to the object-oriented features of
+  Racket, which are the source of the most significant performance degradations
+  during gradual typing. 
 
 - The residual costs are still high enough that they might preclude adoption.  
 
 Suggestions for improvement/questions.
 
-Figure 1. What does the notation "A not in e" mean in the side condition of the evaluation rule for E[e] evaluating to A? 
+Figure 1. What does the notation "A not in e" mean in the side condition of the
+evaluation rule for E[e] evaluating to A? 
 
-Figure 4.  How does the dynamic language know the type of the context into which e is being embedded?
+Figure 4.  How does the dynamic language know the type of the context into
+which e is being embedded?
 
 Figure 4.  Explain the notation-in-box "inherits" judgement: notation. 
 
 Line 461.  What are category I and category II disasters? 
 
-Line 463.  Do you mean for the second type in the pair to be Nat when the professor said it was the first element that was non-negative or the other way around?  I believe the point you are trying to make, but I'm not following the specific example. 
+Line 463.  Do you mean for the second type in the pair to be Nat when the
+professor said it was the first element that was non-negative or the other way
+around?  I believe the point you are trying to make, but I'm not following the
+specific example. 
 
-Line 685.  Could you cache the result of a successful check so the cost for all but the first check would be negligible? 
+Line 685.  Could you cache the result of a successful check so the cost for all
+but the first check would be negligible? 
 
 Line 705.  This sentence doesn't make sense. 
 
-Line 904.  Can you give an example of a well-typed term that isn't well-tagged with the corresponding tag?
+Line 904.  Can you give an example of a well-typed term that isn't well-tagged
+with the corresponding tag?
 
-Line 1046. My understanding is that the overhead for the natural embedding is much higher for the object-oriented portion of TypedRacket.  Do you anticipate the locally-defensive approach will help in that setting?  I was disappointed not to see this information in this paper.
+Line 1046. My understanding is that the overhead for the natural embedding is
+much higher for the object-oriented portion of TypedRacket.  Do you anticipate
+the locally-defensive approach will help in that setting?  I was disappointed
+not to see this information in this paper.
