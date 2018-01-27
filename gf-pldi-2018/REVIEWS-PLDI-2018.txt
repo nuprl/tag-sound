@@ -193,7 +193,7 @@ had practical impact.  That's the one that is here called the "erasure
 embedding": typecheck the static bits, but at runtime simply discard all the
 static info.  Typescript does this, and a number of others.  (Am I right that
 this is the only one that is deployed in production?)  The obvious question is:
-are the other approaches worth pursuing at all?T  That's not to discount the
+are the other approaches worth pursuing at all? That's not to discount the
 pure-research aspect of this paper, but given the maturity of the field I'd
 appreciate the authors' perspective on the potential impact of their work.
 

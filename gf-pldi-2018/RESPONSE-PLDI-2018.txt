@@ -1,103 +1,195 @@
-Big Picture
+Response Part 1: clarifications
+================================================================================
+
+From the "Paper summary" in Review #99A:
+
+> This paper particularly considers five different embeddings, including the
+> erasure embedding ... and locally-defensive embedding, which removes many
+> unnecessary runtime checks from natural embedding
+
+The locally-defensive embedding skips checks that are **necessary** for
+type-sound execution, but unnecessary for the weaker type-tag-sound execution.
+The evaluation then illustrates the tradeoff between soundness and performance.
+
+
+Pycket is an orthogonal result
 --------------------------------------------------------------------------------
 
-- What are the contributions?
-  (Review C)
-  * Spectrum of soundness is new, lifting it out of the folklore
-  * A systematic transient
-  * Apples-to-apples comparison
-  * 
+From Review #99A:
 
-- Why soundness?
-  (Review C)
+> While the locally-defensive embedding in this paper improves the performance
+> of the natural embedding by about a magnitude, the recent work by Pycket has
+> already achieved this.
 
-- "This paper is beautifully written" (Review B)
-  "This paper is carefully written and is well-positioned in comparison to
-  related work." (Review D)
-  Insulting.
+The Pycket work demonstrates that replacing a conventional JIT with a tracing
+JIT can significantly reduce the overhead of natural-embedding type soundness.
+
+Our work demonstrates that replacing type soundness with type-tag soundness
+can lead to significant performance improvements.
+
+These are separate results.
+
+Future work: combine these two independent pieces of work, which will require
+close collaboration with the Pycket team.
 
 
-- This is a PLDI-brand paper!
-
-
-Review #99A
+Locally-defensive is a principled transient
 --------------------------------------------------------------------------------
 
-#### (paper summary) misunderstanding, locally-defensive checks
-
-> This paper particularly considers five different embeddings, including ...
-> the locally-defensive embedding, which removes many unnecessary runtime checks
-> from natural embedding through a static analysis.
-
-No! The checks that get removed are not "unnecessary" in general.
-They are only unnecessary for proving a certain, weak soundness theorem.
-
-
-#### do you have new observations / insights?
-
-> This paper talks about three reasons: checking, indirection, and allocation,
-> which are, however, have already been observed. The idea in this paper
-> thus looks more like developing a theoretical understanding of yet observed,
-> practical phenomena. This is useful, too, of course.
-
-
-#### is the peformance improvement interesting?
-
-> the paper claims that "we thus consider these results a first step toward the creation
-> of a feasible, sound migratory type system". While the locally-defensive embedding
-> in this paper improves the performance of the natural embedding by about a magnitude, 
-> the recent work by Pycket has already achieved this.
-
-> Also, the transient strategy of ensuring type soundness exhibits much more
-> competitive performance.
+From Review #99A:
 
 > Maybe transient typed Racket would be a good direction to make gradual typing
 > (migratory typing) for Racket more feasible? 
 
-Locally-defensive Racket _is_ transient typed Racket.
+From Review #99C:
 
-We did not use the name "transient" because it conflates three ideas:
- (1) forgetting certain type casts;
- (2) only checking type-tags, rather than types; and
- (3) implementing checks with locally-defensive tests instead of proxies.
+> There is perhaps another contribution: the idea of "locally-defensive"
+> embedding.  Frustratingly, I can't figure out if this is an original
+> contribution of the paper, or if it's taken from somewhere else.
 
+The locally-defensive embedding is a mathematical characterization of
+transient semantics, and our locally-defensive Racket implements it.
 
-#### combine embeddings? further improve locally-defensive?
-
-> Finally, I would like to see a discussion about how to stack the three different
-> optimization opportunities on each other. For example, how hard it is to implement
-> the idea of the forgetful and co-natural embeddings on top of locally-defensive 
-> embedding. Since the paper views the locally-defensive embedding as the most
-> promising way to implement sound Typed Racket, it is important to know if we
-> can make further significant performance improvement of it to make sure this
-> direction leads to a "feasible, sound migratory typing".
+In contrast, the POPL 2017 paper by Vitousek et al. defines transient by its
+implementation.  That paper does not explain the properties that an
+implementation needs to satisfy in order to be called "transient" --- so it is
+unclear, for example, how to give a transient semantics for the gradually-typed
+lambda calculus.  Our work fills this gap.
 
 
-#### questions for authors
+POPL 2017 does not systematically compare type soundness and tag soundness
+--------------------------------------------------------------------------------
+
+From Review #99A:
+
+> Also, the transient strategy of ensuring type soundness exhibits much more
+> competitive performance.
+
+From Review #99B:
+
+> The main result is a confirmation that the transient semantics of Vitousek
+> (POPL 2017) is indeed better-performing than the usual semantics with eager
+> casts. This is hardly surprising given the experiments in that paper.
+
+Review #99B sells our results short:
+
+1. Our paper provides a mathematical comparison between type soundness and tag
+   soundness (Vitousek et al. conflate the two; see their Corollary 5.5.1).
+2. Our paper provides the first controlled comparison of type soundness and
+   type-tag soundness.
+3. Vitousek et al. do not report the performance of programs that mix typed
+   and untyped code.
+
+Our paper is aiming to be scientific, not surprising.
+
+
+The idea of a spectrum has NOT been previously explored
+--------------------------------------------------------------------------------
+
+From Review #99B:
+
+> The other claimed contribution is the idea that there is in fact a spectrum
+> of soundness and performance: but this has been previously explored in the
+> work on like types, at least.
+
+Review #99B mischaracterizes like types. Like types describe a novel type
+system with a conventional notion of type soundness.
+
+Our paper is the first to show how _one language_ can have _multiple semantics_
+each corresponding to a _different kind of soundness_.
+
+
+Sound gradual typing is a worthwhile goal
+--------------------------------------------------------------------------------
+
+From Review #99C:
+
+> There is a big literature on gradual typing, but only one form appears to have
+> had practical impact.  That's the one that is here called the "erasure
+> embedding".  The obvious question is: are the other approaches worth pursuing
+> at all?
+
+Industry chose erasure to avoid the performance question.  Experience, and our
+theorem (L_E term safety), show that this choice lets programs produce wrong
+answers due to uncaught violations of the static types.  This has two negative
+consequences: users need to debug these subtle errors, and users cannot use
+types to reason about correctness.
+
+We are pursing sound gradual typing because we believe it is a useful
+improvement over optional typing.  It addresses the above issues.
+
+In the same way, the implementors of Scala and Haskell believe that static
+typing is a useful improvement over the dynamic typing in, e.g., Ruby and
+Python, despite Ruby and Python having a larger practical impact.
+
+
+Object-oriented features are future work
+--------------------------------------------------------------------------------
+
+From Review #99E:
+
+> The paper does not apply these approaches to the object-oriented features of
+> Racket ... Do you anticipate the locally-defensive approach will help in that
+> setting?
+
+Yes.  Based on the theory, the difference is between an expensive object proxy
+and a near-constant-time check.  We did not implement tag soundness for objects
+because (1) implementing tag soundness for functions was already a significant
+effort and (2) type-sound objects for Typed Racket required a dissertation to
+design and implement.  It's on our agenda, but was not our main focus for this
+paper.
+
+
+
+
+
+
+
+
+
+
+Response Part 2: answers
+================================================================================
+
+Review #99A
+--------------------------------------------------------------------------------
+
+> how hard it is to implement the idea of the forgetful and co-natural
+> embeddings on top of locally-defensive embedding.
+
+The locally-defensive embedding builds on the ideas of the forgetful and
+co-natural embeddings.  The first paragraph of section 3.8.1 tries to explain
+the connnection.
+
 
 > How hard is it to integrate co-natural and forgetful embeddings into the
 > current prototype for locally-defensive embedding?
 
+Implementing the co-natural and forgetful embeddings for Racket would be a
+significant undertaking.  The co-natural embedding requires new kinds of
+proxies, for which one would need to modify the Racket runtime.  The forgetful
+embedding requires significant changes to Racket's contract library --- one
+would need to modify function contracts so their domain and codomain could be
+replaced at runtime.
 
-#### minor points
 
 > Line 153, why parentheses around dyn $\tau$ e?
 
-To clearly separate the code from the prose.
-(There should be parentheses around stat $\tau$ e as well)
+To clearly separate the code from the prose.  There should be parentheses around
+stat $\tau$ e on this line as well.
 
 
 > Line 360, v should $v \colon \tau$.
 
-Yes.
+Yes, thank you.
 
 
 > Line 362, could you please provide an example expression such that
 > e is well typed and reducing it is divergent?
 
-No.
-We could prove a stronger theorem (that L_S is strongly normalizing),
- but this is orthogonal to the main point of the paper.
+No, we cannot provide an example.
+Instead we could prove a theorem that L_S is strongly normalizing and remove the
+clause on line 362; however, this is orthogonal to the focus of the paper.
 
 
 > Figure 4, what is the meaning of $A \notin e'$? Did you mean A is not 
@@ -105,297 +197,287 @@ We could prove a stronger theorem (that L_S is strongly normalizing),
 > BoundaryError in the second occurrence? In particular, what does 
 > $e'$ bind to? Please clarify.
 
-Yes, we mean that A is not a TagError and BoundaryError.
-There is a typo here: `e'` should be `e`.
-By `e` we mean the set of expressions defined by the grammar at the top of figure 4.
+This figure has a typo: it should say $A \not\in e'$.  By this we mean `A` is
+not a `TagError` and not a `BoundaryError`; specifically, the answer value `A`
+is a member of the set `e` defined by the grammar at the top of figure.
+(And yes, the grammar uses the symbol `e` for both the set of expressions and
+for a member of the set.)
 
 
 Review #99B
 --------------------------------------------------------------------------------
 
-#### what are the contributions
-
-> My overall criticism of the paper is that I did not find much in terms of novel
-> contributions. It is more of a "pearl."
-
-> The main result is a confirmation that the transient semantics of Vitousek
-> (POPL 2017) is indeed better-performing than the usual semantics with eager
-> casts. This is hardly surprising given the experiments in that paper.
-
-> The other claimed contribution is the idea that there is in fact a spectrum of
-> soundness and performance: but this has been previously explored in the work on
-> like types, at least.
-
-We cite like types.
-
-
-> Finally, neither the ideas around or the formalizations of the various
-> implementation choices are new: described in a uniform framework, they are
-> expositions of previously known approaches.
-
 
 Review #99C
 --------------------------------------------------------------------------------
 
-#### is locally-defensive novel?
-
-> There is perhaps another contribution: the idea of "locally-defensive"
-> embedding.
-
-
-#### locally-defensive is poorly explained
-
 > The other frustrating thing about the locally-defensive embedding is that I
 > never really understood it.
-> In section 7, for the first
-> time, we get a useful statement of the properties of the locally-defensive
-> solution ("eventually will show an error") but it is brief and cryptic.
 
-I can't believe the soundness theorem wasn't helpful to you.
+The goal of the locally-defensive embedding is to guarantee type-tag soundness
+(section 3.8.3).  The locally-defensive embedding implements this goal by
+rewriting statically-typed expressions to check the type-tag of every incoming
+value.  For the language in figure 9, "incoming" values come from `dyn`,
+function applications, and calls to `fst` and `snd`.
 
 
-#### measurements are not conclusive
-
+> The performance measurements are indicative but not conclusive: it's always
 > hard to know what to conclude about absolute speedups when so much depends on
 > the constant factors, and may be dramatically affected by decent compilation.
+
+To clarify: we report relative performance, we use the same compiler and JIT
+for all programs and soundnesses, and these programs are running computations
+of at least a few seconds in the fully-untyped configuration.  (Notably, `fsm`
+and `zombie` run short computations because some of their typed/untyped
+configurations run exponentially slower.)
+
 
 > For example, perhaps a simple static analysis of a natural embedding could
 > remove many checks.
 
+We, and others, have invested significant effort in improving Typed Racket
+since the POPL 2016 paper "Is Sound Gradual Typing Dead".  In fact, the data
+for Typed Racket in our submission is a significant improvement over the data
+in POPL 2016.  We have been unable, however, to find a static analysis that
+leads to an order-of-magnitude improvement.
 
-#### proofs?
 
-> There are theorems in the paper, but no proofs.  Can we assume that proofs
-> exist?  Are they typeset somewhere?
+> given the maturity of the field I'd appreciate the authors' perspective on
+> the potential impact of their work.
+
+Our results suggest that type-tag soundness is worth adding to TypeScript so
+that programmers get a (weak) soundness guarantee without much change in
+performance.  Experience with tag soundness may lead to a demand for type
+soundness.
 
 
-#### gradual profiler
+> Can we assume that proofs exist?  Are they typeset somewhere?
 
-> I'd have thought that a helpful application of your
-> framework would be to identify hot-spots: values that move to and fro a lot, or
-> "if you just make this bit of code statically checked, then your whole program
-> would run faster".   A kind of gradual profiler.  You have the machinery in
-> hand... and it'd be useful
+Proofs are typeset, and the Redex models in our submission have QuickCheck-style
+tests to validate the soundness theorems.
 
-It's a good idea.
+
+> I'd have thought that a helpful application of your framework would be to
+> identify hot-spots: values that move to and fro a lot, or "if you just make
+> this bit of code statically checked, then your whole program would run
+> faster".   A kind of gradual profiler.  You have the machinery in hand...
+> and it'd be useful
+
 We are working on it.
 
-
-#### minor comments
 
 > Lines 245-250, The last para before 3.1, about the meta function that lifts a
 > notion of reduction, was pretty obscure.  I read it several times, but never
 > really "got it".
 
-> Line 256 "..if it contains no free variables".  No: if al the free variables of
-> e are bound by \Gamma.
+We hope figure 1 was easier to read.  For reference, the citation for this
+sentence is meant to direct readers to chapter 5, section 1 of _Semantics
+Engineering with PLT Redex_.
 
-line 265 "...representative of subset types that do not have a matching low
-level type tag".  I have no idea what this means.
 
-line 380 "...definition of LM  does not include a semantics".  What does it
-mean to "include a semantics".  By "a semantics" I think you mean a definition
-of R and R'.
+> Line 256 "..if it contains no free variables".  No: if al the free variables
+> of e are bound by \Gamma.
 
-(Incidentally, why use R and R' for static and dynamic rather than R^S and R^D?
-I kept stumbling over which was which.) Line 284. I have not clue what the
-bow-tie thing is doing.  It did not seem to be used subsequently.
+Right, if `e` contains a variable that is not bound by `\Gamma` then the rules
+in figure 2 cannot be used to prove `\Gamma \vdash_D e`
 
-3.6 (co-natural) and 3.7 (forgetful).  co-natural affects semantics (line 655)
-but I believe that forgetful does not.  Correct?  Please say so.    The
-type-safety theorems have an identical form in each case (same in 3.5) so it'd
-be helpful to have a formal statement of how they differ!  Perhaps, if the
-natural embedding converges to a value then the co-natural one does too, and to
-the same value?
+
+> line 265 "...representative of subset types that do not have a matching low
+> level type tag".  I have no idea what this means.
+
+We need to make this sentence clearer.
+
+The idea is that most languages with runtime type-tags, such as OCaml, normally
+have a tag to say "these bits represent an integer" and no tag to say "these
+bits represent a natural number".  Therefore, the runtime notion of type-tags
+in such a language needs to be generalized to support a gradual type system
+that distinguishes Int and Nat types.
+
+
+> line 380 "...definition of LM  does not include a semantics".  What does it
+> mean to "include a semantics".  By "a semantics" I think you mean a definition
+> of R and R'.
+
+By "include a semantics", we mean "to define a notion of reduction R and a
+reduction relation `e -->_R^* A`.  In contrast, figures 2 3 5 6 7 and 8 all
+"include a semantics".
+
+
+> (Incidentally, why use R and R' for static and dynamic rather than R^S and R^D?
+> I kept stumbling over which was which.)
+
+This is a good suggestion.
+
+
+> Line 284. I have not clue what the bow-tie thing is doing.  It did not seem
+> to be used subsequently.
+
+Figures 6 7 and 8 use the bow-tie to combine two notions of reduction (one for
+statically-typed expressions, one for dynamically-typed expressions) into two
+reduction relations (one for static, one for dynamic) that are defined for
+expressions that mix statically-typed and dynamically-typed code.
+
+The bow-tie helps us prove that a "static" reduction step cannot end in a
+`TagError`.
+
+
+> 3.6 (co-natural) and 3.7 (forgetful).  co-natural affects semantics (line 655)
+> but I believe that forgetful does not.  Correct?  Please say so.
+
+The semantics for co-natural is defined in figure 7.  The semantics for
+forgetful is defined in figure 8.  These are different semantics.
+
+
+> The type-safety theorems have an identical form in each case (same in 3.5) so
+> it'd be helpful to have a formal statement of how they differ!  Perhaps, if
+> the natural embedding converges to a value then the co-natural one does too,
+> and to the same value?
+
+This is a good suggestion.
+
+We have to be careful, though, about what it means for a value to be the same.
+The expression `(dyn (Nat x Nat) (1, 1))` reduces to `(1, 1)` in the natural
+embedding and to `(mon (Nat x Nat) (1, 1))` in the co-natural embedding.
 
 
 Sub-Review #99C
 --------------------------------------------------------------------------------
 
-#### what are the 5 soundnesses?
+> The authors claim at least 5 different soundness conditions (line 1284), do
+> these correspond to the 5 languages (LE, LN, LC, LF, LK)?
 
-> The authors claim at least 5 different soundness
-> conditions (line 1284), do these correspond to the 5 languages (LE,
-> LN, LC, LF, LK)?
-
-
-#### 3 have the same soundness
-
-> From my understanding 3 of them have the same
-> soundness condition (based on 'The language LF satisfies the same
-> notion of soundness as the co-natural LC and the natural LN' (line
-> 747).
+Yes.
 
 
-#### compare the embeddings
+> From my understanding 3 of them have the same soundness condition (based on
+> ... line 747)
+
+Line 747 is a typo, it should say "a similar notion of soundness".
 
 > Perhaps a table that captures the differences between each language would be
 > nice.
 
-#### minor comments
+Yes.
 
-> Line 70: 'By comparison, industrial implementations ... they do not
-> insist on type soundness'. Maybe some clarification of these
-> languages. I'm unsure if they mean languages like TypeScript, that are
-> unsound because they insert no run-time checks at all. If so, calling
-> them gradual typing rather than optional typing could be misleading. I
-> think the authors see optional typing as just being at the very
-> beginning of the gradual typing spectrum (rather than a separate
-> entity), but I think it would be good to explicitly say this. If they
-> had something else in mind it would still be useful to cite it.
+> Line 70: I'm unsure if they mean languages like TypeScript ... If so, calling
+> them gradual typing rather than optional typing could be misleading.
+
+We should clarify this.
+
 
 > Line 648: Should Theorem (L_C type safety) read type soundness?
 
-yes
+Yes.
 
 > Line 703 till end of paragraph: I feel this could have more
 > explanation; the result that you can forget all but one monitor isn't
-> immediately obvious. An example would be great. In the cited work [14]
-> (https://arxiv.org/pdf/1410.2813.pdf section 4.) there is a rule that
-> collapses casts:
-> 
-> A => B: (B => C: M) for terms M, types A,B,C, collapses to A => C: M.
-> 
-> which makes sense because you never really need the B, it just passes
-> through. This doesn't come across as clearly in this presentation.
+> immediately obvious.
+
+Yes, we should clarify.
 
 
-> Line 1003: The paragraph on universal types might benefit from more
-> detail. Are they supporting parametric polymorphism? I'm not convinced
+> Line 1003: Are they supporting parametric polymorphism? I'm not convinced
 > that it is possible to enforce parametricity with the monitor-free,
-> tagging semantics. For example: (\x -> 42) 42, and (\x -> x) 42. I
-> don't think tags can distinguish these two cases; only one has
-> the type \forall X. X -> X.
+> tagging semantics.
 
-No parametric polymorphism.
-That is a difficult problem.
+No, we are not claiming to support parametricity.  That is a separate and very
+difficult research question (Devriese et al. POPL 2018).
+
 
 > Line 1023: 'By contrast, we view the co-natural and forgetful embeddings as
-> theoretical artifacts.' I have 2 possible queries to the
-> view that the co-natural embedding (lazily traversing pairs to check
-> them) is just a theoretical artifact. 1) In some languages
-> (JavaScript) traversing an object and accessing fields can cause side
-> effects through getter/setter functions. To preserve semantics you are
-> forced to only check them when the original program checks them
-> (lazily). 2) Adding monitors to pairs (or records, or objects) can
-> introduce problems of interference by changing identity.  I don't
-> think excluding co-natural from comparison is detrimental, it's fine
-> to leave it as future work. But I do think it is a concern for
-> practitioners and shouldn't be portrayed as just a technical detail.
+> theoretical artifacts.' I have 2 possible queries ...
+
+Good point, we should re-word.
+
 
 Review #99D
 --------------------------------------------------------------------------------
-
-#### work is incremental, contribution is unclear
-
-> the work is incremental -- the authors themselves mention a lot of related
-> work, for example, "Gradual typing performance" on pg. 12. However, just like
-> with some other mentioned related work, they fail to clearly accentuate the
-> differences between that work and this paper.  Given that, and the work under
-> "Spectrum of type soundness", it is a little tough to claim as much novelty
-> here.
-
-#### small evaluation
-
-> the scope and scale of evaluation is small
-
-#### no user studies
 
 > no input from actual developers is ever collected (user studies, observations
 > via check-ins, etc.) so it is quite difficult to hypothesize both the amount
 > of labor that goes into annotations and the demands in terms of acceptable
 > overhead.
 
-All 5 embeddings use the same static type checker / impose the same annotation burden.
+The annotation effort is orthogonal.  Our semantics re-use Typed Racket's type
+checker.  The annotation burden of Typed Racket has been reported elsewhere,
+for example, in chapter 11 of Tobin-Hochstadt's dissertation.
+
+Users' demands in terms of acceptable overhead is not a major concern at this
+point.  We are focused on improving the performance of sound gradual typing;
+once we run out of improvements, then we will ask users whether the current
+performance meets their needs.
 
 
 > Lastly, the level of difficulty that's involved in pipointing a
 > type violation is also hard to measure -- very much depends on the size and
 > structure of the program
 
+True, but one can easily compare the quality of error messages.
 
-
-
-#### how to select D in practice?
 
 > I like the notion of D-deliverable configurations from [27], however, no
 > guidance is given for selecting D in practice even for the small and simple
 > benchmarks that you show
 
-I don't think you understand the notion
+Section 5.2 says "The premise of the D-deliverable measure is that programmers
+have a fixed performance requirement".  In other words, we assume that a
+programmer (or their boss) has a requirement, e.g., we can tolerate at most
+a 4x slowdown without losing customers.
 
 
 Review #99E
 --------------------------------------------------------------------------------
 
-#### weaknesses
-
-> The paper does not apply these approaches to the object-oriented features of
-> Racket, which are the source of the most significant performance degradations
-> during gradual typing. 
-
-> The residual costs are still high enough that they might preclude adoption.  
-
-We said this was a first step.
-
-
-#### minor points
-
 > Figure 1. What does the notation "A not in e" mean in the side condition of the
 > evaluation rule for E[e] evaluating to A? 
 
-e is a set
+See our response to Review #99A above.
+In short, the notation means that `A` is not a `TagError` or `BoundaryError`.
 
 
 > Figure 4.  How does the dynamic language know the type of the context into
 > which e is being embedded?
 
-It doesn't know (and it doesn't need to know).
-
-This is what the syntax `(dyn t e)` is for.
+The type is part of the syntax of embedded terms.  In the model, embedded terms
+have the form `(dyn \tau e)` or `(stat \tau e)`.  In the implementation, the
+compiler uses type annotations and inferred types to handle the embedding.
 
 
 > Figure 4.  Explain the notation-in-box "inherits" judgement: notation. 
 
-Cite "Inheritance is not subtyping" ?
+By "inherits", we mean "recursively extends".  William Cook's SBLP slides
+give an overview:
+  <http://www.cs.utexas.edu/~wcook/Drafts/2009/2009-SBLP-Inheritance.pdf>
 
 
 > Line 461.  What are category I and category II disasters? 
 
-These are not technical terms, we just wanted to have fun.
-category I is "bad", "category II is "more bad"
+Sorry for the jargon --- we borrowed these terms from the Saffir-Simpson
+hurricane wind scale.  We used them to say "bad" and "worse".  In the future
+we will use plain English.
 
 
 > Line 463.  Do you mean for the second type in the pair to be Nat when the
-> professor said it was the first element that was non-negative or the other way
-> around?  I believe the point you are trying to make, but I'm not following the
-> specific example. 
+> professor said it was the first element that was non-negative ... ?
 
-Yes, our mistake
+Yes, we made a mistake.
 
 
 > Line 685.  Could you cache the result of a successful check so the cost for all
 > but the first check would be negligible? 
 
-Yes.
-(See this is great, once we have these models we can talk about improving!)
+Yes, this is a promising idea.
+
+But as Findler et al. IFL 2007 show for lazy contracts, adding a cache may
+affect performance in a complicated way.
+
 
 > Line 705.  This sentence doesn't make sense. 
 
-Yes.
-The sentence is missing the phrase "combines the".
+Correct, this sentence is missing the phrase "combines the".
 
 
 > Line 904.  Can you give an example of a well-typed term that isn't well-tagged
 > with the corresponding tag?
 
 `(fst (1, 1))`
-
-
-> Line 1046. My understanding is that the overhead for the natural embedding is
-> much higher for the object-oriented portion of TypedRacket.  Do you anticipate
-> the locally-defensive approach will help in that setting?
-
-Yes.
-Section 4.2 suggests "fields exist?" as the tag check.
-This check is much simpler than wrapping the object in a proxy.
