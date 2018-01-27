@@ -62,7 +62,7 @@ gradually-typed lambda calculus or a language that is not Python. Our work
 fills this gap.
 
 
-Vitousek [POPL 2017] does not compare type soundness and tag soundness
+Vitousek et al. [POPL 2017] does not compare type soundness and tag soundness
 --------------------------------------------------------------------------------
 
 #99A says 
@@ -78,18 +78,17 @@ Vitousek [POPL 2017] does not compare type soundness and tag soundness
 
 Review #99B sells our results short:
 
-0. Vitousek et al. do _not_ report the performance of programs that mix typed
-   and untyped code. (They report the performance of fully typed RP
-   programs over fully untyped RP programs; they don't even report the
-   slowdown over Python.)
+1. Vitousek et al. do _not_ report the performance of programs that mix typed
+   and untyped code. (They report the performance of fully typed Reticulated
+   programs vs. Python programs.)
 
-1. Our paper provides the first controlled comparison of type soundness and
+2. Our paper provides the first controlled comparison of type soundness and
    type-tag soundness on the _same_ language platform on mixed-typed code. 
 
-2. Our paper provides a mathematical comparison between type soundness and tag
+3. Our paper provides a mathematical comparison between type soundness and tag
    soundness (Vitousek et al. conflate the two; see their Corollary 5.5.1).
 
-Our paper aims to present scientific novelties, not surprising ones. 
+Our paper aims to present scientific novelties, not surprising ones.
 
 
 The idea of a spectrum has NOT been previously explored
@@ -101,7 +100,7 @@ The idea of a spectrum has NOT been previously explored
 > of soundness and performance: but this has been previously explored in the
 > work on like types, at least.
 
-Review #99B mischaracterizes like types. The like type approach describes a
+Review #99B mischaracterizes like types. The like types approach describes a
 _novel type system_ with a **conventional** notion of type soundness. (BTW,
 it is also restricted to first--order settings.)
 
