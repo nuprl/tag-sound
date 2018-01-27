@@ -158,19 +158,18 @@ Review #99A
 > embeddings on top of locally-defensive embedding.
 
 The locally-defensive embedding builds on the ideas of the forgetful and
-co-natural embeddings.  The first paragraph of section 3.8.1 tries to explain
-the connnection.
+co-natural embeddings.  The first paragraph of section 3.8.1 explains the
+connnection.
 
 
 > How hard is it to integrate co-natural and forgetful embeddings into the
 > current prototype for locally-defensive embedding?
 
-Implementing the co-natural and forgetful embeddings for Racket would be a
-significant undertaking.  The co-natural embedding requires new kinds of
-proxies, for which one would need to modify the Racket runtime.  The forgetful
-embedding requires significant changes to Racket's contract library --- one
-would need to modify function contracts so their domain and codomain could be
-replaced at runtime.
+Implementing the co-natural and forgetful embeddings for Racket is a significant
+undertaking.  The co-natural embedding requires new kinds of proxies, which
+requires changes to the Racket runtime system.  The forgetful embedding requires
+significant changes to Racket's contract library --- a function contract must
+be able to replace its domain and codomain at runtime.
 
 
 > Line 153, why parentheses around dyn $\tau$ e?
@@ -197,7 +196,7 @@ clause on line 362; however, this is orthogonal to the focus of the paper.
 > BoundaryError in the second occurrence? In particular, what does 
 > $e'$ bind to? Please clarify.
 
-This figure has a typo: it should say $A \not\in e'$.  By this we mean `A` is
+This figure has a typo: it should say $A \not\in e$.  By this we mean `A` is
 not a `TagError` and not a `BoundaryError`; specifically, the answer value `A`
 is a member of the set `e` defined by the grammar at the top of figure.
 (And yes, the grammar uses the symbol `e` for both the set of expressions and
@@ -206,6 +205,8 @@ for a member of the set.)
 
 Review #99B
 --------------------------------------------------------------------------------
+
+(No questions)
 
 
 Review #99C
@@ -216,9 +217,9 @@ Review #99C
 
 The goal of the locally-defensive embedding is to guarantee type-tag soundness
 (section 3.8.3).  The locally-defensive embedding implements this goal by
-rewriting statically-typed expressions to check the type-tag of every incoming
-value.  For the language in figure 9, "incoming" values come from `dyn`,
-function applications, and calls to `fst` and `snd`.
+checking the type-tag of every value that enters typed code at runtime.
+For the language in figure 9, "entering" values come from `dyn`, function
+applications, and calls to `fst` and `snd`.
 
 
 > The performance measurements are indicative but not conclusive: it's always
@@ -226,10 +227,11 @@ function applications, and calls to `fst` and `snd`.
 > the constant factors, and may be dramatically affected by decent compilation.
 
 To clarify: we report relative performance, we use the same compiler and JIT
-for all programs and soundnesses, and these programs are running computations
-of at least a few seconds in the fully-untyped configuration.  (Notably, `fsm`
-and `zombie` run short computations because some of their typed/untyped
-configurations run exponentially slower.)
+for all programs and soundnesses, and these programs are performing reasonably
+large computations.  (Notably `fsm` and `zombie` run a computation that takes
+less than 0.5 seconds in the fully-untyped configuration because some of these
+benchmarks typed/untyped configurations run exponentially slower. The worst
+case in `fsm` takes over 300 seconds.)
 
 
 > For example, perhaps a simple static analysis of a natural embedding could
@@ -289,9 +291,9 @@ We need to make this sentence clearer.
 
 The idea is that most languages with runtime type-tags, such as OCaml, normally
 have a tag to say "these bits represent an integer" and no tag to say "these
-bits represent a natural number".  Therefore, the runtime notion of type-tags
-in such a language needs to be generalized to support a gradual type system
-that distinguishes Int and Nat types.
+bits represent a natural number".  Therefore, the runtime type-tags in these
+languages must be generalized in order to support a gradual type system that
+distinguishes Int and Nat types.
 
 
 > line 380 "...definition of LM  does not include a semantics".  What does it
@@ -303,8 +305,8 @@ reduction relation `e -->_R^* A`.  In contrast, figures 2 3 5 6 7 and 8 all
 "include a semantics".
 
 
-> (Incidentally, why use R and R' for static and dynamic rather than R^S and R^D?
-> I kept stumbling over which was which.)
+> (Incidentally, why use R and R' for static and dynamic rather than R^S and
+> R^D?  I kept stumbling over which was which.)
 
 This is a good suggestion.
 
@@ -359,6 +361,7 @@ Line 747 is a typo, it should say "a similar notion of soundness".
 
 Yes.
 
+
 > Line 70: I'm unsure if they mean languages like TypeScript ... If so, calling
 > them gradual typing rather than optional typing could be misleading.
 
@@ -412,7 +415,7 @@ performance meets their needs.
 > type violation is also hard to measure -- very much depends on the size and
 > structure of the program
 
-True, but one can easily compare the quality of error messages.
+True, but one can compare the quality of error messages.
 
 
 > I like the notion of D-deliverable configurations from [27], however, no
