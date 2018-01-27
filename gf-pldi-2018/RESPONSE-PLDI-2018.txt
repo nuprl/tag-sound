@@ -1,21 +1,23 @@
-Response Part 1: clarifications
+Response Part 1: clarifications & corrections
 ================================================================================
 
-From the "Paper summary" in Review #99A:
+#99A says 
 
 > This paper particularly considers five different embeddings, including the
 > erasure embedding ... and locally-defensive embedding, which removes many
 > unnecessary runtime checks from natural embedding
 
 The locally-defensive embedding skips checks that are **necessary** for
-type-sound execution, but unnecessary for the weaker type-tag-sound execution.
-The evaluation then illustrates the tradeoff between soundness and performance.
+_type-sound_ execution, but unnecessary for the weaker _tag-sound_ execution.
+
+The evaluation illustrates the tradeoff between these two notions of
+soundness and performance. 
 
 
 Pycket is an orthogonal result
 --------------------------------------------------------------------------------
 
-From Review #99A:
+#99A says 
 
 > While the locally-defensive embedding in this paper improves the performance
 > of the natural embedding by about a magnitude, the recent work by Pycket has
@@ -27,7 +29,7 @@ JIT can significantly reduce the overhead of natural-embedding type soundness.
 Our work demonstrates that replacing type soundness with type-tag soundness
 can lead to significant performance improvements.
 
-These are separate results.
+These are separate, orthogonal results.
 
 Future work: combine these two independent pieces of work, which will require
 close collaboration with the Pycket team.
@@ -36,12 +38,12 @@ close collaboration with the Pycket team.
 Locally-defensive is a principled transient
 --------------------------------------------------------------------------------
 
-From Review #99A:
+#99A says
 
 > Maybe transient typed Racket would be a good direction to make gradual typing
 > (migratory typing) for Racket more feasible? 
 
-From Review #99C:
+#99C says 
 
 > There is perhaps another contribution: the idea of "locally-defensive"
 > embedding.  Frustratingly, I can't figure out if this is an original
@@ -51,21 +53,21 @@ The locally-defensive embedding is a mathematical characterization of
 transient semantics, and our locally-defensive Racket implements it.
 
 In contrast, the POPL 2017 paper by Vitousek et al. defines transient by its
-implementation.  That paper does not explain the properties that an
+implementation.  Conversely, Vitousek et al do not explain the properties that an
 implementation needs to satisfy in order to be called "transient" --- so it is
 unclear, for example, how to give a transient semantics for the gradually-typed
-lambda calculus.  Our work fills this gap.
+lambda calculus or a language that is not Python. Our work fills this gap.
 
 
 POPL 2017 does not systematically compare type soundness and tag soundness
 --------------------------------------------------------------------------------
 
-From Review #99A:
+#99A says 
 
 > Also, the transient strategy of ensuring type soundness exhibits much more
 > competitive performance.
 
-From Review #99B:
+#99B says 
 
 > The main result is a confirmation that the transient semantics of Vitousek
 > (POPL 2017) is indeed better-performing than the usual semantics with eager
@@ -73,12 +75,16 @@ From Review #99B:
 
 Review #99B sells our results short:
 
+0. Vitousek et al. do _not_ report the performance of programs that mix typed
+   and untyped code. (They report the performance of fully typed RP
+   programs over fully untyped RP programs; they don't even report the
+   slowdown over Python.)
+
 1. Our paper provides a mathematical comparison between type soundness and tag
    soundness (Vitousek et al. conflate the two; see their Corollary 5.5.1).
+
 2. Our paper provides the first controlled comparison of type soundness and
-   type-tag soundness.
-3. Vitousek et al. do not report the performance of programs that mix typed
-   and untyped code.
+   type-tag soundness on the _same_ language platform on mixed-typed code. 
 
 Our paper is aiming to be scientific, not surprising.
 
@@ -86,37 +92,43 @@ Our paper is aiming to be scientific, not surprising.
 The idea of a spectrum has NOT been previously explored
 --------------------------------------------------------------------------------
 
-From Review #99B:
+#99B says:
 
 > The other claimed contribution is the idea that there is in fact a spectrum
 > of soundness and performance: but this has been previously explored in the
 > work on like types, at least.
 
-Review #99B mischaracterizes like types. Like types describe a novel type
-system with a conventional notion of type soundness.
+Review #99B mischaracterizes like types. The like type approach describe a
+_novel type system_ with a **conventional** notion of type soundness. (It 
+is also restricted to first--order settings.)
 
-Our paper is the first to show how _one language_ can have _multiple semantics_
+Our paper is the first to show how _one language_ can have _multiple semantics_,
 each corresponding to a _different kind of soundness_.
 
 
 Sound gradual typing is a worthwhile goal
 --------------------------------------------------------------------------------
 
-From Review #99C:
+#99C says 
 
 > There is a big literature on gradual typing, but only one form appears to have
 > had practical impact.  That's the one that is here called the "erasure
 > embedding".  The obvious question is: are the other approaches worth pursuing
 > at all?
 
-Industry chose erasure to avoid the performance question.  Experience, and our
-theorem (L_E term safety), show that this choice lets programs produce wrong
-answers due to uncaught violations of the static types.  This has two negative
-consequences: users need to debug these subtle errors, and users cannot use
-types to reason about correctness.
+Industry chose erasure to avoid the performance question with _optional_
+typing, an unsound form of gradual typing.  Experience, and our theorem
+(L_E term safety), show that this choice lets programs produce wrong
+answers due to uncaught violations of the static types.  This has two
+negative consequences: users may have to cope with subtly wrong outputs
+whose faults may affect real life long after running the program (say lost
+elections, see SNAPL '17), and programmers cannot use types to reason about
+correctness (see theorems). 
 
-We are pursing sound gradual typing because we believe it is a useful
-improvement over optional typing.  It addresses the above issues.
+We are proudly pursing sound gradual typing because we are academic
+researchers who do not wish to give up after a mere decade to get things
+right and because sound gradual typing would be a useful improvement over
+optional typing. 
 
 In the same way, the implementors of Scala and Haskell believe that static
 typing is a useful improvement over the dynamic typing in, e.g., Ruby and
@@ -126,7 +138,7 @@ Python, despite Ruby and Python having a larger practical impact.
 Object-oriented features are future work
 --------------------------------------------------------------------------------
 
-From Review #99E:
+#99E says 
 
 > The paper does not apply these approaches to the object-oriented features of
 > Racket ... Do you anticipate the locally-defensive approach will help in that
@@ -136,8 +148,8 @@ Yes.  Based on the theory, the difference is between an expensive object proxy
 and a near-constant-time check.  We did not implement tag soundness for objects
 because (1) implementing tag soundness for functions was already a significant
 effort and (2) type-sound objects for Typed Racket required a dissertation to
-design and implement.  It's on our agenda, but was not our main focus for this
-paper.
+design and implement.  It's on our agenda, but it is beyond the scope of
+this first result. 
 
 
 
@@ -148,7 +160,7 @@ paper.
 
 
 
-Response Part 2: answers
+Response Part 2: answers to detail questions 
 ================================================================================
 
 Review #99A
@@ -188,7 +200,8 @@ Yes, thank you.
 
 No, we cannot provide an example.
 Instead we could prove a theorem that L_S is strongly normalizing and remove the
-clause on line 362; however, this is orthogonal to the focus of the paper.
+clause on line 362; however, this is orthogonal to the focus of the
+paper. It is easy to extend the language with recursion. 
 
 
 > Figure 4, what is the meaning of $A \notin e'$? Did you mean A is not 
@@ -200,7 +213,7 @@ This figure has a typo: it should say $A \not\in e$.  By this we mean `A` is
 not a `TagError` and not a `BoundaryError`; specifically, the answer value `A`
 is a member of the set `e` defined by the grammar at the top of figure.
 (And yes, the grammar uses the symbol `e` for both the set of expressions and
-for a member of the set.)
+for a member of the set and yes, grammars define sets.)
 
 
 Review #99B
@@ -255,8 +268,9 @@ soundness.
 
 > Can we assume that proofs exist?  Are they typeset somewhere?
 
-Proofs are typeset, and the Redex models in our submission have QuickCheck-style
-tests to validate the soundness theorems.
+Proofs are typeset (84 pages, available on demand), and the Redex models in
+our submission have QuickCheck-style tests to validate the soundness
+theorems.
 
 
 > I'd have thought that a helpful application of your framework would be to
@@ -274,7 +288,8 @@ We are working on it.
 
 We hope figure 1 was easier to read.  For reference, the citation for this
 sentence is meant to direct readers to chapter 5, section 1 of _Semantics
-Engineering with PLT Redex_.
+Engineering with PLT Redex_, a summary of 30 years' worth of work on
+reduction semantics, a widely used approach. 
 
 
 > Line 256 "..if it contains no free variables".  No: if al the free variables
@@ -287,7 +302,7 @@ in figure 2 cannot be used to prove `\Gamma \vdash_D e`
 > line 265 "...representative of subset types that do not have a matching low
 > level type tag".  I have no idea what this means.
 
-We need to make this sentence clearer.
+We need to rewrite this sentence.
 
 The idea is that most languages with runtime type-tags, such as OCaml, normally
 have a tag to say "these bits represent an integer" and no tag to say "these
@@ -365,7 +380,7 @@ Yes.
 > Line 70: I'm unsure if they mean languages like TypeScript ... If so, calling
 > them gradual typing rather than optional typing could be misleading.
 
-We should clarify this.
+We must clarify this. See above. 
 
 
 > Line 648: Should Theorem (L_C type safety) read type soundness?
@@ -376,7 +391,7 @@ Yes.
 > explanation; the result that you can forget all but one monitor isn't
 > immediately obvious.
 
-Yes, we should clarify.
+Yes, we must clarify.
 
 
 > Line 1003: Are they supporting parametric polymorphism? I'm not convinced
@@ -384,7 +399,8 @@ Yes, we should clarify.
 > tagging semantics.
 
 No, we are not claiming to support parametricity.  That is a separate and very
-difficult research question (Devriese et al. POPL 2018).
+difficult research question (see Devriese et al. POPL 2018 for one idea and
+an overview of research).
 
 
 > Line 1023: 'By contrast, we view the co-natural and forgetful embeddings as
@@ -403,7 +419,7 @@ Review #99D
 
 The annotation effort is orthogonal.  Our semantics re-use Typed Racket's type
 checker.  The annotation burden of Typed Racket has been reported elsewhere,
-for example, in chapter 11 of Tobin-Hochstadt's dissertation.
+for example, in Tobin-Hochstadt's and Takikawa's work. 
 
 Users' demands in terms of acceptable overhead is not a major concern at this
 point.  We are focused on improving the performance of sound gradual typing;
