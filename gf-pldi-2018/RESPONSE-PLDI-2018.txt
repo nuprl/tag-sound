@@ -7,8 +7,9 @@ Response Part 1: clarifications & corrections
 > erasure embedding ... and locally-defensive embedding, which removes many
 > unnecessary runtime checks from natural embedding
 
-The locally-defensive embedding skips checks that are **necessary** for
-_type-sound_ execution, but unnecessary for the weaker _tag-sound_ execution.
+The locally-defensive embedding compiles the source so that the execution 
+skips checks that are **necessary** to enforce _type-soundness_ and
+unnecessary for the weaker notion of _tag-soundness_. 
 
 The evaluation illustrates the tradeoff between these two notions of
 soundness and performance. 
@@ -24,15 +25,16 @@ Pycket is an orthogonal result
 > already achieved this.
 
 The Pycket work demonstrates that replacing a conventional JIT with a tracing
-JIT can significantly reduce the overhead of natural-embedding type soundness.
+JIT can significantly reduce the overhead of natural-embedding type soundness
+(one and the same semantics). 
 
 Our work demonstrates that replacing type soundness with type-tag soundness
-can lead to significant performance improvements.
+can lead to significant performance improvements (different semantics). 
 
 These are separate, orthogonal results.
 
-Future work: combine these two independent pieces of work, which will require
-close collaboration with the Pycket team.
+Combining these two independent pieces of work is future work and will
+require close collaboration with the independent Pycket team.
 
 
 Locally-defensive is a principled transient
@@ -52,14 +54,15 @@ Locally-defensive is a principled transient
 The locally-defensive embedding is a mathematical characterization of
 transient semantics, and our locally-defensive Racket implements it.
 
-In contrast, the POPL 2017 paper by Vitousek et al. defines transient by its
-implementation.  Conversely, Vitousek et al do not explain the properties that an
-implementation needs to satisfy in order to be called "transient" --- so it is
-unclear, for example, how to give a transient semantics for the gradually-typed
-lambda calculus or a language that is not Python. Our work fills this gap.
+In contrast, the POPL 2017 paper by Vitousek et al. defines transient by
+its implementation, which does not explain the properties that an
+implementation needs to satisfy in order to be called "transient". So it is
+unclear, for example, how to give a transient semantics for the
+gradually-typed lambda calculus or a language that is not Python. Our work
+fills this gap.
 
 
-POPL 2017 does not systematically compare type soundness and tag soundness
+Vitousek [POPL 2017] does not compare type soundness and tag soundness
 --------------------------------------------------------------------------------
 
 #99A says 
@@ -80,13 +83,13 @@ Review #99B sells our results short:
    programs over fully untyped RP programs; they don't even report the
    slowdown over Python.)
 
-1. Our paper provides a mathematical comparison between type soundness and tag
-   soundness (Vitousek et al. conflate the two; see their Corollary 5.5.1).
-
-2. Our paper provides the first controlled comparison of type soundness and
+1. Our paper provides the first controlled comparison of type soundness and
    type-tag soundness on the _same_ language platform on mixed-typed code. 
 
-Our paper is aiming to be scientific, not surprising.
+2. Our paper provides a mathematical comparison between type soundness and tag
+   soundness (Vitousek et al. conflate the two; see their Corollary 5.5.1).
+
+Our paper aims to present scientific novelties, not surprising ones. 
 
 
 The idea of a spectrum has NOT been previously explored
@@ -98,12 +101,12 @@ The idea of a spectrum has NOT been previously explored
 > of soundness and performance: but this has been previously explored in the
 > work on like types, at least.
 
-Review #99B mischaracterizes like types. The like type approach describe a
-_novel type system_ with a **conventional** notion of type soundness. (It 
-is also restricted to first--order settings.)
+Review #99B mischaracterizes like types. The like type approach describes a
+_novel type system_ with a **conventional** notion of type soundness. (BTW,
+it is also restricted to first--order settings.)
 
 Our paper is the first to show how _one language_ can have _multiple semantics_,
-each corresponding to a _different kind of soundness_.
+each guaranteeing a _different degree of soundness_.
 
 
 Sound gradual typing is a worthwhile goal
@@ -116,23 +119,26 @@ Sound gradual typing is a worthwhile goal
 > embedding".  The obvious question is: are the other approaches worth pursuing
 > at all?
 
-Industry chose erasure to avoid the performance question with _optional_
-typing, an unsound form of gradual typing.  Experience, and our theorem
-(L_E term safety), show that this choice lets programs produce wrong
-answers due to uncaught violations of the static types.  This has two
-negative consequences: users may have to cope with subtly wrong outputs
-whose faults may affect real life long after running the program (say lost
-elections, see SNAPL '17), and programmers cannot use types to reason about
-correctness (see theorems). 
+Industry chose "erasure" (optional typing) to avoid obvious performance
+penalties. But, this is an unsound form of gradual typing.  Experience, and
+our theorem (L_E term safety), show that this choice lets programs produce
+wrong answers due to uncaught violations of the static typing discipline.
+This has two negative consequences: users may have to cope with subtly
+wrong outputs whose faults may affect real life long after running the
+program (say lost elections, see SNAPL '17), and programmers cannot use
+types to reason about correctness (see theorems).
 
-We are proudly pursing sound gradual typing because we are academic
-researchers who do not wish to give up after a mere decade to get things
-right and because sound gradual typing would be a useful improvement over
-optional typing. 
+We proudly continue to investigate sound gradual typing because we are
+academic researchers who do not wish to give up after a mere decade to get
+things right and because sound gradual typing would be a useful improvement
+over optional typing. 
 
-In the same way, the implementors of Scala and Haskell believe that static
-typing is a useful improvement over the dynamic typing in, e.g., Ruby and
-Python, despite Ruby and Python having a larger practical impact.
+Keep in mind that the first (mostly) popular soundly typed language, Java,
+came about over two decades after the discovery of type soundness and its
+unsound competitor (C++).  In the same way, the creators of Scala or
+Haskell continue to believe that they can improve their languages to the
+point where they take over vastly more popular and untyped languages such 
+as Ruby and Python. 
 
 
 Object-oriented features are future work
