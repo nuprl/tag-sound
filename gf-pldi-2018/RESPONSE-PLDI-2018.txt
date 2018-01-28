@@ -205,8 +205,7 @@ Yes, thank you.
 
 No, we cannot provide an example.
 Instead we could prove a theorem that L_S is strongly normalizing and remove the
-clause on line 362; however, this is orthogonal to the focus of the
-paper. It is easy to extend the language with recursion. 
+clause on line 362; however, this is orthogonal to the focus of the paper.
 
 
 > Figure 4, what is the meaning of $A \notin e'$? Did you mean A is not 
@@ -274,8 +273,7 @@ soundness.
 > Can we assume that proofs exist?  Are they typeset somewhere?
 
 Proofs are typeset (84 pages, available on demand), and the Redex models in
-our submission have QuickCheck-style tests to validate the soundness
-theorems.
+our submission have QuickCheck-style tests to validate the soundness theorems.
 
 
 > I'd have thought that a helpful application of your framework would be to
@@ -321,7 +319,7 @@ distinguishes Int and Nat types.
 > of R and R'.
 
 By "include a semantics", we mean "to define a notion of reduction R and a
-reduction relation `e -->_R^* A`.  In contrast, figures 2 3 5 6 7 and 8 all
+reduction relation `e -->_R^* A`.  In contrast, figures 2 3 5 6 7 8 and 9 all
 "include a semantics".
 
 
@@ -334,7 +332,7 @@ This is a good suggestion.
 > Line 284. I have not clue what the bow-tie thing is doing.  It did not seem
 > to be used subsequently.
 
-Figures 6 7 and 8 use the bow-tie to combine two notions of reduction (one for
+Figures 6 7 8 and 9 use the bow-tie to combine two notions of reduction (one for
 statically-typed expressions, one for dynamically-typed expressions) into two
 reduction relations (one for static, one for dynamic) that are defined for
 expressions that mix statically-typed and dynamically-typed code.
@@ -404,8 +402,8 @@ Yes, we must clarify.
 > tagging semantics.
 
 No, we are not claiming to support parametricity.  That is a separate and very
-difficult research question (see Devriese et al. POPL 2018 for one idea and
-an overview of research).
+difficult research question (see Devriese et al. POPL 2018 for an example of
+the difficulties).
 
 
 > Line 1023: 'By contrast, we view the co-natural and forgetful embeddings as
@@ -491,9 +489,6 @@ Yes, we made a mistake.
 > but the first check would be negligible? 
 
 Yes, this is a promising idea.
-
-But as Findler et al. IFL 2007 show for lazy contracts, adding a cache may
-affect performance in a complicated way.
 
 
 > Line 705.  This sentence doesn't make sense. 
