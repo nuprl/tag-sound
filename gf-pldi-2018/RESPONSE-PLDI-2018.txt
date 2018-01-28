@@ -205,7 +205,8 @@ Yes, thank you.
 
 No, we cannot provide an example.
 Instead we could prove a theorem that L_S is strongly normalizing and remove the
-clause on line 362; however, this is orthogonal to the focus of the paper.
+clause on line 362; however, this is orthogonal to the focus of the paper.  It
+is easy to extend the language with recursion.
 
 
 > Figure 4, what is the meaning of $A \notin e'$? Did you mean A is not 
