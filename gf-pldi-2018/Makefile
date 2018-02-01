@@ -28,10 +28,10 @@ test:
 	raco test -c ${PKG}
 
 compile:
-	raco make ${PAPER}.scrbl
+	raco make -v ${PAPER}.scrbl
 
 supplement-compile:
-	raco make ${SUPPLEMENT}.scrbl
+	raco make -v ${SUPPLEMENT}.scrbl
 
 clean:
 	rm -r compiled
