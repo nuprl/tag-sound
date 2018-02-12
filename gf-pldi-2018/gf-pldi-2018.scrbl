@@ -1,8 +1,8 @@
 #lang gf-pldi-2018 @sigplan @10pt @anonymous @review
 
+@; "Writing is nature's way of letting you know how sloppy your thinking is" -Dick Guindon
+
 @title{The Spectrum of Soundness and Performance}
-@; one small tag for gradual typing
-@; 
 
 @(define NEU
    @affiliation[
