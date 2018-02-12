@@ -117,8 +117,6 @@
 (require
   "bib.rkt"
   "plot.rkt"
-  (only-in racket/class
-    class new super-new object% define/public)
   (only-in racket/list
     add-between
     partition)
@@ -129,8 +127,6 @@
   scribble/acmart
   scribble/core
   scribble/example
-  scribble/html-properties
-  scribble/latex-properties
   scribble-abbrevs
   (except-in scriblib/autobib authors)
   scriblib/figure
@@ -147,46 +143,8 @@
 
 ;; =============================================================================
 
-(define small-number-style
-  (let ([autobib-style-extras
-        (let ([abs (lambda (s)
-                     (path->main-collects-relative
-                      (collection-file-path s "scriblib")))])
-          (list
-           (make-css-addition (abs "autobib.css"))
-           (make-tex-addition (abs "autobib.tex"))))])
-    (new
-     (class object%
-       (define/public (bibliography-table-style)
-         (make-style "AutoBibliography" autobib-style-extras))
-       (define/public (entry-style)
-         (make-style "Autocolbibentry" autobib-style-extras))
-       (define/public (disambiguate-date?) #f)
-       (define/public (collapse-for-date?) #f)
-       (define/public (get-cite-open) "[")
-       (define/public (get-cite-close) "]")
-       (define/public (get-group-sep) ", ")
-       (define/public (get-item-sep) ", ")
-       (define/public (render-citation date-cite i)
-         (make-element
-          (make-style "Thyperref" (list (command-extras (list (make-label i)))))
-          (list (number->string i))))
-       (define/public (render-author+dates author dates) dates)
-       (define (make-label i)
-         (string-append "autobiblab:" (number->string i)))
-       (define/public (bibliography-line i e)
-         (list (make-paragraph plain
-                               (make-element (make-style "Autocolbibnumber"
-                                                         autobib-style-extras)
-                                             (list
-                                              (make-element (make-style "label" null)
-                                                            (make-label i))
-                                              "[" (number->string i) "]")))
-               e))
-       (super-new)))))
-
 (define-cite ~cite citet generate-bibliography
-  #:style small-number-style)
+  #:style number-style)
 
 (define (python . x)
   (apply exact (append (list "\n\\begin{python}\n") x (list "\n\\end{python}\n"))))
