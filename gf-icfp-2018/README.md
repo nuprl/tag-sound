@@ -40,6 +40,8 @@ X L 705 does not make sense (missing 'that combines')
 TYPESETTING
 - "flushleft" the typing rules
 - rename A to R (for "result"?) .. maybe see mason/talcott for ideas
+- ICFP 27 pages max, (bib excluded)
+       acmsmall
 
 - - -
 
@@ -53,7 +55,3 @@ or, factory recycling
 MT: replace parts of program with "trust me" things in the gamma.
  could be very useful, like z3 or some fast library for fast things.
  what guarantees about "mixed" programs?
-
-- - -
-
-conclusion / open 
