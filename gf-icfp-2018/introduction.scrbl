@@ -1,4 +1,4 @@
-#lang gf-pldi-2018
+#lang gf-icfp-2018
 @title[#:tag "sec:introduction"]{Three Flavors of Migratory Typing}
 
 @; TODO examples need labels, need to stand out a little more

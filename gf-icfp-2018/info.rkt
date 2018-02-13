@@ -1,5 +1,5 @@
 #lang info
-(define collection "gf-pldi-2018")
+(define collection "gf-icfp-2018")
 (define deps '(
   "at-exp-lib"
   "base"

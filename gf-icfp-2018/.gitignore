@@ -1,0 +1,9 @@
+*.aux
+*.log
+*.out
+*.pdf
+*.toc
+
+acmart.cls
+gf-icfp-2018.tex
+gf-icfp-2018-supplement.tex

@@ -1,4 +1,4 @@
-#lang gf-pldi-2018
+#lang gf-icfp-2018
 @require{techreport.rkt}
 @UID++[]
 @title[#:tag "appendix:preliminaries"]{Preliminaries}

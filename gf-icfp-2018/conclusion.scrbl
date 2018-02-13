@@ -1,4 +1,4 @@
-#lang gf-pldi-2018
+#lang gf-icfp-2018
 @title[#:tag "sec:conclusion"]{Finding Balance}
 
 @; TODO future work

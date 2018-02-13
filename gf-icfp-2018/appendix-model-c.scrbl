@@ -1,73 +1,73 @@
-#lang gf-pldi-2018
+#lang gf-icfp-2018
 @require{techreport.rkt}
 
-@appendix-title++{Natural Embedding}
+@appendix-title++{Co-Natural Embedding}
 
-@section{@${\langN} Definitions}
-@exact{\input{fig:natural-embedding.tex}}
+@section{@${\langC} Definitions}
+@exact{\input{fig:conatural-embedding.tex}}
 
 @|clearpage|
-@section{@${\langN} Properties}
+@section{@${\langC} Properties}
 
 @(begin
-   (define N-S-progress @tr-ref[#:key "N-S-progress"]{static progress})
-   (define N-D-progress @tr-ref[#:key "N-D-progress"]{dynamic progress})
-   (define N-S-preservation @tr-ref[#:key "N-S-preservation"]{static preservation})
-   (define N-D-preservation @tr-ref[#:key "N-D-preservation"]{dynamic preservation})
+   (define C-S-progress @tr-ref[#:key "C-S-progress"]{static progress})
+   (define C-D-progress @tr-ref[#:key "C-D-progress"]{dynamic progress})
+   (define C-S-preservation @tr-ref[#:key "C-S-preservation"]{static preservation})
+   (define C-D-preservation @tr-ref[#:key "C-D-preservation"]{dynamic preservation})
 
-   (define N-S-implies @tr-ref[#:key "N-S-implies"]{static implies})
-   (define N-D-implies @tr-ref[#:key "N-D-implies"]{dynamic implies})
+   (define C-S-implies @tr-ref[#:key "C-S-implies"]{static implies})
+   (define C-D-implies @tr-ref[#:key "C-D-implies"]{dynamic implies})
 
-   (define N-S-uec @tr-ref[#:key "N-S-uec"]{unique evaluation contexts})
-   (define N-D-uec @tr-ref[#:key "N-D-uec"]{unique evaluation contexts})
+   (define C-S-uec @tr-ref[#:key "C-S-uec"]{unique evaluation contexts})
+   (define C-D-uec @tr-ref[#:key "C-D-uec"]{unique evaluation contexts})
 
-   (define N-S-hole-typing @tr-ref[#:key "N-S-hole-typing"]{static hole typing})
-   (define N-D-hole-typing @tr-ref[#:key "N-D-hole-typing"]{dynamic hole typing})
+   (define C-S-hole-typing @tr-ref[#:key "C-S-hole-typing"]{static hole typing})
+   (define C-D-hole-typing @tr-ref[#:key "C-D-hole-typing"]{dynamic hole typing})
 
-   (define N-S-hole-subst @tr-ref[#:key "N-S-hole-subst"]{static hole substitution})
-   (define N-D-hole-subst @tr-ref[#:key "N-D-hole-subst"]{dynamic hole substitution})
+   (define C-S-hole-subst @tr-ref[#:key "C-S-hole-subst"]{static hole substitution})
+   (define C-D-hole-subst @tr-ref[#:key "C-D-hole-subst"]{dynamic hole substitution})
 
-   (define N-S-inversion @tr-ref[#:key "N-S-inversion"]{inversion})
-   (define N-D-inversion @tr-ref[#:key "N-D-inversion"]{inversion})
+   (define C-S-inversion @tr-ref[#:key "C-S-inversion"]{inversion})
+   (define C-D-inversion @tr-ref[#:key "C-D-inversion"]{inversion})
 
-   (define N-S-canonical @tr-ref[#:key "N-S-canonical"]{canonical forms})
+   (define C-S-canonical @tr-ref[#:key "C-S-canonical"]{canonical forms})
 
-   (define N-Delta-soundness @tr-ref[#:key "N-Delta-type-soundness"]{@${\Delta} type soundness})
-   (define N-delta-preservation @tr-ref[#:key "N-delta-preservation"]{@${\delta} preservation})
+   (define C-Delta-soundness @tr-ref[#:key "C-Delta-type-soundness"]{@${\Delta} type soundness})
+   (define C-delta-preservation @tr-ref[#:key "C-delta-preservation"]{@${\delta} preservation})
 
-   (define N-SS-subst @tr-ref[#:key "N-SS-subst"]{substitution})
-   (define N-DS-subst @tr-ref[#:key "N-DS-subst"]{substitution})
-   (define N-SD-subst @tr-ref[#:key "N-SD-subst"]{substitution})
-   (define N-DD-subst @tr-ref[#:key "N-DD-subst"]{substitution})
+   (define C-SS-subst @tr-ref[#:key "C-SS-subst"]{substitution})
+   (define C-DS-subst @tr-ref[#:key "C-DS-subst"]{substitution})
+   (define C-SD-subst @tr-ref[#:key "C-SD-subst"]{substitution})
+   (define C-DD-subst @tr-ref[#:key "C-DD-subst"]{substitution})
 
-   (define N-finite-subtyping @tr-ref[#:key "N-finite-subtyping"]{finite subtyping})
-   (define N-finite-supertyping @tr-ref[#:key "N-finite-supertyping"]{finite supertyping})
-   (define N-weakening @tr-ref[#:key "N-weakening"]{weakening})
+   (define C-finite-subtyping @tr-ref[#:key "C-finite-subtyping"]{finite subtyping})
+   (define C-finite-supertyping @tr-ref[#:key "C-finite-supertyping"]{finite supertyping})
+   (define C-weakening @tr-ref[#:key "C-weakening"]{weakening})
 
 )
 
-@tr-theorem[#:key "N-soundness" @elem{@${\langN} type soundness}]{
-  If @${\wellM e : \tau} then @${\wellNE e : \tau} and either:
+@tr-theorem[#:key "C-soundness" @elem{@${\langC} type soundness}]{
+  If @${\wellM e : \tau} then @${\wellCE e : \tau} and either:
   @itemlist[
-    @item{ @${e \rrNEstar v \mbox{ and } \wellNE v : \tau} }
-    @item{ @${e \rrNEstar \ctxE{\edyn{\tau'}{e'}} \mbox{ and } e' \ccND \tagerror} }
-    @item{ @${e \rrNEstar \boundaryerror} }
+    @item{ @${e \rrCEstar v \mbox{ and } \wellCE v : \tau} }
+    @item{ @${e \rrCEstar \ctxE{\edyn{\tau'}{e'}} \mbox{ and } e' \ccCD \tagerror} }
+    @item{ @${e \rrCEstar \boundaryerror} }
     @item{ @${e} diverges}
   ]
 }@tr-proof{
   @itemlist[#:style 'ordered
     @item{@tr-step[
-      @${\wellNE e : \tau}
-      @|N-S-implies|
+      @${\wellCE e : \tau}
+      @|C-S-implies|
     ]}
     @item{@tr-qed{
-      by @|N-S-progress| and @|N-S-preservation|.
+      by @|C-S-progress| and @|C-S-preservation|.
     }}
   ]
 }
 
-@tr-lemma[#:key "N-S-implies" @elem{@${\langN} static implies}]{
-  If @${\Gamma \wellM e : \tau} then @${\Gamma \wellNE e : \tau}.
+@tr-lemma[#:key "C-S-implies" @elem{@${\langC} static implies}]{
+  If @${\Gamma \wellM e : \tau} then @${\Gamma \wellCE e : \tau}.
 }@tr-proof{
   By structural induction on @${\Gamma \wellM e : \tau}
 
@@ -78,7 +78,7 @@
                 \Gamma \wellM x : \tau
               }}]{
     @tr-step[
-      @${\Gamma \wellNE x : \tau}
+      @${\Gamma \wellCE x : \tau}
       @${\tann{x}{\tau} \in \Gamma}]
     @tr-qed[]
   }
@@ -90,10 +90,10 @@
                 \Gamma \wellM \vlam{\tann{x}{\tau_d}}{e} : \tau_d \tarrow \tau_c
               }}]{
     @tr-step[
-      @${\tann{x}{\tau_d},\Gamma \wellNE e : \tau_c}
+      @${\tann{x}{\tau_d},\Gamma \wellCE e : \tau_c}
       @tr-IH]
     @tr-step{
-      @${\Gamma \wellNE \vlam{\tann{x}{\tau_d}}{e} : \tarr{\tau_d}{\tau_c}} }
+      @${\Gamma \wellCE \vlam{\tann{x}{\tau_d}}{e} : \tarr{\tau_d}{\tau_c}} }
     @tr-qed[]
   }
 
@@ -123,12 +123,12 @@
                 \Gamma \wellM \vpair{e_0}{e_1} : \tpair{\tau_0}{\tau_1}
               }}]{
     @tr-step[
-      @${\Gamma \wellNE e_0 : \tau_0
+      @${\Gamma \wellCE e_0 : \tau_0
          @tr-and[]
-         \Gamma \wellNE e_1 : \tau_1}
+         \Gamma \wellCE e_1 : \tau_1}
       @tr-IH]
     @tr-step{
-      @${\Gamma \wellNE \vpair{e_0}{e_1} : \tpair{\tau_0}{\tau_1}} }
+      @${\Gamma \wellCE \vpair{e_0}{e_1} : \tpair{\tau_0}{\tau_1}} }
     @tr-qed[]
   }
 
@@ -141,12 +141,12 @@
                 \Gamma \wellM e_0~e_1 : \tau_c
               }}]{
     @tr-step[
-      @${\Gamma \wellNE e_0 : \tarr{\tau_d}{\tau_c}
+      @${\Gamma \wellCE e_0 : \tarr{\tau_d}{\tau_c}
          @tr-and[]
-         \Gamma \wellNE e_1 : \tau_d}
+         \Gamma \wellCE e_1 : \tau_d}
       @tr-IH]
     @tr-step{
-      @${\Gamma \wellNE \vapp{e_0}{e_1} : \tau_c} }
+      @${\Gamma \wellCE \vapp{e_0}{e_1} : \tau_c} }
     @tr-qed[]
   }
 
@@ -159,10 +159,10 @@
                 \Gamma \wellM \vunop~e_0 : \tau
               }}]{
     @tr-step[
-      @${\Gamma \wellNE e_0 : \tau_0}
+      @${\Gamma \wellCE e_0 : \tau_0}
       @tr-IH]
     @tr-step{
-      @${\Gamma \wellNE \eunop{e_0} : \tau} }
+      @${\Gamma \wellCE \eunop{e_0} : \tau} }
     @tr-qed[]
   }
 
@@ -177,12 +177,12 @@
                 \Gamma \wellM \vbinop~e_0~e_1 : \tau
               }}]{
     @tr-step[
-      @${\Gamma \wellNE e_0 : \tau_0
+      @${\Gamma \wellCE e_0 : \tau_0
          @tr-and[]
-         \Gamma \wellNE e_1 : \tau_1}
+         \Gamma \wellCE e_1 : \tau_1}
       @tr-IH]
     @tr-step{
-      @${\Gamma \wellNE \ebinop{e_0}{e_1} : \tau} }
+      @${\Gamma \wellCE \ebinop{e_0}{e_1} : \tau} }
     @tr-qed[]
   }
 
@@ -195,10 +195,10 @@
                 \Gamma \wellM e : \tau
               }}]{
     @tr-step[
-      @${\Gamma \wellNE e : \tau'}
+      @${\Gamma \wellCE e : \tau'}
       @tr-IH]
     @tr-step{
-      @${\Gamma \wellNE e : \tau}
+      @${\Gamma \wellCE e : \tau}
       (1)}
     @tr-qed[]
   }
@@ -210,17 +210,17 @@
                 \Gamma \wellM \edyn{\tau}{e} : \tau
               }}]{
     @tr-step[
-      @${\Gamma \wellNE e}
-      @|N-D-implies|]
+      @${\Gamma \wellCE e}
+      @|C-D-implies|]
     @tr-step{
-      @${\Gamma \wellNE \edyn{\tau}{e} : \tau}
+      @${\Gamma \wellCE \edyn{\tau}{e} : \tau}
       (1)}
     @tr-qed[]
   }
 }
 
-@tr-lemma[#:key "N-D-implies" @elem{@${\langN} dynamic implies}]{
-  If @${\Gamma \wellM e} then @${\Gamma \wellNE e}.
+@tr-lemma[#:key "C-D-implies" @elem{@${\langC} dynamic implies}]{
+  If @${\Gamma \wellM e} then @${\Gamma \wellCE e}.
 }@tr-proof{
   By structural induction on @${\Gamma \wellM e}.
 
@@ -231,7 +231,7 @@
                 \Gamma \wellM x
               }}]{
     @tr-step[
-      @${\Gamma \wellNE x}
+      @${\Gamma \wellCE x}
       @${x \in \Gamma}]
     @tr-qed[]
   }
@@ -243,10 +243,10 @@
                 \Gamma \wellM \vlam{x}{e}
               }}]{
     @tr-step[
-      @${x,\Gamma \wellNE e}
+      @${x,\Gamma \wellCE e}
       @tr-IH]
     @tr-step{
-      @${\Gamma \wellNE \vlam{x}{e}}
+      @${\Gamma \wellCE \vlam{x}{e}}
       (1)}
     @tr-qed[]
   }
@@ -268,12 +268,12 @@
                 \Gamma \wellM \vpair{e_0}{e_1}
               }}]{
     @tr-step{
-      @${\Gamma \wellNE e_0
+      @${\Gamma \wellCE e_0
          @tr-and[]
-         \Gamma \wellNE e_1}
+         \Gamma \wellCE e_1}
       @tr-IH}
     @tr-step{
-      @${\Gamma \wellNE \vpair{e_0}{e_1}}
+      @${\Gamma \wellCE \vpair{e_0}{e_1}}
       (1)}
     @tr-qed[]
   }
@@ -287,12 +287,12 @@
                 \Gamma \wellM e_0~e_1
               }}]{
     @tr-step{
-      @${\Gamma \wellNE e_0
+      @${\Gamma \wellCE e_0
          @tr-and[]
-         \Gamma \wellNE e_1}
+         \Gamma \wellCE e_1}
       @tr-IH}
     @tr-step{
-      @${\Gamma \wellNE \vapp{e_0}{e_1}}
+      @${\Gamma \wellCE \vapp{e_0}{e_1}}
       (1)}
     @tr-qed[]
   }
@@ -304,10 +304,10 @@
                 \Gamma \wellM \eunop{e}
               }}]{
     @tr-step{
-      @${\Gamma \wellNE e}
+      @${\Gamma \wellCE e}
       @tr-IH}
     @tr-step{
-      @${\Gamma \wellNE \eunop{e}}
+      @${\Gamma \wellCE \eunop{e}}
       (1)}
     @tr-qed[]
   }
@@ -321,12 +321,12 @@
                 \Gamma \wellM \ebinop{e_0}{e_1}
               }}]{
     @tr-step{
-      @${\Gamma \wellNE e_0
+      @${\Gamma \wellCE e_0
          @tr-and[]
-         \Gamma \wellNE e_1}
+         \Gamma \wellCE e_1}
       @tr-IH}
     @tr-step{
-      @${\Gamma \wellNE \ebinop{e_0}{e_1}}
+      @${\Gamma \wellCE \ebinop{e_0}{e_1}}
       (1)}
     @tr-qed[]
   }
@@ -338,25 +338,25 @@
                 \Gamma \wellM \esta{\tau}{e}
               }}]{
     @tr-step{
-      @${\Gamma \wellNE e : \tau}
-      @|N-S-implies|}
+      @${\Gamma \wellCE e : \tau}
+      @|C-S-implies|}
     @tr-step{
-      @${\Gamma \wellNE \esta{\tau}{e}}
+      @${\Gamma \wellCE \esta{\tau}{e}}
       (1)}
     @tr-qed[]
   }
 }
 
-@tr-lemma[#:key "N-S-progress" @elem{@${\langN} static progress}]{
-  If @${\wellNE e : \tau} then either:
+@tr-lemma[#:key "C-S-progress" @elem{@${\langC} static progress}]{
+  If @${\wellCE e : \tau} then either:
   @itemlist[
     @item{ @${e} is a value }
-    @item{ @${e \ccNS e'} }
-    @item{ @${e \ccNS \boundaryerror} }
-    @item{ @${e \eeq \ctxE{\edyn{\tau'}{e'}} \mbox{ and } e' \ccND \tagerror} }
+    @item{ @${e \ccCS e'} }
+    @item{ @${e \ccCS \boundaryerror} }
+    @item{ @${e \eeq \ctxE{\edyn{\tau'}{e'}} \mbox{ and } e' \ccCD \tagerror} }
   ]
 }@tr-proof{
-  By the @|N-S-uec| lemma, there are five possible cases.
+  By the @|C-S-uec| lemma, there are five possible cases.
 
   @tr-case[@${e = v}]{
     @tr-qed[]
@@ -364,29 +364,29 @@
 
   @tr-case[@${e = \ctxE{\vapp{v_0}{v_1}}}]{
     @tr-step{
-      @${\wellNE \vapp{v_0}{v_1} : \tau'}
-      @|N-S-hole-typing|}
+      @${\wellCE \vapp{v_0}{v_1} : \tau'}
+      @|C-S-hole-typing|}
     @tr-step{
-      @${\wellNE v_0 : \tarr{\tau_d}{\tau_c}
+      @${\wellCE v_0 : \tarr{\tau_d}{\tau_c}
          @tr-and[]
-         \wellNE v_1 : \tau_d}
-      @|N-S-inversion|}
+         \wellCE v_1 : \tau_d}
+      @|C-S-inversion|}
     @tr-step{
       @${v_0 \eeq \vlam{\tann{x}{\tau_d'}}{e'}
          @tr-or[]
          v_0 \eeq \vmonfun{(\tarr{\tau_d'}{\tau_c'})}{v_f}}
-      @|N-S-canonical|}
+      @|C-S-canonical| (2)}
     @list[
       @tr-if[@${v_0 \eeq \vlam{\tann{x}{\tau_d'}}{e'}}]{
         @tr-step[
-          @${e \ccNS \ctxE{\vsubst{e'}{x}{v_1}}}
-          @${\vapp{v_0}{v_1} \rrNS \vsubst{e'}{x}{v_1}}]
+          @${e \ccCS \ctxE{\vsubst{e'}{x}{v_1}}}
+          @${\vapp{v_0}{v_1} \rrCS \vsubst{e'}{x}{v_1}}]
         @tr-qed[]
       }
       @tr-else[@${v_0 \eeq \vmonfun{(\tarr{\tau_d'}{\tau_c'})}{v_f}}]{
         @tr-step{
-          @${e \ccNS \ctxE{\edyn{\tau_c'}{(\vapp{v_f}{\esta{\tau_d'}{v_1}})}}}
-          @${\vapp{v_0}{v_1} \rrNS \edyn{\tau_c'}{(\vapp{v_f}{\esta{\tau_d'}{v_1}})}}}
+          @${e \ccCS \ctxE{\edyn{\tau_c'}{(\vapp{v_f}{\esta{\tau_d'}{v_1}})}}}
+          @${\vapp{v_0}{v_1} \rrCS \edyn{\tau_c'}{(\vapp{v_f}{\esta{\tau_d'}{v_1}})}}}
         @tr-qed[]
       }
     ]
@@ -394,27 +394,49 @@
 
   @tr-case[@${e = \ctxE{\eunop{v}}}]{
     @tr-step[
-      @${\wellNE \eunop{v} : \tau'}
-      @|N-S-hole-typing|]
+      @${\wellCE \eunop{v} : \tau'}
+      @|C-S-hole-typing|]
     @tr-step[
-      @${\wellNE v : \tpair{\tau_0}{\tau_1}}
-      @|N-S-inversion|]
+      @${\wellCE v : \tpair{\tau_0}{\tau_1}}
+      @|C-S-inversion|]
     @tr-step[
-      @${v = \vpair{v_0}{v_1}}
-      @|N-S-canonical|]
+      @${v = \vpair{v_0}{v_1}
+         @tr-or[]
+         v = \vmonpair{(\tpair{\tau_0}{\tau_1})}{v'}}
+      @|C-S-canonical|]
     @list[
-      @tr-if[@${\vunop = \vfst}]{
+      @tr-if[@${v = \vpair{v_0}{v_1}
+                @tr-and[2]
+                \vunop = \vfst}]{
         @${\delta(\vfst, \vpair{v_0}{v_1}) = v_0}
         @tr-step{
-          @${e \ccNS \ctxE{v_0}}
-          @${\eunop{v} \rrNS v_0}}
+          @${e \ccCS \ctxE{v_0}}
+          @${\eunop{v} \rrCS v_0}}
         @tr-qed[]
       }
-      @tr-else[@${\vunop = \vsnd}]{
+      @tr-if[@${v = \vpair{v_0}{v_1}
+                @tr-and[2]
+                \vunop = \vsnd}]{
         @${\delta(\vsnd, \vpair{v_0}{v_1}) = v_1}
         @tr-step[
-          @${e \ccNS \ctxE{v_1}}
-          @${\eunop{v} \rrNS v_1}]
+          @${e \ccCS \ctxE{v_1}}
+          @${\eunop{v} \rrCS v_1}]
+        @tr-qed[]
+      }
+      @tr-if[@${v = \vmonpair{(\tpair{\tau_0}{\tau_1})}{v'}
+                @tr-and[2]
+                \vunop = \vfst}]{
+        @tr-step{
+          @${e \ccCS \ctxE{\edyn{\tau_0}{(\efst{v'})}}}
+          @${\efst{v} \rrCS \edyn{\tau_0}{(\efst{v'})}}}
+        @tr-qed[]
+      }
+      @tr-else[@${v = \vmonpair{(\tpair{\tau_0}{\tau_1})}{v'}
+                @tr-and[4]
+                \vunop = \vsnd}]{
+        @tr-step{
+          @${e \ccCS \ctxE{\edyn{\tau_1}{(\esnd{v'})}}}
+          @${\esnd{v} \rrCS \edyn{\tau_1}{(\esnd{v'})}}}
         @tr-qed[]
       }
     ]
@@ -422,25 +444,25 @@
 
   @tr-case[@${e \eeq \ctxE{\ebinop{v_0}{v_1}}}]{
     @tr-step[
-      @${\wellNE \ebinop{v_0}{v_1} : \tau'}
-      @|N-S-hole-typing|]
+      @${\wellCE \ebinop{v_0}{v_1} : \tau'}
+      @|C-S-hole-typing|]
     @tr-step{
-      @${\wellNE v_0 : \tau_0
+      @${\wellCE v_0 : \tau_0
          @tr-and[]
-         \wellNE v_1 : \tau_1
+         \wellCE v_1 : \tau_1
          @tr-and[]
          \Delta(\vbinop, \tau_0, \tau_1) = \tau''}
-      @|N-S-inversion|}
+      @|C-S-inversion|}
     @tr-step{
       @${\delta(\vbinop, v_0, v_1) = A}
-      @elem{@|N-Delta-soundness| (2)}}
+      @elem{@|C-Delta-soundness| (2)}}
     @tr-step{
-      @${\ebinop{v_0}{v_1} \rrNS A}
+      @${\ebinop{v_0}{v_1} \rrCS A}
       (3)}
     @tr-qed{
-      by @${e \ccNS \ctxE{A}} if @${A \in v}
+      by @${e \ccCS \ctxE{A}} if @${A \in e}
       @linebreak[]
-      and by @${e \ccNS A} otherwise}
+      and by @${e \ccCS A} otherwise}
   }
 
   @tr-case[@${e \eeq \ctxE{\edyn{\tau'}{e'}}} #:itemize? #false]{
@@ -449,63 +471,63 @@
                 @tr-and[2]
                 e' = \vlam{x}{e''} \mbox{ or } e' = \vmonfun{\tarr{\tau_d'}{\tau_c'}}{v}}]{
         @tr-step{
-          @${e \ccNS \ctxE{\vmonfun{\tarr{\tau_d}{\tau_c}}{e'}}}
-          @${\edyn{\tau'}{e'} \rrNS \vmonfun{\tarr{\tau_d}{\tau_c}}{e'}}}
+          @${e \ccCS \ctxE{\vmonfun{\tarr{\tau_d}{\tau_c}}{e'}}}
+          @${\edyn{\tau'}{e'} \rrCS \vmonfun{\tarr{\tau_d}{\tau_c}}{e'}}}
         @tr-qed[]
       }
       @tr-if[@${\tau = \tpair{\tau_0}{\tau_1}
                 @tr-and[2]
-                e' = \vpair{v_0}{v_1}}]{
+                e' = \vpair{v_0}{v_1} \mbox{ or } e' = \vmonpair{\tpair{\tau_0'}{\tau_1'}}{v'}}]{
         @tr-step{
-          @${e \ccNS \ctxE{\vpair{\edyn{\tau_0}{v_0}}{\edyn{\tau_1}{v_1}}}}
-          @${\edyn{\tau'}{e'} \rrNS \vpair{\edyn{\tau_0}{v_0}}{\edyn{\tau_1}{v_1}}}}
+          @${e \ccCS \ctxE{\vmonpair{\tpair{\tau_0}{\tau_1}}{e'}}}
+          @${\edyn{\tau'}{e'} \rrCS \vmonpair{\tpair{\tau_0}{\tau_1}}{e'}}}
         @tr-qed[]
       }
       @tr-if[@${\tau = \tint
                 @tr-and[2]
                 e' \in i}]{
         @tr-step{
-          @${e \ccNS \ctxE{e'}}
-          @${\edyn{\tau'}{e'} \rrNS e'}}
+          @${e \ccCS \ctxE{e'}}
+          @${\edyn{\tau'}{e'} \rrCS e'}}
         @tr-qed[]
       }
       @tr-if[@${\tau = \tnat
                 @tr-and[2]
                 e' \in \naturals}]{
         @tr-step{
-          @${e \ccNS \ctxE{e'}}
-          @${\edyn{\tau'}{e'} \rrNS e'}}
+          @${e \ccCS \ctxE{e'}}
+          @${\edyn{\tau'}{e'} \rrCS e'}}
         @tr-qed[]
       }
       @tr-else[""]{
         @tr-qed{
-          @${e \ccNS \boundaryerror}}
+          @${e \ccCS \boundaryerror}}
       }
     }
     @tr-else[@${e' \not\in v}]{
       @tr-step[
-        @${e' \ccND A}
-        @|N-D-progress|
+        @${e' \ccCD A}
+        @|C-D-progress|
       ]
       @tr-qed{
-        by @${e \ccNS \ctxE{\edyn{\tau}{A}}} if @${A \in e}
+        by @${e \ccCS \ctxE{\edyn{\tau}{A}}} if @${A \in e}
         @linebreak[]
-        and by @${e \ccNS A} otherwise}
+        and by @${e \ccCS A} otherwise}
     }
   }
 
 }
 
-@tr-lemma[#:key "N-D-progress" @elem{@${\langN} dynamic progress}]{
-  If @${\wellNE e} then either:
+@tr-lemma[#:key "C-D-progress" @elem{@${\langC} dynamic progress}]{
+  If @${\wellCE e} then either:
   @itemlist[
     @item{ @${e} is a value }
-    @item{ @${e \ccND e'} }
-    @item{ @${e \ccND \boundaryerror} }
-    @item{ @${e \ccND \tagerror} }
+    @item{ @${e \ccCD e'} }
+    @item{ @${e \ccCD \boundaryerror} }
+    @item{ @${e \ccCD \tagerror} }
   ]
 }@tr-proof{
-  By the @|N-D-uec| lemma, there are five cases.
+  By the @|C-D-uec| lemma, there are five cases.
 
   @tr-case[@${e = v}]{
     @tr-qed[]
@@ -514,40 +536,58 @@
   @tr-case[@${e = \ctxE{\vapp{v_0}{v_1}}} #:itemize? #f]{
     @tr-if[@${v_0 = \vlam{x}{e'}}]{
       @tr-step{
-        @${e \ccND \ctxE{\vsubst{e'}{x}{v_1}}}
-        @${\vapp{v_0}{v_1} \rrND \vsubst{e'}{x}{v_1}}}
+        @${e \ccCD \ctxE{\vsubst{e'}{x}{v_1}}}
+        @${\vapp{v_0}{v_1} \rrCD \vsubst{e'}{x}{v_1}}}
       @tr-qed[]
     }
     @tr-if[@${v_0 \eeq \vmonfun{(\tarr{\tau_d}{\tau_c})}{v_f}}]{
       @tr-step{
-        @${e \ccND \ctxE{\esta{\tau_c}{(\vapp{v_f}{(\edyn{\tau_d}{v_1})})}}}
+        @${e \ccCD \ctxE{\esta{\tau_c}{(\vapp{v_f}{(\edyn{\tau_d}{v_1})})}}}
         @${\vapp{v_0}{v_1}
-           \rrND \esta{\tau_c}{(\vapp{v_f}{(\edyn{\tau_d}{v_1})})}}}
+           \rrCD \esta{\tau_c}{(\vapp{v_f}{(\edyn{\tau_d}{v_1})})}}}
       @tr-qed[]
     }
     @tr-else[@${v_0 \eeq i
                 @tr-or[4]
-                v_0 \eeq \vpair{v}{v'}}]{
+                v_0 \eeq \vpair{v}{v'}
+                @tr-or[4]
+                v_0 \eeq \vmonpair{\tpair{\tau_0}{\tau_1}}{v'} }]{
       @tr-step{
-        @${e \ccND \tagerror}
-        @${(\vapp{v_0}{v_1}) \rrND \tagerror}}
+        @${e \ccCD \tagerror}
+        @${(\vapp{v_0}{v_1}) \rrCD \tagerror}}
       @tr-qed[]
     }
   }
 
   @tr-case[@${e = \ctxE{\eunop{v}}} #:itemize? #f]{
+    @tr-if[@${v \eeq \vmonpair{\tpair{\tau_0}{\tau_1}}{v'}
+              @tr-and[2]
+              \vunop \eeq \vfst}]{
+      @tr-step{
+        @${e \ccCD \ctxE{\esta{\tau_0}{\efst{v'}}}}
+        @${\eunop{v} \rrCD \esta{\tau_0}{\efst{v'}}}}
+      @tr-qed[]
+    }
+    @tr-if[@${v \eeq \vmonpair{\tpair{\tau_0}{\tau_1}}{v'}
+              @tr-and[2]
+              \vunop \eeq \vsnd}]{
+      @tr-step{
+        @${e \ccCD \ctxE{\esta{\tau_1}{\esnd{v'}}}}
+        @${\eunop{v} \rrCD \esta{\tau_1}{\esnd{v'}}}}
+      @tr-qed[]
+    }
     @tr-if[@${\delta(\vunop, v) = A}]{
       @tr-step{
-        @${(\eunop{v}) \rrND A}}
+        @${(\eunop{v}) \rrCD A}}
       @tr-qed{
-        by @${e \ccND \ctxE{A}} if @${A \in v}
+        by @${e \ccCD \ctxE{A}} if @${A \in e}
         @linebreak[]
-        and by @${e \ccND A} otherwise}
+        and by @${e \ccCD A} otherwise}
     }
     @tr-else[@${\delta(\vunop, v) \mbox{ is undefined}}]{
       @tr-step{
-        @${e \ccND \tagerror}
-        @${(\eunop{v}) \rrND \tagerror}}
+        @${e \ccCD \tagerror}
+        @${(\eunop{v}) \rrCD \tagerror}}
       @tr-qed[]
     }
   }
@@ -555,16 +595,16 @@
   @tr-case[@${e = \ctxE{\ebinop{v_0}{v_1}}}]{
     @tr-if[@${\delta(\vbinop, v_0, v_1) = A}]{
       @tr-step{
-        @${\ebinop{v_0}{v_1} \rrND A}}
+        @${\ebinop{v_0}{v_1} \rrCD A}}
       @tr-qed{
-        by @${e \ccND \ctxE{A}} if @${A \in v}
+        by @${e \ccCD \ctxE{A}} if @${A \in e}
         @linebreak[]
-        and by @${e \ccND A} otherwise}
+        and by @${e \ccCD A} otherwise}
     }
     @tr-else[@${\delta(\vbinop, v_0, v_1) \mbox{ is undefined}}]{
       @tr-step{
-        @${e \ccND \tagerror}
-        @${\ebinop{v_0}{v_1} \rrND \tagerror}}
+        @${e \ccCD \tagerror}
+        @${\ebinop{v_0}{v_1} \rrCD \tagerror}}
       @tr-qed[]
     }
   }
@@ -573,125 +613,125 @@
     @tr-if[@${e' \in v} #:itemize? #f]{
       @tr-if[@${\tau' = \tarr{\tau_d}{\tau_c}}]{
         @tr-step{
-          @${e \ccNS \ctxE{\vmonfun{\tau'}{e'}}}
-          @${\esta{\tau'}{e'} \rrNS \vmonfun{\tau'}{e'}}}
+          @${e \ccCS \ctxE{\vmonfun{\tau'}{e'}}}
+          @${\esta{\tau'}{e'} \rrCS \vmonfun{\tau'}{e'}}}
         @tr-qed[]
       }
       @tr-if[@${\tau' = \tpair{\tau_0}{\tau_1}}]{
         @tr-step{
-          @${e \ccNS \ctxE{\vpair{\esta{\tau_0}{v_0}}{\esta{\tau_1}{v_1}}}}
-          @${\esta{\tau'}{e'} \rrNS \vpair{\esta{\tau_0}{v_0}}{\esta{\tau_1}{v_1}}}}
+          @${e \ccCS \ctxE{\vmonpair{\tau'}{e'}}}
+          @${\esta{\tau'}{e'} \rrCS \vmonfun{\tau'}{e'}}}
         @tr-qed[]
       }
       @tr-if[@${\tau' = \tint}]{
         @tr-step{
-          @${e \ccNS \ctxE{e'}}
+          @${e \ccCS \ctxE{e'}}
           @${\esta{\tau'}{e'} = e'}}
         @tr-qed[]
       }
       @tr-else[@${\tau' = \tnat}]{
         @tr-step{
-          @${e \ccNS \ctxE{e'}}
+          @${e \ccCS \ctxE{e'}}
           @${\esta{\tau'}{e'} = e'}}
         @tr-qed[]
       }
     }
     @tr-else[@${e' \not\in v}]{
       @tr-step{
-        @${\wellNE \esta{\tau'}{e'}}
-        @|N-D-hole-typing|}
+        @${\wellCE \esta{\tau'}{e'}}
+        @|C-D-hole-typing|}
       @tr-step{
-        @${\wellNE e' : \tau'}
-        @|N-D-inversion|}
+        @${\wellCE e' : \tau'}
+        @|C-D-inversion|}
       @tr-step{
-        @${e' \ccNS A}
-        @|N-S-progress| (2)}
+        @${e' \ccCS A}
+        @|C-S-progress| (2)}
       @tr-qed{
-        by @${e \ccND \ctxE{\esta{\tau'}{A}}} if @${A \in e}
+        by @${e \ccCD \ctxE{\esta{\tau'}{A}}} if @${A \in e}
         @linebreak[]
-        and by @${e \ccND A} otherwise}
+        and by @${e \ccCD A} otherwise}
     }
   }
 }
 
-@tr-lemma[#:key "N-S-preservation" @elem{@${\langN} static preservation}]{
-  If @${\wellNE e : \tau} and @${e \ccNS e'} then @${\wellNE e' : \tau}
+@tr-lemma[#:key "C-S-preservation" @elem{@${\langC} static preservation}]{
+  If @${\wellCE e : \tau} and @${e \ccCS e'} then @${\wellCE e' : \tau}
 }@tr-proof{
-  By the @|N-S-uec| lemma there are four cases.
+  By the @|C-S-uec| lemma there are four cases.
 
   @tr-case[@${e = \ctxE{\vapp{v_0}{v_1}}} #:itemize? #f]{
     @tr-if[@${v_0 = \vlam{\tann{x}{\tau_x}}{e'}
               @tr-and[2]
-              e \ccNS \ctxE{\vsubst{e'}{x}{v_1}}}]{
+              e \ccCS \ctxE{\vsubst{e'}{x}{v_1}}}]{
       @tr-step[
-        @${\wellNE \vapp{v_0}{v_1} : \tau'}
-        @|N-S-hole-typing|]
+        @${\wellCE \vapp{v_0}{v_1} : \tau'}
+        @|C-S-hole-typing|]
       @tr-step{
-        @${\wellNE v_0 : \tarr{\tau_d}{\tau_c}
+        @${\wellCE v_0 : \tarr{\tau_d}{\tau_c}
            @tr-and[]
-           \wellNE v_1 : \tau_d
+           \wellCE v_1 : \tau_d
            @tr-and[]
            \tau_c \subteq \tau'}
-        @|N-S-inversion|}
+        @|C-S-inversion|}
       @tr-step{
         @${\tau_d \subteq \tau_x}
-        @|N-S-canonical| (2)}
+        @|C-S-canonical| (2)}
       @tr-step{
-        @${\tann{x}{\tau_x} \wellNE e' : \tau_c}
-        @|N-S-inversion| (2)}
+        @${\tann{x}{\tau_x} \wellCE e' : \tau_c}
+        @|C-S-inversion| (2)}
       @tr-step{
-        @${\wellNE v_1 : \tau_x}
+        @${\wellCE v_1 : \tau_x}
         (2, 3)}
       @tr-step{
-        @${\wellNE \vsubst{e'}{x}{v_1} : \tau_c}
-        @elem{@|N-SS-subst| (4, 5)}}
+        @${\wellCE \vsubst{e'}{x}{v_1} : \tau_c}
+        @|C-SS-subst| (4, 5)}
       @tr-step{
-        @${\wellNE \vsubst{e'}{x}{v_1} : \tau'}
+        @${\wellCE \vsubst{e'}{x}{v_1} : \tau'}
         (2, 6)}
       @tr-qed{
-        by @|N-S-hole-subst| (7)}
+        by @|C-S-hole-subst|}
     }
     @tr-else[@${v_0 \eeq \vmonfun{\tarr{\tau_d}{\tau_c}}{v_f}
               @tr-and[4]
-              e \ccNS \ctxE{\edyn{\tau_c}{(\vapp{v_f}{(\esta{\tau_d}{v_1})})}}}]{
+              e \ccCS \ctxE{\edyn{\tau_c}{(\vapp{v_f}{(\esta{\tau_d}{v_1})})}}}]{
       @tr-step{
-        @${\wellNE \vapp{v_0}{v_1} : \tau'}
-        @|N-S-hole-typing|}
+        @${\wellCE \vapp{v_0}{v_1} : \tau'}
+        @|C-S-hole-typing|}
       @tr-step{
-        @${\wellNE v_0 : \tarr{\tau_d'}{\tau_c'}
+        @${\wellCE v_0 : \tarr{\tau_d'}{\tau_c'}
            @tr-and[]
-           \wellNE v_1 : \tau_d'
+           \wellCE v_1 : \tau_d'
            @tr-and[]
            \tau_c' \subteq \tau'}
-        @|N-S-inversion|}
+        @|C-S-inversion|}
       @tr-step{
-        @${\wellNE v_f}
-        @|N-S-inversion| (2)}
+        @${\wellCE v_f}
+        @|C-S-inversion| (2)}
       @tr-step{
         @${\tarr{\tau_d}{\tau_c} \subteq \tarr{\tau_d'}{\tau_c'}}
-        @|N-S-canonical| (2)}
+        @|C-S-canonical| (2)}
       @tr-step{
         @${\tau_d' \subteq \tau_d
            @tr-and[]
            \tau_c \subteq \tau_c'}
         (4)}
       @tr-step{
-        @${\wellNE v_1 : \tau_d}
+        @${\wellCE v_1 : \tau_d}
         (2, 5)}
       @tr-step{
-        @${\wellNE \esta{\tau_d}{v_1}}
+        @${\wellCE \esta{\tau_d}{v_1}}
         (6)}
       @tr-step{
-        @${\wellNE \vapp{v_f}{(\esta{\tau_d}{v_1})}}
+        @${\wellCE \vapp{v_f}{(\esta{\tau_d}{v_1})}}
         (3, 7)}
       @tr-step{
-        @${\wellNE \edyn{\tau_c}{\vapp{v_f}{(\esta{\tau_d}{v_1})}} : \tau_c}
+        @${\wellCE \edyn{\tau_c}{\vapp{v_f}{(\esta{\tau_d}{v_1})}} : \tau_c}
         (8)}
       @tr-step{
-        @${\wellNE \edyn{\tau_c}{\vapp{v_f}{(\esta{\tau_d}{v_1})}} : \tau'}
+        @${\wellCE \edyn{\tau_c}{\vapp{v_f}{(\esta{\tau_d}{v_1})}} : \tau'}
         (2, 5, 9)}
       @tr-qed{
-        by @|N-S-hole-subst| (10)}
+        by @|C-S-hole-subst|}
     }
   }
 
@@ -700,45 +740,111 @@
               @tr-and[2]
               \vunop = \vfst
               @tr-and[2]
-              e \ccNS \ctxE{v_0}}]{
+              e \ccCS \ctxE{v_0}}]{
       @tr-step{
-        @${\wellNE \efst{\vpair{v_0}{v_1}} : \tau'}
-        @|N-S-hole-typing|}
+        @${\wellCE \efst{\vpair{v_0}{v_1}} : \tau'}
+        @|C-S-hole-typing|}
       @tr-step{
-        @${\wellNE \vpair{v_0}{v_1} : \tpair{\tau_0}{\tau_1}
+        @${\wellCE \vpair{v_0}{v_1} : \tpair{\tau_0}{\tau_1}
            @tr-and[]
            \tau_0 \subteq \tau'}
-        @|N-S-inversion| (2)}
+        @elem{@|C-S-inversion|}}
       @tr-step{
-        @${\wellNE v_0 : \tau_0}
-        @|N-S-inversion| (3)}
+        @${\wellCE v_0 : \tau_0}
+        @|C-S-inversion|}
       @tr-step{
-        @${\wellNE v_0 : \tau'}
+        @${\wellCE v_0 : \tau'}
         (2)}
       @tr-qed{
-        by @|N-S-hole-subst| (4)}
+        by @|C-S-hole-subst|}
     }
-    @tr-else[@${v = \vpair{v_0}{v_1}
+    @tr-if[@${v = \vpair{v_0}{v_1}
+              @tr-and[2]
+              \vunop = \vsnd
+              @tr-and[2]
+              e \ccCS \ctxE{v_1}}]{
+      @tr-step{
+        @${\wellCE \esnd{\vpair{v_0}{v_1}} : \tau'}
+        @|C-S-hole-typing|}
+      @tr-step{
+        @${\wellCE \vpair{v_0}{v_1} : \tpair{\tau_0}{\tau_1}
+           @tr-and[]
+           \tau_1 \subteq \tau'}
+        @elem{@|C-S-inversion|}}
+      @tr-step{
+        @${\wellCE v_1 : \tau_1}
+        @|C-S-inversion|}
+      @tr-step{
+        @${\wellCE v_1 : \tau'}
+        (2)}
+      @tr-qed{
+        by @|C-S-hole-subst|}
+    }
+    @tr-if[@${v = \vmonpair{(\tpair{\tau_0}{\tau_1})}{v'}
+              @tr-and[2]
+              \vunop = \vfst
+              @tr-and[2]
+              e \ccCS \ctxE{\edyn{\tau_0}{(\efst{v'})}}}]{
+      @tr-step{
+        @${\wellCE \efst{v} : \tau'}
+        @|C-S-hole-typing|}
+      @tr-step{
+        @${\wellCE v : \tpair{\tau_0'}{\tau_1'}
+           @tr-and[]
+           \tau_0' \subt \tau'}
+        @|C-S-inversion|}
+      @tr-step{
+        @${\wellCE v'}
+        @|C-S-inversion| (2)}
+      @tr-step{
+        @${\tpair{\tau_0}{\tau_1} \subteq \tpair{\tau_0'}{\tau_1'}}
+        @|C-S-canonical| (2)}
+      @tr-step{
+        @${\tau_0 \subteq \tau_0'}}
+      @tr-step{
+        @${\wellCE \efst{v'}}
+        (3)}
+      @tr-step{
+        @${\wellCE \edyn{\tau_0}{(\efst{v'})} : \tau_0}
+        (6)}
+      @tr-step{
+        @${\wellCE \edyn{\tau_0}{(\efst{v'})} : \tau'}
+        (2, 5, 7)}
+      @tr-qed{
+        by @|C-S-hole-subst|}
+    }
+    @tr-else[@${v = \vmonpair{(\tpair{\tau_0}{\tau_1})}{\vpair{v_0}{v_1}}
                 @tr-and[4]
                 \vunop = \vsnd
                 @tr-and[4]
-                e \ccNS \ctxE{v_1}}]{
+                e \ccCS \ctxE{\edyn{\tau_0}{(\esnd{v'})}}}]{
       @tr-step{
-        @${\wellNE \esnd{\vpair{v_0}{v_1}} : \tau'}
-        @|N-S-hole-typing|}
+        @${\wellCE \esnd{v} : \tau'}
+        @|C-S-hole-typing|}
       @tr-step{
-        @${\wellNE \vpair{v_0}{v_1} : \tpair{\tau_0}{\tau_1}
+        @${\wellCE v : \tpair{\tau_0'}{\tau_1'}
            @tr-and[]
-           \tau_1 \subteq \tau'}
-        @|N-S-inversion| (2)}
+           \tau_1' \subt \tau'}
+        @|C-S-inversion| @bold{v1 well formed}}
       @tr-step{
-        @${\wellNE v_1 : \tau_1}
-        @|N-S-inversion| (3)}
+        @${\wellCE v'}
+        @|C-S-inversion| (2)}
       @tr-step{
-        @${\wellNE v_1 : \tau'}
-        (2)}
+        @${\tpair{\tau_0}{\tau_1} \subteq \tpair{\tau_0'}{\tau_1'}}
+        @|C-S-canonical| (2)}
+      @tr-step{
+        @${\tau_1 \subteq \tau_1'}}
+      @tr-step{
+        @${\wellCE \esnd{v'}}
+        (3)}
+      @tr-step{
+        @${\wellCE \edyn{\tau_0}{(\esnd{v'})} : \tau_0}
+        (5)}
+      @tr-step{
+        @${\wellCE \edyn{\tau_0}{(\esnd{v'})} : \tau'}
+        (2, 5, 7)}
       @tr-qed{
-        by @|N-S-hole-subst| (4)}
+        by @|C-S-hole-subst|}
     }
   }
 
@@ -746,27 +852,27 @@
               @tr-and[4]
               \delta(\vbinop, v_0, v_1) = v
               @tr-and[4]
-              e \ccNS \ctxE{v}}]{
+              e \ccCS \ctxE{v}}]{
     @tr-step{
-      @${\wellNE \ebinop{v_0}{v_1} : \tau'}
-      @|N-S-hole-typing|}
+      @${\wellCE \ebinop{v_0}{v_1} : \tau'}
+      @|C-S-hole-typing|}
     @tr-step{
-      @${\wellNE v_0 : \tau_0
+      @${\wellCE v_0 : \tau_0
          @tr-and[]
-         \wellNE v_1 : \tau_1
+         \wellCE v_1 : \tau_1
          @tr-and[]
          \Delta(\vbinop, \tau_0, \tau_1) = \tau''
          @tr-and[]
          \tau'' \subteq \tau'}
-      @|N-S-inversion| (1)}
+      @|C-S-inversion| (1)}
     @tr-step{
-      @${\wellNE v : \tau''}
-      @|N-Delta-soundness| (2)}
+      @${\wellCE v : \tau''}
+      @elem{@|C-Delta-soundness| (2)}}
     @tr-step{
-      @${\wellNE v : \tau'}
+      @${\wellCE v : \tau'}
       (2, 3)}
     @tr-qed{
-      by @|N-S-hole-subst| (4)}
+      by @|C-S-hole-subst| (5)}
   }
 
   @tr-case[@${e = \ctxE{\edyn{\tau'}{e'}}} #:itemize? #f]{
@@ -774,199 +880,203 @@
               @tr-and[2]
               \tau' = \tarr{\tau_d}{\tau_c}
               @tr-and[2]
-              e \ccNS \ctxE{\vmonfun{\tau'}{e'}}}]{
+              e \ccCS \ctxE{\vmonfun{\tau'}{e'}}}]{
       @tr-step{
-        @${\wellNE \edyn{\tau'}{e'} : \tau''}
-        @|N-S-hole-typing|}
+        @${\wellCE \edyn{\tau'}{e'} : \tau''}
+        @|C-S-hole-typing|}
       @tr-step{
-        @${\wellNE e'
+        @${\wellCE e'
            @tr-and[]
            \tau' \subteq \tau''}
-        @|N-S-inversion| (1)}
+        @|C-S-inversion| (1)}
       @tr-step{
-        @${\wellNE \vmonfun{\tau'}{e'} : \tau'}
+        @${\wellCE \vmonfun{\tau'}{e'} : \tau'}
         (2)}
       @tr-step{
-        @${\wellNE \vmonfun{\tau'}{e'} : \tau''}
+        @${\wellCE \vmonfun{\tau'}{e'} : \tau''}
         (2, 3)}
       @tr-qed{
-        by @|N-S-hole-subst|}
+        by @|C-S-hole-subst|}
     }
     @tr-if[@${e' \eeq \vmonfun{\tarr{\tau_d'}{\tau_c'}}{v'}
               @tr-and[2]
               \tau' = \tarr{\tau_d}{\tau_c}
               @tr-and[2]
-              e \ccNS \ctxE{\vmonfun{\tau'}{e'}}}]{
+              e \ccCS \ctxE{\vmonfun{\tau'}{e'}}}]{
       @tr-step{
-        @${\wellNE \edyn{\tau'}{e'} : \tau''}
-        @|N-S-hole-typing|}
+        @${\wellCE \edyn{\tau'}{e'} : \tau''}
+        @|C-S-hole-typing|}
       @tr-step{
-        @${\wellNE e'
+        @${\wellCE e'
            @tr-and[]
            \tau' \subteq \tau''}
-        @|N-S-inversion| (1)}
+        @|C-S-inversion| (1)}
       @tr-step{
-        @${\wellNE \vmonfun{\tau'}{e'} : \tau'}
+        @${\wellCE \vmonfun{\tau'}{e'} : \tau'}
         (2)}
       @tr-step{
-        @${\wellNE \vmonfun{\tau'}{e'} : \tau''}
+        @${\wellCE \vmonfun{\tau'}{e'} : \tau''}
         (2, 3)}
       @tr-qed{
-        by @|N-S-hole-subst|}
+        by @|C-S-hole-subst|}
     }
     @tr-if[@${e' \eeq \vpair{v_0}{v_1}
               @tr-and[2]
               \tau' = \tpair{\tau_0}{\tau_1}
               @tr-and[2]
-              e \ccNS \ctxE{\vpair{\edyn{\tau_0}{v_0}}{\edyn{\tau_1}{v_1}}}}]{
+              e \ccCS \ctxE{\vmonpair{\tau'}{e'}}}]{
       @tr-step{
-        @${\wellNE \edyn{\tau'}{e'} : \tau''}
-        @|N-S-hole-typing|}
+        @${\wellCE \edyn{\tau'}{e'} : \tau''}
+        @|C-S-hole-typing|}
       @tr-step{
-        @${\wellNE e'
+        @${\wellCE e'
            @tr-and[]
            \tau' \subteq \tau''}
-        @|N-S-inversion| (1)}
+        @|C-S-inversion| (1)}
       @tr-step{
-        @${\wellNE v_0
-           @tr-and[]
-           \wellNE v_1}
-        @|N-D-inversion| (2)}
+        @${\wellCE \vmonpair{\tau'}{e'} : \tau'}
+        (2)}
       @tr-step{
-        @${\wellNE \edyn{\tau_0}{v_0} : \tau_0
-           @tr-and[]
-           \wellNE \edyn{\tau_1}{v_1} : \tau_1}
-        (3)}
-      @tr-step{
-        @${\wellNE \vpair{\edyn{\tau_0}{v_0}}{\edyn{\tau_1}{v_1}} : \tpair{\tau_0}{\tau_1}}
-        (4)}
-      @tr-step{
-        @${\wellNE \vpair{\edyn{\tau_0}{v_0}}{\edyn{\tau_1}{v_1}} : \tau''}
-        (2, 5)}
+        @${\wellCE \vmonpair{\tau'}{e'} : \tau''}
+        (2, 3)}
       @tr-qed{
-        by @|N-S-hole-subst|}
+        by @|C-S-hole-subst|}
     }
-    @tr-if[@${e' \eeq i
+    @tr-if[@${e' \eeq \vmonpair{\tpair{\tau_0'}{\tau_1'}}{v'}
+              @tr-and[2]
+              \tau' = \tpair{\tau_0}{\tau_1}
+              @tr-and[2]
+              e \ccCS \ctxE{\vmonpair{\tau'}{e'}}}]{
+      @tr-step{
+        @${\wellCE \edyn{\tau'}{e'} : \tau''}
+        @|C-S-hole-typing|}
+      @tr-step{
+        @${\wellCE e'
+           @tr-and[]
+           \tau' \subteq \tau''}
+        @|C-S-inversion| (1)}
+      @tr-step{
+        @${\wellCE \vmonpair{\tau'}{e'} : \tau'}
+        (2)}
+      @tr-step{
+        @${\wellCE \vmonpair{\tau'}{e'} : \tau''}
+        (2, 3)}
+      @tr-qed{
+        by @|C-S-hole-subst|}
+    }
+    @tr-if[@${e' \in i
               @tr-and[2]
               \tau' = \tint
               @tr-and[2]
-              e \ccNS \ctxE{i}}]{
+              e \ccCS \ctxE{e'}}]{
       @tr-step{
-        @${\wellNE \edyn{\tau'}{e'} : \tau''}
-        @|N-S-hole-typing|}
+        @${\wellCE \edyn{\tau'}{e'} : \tau''}
+        @|C-S-hole-typing|}
       @tr-step{
         @${\tau' \subteq \tau''}
-        @|N-S-inversion| (1)}
+        @|C-S-inversion| (1)}
       @tr-step{
-        @${\wellNE i : \tau'}
+        @${\wellCE e' : \tau'}
         @${\tau' = \tint}}
-      @tr-step{
-        @${\wellNE i : \tau''}
-        (2, 3)}
       @tr-qed{
-        by @|N-S-hole-subst|}
+        by @|C-S-hole-subst|}
     }
-    @tr-if[@${e' \eeq i
-              @tr-and[2]
-              i \in \naturals
+    @tr-if[@${e' \in \naturals
               @tr-and[2]
               \tau' = \tnat
               @tr-and[2]
-              e \ccNS \ctxE{i}}]{
+              e \ccCS \ctxE{e'}}]{
       @tr-step{
-        @${\wellNE \edyn{\tau'}{e'} : \tau''}
-        @|N-S-hole-typing|}
+        @${\wellCE \edyn{\tau'}{e'} : \tau''}
+        @|C-S-hole-typing|}
       @tr-step{
         @${\tau' \subteq \tau''}
-        @|N-S-inversion| (1)}
+        @|C-S-inversion| (1)}
       @tr-step{
-        @${\wellNE i : \tau'}
-        @${\tau' = \tnat \mbox{ and } i \in \naturals}}
-      @tr-step{
-        @${\wellNE i : \tau''}
-        (2, 3)}
+        @${\wellCE e' : \tau'}
+        @${\tau' = \tnat}}
       @tr-qed{
-        by @|N-S-hole-subst|}
+        by @|C-S-hole-subst|}
     }
     @tr-else[@${e' \not\in v
                 @tr-and[4]
-                e' \ccND e''
+                e' \ccCD e''
                 @tr-and[4]
-                e \ccNS \ctxE{\edyn{\tau'}{e''}}}]{
+                e \ccCS \ctxE{\edyn{\tau'}{e''}}}]{
       @tr-step{
-        @${\wellNE \edyn{\tau'}{e'} : \tau''}
-        @|N-S-hole-typing|}
+        @${\wellCE \edyn{\tau'}{e'} : \tau''}
+        @|C-S-hole-typing|}
       @tr-step{
-        @${\wellNE e'
+        @${\wellCE e'
            @tr-and[]
            \tau' \subteq \tau''}
-        @|N-S-inversion|}
+        @|C-S-inversion|}
       @tr-step{
-        @${\wellNE e''}
-        @|N-D-preservation|}
+        @${\wellCE e''}
+        @|C-D-preservation| (2)}
       @tr-step{
-        @${\wellNE \edyn{\tau'}{e''} : \tau'}
+        @${\wellCE \edyn{\tau'}{e''} : \tau'}
         (3)}
       @tr-step{
-        @${\wellNE \edyn{\tau'}{e''} : \tau''}
+        @${\wellCE \edyn{\tau'}{e''} : \tau''}
         (2, 4)}
       @tr-qed{
-        by @|N-S-hole-subst|}
+        by @|C-S-hole-subst|}
     }
   }
 }
 
-@tr-lemma[#:key "N-D-preservation" @elem{@${\langN} dynamic preservation}]{
-  If @${\wellNE e} and @${e \ccND e'} then @${\wellNE e'}
+@tr-lemma[#:key "C-D-preservation" @elem{@${\langC} dynamic preservation}]{
+  If @${\wellCE e} and @${e \ccCD e'} then @${\wellCE e'}
 }@tr-proof{
-  By the @|N-D-uec| lemma, there are four cases.
+  By the @|C-D-uec| lemma, there are four cases.
 
   @tr-case[@${e = \ctxE{\vapp{v_0}{v_1}}} #:itemize? #f]{
     @tr-if[@${v_0 \eeq \vlam{x}{e'}
               @tr-and[2]
-              e \ccND \ctxE{\vsubst{e'}{x}{v_1}}}]{
+              e \ccCD \ctxE{\vsubst{e'}{x}{v_1}}}]{
       @tr-step{
-        @${\wellNE \vapp{v_0}{v_1}}
-        @|N-D-hole-typing|}
+        @${\wellCE \vapp{v_0}{v_1}}
+        @|C-D-hole-typing|}
       @tr-step{
-        @${\wellNE v_0
+        @${\wellCE v_0
            @tr-and[]
-           \wellNE v_1}
-        @|N-D-inversion| (1)}
+           \wellCE v_1}
+        @|C-D-inversion| (1)}
       @tr-step{
-        @${x \wellNE e'}
-        @|N-D-inversion| (2)}
+        @${x \wellCE e'}
+        @|C-D-inversion| (2)}
       @tr-step{
-        @${\wellNE \vsubst{e'}{x}{v_1}}
-        @|N-DD-subst| (2, 3)}
+        @${\wellCE \vsubst{e'}{x}{v_1}}
+        @|C-DD-subst| (2, 3)}
       @tr-qed{
-        @|N-D-hole-subst| (4)}
+        @|C-D-hole-subst| (1, 4)}
     }
     @tr-else[@${v_0 \eeq \vmonfun{(\tarr{\tau_d}{\tau_c})}{v_f}
                 @tr-and[4]
-                e \ccND \ctxE{\esta{\tau_c}{(\vapp{v_f}{(\edyn{\tau_d}{v_1})})}}}]{
+                e \ccCD \ctxE{\esta{\tau_c}{(\vapp{v_f}{(\edyn{\tau_d}{v_1})})}}}]{
       @tr-step{
-        @${\wellNE \vapp{v_0}{v_1}}
-        @|N-D-hole-typing|}
+        @${\wellCE \vapp{v_0}{v_1}}
+        @|C-D-hole-typing|}
       @tr-step{
-        @${\wellNE v_0
+        @${\wellCE v_0
            @tr-and[]
-           \wellNE v_1}
-        @|N-D-inversion| (1)}
+           \wellCE v_1}
+        @|C-D-inversion| (1)}
       @tr-step{
-        @${\wellNE v_f : \tarr{\tau_d}{\tau_c}}
-        @|N-D-inversion| (2)}
+        @${\wellCE v_f : \tarr{\tau_d}{\tau_c}}
+        @|C-D-inversion| (2)}
       @tr-step{
-        @${\wellNE \edyn{\tau_d}{v_1} : \tau_d}
+        @${\wellCE \edyn{\tau_d}{v_1} : \tau_d}
         (2)}
       @tr-step{
-        @${\wellNE \vapp{v_f}{(\edyn{\tau_d}{v_1})} : \tau_c}
+        @${\wellCE \vapp{v_f}{(\edyn{\tau_d}{v_1})} : \tau_c}
         (3, 4)}
       @tr-step{
-        @${\wellNE \esta{\tau_c}{\vapp{v_f}{(\edyn{\tau_d}{v_1})}}}
+        @${\wellCE \esta{\tau_c}{\vapp{v_f}{(\edyn{\tau_d}{v_1})}}}
         (5)}
       @tr-qed{
-        by @|N-D-hole-subst|}
+        by @|C-D-hole-subst|}
     }
   }
 
@@ -975,35 +1085,81 @@
               @tr-and[2]
               \vunop = \vfst
               @tr-and[2]
-              e \ccND \ctxE{v_0}}]{
+              e \ccCD \ctxE{v_0}}]{
       @tr-step{
-        @${\wellNE \eunop{v}}
-        @|N-D-hole-typing|}
+        @${\wellCE \eunop{v}}
+        @|C-D-hole-typing|}
       @tr-step{
-        @${\wellNE v}
-        @|N-D-inversion| (1)}
+        @${\wellCE v}
+        @|C-D-inversion| (1)}
       @tr-step{
-        @${\wellNE v_0}
-        @|N-D-inversion| (2)}
+        @${\wellCE v_0}
+        @|C-D-inversion| (2)}
       @tr-qed{
-        by @|N-D-hole-subst|}
+        by @|C-D-hole-subst|}
     }
-    @tr-else[@${v = \vpair{v_0}{v_1}
+    @tr-if[@${v = \vpair{v_0}{v_1}
+              @tr-and[2]
+              \vunop = \vsnd
+              @tr-and[2]
+              e \ccCD \ctxE{v_1}}]{
+      @tr-step{
+        @${\wellCE \eunop{v}}
+        @|C-D-hole-typing|}
+      @tr-step{
+        @${\wellCE v}
+        @|C-D-inversion| (1)}
+      @tr-step{
+        @${\wellCE v_1}
+        @|C-D-inversion| (2)}
+      @tr-qed{
+        by @|C-D-hole-subst|}
+    }
+    @tr-if[@${v = \vmonpair{(\tpair{\tau_0}{\tau_1})}{v'}
+              @tr-and[2]
+              \vunop = \vfst
+              @tr-and[2]
+              e \ccCD \ctxE{\esta{\tau_0}{(\efst{v'})}}}]{
+      @tr-step{
+        @${\wellCE \eunop{v}}
+        @|C-D-hole-typing|}
+      @tr-step{
+        @${\wellCE \vmonpair{(\tpair{\tau_0}{\tau_1})}{v'}}
+        @|C-D-inversion| (1)}
+      @tr-step{
+        @${\wellCE v' : \tpair{\tau_0}{\tau_1}}
+        @|C-D-inversion| (2)}
+      @tr-step{
+        @${\wellCE \efst{v'} : \tau_0}
+        (3)}
+      @tr-step{
+        @${\wellCE \esta{\tau_0}{(\efst{v'})}}
+        (4)}
+      @tr-qed{
+        by @|C-D-hole-subst|}
+    }
+    @tr-else[@${v = \vmonpair{(\tpair{\tau_0}{\tau_1})}{v'}
               @tr-and[4]
               \vunop = \vsnd
               @tr-and[4]
-              e \ccND \ctxE{v_1}}]{
+              e \ccCD \ctxE{\esta{\tau_0}{(\esnd{v'})}}}]{
       @tr-step{
-        @${\wellNE \eunop{v}}
-        @|N-D-hole-typing|}
+        @${\wellCE \eunop{v}}
+        @|C-D-hole-typing|}
       @tr-step{
-        @${\wellNE v}
-        @|N-D-inversion| (1)}
+        @${\wellCE \vmonpair{(\tpair{\tau_0}{\tau_1})}{v'}}
+        @|C-D-inversion| (1)}
       @tr-step{
-        @${\wellNE v_1}
-        @|N-D-inversion| (2)}
+        @${\wellCE v' : \tpair{\tau_0}{\tau_1}}
+        @|C-D-inversion| (2)}
+      @tr-step{
+        @${\wellCE \esnd{v'} : \tau_1}
+        (3)}
+      @tr-step{
+        @${\wellCE \esta{\tau_1}{(\esnd{v'})}}
+        (4)}
       @tr-qed{
-        by @|N-D-hole-subst|}
+        by @|C-D-hole-subst|}
     }
   }
 
@@ -1011,120 +1167,116 @@
               @tr-and[4]
               \delta(\vbinop, v_0, v_1) = v
               @tr-and[4]
-              e \ccND \ctxE{v}}]{
+              e \ccCD \ctxE{v}}]{
     @tr-step{
-      @${\wellNE \ebinop{v_0}{v_1}}
-      @|N-D-hole-typing|}
+      @${\wellCE \ebinop{v_0}{v_1}}
+      @|C-D-hole-typing|}
     @tr-step{
-      @${\wellNE v_0
+      @${\wellCE v_0
          @tr-and[]
-         \wellNE v_1}
-      @|N-D-inversion| (1)}
+         \wellCE v_1}
+      @|C-D-inversion| (1)}
     @tr-step{
-      @${\wellNE v}
-      @|N-delta-preservation| (2)}
+      @${\wellCE v}
+      @|C-delta-preservation| (2)}
     @tr-qed{
-      by @|N-D-hole-subst| (3)}
+      by @|C-D-hole-subst| (3)}
   }
 
   @tr-case[@${e = \ctxE{\esta{\tau'}{e'}}} #:itemize? #f]{
     @tr-if[@${e' \in v} #:itemize? #f]{
       @tr-if[@${\tau' = \tarr{\tau_d}{\tau_c}
                 @tr-and[2]
-                e \ccND \ctxE{\vmonfun{\tau'}{e'}}}]{
+                e \ccCD \ctxE{\vmonfun{\tau'}{e'}}}]{
         @tr-step{
-          @${\wellNE \esta{\tau'}{e'}}
-          @|N-D-hole-typing|}
+          @${\wellCE \esta{\tau'}{e'}}
+          @|C-D-hole-typing|}
         @tr-step{
-          @${\wellNE e' : \tau'}
-          @|N-D-inversion| (1)}
+          @${\wellCE e' : \tau'}
+          @|C-D-inversion|}
         @tr-step{
-          @${\wellNE \vmonfun{\tau'}{e'}}
+          @${\wellCE \vmonfun{\tau'}{e'}}
           (2)}
         @tr-qed{
-          by @|N-D-hole-subst|}
+          by @|C-D-hole-subst|}
       }
       @tr-if[@${\tau' = \tpair{\tau_0}{\tau_1}
                 @tr-and[2]
-                e' = \vpair{v_0}{v_1}
-                @tr-and[2]
-                e \ccND \ctxE{\vpair{\esta{\tau_0}{v_0}}{\esta{\tau_1}{v_1}}}}]{
+                e \ccCD \ctxE{\vmonpair{\tau'}{e'}}}]{
         @tr-step{
-          @${\wellNE \esta{\tau'}{e'}}
-          @|N-D-hole-typing|}
+          @${\wellCE \esta{\tau'}{e'}}
+          @|C-D-hole-typing|}
         @tr-step{
-          @${\wellNE e' : \tau'}
-          @|N-D-inversion| (1)}
+          @${\wellCE e' : \tau'}
+          @|C-D-inversion|}
         @tr-step{
-          @${\wellNE v_0 : \tau_0
-             @tr-and[]
-             \wellNE v_1 : \tau_1}
-          @|N-S-inversion|}
-        @tr-step{
-          @${\wellNE \esta{\tau_0}{v_0}
-             @tr-and[]
-             \wellNE \esta{\tau_1}{v_1}}
-          (4)}
-        @tr-step{
-          @${\wellNE \vpair{\esta{\tau_0}{v_0}}{\esta{\tau_1}{v_1}}}
-          (5)}
+          @${\wellCE \vmonpair{\tau'}{e'}}
+          (2)}
         @tr-qed{
-          by @|N-D-hole-subst| (6)}
+          by @|C-D-hole-subst| (3)}
       }
       @tr-if[@${\tau' = \tint
                 @tr-and[2]
-                e' \in i
-                @tr-and[2]
-                e \ccND \ctxE{e'}}]{
+                e \ccCD \ctxE{e'}}]{
         @tr-step{
-          @${\wellNE \esta{\tau'}{e'}}
-          @|N-D-hole-typing|}
+          @${\wellCE \esta{\tau'}{e'}}
+          @|C-D-hole-typing|}
         @tr-step{
-          @${\wellNE e'}
-          @${e' \in i}}
+          @${\wellCE e' : \tau'}
+          @|C-D-inversion|}
+        @tr-step{
+          @${e' \in i}
+          @|C-S-canonical| (2)}
+        @tr-step{
+          @${\wellCE e'}
+          (3)}
         @tr-qed{
-          by @|N-D-hole-subst| (2)}
+          by @|C-D-hole-subst|}
       }
       @tr-else[@${\tau' = \tnat
                   @tr-and[4]
-                  e' \in \naturals
-                  @tr-and[4]
-                  e \ccND \ctxE{e'}}]{
+                  e \ccCD \ctxE{e'}}]{
         @tr-step{
-          @${\wellNE \esta{\tau'}{e'}}
-          @|N-D-inversion|}
+          @${\wellCE \esta{\tau'}{e'}}
+          @|C-D-hole-typing|}
         @tr-step{
-          @${\wellNE e'}
-          @${e' \in \naturals}}
+          @${\wellCE e' : \tau'}
+          @|C-D-inversion|}
+        @tr-step{
+          @${e' \in \naturals}
+          @|C-S-canonical| (2)}
+        @tr-step{
+          @${\wellCE e'}
+          (3)}
         @tr-qed{
-          by @|N-D-hole-subst| (2)}
+          by @|C-D-hole-subst|}
       }
     }
     @tr-else[@${e' \not\in v
                 @tr-and[4]
-                e' \ccNS e''
+                e' \ccCS e''
                 @tr-and[4]
-                e \ccND \ctxE{\esta{\tau'}{e''}}}]{
+                e \ccCD \ctxE{\esta{\tau'}{e''}}}]{
       @tr-step{
-        @${\wellNE \esta{\tau'}{e'}}
-        @|N-D-hole-typing|}
+        @${\wellCE \esta{\tau'}{e'}}
+        @|C-D-hole-typing|}
       @tr-step{
-        @${\wellNE e' : \tau'}
-        @|N-D-inversion| (1)}
+        @${\wellCE e' : \tau'}
+        @|C-D-inversion| (1)}
       @tr-step{
-        @${\wellNE e'' : \tau'}
-        @|N-S-preservation| (2)}
+        @${\wellCE e'' : \tau'}
+        @|C-S-preservation| (2)}
       @tr-step{
-        @${\wellNE \esta{\tau'}{e''}}
+        @${\wellCE \esta{\tau'}{e''}}
         (3)}
       @tr-qed{
-        by @|N-D-hole-subst| (4)}
+        by @|C-D-hole-subst|}
     }
   }
 }
 
-@tr-lemma[#:key "N-S-uec" @elem{@${\langN} unique static evaluation contexts}]{
-  If @${\wellNE e : \tau} then either:
+@tr-lemma[#:key "C-S-uec" @elem{@${\langC} unique static evaluation contexts}]{
+  If @${\wellCE e : \tau} then either:
   @itemlist[
     @item{ @${e} is a value}
     @item{ @${e = \ctxE{\vapp{v_0}{v_1}}} }
@@ -1140,14 +1292,16 @@
               e = \vlam{x}{e'}
               @tr-or[4]
               e = \esta{\tau}{e'}}]{
-    @tr-contradiction[@${\wellNE e : \tau}]
+    @tr-contradiction[@${\wellCE e : \tau}]
   }
 
   @tr-case[@${e = i
               @tr-or[4]
               e = \vlam{\tann{x}{\tau_d}}{e'}
               @tr-or[4]
-              e = \vmonfun{(\tarr{\tau_d}{\tau_c})}{v}}]{
+              e = \vmonfun{(\tarr{\tau_d}{\tau_c})}{v}
+              @tr-or[4]
+              e = \vmonpair{(\tpair{\tau_0}{\tau_1})}{v}}]{
     @tr-qed{
       @${e} is a value
     }
@@ -1156,8 +1310,8 @@
   @tr-case[@${e = \vpair{e_0}{e_1}} #:itemize? #f]{
     @tr-if[@${e_0 \not\in v}]{
       @tr-step{
-        @${\wellNE e_0 : \tau_0}
-        @|N-S-inversion|}
+        @${\wellCE e_0 : \tau_0}
+        @|C-S-inversion|}
       @tr-step{
         @${e_0 = \ED_0[e_0']}
         @tr-IH (1)
@@ -1171,8 +1325,8 @@
     }
     @tr-if[@${e_0 \in v @tr-and[2] e_1 \not\in v}]{
       @tr-step{
-        @${\wellNE e_1 : \tau_1}
-        @|N-S-inversion|}
+        @${\wellCE e_1 : \tau_1}
+        @|C-S-inversion|}
       @tr-step{
         @${e_1 = \ED_1[e_1']}
         @tr-IH (1)}
@@ -1196,8 +1350,8 @@
   @tr-case[@${e = \vapp{e_0}{e_1}} #:itemize? #f]{
     @tr-if[@${e_0 \not\in v}]{
       @tr-step{
-        @${\wellNE e_0 : \tau_0}
-        @|N-S-inversion|}
+        @${\wellCE e_0 : \tau_0}
+        @|C-S-inversion|}
       @tr-step[
         @${e_0 = \ED_0[e_0']}
         @elem{@tr-IH (1)}
@@ -1211,8 +1365,8 @@
     }
     @tr-if[@${e_0 \in v @tr-and[2] e_1 \not\in v}]{
       @tr-step{
-        @${\wellNE e_1 : \tau_1}
-        @|N-S-inversion|}
+        @${\wellCE e_1 : \tau_1}
+        @|C-S-inversion|}
       @tr-step[
         @${e_1 = \ED_1[e_1']}
         @elem{@tr-IH (1)}
@@ -1237,8 +1391,8 @@
   @tr-case[@${e = \eunop{e_0}} #:itemize? #f]{
     @tr-if[@${e_0 \not\in v}]{
       @tr-step[
-        @${\wellNE e_0 : \tau_0}
-        @|N-S-inversion|
+        @${\wellCE e_0 : \tau_0}
+        @|C-S-inversion|
       ]
       @tr-step{
         @${e_0 = \ED_0[e_0']}
@@ -1262,8 +1416,8 @@
   @tr-case[@${e = \ebinop{e_0}{e_1}} #:itemize? #f]{
     @tr-if[@${e_0 \not\in v}]{
       @tr-step{
-        @${\wellNE e_0 : \tau_0}
-        @|N-S-inversion|}
+        @${\wellCE e_0 : \tau_0}
+        @|C-S-inversion|}
       @tr-step{
         @${e_0 = \ED_0[e_0']}
         @tr-IH (1)}
@@ -1276,8 +1430,8 @@
     }
     @tr-if[@${e_0 \in v @tr-and[2] e_1 \not\in v}]{
       @tr-step{
-        @${\wellNE e_1 : \tau_1}
-        @|N-S-inversion|}
+        @${\wellCE e_1 : \tau_1}
+        @|C-S-inversion|}
       @tr-step[
         @${e_1 = \ED_1[e_1']}
         @elem{@tr-IH (1)}
@@ -1308,8 +1462,8 @@
 
 }
 
-@tr-lemma[#:key "N-D-uec" @elem{@${\langN} unique dynamic evaluation contexts}]{
-  If @${\wellNE e} then either:
+@tr-lemma[#:key "C-D-uec" @elem{@${\langC} unique dynamic evaluation contexts}]{
+  If @${\wellCE e} then either:
   @itemlist[
     @item{ @${e} is a value }
     @item{ @${\ctxE{\vapp{v_0}{v_1}}} }
@@ -1325,14 +1479,16 @@
               e = \vlam{\tann{x}{\tau}}{e'}
               @tr-or[4]
               e = \edyn{\tau}{e'}}]{
-    @tr-contradiction{@${\wellNE e}}
+    @tr-contradiction{@${\wellCE e}}
   }
 
   @tr-case[@${e = i
               @tr-or[4]
               e = \vlam{x}{e'}
               @tr-or[4]
-              e = \vmonfun{(\tarr{\tau_d}{\tau_c})}{v} }]{
+              e = \vmonfun{(\tarr{\tau_d}{\tau_c})}{v}
+              @tr-or[4]
+              e = \vmonpair{(\tpair{\tau_0}{\tau_1})}{v}}]{
     @tr-qed{
       @${e} is a value
     }
@@ -1341,8 +1497,8 @@
   @tr-case[@${e = \vpair{e_0}{e_1}} #:itemize? #f]{
     @tr-if[@${e_0 \not\in v}]{
       @tr-step[
-        @${\wellNE e_0}
-        @|N-D-inversion|]
+        @${\wellCE e_0}
+        @|C-D-inversion|]
       @tr-step{
         @${e_0 = \ED_0[e_0']}
         @tr-IH (1)}
@@ -1354,8 +1510,8 @@
     }
     @tr-if[@${e_0 \in v @tr-and[2] e_1 \not\in v}]{
       @tr-step[
-        @${\wellNE e_1}
-        @|N-D-inversion|]
+        @${\wellCE e_1}
+        @|C-D-inversion|]
       @tr-step{
         @${e_1 = \ED_1[e_1']}
         @tr-IH (1)}
@@ -1378,8 +1534,8 @@
   @tr-case[@${e = \vapp{e_0}{e_1}} #:itemize? #f]{
     @tr-if[@${e_0 \not\in v}]{
       @tr-step[
-        @${\wellNE e_0}
-        @|N-D-inversion|]
+        @${\wellCE e_0}
+        @|C-D-inversion|]
       @tr-step{
         @${e_0 = \ED_0[e_0']}
         @elem{@tr-IH (1)}}
@@ -1391,8 +1547,8 @@
     }
     @tr-if[@${e_0 \in v @tr-and[2] e_1 \not\in v}]{
       @tr-step[
-        @${\wellNE e_1}
-        @|N-D-inversion|]
+        @${\wellCE e_1}
+        @|C-D-inversion|]
       @tr-step{
         @${e_1 = \ED_1[e_1']}
         @tr-IH (1)}
@@ -1415,8 +1571,8 @@
   @tr-case[@${e = \eunop{e_0}} #:itemize? #f]{
     @tr-if[@${e_0 \not\in v}]{
       @tr-step[
-        @${\wellNE e_0}
-        @|N-D-inversion|]
+        @${\wellCE e_0}
+        @|C-D-inversion|]
       @tr-step{
         @${e_0 = \ED_0[e_0']}
         @tr-IH (1)}
@@ -1439,8 +1595,8 @@
   @tr-case[@${e = \ebinop{e_0}{e_1}} #:itemize? #f]{
     @tr-if[@${e_0 \not\in v}]{
       @tr-step[
-        @${\wellNE e_0}
-        @|N-D-inversion|]
+        @${\wellCE e_0}
+        @|C-D-inversion|]
       @tr-step{
         @${e_0 = \ED_0[e_0']}
         @tr-IH (1)}
@@ -1452,8 +1608,8 @@
     }
     @tr-if[@${e_0 \in v @tr-and[2] e_1 \not\in v}]{
       @tr-step[
-        @${\wellNE e_1}
-        @|N-D-inversion|]
+        @${\wellCE e_1}
+        @|C-D-inversion|]
       @tr-step{
         @${e_1 = \ED_1[e_1']}
         @tr-IH (1)}
@@ -1481,9 +1637,9 @@
   }
 }
 
-@tr-lemma[#:key "N-S-hole-typing" @elem{@${\langN} static hole typing}]{
-  If @${\wellNE \ctxE{e} : \tau} then the derivation
-   contains a sub-term @${\wellNE e : \tau'}
+@tr-lemma[#:key "C-S-hole-typing" @elem{@${\langC} hole typing}]{
+  If @${\wellCE \ctxE{e} : \tau} then the derivation
+   contains a sub-term @${\wellCE e : \tau'}
 }@tr-proof{
   By induction on the structure of @${\ED}.
 
@@ -1498,8 +1654,8 @@
       @${\ctxE{e} = \vapp{\ED_0[e]}{e_1}}
     }
     @tr-step{
-      @${\wellNE \ED_0[e] : \tarr{\tau_d}{\tau_c}}
-      @|N-S-inversion|
+      @${\wellCE \ED_0[e] : \tarr{\tau_d}{\tau_c}}
+      @|C-S-inversion|
     }
     @tr-qed{
       by @tr-IH (2)
@@ -1511,8 +1667,8 @@
       @${\ctxE{e} = \vapp{v_0}{\ED_1[e]}}
     }
     @tr-step{
-      @${\wellNE \ED_1[e] : \tau_d}
-      @|N-S-inversion|
+      @${\wellCE \ED_1[e] : \tau_d}
+      @|C-S-inversion|
     }
     @tr-qed{
       by @tr-IH (2)
@@ -1524,8 +1680,8 @@
       @${\ctxE{e} = \vpair{\ED_0[e]}{e_1}}
     }
     @tr-step{
-      @${\wellNE \ED_0[e] : \tau_0}
-      @|N-S-inversion|
+      @${\wellCE \ED_0[e] : \tau_0}
+      @|C-S-inversion|
     }
     @tr-qed{
       by @tr-IH (2)
@@ -1537,8 +1693,8 @@
       @${\ctxE{e} = \vpair{v_0}{\ED_1[e]}}
     }
     @tr-step{
-      @${\wellNE \ED_1[e] : \tau_1}
-      @|N-S-inversion|
+      @${\wellCE \ED_1[e] : \tau_1}
+      @|C-S-inversion|
     }
     @tr-qed{
       by @tr-IH (2)
@@ -1550,8 +1706,8 @@
       @${\ctxE{e} = \eunop{\ED_0[e]}}
     }
     @tr-step{
-      @${\wellNE \ED_0[e] : \tau_0}
-      @|N-S-inversion|
+      @${\wellCE \ED_0[e] : \tau_0}
+      @|C-S-inversion|
     }
     @tr-qed{
       by @tr-IH (2)
@@ -1563,8 +1719,8 @@
       @${\ctxE{e} = \ebinop{\ED_0[e]}{e_1}}
     }
     @tr-step{
-      @${\wellNE \ED_0[e] : \tau_0}
-      @|N-S-inversion|
+      @${\wellCE \ED_0[e] : \tau_0}
+      @|C-S-inversion|
     }
     @tr-qed{
       by @tr-IH (2)
@@ -1576,8 +1732,8 @@
       @${\ctxE{e} = \ebinop{v_0}{\ED_1[e]}}
     }
     @tr-step{
-      @${\wellNE \ED_1[e] : \tau_1}
-      @|N-S-inversion|
+      @${\wellCE \ED_1[e] : \tau_1}
+      @|C-S-inversion|
     }
     @tr-qed{
       by @tr-IH (2)
@@ -1585,8 +1741,8 @@
   }
 }
 
-@tr-lemma[#:key "N-D-hole-typing" @elem{@${\langN} dynamic hole typing}]{
-  If @${\wellNE \ctxE{e}} then the derivation contains a sub-term @${\wellNE e}
+@tr-lemma[#:key "C-D-hole-typing" @elem{@${\langC} hole typing}]{
+  If @${\wellCE \ctxE{e}} then the derivation contains a sub-term @${\wellCE e}
 }@tr-proof{
   By induction on the structure of @${\ED}.
 
@@ -1601,8 +1757,8 @@
       @${\ctxE{e} = \vapp{\ED_0[e]}{e_1}}
     }
     @tr-step{
-      @${\wellNE \ED_0[e]}
-      @|N-D-inversion|
+      @${\wellCE \ED_0[e]}
+      @|C-D-inversion|
     }
     @tr-qed{
       by @tr-IH (2)
@@ -1614,8 +1770,8 @@
       @${\ctxE{e} = \vapp{v_0}{\ED_1[e]}}
     }
     @tr-step{
-      @${\wellNE \ED_1[e]}
-      @|N-D-inversion|
+      @${\wellCE \ED_1[e]}
+      @|C-D-inversion|
     }
     @tr-qed{
       by @tr-IH (2)
@@ -1627,8 +1783,8 @@
       @${\ctxE{e} = \vpair{\ED_0[e]}{e_1}}
     }
     @tr-step{
-      @${\wellNE \ED_0[e]}
-      @|N-D-inversion|
+      @${\wellCE \ED_0[e]}
+      @|C-D-inversion|
     }
     @tr-qed{
       by @tr-IH (2)
@@ -1640,8 +1796,8 @@
       @${\ctxE{e} = \vpair{v_0}{\ED_1[e]}}
     }
     @tr-step{
-      @${\wellNE \ED_1[e]}
-      @|N-D-inversion|
+      @${\wellCE \ED_1[e]}
+      @|C-D-inversion|
     }
     @tr-qed{
       by @tr-IH (2)
@@ -1653,8 +1809,8 @@
       @${\ctxE{e} = \eunop{\ED_0[e]}}
     }
     @tr-step{
-      @${\wellNE \ED_0[e]}
-      @|N-D-inversion|
+      @${\wellCE \ED_0[e]}
+      @|C-D-inversion|
     }
     @tr-qed{
       by @tr-IH (2)
@@ -1666,8 +1822,8 @@
       @${\ctxE{e} = \ebinop{\ED_0[e]}{e_1}}
     }
     @tr-step{
-      @${\wellNE \ED_0[e]}
-      @|N-D-inversion|
+      @${\wellCE \ED_0[e]}
+      @|C-D-inversion|
     }
     @tr-qed{
       by @tr-IH (2)
@@ -1679,8 +1835,8 @@
       @${\ctxE{e} = \ebinop{v_0}{\ED_1[e]}}
     }
     @tr-step{
-      @${\wellNE \ED_1[e]}
-      @|N-D-inversion|
+      @${\wellCE \ED_1[e]}
+      @|C-D-inversion|
     }
     @tr-qed{
       by @tr-IH (2)
@@ -1688,11 +1844,11 @@
   }
 }
 
-@tr-lemma[#:key "N-S-hole-subst" @elem{@${\langN} static hole substitution}]{
-  If @${\wellNE \ctxE{e} : \tau}
-   and contains @${\wellNE e : \tau'},
-   and furthermore @${\wellNE e' : \tau'},
-   then @${\wellNE \ctxE{e'} : \tau}
+@tr-lemma[#:key "C-S-hole-subst" @elem{@${\langC} static hole substitution}]{
+  If @${\wellCE \ctxE{e} : \tau}
+   and contains @${\wellCE e : \tau'},
+   and furthermore @${\wellCE e' : \tau'},
+   then @${\wellCE \ctxE{e'} : \tau}
 }@tr-proof{
   By induction on the structure of @${\ED}
 
@@ -1703,14 +1859,14 @@
          \ctxE{e'} = e'}
     }
     @tr-step{
-      @${\wellNE e : \tau}
+      @${\wellCE e : \tau}
       (1)
     }
     @tr-step{
       @${\tau' = \tau}
     }
     @tr-step{
-      @${\wellNE e' : \tau}
+      @${\wellCE e' : \tau}
     }
     @tr-qed{
       by (1, 4)
@@ -1724,20 +1880,20 @@
         \ctxE{e'} = \vpair{\ED_0[e']}{e_1}}
     }
     @tr-step{
-      @${\wellNE \vpair{\ED_0[e]}{e_1} : \tau}
+      @${\wellCE \vpair{\ED_0[e]}{e_1} : \tau}
     }
     @tr-step{
-      @${\wellNE \ED_0[e] : \tau_0
+      @${\wellCE \ED_0[e] : \tau_0
          @tr-and[]
-         \wellNE e_1 : \tau_1}
-      @|N-S-inversion|
+         \wellCE e_1 : \tau_1}
+      @|C-S-inversion|
     }
     @tr-step{
-      @${\wellNE \ED_0[e'] : \tau_0}
+      @${\wellCE \ED_0[e'] : \tau_0}
       @elem{@tr-IH (3)}
     }
     @tr-step{
-      @${\wellNE \vpair{\ED_0[e']}{e_1} : \tau}
+      @${\wellCE \vpair{\ED_0[e']}{e_1} : \tau}
       (2, 3, 4)
     }
     @tr-qed{
@@ -1752,20 +1908,20 @@
          \ctxE{e'} = \vpair{v_0}{\ED_1[e']}}
     }
     @tr-step{
-      @${\wellNE \vpair{v_0}{\ED_1[e]} : \tau}
+      @${\wellCE \vpair{v_0}{\ED_1[e]} : \tau}
     }
     @tr-step{
-      @${\wellNE v_0 : \tau_0
+      @${\wellCE v_0 : \tau_0
          @tr-and[]
-         \wellNE \ED_1[e] : \tau_1}
-      @|N-S-inversion|
+         \wellCE \ED_1[e] : \tau_1}
+      @|C-S-inversion|
     }
     @tr-step{
-      @${\wellNE \ED_1[e'] : \tau_1}
+      @${\wellCE \ED_1[e'] : \tau_1}
       @elem{@tr-IH (3)}
     }
     @tr-step{
-      @${\wellNE \vpair{v_0}{\ED_1[e']} : \tau}
+      @${\wellCE \vpair{v_0}{\ED_1[e']} : \tau}
       (2, 3, 4)
     }
     @tr-qed{
@@ -1780,20 +1936,20 @@
         \ctxE{e'} = \ED_0[e']~e_1}
     }
     @tr-step{
-      @${\wellNE \ED_0[e]~e_1 : \tau}
+      @${\wellCE \ED_0[e]~e_1 : \tau}
     }
     @tr-step{
-      @${\wellNE \ED_0[e] : \tau_0
+      @${\wellCE \ED_0[e] : \tau_0
          @tr-and[]
-         \wellNE e_1 : \tau_1}
-      @|N-S-inversion|
+         \wellCE e_1 : \tau_1}
+      @|C-S-inversion|
     }
     @tr-step{
-      @${\wellNE \ED_0[e'] : \tau_0}
+      @${\wellCE \ED_0[e'] : \tau_0}
       @elem{@tr-IH (3)}
     }
     @tr-step{
-      @${\wellNE \ED_0[e']~e_1 : \tau}
+      @${\wellCE \ED_0[e']~e_1 : \tau}
       (2, 3, 4)
     }
     @tr-qed{
@@ -1808,20 +1964,20 @@
          \ctxE{e'} = v_0~\ED_1[e']}
     }
     @tr-step{
-      @${\wellNE v_0~\ED_1[e] : \tau}
+      @${\wellCE v_0~\ED_1[e] : \tau}
     }
     @tr-step{
-      @${\wellNE v_0 : \tau_0
+      @${\wellCE v_0 : \tau_0
          @tr-and[]
-         \wellNE \ED_1[e] : \tau_1}
-      @N-S-inversion
+         \wellCE \ED_1[e] : \tau_1}
+      @C-S-inversion
     }
     @tr-step{
-      @${\wellNE \ED_1[e'] : \tau_1}
+      @${\wellCE \ED_1[e'] : \tau_1}
       @elem{@tr-IH (3)}
     }
     @tr-step{
-      @${\wellNE v_0~\ED_1[e'] : \tau}
+      @${\wellCE v_0~\ED_1[e'] : \tau}
       (2, 3, 4)
     }
     @tr-qed{
@@ -1836,18 +1992,18 @@
         \ctxE{e'} = \eunop{\ED_0[e']}}
     }
     @tr-step{
-      @${\wellNE \eunop{\ED_0[e]} : \tau}
+      @${\wellCE \eunop{\ED_0[e]} : \tau}
     }
     @tr-step{
-      @${\wellNE \ED_0[e] : \tau_0}
-      @|N-S-inversion|
+      @${\wellCE \ED_0[e] : \tau_0}
+      @|C-S-inversion|
     }
     @tr-step{
-      @${\wellNE \ED_0[e'] : \tau_0}
+      @${\wellCE \ED_0[e'] : \tau_0}
       @elem{@tr-IH (3)}
     }
     @tr-step{
-      @${\wellNE \eunop{\ED_0[e']} : \tau}
+      @${\wellCE \eunop{\ED_0[e']} : \tau}
       (2, 3, 4)
     }
     @tr-qed{
@@ -1862,20 +2018,20 @@
         \ctxE{e'} = \ebinop{\ED_0[e']}{e_1}}
     }
     @tr-step{
-      @${\wellNE \ebinop{\ED_0[e]}{e_1} : \tau}
+      @${\wellCE \ebinop{\ED_0[e]}{e_1} : \tau}
     }
     @tr-step{
-      @${\wellNE \ED_0[e] : \tau_0
+      @${\wellCE \ED_0[e] : \tau_0
          @tr-and[]
-         \wellNE e_1 : \tau_1}
-      @N-S-inversion
+         \wellCE e_1 : \tau_1}
+      @C-S-inversion
     }
     @tr-step{
-      @${\wellNE \ED_0[e'] : \tau_0}
+      @${\wellCE \ED_0[e'] : \tau_0}
       @elem{@tr-IH (3)}
     }
     @tr-step{
-      @${\wellNE \ebinop{\ED_0[e']}{e_1} : \tau}
+      @${\wellCE \ebinop{\ED_0[e']}{e_1} : \tau}
       (2, 3, 4)
     }
     @tr-qed{
@@ -1890,20 +2046,20 @@
          \ctxE{e'} = \ebinop{v_0}{\ED_1[e']}}
     }
     @tr-step{
-      @${\wellNE \ebinop{v_0}{\ED_1[e]} : \tau}
+      @${\wellCE \ebinop{v_0}{\ED_1[e]} : \tau}
     }
     @tr-step{
-      @${\wellNE v_0 : \tau_0
+      @${\wellCE v_0 : \tau_0
          @tr-and[]
-         \wellNE \ED_1[e] : \tau_1}
-      @N-S-inversion
+         \wellCE \ED_1[e] : \tau_1}
+      @C-S-inversion
     }
     @tr-step{
-      @${\wellNE \ED_1[e'] : \tau_1}
+      @${\wellCE \ED_1[e'] : \tau_1}
       @elem{@tr-IH (3)}
     }
     @tr-step{
-      @${\wellNE \ebinop{v_0}{\ED_1[e']} : \tau}
+      @${\wellCE \ebinop{v_0}{\ED_1[e']} : \tau}
       (2, 3, 4)
     }
     @tr-qed{
@@ -1913,8 +2069,8 @@
 
 }
 
-@tr-lemma[#:key "N-D-hole-subst" @elem{@${\langN} dynamic hole substitution}]{
-  If @${\wellNE \ctxE{e}} and @${\wellNE e'} then @${\wellNE \ctxE{e'}}
+@tr-lemma[#:key "C-D-hole-subst" @elem{@${\langC} dynamic hole substitution}]{
+  If @${\wellCE \ctxE{e}} and @${\wellCE e'} then @${\wellCE \ctxE{e'}}
 }@tr-proof{
   By induction on the structure of @${\ED}
 
@@ -1931,20 +2087,20 @@
         \ctxE{e'} = \vpair{\ED_0[e']}{e_1}}
     }
     @tr-step{
-      @${\wellNE \vpair{\ED_0[e]}{e_1}}
+      @${\wellCE \vpair{\ED_0[e]}{e_1}}
     }
     @tr-step{
-      @${\wellNE \ED_0[e]
+      @${\wellCE \ED_0[e]
          @tr-and[]
-         \wellNE e_1}
-      @|N-D-inversion|
+         \wellCE e_1}
+      @|C-D-inversion|
     }
     @tr-step{
-      @${\wellNE \ED_0[e']}
+      @${\wellCE \ED_0[e']}
       @elem{@tr-IH (3)}
     }
     @tr-step{
-      @${\wellNE \vpair{\ED_0[e']}{e_1}}
+      @${\wellCE \vpair{\ED_0[e']}{e_1}}
       (3, 4)
     }
     @tr-qed{
@@ -1959,20 +2115,20 @@
          \ctxE{e'} = \vpair{v_0}{\ED_1[e']}}
     }
     @tr-step{
-      @${\wellNE \vpair{v_0}{\ED_1[e]}}
+      @${\wellCE \vpair{v_0}{\ED_1[e]}}
     }
     @tr-step{
-      @${\wellNE v_0
+      @${\wellCE v_0
          @tr-and[]
-         \wellNE \ED_1[e]}
-      @|N-D-inversion|
+         \wellCE \ED_1[e]}
+      @|C-D-inversion|
     }
     @tr-step{
-      @${\wellNE \ED_1[e']}
+      @${\wellCE \ED_1[e']}
       @elem{@tr-IH (3)}
     }
     @tr-step{
-      @${\wellNE \vpair{v_0}{\ED_1[e']}}
+      @${\wellCE \vpair{v_0}{\ED_1[e']}}
       (3, 4)
     }
     @tr-qed{
@@ -1987,20 +2143,20 @@
         \ctxE{e'} = \ED_0[e']~e_1}
     }
     @tr-step{
-      @${\wellNE \ED_0[e]~e_1}
+      @${\wellCE \ED_0[e]~e_1}
     }
     @tr-step{
-      @${\wellNE \ED_0[e]
+      @${\wellCE \ED_0[e]
          @tr-and[]
-         \wellNE e_1}
-      @|N-D-inversion|
+         \wellCE e_1}
+      @|C-D-inversion|
     }
     @tr-step{
-      @${\wellNE \ED_0[e']}
+      @${\wellCE \ED_0[e']}
       @elem{@tr-IH (3)}
     }
     @tr-step{
-      @${\wellNE \ED_0[e']~e_1}
+      @${\wellCE \ED_0[e']~e_1}
       (3, 4)
     }
     @tr-qed{
@@ -2015,20 +2171,20 @@
          \ctxE{e'} = v_0~\ED_1[e']}
     }
     @tr-step{
-      @${\wellNE v_0~\ED_1[e]}
+      @${\wellCE v_0~\ED_1[e]}
     }
     @tr-step{
-      @${\wellNE v_0
+      @${\wellCE v_0
          @tr-and[]
-         \wellNE \ED_1[e]}
-      @|N-D-inversion|
+         \wellCE \ED_1[e]}
+      @|C-D-inversion|
     }
     @tr-step{
-      @${\wellNE \ED_1[e']}
+      @${\wellCE \ED_1[e']}
       @elem{@tr-IH (3)}
     }
     @tr-step{
-      @${\wellNE v_0~\ED_1[e']}
+      @${\wellCE v_0~\ED_1[e']}
       (3, 4)
     }
     @tr-qed{
@@ -2042,19 +2198,19 @@
         @tr-and[] \ctxE{e'} = \eunop{\ED_0[e']}}
     }
     @tr-step{
-      @${\wellNE \eunop{\ED_0[e]}}
+      @${\wellCE \eunop{\ED_0[e]}}
     }
     @tr-step{
-      @${\wellNE \ED_0[e]}
-      @|N-D-inversion|
+      @${\wellCE \ED_0[e]}
+      @|C-D-inversion|
     }
     @tr-step{
-      @${\wellNE \ED_0[e']}
+      @${\wellCE \ED_0[e']}
       @elem{@tr-IH (3)}
     }
     @tr-step{
-      @${\wellNE \eunop{\ED_0[e']}}
-      (4)
+      @${\wellCE \eunop{\ED_0[e']}}
+      (3, 4)
     }
     @tr-qed{
       by (1, 5)
@@ -2068,20 +2224,20 @@
         \ctxE{e'} = \ebinop{\ED_0[e']}{e_1}}
     }
     @tr-step{
-      @${\wellNE \ebinop{\ED_0[e]}{e_1}}
+      @${\wellCE \ebinop{\ED_0[e]}{e_1}}
     }
     @tr-step{
-      @${\wellNE \ED_0[e]
+      @${\wellCE \ED_0[e]
          @tr-and[]
-         \wellNE e_1}
-      @|N-D-inversion|
+         \wellCE e_1}
+      @|C-D-inversion|
     }
     @tr-step{
-      @${\wellNE \ED_0[e']}
+      @${\wellCE \ED_0[e']}
       @elem{@tr-IH (3)}
     }
     @tr-step{
-      @${\wellNE \ebinop{\ED_0[e']}{e_1}}
+      @${\wellCE \ebinop{\ED_0[e']}{e_1}}
       (3, 4)
     }
     @tr-qed{
@@ -2096,20 +2252,20 @@
          \ctxE{e'} = \ebinop{v_0}{\ED_1[e']}}
     }
     @tr-step{
-      @${\wellNE \ebinop{v_0}{\ED_1[e]}}
+      @${\wellCE \ebinop{v_0}{\ED_1[e]}}
     }
     @tr-step{
-      @${\wellNE v_0
+      @${\wellCE v_0
          @tr-and[]
-         \wellNE \ED_1[e]}
-      @|N-D-inversion|
+         \wellCE \ED_1[e]}
+      @|C-D-inversion|
     }
     @tr-step{
-      @${\wellNE \ED_1[e']}
+      @${\wellCE \ED_1[e']}
       @elem{@tr-IH (3)}
     }
     @tr-step{
-      @${\wellNE \ebinop{v_0}{\ED_1[e']}}
+      @${\wellCE \ebinop{v_0}{\ED_1[e']}}
       (3, 4)
     }
     @tr-qed{
@@ -2119,119 +2275,139 @@
 }
 
 @; -----------------------------------------------------------------------------
-@tr-lemma[#:key "N-S-inversion" @elem{@${\wellNE} static inversion}]{
+@tr-lemma[#:key "C-S-inversion" @elem{@${\wellCE} static inversion}]{
   @itemlist[
     @item{
-      If @${\Gamma \wellNE x : \tau}
+      If @${\Gamma \wellCE x : \tau}
       then @${\tann{x}{\tau'} \in \Gamma}
       and @${\tau' \subteq \tau}
     }
     @item{
-      If @${\Gamma \wellNE \vlam{\tann{x}{\tau_d'}}{e'} : \tau}
-      then @${\tann{x}{\tau_d'},\Gamma \wellNE e' : \tau_c'}
+      If @${\Gamma \wellCE \vlam{\tann{x}{\tau_d'}}{e'} : \tau}
+      then @${\tann{x}{\tau_d'},\Gamma \wellCE e' : \tau_c'}
       and @${\tarr{\tau_d'}{\tau_c'} \subteq \tau}
     }
     @item{
-      If @${\Gamma \wellNE \vpair{e_0}{e_1} : \tau}
-      then @${\Gamma \wellNE e_0 : \tau_0}
-      and @${\Gamma \wellNE e_1 : \tau_1}
-      and @${\tpair{\tau_0}{\tau_1} \subteq \tau}
+      If @${\Gamma \wellCE \vpair{e_0}{e_1} : \tpair{\tau_0}{\tau_1}}
+      then @${\Gamma \wellCE e_0 : \tau_0'}
+      and @${\Gamma \wellCE e_1 : \tau_1'}
+      and @${\tau_0' \subteq \tau_0}
+      and @${\tau_1' \subteq \tau_1}
     }
     @item{
-      If @${\Gamma \wellNE \vapp{e_0}{e_1} : \tau_c}
-      then @${\Gamma \wellNE e_0 : \tarr{\tau_d'}{\tau_c'}}
-      and @${\Gamma \wellNE e_1 : \tau_d'}
+      If @${\Gamma \wellCE \vapp{e_0}{e_1} : \tau_c}
+      then @${\Gamma \wellCE e_0 : \tarr{\tau_d'}{\tau_c'}}
+      and @${\Gamma \wellCE e_1 : \tau_d'}
       and @${\tau_c' \subteq \tau_c}
     }
     @item{
-      If @${\Gamma \wellNE \efst{e} : \tau}
-      then @${\Gamma \wellNE e : \tpair{\tau_0}{\tau_1}}
+      If @${\Gamma \wellCE \efst{e} : \tau}
+      then @${\Gamma \wellCE e : \tpair{\tau_0}{\tau_1}}
       and @${\Delta(\vfst, \tpair{\tau_0}{\tau_1}) = \tau_0}
       and @${\tau_0 \subteq \tau}
     }
     @item{
-      If @${\Gamma \wellNE \esnd{e} : \tau}
-      then @${\Gamma \wellNE e : \tpair{\tau_0}{\tau_1}}
+      If @${\Gamma \wellCE \esnd{e} : \tau}
+      then @${\Gamma \wellCE e : \tpair{\tau_0}{\tau_1}}
       and @${\Delta(\vsnd, \tpair{\tau_0}{\tau_1}) = \tau_1}
       and @${\tau_1 \subteq \tau}
     }
     @item{
-      If @${\Gamma \wellNE \ebinop{e_0}{e_1} : \tau}
-      then @${\Gamma \wellNE e_0 : \tau_0}
-      and @${\Gamma \wellNE e_1 : \tau_1}
+      If @${\Gamma \wellCE \ebinop{e_0}{e_1} : \tau}
+      then @${\Gamma \wellCE e_0 : \tau_0}
+      and @${\Gamma \wellCE e_1 : \tau_1}
       and @${\Delta(\vbinop, \tau_0, \tau_1) = \tau'}
       and @${\tau' \subteq \tau}
     }
     @item{
-      If @${\Gamma \wellNE \vmonfun{\tarr{\tau_d}{\tau_c}}{v'} : \tau}
-      then @${\Gamma \wellNE v'}
-      and @${\tarr{\tau_d}{\tau_c} \subteq \tau}
+      If @${\Gamma \wellCE \vmonpair{\tpair{\tau_0'}{\tau_1'}}{v'} : \tpair{\tau_0}{\tau_1}}
+      then @${\Gamma \wellCE v'}
+      and @${\tpair{\tau_0'}{\tau_1'} \subteq \tpair{\tau_0}{\tau_1}}
     }
     @item{
-      If @${\Gamma \wellNE \edyn{\tau'}{e'} : \tau}
-      then @${\Gamma \wellNE e'}
+      If @${\Gamma \wellCE \vmonfun{\tarr{\tau_d'}{\tau_c'}}{v'} : \tarr{\tau_d}{\tau_c}}
+      then @${\Gamma \wellCE v'}
+      and @${\tarr{\tau_d'}{\tau_c'} \subteq \tarr{\tau_d}{\tau_c}}
+    }
+    @item{
+      If @${\Gamma \wellCE \edyn{\tau'}{e'} : \tau}
+      then @${\Gamma \wellCE e'}
       and @${\tau' \subteq \tau}
     }
   ]
 }@tr-proof{
   @tr-qed{
-    by the definition of @${\Gamma \wellNE e : \tau} and by @|N-finite-subtyping|
+    by the definition of @${\Gamma \wellCE e : \tau} and by @|C-finite-subtyping|
   }
 }
 
-@tr-lemma[#:key "N-D-inversion" @elem{@${\wellNE} dynamic inversion}]{
+@tr-lemma[#:key "C-D-inversion" @elem{@${\wellCE} dynamic inversion}]{
   @itemlist[
     @item{
-      If @${\Gamma \wellNE x}
+      If @${\Gamma \wellCE x}
       then @${x \in \Gamma}
     }
     @item{
-      If @${\Gamma \wellNE \vlam{x}{e'}}
-      then @${x,\Gamma \wellNE e'}
+      If @${\Gamma \wellCE \vlam{x}{e'}}
+      then @${x,\Gamma \wellCE e'}
     }
     @item{
-      If @${\Gamma \wellNE \vpair{e_0}{e_1}}
-      then @${\Gamma \wellNE e_0}
-      and @${\Gamma \wellNE e_1}
+      If @${\Gamma \wellCE \vpair{e_0}{e_1}}
+      then @${\Gamma \wellCE e_0}
+      and @${\Gamma \wellCE e_1}
     }
     @item{
-      If @${\Gamma \wellNE \vapp{e_0}{e_1}}
-      then @${\Gamma \wellNE e_0}
-      and @${\Gamma \wellNE e_1}
+      If @${\Gamma \wellCE \vapp{e_0}{e_1}}
+      then @${\Gamma \wellCE e_0}
+      and @${\Gamma \wellCE e_1}
     }
     @item{
-      If @${\Gamma \wellNE \eunop{e_0}}
-      then @${\Gamma \wellNE e_0}
+      If @${\Gamma \wellCE \eunop{e_0}}
+      then @${\Gamma \wellCE e_0}
     }
     @item{
-      If @${\Gamma \wellNE \ebinop{e_0}{e_1}}
-      then @${\Gamma \wellNE e_0}
-      and @${\Gamma \wellNE e_1}
+      If @${\Gamma \wellCE \ebinop{e_0}{e_1}}
+      then @${\Gamma \wellCE e_0}
+      and @${\Gamma \wellCE e_1}
     }
     @item{
-      If @${\Gamma \wellNE \vmonfun{\tarr{\tau_d}{\tau_c}}{v'}}
-      then @${\Gamma \wellNE v' : \tarr{\tau_d}{\tau_c}}
+      If @${\Gamma \wellCE \vmonfun{\tarr{\tau_d}{\tau_c}}{v'}}
+      then @${\Gamma \wellCE v' : \tarr{\tau_d}{\tau_c}}
     }
     @item{
-      If @${\Gamma \wellNE \esta{\tau'}{e'}}
-      then @${\Gamma \wellNE e' : \tau'}
+      If @${\Gamma \wellCE \vmonpair{\tpair{\tau_0}{\tau_1}}{v'}}
+      then @${\Gamma \wellCE v' : \tpair{\tau_0}{\tau_1}}
+    }
+    @item{
+      If @${\Gamma \wellCE \esta{\tau'}{e'}}
+      then @${\Gamma \wellCE e' : \tau'}
     }
   ]
 }@tr-proof{
   @tr-qed{
-    by the definition of @${\Gamma \wellNE e}
+    by the definition of @${\Gamma \wellCE e}
   }
 }
 
 @; -----------------------------------------------------------------------------
-@tr-lemma[#:key "N-S-canonical" @elem{@${\langN} canonical forms}]{
+@tr-lemma[#:key "C-S-canonical" @elem{@${\langC} canonical forms}]{
   @itemlist[
     @item{
-      If @${\wellNE v : \tpair{\tau_0}{\tau_1}}
-      then @${v \eeq \vpair{v_0}{v_1}}
+      If @${\wellCE v : \tpair{\tau_0}{\tau_1}}
+      then either:
+      @itemlist[
+        @item{
+          @${v \eeq \vpair{v_0}{v_1}}
+        }
+        @item{
+          or @${v \eeq \vmonpair{(\tpair{\tau_0'}{\tau_1'})}{v'}
+                @tr-and[]
+                \tpair{\tau_0'}{\tau_1'} \subteq \tpair{\tau_0}{\tau_1}}
+        }
+      ]
     }
     @item{
-      If @${\wellNE v : \tarr{\tau_d}{\tau_c}}
+      If @${\wellCE v : \tarr{\tau_d}{\tau_c}}
       then either:
       @itemlist[
         @item{
@@ -2247,28 +2423,28 @@
       ]
     }
     @item{
-      If @${\wellNE v : \tint}
-      then @${v \in i}
+      If @${\wellCE v : \tint}
+      then @${v \eeq i}
     }
     @item{
-      If @${\wellNE v : \tnat}
-      then @${v \in \naturals}
+      If @${\wellCE v : \tnat}
+      then @${v \eeq i} and @${v \in \naturals}
     }
   ]
 }@tr-proof{
   @tr-qed{
-    by definition of @${\wellNE e : \tau}
+    by definition of @${\wellCE e : \tau}
   }
 }
 
 @; -----------------------------------------------------------------------------
-@tr-lemma[#:key "N-Delta-type-soundness" @elem{@${\Delta} type soundness}]{
-  If @${\wellNE v_0 : \tau_0 \mbox{ and }
-        \wellNE v_1 : \tau_1 \mbox{ and }
+@tr-lemma[#:key "C-Delta-type-soundness" @elem{@${\Delta} type soundness}]{
+  If @${\wellCE v_0 : \tau_0 \mbox{ and }
+        \wellCE v_1 : \tau_1 \mbox{ and }
         \Delta(\vbinop, \tau_0, \tau_1) = \tau}
   then either:
   @itemize[
-    @item{ @${\delta(\vbinop, v_0, v_1) = v \mbox{ and } \wellNE v : \tau}, or }
+    @item{ @${\delta(\vbinop, v_0, v_1) = v \mbox{ and } \wellCE v : \tau}, or }
     @item{ @${\delta(\vbinop, v_0, v_1) = \boundaryerror } }
   ]
 }@tr-proof{
@@ -2279,7 +2455,7 @@
       @${v_0 = i_0, i_0 \in \naturals
          @tr-and[]
          v_1 = i_1, i_1 \in \naturals}
-      @|N-S-canonical|
+      @|C-S-canonical|
     }
     @tr-step{
       @${\delta(\vsum, i_0, i_1) = i_0 + i_1 \in \naturals}
@@ -2292,7 +2468,7 @@
       @${v_0 = i_0
          @tr-and[]
          v_1 = i_1}
-      @|N-S-canonical|
+      @|C-S-canonical|
     }
     @tr-step{
       @${\delta(\vsum, i_0, i_1) = i_0 + i_1 \in i}
@@ -2305,7 +2481,7 @@
       @${v_0 = i_0, i_0 \in \naturals
          @tr-and[]
          v_1 = i_1, i_1 \in \naturals}
-      @|N-S-canonical|
+      @|C-S-canonical|
     }
     @list[
       @tr-if[@${i_1 = 0}]{
@@ -2327,7 +2503,7 @@
       @${v_0 = i_0
          @tr-and[]
          v_1 = i_1}
-      @|N-S-canonical|
+      @|C-S-canonical|
     }
     @list[
       @tr-if[@${i_1 = 0}]{
@@ -2344,30 +2520,30 @@
 }
 
 @; -----------------------------------------------------------------------------
-@tr-lemma[#:key "N-delta-preservation" @elem{@${\delta} preservation}]{
+@tr-lemma[#:key "C-delta-preservation" @elem{@${\delta} preservation}]{
   @itemlist[
     @item{
-      If @${\wellNE v} and @${\delta(\vunop, v) = v'} then @${\wellNE v'}
+      If @${\wellCE v} and @${\delta(\vunop, v) = v'} then @${\wellCE v'}
     }
     @item{
-      If @${\wellNE v_0} and @${\wellNE v_1} and @${\delta(\vbinop, v_0, v_1) = v'}
-       then @${\wellNE v'}
+      If @${\wellCE v_0} and @${\wellCE v_1} and @${\delta(\vbinop, v_0, v_1) = v'}
+       then @${\wellCE v'}
     }
   ]
 }@tr-proof{
 
   @tr-case[@${\delta(\vfst, \vpair{v_0}{v_1}) = v_0}]{
     @tr-step{
-      @${\wellNE v_0}
-      @|N-D-inversion|
+      @${\wellCE v_0}
+      @|C-D-inversion|
     }
     @tr-qed[]
   }
 
   @tr-case[@${\delta(\vsnd, \vpair{v_0}{v_1}) = v_1}]{
     @tr-step{
-      @${\wellNE v_1}
-      @|N-D-inversion|
+      @${\wellCE v_1}
+      @|C-D-inversion|
     }
     @tr-qed[]
   }
@@ -2382,10 +2558,10 @@
 }
 
 @; -----------------------------------------------------------------------------
-@tr-lemma[#:key "N-SS-subst" @elem{@${\langN} static-static substitution}]{
-  If @${\tann{x}{\tau_x},\Gamma \wellNE e : \tau}
-  and @${\wellNE v : \tau_x}
-  then @${\Gamma \wellNE \vsubst{e}{x}{v} : \tau}
+@tr-lemma[#:key "C-SS-subst" @elem{@${\langC} static-static substitution}]{
+  If @${\tann{x}{\tau_x},\Gamma \wellCE e : \tau}
+  and @${\wellCE v : \tau_x}
+  then @${\Gamma \wellCE \vsubst{e}{x}{v} : \tau}
 }@tr-proof{
   By induction on the structure of @${e}.
 
@@ -2393,16 +2569,16 @@
     @tr-step{
       @${\vsubst{e}{x}{v} = v}}
     @tr-step{
-      @${\tann{x}{\tau_x},\Gamma \wellNE x : \tau}}
+      @${\tann{x}{\tau_x},\Gamma \wellCE x : \tau}}
     @tr-step{
       @${\tau_x \subteq \tau}
-      @|N-S-inversion|}
+      @|C-S-inversion|}
     @tr-step{
-      @${\wellNE v : \tau}
+      @${\wellCE v : \tau}
       (3)}
     @tr-step{
-      @${\Gamma \wellNE v : \tau}
-      @|N-weakening|}
+      @${\Gamma \wellCE v : \tau}
+      @|C-weakening|}
     @tr-qed[]
   }
 
@@ -2419,21 +2595,21 @@
   }
 
   @tr-case[@${e = \vlam{x'}{e'}}]{
-    @tr-contradiction{@${\tann{x}{\tau_x},\Gamma \wellNE e : \tau}}
+    @tr-contradiction{@${\tann{x}{\tau_x},\Gamma \wellCE e : \tau}}
   }
 
   @tr-case[@${e = \vlam{\tann{x'}{\tau'}}{e'}}]{
     @tr-step{
       @${\vsubst{e}{x}{v} = \vlam{\tann{x'}{\tau'}}{(\vsubst{e'}{x}{v})}}}
     @tr-step{
-      @${\tann{x'}{\tau'},\tann{x}{\tau_x},\Gamma \wellNE e' : \tau_c'
+      @${\tann{x'}{\tau'},\tann{x}{\tau_x},\Gamma \wellCE e' : \tau_c'
          @tr-and[]
          \tarr{\tau'}{\tau_c'} \subteq \tau}}
     @tr-step{
-      @${\tann{x'}{\tau'},\Gamma \wellNE \vsubst{e'}{x}{v} : \tau_c'}
+      @${\tann{x'}{\tau'},\Gamma \wellCE \vsubst{e'}{x}{v} : \tau_c'}
       @tr-IH (2)}
     @tr-step{
-      @${\Gamma \wellNE \vlam{\tann{x'}{\tau'}}{e'} : \tau}}
+      @${\Gamma \wellCE \vlam{\tann{x'}{\tau'}}{e'} : \tau}}
     @tr-qed[]
   }
 
@@ -2441,13 +2617,13 @@
     @tr-step{
       @${\vsubst{e}{x}{v} = \vmonfun{\tarr{\tau_d}{\tau_c}}{\vsubst{v'}{x}{v}}} }
     @tr-step{
-      @${\tann{x}{\tau_x},\Gamma \wellNE v'}
-      @|N-S-inversion|}
+      @${\tann{x}{\tau_x},\Gamma \wellCE v'}
+      @|C-S-inversion|}
     @tr-step{
-      @${\Gamma \wellNE \vsubst{v'}{x}{v}}
-      @|N-DS-subst| (2)}
+      @${\Gamma \wellCE \vsubst{v'}{x}{v}}
+      @|C-DS-subst| (2)}
     @tr-step{
-      @${\Gamma \wellNE \vmonfun{\tarr{\tau_d}{\tau_c}}{\vsubst{v'}{x}{v}} : \tau}
+      @${\Gamma \wellCE \vmonfun{\tarr{\tau_d}{\tau_c}}{\vsubst{v'}{x}{v}} : \tau}
       (3)}
     @tr-qed[]
   }
@@ -2456,20 +2632,34 @@
     @tr-step{
       @${\vsubst{e}{x}{v} = \vpair{\vsubst{e_0}{x}{v}}{\vsubst{e_1}{x}{v}}}}
     @tr-step{
-      @${\tann{x}{\tau_x},\Gamma \wellNE e_0 : \tau_0
+      @${\tann{x}{\tau_x},\Gamma \wellCE e_0 : \tau_0
          @tr-and[]
-         \tann{x}{\tau_x},\Gamma \wellNE e_1 : \tau_1}
-      @|N-S-inversion|}
+         \tann{x}{\tau_x},\Gamma \wellCE e_1 : \tau_1}
+      @|C-S-inversion|}
     @tr-step{
-      @${\Gamma \wellNE \vsubst{e_0}{x}{v} : \tau_0
+      @${\Gamma \wellCE \vsubst{e_0}{x}{v} : \tau_0
          @tr-and[]
-         \Gamma \wellNE \vsubst{e_1}{x}{v} : \tau_1}
+         \Gamma \wellCE \vsubst{e_1}{x}{v} : \tau_1}
       @tr-IH (2)
     }
     @tr-step{
-      @${\Gamma \wellNE \vpair{\vsubst{e_0}{x}{v}}{\vsubst{e_1}{x}{v}} : \tau}
+      @${\Gamma \wellCE \vpair{\vsubst{e_0}{x}{v}}{\vsubst{e_1}{x}{v}} : \tau}
       (3)
     }
+    @tr-qed[]
+  }
+
+  @tr-case[@${e = \vmonpair{\tpair{\tau_0}{\tau_1}}{v'}}]{
+    @tr-step{
+      @${\vsubst{e}{x}{v} = \vmonpair{\tpair{\tau_0}{\tau_1}}{\vsubst{v'}{x}{v}}} }
+    @tr-step{
+      @${\tann{x}{\tau_x},\Gamma \wellCE v'}
+      @|C-S-inversion|}
+    @tr-step{
+      @${\Gamma \wellCE \vsubst{v'}{x}{v}}
+      @|C-DS-subst| (2)}
+    @tr-step{
+      @${\Gamma \wellCE \vmonpair{\tpair{\tau_0}{\tau_1}}{\vsubst{v'}{x}{v}} : \tau} }
     @tr-qed[]
   }
 
@@ -2477,18 +2667,18 @@
     @tr-step{
       @${\vsubst{e}{x}{v} = \vapp{\vsubst{e_0}{x}{v}}{\vsubst{e_1}{x}{v}}}}
     @tr-step{
-      @${\tann{x}{\tau_x},\Gamma \wellNE e_0 : \tau_0
+      @${\tann{x}{\tau_x},\Gamma \wellCE e_0 : \tau_0
          @tr-and[]
-         \tann{x}{\tau_x},\Gamma \wellNE e_1 : \tau_1}
-      @|N-S-inversion|}
+         \tann{x}{\tau_x},\Gamma \wellCE e_1 : \tau_1}
+      @|C-S-inversion|}
     @tr-step{
-      @${\Gamma \wellNE \vsubst{e_0}{x}{v} : \tau_0
+      @${\Gamma \wellCE \vsubst{e_0}{x}{v} : \tau_0
          @tr-and[]
-         \Gamma \wellNE \vsubst{e_1}{x}{v} : \tau_1}
+         \Gamma \wellCE \vsubst{e_1}{x}{v} : \tau_1}
       @tr-IH (2)
     }
     @tr-step{
-      @${\Gamma \wellNE \vapp{\vsubst{e_0}{x}{v}}{\vsubst{e_1}{x}{v}} : \tau}
+      @${\Gamma \wellCE \vapp{\vsubst{e_0}{x}{v}}{\vsubst{e_1}{x}{v}} : \tau}
       (3)
     }
     @tr-qed[]
@@ -2498,14 +2688,14 @@
     @tr-step{
       @${\vsubst{e}{x}{v} = \eunop{\vsubst{e_0}{x}{v}}}}
     @tr-step{
-      @${\tann{x}{\tau_x},\Gamma \wellNE e_0 : \tau_0}
-      @|N-S-inversion|}
+      @${\tann{x}{\tau_x},\Gamma \wellCE e_0 : \tau_0}
+      @|C-S-inversion|}
     @tr-step{
-      @${\Gamma \wellNE \vsubst{e_0}{x}{v} : \tau_0}
+      @${\Gamma \wellCE \vsubst{e_0}{x}{v} : \tau_0}
       @tr-IH (2)
     }
     @tr-step{
-      @${\Gamma \wellNE \eunop{\vsubst{e_0}{x}{v}} : \tau}
+      @${\Gamma \wellCE \eunop{\vsubst{e_0}{x}{v}} : \tau}
       (3)
     }
     @tr-qed[]
@@ -2515,18 +2705,18 @@
     @tr-step{
       @${\vsubst{e}{x}{v} = \ebinop{\vsubst{e_0}{x}{v}}{\vsubst{e_1}{x}{v}}}}
     @tr-step{
-      @${\tann{x}{\tau_x},\Gamma \wellNE e_0 : \tau_0
+      @${\tann{x}{\tau_x},\Gamma \wellCE e_0 : \tau_0
          @tr-and[]
-         \tann{x}{\tau_x},\Gamma \wellNE e_1 : \tau_1}
-      @|N-S-inversion|}
+         \tann{x}{\tau_x},\Gamma \wellCE e_1 : \tau_1}
+      @|C-S-inversion|}
     @tr-step{
-      @${\Gamma \wellNE \vsubst{e_0}{x}{v} : \tau_0
+      @${\Gamma \wellCE \vsubst{e_0}{x}{v} : \tau_0
          @tr-and[]
-         \Gamma \wellNE \vsubst{e_1}{x}{v} : \tau_1}
+         \Gamma \wellCE \vsubst{e_1}{x}{v} : \tau_1}
       @tr-IH (2)
     }
     @tr-step{
-      @${\Gamma \wellNE \ebinop{\vsubst{e_0}{x}{v}}{\vsubst{e_1}{x}{v}} : \tau}
+      @${\Gamma \wellCE \ebinop{\vsubst{e_0}{x}{v}}{\vsubst{e_1}{x}{v}} : \tau}
       (3)
     }
     @tr-qed[]
@@ -2536,13 +2726,13 @@
     @tr-step{
       @${\vsubst{e}{x}{v} = \edyn{\tau'}{\vsubst{e'}{x}{v}}}}
     @tr-step{
-      @${\tann{x}{\tau_x},\Gamma \wellNE e'}
-      @|N-S-inversion|}
+      @${\tann{x}{\tau_x},\Gamma \wellCE e'}
+      @|C-S-inversion|}
     @tr-step{
-      @${\Gamma \wellNE \vsubst{e'}{x}{v}}
-      @|N-DS-subst| (2)}
+      @${\Gamma \wellCE \vsubst{e'}{x}{v}}
+      @|C-DS-subst| (2)}
     @tr-step{
-      @${\Gamma \wellNE \edyn{\tau'}{\vsubst{e'}{x}{v}} : \tau}
+      @${\Gamma \wellCE \edyn{\tau'}{\vsubst{e'}{x}{v}} : \tau}
       (3)}
     @tr-qed[]
   }
@@ -2550,15 +2740,15 @@
 }
 
 @; -----------------------------------------------------------------------------
-@tr-lemma[#:key "N-SD-subst" @elem{@${\langN} static-dynamic substitution}]{
-  If @${x,\Gamma \wellNE e : \tau}
-  and @${\wellNE v}
-  then @${\Gamma \wellNE \vsubst{e}{x}{v} : \tau}
+@tr-lemma[#:key "C-SD-subst" @elem{@${\langC} static-dynamic substitution}]{
+  If @${x,\Gamma \wellCE e : \tau}
+  and @${\wellCE v}
+  then @${\Gamma \wellCE \vsubst{e}{x}{v} : \tau}
 }@tr-proof{
   By induction on the structure of @${e}.
 
   @tr-case[@${e = x}]{
-    @tr-contradiction{@${x,\Gamma \wellNE x : \tau}}
+    @tr-contradiction{@${x,\Gamma \wellCE x : \tau}}
   }
 
   @tr-case[@${e = x'}]{
@@ -2574,21 +2764,21 @@
   }
 
   @tr-case[@${e = \vlam{x'}{e'}}]{
-    @tr-contradiction{@${\tann{x}{\tau_x},\Gamma \wellNE e : \tau}}
+    @tr-contradiction{@${\tann{x}{\tau_x},\Gamma \wellCE e : \tau}}
   }
 
   @tr-case[@${e = \vlam{\tann{x'}{\tau'}}{e'}}]{
     @tr-step{
       @${\vsubst{e}{x}{v} = \vlam{\tann{x'}{\tau'}}{(\vsubst{e'}{x}{v})}}}
     @tr-step{
-      @${\tann{x'}{\tau'},x,\Gamma \wellNE e' : \tau_c'
+      @${\tann{x'}{\tau'},x,\Gamma \wellCE e' : \tau_c'
          @tr-and[]
          \tarr{\tau'}{\tau_c'} \subteq \tau}}
     @tr-step{
-      @${\tann{x'}{\tau'},\Gamma \wellNE \vsubst{e'}{x}{v} : \tau_c'}
+      @${\tann{x'}{\tau'},\Gamma \wellCE \vsubst{e'}{x}{v} : \tau_c'}
       @tr-IH (2)}
     @tr-step{
-      @${\Gamma \wellNE \vlam{\tann{x'}{\tau'}}{e'} : \tau}}
+      @${\Gamma \wellCE \vlam{\tann{x'}{\tau'}}{e'} : \tau}}
     @tr-qed[]
   }
 
@@ -2596,13 +2786,13 @@
     @tr-step{
       @${\vsubst{e}{x}{v} = \vmonfun{\tarr{\tau_d}{\tau_c}}{\vsubst{v'}{x}{v}}} }
     @tr-step{
-      @${x,\Gamma \wellNE v'}
-      @|N-S-inversion|}
+      @${x,\Gamma \wellCE v'}
+      @|C-S-inversion|}
     @tr-step{
-      @${\Gamma \wellNE \vsubst{v'}{x}{v}}
-      @|N-DD-subst| (2)}
+      @${\Gamma \wellCE \vsubst{v'}{x}{v}}
+      @|C-DD-subst| (2)}
     @tr-step{
-      @${\Gamma \wellNE \vmonfun{\tarr{\tau_d}{\tau_c}}{\vsubst{v'}{x}{v}} : \tau}
+      @${\Gamma \wellCE \vmonfun{\tarr{\tau_d}{\tau_c}}{\vsubst{v'}{x}{v}} : \tau}
       (3)}
     @tr-qed[]
   }
@@ -2611,20 +2801,34 @@
     @tr-step{
       @${\vsubst{e}{x}{v} = \vpair{\vsubst{e_0}{x}{v}}{\vsubst{e_1}{x}{v}}}}
     @tr-step{
-      @${x,\Gamma \wellNE e_0 : \tau_0
+      @${x,\Gamma \wellCE e_0 : \tau_0
          @tr-and[]
-         x,\Gamma \wellNE e_1 : \tau_1}
-      @|N-S-inversion|}
+         x,\Gamma \wellCE e_1 : \tau_1}
+      @|C-S-inversion|}
     @tr-step{
-      @${\Gamma \wellNE \vsubst{e_0}{x}{v} : \tau_0
+      @${\Gamma \wellCE \vsubst{e_0}{x}{v} : \tau_0
          @tr-and[]
-         \Gamma \wellNE \vsubst{e_1}{x}{v} : \tau_1}
+         \Gamma \wellCE \vsubst{e_1}{x}{v} : \tau_1}
       @tr-IH (2)
     }
     @tr-step{
-      @${\Gamma \wellNE \vpair{\vsubst{e_0}{x}{v}}{\vsubst{e_1}{x}{v}} : \tau}
+      @${\Gamma \wellCE \vpair{\vsubst{e_0}{x}{v}}{\vsubst{e_1}{x}{v}} : \tau}
       (3)
     }
+    @tr-qed[]
+  }
+
+  @tr-case[@${e = \vmonpair{\tpair{\tau_0}{\tau_1}}{v'}}]{
+    @tr-step{
+      @${\vsubst{e}{x}{v} = \vmonpair{\tpair{\tau_0}{\tau_1}}{\vsubst{v'}{x}{v}}} }
+    @tr-step{
+      @${x,\Gamma \wellCE v'}
+      @|C-S-inversion|}
+    @tr-step{
+      @${\Gamma \wellCE \vsubst{v'}{x}{v}}
+      @|C-DD-subst| (2)}
+    @tr-step{
+      @${\Gamma \wellCE \vmonpair{\tpair{\tau_0}{\tau_1}}{\vsubst{v'}{x}{v}} : \tau} }
     @tr-qed[]
   }
 
@@ -2632,18 +2836,18 @@
     @tr-step{
       @${\vsubst{e}{x}{v} = \vapp{\vsubst{e_0}{x}{v}}{\vsubst{e_1}{x}{v}}}}
     @tr-step{
-      @${x,\Gamma \wellNE e_0 : \tau_0
+      @${x,\Gamma \wellCE e_0 : \tau_0
          @tr-and[]
-         x,\Gamma \wellNE e_1 : \tau_1}
-      @|N-S-inversion|}
+         x,\Gamma \wellCE e_1 : \tau_1}
+      @|C-S-inversion|}
     @tr-step{
-      @${\Gamma \wellNE \vsubst{e_0}{x}{v} : \tau_0
+      @${\Gamma \wellCE \vsubst{e_0}{x}{v} : \tau_0
          @tr-and[]
-         \Gamma \wellNE \vsubst{e_1}{x}{v} : \tau_1}
+         \Gamma \wellCE \vsubst{e_1}{x}{v} : \tau_1}
       @tr-IH (2)
     }
     @tr-step{
-      @${\Gamma \wellNE \vapp{\vsubst{e_0}{x}{v}}{\vsubst{e_1}{x}{v}} : \tau}
+      @${\Gamma \wellCE \vapp{\vsubst{e_0}{x}{v}}{\vsubst{e_1}{x}{v}} : \tau}
       (3)
     }
     @tr-qed[]
@@ -2653,14 +2857,14 @@
     @tr-step{
       @${\vsubst{e}{x}{v} = \eunop{\vsubst{e_0}{x}{v}}}}
     @tr-step{
-      @${x,\Gamma \wellNE e_0 : \tau_0}
-      @|N-S-inversion|}
+      @${x,\Gamma \wellCE e_0 : \tau_0}
+      @|C-S-inversion|}
     @tr-step{
-      @${\Gamma \wellNE \vsubst{e_0}{x}{v} : \tau_0}
+      @${\Gamma \wellCE \vsubst{e_0}{x}{v} : \tau_0}
       @tr-IH (2)
     }
     @tr-step{
-      @${\Gamma \wellNE \eunop{\vsubst{e_0}{x}{v}} : \tau}
+      @${\Gamma \wellCE \eunop{\vsubst{e_0}{x}{v}} : \tau}
       (3)
     }
     @tr-qed[]
@@ -2670,18 +2874,18 @@
     @tr-step{
       @${\vsubst{e}{x}{v} = \ebinop{\vsubst{e_0}{x}{v}}{\vsubst{e_1}{x}{v}}}}
     @tr-step{
-      @${x,\Gamma \wellNE e_0 : \tau_0
+      @${x,\Gamma \wellCE e_0 : \tau_0
          @tr-and[]
-         x,\Gamma \wellNE e_1 : \tau_1}
-      @|N-S-inversion|}
+         x,\Gamma \wellCE e_1 : \tau_1}
+      @|C-S-inversion|}
     @tr-step{
-      @${\Gamma \wellNE \vsubst{e_0}{x}{v} : \tau_0
+      @${\Gamma \wellCE \vsubst{e_0}{x}{v} : \tau_0
          @tr-and[]
-         \Gamma \wellNE \vsubst{e_1}{x}{v} : \tau_1}
+         \Gamma \wellCE \vsubst{e_1}{x}{v} : \tau_1}
       @tr-IH (2)
     }
     @tr-step{
-      @${\Gamma \wellNE \ebinop{\vsubst{e_0}{x}{v}}{\vsubst{e_1}{x}{v}} : \tau}
+      @${\Gamma \wellCE \ebinop{\vsubst{e_0}{x}{v}}{\vsubst{e_1}{x}{v}} : \tau}
       (3)
     }
     @tr-qed[]
@@ -2691,13 +2895,13 @@
     @tr-step{
       @${\vsubst{e}{x}{v} = \edyn{\tau'}{\vsubst{e'}{x}{v}}}}
     @tr-step{
-      @${x,\Gamma \wellNE e'}
-      @|N-S-inversion|}
+      @${x,\Gamma \wellCE e'}
+      @|C-S-inversion|}
     @tr-step{
-      @${\Gamma \wellNE \vsubst{e'}{x}{v}}
-      @|N-DD-subst| (2)}
+      @${\Gamma \wellCE \vsubst{e'}{x}{v}}
+      @|C-DD-subst| (2)}
     @tr-step{
-      @${\Gamma \wellNE \edyn{\tau'}{\vsubst{e'}{x}{v}} : \tau}
+      @${\Gamma \wellCE \edyn{\tau'}{\vsubst{e'}{x}{v}} : \tau}
       (3)}
     @tr-qed[]
   }
@@ -2705,15 +2909,15 @@
 }
 
 @; -----------------------------------------------------------------------------
-@tr-lemma[#:key "N-DS-subst" @elem{@${\langN} dynamic-static substitution}]{
-  If @${\tann{x}{\tau_x},\Gamma \wellNE e}
-  and @${\wellNE v : \tau_x}
-  then @${\Gamma \wellNE \vsubst{e}{x}{v}}
+@tr-lemma[#:key "C-DS-subst" @elem{@${\langC} dynamic-static substitution}]{
+  If @${\tann{x}{\tau_x},\Gamma \wellCE e}
+  and @${\wellCE v : \tau_x}
+  then @${\Gamma \wellCE \vsubst{e}{x}{v}}
 }@tr-proof{
   By induction on the structure of @${e}.
 
   @tr-case[@${e = x}]{
-    @tr-contradiction{@${\tann{x}{\tau_x},\Gamma \wellNE x}}
+    @tr-contradiction{@${\tann{x}{\tau_x},\Gamma \wellCE x}}
   }
 
   @tr-case[@${e = x'}]{
@@ -2732,32 +2936,32 @@
     @tr-step{
       @${\vsubst{e}{x}{v} = \vlam{x'}{(\vsubst{e'}{x}{v})}} }
     @tr-step{
-      @${x',\tann{x}{\tau_x},\Gamma \wellNE e'}
-      @|N-D-inversion|}
+      @${x',\tann{x}{\tau_x},\Gamma \wellCE e'}
+      @|C-D-inversion|}
     @tr-step{
-      @${x',\Gamma \wellNE \vsubst{e'}{x}{v}}
+      @${x',\Gamma \wellCE \vsubst{e'}{x}{v}}
       @tr-IH (2)}
     @tr-step{
-      @${\Gamma \wellNE \vlam{x'}{(\vsubst{e'}{x}{v})}}
+      @${\Gamma \wellCE \vlam{x'}{(\vsubst{e'}{x}{v})}}
       (3)}
     @tr-qed[]
   }
 
   @tr-case[@${e = \vlam{\tann{x'}{\tau'}}{e'}}]{
-    @tr-contradiction{@${\tann{x}{\tau_x},\Gamma \wellNE e}}
+    @tr-contradiction{@${\tann{x}{\tau_x},\Gamma \wellCE e}}
   }
 
   @tr-case[@${e = \vmonfun{\tarr{\tau_d}{\tau_c}}{v'}}]{
     @tr-step{
       @${\vsubst{e}{x}{v} = \vmonfun{\tarr{\tau_d}{\tau_c}}{\vsubst{v'}{x}{v}}} }
     @tr-step{
-      @${\tann{x}{\tau_x},\Gamma \wellNE v' : \tarr{\tau_d}{\tau_c}}
-      @|N-D-inversion|}
+      @${\tann{x}{\tau_x},\Gamma \wellCE v' : \tarr{\tau_d}{\tau_c}}
+      @|C-D-inversion|}
     @tr-step{
-      @${\Gamma \wellNE \vsubst{v'}{x}{v} : \tarr{\tau_d}{\tau_c}}
-      @|N-SS-subst| (2)}
+      @${\Gamma \wellCE \vsubst{v'}{x}{v} : \tarr{\tau_d}{\tau_c}}
+      @|C-SS-subst| (2)}
     @tr-step{
-      @${\Gamma \wellNE \vmonfun{\tarr{\tau_d}{\tau_c}}{\vsubst{v'}{x}{v}}}
+      @${\Gamma \wellCE \vmonfun{\tarr{\tau_d}{\tau_c}}{\vsubst{v'}{x}{v}}}
       (3)}
     @tr-qed[]
   }
@@ -2766,20 +2970,34 @@
     @tr-step{
       @${\vsubst{e}{x}{v} = \vpair{\vsubst{e_0}{x}{v}}{\vsubst{e_1}{x}{v}}}}
     @tr-step{
-      @${\tann{x}{\tau_x},\Gamma \wellNE e_0
+      @${\tann{x}{\tau_x},\Gamma \wellCE e_0
          @tr-and[]
-         \tann{x}{\tau_x},\Gamma \wellNE e_1}
-      @|N-D-inversion|}
+         \tann{x}{\tau_x},\Gamma \wellCE e_1}
+      @|C-D-inversion|}
     @tr-step{
-      @${\Gamma \wellNE \vsubst{e_0}{x}{v}
+      @${\Gamma \wellCE \vsubst{e_0}{x}{v}
          @tr-and[]
-         \Gamma \wellNE \vsubst{e_1}{x}{v}}
+         \Gamma \wellCE \vsubst{e_1}{x}{v}}
       @tr-IH (2)
     }
     @tr-step{
-      @${\Gamma \wellNE \vpair{\vsubst{e_0}{x}{v}}{\vsubst{e_1}{x}{v}}}
+      @${\Gamma \wellCE \vpair{\vsubst{e_0}{x}{v}}{\vsubst{e_1}{x}{v}}}
       (3)
     }
+    @tr-qed[]
+  }
+
+  @tr-case[@${e = \vmonpair{\tpair{\tau_0}{\tau_1}}{v'}}]{
+    @tr-step{
+      @${\vsubst{e}{x}{v} = \vmonpair{\tpair{\tau_0}{\tau_1}}{\vsubst{v'}{x}{v}}} }
+    @tr-step{
+      @${\tann{x}{\tau_x},\Gamma \wellCE v' : \tpair{\tau_0}{\tau_1}}
+      @|C-D-inversion|}
+    @tr-step{
+      @${\Gamma \wellCE \vsubst{v'}{x}{v} : \tpair{\tau_0}{\tau_1}}
+      @|C-SS-subst| (2)}
+    @tr-step{
+      @${\Gamma \wellCE \vmonpair{\tpair{\tau_0}{\tau_1}}{\vsubst{\vpair{v_0}{v_1}}{x}{v}}} }
     @tr-qed[]
   }
 
@@ -2787,18 +3005,18 @@
     @tr-step{
       @${\vsubst{e}{x}{v} = \vapp{\vsubst{e_0}{x}{v}}{\vsubst{e_1}{x}{v}}}}
     @tr-step{
-      @${\tann{x}{\tau_x},\Gamma \wellNE e_0
+      @${\tann{x}{\tau_x},\Gamma \wellCE e_0
          @tr-and[]
-         \tann{x}{\tau_x},\Gamma \wellNE e_1}
-      @|N-D-inversion|}
+         \tann{x}{\tau_x},\Gamma \wellCE e_1}
+      @|C-D-inversion|}
     @tr-step{
-      @${\Gamma \wellNE \vsubst{e_0}{x}{v}
+      @${\Gamma \wellCE \vsubst{e_0}{x}{v}
          @tr-and[]
-         \Gamma \wellNE \vsubst{e_1}{x}{v}}
+         \Gamma \wellCE \vsubst{e_1}{x}{v}}
       @tr-IH (2)
     }
     @tr-step{
-      @${\Gamma \wellNE \vapp{\vsubst{e_0}{x}{v}}{\vsubst{e_1}{x}{v}}}
+      @${\Gamma \wellCE \vapp{\vsubst{e_0}{x}{v}}{\vsubst{e_1}{x}{v}}}
       (3)
     }
     @tr-qed[]
@@ -2808,14 +3026,14 @@
     @tr-step{
       @${\vsubst{e}{x}{v} = \eunop{\vsubst{e_0}{x}{v}}}}
     @tr-step{
-      @${\tann{x}{\tau_x},\Gamma \wellNE e_0}
-      @|N-D-inversion|}
+      @${\tann{x}{\tau_x},\Gamma \wellCE e_0}
+      @|C-D-inversion|}
     @tr-step{
-      @${\Gamma \wellNE \vsubst{e_0}{x}{v}}
+      @${\Gamma \wellCE \vsubst{e_0}{x}{v}}
       @tr-IH (2)
     }
     @tr-step{
-      @${\Gamma \wellNE \eunop{\vsubst{e_0}{x}{v}}}
+      @${\Gamma \wellCE \eunop{\vsubst{e_0}{x}{v}}}
       (3)
     }
     @tr-qed[]
@@ -2825,18 +3043,18 @@
     @tr-step{
       @${\vsubst{e}{x}{v} = \ebinop{\vsubst{e_0}{x}{v}}{\vsubst{e_1}{x}{v}}}}
     @tr-step{
-      @${\tann{x}{\tau_x},\Gamma \wellNE e_0
+      @${\tann{x}{\tau_x},\Gamma \wellCE e_0
          @tr-and[]
-         \tann{x}{\tau_x},\Gamma \wellNE e_1}
-      @|N-D-inversion|}
+         \tann{x}{\tau_x},\Gamma \wellCE e_1}
+      @|C-D-inversion|}
     @tr-step{
-      @${\Gamma \wellNE \vsubst{e_0}{x}{v}
+      @${\Gamma \wellCE \vsubst{e_0}{x}{v}
          @tr-and[]
-         \Gamma \wellNE \vsubst{e_1}{x}{v}}
+         \Gamma \wellCE \vsubst{e_1}{x}{v}}
       @tr-IH (2)
     }
     @tr-step{
-      @${\Gamma \wellNE \ebinop{\vsubst{e_0}{x}{v}}{\vsubst{e_1}{x}{v}}}
+      @${\Gamma \wellCE \ebinop{\vsubst{e_0}{x}{v}}{\vsubst{e_1}{x}{v}}}
       (3)
     }
     @tr-qed[]
@@ -2846,23 +3064,23 @@
     @tr-step{
       @${\vsubst{e}{x}{v} = \esta{\tau'}{\vsubst{e'}{x}{v}}}}
     @tr-step{
-      @${\tann{x}{\tau_x},\Gamma \wellNE e' : \tau'}
-      @|N-D-inversion|}
+      @${\tann{x}{\tau_x},\Gamma \wellCE e' : \tau'}
+      @|C-D-inversion|}
     @tr-step{
-      @${\Gamma \wellNE \vsubst{e'}{x}{v} : \tau'}
-      @|N-SS-subst| (2)}
+      @${\Gamma \wellCE \vsubst{e'}{x}{v} : \tau'}
+      @|C-SS-subst| (2)}
     @tr-step{
-      @${\Gamma \wellNE \esta{\tau'}{\vsubst{e'}{x}{v}}}
+      @${\Gamma \wellCE \esta{\tau'}{\vsubst{e'}{x}{v}}}
       (3)}
     @tr-qed[]
   }
 }
 
 @; -----------------------------------------------------------------------------
-@tr-lemma[#:key "N-DD-subst" @elem{@${\langN} dynamic-dynamic substitution}]{
-  If @${x,\Gamma \wellNE e}
-  and @${\wellNE v}
-  then @${\Gamma \wellNE \vsubst{e}{x}{v}}
+@tr-lemma[#:key "C-DD-subst" @elem{@${\langC} dynamic-dynamic substitution}]{
+  If @${x,\Gamma \wellCE e}
+  and @${\wellCE v}
+  then @${\Gamma \wellCE \vsubst{e}{x}{v}}
 }@tr-proof{
   By induction on the structure of @${e}
 
@@ -2870,8 +3088,8 @@
     @tr-step{
       @${\vsubst{e}{x}{v} = v}}
     @tr-step{
-      @${\Gamma \wellNE v}
-      @|N-weakening|}
+      @${\Gamma \wellCE v}
+      @|C-weakening|}
     @tr-qed[]
   }
 
@@ -2891,32 +3109,32 @@
     @tr-step{
       @${\vsubst{e}{x}{v} = \vlam{x'}{(\vsubst{e'}{x}{v})}} }
     @tr-step{
-      @${x',x,\Gamma \wellNE e'}
-      @|N-D-inversion|}
+      @${x',x,\Gamma \wellCE e'}
+      @|C-D-inversion|}
     @tr-step{
-      @${x',\Gamma \wellNE \vsubst{e'}{x}{v}}
+      @${x',\Gamma \wellCE \vsubst{e'}{x}{v}}
       @tr-IH (2)}
     @tr-step{
-      @${\Gamma \wellNE \vlam{x'}{(\vsubst{e'}{x}{v})}}
+      @${\Gamma \wellCE \vlam{x'}{(\vsubst{e'}{x}{v})}}
       (3)}
     @tr-qed[]
   }
 
   @tr-case[@${e = \vlam{\tann{x'}{\tau'}}{e'}}]{
-    @tr-contradiction{@${x,\Gamma \wellNE e}}
+    @tr-contradiction{@${x,\Gamma \wellCE e}}
   }
 
   @tr-case[@${e = \vmonfun{\tarr{\tau_d}{\tau_c}}{v'}}]{
     @tr-step{
       @${\vsubst{e}{x}{v} = \vmonfun{\tarr{\tau_d}{\tau_c}}{\vsubst{v'}{x}{v}}} }
     @tr-step{
-      @${x,\Gamma \wellNE v' : \tarr{\tau_d}{\tau_c}}
-      @|N-D-inversion|}
+      @${x,\Gamma \wellCE v'}
+      @|C-D-inversion|}
     @tr-step{
-      @${\Gamma \wellNE \vsubst{v'}{x}{v} : \tarr{\tau_d}{\tau_c}}
-      @|N-SD-subst| (2)}
+      @${\Gamma \wellCE \vsubst{v'}{x}{v}}
+      @tr-IH (2)}
     @tr-step{
-      @${\Gamma \wellNE \vmonfun{\tarr{\tau_d}{\tau_c}}{\vsubst{v'}{x}{v}}}
+      @${\Gamma \wellCE \vmonfun{\tarr{\tau_d}{\tau_c}}{\vsubst{v'}{x}{v}}}
       (3)}
     @tr-qed[]
   }
@@ -2925,20 +3143,34 @@
     @tr-step{
       @${\vsubst{e}{x}{v} = \vpair{\vsubst{e_0}{x}{v}}{\vsubst{e_1}{x}{v}}}}
     @tr-step{
-      @${x,\Gamma \wellNE e_0
+      @${x,\Gamma \wellCE e_0
          @tr-and[]
-         x,\Gamma \wellNE e_1}
-      @|N-D-inversion|}
+         x,\Gamma \wellCE e_1}
+      @|C-D-inversion|}
     @tr-step{
-      @${\Gamma \wellNE \vsubst{e_0}{x}{v}
+      @${\Gamma \wellCE \vsubst{e_0}{x}{v}
          @tr-and[]
-         \Gamma \wellNE \vsubst{e_1}{x}{v}}
+         \Gamma \wellCE \vsubst{e_1}{x}{v}}
       @tr-IH (2)
     }
     @tr-step{
-      @${\Gamma \wellNE \vpair{\vsubst{e_0}{x}{v}}{\vsubst{e_1}{x}{v}}}
+      @${\Gamma \wellCE \vpair{\vsubst{e_0}{x}{v}}{\vsubst{e_1}{x}{v}}}
       (3)
     }
+    @tr-qed[]
+  }
+
+  @tr-case[@${e = \vmonpair{\tpair{\tau_0}{\tau_1}}{v'}}]{
+    @tr-step{
+      @${\vsubst{e}{x}{v} = \vmonpair{\tpair{\tau_0}{\tau_1}}{\vsubst{v'}{x}{v}}} }
+    @tr-step{
+      @${x,\Gamma \wellCE v' : \tpair{\tau_0}{\tau_1}}
+      @|C-D-inversion|}
+    @tr-step{
+      @${\Gamma \wellCE \vsubst{v'}{x}{v} : \tpair{\tau_0}{\tau_1}}
+      @|C-SD-subst| (2)}
+    @tr-step{
+      @${\Gamma \wellCE \vmonpair{\tpair{\tau_0}{\tau_1}}{\vsubst{v'}{x}{v}}} }
     @tr-qed[]
   }
 
@@ -2946,18 +3178,18 @@
     @tr-step{
       @${\vsubst{e}{x}{v} = \vapp{\vsubst{e_0}{x}{v}}{\vsubst{e_1}{x}{v}}}}
     @tr-step{
-      @${x,\Gamma \wellNE e_0
+      @${x,\Gamma \wellCE e_0
          @tr-and[]
-         x,\Gamma \wellNE e_1}
-      @|N-D-inversion|}
+         x,\Gamma \wellCE e_1}
+      @|C-D-inversion|}
     @tr-step{
-      @${\Gamma \wellNE \vsubst{e_0}{x}{v}
+      @${\Gamma \wellCE \vsubst{e_0}{x}{v}
          @tr-and[]
-         \Gamma \wellNE \vsubst{e_1}{x}{v}}
+         \Gamma \wellCE \vsubst{e_1}{x}{v}}
       @tr-IH (2)
     }
     @tr-step{
-      @${\Gamma \wellNE \vapp{\vsubst{e_0}{x}{v}}{\vsubst{e_1}{x}{v}}}
+      @${\Gamma \wellCE \vapp{\vsubst{e_0}{x}{v}}{\vsubst{e_1}{x}{v}}}
       (3)
     }
     @tr-qed[]
@@ -2967,14 +3199,14 @@
     @tr-step{
       @${\vsubst{e}{x}{v} = \eunop{\vsubst{e_0}{x}{v}}}}
     @tr-step{
-      @${x,\Gamma \wellNE e_0}
-      @|N-D-inversion|}
+      @${x,\Gamma \wellCE e_0}
+      @|C-D-inversion|}
     @tr-step{
-      @${\Gamma \wellNE \vsubst{e_0}{x}{v}}
+      @${\Gamma \wellCE \vsubst{e_0}{x}{v}}
       @tr-IH (2)
     }
     @tr-step{
-      @${\Gamma \wellNE \eunop{\vsubst{e_0}{x}{v}}}
+      @${\Gamma \wellCE \eunop{\vsubst{e_0}{x}{v}}}
       (3)
     }
     @tr-qed[]
@@ -2984,18 +3216,18 @@
     @tr-step{
       @${\vsubst{e}{x}{v} = \ebinop{\vsubst{e_0}{x}{v}}{\vsubst{e_1}{x}{v}}}}
     @tr-step{
-      @${x,\Gamma \wellNE e_0
+      @${x,\Gamma \wellCE e_0
          @tr-and[]
-         x,\Gamma \wellNE e_1}
-      @|N-D-inversion|}
+         x,\Gamma \wellCE e_1}
+      @|C-D-inversion|}
     @tr-step{
-      @${\Gamma \wellNE \vsubst{e_0}{x}{v}
+      @${\Gamma \wellCE \vsubst{e_0}{x}{v}
          @tr-and[]
-         \Gamma \wellNE \vsubst{e_1}{x}{v}}
+         \Gamma \wellCE \vsubst{e_1}{x}{v}}
       @tr-IH (2)
     }
     @tr-step{
-      @${\Gamma \wellNE \ebinop{\vsubst{e_0}{x}{v}}{\vsubst{e_1}{x}{v}}}
+      @${\Gamma \wellCE \ebinop{\vsubst{e_0}{x}{v}}{\vsubst{e_1}{x}{v}}}
       (3)
     }
     @tr-qed[]
@@ -3005,20 +3237,20 @@
     @tr-step{
       @${\vsubst{e}{x}{v} = \esta{\tau'}{\vsubst{e'}{x}{v}}}}
     @tr-step{
-      @${x,\Gamma \wellNE e' : \tau'}
-      @|N-D-inversion|}
+      @${x,\Gamma \wellCE e' : \tau'}
+      @|C-D-inversion|}
     @tr-step{
-      @${\Gamma \wellNE \vsubst{e'}{x}{v} : \tau'}
-      @|N-SS-subst| (2)}
+      @${\Gamma \wellCE \vsubst{e'}{x}{v} : \tau'}
+      @|C-SS-subst| (2)}
     @tr-step{
-      @${\Gamma \wellNE \esta{\tau'}{\vsubst{e'}{x}{v}}}
+      @${\Gamma \wellCE \esta{\tau'}{\vsubst{e'}{x}{v}}}
       (3)}
     @tr-qed[]
   }
 }
 
 @; -----------------------------------------------------------------------------
-@tr-lemma[#:key "N-finite-subtyping" @elem{@${\tau \subt \tau} finite}]{
+@tr-lemma[#:key "C-finite-subtyping" @elem{@${\tau \subt \tau} finite}]{
   All chains @${\tau_0 \subt \cdots \subt \tau_{n-1}} are finite.
 }@tr-proof{
   By structural induction on @${\tau}, every type has a finite number of subtypes:
@@ -3047,7 +3279,7 @@
   @tr-case[@${\tau = \tarr{\tau_d}{\tau_c}}]{
     @tr-step{
       @elem{@${\tau_d} has @${N_d} supertypes}
-      @|N-finite-supertyping|}
+      @|C-finite-supertyping|}
     @tr-step{
       @elem{@${\tau_c} has @${N_c} subtypes}
       @tr-IH}
@@ -3057,7 +3289,7 @@
 }
 
 @; -----------------------------------------------------------------------------
-@tr-lemma[#:key "N-finite-supertyping" @elem{finite supertyping}]{
+@tr-lemma[#:key "C-finite-supertyping" @elem{finite supertyping}]{
   Every type @${\tau} has a finite number of supertypes.
 }@tr-proof{
   By structural induction on @${\tau}.
@@ -3086,7 +3318,7 @@
   @tr-case[@${\tau = \tarr{\tau_d}{\tau_c}}]{
     @tr-step{
       @elem{@${\tau_d} has @${N_d} subtypes}
-      @|N-finite-subtyping|}
+      @|C-finite-subtyping|}
     @tr-step{
       @elem{@${\tau_c} has @${N_c} supertypes}
       @tr-IH}
@@ -3096,13 +3328,13 @@
 }
 
 @; -----------------------------------------------------------------------------
-@tr-lemma[#:key "N-weakening" @elem{weakening}]{
+@tr-lemma[#:key "C-weakening" @elem{weakening}]{
   @itemize[
     @item{
-      If @${\Gamma \wellNE e} then @${x,\Gamma \wellNE e}
+      If @${\Gamma \wellCE e} then @${x,\Gamma \wellCE e}
     }
     @item{
-      If @${\Gamma \wellNE e : \tau} then @${\tann{x}{\tau'},\Gamma \wellNE e : \tau}
+      If @${\Gamma \wellCE e : \tau} then @${\tann{x}{\tau'},\Gamma \wellCE e : \tau}
     }
   ]
 }@tr-proof{
@@ -3111,9 +3343,9 @@
     @item{
       @tr-step[
         @${e \mbox{ is closed under } \Gamma}
-        @${\Gamma \wellNE e
+        @${\Gamma \wellCE e
            @tr-or[]
-           \Gamma \wellNE e : \tau}
+           \Gamma \wellCE e : \tau}
       ]
     }
   ]

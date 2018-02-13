@@ -1,4 +1,4 @@
-#lang gf-pldi-2018
+#lang gf-icfp-2018
 @title[#:tag "sec:design"]{Five Embeddings}
 
 @include-figure["fig:common-syntax.tex" @elem{Common syntax, types, and semantics}]

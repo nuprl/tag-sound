@@ -1,4 +1,4 @@
-#lang gf-pldi-2018
+#lang gf-icfp-2018
 
 @title{Reducing Tag Checks, Improving Error Messages}
 
