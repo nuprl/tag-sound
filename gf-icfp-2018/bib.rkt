@@ -1594,7 +1594,7 @@
 ;; ----------------------------------------
 ; Ancient history
 
-(define moon-maclisp-1974
+(define m-maclisp-1974
   (make-bib
    #:author "David A. Moon"
    #:title "MACLISP Reference Manual"
@@ -2189,3 +2189,10 @@
     #:author "Andrew W. Appel"
     #:location (book-location #:edition 1 #:publisher "Cambridge University Press")
     #:date 1992))
+
+(define s-cl-1990
+  (make-bib
+    #:title "Common Lisp the Language"
+    #:author (authors "Guy L. Steele")
+    #:location (book-location #:edition "2nd" #:publisher "Digital Press")
+    #:date 1990))
