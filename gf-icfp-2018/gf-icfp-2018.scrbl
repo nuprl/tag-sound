@@ -24,14 +24,15 @@
 
 @; -----------------------------------------------------------------------------
 
-@abstract{Gradual typing provides software developers with the means to
- re-factor an untyped code base into a typed one. As this re-factoring
- proceeds, the code base becomes a mixture of typed and untyped code.  In
- this mixed-typed world, developers may wish to rely on the soundness of
- the type system. Industrial variants of gradual typing, however, guarantee
- only an extremely limited form of soundness, and as recently shown, the
- soundness of academic implementations poses a serious performance
- bottleneck, which limits the deployability of mixed-typed software.
+@abstract{
+@;Gradual typing provides software developers with the means to
+@; re-factor an untyped code base into a typed one. As this re-factoring
+@; proceeds, the code base becomes a mixture of typed and untyped code.  In
+@; this mixed-typed world, developers may wish to rely on the soundness of
+@; the type system. Industrial variants of gradual typing, however, guarantee
+@; only an extremely limited form of soundness, and as recently shown, the
+@; soundness of academic implementations poses a serious performance
+@; bottleneck, which limits the deployability of mixed-typed software.
 
 @;{NOTE remove 'novel' when paper is accepted}
 
@@ -42,7 +43,8 @@ In this paper, we develop the novel idea of a spectrum of type soundness and
  of theoretical models of gradual typing, starting with a classically sound
  gradual core language. Furthermore, we explain how to modify Typed Racket's
  implementation and present the results of measuring this revised
- implementation on the Takikawa-Greenman benchmarks.}
+ implementation on the Takikawa-Greenman benchmarks.
+}
 
 @include-section{introduction.scrbl}
 @include-section{background.scrbl}
