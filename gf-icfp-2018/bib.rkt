@@ -106,7 +106,7 @@
    #:location (proceedings-location scheme-workshop)
    #:date 2006))
 
-(define thf-dls-2006
+(define tf-dls-2006
   (make-bib
    #:title "Interlanguage Migration: from Scripts to Programs"
    #:author (authors "Sam Tobin-Hochstadt" "Matthias Felleisen")
@@ -156,7 +156,7 @@
    #:location (proceedings-location ecoop #:pages '(2 27))
    #:date 2007))
 
-(define cthf-sfp-2007
+(define ctf-sfp-2007
   (make-bib
    #:title "Advanced Macrology and the Implementation of Typed Scheme"
    #:author (authors "Ryan Culpepper" "Sam Tobin-Hochstadt" "Matthew Flatt")
@@ -183,7 +183,7 @@
    #:location (proceedings-location ml-workshop)
    #:date 2007))
 
-(define thf-popl-2008
+(define tf-popl-2008
   (make-bib
    #:title "The Design and Implementation of Typed Scheme"
    #:author (authors "Sam Tobin-Hochstadt" "Matthias Felleisen")
@@ -378,21 +378,21 @@
    #:location (proceedings-location popl #:pages '(481 494))
    #:date 2012))
 
-(define dthf-esop-2012
+(define dtf-esop-2012
   (make-bib
    #:title "Complete Monitors for Behavioral Contracts"
    #:author (authors "Christos Dimoulas" "Sam Tobin-Hochstadt" "Matthias Felleisen")
    #:location (proceedings-location esop #:pages '(214 233))
    #:date 2012))
 
-(define sthff-oopsla-2012
+(define stff-oopsla-2012
   (make-bib
    #:author (authors "T. Stephen Strickland" "Sam Tobin-Hochstadt" "Robert Bruce Findler" "Matthew Flatt")
    #:title "Chaperones and Impersonators: Run-time Support for Reasonable Interposition"
    #:location (proceedings-location oopsla #:pages '(943 962))
    #:date 2012))
 
-(define tsdthf-oopsla-2012
+(define tsdtf-oopsla-2012
   (make-bib
    #:author (authors "Asumu Takikawa" "T. Stephen Strickland"
                      "Christos Dimoulas" "Sam Tobin-Hochstadt"
@@ -465,7 +465,7 @@
                      "Sam Tobin-Hochstadt"
                      "Ronald Garcia")))
 
-(define tfdffthf-ecoop-2015
+(define tfdfftf-ecoop-2015
   (make-bib
    #:author (authors "Asumu Takikawa" "Daniel Feltey"
                      "Earl Dean" "Robert Bruce Findler"
@@ -500,9 +500,9 @@
    #:location "Submitted for publication"
    #:date 2017))
 
-(define rnv-ecoop-2015
+(define rzv-ecoop-2015
   (make-bib
-   #:author (authors "Gregor Richards" "Francesco Zappa Nardelli" "Jan Vitek")
+   #:author (authors "Gregor Richards" "Zappa Nardelli, Francesco" "Jan Vitek")
    #:title "Concrete Types for TypeScript"
    #:location (proceedings-location ecoop #:pages '(76 100))
    #:date 2015))
@@ -541,14 +541,14 @@
 ;; ----------------------------------------
 ; Typing Untyped Languages
 
-(define cartwright-icalp-1976
+(define c-icalp-1976
   (make-bib
    #:title "User-defined Data Types as an Aid to Verifying LISP Programs"
    #:author "Robert Cartwright"
    #:location (proceedings-location icalp #:pages '(228 256))
    #:date 1976))
 
-(define suzuki-popl-1981
+(define s-popl-1981
   (make-bib
    #:title "Inferring Types in Smalltalk"
    #:author "Norihisa Suzuki"
@@ -665,14 +665,14 @@
    #:location (proceedings-location popl #:pages '(47 57))
    #:date 1988))
 
-(define thf-icfp-2010
+(define tf-icfp-2010
   (make-bib
    #:title "Logical Types for Untyped Languages"
    #:author (authors "Sam Tobin-Hochstadt" "Matthias Felleisen")
    #:location (proceedings-location icfp #:pages '(117 128))
    #:date 2010))
 
-(define sthff-padl-2012
+(define stff-padl-2012
   (make-bib
    #:title "Typing the Numeric Tower"
    #:author (authors "Vincent St-Amour" "Sam Tobin-Hochstadt"
@@ -1576,7 +1576,7 @@
 ;; ----------------------------------------
 ; Pluggable types
 
-(define bracha-pluggable-types
+(define b-ordl-2004
   (make-bib
    #:author "Gilad Bracha"
    #:title "Pluggable Type Systems"

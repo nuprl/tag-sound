@@ -44,7 +44,7 @@ It wraps any destructor calls with a similar assert to confirm that the destruct
  returns a result with the expected tag.
 
 The implementation is designed to support a functional subset of Racket.
-It does not support Typed Racket's class and object system@~cite[tfdffthf-ecoop-2015].
+It does not support Typed Racket's class and object system@~cite[tfdfftf-ecoop-2015].
 
 
 @section{Evaluation Method}

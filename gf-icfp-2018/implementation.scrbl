@@ -42,10 +42,10 @@ The second question is whether it is sound to use the @${\langD} reduction
 @section{Tags for Additional Types}
 
 The literature on migratory typing describes methods for implementing a
- variety of types, including untagged union types@~cite[thf-popl-2008] and
- structural class types@~cite[tfdffthf-ecoop-2015].  Those techniques apply
+ variety of types, including untagged union types@~cite[tf-popl-2008] and
+ structural class types@~cite[tfdfftf-ecoop-2015].  Those techniques apply
  to the co-natural and forgetful variants, though only if we ignore precise
- blame information for dynamically discovered type violations@~cite[dthf-esop-2012].
+ blame information for dynamically discovered type violations@~cite[dtf-esop-2012].
 
 Techniques for implementing the locally-defensive variant are less
  well-known, so we describe a few here.  To support @emph{types for mutable

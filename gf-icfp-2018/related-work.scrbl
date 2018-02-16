@@ -17,7 +17,7 @@ In the more precise sense defined by @citet[svcb-snapl-2015], a gradual typing
 @parag{Migratory Typing}
 
 Tobin-Hochstadt and Felleisen introduced the idea of migratory typing
- with Typed Racket@~cite[thf-dls-2006].
+ with Typed Racket@~cite[tf-dls-2006].
 This led to a series of works on designing types to accomodate the idioms
  of dynamically-typed Racket; see @citet[tfffgksst-snapl-2017] for an overview.
 Other migratory typing systems target
@@ -89,7 +89,7 @@ We conjecture that this embedding could be viewed as a final algebra semantics@~
 @parag{Spectrum of Type Soundness}
 
 Two related works led us towards the idea of a spectrum of type soundness.
-@emph{Like types} are static type annotations that are erased before run-time@~cite[bfnorsvw-oopsla-2009 rnv-ecoop-2015].
+@emph{Like types} are static type annotations that are erased before run-time@~cite[bfnorsvw-oopsla-2009 rzv-ecoop-2015].
 Programmers can switch between like types and normal types to exchange
  soundness for performance without sacrificing any static type checking.
 

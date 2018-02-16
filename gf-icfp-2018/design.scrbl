@@ -286,9 +286,9 @@ This invariant yields a soundness like that of @${\langS}, in which only dynamic
 @; TODO need to be explicit that TR compiles to R?
 
 Typed Racket implements the natural embedding by compiling static types
- to contracts that check dynamically-typed code at run-time@~cite[thf-popl-2008].
+ to contracts that check dynamically-typed code at run-time@~cite[tf-popl-2008].
 Under the protection of the contracts, Typed Racket may replace certain primitive operations
- with faster, unsafe versions that are defined for a subset of the Racket value domain@~cite[sthff-padl-2012].
+ with faster, unsafe versions that are defined for a subset of the Racket value domain@~cite[stff-padl-2012].
 This compilation technique can improve the performance of typed code.
  However, the overhead of checking the contracts is a significant problem in
  mixed programs@~cite[gtnffvf-jfp-2017 tfgnvf-popl-2016].
