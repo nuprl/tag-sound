@@ -1,10 +1,14 @@
 #lang gf-icfp-2018
 @title[#:tag "sec:conclusion"]{Finding Balance}
 
-@; TODO future work
-@;  We leave as open the question of how to define a completion function that
-@;   generates the minimum number of @${\vchk} expressions.@note{@citet[henglein-scp-1994]
-@;    defines a rewriting system that is provably optimal, but possibly non-terminating.}
+@; TODO
+@; - future work
+@;   We leave as open the question of how to define a completion function that
+@;    generates the minimum number of @${\vchk} expressions.@note{@citet[henglein-scp-1994]
+@;     defines a rewriting system that is provably optimal, but possibly non-terminating.}
+@; - what did we do in this paper? (where do I want to end up)
+@;   * different semantics => simple & blame-free notions of typescript, TR, retic soundness
+@;   * derive tag soundness, comes about by cutting costs
 
 @; -----------------------------------------------------------------------------
 

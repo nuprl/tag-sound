@@ -3,6 +3,10 @@
 
 @; -----------------------------------------------------------------------------
 
+@; TODO
+@; - "twin language" is special case of "multi-language"
+@;   not sure if related work on soundness for N languages ... 
+
 @parag{Gradual Typing}
 In the broad sense, the term gradual typing@~cite[st-sfp-2006] describes
  any research that combines static and dynamic typing.
