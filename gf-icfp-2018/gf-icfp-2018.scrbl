@@ -25,6 +25,9 @@
 @; -----------------------------------------------------------------------------
 
 @abstract{
+
+TBA
+
 @;Gradual typing provides software developers with the means to
 @; re-factor an untyped code base into a typed one. As this re-factoring
 @; proceeds, the code base becomes a mixture of typed and untyped code.  In
@@ -36,14 +39,14 @@
 
 @;{NOTE remove 'novel' when paper is accepted}
 
-In this paper, we develop the novel idea of a spectrum of type soundness and
- demonstrate that a tag-level, non-compositional form of
- soundness vastly improves the performance of Typed Racket, the most mature
- implementation of sound gradual typing. Specifically, we develop a series
- of theoretical models of gradual typing, starting with a classically sound
- gradual core language. Furthermore, we explain how to modify Typed Racket's
- implementation and present the results of measuring this revised
- implementation on the Takikawa-Greenman benchmarks.
+@;In this paper, we develop the novel idea of a spectrum of type soundness and
+@; demonstrate that a tag-level, non-compositional form of
+@; soundness vastly improves the performance of Typed Racket, the most mature
+@; implementation of sound gradual typing. Specifically, we develop a series
+@; of theoretical models of gradual typing, starting with a classically sound
+@; gradual core language. Furthermore, we explain how to modify Typed Racket's
+@; implementation and present the results of measuring this revised
+@; implementation on the Takikawa-Greenman benchmarks.
 }
 
 @include-section{introduction.scrbl}
