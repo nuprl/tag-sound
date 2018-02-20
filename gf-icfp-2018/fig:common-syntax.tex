@@ -1,62 +1,192 @@
-\begin{flushleft}
 
-\lbl{Common Syntax}{
-$\begin{array}{l@{~~}c@{~~}l}
-  e & \BNFeq & x \mid v \mid e~e \mid \vpair{e}{e} \mid \vunop~e \mid \vbinop~e~e
-\\
-  v & \BNFeq & i \mid \vpair{v}{v}
-\\
-  \tau & \BNFeq & \tint \mid \tnat \mid \tpair{\tau}{\tau} \mid \tau \tarrow \tau
-\\
-  i & \BNFeq & 0 \mid 1 \mid -1 \mid \ldots
-\\
-  \vunop & \BNFeq & \vfst \mid \vsnd
-\\
-  \vbinop & \BNFeq & \vsum \mid \vquotient
-\\
-  A & \BNFeq & e \mid \boundaryerror \mid \tagerror
-\\
-  E & \BNFeq & \ehole \mid \ED\,e \mid v\,\ED \mid \vpair{\ED}{\!e} \mid \vpair{v}{\!\ED} \mid
- \vunop\,\ED \mid \vbinop\,\!\ED\,e \mid \vbinop\,\!v\,\ED
-\end{array}$
+%\lbl{Source language $\langD$}{
+%  $\begin{array}{l@{~~}c@{~~}l}
+%    e & \BNFeq & x \mid v \mid e~e \mid \vpair{e}{e} \mid \eunop{e} \mid \ebinop{e}{e}
+%    \\
+%    v & \BNFeq & i \mid \vpair{v}{v} \mid \vlam{x}{e}
+%    \\
+%    i & \BNFeq & 0 \mid 1 \mid -1 \mid \ldots
+%    \\
+%    \vunop & \BNFeq & \vfst \mid \vsnd
+%    \\
+%    \vbinop & \BNFeq & \vsum \mid \vquotient
+%    \\
+%    \GammaD & \BNFeq & \cdot \mid x,\GammaD
+%  \end{array}$
+%}
+%
+%\smallskip
+%\lbl{Typed twin $\langS$}{
+%  $\begin{array}{l@{~~}c@{~~}l}
+%    e & \BNFeq & x \mid v \mid e~e \mid \vpair{e}{e} \mid \eunop{e} \mid \ebinop{e}{e}
+%    \\
+%    v & \BNFeq & i \mid \vpair{v}{v} \mid \vlam{\tann{x}{\tau}}{e}
+%    \\
+%    \tau & \BNFeq & \tint \mid \tnat \mid \tpair{\tau}{\tau} \mid \tau \tarrow \tau
+%    \\
+%    i & \BNFeq & 0 \mid 1 \mid -1 \mid \ldots
+%    \\
+%    \vunop & \BNFeq & \vfst \mid \vsnd
+%    \\
+%    \vbinop & \BNFeq & \vsum \mid \vquotient
+%    \\
+%    \GammaS & \BNFeq & \cdot \mid \tann{x}{\tau},\GammaS
+%  \end{array}$
+%}
+
+\smallskip
+\lbl{Multi-language $\langM$}{
+  $\begin{array}{l@{~~}c@{~~}l}
+    e & \BNFeq & x \mid v \mid e~e \mid \vpair{e}{e} \mid \eunop{e} \mid \ebinop{e}{e} \mid \edyn{\tau}{e} \mid \esta{\tau}{e}
+    \\
+    v & \BNFeq & i \mid \vpair{v}{v} \mid \vlam{\tann{x}{\tau}}{e} \mid \vlam{x}{e}
+    \\
+    \tau & \BNFeq & \tint \mid \tnat \mid \tpair{\tau}{\tau} \mid \tau \tarrow \tau
+    \\
+    i & \BNFeq & 0 \mid 1 \mid -1 \mid \ldots
+    \\
+    \vunop & \BNFeq & \vfst \mid \vsnd
+    \\
+    \vbinop & \BNFeq & \vsum \mid \vquotient
+    \\
+    \Gamma & \BNFeq & \cdot \mid x,\Gamma \mid \tann{x}{\tau},\Gamma
+    \\
+    A & \BNFeq & e \mid \boundaryerror \mid \tagerror
+    \\
+    \ES & \BNFeq & \ehole \mid \eapp{\ES}{e} \mid \eapp{v}{\ES} \mid
+                   \vpair{\ES}{e} \mid \vpair{v}{\ES} \mid \eunop{\ES} \mid
+                   \ebinop{\ES}{e} \mid \ebinop{v}{\ES}
+  \end{array}$
 }
 
 \smallskip
-\lbl{$\delta(\vunop, v) = A$}{
-$\begin{array}{l@{~~}c@{~~}l}
-  \delta(\vfst, \vpair{v_0}{v_1}) & = & v_0
-\\
-  \delta(\vsnd, \vpair{v_0}{v_1}) & = & v_1
-\end{array}$
+\lblmathpar{$\GammaD \wellM e$}{
+  \inferrule*{
+    x \in \GammaD
+  }{
+    \GammaD \wellM x
+  }
+
+  \inferrule*{
+    x,\GammaD \wellM e
+  }{
+    \GammaD \wellM \vlam{x}{e}
+  }
+
+  \inferrule*{
+  }{
+    \GammaD \wellM i
+  }
+
+  \inferrule*{
+    \GammaD \wellM e_0
+    \\\\
+    \GammaD \wellM e_1
+  }{
+    \GammaD \wellM \vpair{e_0}{e_1}
+  }
+
+  \inferrule*{
+    \GammaD \wellM e_0
+    \\\\
+    \GammaD \wellM e_1
+  }{
+    \GammaD \wellM e_0~e_1
+  }
+
+  \inferrule*{
+    \GammaD \wellM e
+  }{
+    \GammaD \wellM \vunop~e
+  }
+
+  \inferrule*{
+    \GammaD \wellM e_0
+    \\\\
+    \GammaD \wellM e_1
+  }{
+    \GammaD \wellM \vbinop~e_0~e_1
+  }
+
+  \inferrule*{
+    \Gamma \wellM e : \tau
+  }{
+    \Gamma \wellM \esta{\tau}{e}
+  }
 }
 
 \smallskip
-\lbl{$\delta(\vbinop, v, v) = A$}{
-$\begin{array}{l@{~~}c@{~~}l l}
-  \delta(\vsum, i_0, i_1) & = & i_0 + i_1 &
-\\
-  \delta(\vquotient, i_0, 0) & = & \boundaryerror &
-\\
-  \delta(\vquotient, i_0, i_1) & = & \floorof{i_0 / i_1} & \mbox{\quad if $i_1 \neq 0$}
-\end{array}$
-}
+\lblmathpar{$\GammaS \wellM e : \tau$}{
+  \inferrule*{
+    \tann{x}{\tau} \in \GammaS
+  }{
+    \GammaS \wellM x : \tau
+  }
 
-\smallskip
-\lbl{$\Delta(\vunop, \tau) = \tau$}{
-$\begin{array}{l@{~~}c@{~~}l}
-  \Delta(\vfst, \tpair{\tau_0}{\tau_1}) & = & \tau_0
-\\
-  \Delta(\vsnd, \tpair{\tau_0}{\tau_1}) & = & \tau_1
-\end{array}$
-}
+  \inferrule*{
+    \tann{x}{\tau_d},\GammaS \wellM e : \tau_c
+  }{
+    \GammaS \wellM \vlam{\tann{x}{\tau_d}}{e} : \tau_d \tarrow \tau_c
+  }
 
-\smallskip
-\lbl{$\Delta(\vbinop, \tau, \tau) = \tau$}{
-$\begin{array}{l@{~~}c@{~~}l}
-  \Delta(\vbinop, \tnat, \tnat) & = & \tnat
-\\
-  \Delta(\vbinop, \tint, \tint) & = & \tint
-\end{array}$
+  \inferrule*{
+    i \in \naturals
+  }{
+    \GammaS \wellM i : \tnat
+  }
+
+  \inferrule*{
+  }{
+    \GammaS \wellM i : \tint
+  }
+
+  \inferrule*{
+    \GammaS \wellM e_0 : \tau_0
+    \\\\
+    \GammaS \wellM e_1 : \tau_1
+  }{
+    \GammaS \wellM \vpair{e_0}{e_1} : \tpair{\tau_0}{\tau_1}
+  }
+
+  \inferrule*{
+    \GammaS \wellM e_0 : \tau_d \tarrow \tau_c
+    \\\\
+    \GammaS \wellM e_1 : \tau_d
+  }{
+    \GammaS \wellM e_0~e_1 : \tau_c
+  }
+
+  \inferrule*{
+    \GammaS \wellM e_0 : \tau_0
+    \\\\
+    \Delta(\vunop, \tau_0) = \tau
+  }{
+    \GammaS \wellM \vunop~e_0 : \tau
+  }
+
+  \inferrule*{
+    \GammaS \wellM e_0 : \tau_0
+    \\\\
+    \GammaS \wellM e_1 : \tau_1
+    \\\\
+    \Delta(\vbinop, \tau_0, \tau_1) = \tau
+  }{
+    \GammaS \wellM \vbinop~e_0~e_1 : \tau
+  }
+
+  \inferrule*{
+    \GammaS \wellM e : \tau'
+    \\\\
+    \tau' \subt \tau
+  }{
+    \GammaS \wellM e : \tau
+  }
+
+  \inferrule*{
+    \Gamma \wellM e
+  }{
+    \Gamma \wellM \edyn{\tau}{e} : \tau
+  }
 }
 
 \smallskip
@@ -91,12 +221,22 @@ $\begin{array}{l@{~~}c@{~~}l}
   }
 }
 
-\lbl{$e \cclift{E}{\rrR} A$}{
-$\begin{array}{l@{~~}c@{~~}l l}
-\ctxE{e} & \cclift{E}{\rrR} & \ctxE{e'} & \mbox{if $e \rrR e'$}
+\smallskip
+\lbl{$\Delta(\vunop, \tau) = \tau$}{
+$\begin{array}{l@{~~}c@{~~}l}
+  \Delta(\vfst, \tpair{\tau_0}{\tau_1}) & = & \tau_0
 \\
-\ctxE{e} & \cclift{E}{\rrR} & A         & \mbox{if $e \rrR A$ and $A \not\in e$}
+  \Delta(\vsnd, \tpair{\tau_0}{\tau_1}) & = & \tau_1
 \end{array}$
 }
 
-\end{flushleft}
+\lbl{$\Delta(\vbinop, \tau, \tau) = \tau$}{
+$\begin{array}{l@{~~}c@{~~}l}
+  \Delta(\vbinop, \tnat, \tnat) & = & \tnat
+\\
+  \Delta(\vbinop, \tint, \tint) & = & \tint
+\end{array}$
+}
+
+\smallskip
+\input{fig:delta.tex}

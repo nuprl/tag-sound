@@ -1,13 +1,21 @@
-\begin{flushleft}
 
-\lblextra{Language $\langE$}{ inherits $\langM$:}{
-$\begin{array}{l@{~~}c@{~~}l}
-  \ED & \BNFeq & \ldots \mid \esta{\tau}{\ED} \mid \edyn{\tau}{\ED}
-\end{array}$
+% same exact language
+
+\lblextra{Language $\langE$}{ extends $\langM$:}{
+  $\begin{array}{l@{~~}c@{~~}l}
+    e & \BNFeq & x \mid v \mid e~e \mid \vpair{e}{e} \mid \eunop{e} \mid \ebinop{e}{e} \mid \edyn{\tau}{e} \mid \esta{\tau}{e}
+    \\
+    v & \BNFeq & i \mid \vpair{v}{v} \mid \vlam{\tann{x}{\tau}}{e} \mid \vlam{x}{e}
+  \end{array}$
 }
 
 \smallskip
-\lblmathparextra{$\Gamma \wellEE e$}{ inherits $\Gamma \wellD e$:}{
+\lblmathpar{$\Gamma \wellEE e$}{
+  \inferrule*{
+    x \in \GammaD
+  }{
+    \GammaD \wellEE x
+  }
 
   \inferrule*{
     \tann{x}{\tau} \in \GammaD
@@ -16,9 +24,50 @@ $\begin{array}{l@{~~}c@{~~}l}
   }
 
   \inferrule*{
+    x,\GammaD \wellEE e
+  }{
+    \GammaD \wellEE \vlam{x}{e}
+  }
+
+  \inferrule*{
     \tann{x}{\tau},\Gamma \wellEE e
   }{
     \Gamma \wellEE \vlam{\tann{x}{\tau}}{e}
+  }
+
+  \inferrule*{
+  }{
+    \GammaD \wellEE i
+  }
+
+  \inferrule*{
+    \GammaD \wellEE e_0
+    \\
+    \GammaD \wellEE e_1
+  }{
+    \GammaD \wellEE \vpair{e_0}{e_1}
+  }
+
+  \inferrule*{
+    \GammaD \wellEE e_0
+    \\
+    \GammaD \wellEE e_1
+  }{
+    \GammaD \wellEE \vapp{e_0}{e_1}
+  }
+
+  \inferrule*{
+    \GammaD \wellEE e
+  }{
+    \GammaD \wellEE \eunop{e}
+  }
+
+  \inferrule*{
+    \GammaD \wellEE e_0
+    \\
+    \GammaD \wellEE e_1
+  }{
+    \GammaD \wellEE \ebinop{e_0}{e_1}
   }
 
   \inferrule*{
@@ -35,17 +84,53 @@ $\begin{array}{l@{~~}c@{~~}l}
 }
 
 \smallskip
-\lblextra{$e \rrEE A$}{ extends $e \rrD A$:}{
-$\begin{array}{l@{~~}c@{~~}l}
-  (\vlam{\tann{x}{\tau_d}}{e})~v & \rrEE & \vsubst{e}{x}{v}
+\lbl{$e \rrEE A$}{
+$\begin{array}{l@{~~}c@{~~}l l}
+  (\vlam{x}{e})~v & \rrEE & \vsubst{e}{x}{v} &
 \\
-  \edyn{\tau}{v} & \rrEE & v
+  (\vlam{\tann{x}{\tau_d}}{e})~v & \rrEE & \vsubst{e}{x}{v} &
 \\
-  \esta{\tau}{v} & \rrEE & v
+  v_0~v_1 & \rrEE & \tagerror &
+  \mbox{if $v_0 \sim i$ or $v_0 \sim \vpair{v}{v'}$}
+\\
+  \eunop{v} & \rrEE & A &
+  \mbox{if $\delta(\vunop, v) = A$}
+\\
+  \eunop{v} & \rrEE & \tagerror &
+  \mbox{otherwise}
+\\
+  \ebinop{v_0}{v_1} & \rrEE & A &
+  \mbox{if $\delta(\vbinop, v_0, v_1) = A$}
+\\
+  \ebinop{v_0}{v_1} & \rrEE & \tagerror &
+  \mbox{otherwise}
+\\
+  \edyn{\tau}{v} & \rrEE & v &
+\\
+  \esta{\tau}{v} & \rrEE & v &
 \end{array}$
 }
 
 \smallskip
-\fbox{$e \rrEEstar A$} reflexive, transitive closure of $\cclift{\ED}{\rrEE}$
+\lbl{$e \ccEE A$}{
+$\begin{array}{l@{~~}c@{~~}l l}
+  \ctxE{\edyn{\tau}{e}} & \ccEE & \ctxE{\edyn{\tau}{e'}}
+    & \mbox{if $e \ccEE e'$}
+  \\
+  \ctxE{\edyn{\tau}{e}} & \ccEE & A
+    & \mbox{if $e \ccEE A$ and $A \not\in e$}
+  \\
+  \ctxE{\esta{\tau}{e}} & \ccEE & \ctxE{\esta{\tau}{e'}}
+    & \mbox{if $e \ccEE e'$}
+  \\
+  \ctxE{\esta{\tau}{e}} & \ccEE & A
+    & \mbox{if $e \ccEE A$ and $A \not\in e$}
+  \\
+  \ctxE{e} & \ccEE & \ctxE{e'} & \mbox{if $e \rrEE e'$}
+  \\
+  \ctxE{e} & \ccEE & A         & \mbox{if $e \rrEE A$ and $A \not\in e$}
+\end{array}$
+}
 
-\end{flushleft}
+\smallskip
+\lblextra{$e \rrEEstar A$}{ reflexive, transitive closure of $\ccEE$}{}

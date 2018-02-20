@@ -1,7 +1,10 @@
 #lang gf-icfp-2018
 @title[#:tag "sec:design"]{Five Embeddings}
 
-@include-figure["fig:common-syntax.tex" @elem{Common syntax, types, and semantics}]
+@; TODO
+@; - dyn / static twin language in inline figures
+
+@include-figure["fig:common-syntax.tex" @elem{Twin languages syntax, typing, and primitives}]
 
 @; TODO I'm assuming base types are O(1) to check no matter what ... that they're taggged ... don't think this comes across
 The goal of a type-directed embedding is to describe how three
@@ -42,8 +45,6 @@ Lastly, the meta-function @${\cclift{E}{\rrR}} lifts a
 
 
 @section{Source Languages}
-@include-figure["fig:dyn-delta.tex" @elem{Dynamic Typing}]
-@include-figure["fig:sta-delta.tex" @elem{Static Typing}]
 
 The language @${\langD} defined in @figure-ref{fig:dyn-delta} is a
  dynamically-typed extension of @figure-ref{fig:common-syntax}.
@@ -115,7 +116,6 @@ This enhancement allows programmers to use static type information to reason abo
 
 @; -----------------------------------------------------------------------------
 @section{Multi-Language Syntax}
-@include-figure["fig:mixed-delta.tex" @elem{Multi-Language @${\langM}}]
 
 @Figure-ref{fig:mixed-delta} defines the syntax and typing rules of a
  multi-language based on @${\langD} and @${\langS}.

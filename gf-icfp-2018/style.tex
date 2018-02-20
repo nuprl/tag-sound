@@ -5,9 +5,9 @@
 
 \usepackage{mathpartir}
 \mprset{sep=1em,andskip=1em}
-\newcommand{\twoline}[2]{\parbox[s]{1.8cm}{\flushright\hfill #1\newline#2}}
+\newcommand{\twoline}[2]{\parbox[s]{1.8cm}{\flushright\hfill #1\\#2}}
 \newcommand{\lblmathpar}[2]{\lblmathparextra{#1}{}{#2}}
-\newcommand{\lblmathparextra}[3]{\parbox[t]{\columnwidth}{\fbox{#1}#2\\[-2ex]\begin{mathpar}#3\end{mathpar}}}
+\newcommand{\lblmathparextra}[3]{\parbox[t]{\columnwidth}{\fbox{#1}#2\\[-1ex]\begin{mathpar}#3\end{mathpar}}}
 \newcommand{\lbl}[2]{\lblextra{#1}{}{#2}}
 \newcommand{\lblextra}[3]{\parbox[t]{\columnwidth}{\fbox{#1}#2\\#3}}
 
@@ -207,6 +207,7 @@ showstringspaces=false            %
 \newcommand{\esnd}[1]{\vsnd\,#1}
 \newcommand{\vpair}[2]{\langle #1,#2 \rangle}
 \newcommand{\vapp}[2]{#1~#2}
+\newcommand{\eapp}[2]{\vapp{#1}{#2}}
 \newcommand{\vmon}[2]{\mathsf{mon}\,#1\,#2}
 \newcommand{\vmonfun}[2]{\vmon{#1}{#2}}
 \newcommand{\vmonpair}[2]{\vmon{#1}{#2}}
@@ -232,7 +233,7 @@ showstringspaces=false            %
 
 \newcommand{\langD}{\mathbf{L_D}}
 \newcommand{\langS}{\mathbf{L_S}}
-\newcommand{\langM}{\mathbf{L_M}}
+\newcommand{\langM}{\mathbf{L}}
 \newcommand{\langE}{\mathbf{L_E}}
 \newcommand{\langN}{\mathbf{L_N}}
 \newcommand{\langC}{\mathbf{L_C}}
