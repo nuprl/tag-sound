@@ -1,7 +1,5 @@
 \lblextra{Language $\langN$}{ extends $\langM$:}{
-  $\begin{array}{l@{~~}c@{~~}l}
-    e & \BNFeq & x \mid v \mid \eapp{e}{e} \mid \vpair{e}{e} \mid \eunop{e} \mid \ebinop{e}{e} \mid \edyn{\tau}{e} \mid \esta{\tau}{e}
-    \\
+  $\begin{array}{l@{\hspace{0.5em}}c@{\hspace{0.5em}}l}
     v & \BNFeq & i \mid \vpair{v}{v} \mid \vlam{x}{e} \mid \vlam{\tann{x}{\tau}}{e} \mid \vmonfun{(\tau\tarrow\tau)}{v}
     \\
     \ES & \BNFeq & \ehole \mid \eapp{\ES}{e} \mid \eapp{v}{\ES} \mid
@@ -143,15 +141,15 @@
 %  }
 
   \inferrule*{
-    \Gamma \wellNE v
-  }{
-    \Gamma \wellNE \vmonfun{(\tarr{\tau_d}{\tau_c})}{v} : (\tarr{\tau_d}{\tau_c})
-  }
-
-  \inferrule*{
     \Gamma \wellNE e
   }{
     \Gamma \wellNE \edyn{\tau}{e} : \tau
+  }
+
+  \inferrule*{
+    \Gamma \wellNE v
+  }{
+    \Gamma \wellNE \vmonfun{(\tarr{\tau_d}{\tau_c})}{v} : \tarr{\tau_d}{\tau_c}
   }
 }
 
@@ -161,7 +159,7 @@
 
 \lblextra{$e \rrND A$}{ (selected rules)}{
   $\begin{array}{l@{\hspace{0.5em}}c@{\hspace{0.5em}}l@{\hspace{1em}}l}
-    (\vmonfun{(\tarr{\tau_d}{\tau_c})}{v_f})~v & \rrND & \esta{\tau_c}{(v_f~(\edyn{\tau_d}{v}))}
+    \eapp{(\vmonfun{(\tarr{\tau_d}{\tau_c})}{v_f})}{v} & \rrND & \esta{\tau_c}{(\eapp{v_f}{(\edyn{\tau_d}{v})})}
     &
     \\
     \esta{\tarr{\tau_d}{\tau_c}}{v} & \rrND & \vmonfun{(\tarr{\tau_d}{\tau_c})}{v}
@@ -176,20 +174,20 @@
     \esta{\tnat}{v} & \rrND & v
     &
     \\
-    (\vlam{x}{e})~v & \rrND & \vsubst{e}{x}{v}
+    \eapp{(\vlam{x}{e})}{v} & \rrND & \vsubst{e}{x}{v}
     &
     \\
-    v_0~v_1 & \rrND & \tagerror
-    & \mbox{if $v_0 \sim i$ or $v_0 \sim \vpair{v}{v'}$}
+    \eapp{v_0}{v_1} & \rrND & \tagerror
+    & \mbox{if $v_0 \valeq i$ or $v_0 \valeq \vpair{v}{v'}$}
 %    \\
 %    \eunop{v} & \rrND & A
-%    & \mbox{if $A = \delta(\vunop, v)$}
+%    & \mbox{if $\delta(\vunop, v) \expreq A$}
 %    \\
 %    \eunop{v} & \rrND & \tagerror
 %    & \mbox{otherwise}
 %    \\
 %    \ebinop{v_0}{v_1} & \rrND & A
-%    & \mbox{if $A = \delta(\vbinop, v_0, v_1)$}
+%    & \mbox{if $\delta(\vbinop, v_0, v_1) \expreq A$}
 %    \\
 %    \ebinop{v_0}{v_1} & \rrND & \tagerror
 %    & \mbox{otherwise}
@@ -197,13 +195,13 @@
 }
 
 \smallskip
-\lblextra{$e \rrNS A$}{ (selected rules)}{
+\lblextra{$e \rrNS A$}{}{
   $\begin{array}{l@{\hspace{0.5em}}c@{\hspace{0.5em}}l@{\hspace{1em}}l}
-    (\vmonfun{(\tarr{\tau_d}{\tau_c})}{v_f})~v & \rrNS & \edyn{\tau_c}{(v_f~(\esta{\tau_d}{v}))}
+    \eapp{(\vmonfun{(\tarr{\tau_d}{\tau_c})}{v_f})}{v} & \rrNS & \edyn{\tau_c}{(\eapp{v_f}{(\esta{\tau_d}{v})})}
     &
     \\
     \edyn{\tarr{\tau_d}{\tau_c}}{v} & \rrNS & \vmonfun{(\tarr{\tau_d}{\tau_c})}{v}
-    & \mbox{if $v \sim \vlam{x}{e}$ or $v \sim \vmonfun{(\tarr{\tau_d'}{\tau_c'})}{v'}$}
+    & \mbox{if $v \valeq \vlam{x}{e}$ or $v \valeq \vmonfun{(\tarr{\tau_d'}{\tau_c'})}{v'}$}
     \\
     \edyn{\tpair{\tau_0}{\tau_1}}{\vpair{v_0}{v_1}} & \rrNS & \vpair{\edyn{\tau_0}{v_0}}{\edyn{\tau_1}{v_1}}
     &
@@ -217,20 +215,20 @@
     \edyn{\tau}{v} & \rrNS & \boundaryerror
     & \mbox{otherwise}
     \\
-    (\vlam{\tann{x}{\tau_d}}{e})~v & \rrNS & \vsubst{e}{x}{v}
+    \eapp{(\vlam{\tann{x}{\tau_d}}{e})}{v} & \rrNS & \vsubst{e}{x}{v}
     &
-%    \\
-%    \eunop{v} & \rrNS & A
-%    & \mbox{if $A = \delta(\vunop, v)$}
-%    \\
-%    \ebinop{v_0}{v_1} & \rrNS & A
-%    & \mbox{if $A = \delta(\vbinop, v_0, v_1)$}
+    \\
+    \eunop{v} & \rrNS & A
+    & \mbox{if $\delta(\vunop, v) \expreq A$}
+    \\
+    \ebinop{v_0}{v_1} & \rrNS & A
+    & \mbox{if $\delta(\vbinop, v_0, v_1) \expreq A$}
   \end{array}$
 }
 
 \smallskip
 \lbl{$e \ccND A$}{
-  $\begin{array}{l@{~~}c@{~~}l@{~~}l}
+  $\begin{array}{l@{\hspace{0.5em}}c@{\hspace{0.5em}}l@{\hspace{1em}}l}
   \ctxE{\esta{\tau}{e}} & \ccND & \ctxE{\esta{\tau}{e'}}
   & \mbox{if $e \ccNS e'$}
   \\
@@ -244,7 +242,7 @@
 }
 
 \lbl{$e \ccNS A$}{
-  $\begin{array}{l@{~~}c@{~~}l@{~~}l}
+  $\begin{array}{l@{\hspace{0.5em}}c@{\hspace{0.5em}}l@{\hspace{1em}}l}
   \ctxE{\edyn{\tau}{e}} & \ccNS & \ctxE{\edyn{\tau}{e'}}
     & \mbox{if $e \ccND e'$}
   \\
