@@ -1,0 +1,32 @@
+\lbl{$\mchk{\tau}{v} = A$}{
+  $\begin{array}{l@{\hspace{0.5em}}c@{\hspace{0.5em}}l@{\hspace{1em}}l}
+    \mchk{\tarr{\tau_d}{\tau_c}}{v} & =
+    & \vmonfun{(\tarr{\tau_d}{\tau_c})}{v}
+    & \mbox{if $v \valeq \vlam{x}{e}$ or $v \valeq \vlam{\tann{x}{\tau}}{e}$}
+    \\
+    \mchk{\tarr{\tau_d}{\tau_c}}{\vmonfun{(\tarr{\tau_d'}{\tau_c'})}{v'}} & =
+    & \vmonfun{(\tarr{\tau_d}{\tau_c})}{v'}
+    &
+    \\
+    \mchk{\tpair{\tau_0}{\tau_1}}{\vpair{v_0}{v_1}} & =
+    & \vmonpair{(\tpair{\tau_0}{\tau_1})}{\vpair{v_0}{v_1}}
+    &
+    \\
+    \mchk{\tpair{\tau_0}{\tau_1}}{\vmonpair{(\tpair{\tau_0'}{\tau_1'})}{v'}} & =
+    & \vmonpair{(\tpair{\tau_0}{\tau_1})}{v'}
+    &
+    \\
+    \mchk{\tint}{i} & =
+    & i
+    &
+    \\
+    \mchk{\tnat}{i} & =
+    & i
+    & \mbox{if $i \in \naturals$}
+    \\
+    \mchk{\tau}{v} & =
+    & \boundaryerror
+    & \mbox{otherwise}
+  \end{array}$
+}
+

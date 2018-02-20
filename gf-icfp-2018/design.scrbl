@@ -389,6 +389,7 @@ An implementation might improve this performance through caching, but its
 @; -----------------------------------------------------------------------------
 @section{The Forgetful Embedding}
 @include-figure*["fig:forgetful-delta.tex" "Forgetful Embedding"]
+@include-figure*["fig:forgetful-check.tex" "Forgetful helper"]
 
 @; === INTERLUDE
 @; - need to know typed functions under a monitor "have a typing"
