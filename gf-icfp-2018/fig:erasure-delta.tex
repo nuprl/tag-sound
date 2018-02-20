@@ -1,15 +1,19 @@
-
-% same exact language
-
 \lblextra{Language $\langE$}{ extends $\langM$:}{
   $\begin{array}{l@{~~}c@{~~}l}
     e & \BNFeq & x \mid v \mid e~e \mid \vpair{e}{e} \mid \eunop{e} \mid \ebinop{e}{e} \mid \edyn{\tau}{e} \mid \esta{\tau}{e}
     \\
     v & \BNFeq & i \mid \vpair{v}{v} \mid \vlam{\tann{x}{\tau}}{e} \mid \vlam{x}{e}
+    \\
+    \ES & \BNFeq & \ehole \mid \eapp{\ES}{e} \mid \eapp{v}{\ES} \mid
+                   \vpair{\ES}{e} \mid \vpair{v}{\ES} \mid \eunop{\ES} \mid
+                   \ebinop{\ES}{e} \mid \ebinop{v}{\ES}
   \end{array}$
 }
 
-\smallskip
+%% -----------------------------------------------------------------------------
+%% --- typing
+\bigvspace
+
 \lblmathpar{$\Gamma \wellEE e$}{
   \inferrule*{
     x \in \GammaD
@@ -83,53 +87,53 @@
   }
 }
 
-\smallskip
+%% -----------------------------------------------------------------------------
+%% --- reduction
+\bigvspace
+
 \lbl{$e \rrEE A$}{
-$\begin{array}{l@{~~}c@{~~}l l}
-  (\vlam{x}{e})~v & \rrEE & \vsubst{e}{x}{v} &
-\\
-  (\vlam{\tann{x}{\tau_d}}{e})~v & \rrEE & \vsubst{e}{x}{v} &
-\\
-  v_0~v_1 & \rrEE & \tagerror &
-  \mbox{if $v_0 \sim i$ or $v_0 \sim \vpair{v}{v'}$}
-\\
-  \eunop{v} & \rrEE & A &
-  \mbox{if $\delta(\vunop, v) = A$}
-\\
-  \eunop{v} & \rrEE & \tagerror &
-  \mbox{otherwise}
-\\
-  \ebinop{v_0}{v_1} & \rrEE & A &
-  \mbox{if $\delta(\vbinop, v_0, v_1) = A$}
-\\
-  \ebinop{v_0}{v_1} & \rrEE & \tagerror &
-  \mbox{otherwise}
-\\
-  \edyn{\tau}{v} & \rrEE & v &
-\\
-  \esta{\tau}{v} & \rrEE & v &
-\end{array}$
+  $\begin{array}{l@{\hspace{0.5em}}c@{\hspace{0.5em}}l@{\hspace{1em}}l}
+    (\vlam{x}{e})~v & \rrEE & \vsubst{e}{x}{v} &
+    \\
+    (\vlam{\tann{x}{\tau_d}}{e})~v & \rrEE & \vsubst{e}{x}{v} &
+    \\
+    v_0~v_1 & \rrEE & \tagerror & \mbox{if $v_0 \valeq i$ or $v_0 \valeq \vpair{v}{v'}$}
+    \\
+    \eunop{v} & \rrEE & A & \mbox{if $\delta(\vunop, v) \expreq A$}
+    \\
+    \eunop{v} & \rrEE & \tagerror & \mbox{otherwise}
+    \\
+    \ebinop{v_0}{v_1} & \rrEE & A & \mbox{if $\delta(\vbinop, v_0, v_1) \expreq A$}
+    \\
+    \ebinop{v_0}{v_1} & \rrEE & \tagerror & \mbox{otherwise}
+    \\
+    \edyn{\tau}{v} & \rrEE & v &
+    \\
+    \esta{\tau}{v} & \rrEE & v &
+  \end{array}$
 }
 
 \smallskip
 \lbl{$e \ccEE A$}{
-$\begin{array}{l@{~~}c@{~~}l l}
-  \ctxE{\edyn{\tau}{e}} & \ccEE & \ctxE{\edyn{\tau}{e'}}
+  $\begin{array}{l@{\hspace{0.5em}}c@{\hspace{0.5em}}l@{\hspace{1em}}l}
+    \ctxE{\edyn{\tau}{e}} & \ccEE & \ctxE{\edyn{\tau}{e'}}
     & \mbox{if $e \ccEE e'$}
-  \\
-  \ctxE{\edyn{\tau}{e}} & \ccEE & A
+    \\
+    \ctxE{\edyn{\tau}{e}} & \ccEE & A
     & \mbox{if $e \ccEE A$ and $A \not\in e$}
-  \\
-  \ctxE{\esta{\tau}{e}} & \ccEE & \ctxE{\esta{\tau}{e'}}
+    \\
+    \ctxE{\esta{\tau}{e}} & \ccEE & \ctxE{\esta{\tau}{e'}}
     & \mbox{if $e \ccEE e'$}
-  \\
-  \ctxE{\esta{\tau}{e}} & \ccEE & A
+    \\
+    \ctxE{\esta{\tau}{e}} & \ccEE & A
     & \mbox{if $e \ccEE A$ and $A \not\in e$}
-  \\
-  \ctxE{e} & \ccEE & \ctxE{e'} & \mbox{if $e \rrEE e'$}
-  \\
-  \ctxE{e} & \ccEE & A         & \mbox{if $e \rrEE A$ and $A \not\in e$}
-\end{array}$
+    \\
+    \ctxE{e} & \ccEE & \ctxE{e'}
+    & \mbox{if $e \rrEE e'$}
+    \\
+    \ctxE{e} & \ccEE & A
+    & \mbox{if $e \rrEE A$ and $A \not\in e$}
+  \end{array}$
 }
 
 \smallskip
