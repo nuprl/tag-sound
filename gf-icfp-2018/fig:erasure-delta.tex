@@ -14,7 +14,7 @@
 %% --- typing
 \bigvspace
 
-\lblmathpar{$\Gamma \wellEE e$}{
+\lblmathparextra{$\Gamma \wellEE e$}{ (selected rules)}{
   \inferrule*{
     x \in \GammaD
   }{
@@ -38,41 +38,41 @@
   }{
     \Gamma \wellEE \vlam{\tann{x}{\tau}}{e}
   }
-
-  \inferrule*{
-  }{
-    \GammaD \wellEE i
-  }
-
-  \inferrule*{
-    \GammaD \wellEE e_0
-    \\
-    \GammaD \wellEE e_1
-  }{
-    \GammaD \wellEE \vpair{e_0}{e_1}
-  }
-
-  \inferrule*{
-    \GammaD \wellEE e_0
-    \\
-    \GammaD \wellEE e_1
-  }{
-    \GammaD \wellEE \vapp{e_0}{e_1}
-  }
-
-  \inferrule*{
-    \GammaD \wellEE e
-  }{
-    \GammaD \wellEE \eunop{e}
-  }
-
-  \inferrule*{
-    \GammaD \wellEE e_0
-    \\
-    \GammaD \wellEE e_1
-  }{
-    \GammaD \wellEE \ebinop{e_0}{e_1}
-  }
+%
+%  \inferrule*{
+%  }{
+%    \GammaD \wellEE i
+%  }
+%
+%  \inferrule*{
+%    \GammaD \wellEE e_0
+%    \\\\
+%    \GammaD \wellEE e_1
+%  }{
+%    \GammaD \wellEE \vpair{e_0}{e_1}
+%  }
+%
+%  \inferrule*{
+%    \GammaD \wellEE e_0
+%    \\\\
+%    \GammaD \wellEE e_1
+%  }{
+%    \GammaD \wellEE \vapp{e_0}{e_1}
+%  }
+%
+%  \inferrule*{
+%    \GammaD \wellEE e
+%  }{
+%    \GammaD \wellEE \eunop{e}
+%  }
+%
+%  \inferrule*{
+%    \GammaD \wellEE e_0
+%    \\\\
+%    \GammaD \wellEE e_1
+%  }{
+%    \GammaD \wellEE \ebinop{e_0}{e_1}
+%  }
 
   \inferrule*{
     \Gamma \wellEE e
@@ -93,6 +93,10 @@
 
 \lbl{$e \rrEE A$}{
   $\begin{array}{l@{\hspace{0.5em}}c@{\hspace{0.5em}}l@{\hspace{1em}}l}
+    \edyn{\tau}{v} & \rrEE & v &
+    \\
+    \esta{\tau}{v} & \rrEE & v &
+    \\
     (\vlam{x}{e})~v & \rrEE & \vsubst{e}{x}{v} &
     \\
     (\vlam{\tann{x}{\tau_d}}{e})~v & \rrEE & \vsubst{e}{x}{v} &
@@ -106,10 +110,6 @@
     \ebinop{v_0}{v_1} & \rrEE & A & \mbox{if $\delta(\vbinop, v_0, v_1) \expreq A$}
     \\
     \ebinop{v_0}{v_1} & \rrEE & \tagerror & \mbox{otherwise}
-    \\
-    \edyn{\tau}{v} & \rrEE & v &
-    \\
-    \esta{\tau}{v} & \rrEE & v &
   \end{array}$
 }
 
