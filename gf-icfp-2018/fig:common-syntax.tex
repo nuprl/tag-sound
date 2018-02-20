@@ -33,8 +33,8 @@
 %    \GammaS & \BNFeq & \cdot \mid \tann{x}{\tau},\GammaS
 %  \end{array}$
 %}
-
-\smallskip
+%
+%\smallskip
 \lbl{Multi-language $\langM$}{
   $\begin{array}{l@{~~}c@{~~}l}
     e & \BNFeq & x \mid v \mid e~e \mid \vpair{e}{e} \mid \eunop{e} \mid \ebinop{e}{e} \mid \edyn{\tau}{e} \mid \esta{\tau}{e}
@@ -59,7 +59,11 @@
   \end{array}$
 }
 
-\smallskip
+%% -----------------------------------------------------------------------------
+%% --- typing
+
+\bigvspace
+
 \lblmathpar{$\GammaD \wellM e$}{
   \inferrule*{
     x \in \GammaD
@@ -221,7 +225,12 @@
   }
 }
 
-\smallskip
+%% -----------------------------------------------------------------------------
+%% --- primitives
+\bigvspace
+
+
+\begin{multicols}{2}
 \lbl{$\Delta(\vunop, \tau) = \tau$}{
 $\begin{array}{l@{~~}c@{~~}l}
   \Delta(\vfst, \tpair{\tau_0}{\tau_1}) & = & \tau_0
@@ -238,5 +247,24 @@ $\begin{array}{l@{~~}c@{~~}l}
 \end{array}$
 }
 
-\smallskip
-\input{fig:delta.tex}
+\vfill\null\columnbreak
+
+\lbl{$\delta(\vunop, v) = A$}{
+$\begin{array}{l@{~~}c@{~~}l}
+  \delta(\vfst, \vpair{v_0}{v_1}) & = & v_0
+\\
+  \delta(\vsnd, \vpair{v_0}{v_1}) & = & v_1
+\end{array}$
+}
+
+\lbl{$\delta(\vbinop, v, v) = A$}{
+$\begin{array}{l@{~~}c@{~~}l}
+  \delta(\vsum, i_0, i_1) & = & i_0 + i_1
+\\
+  \delta(\vquotient, i_0, 0) & = & \boundaryerror
+\\
+  \delta(\vquotient, i_0, i_1) & = & \floorof{i_0 / i_1}
+\\ \multicolumn{3}{l}{\mbox{\quad if $i_1 \neq 0$}}
+\end{array}$
+}
+\end{multicols}
