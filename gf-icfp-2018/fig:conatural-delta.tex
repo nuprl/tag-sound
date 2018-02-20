@@ -1,12 +1,20 @@
 \lblextra{Language $\langC$}{ extends $\langM$:}{
-  $\begin{array}{l@{~~}c@{~~}l}
-    e & \BNFeq & x \mid v \mid e~e \mid \vpair{e}{e} \mid \vunop~e \mid \vbinop~e~e \mid \edyn{\tau}{e} \mid \esta{\tau}{e}
+  $\begin{array}{l@{\hspace{0.5em}}c@{\hspace{0.5em}}l}
+    %e & \BNFeq & x \mid v \mid e~e \mid \vpair{e}{e} \mid \vunop~e \mid \vbinop~e~e \mid \edyn{\tau}{e} \mid \esta{\tau}{e}
+    %\\
+    v & \BNFeq & i \mid \vpair{v}{v} \mid \vlam{x}{e} \mid \vlam{\tann{x}{\tau}}{e} \mid \vmonfun{(\tarr{\tau}{\tau})}{v} \mid \vmonpair{(\tpair{\tau}{\tau})}{v}
     \\
-    v & \BNFeq & i \mid \vpair{v}{v} \mid \vlam{x}{e} \mid \vlam{\tann{x}{\tau}}{e} \mid \vmonfun{(\tau\tarrow\tau)}{v} \mid \vmonpair{(\tpair{\tau}{\tau})}{v}
+    \ES & \BNFeq & \ehole \mid \eapp{\ES}{e} \mid \eapp{v}{\ES} \mid
+                   \vpair{\ES}{e} \mid \vpair{v}{\ES} \mid \eunop{\ES} \mid
+                   \ebinop{\ES}{e} \mid \ebinop{v}{\ES}
   \end{array}$
 }
 
-\lblmathpar{$\Gamma \wellCE e$}{
+%% -----------------------------------------------------------------------------
+%% --- typing
+\bigvspace
+
+\lblmathparextra{$\Gamma \wellCE e$}{ (selected rules)}{
   \inferrule*{
     x \in \GammaD
   }{
@@ -18,52 +26,58 @@
   }{
     \GammaD \wellCE \vlam{x}{e}
   }
+%
+%  \inferrule*{
+%  }{
+%    \GammaD \wellCE i
+%  }
+%
+%  \inferrule*{
+%    \GammaD \wellCE e_0
+%    \\
+%    \GammaD \wellCE e_1
+%  }{
+%    \GammaD \wellCE \vpair{e_0}{e_1}
+%  }
+%
+%  \inferrule*{
+%    \GammaD \wellCE e_0
+%    \\
+%    \GammaD \wellCE e_1
+%  }{
+%    \GammaD \wellCE e_0~e_1
+%  }
+%
+%  \inferrule*{
+%    \GammaD \wellCE e
+%  }{
+%    \GammaD \wellCE \eunop{e}
+%  }
+%
+%  \inferrule*{
+%    \GammaD \wellCE e_0
+%    \\
+%    \GammaD \wellCE e_1
+%  }{
+%    \GammaD \wellCE \ebinop{e_0}{e_1}
+%  }
+%
+%  \inferrule*{
+%    \Gamma \wellCE v : \tpair{\tau_0}{\tau_1}
+%  }{
+%    \Gamma \wellCE \vmonpair{(\tpair{\tau_0}{\tau_1})}{v}
+%  }
+%
+%  \inferrule*{
+%    \Gamma \wellCE v : \tarr{\tau_d}{\tau_c}
+%  }{
+%    \Gamma \wellCE \vmonfun{(\tarr{\tau_d}{\tau_c})}{v}
+%  }
 
   \inferrule*{
+    \Gamma \wellCE v : \tau
   }{
-    \GammaD \wellCE i
-  }
-
-  \inferrule*{
-    \GammaD \wellCE e_0
-    \\
-    \GammaD \wellCE e_1
-  }{
-    \GammaD \wellCE \vpair{e_0}{e_1}
-  }
-
-  \inferrule*{
-    \GammaD \wellCE e_0
-    \\
-    \GammaD \wellCE e_1
-  }{
-    \GammaD \wellCE e_0~e_1
-  }
-
-  \inferrule*{
-    \GammaD \wellCE e
-  }{
-    \GammaD \wellCE \eunop{e}
-  }
-
-  \inferrule*{
-    \GammaD \wellCE e_0
-    \\
-    \GammaD \wellCE e_1
-  }{
-    \GammaD \wellCE \ebinop{e_0}{e_1}
-  }
-
-  \inferrule*{
-    \Gamma \wellCE v : \tpair{\tau_0}{\tau_1}
-  }{
-    \Gamma \wellCE \vmonpair{(\tpair{\tau_0}{\tau_1})}{v}
-  }
-
-  \inferrule*{
-    \Gamma \wellCE v : \tarr{\tau_d}{\tau_c}
-  }{
-    \Gamma \wellCE \vmonfun{(\tarr{\tau_d}{\tau_c})}{v}
+    \Gamma \wellCE \vmonfun{\tau}{v}
   }
 
   \inferrule*{
@@ -74,7 +88,7 @@
 
 }
 
-\lblmathpar{$\Gamma \wellCE e : \tau$}{
+\lblmathparextra{$\Gamma \wellCE e : \tau$}{ (selected rules)}{
   \inferrule*{
     \tann{x}{\tau} \in \GammaS
   }{
@@ -86,70 +100,76 @@
   }{
     \GammaS \wellCE \vlam{\tann{x}{\tau_d}}{e} : \tarr{\tau_d}{\tau_c}
   }
-
-  \inferrule*{
-    i \in \naturals
-  }{
-    \GammaS \wellCE i : \tnat
-  }
-
-  \inferrule*{
-  }{
-    \GammaS \wellCE i : \tint
-  }
-
-  \inferrule*{
-    \GammaS \wellCE e_0 : \tau_0
-    \\\\
-    \GammaS \wellCE e_1 : \tau_1
-  }{
-    \GammaS \wellCE \vpair{e_0}{e_1} : \tpair{\tau_0}{\tau_1}
-  }
-
-  \inferrule*{
-    \GammaS \wellCE e_0 : \tau_d \tarrow \tau_c
-    \\\\
-    \GammaS \wellCE e_1 : \tau_d
-  }{
-    \GammaS \wellCE e_0~e_1 : \tau_c
-  }
-
-  \inferrule*{
-    \GammaS \wellCE e_0 : \tau_0
-    \\\\
-    \Delta(\vunop, \tau_0) = \tau
-  }{
-    \GammaS \wellCE \vunop~e_0 : \tau
-  }
-
-  \inferrule*{
-    \GammaS \wellCE e_0 : \tau_0
-    \\\\
-    \GammaS \wellCE e_1 : \tau_1
-    \\\\
-    \Delta(\vbinop, \tau_0, \tau_1) = \tau
-  }{
-    \GammaS \wellCE \vbinop~e_0~e_1 : \tau
-  }
-
-  \inferrule*{
-    \GammaS \wellCE e : \tau'
-    \\\\
-    \tau' \subt \tau
-  }{
-    \GammaS \wellCE e : \tau
-  }
+%
+%  \inferrule*{
+%    i \in \naturals
+%  }{
+%    \GammaS \wellCE i : \tnat
+%  }
+%
+%  \inferrule*{
+%  }{
+%    \GammaS \wellCE i : \tint
+%  }
+%
+%  \inferrule*{
+%    \GammaS \wellCE e_0 : \tau_0
+%    \\\\
+%    \GammaS \wellCE e_1 : \tau_1
+%  }{
+%    \GammaS \wellCE \vpair{e_0}{e_1} : \tpair{\tau_0}{\tau_1}
+%  }
+%
+%  \inferrule*{
+%    \GammaS \wellCE e_0 : \tau_d \tarrow \tau_c
+%    \\\\
+%    \GammaS \wellCE e_1 : \tau_d
+%  }{
+%    \GammaS \wellCE e_0~e_1 : \tau_c
+%  }
+%
+%  \inferrule*{
+%    \GammaS \wellCE e_0 : \tau_0
+%    \\\\
+%    \Delta(\vunop, \tau_0) = \tau
+%  }{
+%    \GammaS \wellCE \vunop~e_0 : \tau
+%  }
+%
+%  \inferrule*{
+%    \GammaS \wellCE e_0 : \tau_0
+%    \\\\
+%    \GammaS \wellCE e_1 : \tau_1
+%    \\\\
+%    \Delta(\vbinop, \tau_0, \tau_1) = \tau
+%  }{
+%    \GammaS \wellCE \vbinop~e_0~e_1 : \tau
+%  }
+%
+%  \inferrule*{
+%    \GammaS \wellCE e : \tau'
+%    \\\\
+%    \tau' \subt \tau
+%  }{
+%    \GammaS \wellCE e : \tau
+%  }
+%
+%  \inferrule*{
+%    \Gamma \wellCE v
+%  }{
+%    \Gamma \wellCE \vmonpair{(\tpair{\tau_0}{\tau_1})}{v} : \tpair{\tau_0}{\tau_1}
+%  }
+%
+%  \inferrule*{
+%    \Gamma \wellCE v
+%  }{
+%    \Gamma \wellCE \vmonfun{(\tarr{\tau_d}{\tau_c})}{v} : \tarr{\tau_d}{\tau_c}
+%  }
 
   \inferrule*{
     \Gamma \wellCE v
   }{
-    \Gamma \wellCE \vmonpair{(\tpair{\tau_0}{\tau_1})}{v} : (\tpair{\tau_0}{\tau_1})
-  }
-
-  \inferrule*{
-    \Gamma \wellCE v
-  }{
-    \Gamma \wellCE \vmonfun{(\tarr{\tau_d}{\tau_c})}{v} : (\tarr{\tau_d}{\tau_c})
+    \Gamma \wellCE \vmonfun{\tau}{v} : \tau
   }
 
   \inferrule*{
@@ -159,112 +179,118 @@
   }
 }
 
-\lbl{$e \rrCD A$}{
-$\begin{array}{l@{~~}c@{~~}l l}
-  \efst{(\vmonpair{\tpair{\tau_0}{\tau_1}}{v})} & \rrCD & \esta{\tau_0}{(\efst{v})}
-  &
-\\
-  \esnd{(\vmonpair{\tpair{\tau_0}{\tau_1}}{v})} & \rrCD & \esta{\tau_1}{(\esnd{v})}
-  &
-\\
-  (\vmonfun{\tarr{\tau_d}{\tau_c}}{v_f})~v & \rrCD & \esta{\tau_c}{(v_f~(\edyn{\tau_d}{v}))}
-  &
-\\
-  \esta{\tarr{\tau_d}{\tau_c}}{v} & \rrCD & \vmonfun{\tarr{\tau_d}{\tau_c}}{v}
-  &
-\\
-  \esta{\tpair{\tau_0}{\tau_1}}{v} & \rrCD & \vmonpair{\tpair{\tau_0}{\tau_1}}{v}
-  &
-\\
-  \esta{\tint}{v} & \rrCD & v
-  &
-\\
-  \esta{\tnat}{v} & \rrCD & v
-  &
-\\
-  (\vlam{x}{e})~v & \rrCD & \vsubst{e}{x}{v}
-  &
-\\
-  v_0~v_1 & \rrCD & \tagerror
-  & \mbox{if $v_0 \sim i$ or $v_0 \sim \vpair{v}{v'}$ or $v_0 \sim \vmonpair{\tpair{\tau_0}{\tau_1}}{v'}$}
-\\
-  \eunop{v} & \rrCD & A
-  & \mbox{if $A = \delta(\vunop, v)$}
-\\
-  \eunop{v} & \rrCD & \tagerror
-  & \mbox{otherwise}
-\\
-  \ebinop{v_0}{v_1} & \rrCD & A
-  \mbox{if $A = \delta(\vbinop, v_0, v_1)$}
-\\
-  \ebinop{v_0}{v_1} & \rrCD & \tagerror
-  & \mbox{otherwise}
-\end{array}$
+%% -----------------------------------------------------------------------------
+%% --- reduction
+\bigvspace
+
+\lblextra{$e \rrCD A$}{ (selected rules)}{
+  $\begin{array}{l@{\hspace{0.5em}}c@{\hspace{0.5em}}l@{\hspace{1em}}l}
+    \efst{(\vmonpair{(\tpair{\tau_0}{\tau_1})}{v})} & \rrCD & \esta{\tau_0}{(\efst{v})}
+    &
+    \\
+    \esnd{(\vmonpair{(\tpair{\tau_0}{\tau_1})}{v})} & \rrCD & \esta{\tau_1}{(\esnd{v})}
+    &
+    \\
+    (\vmonfun{(\tarr{\tau_d}{\tau_c})}{v_f})~v & \rrCD & \esta{\tau_c}{(v_f~(\edyn{\tau_d}{v}))}
+    &
+    \\
+    \esta{\tarr{\tau_d}{\tau_c}}{v} & \rrCD & \vmonfun{(\tarr{\tau_d}{\tau_c})}{v}
+    &
+    \\
+    \esta{\tpair{\tau_0}{\tau_1}}{v} & \rrCD & \vmonpair{(\tpair{\tau_0}{\tau_1})}{v}
+    &
+    \\
+    \esta{\tint}{v} & \rrCD & v
+    &
+    \\
+    \esta{\tnat}{v} & \rrCD & v
+    &
+%    \\
+%    (\vlam{x}{e})~v & \rrCD & \vsubst{e}{x}{v}
+%    &
+%    \\
+%    v_0~v_1 & \rrCD & \tagerror
+%    & \mbox{if $v_0 \valeq i$ or $v_0 \valeq \vpair{v}{v'}$ or $v_0 \valeq \vmonpair{(\tpair{\tau_0}{\tau_1})}{v'}$}
+%    \\
+%    \eunop{v} & \rrCD & A
+%    & \mbox{if $A = \delta(\vunop, v)$}
+%    \\
+%    \eunop{v} & \rrCD & \tagerror
+%    & \mbox{otherwise}
+%    \\
+%    \ebinop{v_0}{v_1} & \rrCD & A
+%    \mbox{if $A = \delta(\vbinop, v_0, v_1)$}
+%    \\
+%    \ebinop{v_0}{v_1} & \rrCD & \tagerror
+%    & \mbox{otherwise}
+  \end{array}$
 }
 
-\lbl{$e \rrCS A$}{
-$\begin{array}{l@{~~}c@{~~}l l}
-  \efst{(\vmonpair{\tpair{\tau_0}{\tau_1}}{v})} & \rrCS & \edyn{\tau_0}{(\efst{v})}
-  &
-\\
-  \esnd{(\vmonpair{\tpair{\tau_0}{\tau_1}}{v})} & \rrCS & \edyn{\tau_1}{(\esnd{v})}
-  &
-\\
-  (\vmonfun{\tarr{\tau_d}{\tau_c}}{v_f})~v & \rrCS & \edyn{\tau_c}{(v_f~(\esta{\tau_d}{v}))}
-  &
-\\
-  \edyn{\tarr{\tau_d}{\tau_c}}{v} & \rrCS & \vmonfun{\tarr{\tau_d}{\tau_c}}{v}
-  & \mbox{if $v \sim \vlam{x}{e}$ or $v \sim \vmonfun{\tarr{\tau_d'}{\tau_c'}}{v'}$}
-\\
-  \edyn{\tpair{\tau_0}{\tau_1}}{v} & \rrCS & \vmonpair{\tpair{\tau_0}{\tau_1}}{v}
-  & \mbox{if $v \sim \vpair{v_0}{v_1}$ or $v \sim \vmonpair{\tpair{\tau_0'}{\tau_1'}}{v'}$}
-\\
-  \edyn{\tint}{i} & \rrCS & i
-  &
-\\
-  \edyn{\tnat}{i} & \rrCS & i
-  & \mbox{if $i \in \naturals$}
-\\
-  \edyn{\tau}{v} & \rrCS & \boundaryerror
-  & \mbox{otherwise}
-\\
-  (\vlam{\tann{x}{\tau_d}}{e})~v & \rrCS & \vsubst{e}{x}{v}
-  &
-\\
-  \eunop{v} & \rrCS & A
-  & \mbox{if $A = \delta(\vunop, v)$}
-\\
-  \ebinop{v_0}{v_1} & \rrCS & A
-  & \mbox{if $A = \delta(\vbinop, v_0, v_1)$}
-\end{array}$
+\lblextra{$e \rrCS A$}{ (selected rules)}{
+  $\begin{array}{l@{\hspace{0.5em}}c@{\hspace{0.5em}}l@{\hspace{1em}}l}
+    \efst{(\vmonpair{(\tpair{\tau_0}{\tau_1})}{v})} & \rrCS & \edyn{\tau_0}{(\efst{v})}
+    &
+    \\
+    \esnd{(\vmonpair{(\tpair{\tau_0}{\tau_1})}{v})} & \rrCS & \edyn{\tau_1}{(\esnd{v})}
+    &
+    \\
+    (\vmonfun{(\tarr{\tau_d}{\tau_c})}{v_f})~v & \rrCS & \edyn{\tau_c}{(v_f~(\esta{\tau_d}{v}))}
+    &
+    \\
+    \edyn{\tarr{\tau_d}{\tau_c}}{v} & \rrCS & \vmonfun{(\tarr{\tau_d}{\tau_c})}{v}
+    & \mbox{if $v \valeq \vlam{x}{e}$ or $v \valeq \vmonfun{(\tarr{\tau_d'}{\tau_c'})}{v'}$}
+    \\
+    \edyn{\tpair{\tau_0}{\tau_1}}{v} & \rrCS & \vmonpair{(\tpair{\tau_0}{\tau_1})}{v}
+    & \mbox{if $v \valeq \vpair{v_0}{v_1}$ or $v \valeq \vmonpair{(\tpair{\tau_0'}{\tau_1'})}{v'}$}
+    \\
+    \edyn{\tint}{i} & \rrCS & i
+    &
+    \\
+    \edyn{\tnat}{i} & \rrCS & i
+    & \mbox{if $i \in \naturals$}
+    \\
+    \edyn{\tau}{v} & \rrCS & \boundaryerror
+    & \mbox{otherwise}
+%    \\
+%    (\vlam{\tann{x}{\tau_d}}{e})~v & \rrCS & \vsubst{e}{x}{v}
+%    &
+%    \\
+%    \eunop{v} & \rrCS & A
+%    & \mbox{if $A = \delta(\vunop, v)$}
+%    \\
+%    \ebinop{v_0}{v_1} & \rrCS & A
+%    & \mbox{if $A = \delta(\vbinop, v_0, v_1)$}
+  \end{array}$
 }
 
 \lbl{$e \ccCD A$}{
-  $\begin{array}{l@{~~}c@{~~}l@{~~}l}
-  \ctxE{\esta{\tau}{e}} & \ccCD & \ctxE{\esta{\tau}{e'}}
-   & \mbox{if $e \ccCS e'$}
-  \\
-  \ctxE{\esta{\tau}{e}} & \ccCD & A
-   & \mbox{if $e \ccCS A$ and $A \not\in e$}
-  \\
-  \ctxE{e} & \ccCD & \ctxE{e'} & \mbox{if $e \rrCD e'$}
-  \\
-  \ctxE{e} & \ccCD & A         & \mbox{if $e \rrCD A$ and $A \not\in e$}
+  $\begin{array}{l@{\hspace{0.5em}}c@{\hspace{0.5em}}l@{\hspace{1em}}l}
+    \ctxE{\esta{\tau}{e}} & \ccCD & \ctxE{\esta{\tau}{e'}}
+    & \mbox{if $e \ccCS e'$}
+    \\
+    \ctxE{\esta{\tau}{e}} & \ccCD & A
+    & \mbox{if $e \ccCS A$ and $A \not\in e$}
+    \\
+    \ctxE{e} & \ccCD & \ctxE{e'}
+    & \mbox{if $e \rrCD e'$}
+    \\
+    \ctxE{e} & \ccCD & A
+    & \mbox{if $e \rrCD A$ and $A \not\in e$}
   \end{array}$
 }
 
 \lbl{$e \ccCS A$}{
-  $\begin{array}{l@{~~}c@{~~}l@{~~}l}
-  \ctxE{\edyn{\tau}{e}} & \ccCS & \ctxE{\edyn{\tau}{e'}}
+  $\begin{array}{l@{\hspace{0.5em}}c@{\hspace{0.5em}}l@{\hspace{1em}}l}
+    \ctxE{\edyn{\tau}{e}} & \ccCS & \ctxE{\edyn{\tau}{e'}}
     & \mbox{if $e \ccCD e'$}
-  \\
-  \ctxE{\edyn{\tau}{e}} & \ccCS & A
+    \\
+    \ctxE{\edyn{\tau}{e}} & \ccCS & A
     & \mbox{if $e \ccCD A$ and $A \not\in e$}
-  \\
-  \ctxE{e} & \ccCS & \ctxE{e'} & \mbox{if $e \rrCS e'$}
-  \\
-  \ctxE{e} & \ccCS & A         & \mbox{if $e \rrCS A$ and $A \not\in e$}
+    \\
+    \ctxE{e} & \ccCS & \ctxE{e'} & \mbox{if $e \rrCS e'$}
+    \\
+    \ctxE{e} & \ccCS & A         & \mbox{if $e \rrCS A$ and $A \not\in e$}
   \end{array}$
 }
 
-\fbox{$e \rrCEstar A$} reflexive, transitive closure of $\ccCS$\\
+\lblextra{$e \rrCEstar A$}{ reflexive, transitive closure of $\ccCS$}{}
