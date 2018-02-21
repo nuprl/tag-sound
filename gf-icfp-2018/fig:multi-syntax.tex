@@ -1,9 +1,9 @@
 \begin{multicols}{2}
 \lbl{Multi-language $\langM$}{
   $\begin{array}{l@{\hspace{0.5em}}c@{\hspace{0.5em}}l}
-    e & \BNFeq & x \mid v \mid e~e \mid \vpair{e}{e} \mid \eunop{e} \mid \ebinop{e}{e} \mid
+    e & \BNFeq & x \mid \vlam{x}{e} \mid \vlam{\tann{x}{\tau}}{e} \mid i \mid \vpair{e}{e} \mid \eapp{e}{e} \mid
     \\
-    & & \edyn{\tau}{e} \mid \esta{\tau}{e}
+    & & \eunop{e} \mid \ebinop{e}{e} \mid \edyn{\tau}{e} \mid \esta{\tau}{e}
     \\
     \tau & \BNFeq & \tint \mid \tnat \mid \tpair{\tau}{\tau} \mid \tau \tarrow \tau
     \\
