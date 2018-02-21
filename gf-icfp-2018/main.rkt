@@ -2,7 +2,7 @@
 
 ;; Utilities / setup for acmart-style Scribble papers
 
-;; TODO clear this damn file
+;; TODO cleanup
 
 (provide
   ;; --- new stuff
@@ -168,17 +168,37 @@
   (include-?figure figure* ps caption))
 
 (define (include-?figure make-fig ps caption)
-  (unless (and (string? ps) (file-exists? ps))
-    (raise-argument-error (object-name make-fig) "(and/c string? file-exists?)" ps))
-  (define tag (path-string->tag ps))
-  (define tex (path-string->input ps))
-  (make-fig tag caption tex))
+  (define error-name (object-name make-fig))
+  (define (assert-file-exists! filename)
+    (unless (file-exists? filename)
+      (raise-argument-error error-name "(and/c string? file-exists?)" filename)))
+  (define-values [tag tex]
+    (cond
+     [(string? ps)
+      (assert-file-exists! ps)
+      (define tag (path-string->tag ps))
+      (define tex (path-string->input ps))
+      (values tag tex)]
+     [(list? ps)
+      (for-each assert-file-exists! ps)
+      (define tag (apply string-append (map path-string->tag ps)))
+      (define tex (path-string*->input ps))
+      (values tag tex)]
+     [else
+      (raise-argument-error 'include-?figure "unidentified input value" 1 make-fig ps caption)]))
+   (make-fig tag caption tex))
 
 (define (path-string->tag ps)
   (path->string (path-replace-extension ps #"")))
 
+(define (path-string*->input ps*)
+  (exact (apply string-append (map format-input ps*))))
+
 (define (path-string->input ps)
-  (exact (format "\\input{~a}" ps)))
+  (exact (format-input ps)))
+
+(define (format-input ps)
+  (format "\\input{~a}" ps))
 
 (define (definition term #:key [key #f] . defn*)
   (make-thing "Definition" term defn* key))
