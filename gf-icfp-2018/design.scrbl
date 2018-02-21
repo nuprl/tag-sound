@@ -4,7 +4,8 @@
 @; TODO
 @; - dyn / static twin language in inline figures
 
-@include-figure["fig:common-syntax.tex" @elem{Twin languages syntax, typing, and primitives}]
+@include-figure["fig:multi-syntax.tex" @elem{Twin languages syntax and typing judgments}]
+@include-figure["fig:multi-reduction.tex" @elem{Common semantic notions}]
 
 @; TODO I'm assuming base types are O(1) to check no matter what ... that they're taggged ... don't think this comes across
 The goal of a type-directed embedding is to describe how three

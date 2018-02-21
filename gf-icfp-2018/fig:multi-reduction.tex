@@ -1,0 +1,20 @@
+\begin{multicols}{2}
+
+\lbl{Multi-language $\langM$}{
+  $\begin{array}{l@{\hspace{0.5em}}c@{\hspace{0.5em}}l}
+    v & \BNFeq & i \mid \vpair{v}{v} \mid \vlam{\tann{x}{\tau}}{e} \mid \vlam{x}{e}
+    \\
+    A & \BNFeq & e \mid \boundaryerror \mid \tagerror
+    \\
+    \ES & \BNFeq & \ehole \mid \eapp{\ES}{e} \mid \eapp{v}{\ES} \mid
+                   \vpair{\ES}{e} \mid \vpair{v}{\ES} \mid \eunop{\ES} \mid
+    \\
+    & &            \ebinop{\ES}{e} \mid \ebinop{v}{\ES}
+  \end{array}$
+}
+
+\multicolsbreak
+
+\input{fig:delta.tex}
+
+\end{multicols}
