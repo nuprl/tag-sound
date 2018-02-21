@@ -4,7 +4,7 @@
 $\begin{array}{l c l}
   e & \BNFeq & x \mid v \mid e~e \mid \vpair{e}{e} \mid \vunop~e \mid \vbinop~e~e \mid \edyn{\tau}{e} \mid
 \\ & & \esta{\tau}{e} \mid \edyn{\kany}{e} \mid \esta{\kany}{e} \mid
-\\ & & \echk~K~e
+\\ & & \echk{K}{e}
 \\
   v & \BNFeq & i \mid \vpair{v}{v} \mid \vlam{x}{e} \mid \vlam{\tann{x}{\tau}}{e}
 \\
@@ -45,7 +45,7 @@ $\begin{array}{l c l}
 
 \fbox{$K \subteq K$} reflexive closure of $\subk$
 
-\lbl{$\tagof{\tau} = \kappa$}{
+\lbl{$\tagof{\tau} = K$}{
 $\begin{array}{l c l}
   \tagof{\tnat} & = & \knat
 \\

@@ -1,22 +1,36 @@
-\begin{flushleft}
-
-\begin{minipage}[t]{\columnwidth}
-\lblextra{Language $\langK$}{ inherits $\langM$:}{
-$\begin{array}{l c l}
-  e & \BNFeq & \ldots \mid \edyn{\kany}{e} \mid \esta{\kany}{e} \mid \echk~K~e
-\\
-  K & \BNFeq & \knat \mid \kint \mid \kpair \mid \kfun \mid \kany
-\\
-  \ES & \BNFeq & \ldots \mid \echk{K}{\ES}
-\end{array}$
+\lblextra{Language $\langK$}{ extends $\langM$:}{
+  $\begin{array}{l@{\hspace{0.5em}}c@{\hspace{0.5em}}l}
+    e & \BNFeq & x \mid v \mid \eapp{e}{e} \mid \vpair{e}{e} \mid \eunop{e} \mid
+                   \ebinop{e}{e} \mid \edyn{\tau}{e} \mid \esta{\tau}{e} \mid
+                   \edyn{\kany}{e} \mid \esta{\kany}{e} \mid
+    \\
+      &        &   \echk{K}{e}
+    \\
+%    v & \BNFeq & i \mid \vpair{v}{v} \mid \vlam{x}{e} \mid \vlam{\tann{x}{\tau}}{e}
+%    \\
+%    \tau & \BNFeq & \tnat \mid \tint \mid \tpair{\tau}{\tau} \mid \tau \tarrow \tau
+%    \\
+    K & \BNFeq & \knat \mid \kint \mid \kpair \mid \kfun \mid \kany
+    \\
+%    \Gamma & \BNFeq & \cdot \mid x,\Gamma \mid \tann{x}{\tau},\Gamma
+%    \\
+%    A & \BNFeq & e \mid \boundaryerror \mid \tagerror
+%    \\
+    \ES & \BNFeq & \ehole \mid \eapp{E}{e} \mid \eapp{v}{E} \mid
+                   \vpair{E}{e} \mid \vpair{v}{E} \mid \eunop{E} \mid
+                   \ebinop{E}{e} \mid \ebinop{v}{E} \mid \echk{K}{E}
+  \end{array}$
 }
 
-\smallskip
-\lblmathparextra{$\Gamma \wellKE e$}{ inherits $\Gamma \welldyn e$}{
+%% -----------------------------------------------------------------------------
+%% --- typing
+\bigvspace
+
+\lblmathparextra{$\Gamma \wellKE e$}{ (selected rules)}{
   \inferrule*{
-    \tann{x}{\tau},\Gamma \wellKE e : \kany
+    x \in \Gamma
   }{
-    \Gamma \wellKE \vlam{\tann{x}{\tau}}{e}
+    \Gamma \wellKE x
   }
 
   \inferrule*{
@@ -25,6 +39,53 @@ $\begin{array}{l c l}
     \Gamma \wellKE x
   }
 
+%  \inferrule*{
+%  }{
+%    \Gamma \wellKE i
+%  }
+%
+%  \inferrule*{
+%    \Gamma \wellKE e_0
+%    \\
+%    \Gamma \wellKE e_1
+%  }{
+%    \Gamma \wellKE \vpair{e_0}{e_1}
+%  }
+%
+  \inferrule*{
+    x,\Gamma \wellKE e
+  }{
+    \Gamma \wellKE \vlam{x}{e}
+  }
+
+  \inferrule*{
+    \tann{x}{\tau},\Gamma \wellKE e : \kany
+  }{
+    \Gamma \wellKE \vlam{\tann{x}{\tau}}{e}
+  }
+
+%  \inferrule*{
+%    \Gamma \wellKE e_0
+%    \\
+%    \Gamma \wellKE e_1
+%  }{
+%    \Gamma \wellKE e_0~e_1
+%  }
+%
+%  \inferrule*{
+%    \Gamma \wellKE e
+%  }{
+%    \Gamma \wellKE \vunop~e
+%  }
+%
+%  \inferrule*{
+%    \Gamma \wellKE e_0
+%    \\
+%    \Gamma \wellKE e_1
+%  }{
+%    \Gamma \wellKE \vbinop~e_0~e_1
+%  }
+%
   \inferrule*{
     \Gamma \wellKE e : \tagof{\tau}
   }{
@@ -38,95 +99,19 @@ $\begin{array}{l c l}
   }
 }
 
-\smallskip
-\lblextra{$e \rrKD A$}{ extends $e \rrD A$:}{
-$\begin{array}{l@{~~}c@{~~}l}
-  (\vlam{\tann{x}{\tau}}{e})~v & \rrKD & \esta{\kany}{(\vsubst{e}{x}{v})}
-\\ \multicolumn{3}{l}{\mbox{\quad if $K = \tagof{\tau}$ and $v = \mchk{K}{v}$}}
-\\
-  (\vlam{\tann{x}{\tau}}{e})~v & \rrKD & \boundaryerror
-\\ \multicolumn{3}{l}{\mbox{\quad otherwise}}
-\\
-  \esta{\tau}{v} & \rrKD & v
-\\ \multicolumn{3}{l}{\mbox{\quad where $K = \tagof{\tau}$}}
-\\
-  \esta{\kany}{v} & \rrKD & v
-\end{array}$
-}
-
-\smallskip
-\lblextra{$e \rrKS A$}{ extends $e \rrS A$:}{
-$\begin{array}{l@{~~}c@{~~}l}
-  (\vlam{x}{e})~v & \rrKS & \edyn{\kany}{\vsubst{e}{x}{v}}
-\\
-  \edyn{\tau}{v} & \rrKS & \mchk{K}{v}
-\\ \multicolumn{3}{l}{\mbox{\quad where $K = \tagof{\tau}$}}
-\\
-  \edyn{\kany}{v} & \rrKS & v
-\\
-  \echk{K}{v} & \rrKS & \mchk{K}{v}
-\end{array}$
-}
-
-\smallskip
-\lbl{$\mchk{K}{v} = A$}{
-$\begin{array}{l@{~~}c@{~~}l l}
-  \mchk{K}{v} & = & v & \mbox{if $\wellKE v : K$}
-\\
-  \mchk{K}{v} & = & \boundaryerror & \mbox{otherwise}
-\end{array}$
-}
-
-\end{minipage}\hspace{\columnsep}%
-\begin{minipage}[t]{\columnwidth}
-\begin{minipage}[t]{0.6\columnwidth}
-\lbl{$\tagof{\tau} = \kappa$}{
-$\begin{array}{l c l}
-  \tagof{\tnat} & = & \knat
-\\
-  \tagof{\tint} & = & \kint
-\\
-  \tagof{\tpair{\tau_0}{\tau_1}} & = & \kpair
-\\
-  \tagof{\tarr{\tau_d}{\tau_c}} & = & \kfun
-\end{array}$
-}
-\end{minipage}%
-\begin{minipage}[t]{0.4\columnwidth}
-\lblmathpar{$K \subk K$}{
+\lblmathparextra{$\Gamma \wellKE e : K$}{ (selected rules)}{
   \inferrule*{
+    x \in \Gamma
   }{
-    \knat \subk \kint
+    \Gamma \wellKE x : \kany
   }
 
   \inferrule*{
-    K \neq \kany
-  }{
-    K \subk \kany
-  }
-}
-
-\end{minipage}
-
-\smallskip
-\lblmathparextra{$\Gamma \wellKE e : K$}{ (selected rules):}{
-  %\inferrule*{
-  %  i \in \naturals
-  %}{
-  %  \Gamma \wellKE i : \knat
-  %}
-
-  %\inferrule*{
-  %}{
-  %  \Gamma \wellKE i : \kint
-  %}
-
-  \inferrule*{
-    \Gamma \wellKE e_0 : \kany
+    \tann{x}{\tau} \in \Gamma
     \\\\
-    \Gamma \wellKE e_1 : \kany
+    \tagof{\tau} = K
   }{
-    \Gamma \wellKE \vpair{e_0}{e_1} : \kpair
+    \Gamma \wellKE x : K
   }
 
   \inferrule*{
@@ -142,19 +127,24 @@ $\begin{array}{l c l}
   }
 
   \inferrule*{
-    x \in \Gamma
-  }{
-    \Gamma \wellKE x : \kany
-  }
-
-  \inferrule*{
-    \tann{x}{\tau} \in \Gamma
+    \Gamma \wellKE e_0 : \kany
     \\\\
-    \tagof{\tau} = K
+    \Gamma \wellKE e_1 : \kany
   }{
-    \Gamma \wellKE x : K
+    \Gamma \wellKE \vpair{e_0}{e_1} : \kpair
   }
 
+%  \inferrule*{
+%    i \in \naturals
+%  }{
+%    \Gamma \wellKE i : \knat
+%  }
+%
+%  \inferrule*{
+%  }{
+%    \Gamma \wellKE i : \kint
+%  }
+%
   \inferrule*{
     \Gamma \wellKE e_0 : \kfun
     \\\\
@@ -174,34 +164,34 @@ $\begin{array}{l c l}
   }{
     \Gamma \wellKE \esnd{e} : \kany
   }
-
-  %\inferrule*{
-  %  \Gamma \wellKE e_0 : K_0
-  %  \\
-  %  \Gamma \wellKE e_1 : K_1
-  %  %\\\\
-  %  %\tau_0 = K_0
-  %  %\\
-  %  %\tau_1 = K_1
-  %  \\\\
-  %  \Delta(\vbinop, K_0, K_1) = K
-  %}{
-  %  \Gamma \wellKE \vbinop~e_0~e_1 : K
-  %}
+%
+%  \inferrule*{
+%    \Gamma \wellKE e_0 : K_0
+%    \\
+%    \Gamma \wellKE e_1 : K_1
+%    %\\\\
+%    %\tau_0 = K_0
+%    %\\
+%    %\tau_1 = K_1
+%    \\\\
+%    \Delta(\vbinop, K_0, K_1) = K
+%  }{
+%    \Gamma \wellKE \vbinop~e_0~e_1 : K
+%  }
 
   \inferrule*{
     \Gamma \wellKE e
-    \\
+    \\\\
     \tagof{\tau} = K
   }{
     \Gamma \wellKE \edyn{\tau}{e} : K
   }
-
-  \inferrule*{
-    \Gamma \wellKE e
-  }{
-    \Gamma \wellKE \edyn{\kany}{e} : \kany
-  }
+%
+%  \inferrule*{
+%    \Gamma \wellKE e
+%  }{
+%    \Gamma \wellKE \edyn{\kany}{e} : \kany
+%  }
 
   \inferrule*{
     \Gamma \wellKE e : \kany
@@ -209,20 +199,158 @@ $\begin{array}{l c l}
     \Gamma \wellKE \echk{K}{e} : K
   }
 
-  \inferrule*{
-    \Gamma \wellKE e : K'
-    \\
-    K' \subk K
-  }{
-    \Gamma \wellKE e : K
-  }
+%  \inferrule*{
+%    \Gamma \wellKE e : K'
+%    \\
+%    K' \subk K
+%  }{
+%    \Gamma \wellKE e : K
+%  }
 }
 
-\smallskip
-\smallskip
-\fbox{$e \rrKEstar A$} reflexive, transitive closure of $\ccKS$\\
-\mbox{\quad where $\vtuple{\ccKS}{\ccKD} = \DSlift{\ES}{\rrKS}{\ED}{\rrKD}$}
-\smallskip
-\end{minipage}
+%\lblmathpar{$K \subk K$}{
+%  \inferrule*{
+%    K \neq \kany
+%  }{
+%    K \subk \kany
+%  }
+%
+%  \inferrule*{
+%  }{
+%    \knat \subk \kint
+%  }
+%}
 
-\end{flushleft}
+\lbl{$\tagof{\tau} = K$}{
+  $\begin{array}{l c l}
+    \tagof{\tnat} & = & \knat
+    \\
+    \tagof{\tint} & = & \kint
+    \\
+    \tagof{\tpair{\tau_0}{\tau_1}} & = & \kpair
+    \\
+    \tagof{\tarr{\tau_d}{\tau_c}} & = & \kfun
+  \end{array}$
+}
+
+% -----------------------------------------------------------------------------
+% --- reduction
+\bigvspace
+
+\lbl{$\mchk{K}{v} = A$}{
+  $\begin{array}{l@{\hspace{0.5em}}c@{\hspace{0.5em}}l@{\hspace{1em}}l}
+    \mchk{K}{v} & = & v & \mbox{if $\wellKE v : K$}
+    \\
+    \mchk{K}{v} & = & \boundaryerror & \mbox{otherwise}
+  \end{array}$
+}
+
+\lblextra{$e \rrKD A$}{ (selected rules)}{
+  $\begin{array}{l@{\hspace{0.5em}}c@{\hspace{0.5em}}l@{\hspace{1em}}l}
+    (\vlam{\tann{x}{\tau}}{e})~v & \rrKD
+    & \esta{\kany}{(\vsubst{e}{x}{v})}
+    & \mbox{if $\tagof{\tau} = K$ and $\mchk{K}{v} = v$}
+    \\
+    (\vlam{\tann{x}{\tau}}{e})~v & \rrKD
+    & \boundaryerror
+    & \mbox{otherwise}
+    \\
+    \esta{\tau}{v} & \rrKD
+    & v
+    &
+    \\
+    \esta{\kany}{v} & \rrKD
+    & v
+    &
+    \\
+    (\vlam{x}{e})~v & \rrKD
+    & \vsubst{e}{x}{v}
+    &
+    \\
+    \eapp{v_0}{v_1} & \rrKD
+    & \tagerror
+    & \mbox{if $v_0 \valeq i$ or $v_0 \valeq \vpair{v}{v'}$}
+%    \\
+%    \eunop{v} & \rrKD
+%    & A
+%    & \mbox{if $\delta(\vunop, v) \expreq A$}
+%    \\
+%    \eunop{v} & \rrKD
+%    & \tagerror
+%    & \mbox{otherwise}
+%    \\
+%    \ebinop{v_0}{v_1} & \rrKD
+%    & A
+%    & \mbox{if $\delta(\vbinop, v_0, v_1) \expreq A$}
+%    \\
+%    \ebinop{v_0}{v_1} & \rrKD
+%    & \tagerror
+%    & \mbox{otherwise}
+  \end{array}$
+}
+
+\lblextra{$e \rrKS A$}{ (selected rules)}{
+  $\begin{array}{l@{\hspace{0.5em}}c@{\hspace{0.5em}}l@{\hspace{1em}}l}
+    (\vlam{x}{e})~v & \rrKS
+    & \edyn{\kany}{(\vsubst{e}{x}{v})}
+    &
+    \\
+    \edyn{\tau}{v} & \rrKS
+    & \mchk{K}{v}
+    & \mbox{where $\tagof{\tau} = K$}
+    \\
+    \edyn{\kany}{v} & \rrKS
+    & v
+    &
+    \\
+    \echk{K}{v} & \rrKS
+    & \mchk{K}{v}
+    &
+    \\
+    (\vlam{\tann{x}{\tau_d}}{e})~v & \rrKS
+    & \vsubst{e}{x}{v}
+    & \mbox{if $\tagof{\tau_d} = K$ and $\mchk{K}{v} = v$}
+    \\
+    (\vlam{\tann{x}{\tau_d}}{e})~v & \rrKS
+    & \boundaryerror
+    & \mbox{otherwise}
+%    \\
+%    \eunop{v} & \rrKS
+%    & A
+%    & \mbox{if $\delta(\vunop, v) = A$}
+%    \\
+%    \ebinop{v_0}{v_1} & \rrKS
+%    & \delta(\vbinop, v_0, v_1)
+%    & \mbox{if $\delta(\vbinop, v_0, v_1) = A$}
+  \end{array}$
+}
+
+%\lbl{$e \ccKS A$}{
+%  $\begin{array}{l@{\hspace{0.5em}}c@{\hspace{0.5em}}l@{\hspace{1em}}l}
+%    \ctxE{\edyn{\tau}{e}} & \ccKS & \ctxE{\edyn{\tau}{e'}}
+%    & \mbox{if $e \ccKD e'$}
+%    \\
+%    \ctxE{\edyn{\tau}{e}} & \ccKS & A
+%    & \mbox{if $e \ccKD A$ and $A \not\in e$}
+%    \\
+%    \ctxE{e} & \ccKS & \ctxE{e'} & \mbox{if $e \rrKS e'$}
+%    \\
+%    \ctxE{e} & \ccKS & A         & \mbox{if $e \rrKS A$ and $A \not\in e$}
+%  \end{array}$
+%}
+%
+%\lbl{$e \ccKD A$}{
+%  $\begin{array}{l@{\hspace{0.5em}}c@{\hspace{0.5em}}l@{\hspace{1em}}l}
+%    \ctxE{\esta{\tau}{e}} & \ccKD & \ctxE{\esta{\tau}{e'}}
+%    & \mbox{if $e \ccKS e'$}
+%    \\
+%    \ctxE{\esta{\tau}{e}} & \ccKD & A
+%    & \mbox{if $e \ccKS A$ and $A \not\in e$}
+%    \\
+%    \ctxE{e} & \ccKD & \ctxE{e'} & \mbox{if $e \rrKD e'$}
+%    \\
+%    \ctxE{e} & \ccKD & A         & \mbox{if $e \rrKD A$ and $A \not\in e$}
+%  \end{array}$
+%}
+
+\lblextra{$e \rrKEstar A$}{ reflexive, transitive closure of $\ccKS$ (see Appendix)}{}
