@@ -1,0 +1,136 @@
+
+\lblextra{Language $\langN$}{ inherits $\langM$:}{
+  $\begin{array}{l@{\hspace{0.5em}}c@{\hspace{0.5em}}l}
+    v & \BNFeq & \ldots \mid \vmonfun{(\tarr{\tau}{\tau})}{v}
+    %\\
+    %\ES & \BNFeq & \ehole \mid \eapp{\ES}{e} \mid \eapp{v}{\ES} \mid
+    %               \vpair{\ES}{e} \mid \vpair{v}{\ES} \mid \eunop{\ES} \mid
+    %               \ebinop{\ES}{e} \mid \ebinop{v}{\ES}
+  \end{array}$
+}
+
+%% -----------------------------------------------------------------------------
+%% --- reduction
+\begin{multicols}{2}
+
+  \lblextra{$e \rrND A$}{ (selected rules)}{
+    $\begin{array}{l@{\hspace{0.5em}}c@{\hspace{0.5em}}l}
+      \eapp{(\vmonfun{(\tarr{\tau_d}{\tau_c})}{v_f})}{v} & \rrND
+      & \esta{\tau_c}{(\eapp{v_f}{v'})}
+      \\ \sidecond{where $v' = \edyn{\tau_d}{v}$}
+      \\[1ex]
+      \esta{\tarr{\tau_d}{\tau_c}}{v} & \rrND
+      & \vmonfun{(\tarr{\tau_d}{\tau_c})}{v}
+      \\ \sidecond{}
+      \\[1ex]
+      \esta{\tpair{\tau_0}{\tau_1}}{\vpair{v_0}{v_1}} & \rrND
+      & \vpair{v_0'}{v_1'}
+      \\ \sidecond{where $v_0' = \esta{\tau_0}{v_0}$}
+      \\ \sidecond{and $v_1' = \esta{\tau_1}{v_1}$}
+      \\[1ex]
+      \esta{\tint}{v} & \rrND
+      & v
+      \\
+      \esta{\tnat}{v} & \rrND
+      & v
+      \\ \sidecond{}
+      \\[1ex]
+      \eapp{(\vlam{x}{e})}{v} & \rrND
+      & \vsubst{e}{x}{v}
+      \\
+      \eapp{v_0}{v_1} & \rrND
+      & \tagerror
+      \\ \sidecond{if $v_0 \valeq i$ or $v_0 \valeq \vpair{v}{v'}$}
+%      \\
+%      \eunop{v} & \rrND & A
+%      \\ \sidecond{if $\delta(\vunop, v) \expreq A$}
+%      \\
+%      \eunop{v} & \rrND & \tagerror
+%      \\ \sidecond{if $\delta(\vunop, v)$ is undefined}
+%      \\
+%      \ebinop{v_0}{v_1} & \rrND & A
+%      \\ \sidecond{if $\delta(\vbinop, v_0, v_1) \expreq A$}
+%      \\
+%      \ebinop{v_0}{v_1} & \rrND & \tagerror
+%      \\ \sidecond{if $\delta(\vbinop, v_0, v_1)$ is undefined}
+    \end{array}$
+  }
+
+  \multicolsbreak
+
+  \smallskip
+  \lblextra{$e \rrNS A$}{ (selected rules)}{
+    $\begin{array}{l@{\hspace{0.5em}}c@{\hspace{0.5em}}l}
+      \eapp{(\vmonfun{(\tarr{\tau_d}{\tau_c})}{v_f})}{v} & \rrNS
+      & \edyn{\tau_c}{(\eapp{v_f}{v'})}
+      \\ \sidecond{where $v' = \esta{\tau_d}{v}$}
+      \\[1ex]
+      \edyn{\tarr{\tau_d}{\tau_c}}{v} & \rrNS
+      & \vmonfun{(\tarr{\tau_d}{\tau_c})}{v}
+      \\ \sidecond{if $v \valeq \vlam{x}{e}$ or $v \valeq \vmonfun{(\tarr{\tau_d'}{\tau_c'})}{v'}$}
+      \\[1ex]
+      \edyn{\tpair{\tau_0}{\tau_1}}{\vpair{v_0}{v_1}} & \rrNS
+      & \vpair{v_0'}{v_1'}
+      \\ \sidecond{where $v_0' = \edyn{\tau_0}{v_0}$}
+      \\ \sidecond{and $v_1' = \edyn{\tau_1}{v_1}$}
+      \\[1ex]
+      \edyn{\tint}{i} & \rrNS
+      & i
+      \\
+      \edyn{\tnat}{i} & \rrNS
+      & i
+      \\ \sidecond{if $i \in \naturals$}
+      \\[1ex]
+      \eapp{(\vlam{\tann{x}{\tau_d}}{e})}{v} & \rrNS
+      & \vsubst{e}{x}{v}
+%      \eunop{v} & \rrNS
+%      & A
+%      \\ \sidecond{if $\delta(\vunop, v) \expreq A$}
+%      \\
+%      \ebinop{v_0}{v_1} & \rrNS
+%      & A
+%      \\ \sidecond{if $\delta(\vbinop, v_0, v_1) \expreq A$}
+    \end{array}$
+  }
+
+\end{multicols}
+
+\begin{multicols}{2}
+
+  \lbl{$e \ccND A$}{
+    $\begin{array}{l@{\hspace{0.5em}}c@{\hspace{0.5em}}l}
+      \ctxE{\esta{\tau}{e}} & \ccND & \ctxE{\esta{\tau}{e'}}
+      \\ \sidecond{if $e \ccNS e'$}
+      \\[1ex]
+      \ctxE{\esta{\tau}{e}} & \ccND & A
+      \\ \sidecond{if $e \ccNS A$ and $A \not\in e$}
+      \\[1ex]
+      \ctxE{e} & \ccND & \ctxE{e'}
+      \\ \sidecond{if $e \rrND e'$}
+      \\[1ex]
+      \ctxE{e} & \ccND & A
+      \\ \sidecond{if $e \rrND A$ and $A \not\in e$}
+    \end{array}$
+  }
+
+  \multicolsbreak
+
+  \lbl{$e \ccNS A$}{
+    $\begin{array}{l@{\hspace{0.5em}}c@{\hspace{0.5em}}l}
+      \ctxE{\edyn{\tau}{e}} & \ccNS & \ctxE{\edyn{\tau}{e'}}
+      \\ \sidecond{if $e \ccND e'$}
+      \\[1ex]
+      \ctxE{\edyn{\tau}{e}} & \ccNS & A
+      \\ \sidecond{if $e \ccND A$ and $A \not\in e$}
+      \\[1ex]
+      \ctxE{e} & \ccNS & \ctxE{e'}
+      \\ \sidecond{if $e \rrNS e'$}
+      \\[1ex]
+      \ctxE{e} & \ccNS & A
+      \\ \sidecond{if $e \rrNS A$ and $A \not\in e$}
+    \end{array}$
+  }
+
+\end{multicols}
+
+\fbox{$e \rrNEstar A$}{ reflexive, transitive closure of $\ccNS$}

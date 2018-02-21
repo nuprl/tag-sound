@@ -2,7 +2,7 @@
 \usepackage{amsmath}
 \usepackage{amssymb}
 \usepackage{multicol}
-\newcommand{\multicolsreak}{\vfill\null\columnbreak}
+\newcommand{\multicolsbreak}{\vfill\null\columnbreak}
 %\usepackage{stmaryrd}
 
 \usepackage{mathpartir}
@@ -18,6 +18,9 @@
 \newcommand{\lblmathparextra}[3]{\parbox[t]{\columnwidth}{\fbox{#1}#2\\[-1ex]\begin{mathpar}#3\end{mathpar}}}
 \newcommand{\lbl}[2]{\lblextra{#1}{}{#2}}
 \newcommand{\lblextra}[3]{\parbox[t]{\columnwidth}{\fbox{#1}#2\\#3}}
+
+% for wide rows in a table
+\newcommand{\sidecond}[1]{\multicolumn{3}{l}{\mbox{\quad #1}}}
 
 %% To show overfull, turn off for production
 \overfullrule=1mm
