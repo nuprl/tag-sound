@@ -14,31 +14,29 @@
 
   \lblextra{$e \rrCD A$}{ (selected rules)}{
     $\begin{array}{l@{\hspace{0.5em}}c@{\hspace{0.5em}}l}
+      (\vmonfun{(\tarr{\tau_d}{\tau_c})}{v_f})~v & \rrCD
+      & \esta{\tau_c}{(v_f~v')}
+      \\ \sidecond{where $v' = \edyn{\tau_d}{v}$}
+      \\[1ex]
       \efst{(\vmonpair{(\tpair{\tau_0}{\tau_1})}{v})} & \rrCD
       & \esta{\tau_0}{(\efst{v})}
       \\
       \esnd{(\vmonpair{(\tpair{\tau_0}{\tau_1})}{v})} & \rrCD
       & \esta{\tau_1}{(\esnd{v})}
       \\
-      (\vmonfun{(\tarr{\tau_d}{\tau_c})}{v_f})~v & \rrCD
-      & \esta{\tau_c}{(v_f~v')}
-      \\ \sidecond{where $v' = \edyn{\tau_d}{v}$}
-      \\
       \esta{\tarr{\tau_d}{\tau_c}}{v} & \rrCD
       & \vmonfun{(\tarr{\tau_d}{\tau_c})}{v}
       \\ \sidecond{}
-      \\
+      \\[1ex]
       \esta{\tpair{\tau_0}{\tau_1}}{v} & \rrCD
       & \vmonpair{(\tpair{\tau_0}{\tau_1})}{v}
       \\ \sidecond{}
-      \\
+      \\[1ex]
       \esta{\tint}{v} & \rrCD
       & v
       \\
       \esta{\tnat}{v} & \rrCD
       & v
-      \\ \sidecond{}
-      \\
 %      (\vlam{x}{e})~v & \rrCD
 %      & \vsubst{e}{x}{v}
 %      \\
@@ -63,31 +61,30 @@
 
   \lblextra{$e \rrCS A$}{ (selected rules)}{
     $\begin{array}{l@{\hspace{0.5em}}c@{\hspace{0.5em}}l}
+      (\vmonfun{(\tarr{\tau_d}{\tau_c})}{v_f})~v & \rrCS
+      & \edyn{\tau_c}{(v_f~v')}
+      \\ \sidecond{where $v' = \esta{\tau_d}{v}$}
+      \\[1ex]
       \efst{(\vmonpair{(\tpair{\tau_0}{\tau_1})}{v})} & \rrCS
       & \edyn{\tau_0}{(\efst{v})}
       \\
       \esnd{(\vmonpair{(\tpair{\tau_0}{\tau_1})}{v})} & \rrCS
       & \edyn{\tau_1}{(\esnd{v})}
       \\
-      (\vmonfun{(\tarr{\tau_d}{\tau_c})}{v_f})~v & \rrCS
-      & \edyn{\tau_c}{(v_f~v')}
-      \\ \sidecond{where $v' = \esta{\tau_d}{v}$}
-      \\
       \edyn{\tarr{\tau_d}{\tau_c}}{v} & \rrCS
       & \vmonfun{(\tarr{\tau_d}{\tau_c})}{v}
       \\ \sidecond{if $v \valeq \vlam{x}{e}$ or $v \valeq \vmonfun{(\tarr{\tau_d'}{\tau_c'})}{v'}$}
-      \\
+      \\[1ex]
       \edyn{\tpair{\tau_0}{\tau_1}}{v} & \rrCS
       & \vmonpair{(\tpair{\tau_0}{\tau_1})}{v}
       \\ \sidecond{if $v \valeq \vpair{v_0}{v_1}$ or $v \valeq \vmonpair{(\tpair{\tau_0'}{\tau_1'})}{v'}$}
-      \\
+      \\[1ex]
       \edyn{\tint}{i} & \rrCS
       & i
       \\
       \edyn{\tnat}{i} & \rrCS
       & i
       \\ \sidecond{if $i \in \naturals$}
-      \\
 %      \edyn{\tau}{v} & \rrCS & \boundaryerror
 %      \\ \sidecond{otherwise}
 %      \\
