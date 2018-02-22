@@ -1,0 +1,72 @@
+\lblmathparextra{$\Gamma \wellEE e$}{ (selected rules)}{
+  \inferrule*{
+    x \in \GammaD
+  }{
+    \GammaD \wellEE x
+  }
+
+  \inferrule*{
+    \tann{x}{\tau} \in \GammaD
+  }{
+    \GammaD \wellEE x
+  }
+
+  \inferrule*{
+    x,\GammaD \wellEE e
+  }{
+    \GammaD \wellEE \vlam{x}{e}
+  }
+
+  \inferrule*{
+    \tann{x}{\tau},\Gamma \wellEE e
+  }{
+    \Gamma \wellEE \vlam{\tann{x}{\tau}}{e}
+  }
+%
+%  \inferrule*{
+%  }{
+%    \GammaD \wellEE i
+%  }
+%
+%  \inferrule*{
+%    \GammaD \wellEE e_0
+%    \\\\
+%    \GammaD \wellEE e_1
+%  }{
+%    \GammaD \wellEE \vpair{e_0}{e_1}
+%  }
+%
+%  \inferrule*{
+%    \GammaD \wellEE e_0
+%    \\\\
+%    \GammaD \wellEE e_1
+%  }{
+%    \GammaD \wellEE \vapp{e_0}{e_1}
+%  }
+%
+%  \inferrule*{
+%    \GammaD \wellEE e
+%  }{
+%    \GammaD \wellEE \eunop{e}
+%  }
+%
+%  \inferrule*{
+%    \GammaD \wellEE e_0
+%    \\\\
+%    \GammaD \wellEE e_1
+%  }{
+%    \GammaD \wellEE \ebinop{e_0}{e_1}
+%  }
+
+  \inferrule*{
+    \Gamma \wellEE e
+  }{
+    \Gamma \wellEE \edyn{\tau}{e}
+  }
+
+  \inferrule*{
+    \Gamma \wellEE e
+  }{
+    \Gamma \wellEE \esta{\tau}{e}
+  }
+}

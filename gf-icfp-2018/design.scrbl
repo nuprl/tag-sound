@@ -519,7 +519,8 @@ We state soundness for @${\langK} in terms of the static typing judgment
 
 @; -----------------------------------------------------------------------------
 @section{The Erasure Embedding}
-@include-figure["fig:erasure-delta.tex" "Erasure Embedding"]
+@include-figure["fig:erasure-reduction.tex" "Erasure Embedding"]
+@include-figure["fig:erasure-typing.tex" "Typing judgments for the erasure embedding"]
 
 Intuitively, we can create a multi-language that avoids undefined behavior
  but ignores type annotations
