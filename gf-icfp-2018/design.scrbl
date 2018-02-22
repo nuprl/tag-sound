@@ -150,74 +150,9 @@ The payoff of this technical machinery is that a statically-typed term @${e}
 
 
 @; -----------------------------------------------------------------------------
-@section{The Erasure Embedding}
-@include-figure["fig:erasure-delta.tex" "Erasure Embedding"]
-
-Intuitively, we can create a multi-language that avoids undefined behavior
- but ignores type annotations
- in two easy steps.
-First, let statically-typed values and dynamically-typed values freely cross boundary terms.
-Second, base the evaluator on the dynamically-typed notion of reduction.
-
-@Figure-ref{fig:erasure-delta} specifies this @emph{erasure semantics} for
- the @${\langM} language.
-The notion of reduction @${\rrEE} extends the dynamically-typed reduction to handle
- type-annotated functions and boundary expressions.
-Its definition relies on an extension of evaluation contexts
- to allow reduction under boundaries
- and takes the appropriate closure of @${\rrEE}.
-The typing judgment @${\Gamma \wellEE e} extends the notion of
- a well-formed program to ignore any type annotations.
-As a result, the soundness theorem for @${\langE} resembles that of @${\langD}.
-
-@theorem[@elem{@${\langE} soundness}]{
-  If @${\wellM e : \tau}
-   then @${\wellEE e} and either:
-  @itemlist[
-    @item{ @${e \rrEEstar v} and @${\wellEE v} }
-    @item{ @${e \rrEEstar \tagerror} }
-    @item{ @${e \rrEEstar \boundaryerror} }
-    @item{ @${e} diverges }
-  ]
-}@;
-@;@proof-sketch{
-@; By progress and preservation of @${\wellEE}.
-@;}
-
-Clearly, the erasure embedding completely lacks predictability with respect to static types.
-One can easily build a well-typed expression that reduces to a value
- of a completely different type.
-For example, @${(\edyn{\tint}{\vlam{x}{x}})}
- has the static type @${\tint} but evaluates to a function.
-Worse yet, well-typed expressions may produce unexpected errors (a category I disaster)
- or silently compute nonsensical results (a category II disaster).
-
-@; TODO remove this, silliness
-To illustrate this second kind of danger, recall the classic story of
- Professor Bessel, who @emph{
-  announced that a complex number was an ordered pair of reals
-  the first of which was nonnegative}@~cite[r-ip-1983].
-A student might use the type @${(\tpair{\tnat}{\tint})}
- to model (truncated) Bessel numbers and define a few functions based on the lecture notes.
-Calling one of these functions with the dynamically-typed value @${\vpair{-1}{1}}
- may give a result, but probably not the right one.
-
-Despite its disrespect for types, the erasure embedding has found increasingly widespread use.
-For example,
- Hack, @;@note{@url{http://hacklang.org/}},
- TypeScript, @;@note{@url{https://www.typescriptlang.org/}},
- and Typed Clojure@~cite[bdt-esop-2016] implement this embedding by
- statically erasing types and re-using the PHP, JavaScript, or Clojure
- runtime.
-@; @note{Anecdotal evidence of nasty TypeScript bugs from the @href["http://plasma.cs.umass.edu/"]{PLASMA group} at UMass.}
-
-@; python annotations API @note{@url{https://www.python.org/dev/peps/pep-3107/}}
-@; pluggable type systems @~cite[bracha-pluggable-types].
-
-
-@; -----------------------------------------------------------------------------
 @section{The Natural Embedding}
-@include-figure*["fig:natural-delta.tex" "Natural Embedding"]
+@include-figure*["fig:natural-reduction.tex" "Natural Embedding"]
+@include-figure*["fig:natural-typing.tex" "Typing judgments for the natural embedding"]
 
 In order to provide some kind of type soundness, an embedding must restrict
  the dynamically-typed values that can flow into typed contexts.
@@ -330,7 +265,8 @@ Consequently, they demonstrate that the erasure and natural embeddings lie on
 
 @; -----------------------------------------------------------------------------
 @section{The Co-Natural Embedding}
-@include-figure*["fig:conatural-delta.tex" "Co-Natural Embedding"]
+@include-figure*["fig:conatural-reduction.tex" "Co-Natural Embedding"]
+@include-figure*["fig:conatural-typing.tex" "Typing judgments for the co-natural embedding"]
 
 The natural embedding eagerly checks values that cross a type boundary.
 For most values, this means that a successful boundary-crossing requires
@@ -389,8 +325,8 @@ An implementation might improve this performance through caching, but its
 
 @; -----------------------------------------------------------------------------
 @section{The Forgetful Embedding}
-@include-figure*["fig:forgetful-delta.tex" "Forgetful Embedding"]
-@include-figure*["fig:forgetful-check.tex" "Forgetful helper"]
+@include-figure*["fig:forgetful-reduction.tex" "Forgetful Embedding"]
+@include-figure*["fig:forgetful-typing.tex" "Typing judgments for the forgetful embedding"]
 
 @; === INTERLUDE
 @; - need to know typed functions under a monitor "have a typing"
@@ -467,7 +403,8 @@ The forgetful embedding performs just enough run-time type checking to
 
 @; -----------------------------------------------------------------------------
 @section{The Locally-Defensive Embedding}
-@include-figure*["fig:locally-defensive-delta.tex" "Locally-Defensive Embedding"]
+@include-figure*["fig:locally-defensive-reduction.tex" "Locally-Defensive Embedding"]
+@include-figure*["fig:locally-defensive-typing.tex" "Typing judgments for the locally-defensive embedding"]
 
 The final source of performance overhead in the natural embedding is the cost of
  allocating monitor values.
@@ -580,6 +517,73 @@ We state soundness for @${\langK} in terms of the static typing judgment
 @; we conjecture that the semantics are observationally equivalent.
 
 
+@; -----------------------------------------------------------------------------
+@section{The Erasure Embedding}
+@include-figure["fig:erasure-delta.tex" "Erasure Embedding"]
+
+Intuitively, we can create a multi-language that avoids undefined behavior
+ but ignores type annotations
+ in two easy steps.
+First, let statically-typed values and dynamically-typed values freely cross boundary terms.
+Second, base the evaluator on the dynamically-typed notion of reduction.
+
+@Figure-ref{fig:erasure-delta} specifies this @emph{erasure semantics} for
+ the @${\langM} language.
+The notion of reduction @${\rrEE} extends the dynamically-typed reduction to handle
+ type-annotated functions and boundary expressions.
+Its definition relies on an extension of evaluation contexts
+ to allow reduction under boundaries
+ and takes the appropriate closure of @${\rrEE}.
+The typing judgment @${\Gamma \wellEE e} extends the notion of
+ a well-formed program to ignore any type annotations.
+As a result, the soundness theorem for @${\langE} resembles that of @${\langD}.
+
+@theorem[@elem{@${\langE} soundness}]{
+  If @${\wellM e : \tau}
+   then @${\wellEE e} and either:
+  @itemlist[
+    @item{ @${e \rrEEstar v} and @${\wellEE v} }
+    @item{ @${e \rrEEstar \tagerror} }
+    @item{ @${e \rrEEstar \boundaryerror} }
+    @item{ @${e} diverges }
+  ]
+}@;
+@;@proof-sketch{
+@; By progress and preservation of @${\wellEE}.
+@;}
+
+Clearly, the erasure embedding completely lacks predictability with respect to static types.
+One can easily build a well-typed expression that reduces to a value
+ of a completely different type.
+For example, @${(\edyn{\tint}{\vlam{x}{x}})}
+ has the static type @${\tint} but evaluates to a function.
+Worse yet, well-typed expressions may produce unexpected errors (a category I disaster)
+ or silently compute nonsensical results (a category II disaster).
+
+@; TODO remove this, silliness
+To illustrate this second kind of danger, recall the classic story of
+ Professor Bessel, who @emph{
+  announced that a complex number was an ordered pair of reals
+  the first of which was nonnegative}@~cite[r-ip-1983].
+A student might use the type @${(\tpair{\tnat}{\tint})}
+ to model (truncated) Bessel numbers and define a few functions based on the lecture notes.
+Calling one of these functions with the dynamically-typed value @${\vpair{-1}{1}}
+ may give a result, but probably not the right one.
+
+Despite its disrespect for types, the erasure embedding has found increasingly widespread use.
+For example,
+ Hack, @;@note{@url{http://hacklang.org/}},
+ TypeScript, @;@note{@url{https://www.typescriptlang.org/}},
+ and Typed Clojure@~cite[bdt-esop-2016] implement this embedding by
+ statically erasing types and re-using the PHP, JavaScript, or Clojure
+ runtime.
+@; @note{Anecdotal evidence of nasty TypeScript bugs from the @href["http://plasma.cs.umass.edu/"]{PLASMA group} at UMass.}
+
+@; python annotations API @note{@url{https://www.python.org/dev/peps/pep-3107/}}
+@; pluggable type systems @~cite[bracha-pluggable-types].
+
+
+@; -----------------------------------------------------------------------------
 @section{Spectrum of Soundness and Performance}
 
 In summary, main differences between the embeddings are with respect to four characteristics:
