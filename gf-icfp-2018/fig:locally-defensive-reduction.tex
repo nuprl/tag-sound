@@ -1,9 +1,8 @@
 \begin{multicols}{2}
   \lblextra{Language $\langK$}{ extends $\langM$:}{
     $\begin{array}{l@{\hspace{0.5em}}c@{\hspace{0.5em}}l}
-      e & \BNFeq & \ldots \mid \edyn{\tau}{e} \mid \esta{\tau}{e} \mid
-      \\ & &       \edyn{\kany}{e} \mid \esta{\kany}{e} \mid
-                   \echk{K}{e}
+      e & \BNFeq & \ldots \mid \edyn{\tau}{e} \mid \esta{\tau}{e} \mid \edyn{\kany}{e} \mid
+      \\ & &       \esta{\kany}{e} \mid \echk{K}{e}
       \\
   %    v & \BNFeq & i \mid \vpair{v}{v} \mid \vlam{x}{e} \mid \vlam{\tann{x}{\tau}}{e}
   %    \\
@@ -58,6 +57,12 @@
       \esta{\kany}{v} & \rrKD
       & v
       \\
+
+
+      \\
+      (\vlam{x}{e})~v & \rrKD
+      & \vsubst{e}{x}{v}
+      \\
       (\vlam{\tann{x}{\tau}}{e})~v & \rrKD
       & \esta{\kany}{(\vsubst{e}{x}{v})}
       \\ \sidecond{if $\tagof{\tau} = K$ and $\mchk{K}{v} = v$}
@@ -66,9 +71,6 @@
       & \boundaryerror
       \\ \sidecond{if $\tagof{\tau} = K$ and $\mchk{K}{v} = \boundaryerror$}
       \\[1ex]
-      (\vlam{x}{e})~v & \rrKD
-      & \vsubst{e}{x}{v}
-      \\
       \eapp{v_0}{v_1} & \rrKD
       & \tagerror
       \\ \sidecond{if $v_0 \valeq i$ or $v_0 \valeq \vpair{v}{v'}$}
@@ -101,6 +103,9 @@
       \edyn{\kany}{v} & \rrKS
       & v
       \\
+      \echk{K}{v} & \rrKS
+      & \mchk{K}{v}
+      \\
       (\vlam{\tann{x}{\tau}}{e})~v & \rrKS
       & \vsubst{e}{x}{v}
       \\ \sidecond{if $\tagof{\tau} = K$ and $\mchk{K}{v} = v$}
@@ -111,13 +116,6 @@
       \\[1ex]
       (\vlam{x}{e})~v & \rrKS
       & \edyn{\kany}{(\vsubst{e}{x}{v})}
-      \\
-
-
-      \\
-      \\[1ex]
-      \echk{K}{v} & \rrKS
-      & \mchk{K}{v}
   %    \eunop{v} & \rrKS
   %    & A
   %    & \mbox{if $\delta(\vunop, v) = A$}

@@ -29,11 +29,15 @@ $\begin{array}{l@{~~}c@{~~}l}
 
 \smallskip
 \lbl{$\Delta(\vbinop, \tau, \tau) = \tau$}{
-$\begin{array}{l@{~~}c@{~~}l}
-  \Delta(\vbinop, \tnat, \tnat) & = & \tnat
-\\
-  \Delta(\vbinop, \tint, \tint) & = & \tint
-\end{array}$
+  $\begin{array}{l@{~~}c@{~~}l}
+    \Delta(\vsum, \tnat, \tnat) & = & \tnat
+    \\
+    \Delta(\vsum, \tint, \tint) & = & \tint
+    \\
+    \Delta(\vquotient, \tnat, \tnat) & = & \tnat
+    \\
+    \Delta(\vquotient, \tint, \tint) & = & \tint
+  \end{array}$
 }
 
 \end{multicols}
@@ -169,7 +173,7 @@ $\begin{array}{l@{~~}c@{~~}l}
   }
 }
 
-\smallskip
+\bigskip
 \lblmathpar{$\tau \subt \tau$}{
   \inferrule*{
   }{

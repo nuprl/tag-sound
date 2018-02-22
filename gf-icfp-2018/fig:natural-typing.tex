@@ -49,15 +49,15 @@
 %  }
 
   \inferrule*{
-    \Gamma \wellNE e : \tau
-  }{
-    \Gamma \wellNE \esta{\tau}{e}
-  }
-
-  \inferrule*{
     \Gamma \wellNE v : \tarr{\tau_d}{\tau_c}
   }{
     \Gamma \wellNE \vmonfun{(\tarr{\tau_d}{\tau_c})}{v}
+  }
+
+  \inferrule*{
+    \Gamma \wellNE e : \tau
+  }{
+    \Gamma \wellNE \esta{\tau}{e}
   }
 }
 
@@ -129,15 +129,15 @@
 %  }
 
   \inferrule*{
-    \Gamma \wellNE e
-  }{
-    \Gamma \wellNE \edyn{\tau}{e} : \tau
-  }
-
-  \inferrule*{
     \Gamma \wellNE v
   }{
     \Gamma \wellNE \vmonfun{(\tarr{\tau_d}{\tau_c})}{v} : \tarr{\tau_d}{\tau_c}
+  }
+
+  \inferrule*{
+    \Gamma \wellNE e
+  }{
+    \Gamma \wellNE \edyn{\tau}{e} : \tau
   }
 }
 
