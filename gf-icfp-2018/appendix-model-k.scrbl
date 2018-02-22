@@ -60,9 +60,9 @@
 @tr-theorem[#:key "K-soundness" @elem{@${\langK} type-tag soundness}]{
   If @${\wellM e : \tau}
    and @${\tagof{\tau} = K}, then
-   @${\wellM e : \tau \carrow e'}
+   @${\wellM e : \tau \carrow e^+}
    and
-   @${\wellKE e' : K}
+   @${\wellKE e^+ : K}
    and either:
 @itemlist[
   @item{ @${e^+ \rrKEstar v} and @${\wellKE v : K} }
