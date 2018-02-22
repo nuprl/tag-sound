@@ -1,0 +1,143 @@
+\lblextra{Language $\langC$}{ extends $\langM$:}{
+  $\begin{array}{l@{\hspace{0.5em}}c@{\hspace{0.5em}}l}
+    %e & \BNFeq & x \mid v \mid e~e \mid \vpair{e}{e} \mid \vunop~e \mid \vbinop~e~e \mid \edyn{\tau}{e} \mid \esta{\tau}{e}
+    %\\
+    v & \BNFeq & \ldots \mid \vmonfun{(\tarr{\tau}{\tau})}{v} \mid \vmonpair{(\tpair{\tau}{\tau})}{v}
+    %\\
+    %\ES & \BNFeq & \ehole \mid \eapp{\ES}{e} \mid \eapp{v}{\ES} \mid
+    %               \vpair{\ES}{e} \mid \vpair{v}{\ES} \mid \eunop{\ES} \mid
+    %               \ebinop{\ES}{e} \mid \ebinop{v}{\ES}
+  \end{array}$
+}
+
+\begin{multicols}{2}
+
+  \lblextra{$e \rrCD A$}{ (selected rules)}{
+    $\begin{array}{l@{\hspace{0.5em}}c@{\hspace{0.5em}}l}
+      \efst{(\vmonpair{(\tpair{\tau_0}{\tau_1})}{v})} & \rrCD
+      & \esta{\tau_0}{(\efst{v})}
+      \\
+      \esnd{(\vmonpair{(\tpair{\tau_0}{\tau_1})}{v})} & \rrCD
+      & \esta{\tau_1}{(\esnd{v})}
+      \\
+      (\vmonfun{(\tarr{\tau_d}{\tau_c})}{v_f})~v & \rrCD
+      & \esta{\tau_c}{(v_f~v')}
+      \\ \sidecond{where $v' = \edyn{\tau_d}{v}$}
+      \\
+      \esta{\tarr{\tau_d}{\tau_c}}{v} & \rrCD
+      & \vmonfun{(\tarr{\tau_d}{\tau_c})}{v}
+      \\ \sidecond{}
+      \\
+      \esta{\tpair{\tau_0}{\tau_1}}{v} & \rrCD
+      & \vmonpair{(\tpair{\tau_0}{\tau_1})}{v}
+      \\ \sidecond{}
+      \\
+      \esta{\tint}{v} & \rrCD
+      & v
+      \\
+      \esta{\tnat}{v} & \rrCD
+      & v
+      \\ \sidecond{}
+      \\
+%      (\vlam{x}{e})~v & \rrCD
+%      & \vsubst{e}{x}{v}
+%      \\
+%      v_0~v_1 & \rrCD & \tagerror
+%      \\ \sidecond{if $v_0 \valeq i$ or $v_0 \valeq \vpair{v}{v'}$ or $v_0 \valeq \vmonpair{(\tpair{\tau_0}{\tau_1})}{v'}$}
+%      \\
+%      \eunop{v} & \rrCD & A
+%      \\ \sidecond{if $A = \delta(\vunop, v)$}
+%      \\
+%      \eunop{v} & \rrCD & \tagerror
+%      \\ \sidecond{otherwise}
+%      \\
+%      \ebinop{v_0}{v_1} & \rrCD & A
+%      \\ \sidecond{if $A = \delta(\vbinop, v_0, v_1)$}
+%      \\
+%      \ebinop{v_0}{v_1} & \rrCD & \tagerror
+%      \\ \sidecond{otherwise}
+    \end{array}$
+  }
+
+  \multicolsbreak
+
+  \lblextra{$e \rrCS A$}{ (selected rules)}{
+    $\begin{array}{l@{\hspace{0.5em}}c@{\hspace{0.5em}}l}
+      \efst{(\vmonpair{(\tpair{\tau_0}{\tau_1})}{v})} & \rrCS
+      & \edyn{\tau_0}{(\efst{v})}
+      \\
+      \esnd{(\vmonpair{(\tpair{\tau_0}{\tau_1})}{v})} & \rrCS
+      & \edyn{\tau_1}{(\esnd{v})}
+      \\
+      (\vmonfun{(\tarr{\tau_d}{\tau_c})}{v_f})~v & \rrCS
+      & \edyn{\tau_c}{(v_f~v')}
+      \\ \sidecond{where $v' = \esta{\tau_d}{v}$}
+      \\
+      \edyn{\tarr{\tau_d}{\tau_c}}{v} & \rrCS
+      & \vmonfun{(\tarr{\tau_d}{\tau_c})}{v}
+      \\ \sidecond{if $v \valeq \vlam{x}{e}$ or $v \valeq \vmonfun{(\tarr{\tau_d'}{\tau_c'})}{v'}$}
+      \\
+      \edyn{\tpair{\tau_0}{\tau_1}}{v} & \rrCS
+      & \vmonpair{(\tpair{\tau_0}{\tau_1})}{v}
+      \\ \sidecond{if $v \valeq \vpair{v_0}{v_1}$ or $v \valeq \vmonpair{(\tpair{\tau_0'}{\tau_1'})}{v'}$}
+      \\
+      \edyn{\tint}{i} & \rrCS
+      & i
+      \\
+      \edyn{\tnat}{i} & \rrCS
+      & i
+      \\ \sidecond{if $i \in \naturals$}
+      \\
+%      \edyn{\tau}{v} & \rrCS & \boundaryerror
+%      \\ \sidecond{otherwise}
+%      \\
+%      (\vlam{\tann{x}{\tau_d}}{e})~v & \rrCS & \vsubst{e}{x}{v}
+%      \\
+%      \eunop{v} & \rrCS & A
+%      \\ \sidecond{if $A = \delta(\vunop, v)$}
+%      \\
+%      \ebinop{v_0}{v_1} & \rrCS & A
+%      \\ \sidecond{if $A = \delta(\vbinop, v_0, v_1)$}
+    \end{array}$
+  }
+
+\end{multicols}
+
+\begin{multicols}{2}
+  \lbl{$e \ccCD A$}{
+    $\begin{array}{l@{\hspace{0.5em}}c@{\hspace{0.5em}}l}
+      \ctxE{\esta{\tau}{e}} & \ccCD & \ctxE{\esta{\tau}{e'}}
+      \\ \sidecond{if $e \ccCS e'$}
+      \\
+      \ctxE{\esta{\tau}{e}} & \ccCD & A
+      \\ \sidecond{if $e \ccCS A$ and $A \not\in e$}
+      \\
+      \ctxE{e} & \ccCD & \ctxE{e'}
+      \\ \sidecond{if $e \rrCD e'$}
+      \\
+      \ctxE{e} & \ccCD & A
+      \\ \sidecond{if $e \rrCD A$ and $A \not\in e$}
+    \end{array}$
+  }
+
+  \multicolsbreak
+
+  \lbl{$e \ccCS A$}{
+    $\begin{array}{l@{\hspace{0.5em}}c@{\hspace{0.5em}}l}
+      \ctxE{\edyn{\tau}{e}} & \ccCS & \ctxE{\edyn{\tau}{e'}}
+      \\ \sidecond{if $e \ccCD e'$}
+      \\
+      \ctxE{\edyn{\tau}{e}} & \ccCS & A
+      \\ \sidecond{if $e \ccCD A$ and $A \not\in e$}
+      \\
+      \ctxE{e} & \ccCS & \ctxE{e'}
+      \\ \sidecond{if $e \rrCS e'$}
+      \\
+      \ctxE{e} & \ccCS & A
+      \\ \sidecond{if $e \rrCS A$ and $A \not\in e$}
+    \end{array}$
+  }
+
+\end{multicols}
+
+\fbox{$e \rrCEstar A$}{ reflexive, transitive closure of $\ccCS$}
