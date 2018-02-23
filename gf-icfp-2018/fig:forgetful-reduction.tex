@@ -22,7 +22,7 @@
   \\ & \mboxor{$\tau = \tpair{\tau_0}{\tau_1}$ and $v \valeq \vmonpair{(\tpair{\tau_0'}{\tau_1'})}{v'}$}
   \\
   v
-  & \mbox{if $\tau = \tint$ and $v = i$}
+  & \mbox{if $\tau = \tint$ and $v \in \integers$}
   \\ & \mboxor{$\tau = \tnat$ and $v \in \naturals$}
   \\
   \boundaryerror
@@ -30,7 +30,7 @@
   \end{array}\right.\]
 }
 
-\begin{multicols}{2}
+\begin{TwoColumn}
 
   \lblextra{$e \rrFD A$}{ (selected rules)}{
     $\begin{array}{l@{\hspace{0.5em}}c@{\hspace{0.5em}}l}
@@ -131,9 +131,9 @@
     \end{array}$
   }
 
-\end{multicols}
+\end{TwoColumn}
 
-\begin{multicols}{2}
+\begin{TwoColumn}
 
   \lbl{$e \ccFD A$}{
     $\begin{array}{l@{\hspace{0.5em}}c@{\hspace{0.5em}}l}
@@ -169,7 +169,7 @@
     \end{array}$
   }
 
-\end{multicols}
+\end{TwoColumn}
 
 \fbox{$e \rrFEstar A$}{ reflexive, transitive closure of $\ccFS$}
 
