@@ -143,8 +143,11 @@
 
 ;; =============================================================================
 
-(define-cite ~cite citet generate-bibliography
+(define-cite ~cite citet pre-generate-bibliography
   #:style number-style)
+
+(define (generate-bibliography)
+  (pre-generate-bibliography #:sec-title (exact "\\refname")))
 
 (define (python . x)
   (apply exact (append (list "\n\\begin{python}\n") x (list "\n\\end{python}\n"))))
