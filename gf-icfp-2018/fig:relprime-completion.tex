@@ -1,0 +1,99 @@
+\begin{mathpar}
+
+\inferrule*{
+  \inferrule*{
+    \inferrule*{
+      \inferrule*{
+      }{
+        \tann{x}{\tpair{\tint}{\tnat}}, \cdot \wellM x : \tpair{\tint}{\tnat}
+        \carrow
+        x
+      }
+      \\
+      \tagof{\tint} = \kint
+    }{
+      \tann{x}{\tpair{\tint}{\tnat}}, \cdot \wellM \efst{x} : \tint
+      \carrow
+      \echk{\kint}{(\efst{x})}
+    }
+    \\
+    \inferrule*{
+      \inferrule*{
+      }{
+        \tann{x}{\tpair{\tint}{\tnat}}, \cdot \wellM x : \tpair{\tint}{\tnat}
+        \carrow
+        x
+      }
+      \\
+      \tagof{\tnat} = \knat
+    }{
+      \tann{x}{\tpair{\tint}{\tnat}}, \cdot \wellM \esnd{x} : \tnat
+      \carrow
+      \echk{\knat}{(\esnd{x})}
+    }
+  }{
+    \tann{x}{\tpair{\tint}{\tnat}}, \cdot \wellM \vpair{\efst{x}}{\esnd{x}} : \tpair{\tint}{\tnat}
+    \carrow
+    \vpair{\echk{\kint}{(\efst{x})}}{\echk{\knat}{(\esnd{x})}}
+  }
+}{
+  \cdot \wellM \vlam{\tann{x}{\tpair{\tint}{\tnat}}}{\vpair{\efst{x}}{\esnd{x}}} : \tarr{\tpair{\tint}{\tnat}}{\tpair{\tint}{\tnat}}
+  \\\\ \carrow
+  \vlam{\tann{x}{\tpair{\tint}{\tnat}}}{\vpair{\echk{\kint}{(\efst{x})}}{\echk{\knat}{(\esnd{x})}}}
+  \\\\
+  \vdots_1
+}
+
+\inferrule*{
+  \inferrule*{
+    \inferrule*{
+      \inferrule*{
+        \inferrule*{
+        }{
+          \cdot \wellM -1
+          \carrow
+          -1
+        }
+        \\
+        \inferrule*{
+        }{
+          \cdot \wellM -2
+          \carrow
+          -2
+        }
+      }{
+        \cdot \wellM \vpair{-1}{-2}
+        \carrow
+        \vpair{-1}{-2}
+      }
+    }{
+      \cdot \wellM \edyn{\tpair{\tnat}{\tnat}}{\vpair{-1}{-2}} : \tpair{\tnat}{\tnat}
+      \carrow
+      \edyn{\tpair{\tnat}{\tnat}}{\vpair{-1}{-2}}
+    }
+  }{
+    \cdot \wellM \esta{\tpair{\tnat}{\tnat}}{(\edyn{\tpair{\tnat}{\tnat}}{\vpair{-1}{-2}})}
+    \carrow
+    \esta{\tpair{\tnat}{\tnat}}{(\edyn{\tpair{\tnat}{\tnat}}{\vpair{-1}{-2}})}
+  }
+}{
+  \cdot \wellM \edyn{\tpair{\tint}{\tnat}}{(\esta{\tpair{\tnat}{\tnat}}{(\edyn{\tpair{\tnat}{\tnat}}{\vpair{-1}{-2}})})} : \tpair{\tint}{\tnat}
+  \\\\ \carrow
+  \edyn{\tpair{\tint}{\tnat}}{(\esta{\tpair{\tnat}{\tnat}}{(\edyn{\tpair{\tnat}{\tnat}}{\vpair{-1}{-2}})})}
+  \\\\
+  \vdots_2
+}
+
+\inferrule{
+  \vdots_1
+  \\
+  \\
+  \\
+  \vdots_2
+}{
+  \cdot \wellM \erelprimefull : \tpair{\tint}{\tnat}
+  \\\\
+  \quad \carrow \erelprimefullcomplete
+}
+
+\end{mathpar}
