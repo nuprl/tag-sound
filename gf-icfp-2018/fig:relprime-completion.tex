@@ -90,10 +90,18 @@
   \\
   \\
   \vdots_2
+  \\
+  \\
+  \\
+  \tagof{\tpair{\tint}{\tnat}} = \kpair
 }{
   \cdot \wellM \erelprimefull : \tpair{\tint}{\tnat}
   \\\\
-  \quad \carrow \erelprimefullcomplete
+  \carrow
+  \\\\
+  \echk{\kpair}{((\vlam{\tann{x}{\tpair{\tint}{\tnat}}}{\vpair{\echk{\kint}{(\efst{x})}}{\echk{\knat}{(\esnd{x})}}})}
+  \\\\\hspace{6.8em}%
+  (\edyn{\tpair{\tint}{\tnat}}{(\esta{\tpair{\tnat}{\tnat}}{(\edyn{\tpair{\tnat}{\tnat}}{\vpair{-1}{-2}})})}))
 }
 
 \end{mathpar}
