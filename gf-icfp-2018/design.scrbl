@@ -686,86 +686,112 @@ In summary, main differences between the embeddings are with respect to four cha
 
 
 @figure["all-soundness" "Soundness"
+  @nested[#:style "TwoColumn"]{
+    @tr-theorem[#:key "N-soundness" @elem{@${\mathbf{N}}-soundness}]{
+      If @${\wellM e : \tau} then @${\wellNE e : \tau}
+      @linebreak[]
+      and one of the following holds:
+      @itemlist[
+        @item{ @${e \rrNEstar v \mbox{ and } \wellNE v : \tau} }
+        @item{ @${e \rrNEstar \ctxE{\edyn{\tau'}{e'}} \mbox{ and } e' \ccND \tagerror} }
+        @item{ @${e \rrNEstar \boundaryerror} }
+        @item{ @${e} diverges}
+      ] }
+    @exact|{
+      \multicolsbreak {\flushleft $\begin{array}{l@{~~}l@{~}l}
+          \erelprime & \ccNS & \ES[\vpair{\edyn{\tnat}{{-1}}}{\edyn{\tnat}{{-2}}}]
+        \\ & \ccNS & \boundaryerror
+        \end{array}$}}|
+  }
 
-@nested[#:style "TwoColumn"]{
-@tr-theorem[#:key "N-soundness" @elem{@${\mathbf{N}}-soundness}]{
-  If @${\wellM e : \tau} then @${\wellNE e : \tau}
-  @linebreak[]
-  and one of the following holds:
-  @itemlist[
-    @item{ @${e \rrNEstar v \mbox{ and } \wellNE v : \tau} }
-    @item{ @${e \rrNEstar \ctxE{\edyn{\tau'}{e'}} \mbox{ and } e' \ccND \tagerror} }
-    @item{ @${e \rrNEstar \boundaryerror} }
-    @item{ @${e} diverges}
-  ]
-}
+  @nested[#:style "TwoColumn"]{
+    @tr-theorem[#:key "C-soundness" @elem{@${\mathbf{C}}-soundness}]{
+      If @${\wellM e : \tau} then @${\wellCE e : \tau}
+      @linebreak[]
+      and one of the following holds:
+      @itemlist[
+        @item{ @${e \rrCEstar v \mbox{ and } \wellCE v : \tau} }
+        @item{ @${e \rrCEstar \ctxE{\edyn{\tau'}{e'}} \mbox{ and } e' \ccCD \tagerror} }
+        @item{ @${e \rrCEstar \boundaryerror} }
+        @item{ @${e} diverges}
+      ] }
+    @exact|{
+      \multicolsbreak {\flushleft $\begin{array}{l@{~~}l@{~}l}
+          \erelprime & \rrCEstar & \vpair{\efst{v_{c}}}{\esnd{v_{c}}}
+        \\ & \rrCEstar & \ES[\edyn{\tnat}{(\efst{\vpair{-1}{-2}})}]
+        \\ & \ccCS & \ES[\edyn{\tnat}{{-1}}]
+        \\ & \ccCS & \boundaryerror
+        \\\multicolumn{3}{l}{\mbox{where } v_{c} = \vmonpair{\tpair{\tint}{\tnat}}{}}
+        \\\multicolumn{3}{l}{\qquad\qquad\quad\quad (\vmonpair{\tpair{\tnat}{\tnat}}{}}
+        \\\multicolumn{3}{l}{\qquad\qquad\quad\qquad (\vmonpair{\tpair{\tnat}{\tnat}}{\vpair{-1}{-2}}))}
+        \end{array}$ }}|
+  }
 
-@linebreak[]
-@linebreak[]
+  @nested[#:style "TwoColumn"]{
+    @tr-theorem[#:key "F-soundness" @elem{@${\mathbf{F}}-soundness}]{
+      If @${\wellM e : \tau} then @${\wellFE e : \tau}
+      @linebreak[]
+      and one of the following holds:
+      @itemlist[
+        @item{ @${e \rrFEstar v \mbox{ and } \wellFE v : \tau} }
+        @item{ @${e \rrFEstar \ctxE{\edyn{\tau'}{e'}} \mbox{ and } e' \ccFD \tagerror} }
+        @item{ @${e \rrFEstar \boundaryerror} }
+        @item{ @${e} diverges}
+      ] }
+    @exact|{
+      \multicolsbreak {\flushleft $\begin{array}{l@{~~}l@{~}l}
+          \erelprime & \rrFEstar & {\vpair{\efst{v_{f}}}{\esnd{v_{f}}}}
+        \\ & \ccFS & \vpair{\edyn{\tint}{(\efst{\vpair{-1}{-2}})}}{\esnd{v_{f}}}
+        \\ & \rrFEstar & \vpair{{-1}}{\edyn{\tnat}{(\esnd{\vpair{-1}{-2}})}}
+        \\ & \ccFS & \vpair{{-1}}{\edyn{\tnat}{{-2}}}
+        \\ & \ccFS & \boundaryerror
+        \\\multicolumn{3}{l}{\mbox{where } v_{f} = \vmonpair{\tpair{\tint}{\tnat}}{\vpair{-1}{-2}}}
+        \end{array}$ }}|
+  }
 
-@tr-theorem[#:key "C-soundness" @elem{@${\mathbf{C}}-soundness}]{
-  If @${\wellM e : \tau} then @${\wellCE e : \tau}
-  @linebreak[]
-  and one of the following holds:
-  @itemlist[
-    @item{ @${e \rrCEstar v \mbox{ and } \wellCE v : \tau} }
-    @item{ @${e \rrCEstar \ctxE{\edyn{\tau'}{e'}} \mbox{ and } e' \ccCD \tagerror} }
-    @item{ @${e \rrCEstar \boundaryerror} }
-    @item{ @${e} diverges}
-  ]
-}
+  @nested[#:style "TwoColumn"]{
+    @tr-theorem[#:key "K-soundness" @elem{@${\mathbf{K}}-soundness}]{
+      If @${\wellM e : \tau}
+       and @${\tagof{\tau} = K}, then
+       @${\wellM e : \tau \carrow e''}
+       @linebreak[]
+       and @${\wellKE e'' : K}
+       and one of the following holds:
+    @itemlist[
+      @item{ @${e'' \rrKEstar v} and @${\wellKE v : K} }
+      @item{ @${e'' \rrKEstar \ctxE{\edyn{\tau'}{e'}} \mbox{ and } e' \ccKD \tagerror} }
+      @item{ @${e'' \rrKEstar \boundaryerror} }
+      @item{ @${e''} diverges }
+    ] }
+  @exact|{
+    \multicolsbreak {\flushleft $\begin{array}{l@{~~}l@{~}l}
+      \erelprime'' & \rrKEstar & \ES[\langle{\echk{\tint}{(\efst{\vpair{-1}{-2}})}}
+    \\ & & \quad ,\,{\echk{\tnat}{(\esnd{\vpair{-1}{-2}})}}\rangle]
+    \\ & \rrKEstar & \ES[\vpair{{-1}}{\echk{\tnat}{(\esnd{\vpair{-1}{-2}})}}]
+    \\ & \ccKS & \ES[\vpair{{-1}}{\echk{\tnat}{{-2}}}]
+    \\ & \ccKS & \boundaryerror
+    \\\multicolumn{3}{l}{\mbox{where } \erelprime : \tpair{\tint}{\tnat} \carrow \erelprime''}
+    \end{array}$ }}|
+  }
 
-@linebreak[]
-@linebreak[]
-
-@tr-theorem[#:key "F-soundness" @elem{@${\mathbf{F}}-soundness}]{
-  If @${\wellM e : \tau} then @${\wellFE e : \tau}
-  @linebreak[]
-  and one of the following holds:
-  @itemlist[
-    @item{ @${e \rrFEstar v \mbox{ and } \wellFE v : \tau} }
-    @item{ @${e \rrFEstar \ctxE{\edyn{\tau'}{e'}} \mbox{ and } e' \ccFD \tagerror} }
-    @item{ @${e \rrFEstar \boundaryerror} }
-    @item{ @${e} diverges}
-  ]
-}
-
-@linebreak[]
-@linebreak[]
-
-@tr-theorem[#:key "K-soundness" @elem{@${\mathbf{K}}-soundness}]{
-  If @${\wellM e : \tau}
-   and @${\tagof{\tau} = K}, then
-   @${\wellM e : \tau \carrow e''}
-   @linebreak[]
-   and @${\wellKE e'' : K}
-   and one of the following holds:
-@itemlist[
-  @item{ @${e'' \rrKEstar v} and @${\wellKE v : K} }
-  @item{ @${e'' \rrKEstar \ctxE{\edyn{\tau'}{e'}} \mbox{ and } e' \ccKD \tagerror} }
-  @item{ @${e'' \rrKEstar \boundaryerror} }
-  @item{ @${e''} diverges }
-]}
-
-@linebreak[]
-@linebreak[]
-
-@tr-theorem[#:key "E-soundness" @elem{@${\mathbf{E}}-soundness}]{
-  If @${\wellM e : \tau}
-   then @${\wellEE e}
-   @linebreak[]
-   and one of the following holds:
-  @itemlist[
-    @item{ @${e \rrEEstar v} and @${\wellEE v} }
-    @item{ @${e \rrEEstar \tagerror} }
-    @item{ @${e \rrEEstar \boundaryerror} }
-    @item{ @${e} diverges }
-  ]}
-
-@exact{\multicolsbreak}
-
-Insert example here
-
-}
+  @nested[#:style "TwoColumn"]{
+    @tr-theorem[#:key "E-soundness" @elem{@${\mathbf{E}}-soundness}]{
+      If @${\wellM e : \tau}
+       then @${\wellEE e}
+       @linebreak[]
+       and one of the following holds:
+      @itemlist[
+        @item{ @${e \rrEEstar v} and @${\wellEE v} }
+        @item{ @${e \rrEEstar \tagerror} }
+        @item{ @${e \rrEEstar \boundaryerror} }
+        @item{ @${e} diverges }
+      ] }
+  @exact|{
+    \multicolsbreak {\flushleft $\begin{array}{l@{~~}l@{~}l}
+      \erelprime & \rrEEstar & \vpair{\efst{\vpair{-1}{-2}}}{\esnd{\vpair{-1}{-2}}}
+    \\ & \ccEE & \vpair{-1}{\esnd{\vpair{-1}{-2}}}
+    \\ & \ccEE & \vpair{-1}{-2}
+    \end{array}$ }}|
+  }
 ]
 
