@@ -6,17 +6,20 @@
 This appendix contains:
 @itemlist[
 @item{
-  brief descriptions of the benchmark programs,
+  brief descriptions of the benchmark programs;
 }
 @item{
   a set of figures comparing the running time of a configuration to the number
-   of type annotations, and
+   of type annotations;
 }
 @item{
-  a comparison between the implementations of Typed Racket and Tag-Sound Racket.
+  a comparison between the implementations of Typed Racket and Tag-Sound Racket;
 }
 @item{
-  complete definitions for the embeddings discussed in the paper,
+  complete definitions for the embeddings discussed in the paper; and
+}
+@item{
+  complete traces of the expression @${\erelprime} in each embedding.
 }
 ]
 
@@ -32,3 +35,4 @@ This appendix contains:
 @include-section{appendix-linear.scrbl}
 @include-section{appendix-implementation.scrbl}
 @include-section{appendix-model.scrbl}
+@include-section{appendix-reduction.scrbl}
