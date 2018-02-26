@@ -29,6 +29,7 @@
   tr-counterexample
   tr-convention
   tr-theorem
+  tr-corollary
   tr-if
   tr-else
   tr-step
@@ -100,6 +101,8 @@
     "defn."]
    [(lemma)
     "lemma"]
+   [(corollary)
+    "corollary"]
    [(theorem)
     "theorem"]
    [(counterexample)
@@ -115,6 +118,8 @@
     "Lemma"]
    [(theorem)
     "Theorem"]
+   [(corollary)
+    "Corollary"]
    [(convention)
     "Convention"]
    [(counterexample)
@@ -182,6 +187,9 @@
 
 (define (tr-theorem name-elem #:key [key #f] . content*)
   (tr-def name-elem 'theorem #:key key content*))
+
+(define (tr-corollary name-elem #:key [key #f] . content*)
+  (tr-def name-elem 'corollary #:key key content*))
 
 (define (tr-lemma name-elem #:key [key #f] . content*)
   (tr-def name-elem 'lemma #:key key content*))

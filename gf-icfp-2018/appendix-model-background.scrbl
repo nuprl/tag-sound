@@ -23,3 +23,8 @@
   If @${x,x',\Gamma \vdash e} then @${x',x,\Gamma \vdash e}
 }@|smallskip|
 
+@tr-definition[#:key "purely-static" @elem{purely-static expression}]{
+  An expression @${e} is @emph{purely static} if there exists a type @${\tau}
+   such that @${\wellM e : \tau} and @${e} does not contain a subterm of the
+   form @${(\edyn{\tau'}{e'})}.
+}

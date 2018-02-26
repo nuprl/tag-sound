@@ -55,6 +55,8 @@
 
   (define K-finite-subtyping @tr-ref[#:key "K-finite-subtyping"]{@${\subk} finite})
   (define K-weakening @tr-ref[#:key "K-weakening"]{weakening})
+
+  (define M-uec @tr-ref[#:key "KM-uec"]{@${\langM} unique static evaluation contexts})
 )
 
 @tr-theorem[#:key "K-soundness" @elem{@${\langK} type-tag soundness}]{
@@ -81,6 +83,19 @@
       by @|K-S-progress| and @|K-S-preservation|
     }}
   ]
+}
+
+@tr-theorem[#:key "K-pure-static" @elem{@${\langK} static soundness}]{
+  If @${\wellM e : \tau} and @${e} is purely static then either:
+  @itemlist[
+    @item{ @${e \rrKEstar v \mbox{ and } \wellM v : \tau} }
+    @item{ @${e \rrKEstar \boundaryerror} }
+    @item{ @${e} diverges}
+  ]
+}@tr-proof{
+  By @tr-ref[#:key "K-pure-static-progress"]{progress}
+  and @tr-ref[#:key "K-pure-static-preservation"]{preservation} lemmas for
+  @${\rrKEstar} and @${\wellM}.
 }
 
 @; -----------------------------------------------------------------------------
@@ -1311,6 +1326,141 @@
         by @|K-D-hole-subst| (3)
       }
     }
+  }
+
+}
+
+@; -----------------------------------------------------------------------------
+
+@tr-lemma[#:key "K-pure-static-progress" @elem{pure static progress}]{
+  If @${\wellM e : \tau} and @${e} is purely static, then either:
+  @itemlist[
+    @item{ @${e} is a value }
+    @item{ @${e \ccKS e'} }
+    @item{ @${e \ccKS \boundaryerror} }
+  ]
+}@tr-proof{
+  By the @|M-uec| lemma, there are five cases.
+
+  @tr-case[@${e \eeq v}]{
+    @tr-qed{}
+  }
+
+  @tr-case[@${e = \ctxE{\vapp{v_0}{v_1}}} #:itemize? #f]{
+    @tr-if[@${v_0 = \vlam{\tann{x}{\tau'}}{e'}}]{
+      @tr-step[
+        @${e \ccKS \ctxE{\vsubst{e'}{x}{v_1}}}
+        @${\vapp{v_0}{v_1} \rrKS \vsubst{e'}{x}{v_1}}]
+      @tr-qed[]
+    }
+    @tr-else[@${v_0 = \vlam{x}{e'}
+                @tr-or[4]
+                v_0 \eeq i
+                @tr-or[4]
+                v_0 \eeq \vpair{v}{v'}}]{
+      @tr-contradiction{@${\wellM e : \tau}}
+    }
+  }
+
+  @tr-case[@${e = \ctxE{\eunop{v}}}]{
+    @tr-if[@${\delta(\vunop, v) = v'}]{
+      @tr-step[
+        @${e \ccKS \ctxE{v'}}
+        @${(\eunop{v}) \rrKS v'}]
+      @tr-qed[]
+    }
+    @tr-else[@${\delta(\vunop, v) \mbox{ is undefined}}]{
+      @tr-contradiction{@${\wellM e : \tau}}
+    }
+  }
+
+  @tr-case[@${e = \ctxE{\ebinop{v_0}{v_1}}}]{
+    @tr-if[@${\delta(\vbinop, v_0, v_1) = v'}]{
+      @tr-step[
+        @${e \ccKS \ctxE{v'}}
+        @${(\ebinop{v_0}{v_1}) \rrKS v'}]
+      @tr-qed[]
+    }
+    @tr-if[@${\delta(\vbinop, v_0, v_1) = \boundaryerror}]{
+      @tr-step[
+        @${e \ccKS \boundaryerror}
+        @${(\ebinop{v_0}{v_1}) \rrKS \boundaryerror}]
+      @tr-qed[]
+    }
+    @tr-else[@${\delta(\vbinop, v_0, v_1) \mbox{ is undefined}}]{
+      @tr-contradiction{@${\wellM e : \tau}}
+    }
+  }
+
+  @tr-case[@${e \eeq \ctxE{\edyn{\tau}{e'}}}]{
+    @tr-contradiction{@${e} is purely static}
+  }
+
+}
+
+@tr-lemma[#:key "K-pure-static-preservation" @elem{@${\langK} pure static preservation}]{
+  If @${\wellM e : \tau} and @${e} is purely static and @${e \ccKS e'}
+  then @${\wellM e' : \tau} and @${e'} is purely static.
+}@tr-proof{
+  By the @|M-uec| lemma, there are four cases.
+
+  @tr-case[@${e = \ctxE{\vapp{v_0}{v_1}}}]{
+    @tr-if[@${v_0 = \vlam{\tann{x}{\tau_d}}{e'}}]{
+      @tr-step[
+        @${\ctxE{v_0~v_1} \ccKS \ctxE{\vsubst{e'}{x}{v_1}}}]
+      @tr-step[
+        @${\wellM \eapp{v_0}{v_1} : \tau_c}]
+      @tr-step{
+        @${\wellM v_0 : \tarr{\tau_d}{\tau_c} @tr-and[] \wellM v_1 : \tau_d}
+        (2)}
+      @tr-step{
+        @${\tann{x}{\tau_d} \wellM e' : \tau_c}
+        (3)}
+      @tr-step{
+        @${\wellM \vsubst{e'}{x}{v_1} : \tau_c}
+        (3, 4)}
+      @tr-step[
+        @elem{@${\vsubst{e'}{x}{v_1}} is purely static}
+        @elem{@${e'} and @${v_1} are purely static}]
+      @tr-qed[]
+    }
+    @tr-else[]{
+      @tr-contradiction{@${\wellM e : \tau}}
+    }
+  }
+
+  @tr-case[@${e = \ctxE{\eunop{v}}}]{
+    @tr-step[
+      @${\ctxE{\eunop{v}} \ccKS \ctxE{v'}
+         @tr-and[]
+         \delta(\vunop, v) = v'}]
+    @tr-step[
+      @${\wellM \eunop{v} : \tau'}]
+    @tr-step[
+      @${\wellM v : \tau_0}]
+    @tr-step[
+      @${\wellM v' : \tau'}]
+    @tr-qed{}
+  }
+
+  @tr-case[@${e = \ctxE{\ebinop{v_0}{v_1}}}]{
+    @tr-step[
+      @${\ctxE{\ebinop{v_0}{v_1}} \ccKS \ctxE{v'}
+         @tr-and[]
+         \delta(\vbinop, v_0, v_1) = v'}]
+    @tr-step[
+      @${\wellM \ebinop{v_0}{v_1} : \tau'}]
+    @tr-step[
+      @${\wellM v_0 : \tau_0 @tr-and[] \wellM v_1 : \tau_1}
+    ]
+    @tr-step[
+      @${\wellM v' : \tau'}
+    ]
+    @tr-qed{}
+  }
+
+  @tr-case[@${e = \ctxE{\edyn{\tau}{v}}}]{
+    @tr-contradiction{@${e} is purely static}
   }
 
 }
@@ -3797,4 +3947,161 @@
     }
   ]
 }
+
+@tr-lemma[#:key "KM-uec" @elem{@${\langM} unique static evaluation contexts}]{
+  If @${\wellM e : \tau} then either:
+  @itemlist[
+    @item{ @${e} is a value }
+    @item{ @${e = \ctxE{v_0~v_1}} }
+    @item{ @${e = \ctxE{\eunop{v}}} }
+    @item{ @${e = \ctxE{\ebinop{v_0}{v_1}}} }
+    @item{ @${e = \ctxE{\edyn{\tau}{e'}}} }
+  ]
+}@tr-proof{
+  By induction on the structure of @${e}.
+
+  @tr-case[@${e = x}]{
+    @tr-contradiction[@${\wellM e : \tau}]
+  }
+
+  @tr-case[@${e = i
+              @tr-or[4]
+              e = \vlam{\tann{x}{\tau_d}}{e'}}]{
+    @tr-qed{@${e} is a value}
+  }
+
+  @tr-case[@${e = \esta{\tau}{e'}}]{
+    @tr-contradiction[@${\wellKE e : K}]
+  }
+
+  @tr-case[@${e = \vpair{e_0}{e_1}} #:itemize? #f]{
+    @tr-if[@${e_0 \not\in v}]{
+      @tr-step{
+        @${e_0 = \ES_0[e_0']}
+        @|tr-IH|
+      }
+      @${E = \vpair{\ES_0}{e_1}}
+      @tr-qed{
+        by @${e = \ctxE{e_0'}}
+      }
+    }
+    @tr-if[@${e_0 \in v
+              @tr-and[2]
+              e_1 \not\in v}]{
+      @tr-step{
+        @${e_1 = \ES_1[e_1']}
+        @|tr-IH|
+      }
+      @tr-step{
+        @${E = \vpair{e_0}{\ES_1}}
+      }
+      @tr-qed{
+        by @${e = \ctxE{e_1'}}
+      }
+    }
+    @tr-else[@${e_0 \in v
+                @tr-and[4]
+                e_1 \in v}]{
+      @tr-step{@${\ED = \ehole}}
+      @tr-qed{@${e = \ctxE{\vpair{e_0}{e_1}}}}
+    }
+  }
+
+  @tr-case[@${e = \vapp{e_0}{e_1}} #:itemize? #f]{
+    @tr-if[@${e_0 \not\in v}]{
+      @tr-step{
+        @${e_0 = \ED_0[e_0']}
+        @|tr-IH|
+      }
+      @tr-step{
+        @${\ED = \vapp{\ED_0}{e_1}}
+      }
+      @tr-qed{
+        by @${e = \ctxE{e_0'}}
+      }
+    }
+    @tr-if[@${e_0 \in v
+              @tr-and[2]
+              e_1 \not\in v}]{
+      @tr-step{
+        @${e_1 = \ED_1[e_1']}
+        @|tr-IH|
+      }
+      @tr-step{
+        @${\ED = \vapp{e_0}{\ED_1}}
+      }
+      @tr-qed{
+        by @${e = \ctxE{e_1'}}
+      }
+    }
+    @tr-else[@${e_0 \in v
+                @tr-and[4]
+                e_1 \in v}]{
+      @${\ED = \ehole}
+      @tr-qed{@${e = \ctxE{\vapp{e_0}{e_1}}}}
+    }
+  }
+
+  @tr-case[@${e = \eunop{e_0}}]{
+    @tr-if[@${e_0 \not\in v}]{
+      @tr-step{
+        @${e_0 = \ED_0[e_0']}
+        @tr-IH
+      }
+      @tr-step{
+        @${\ED = \eunop{\ED_0}}
+      }
+      @tr-qed{
+        @${e = \ctxE{e_0'}}
+      }
+    }
+    @tr-else[@${e_0 \in v}]{
+      @${E = \ehole}
+      @tr-qed{@${e = \ctxE{\eunop{e_0}}}}
+    }
+  }
+
+  @tr-case[@${e = \ebinop{e_0}{e_1}} #:itemize? #f]{
+    @tr-if[@${e_0 \not\in v}]{
+      @tr-step{
+        @${e_0 = \ED_0[e_0']}
+        @tr-IH
+      }
+      @tr-step{
+        @${\ED = \ebinop{\ED_0}{e_1}}
+      }
+      @tr-qed{
+        @${e = \ctxE{e_0'}}
+      }
+    }
+    @tr-if[@${e_0 \in v
+              @tr-and[2]
+              e_1 \not\in v}]{
+      @tr-step{
+        @${e_1 = \ED_1[e_1']}
+        @tr-IH
+      }
+      @tr-step{
+        @${\ED = \ebinop{e_0}{\ED_1}}
+      }
+      @tr-qed{@${e = \ctxE{e_1'}}}
+    }
+    @tr-else[@${e_0 \in v
+                @tr-and[4]
+                e_1 \in v}]{
+      @${\ED = \ehole}
+      @tr-qed{@${e = \ctxE{\ebinop{e_0}{e_1}}}}
+    }
+  }
+
+  @tr-case[@${e = \edyn{\tau}{e_0}}]{
+    @${\ED = \ehole}
+    @tr-qed{
+      @${e = \ctxE{\edyn{\tau}{e_0}}}
+    }
+  }
+
+}
+
+
 @|clearpage|

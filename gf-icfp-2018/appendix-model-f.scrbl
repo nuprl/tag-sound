@@ -67,6 +67,18 @@
   ]
 }
 
+@tr-corollary[#:key "F-pure-static" @elem{@${\langF} static soundness}]{
+  If @${\wellM e : \tau} and @${e} is purely static, then either:
+  @itemlist[
+    @item{ @${e \rrFEstar v \mbox{ and } \wellFE v : \tau} }
+    @item{ @${e \rrFEstar \boundaryerror} }
+    @item{ @${e} diverges}
+  ]
+}@tr-proof{(sketch)
+  Purely-static terms cannot step to a @${\tagerror} and are preserved by the
+   @${\ccFS} reduction relation.
+}
+
 @tr-lemma[#:key "F-S-implies" @elem{@${\langF} static implies}]{
   If @${\Gamma \wellM e : \tau} then @${\Gamma \wellFE e : \tau}.
 }@tr-proof{

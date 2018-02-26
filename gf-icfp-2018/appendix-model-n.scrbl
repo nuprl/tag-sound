@@ -66,6 +66,18 @@
   ]
 }
 
+@tr-corollary[#:key "N-pure-static" @elem{@${\langN} static soundness}]{
+  If @${\wellM e : \tau} and @${e} is purely static, then either:
+  @itemlist[
+    @item{ @${e \rrNEstar v \mbox{ and } \wellNE v : \tau} }
+    @item{ @${e \rrNEstar \boundaryerror} }
+    @item{ @${e} diverges}
+  ]
+}@tr-proof{(sketch)
+  Purely-static terms cannot step to a @${\tagerror} and are preserved by the
+   @${\ccNS} reduction relation.
+}
+
 @tr-lemma[#:key "N-S-implies" @elem{@${\langN} static implies}]{
   If @${\Gamma \wellM e : \tau} then @${\Gamma \wellNE e : \tau}.
 }@tr-proof{
