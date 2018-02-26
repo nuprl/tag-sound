@@ -699,8 +699,8 @@ In summary, main differences between the embeddings are with respect to four cha
       ] }
     @exact|{
       \multicolsbreak \begin{flushleft} $\begin{array}{l@{~~}l@{~}l}
-         \erelprime & \ccNS & \erelprimefun~\ES[\vpair{\edyn{\tnat}{{-1}}}{\edyn{\tnat}{{-2}}}]
-        \\ & \ccNS & \boundaryerror
+         \erelprime & \rrNEstar & \erelprimefun~\ES[\vpair{\edyn{\tnat}{{-1}}}{\edyn{\tnat}{{-2}}}]
+        \\          & \rrNEstar & \boundaryerror
         \\\multicolumn{3}{l}{\mbox{where } \ES = \edyn{\tpair{\tint}{\tnat}}{(\esta{\tpair{\tnat}{\tnat}}{[]})}}
         \end{array}$ \end{flushleft}}|
   }
@@ -721,7 +721,7 @@ In summary, main differences between the embeddings are with respect to four cha
           \erelprime & \rrCEstar & \erelprimefun~v_{m}
         %\\ & \rrCEstar & \vpair{\ES[\edyn{\tnat}{(\efst{\vpair{-1}{-2}})}]}{\esnd{v_{m}}}
         \\ & \rrCEstar & \vpair{\ES[\edyn{\tnat}{{-1}}]}{\esnd{v_{m}}}
-        \\ & \ccCS     & \boundaryerror
+        \\ & \rrCEstar & \boundaryerror
         \\\multicolumn{3}{l}{\mbox{where } v_{m} = (\vmonpair{\tpair{\tint}{\tnat}}{}}
         \\\multicolumn{3}{l}{\qquad\qquad\qquad\! (\vmonpair{\tpair{\tnat}{\tnat}}{}}
         \\\multicolumn{3}{l}{\qquad\qquad\qquad\,\, (\vmonpair{\tpair{\tnat}{\tnat}}{\vpair{-1}{-2}})))}
@@ -744,9 +744,9 @@ In summary, main differences between the embeddings are with respect to four cha
       \multicolsbreak \begin{flushleft} $\begin{array}{l@{~~}l@{~}l}
           \erelprime & \rrFEstar & \erelprimefun~v_{m}
         \\ & \rrFEstar & \vpair{{-1}}{\esnd{v_{m}}}
-        %\\ & \ccFS     & \vpair{{-1}}{\edyn{\tnat}{(\esnd{\vpair{-1}{-2}})}}
+        %\\ & \rrFEstar & \vpair{{-1}}{\edyn{\tnat}{(\esnd{\vpair{-1}{-2}})}}
         \\ & \rrFEstar & \vpair{{-1}}{\edyn{\tnat}{{-2}}}
-        \\ & \ccFS     & \boundaryerror
+        \\ & \rrFEstar & \boundaryerror
         \\\multicolumn{3}{l}{\mbox{where } v_{m} = \vmonpair{\tpair{\tint}{\tnat}}{\vpair{-1}{-2}}}
         \end{array}$ \end{flushleft}}|
   }
@@ -768,11 +768,11 @@ In summary, main differences between the embeddings are with respect to four cha
   @exact|{
     \multicolsbreak \begin{flushleft} $\begin{array}{l@{~~}l@{~}l}
       \erelprime'' & \rrKEstar & \erelprimefun''~\vpair{-1}{-2}
-    %\\   & \ccKS     & \ES[\langle{\echk{\tint}{(\efst{\vpair{-1}{-2}})}}
+    %\\   & \rrKEstar & \ES[\langle{\echk{\tint}{(\efst{\vpair{-1}{-2}})}}
     %\\   &           & \quad ,\,{\echk{\tnat}{(\vsnd{\vpair{-1}{-2}})}}\rangle]
     \\   & \rrKEstar & \ES[\vpair{{-1}}{\echk{\tnat}{(\vsnd{\vpair{-1}{\!-2}})}}]
-    \\   & \ccKS     & \ES[\vpair{{-1}}{\echk{\tnat}{{-2}}}]
-    \\   & \ccKS     & \boundaryerror
+    \\   & \rrKEstar & \ES[\vpair{{-1}}{\echk{\tnat}{{-2}}}]
+    \\   & \rrKEstar & \boundaryerror
     \\\multicolumn{3}{l}{\mbox{where } \erelprime : \tpair{\tint}{\tnat} \carrow \erelprime''}
     \\\multicolumn{3}{l}{\mbox{and } \erelprime'' = \erelprimefun''~\erelprimearg}
     %\\\multicolumn{3}{l}{\mbox{and } \erelprimefun'' = \vlam{\tann{x}{\tpair{\tint}{\tnat}}}{\vpair{\echk{\kint}{(\efst{x})}}{\echk{\knat}{(\esnd{x})}}}}
@@ -795,9 +795,9 @@ In summary, main differences between the embeddings are with respect to four cha
   @exact|{
     \multicolsbreak \begin{flushleft} $\begin{array}{l@{~~}l@{~}l}
       \erelprime & \rrEEstar & \erelprimefun~\vpair{-1}{-2}
-    %\\        & \ccEE     & \vpair{\efst{\vpair{-1}{-2}}}{\esnd{\vpair{-1}{-2}}}
+    %\\        & \rrEEstar & \vpair{\efst{\vpair{-1}{-2}}}{\esnd{\vpair{-1}{-2}}}
     \\        & \rrEEstar & \vpair{-1}{\esnd{\vpair{-1}{-2}}}
-    \\        & \ccEE     & \vpair{-1}{-2}
+    \\        & \rrEEstar & \vpair{-1}{-2}
     \end{array}$ \end{flushleft}}|
   }
 ]
