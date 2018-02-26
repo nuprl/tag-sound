@@ -795,3 +795,25 @@ In summary, main differences between the embeddings are with respect to four cha
   }
 ]
 
+@figure["all-corollary" "Corollaries"
+@tr-theorem[#:key "K-pure-static" @elem{@${\langK} static soundness}]{
+  If @${\wellM e : \tau} and @${e} does not contain a sub-term of the form
+   @${(\edyn{\tau'}{e'})} then one of the following holds:
+  @itemlist[
+    @item{ @${e \rrKEstar v \mbox{ and } \wellM v : \tau} }
+    @item{ @${e \rrKEstar \boundaryerror} }
+    @item{ @${e} diverges}
+  ]
+}
+
+@tr-theorem[#:key "E-pure-static" @elem{@${\langE} static soundness}]{
+  If @${\wellM e : \tau} and @${e} does not contain a sub-term of the form
+   @${(\edyn{\tau'}{e'})} then one of the following holds:
+  @itemlist[
+    @item{ @${e \rrEEstar v \mbox{ and } \wellM v : \tau} }
+    @item{ @${e \rrEEstar \boundaryerror} }
+    @item{ @${e} diverges}
+  ]
+}
+]
+
