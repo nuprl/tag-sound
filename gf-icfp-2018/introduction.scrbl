@@ -45,8 +45,9 @@ The existence of three approaches to the problem of soundness for a pair of
   To this end, we equip one surface syntax and type system with three different
    semantics and three different notions of soundness, corresponding to the
    erasure, type-sound, and tag-sound approaches to migratory typing (section N).
-  Furthermore, we use the common framework to systematically derive the tag-sound
-   approach by eliminating known sources of performance overhead in the type-sound approach.
+  This demonstrates that the three approaches provide fundamentally different
+   soundness guarantees, contrary to informal claims in published literature@~cite[vss-popl-2017].
+  @; TODO add citations (if any) that claim TypeScript / Hack are sound
 }
 @item{
   The second question is how the three notions of soundness compare in a
