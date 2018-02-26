@@ -71,59 +71,52 @@
 
 \inferrule*{
   \inferrule*{
+    \inferrule*{}{
+      \vdots_1
+      \\\\
+      \cdot \wellKE \erelprimefun'' : \kfun
+    }
+    \\
     \inferrule*{
       \inferrule*{
         \inferrule*{
           \inferrule*{
+            \inferrule*{
+              \inferrule*{
+              }{
+                \cdot \wellKE -1
+              }
+              \\
+              \inferrule*{
+              }{
+                \cdot \wellKE -2
+              }
+            }{
+              \cdot \wellKE \vpair{-1}{-2}
+            }
+            \\
+            \tagof{\tpair{\tnat}{\tnat}} = \tagof{\tpair{\tnat}{\tnat}}
           }{
-            \cdot \wellKE -1
-          }
-          \\
-          \inferrule*{
-          }{
-            \cdot \wellKE -2
+            \cdot \wellKE \edyn{\tpair{\tnat}{\tnat}}{\vpair{-1}{-2}} : \tagof{\tpair{\tnat}{\tnat}}
           }
         }{
-          \cdot \wellKE \vpair{-1}{-2}
+          \cdot \wellKE \esta{\tpair{\tnat}{\tnat}}{(\edyn{\tpair{\tnat}{\tnat}}{\vpair{-1}{-2}})}
         }
         \\
-        \tagof{\tpair{\tnat}{\tnat}} = \tagof{\tpair{\tnat}{\tnat}}
+        \tagof{\tpair{\tint}{\tnat}} = \kpair
       }{
-        \cdot \wellKE \edyn{\tpair{\tnat}{\tnat}}{\vpair{-1}{-2}} : \tagof{\tpair{\tnat}{\tnat}}
+        \cdot \wellKE \edyn{\tpair{\tint}{\tnat}}{(\esta{\tpair{\tnat}{\tnat}}{(\edyn{\tpair{\tnat}{\tnat}}{\vpair{-1}{-2}})})} : \kpair
       }
+      \\
+      \kpair \subk \kany
     }{
-      \cdot \wellKE \esta{\tpair{\tnat}{\tnat}}{(\edyn{\tpair{\tnat}{\tnat}}{\vpair{-1}{-2}})}
+      \cdot \wellKE \edyn{\tpair{\tint}{\tnat}}{(\esta{\tpair{\tnat}{\tnat}}{(\edyn{\tpair{\tnat}{\tnat}}{\vpair{-1}{-2}})})} : \kany
     }
-    \\
-    \tagof{\tpair{\tint}{\tnat}} = \kpair
   }{
-    \cdot \wellKE \edyn{\tpair{\tint}{\tnat}}{(\esta{\tpair{\tnat}{\tnat}}{(\edyn{\tpair{\tnat}{\tnat}}{\vpair{-1}{-2}})})} : \kpair
-  }
-  \\
-  \kpair \subk \kany
-}{
-  \cdot \wellKE \edyn{\tpair{\tint}{\tnat}}{(\esta{\tpair{\tnat}{\tnat}}{(\edyn{\tpair{\tnat}{\tnat}}{\vpair{-1}{-2}})})} : \kany
-  \\\\
-  \vdots_2
-}
-
-\inferrule*{
-  \inferrule*{
-    \vdots_1
-    \\
-    \\
-    \\
-    \vdots_2
-  }{
-    \cdot \wellKE ((\vlam{\tann{x}{\tpair{\tint}{\tnat}}}{\vpair{\echk{\kint}{(\efst{x})}}{\echk{\knat}{(\esnd{x})}}})
-    \\\\\hspace{6.4em}%
-    (\edyn{\tpair{\tint}{\tnat}}{(\esta{\tpair{\tnat}{\tnat}}{(\edyn{\tpair{\tnat}{\tnat}}{\vpair{-1}{-2}})})})) : \kany
+    \cdot \wellKE \eapp{\erelprimefun''}{\erelprimearg} : \kany
   }
 }{
-  \cdot \wellKE \echk{\kpair}{((\vlam{\tann{x}{\tpair{\tint}{\tnat}}}{\vpair{\echk{\kint}{(\efst{x})}}{\echk{\knat}{(\esnd{x})}}})}
-  \\\\\hspace{11em}%
-  (\edyn{\tpair{\tint}{\tnat}}{(\esta{\tpair{\tnat}{\tnat}}{(\edyn{\tpair{\tnat}{\tnat}}{\vpair{-1}{-2}})})}))
-  : \kpair
+  \cdot \wellKE \echk{\kpair}{(\eapp{\erelprimefun''}{\erelprimearg})} : \kpair
 }
 
 \end{mathpar}

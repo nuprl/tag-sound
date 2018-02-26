@@ -38,34 +38,32 @@
 }
 
 \inferrule*{
+  \inferrule*{}{
+    \vdots_1
+    \\\\
+    \cdot \vdash \erelprimefun : \tarr{\tpair{\tint}{\tnat}}{\tpair{\tint}{\tnat}}
+  }
+  \\
   \inferrule*{
     \inferrule*{
       \inferrule*{
-        \cdot \vdash -1
-        \\
-        \cdot \vdash -2
+        \inferrule*{
+          \cdot \vdash -1
+          \\
+          \cdot \vdash -2
+        }{
+          \cdot \vdash \vpair{-1}{-2}
+        }
       }{
-        \cdot \vdash \vpair{-1}{-2}
+        \cdot \vdash \edyn{\tpair{\tnat}{\tnat}}{\vpair{-1}{-2}} : \tpair{\tnat}{\tnat}
       }
     }{
-      \cdot \vdash \edyn{\tpair{\tnat}{\tnat}}{\vpair{-1}{-2}} : \tpair{\tnat}{\tnat}
+      \cdot \vdash \esta{\tpair{\tnat}{\tnat}}{(\edyn{\tpair{\tnat}{\tnat}}{\vpair{-1}{-2}})}
     }
   }{
-    \cdot \vdash \esta{\tpair{\tnat}{\tnat}}{(\edyn{\tpair{\tnat}{\tnat}}{\vpair{-1}{-2}})}
+    \cdot \vdash \edyn{\tpair{\tint}{\tnat}}{(\esta{\tpair{\tnat}{\tnat}}{(\edyn{\tpair{\tnat}{\tnat}}{\vpair{-1}{-2}})})} : \tpair{\tint}{\tnat}
   }
 }{
-  \cdot \vdash \edyn{\tpair{\tint}{\tnat}}{(\esta{\tpair{\tnat}{\tnat}}{(\edyn{\tpair{\tnat}{\tnat}}{\vpair{-1}{-2}})})} : \tpair{\tint}{\tnat}
-  \\\\
-  \vdots_2
-}
-
-\inferrule*{
-  \vdots_1
-  \\
-  \\
-  \\
-  \vdots_2
-}{
-  \cdot \vdash \erelprimefull : \tpair{\tint}{\tnat}
+  \cdot \vdash \erelprimefun~\erelprimearg : \tpair{\tint}{\tnat}
 }
 \end{mathpar}

@@ -1,3 +1,5 @@
+\vspace{16ex} % HACK
+
 \begin{mathpar}
 
 \inferrule*{
@@ -38,7 +40,7 @@
   }
 }{
   \cdot \wellM \vlam{\tann{x}{\tpair{\tint}{\tnat}}}{\vpair{\efst{x}}{\esnd{x}}} : \tarr{\tpair{\tint}{\tnat}}{\tpair{\tint}{\tnat}}
-  \\\\ \carrow
+  \carrow
   \vlam{\tann{x}{\tpair{\tint}{\tnat}}}{\vpair{\echk{\kint}{(\efst{x})}}{\echk{\knat}{(\esnd{x})}}}
   \\\\
   \vdots_1
@@ -85,23 +87,23 @@
 }
 
 \inferrule{
-  \vdots_1
+  \inferrule*{}{
+    \vdots_1
+    \\\\
+    \cdot \wellM \erelprimefun : \tarr{\tpair{\tint}{\tnat}}{\tpair{\tint}{\tnat}} \carrow \erelprimefun''
+  }
   \\
-  \\
-  \\
-  \vdots_2
-  \\
-  \\
+  \inferrule*{}{
+    \vdots_2
+    \\\\
+    \cdot \wellM \erelprimearg : \tpair{\tint}{\tnat} \carrow \erelprimearg
+  }
   \\
   \tagof{\tpair{\tint}{\tnat}} = \kpair
 }{
-  \cdot \wellM \erelprimefull : \tpair{\tint}{\tnat}
-  \\\\
+  \cdot \wellM \erelprimefun~\erelprimearg : \tpair{\tint}{\tnat}
   \carrow
-  \\\\
-  \echk{\kpair}{((\vlam{\tann{x}{\tpair{\tint}{\tnat}}}{\vpair{\echk{\kint}{(\efst{x})}}{\echk{\knat}{(\esnd{x})}}})}
-  \\\\\hspace{6.8em}%
-  (\edyn{\tpair{\tint}{\tnat}}{(\esta{\tpair{\tnat}{\tnat}}{(\edyn{\tpair{\tnat}{\tnat}}{\vpair{-1}{-2}})})}))
+  \echk{\kpair}{\eapp{\erelprimefun''}{\erelprimearg}}
 }
 
 \end{mathpar}
