@@ -5,7 +5,8 @@
 @; TODO
 @; - dyn / static twin language in inline figures
 
-@include-figure["fig:multi-syntax.tex" @elem{Twin languages syntax and typing judgments}]
+@include-figure["fig:multi-syntax.tex" @elem{Twin languages syntax}]
+@include-figure["fig:multi-property.tex" @elem{Twin languages static typing judgments}]
 @include-figure["fig:multi-reduction.tex" @elem{Common semantic notions}]
 
 @; TODO I'm assuming base types are O(1) to check no matter what ... that they're taggged ... don't think this comes across
@@ -400,6 +401,67 @@ The forgetful embedding performs just enough run-time type checking to
 
 @;In short, the combination of monitor values and forgetful semantics
 @; takes the compositional reasoning property out of the static type system.
+
+
+@subsection{WHY DOUBLE CHECK}
+
+The notion of reduction @${\rrFD} has a strange rule for applying a monitored,
+ typed function in an untyped context:
+
+@exact|{\[\begin{array}{l@{~~}c@{~}l}
+  \eapp{(\vmonfun{(\tarr{\tau_d}{\tau_c})}{(\vlam{\tann{x}{\tau}}{\!e})})}{v}
+  & \rrFD & \esta{\tau_c}{e'}
+  \\ \sidecond{if $\mchk{\tau}{v} = v'$}
+  \\ \sidecond{and $e' = \echk{\tau_c}{\vsubst{e}{x}{v'}$}}
+\end{array}\]}|
+
+The result expression checks @${\tau_c} twice.
+This double-check is nonsense, but makes sense in the context of our typing
+ rules and the established meaning of the @${\vsta} boundary term.
+Here is the same rule in terms of typing:
+
+
+@exact|{\begin{mathpar}
+  \inferrule*{
+    \inferrule*{
+      \inferrule*{
+        \inferrule*{
+          \vdots_1
+        }{
+          \tann{x}{\tau} \wellFE e : \tau'
+        }
+      }{
+        \wellFE \vlam{\tann{x}{\tau}}{e} : \tarr{\tau}{\tau'}
+      }
+    }{
+      \wellFE \vmonfun{\tarr{\tau_d}{\tau_c}}{\vlam{\tann{x}{\tau}}{e}}
+    }
+    \\
+    \inferrule*{
+      \vdots_2
+    }{
+      \wellFE v
+    }
+  }{
+    \wellFE \eapp{(\vmonfun{\tarr{\tau_d}{\tau_c}}{(\vlam{\tann{x}{\tau}}{e})})}{v}
+  }
+
+  \inferrule*{
+    \inferrule*{
+      \inferrule*{
+        \vdots_{1,2}
+      }{
+        \wellFE \vsubst{e}{x}{v} : \tau'
+      }
+    }{
+      \wellFE \echk{\tau_c}{\vsubst{e}{x}{v}} : \tau_c
+    }
+  }{
+    \wellFE \esta{\tau_c}{\echk{\tau_c}{\vsubst{e}{x}{v}}}
+  }
+\end{mathpar}|
+
+A good compiler will remove the extra check, which we keep just for the proof.
 
 
 @; -----------------------------------------------------------------------------
