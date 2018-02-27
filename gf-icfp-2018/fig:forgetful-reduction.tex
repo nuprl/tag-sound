@@ -78,23 +78,13 @@
 \begin{TwoColumn}
   \lblextra{$e \rrFS A$}{ (selected rules)}{
     $\begin{array}{l@{~~}c@{~}l}
-      \eapp{(\vmonfun{(\tarr{\tau_d}{\tau_c})}{(\vlam{x}{e})})}{v} & \rrFS
-      & \boundaryerror
-      \\ \sidecond{if $\mchk{\tau_d}{v} = \boundaryerror$}
-      \\[1ex]
       \eapp{(\vmonfun{(\tarr{\tau_d}{\tau_c})}{(\vlam{x}{e}})}{v} & \rrFS
       & \edyn{\tau_c}{e'}
-      \\ \sidecond{if $\mchk{\tau_d}{v} = v'$}
-      \\ \sidecond{and $e' = \vsubst{e}{x}{v'}$}
+      \\ \sidecond{where $e' = \eapp{(\vlam{x}{e})}{\mchk{\tau_d}{v}}$}
       \\[1ex]
-      (\vmonfun{(\tarr{\tau_d}{\tau_c})}{(\vlam{\tann{x}{\tau}}{\!e})})~v & \rrFS
-      & \boundaryerror
-      \\ \sidecond{if $\mchk{\tau}{v} = \boundaryerror$}
-      \\[1ex]
-      \eapp{(\vmonfun{(\tarr{\tau_d}{\tau_c})}{(\vlam{\tann{x}{\tau}}{\!e})})}{v}
-      & \rrFS & \echk{\tau_c}{\!e'}
-      \\ \sidecond{if $\mchk{\tau}{v} = v'$}
-      \\ \sidecond{and $e' = \vsubst{e}{x}{v'}$}
+      \eapp{(\vmonfun{(\tarr{\tau_d}{\tau_c})}{(\vlam{\tann{x}{\tau}}{e})})}{v}
+      & \rrFS & \echk{\tau_c}{e'}
+      \\ \sidecond{where $e' = \eapp{(\vlam{\tann{x}{\tau}}{e})}{\mchk{\tau}{v}}$}
       \\[1ex]
       \efst{(\vmonpair{(\tpair{\tau_0}{\tau_1})}{\vpair{v_0}{v_1}})} & \rrFS
       & \mchk{\tau_0}{v_0}
@@ -120,22 +110,12 @@
   \lblextra{$e \rrFD A$}{ (selected rules)}{
     $\begin{array}{l@{~~}c@{~}l}
       \eapp{(\vmonfun{(\tarr{\tau_d}{\tau_c})}{(\vlam{x}{e})})}{v} & \rrFD
-      & \vsubst{e}{x}{v}
-      \\[1ex]
-      % placeholder, for "dyn function failure case"
-      % this doesn't happen in rrFD
-      \\
-      \\
+      & \eapp{(\vlam{x}{e})}{v}
       \\
       \\[1ex]
-      \eapp{(\vmonfun{(\tarr{\tau_d}{\tau_c})}{(\vlam{\tann{x}{\tau}}{\!e})})}{v} & \rrFD
-      & \boundaryerror
-      \\ \sidecond{if $\mchk{\tau}{v} = \boundaryerror$}
-      \\[1ex]
-      \eapp{(\vmonfun{(\tarr{\tau_d}{\tau_c})}{(\vlam{\tann{x}{\tau}}{\!e})})}{v}
+      \eapp{(\vmonfun{(\tarr{\tau_d}{\tau_c})}{(\vlam{\tann{x}{\tau}}{e})})}{v}
       & \rrFD & \esta{\tau_c}{e'}
-      \\ \sidecond{if $\mchk{\tau}{v} = v'$}
-      \\ \sidecond{and $e' = \vsubst{e}{x}{v'}$}
+      \\ \sidecond{where $e' = \echk{\tau_c}{(\eapp{(\vlam{\tann{x}{\tau}}{e})}{\mchk{\tau}{v}})}$}
       \\[1ex]
       \efst{(\vmonpair{(\tpair{\tau_0}{\tau_1})}{\vpair{v_0}{v_1}})} & \rrFD
       & \mchk{\tau_0}{v_0}
