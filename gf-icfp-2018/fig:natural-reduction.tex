@@ -1,5 +1,5 @@
 
-\lblextra{Language $\langN$}{ inherits $\langM$:}{
+\lblextra{Language $\langN$}{ inherits Core Syntax}{
   $\begin{array}{l@{\hspace{0.5em}}c@{\hspace{0.5em}}l}
     v & \BNFeq & \ldots \mid \vmonfun{(\tarr{\tau}{\tau})}{v}
   \end{array}$
@@ -45,8 +45,8 @@
   \lblextra{$e \rrNS A$}{ (selected rules)}{
     $\begin{array}{l@{\hspace{0.5em}}c@{\hspace{0.5em}}l}
       \eapp{(\vmonfun{(\tarr{\tau_d}{\tau_c})}{v_f})}{v} & \rrNS
-      & \edyn{\tau_c}{(\eapp{v_f}{v'})}
-      \\ \sidecond{where $v' = \esta{\tau_d}{v}$}
+      & \edyn{\tau_c}{(\eapp{v_f}{e'})}
+      \\ \sidecond{where $e' = \esta{\tau_d}{v}$}
       \\[1ex]
       \eapp{(\vlam{\tann{x}{\tau_d}}{e})}{v} & \rrNS
       & \vsubst{e}{x}{v}
@@ -65,8 +65,8 @@
   \lblextra{$e \rrND A$}{ (selected rules)}{
     $\begin{array}{l@{\hspace{0.5em}}c@{\hspace{0.5em}}l}
       \eapp{(\vmonfun{(\tarr{\tau_d}{\tau_c})}{v_f})}{v} & \rrND
-      & \esta{\tau_c}{(\eapp{v_f}{v'})}
-      \\ \sidecond{where $v' = \edyn{\tau_d}{v}$}
+      & \esta{\tau_c}{(\eapp{v_f}{e'})}
+      \\ \sidecond{where $e' = \edyn{\tau_d}{v}$}
       \\[1ex]
       \eapp{(\vlam{x}{e})}{v} & \rrND
       & \vsubst{e}{x}{v}

@@ -153,7 +153,7 @@ The payoff of this technical machinery is that a statically-typed term @${e}
 @; -----------------------------------------------------------------------------
 @section{The Natural Embedding}
 @include-figure*["fig:natural-reduction.tex" "Natural Embedding"]
-@include-figure*["fig:natural-typing.tex" "Typing judgments for the natural embedding"]
+@include-figure*["fig:natural-preservation.tex" "Property judgments for the natural embedding"]
 
 In order to provide some kind of type soundness, an embedding must restrict
  the dynamically-typed values that can flow into typed contexts.
@@ -267,7 +267,7 @@ Consequently, they demonstrate that the erasure and natural embeddings lie on
 @; -----------------------------------------------------------------------------
 @section{The Co-Natural Embedding}
 @include-figure*["fig:conatural-reduction.tex" "Co-Natural Embedding"]
-@include-figure*["fig:conatural-typing.tex" "Typing judgments for the co-natural embedding"]
+@include-figure*["fig:conatural-preservation.tex" "Property judgments for the co-natural embedding"]
 
 The natural embedding eagerly checks values that cross a type boundary.
 For most values, this means that a successful boundary-crossing requires
@@ -327,7 +327,7 @@ An implementation might improve this performance through caching, but its
 @; -----------------------------------------------------------------------------
 @section{The Forgetful Embedding}
 @include-figure*["fig:forgetful-reduction.tex" "Forgetful Embedding"]
-@include-figure*["fig:forgetful-typing.tex" "Typing judgments for the forgetful embedding"]
+@include-figure*["fig:forgetful-preservation.tex" "Property judgments for the forgetful embedding"]
 
 @; === INTERLUDE
 @; - need to know typed functions under a monitor "have a typing"
@@ -405,7 +405,7 @@ The forgetful embedding performs just enough run-time type checking to
 @; -----------------------------------------------------------------------------
 @section{The Locally-Defensive Embedding}
 @include-figure*["fig:locally-defensive-reduction.tex" "Locally-Defensive Embedding"]
-@include-figure*["fig:locally-defensive-typing.tex" "Typing judgments for the locally-defensive embedding"]
+@include-figure*["fig:locally-defensive-preservation.tex" "Property judgments for the locally-defensive embedding"]
 
 The final source of performance overhead in the natural embedding is the cost of
  allocating monitor values.
@@ -520,7 +520,7 @@ We state soundness for @${\langK} in terms of the static typing judgment
 @; -----------------------------------------------------------------------------
 @section{The Erasure Embedding}
 @include-figure["fig:erasure-reduction.tex" "Erasure Embedding"]
-@include-figure["fig:erasure-typing.tex" "Typing judgments for the erasure embedding"]
+@include-figure["fig:erasure-preservation.tex" "Property judgments for the erasure embedding"]
 
 Intuitively, we can create a multi-language that avoids undefined behavior
  but ignores type annotations

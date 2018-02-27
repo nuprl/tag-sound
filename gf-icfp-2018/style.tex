@@ -147,7 +147,8 @@ showstringspaces=false            %
 \newcommand{\esta}[2]{\vsta~#1~#2}
 \newcommand{\echk}[2]{\vchk~#1~#2}
 \newcommand{\vfromany}{\mathcal{X}}
-\newcommand{\mchk}[2]{\vfromany(#1, #2)}
+\newcommand{\efromany}[2]{\vfromany(#1, #2)}
+\newcommand{\mchk}[2]{\efromany{#1}{#2}}
 
 \newcommand{\arrSD}{\mathrel{\textsc{s}\!\!\Rightarrow\!\!\textsc{d}}}
 \newcommand{\arrDS}{\mathrel{\textsc{d}\!\!\Rightarrow\!\!\textsc{s}}}
@@ -220,6 +221,8 @@ showstringspaces=false            %
 \newcommand{\rrFEstar}{\rastar_{\rrfont{F}}}
 \newcommand{\rrKEstar}{\rastar_{\rrfont{K}}}
 
+\newcommand{\eerr}{\mathsf{Err}}
+
 \newcommand{\vfst}{\mathsf{fst}}
 \newcommand{\vsnd}{\mathsf{snd}}
 \newcommand{\vref}[1]{\textbf{ref}~#1}
@@ -278,8 +281,8 @@ showstringspaces=false            %
 \newcommand{\wellLE}{\wellCE}
 \newcommand{\wellFE}{\myvdash{f}}
 \newcommand{\wellKE}{\myvdash{k}}
-\newcommand{\tagerror}{\mathsf{TagError}}
-\newcommand{\boundaryerror}{\mathsf{BoundaryError}}
+\newcommand{\tagerror}{\mathsf{TagErr}}
+\newcommand{\boundaryerror}{\mathsf{BndryErr}}
 \newcommand{\costDS}[1]{\mathbf{cost}_{DS}(#1)}
 \newcommand{\costSD}[1]{\mathbf{cost}_{SD}(#1)}
 \newcommand{\eunop}[1]{\vunop~#1}

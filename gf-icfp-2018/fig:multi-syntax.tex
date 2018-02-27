@@ -1,5 +1,5 @@
 \begin{TwoColumn}
-\lbl{Multi-language $\langM$}{
+\lbl{Surface Syntax}{
   $\begin{array}{l@{\hspace{0.5em}}c@{\hspace{0.5em}}l}
     e & \BNFeq & x \mid \vlam{x}{e} \mid \vlam{\tann{x}{\tau}}{e} \mid i \mid \vpair{e}{e} \mid \eapp{e}{e} \mid
     \\
@@ -12,7 +12,12 @@
     \vunop & \BNFeq & \vfst \mid \vsnd
     \\
     \vbinop & \BNFeq & \vsum \mid \vquotient
-    \\
+  \end{array}$
+}
+
+\smallskip
+\lbl{Typing Syntax}{
+  $\begin{array}{l@{\hspace{0.5em}}c@{\hspace{0.5em}}l}
     \Gamma & \BNFeq & \cdot \mid x,\Gamma \mid \tann{x}{\tau},\Gamma
   \end{array}$
 }
@@ -20,11 +25,11 @@
 \multicolsbreak
 
 \lbl{$\Delta(\vunop, \tau) = \tau$}{
-$\begin{array}{l@{~~}c@{~~}l}
-  \Delta(\vfst, \tpair{\tau_0}{\tau_1}) & = & \tau_0
-\\
-  \Delta(\vsnd, \tpair{\tau_0}{\tau_1}) & = & \tau_1
-\end{array}$
+  $\begin{array}{l@{~~}c@{~~}l}
+    \Delta(\vfst, \tpair{\tau_0}{\tau_1}) & = & \tau_0
+    \\
+    \Delta(\vsnd, \tpair{\tau_0}{\tau_1}) & = & \tau_1
+  \end{array}$
 }
 
 \smallskip
@@ -44,7 +49,7 @@ $\begin{array}{l@{~~}c@{~~}l}
 
 %%-----------------------------------------------------------------------------
 
-\lblmathparextra{$\Gamma \wellM e$}{ (selected rules)}{
+\lblmathparextra{$\Gamma \wellM e$}{}{
   \inferrule*{
     x \in \Gamma
   }{
@@ -69,28 +74,28 @@ $\begin{array}{l@{~~}c@{~~}l}
   }{
     \Gamma \wellM \vpair{e_0}{e_1}
   }
-%
-%  \inferrule*{
-%    \Gamma \wellM e_0
-%    \\
-%    \Gamma \wellM e_1
-%  }{
-%    \Gamma \wellM e_0~e_1
-%  }
-%
-%  \inferrule*{
-%    \Gamma \wellM e
-%  }{
-%    \Gamma \wellM \vunop~e
-%  }
-%
-%  \inferrule*{
-%    \Gamma \wellM e_0
-%    \\
-%    \Gamma \wellM e_1
-%  }{
-%    \Gamma \wellM \vbinop~e_0~e_1
-%  }
+
+  \inferrule*{
+    \Gamma \wellM e_0
+    \\
+    \Gamma \wellM e_1
+  }{
+    \Gamma \wellM \eapp{e_0}{e_1}
+  }
+
+  \inferrule*{
+    \Gamma \wellM e
+  }{
+    \Gamma \wellM \vunop~e
+  }
+
+  \inferrule*{
+    \Gamma \wellM e_0
+    \\
+    \Gamma \wellM e_1
+  }{
+    \Gamma \wellM \vbinop~e_0~e_1
+  }
 
   \inferrule*{
     \Gamma \wellM e : \tau
@@ -134,10 +139,10 @@ $\begin{array}{l@{~~}c@{~~}l}
 
   \inferrule*{
     \Gamma \wellM e_0 : \tau_d \tarrow \tau_c
-    \\\\
+    \\
     \Gamma \wellM e_1 : \tau_d
   }{
-    \Gamma \wellM e_0~e_1 : \tau_c
+    \Gamma \wellM \eapp{e_0}{e_1} : \tau_c
   }
 
   \inferrule*{
@@ -161,7 +166,7 @@ $\begin{array}{l@{~~}c@{~~}l}
   \inferrule*{
     \Gamma \wellM e : \tau'
     \\\\
-    \tau' \subt \tau
+    \tau' \subteq \tau
   }{
     \Gamma \wellM e : \tau
   }
@@ -174,35 +179,38 @@ $\begin{array}{l@{~~}c@{~~}l}
 }
 
 \bigskip
-\lblmathpar{$\tau \subt \tau$}{
+\lblmathpar{$\tau \subteq \tau$}{
   \inferrule*{
   }{
-    \tnat \subt \tint
+    \tnat \subteq \tint
   }
 
   \inferrule*{
-    \tau_d' \subt \tau_d
+    \tau_d' \subteq \tau_d
+    \\
+    \tau_c \subteq \tau_c'
   }{
-    \tarr{\tau_d}{\tau_c} \subt \tarr{\tau_d'}{\tau_c}
+    \tarr{\tau_d}{\tau_c} \subteq \tarr{\tau_d'}{\tau_c'}
   }
 
   \inferrule*{
-    \tau_c \subt \tau_c'
+    \tau_0 \subteq \tau_0'
+    \\
+    \tau_1 \subteq \tau_1'
   }{
-    \tarr{\tau_d}{\tau_c} \subt \tarr{\tau_d}{\tau_c'}
+    \tpair{\tau_0}{\tau_1} \subteq \tpair{\tau_0'}{\tau_1'}
   }
 
   \inferrule*{
-    \tau_0 \subt \tau_0'
   }{
-    \tpair{\tau_0}{\tau_1} \subt \tpair{\tau_0'}{\tau_1}
+    \tau \subteq \tau
   }
 
   \inferrule*{
-    \tau_1 \subt \tau_1'
+    \tau \subteq \tau'
+    \\
+    \tau' \subteq \tau''
   }{
-    \tpair{\tau_0}{\tau_1} \subt \tpair{\tau_0}{\tau_1'}
+    \tau \subteq \tau''
   }
 }
-%\fbox{$\tau \subteq \tau$} reflexive closure of $\subt$
-

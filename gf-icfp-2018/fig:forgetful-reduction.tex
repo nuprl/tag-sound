@@ -1,4 +1,4 @@
-\lblextra{Language $\langF$}{ extends $\langM$:}{
+\lblextra{Language $\langF$}{ inherits Core Syntax}{
   $\begin{array}{l@{\hspace{0.5em}}c@{\hspace{0.5em}}l}
     e & \BNFeq & \ldots \mid \echk{\tau}{e}
     \\
@@ -28,53 +28,79 @@
   }
 \end{TwoColumn}
 
-\lbl{$\mchk{\tau}{v} = A$}{
-  \[\mchk{\tau}{v} = \left\{\begin{array}{l@{\hspace{1em}}l}
-  \vmonfun{\tau}{v}
-  & \mbox{if $\tau = \tarr{\tau_d}{\tau_c}$ and $[v \valeq \vlam{x}{e}$ or $v \valeq \vlam{\tann{x}{\tau}}{e}]$}
-  \\ & \mboxor{$\tau = \tpair{\tau_0}{\tau_1}$ and $v \valeq \vpair{v_0}{v_1}$}
-  \\
-  \vmonfun{\tau}{v'}
-  & \mbox{if $\tau = \tarr{\tau_d}{\tau_c}$ and $v \valeq \vmonfun{(\tarr{\tau_d'}{\tau_c'})}{v'}$}
-  \\ & \mboxor{$\tau = \tpair{\tau_0}{\tau_1}$ and $v \valeq \vmonpair{(\tpair{\tau_0'}{\tau_1'})}{v'}$}
-  \\
-  v
-  & \mbox{if $\tau = \tint$ and $v \in \integers$}
-  \\ & \mboxor{$\tau = \tnat$ and $v \in \naturals$}
-  \\
-  \boundaryerror
-  & \mbox{otherwise}
-  \end{array}\right.\]
+\lbl{$\vfromany : \tau \times v \rightarrow A$}{
+  \[\begin{array}{l@{~~}c@{~}l l}
+    \efromany{\tarr{\tau_d}{\tau_c}}{\vlam{x}{e}} & =
+    & \vmonfun{\tarr{\tau_d}{\tau_c}}{(\vlam{x}{e})}
+    \\
+    \efromany{\tarr{\tau_d}{\tau_c}}{\vlam{\tann{x}{\tau}}{e}} & =
+    & \vmonfun{\tarr{\tau_d}{\tau_c}}{(\vlam{\tann{x}{\tau}}{e})}
+    \\
+    \efromany{\tpair{\tau_0}{\tau_1}}{\vpair{v_0}{v_1}} & =
+    & \vmonpair{\tpair{\tau_0}{\tau_1}}{\vpair{v_0}{v_1}}
+    \\
+    \efromany{\tarr{\tau_d}{\tau_c}}{\vmonfun{(\tarr{\tau_d'}{\tau_c'})}{v'}} & =
+    & \vmonfun{\tarr{\tau_d}{\tau_c}}{v'}
+    \\
+    \efromany{\tpair{\tau_0}{\tau_1}}{\vmonpair{\tpair{\tau_0'}{\tau_1'}}{v'}} & =
+    & \vmonpair{\tpair{\tau_0}{\tau_1}}{v'}
+    \\
+    \efromany{\tint}{i} & =
+    & i
+    \\
+    \efromany{\tnat}{i} & =
+    & i & \mbox{if $i \in \naturals$}
+    \\
+    \efromany{\tau}{v} & =
+    & \boundaryerror & \mbox{otherwise}
+  \end{array}\]
 }
+
+%\lbl{$\vfromany : \tau \times v \rightarrow A$}{
+%  \[\mchk{\tau}{v} = \left\{\begin{array}{l@{\hspace{1em}}l}
+%  \vmonfun{\tau}{v}
+%  & \mbox{if $\tau = \tarr{\tau_d}{\tau_c}$ and $[v \valeq \vlam{x}{e}$ or $v \valeq \vlam{\tann{x}{\tau}}{e}]$}
+%  \\ & \mboxor{$\tau = \tpair{\tau_0}{\tau_1}$ and $v \valeq \vpair{v_0}{v_1}$}
+%  \\
+%  \vmonfun{\tau}{v'}
+%  & \mbox{if $\tau = \tarr{\tau_d}{\tau_c}$ and $v \valeq \vmonfun{(\tarr{\tau_d'}{\tau_c'})}{v'}$}
+%  \\ & \mboxor{$\tau = \tpair{\tau_0}{\tau_1}$ and $v \valeq \vmonpair{(\tpair{\tau_0'}{\tau_1'})}{v'}$}
+%  \\
+%  v
+%  & \mbox{if $\tau = \tint$ and $v \in \integers$}
+%  \\ & \mboxor{$\tau = \tnat$ and $v \in \naturals$}
+%  \\
+%  \boundaryerror
+%  & \mbox{otherwise}
+%  \end{array}\right.\]
+%}
 
 \begin{TwoColumn}
   \lblextra{$e \rrFS A$}{ (selected rules)}{
-    $\begin{array}{l@{\hspace{0.5em}}c@{\hspace{0.5em}}l}
-      \eapp{(\vmonfun{(\tarr{\tau_d}{\tau_c})}{f})}{v} & \rrFS
-      & \edyn{\tau_c}{\vsubst{e}{x}{v'}}
-      \\ \sidecond{if $f = \vlam{x}{e}$ and $\mchk{\tau_d}{v} = v'$}
-      \\[1ex]
-      \eapp{(\vmonfun{(\tarr{\tau_d}{\tau_c})}{f})}{v} & \rrFS
+    $\begin{array}{l@{~~}c@{~}l}
+      \eapp{(\vmonfun{(\tarr{\tau_d}{\tau_c})}{(\vlam{x}{e})})}{v} & \rrFS
       & \boundaryerror
-      \\ \sidecond{if $f = \vlam{x}{e}$ and $\mchk{\tau_d}{v} = \boundaryerror$}
+      \\ \sidecond{if $\mchk{\tau_d}{v} = \boundaryerror$}
       \\[1ex]
-      \eapp{(\vmonfun{(\tarr{\tau_d}{\tau_c})}{f})}{v}
-      & \rrFS & v''
-      \\ \sidecond{if $f = \vlam{\tann{x}{\tau}}{e}$ and $\mchk{\tau}{v} = v'$}
-      \\ \sidecond{and $v'' = \echk{\tau_c}{\vsubst{e}{x}{v'}}$}
+      \eapp{(\vmonfun{(\tarr{\tau_d}{\tau_c})}{(\vlam{x}{e}})}{v} & \rrFS
+      & \edyn{\tau_c}{e'}
+      \\ \sidecond{if $\mchk{\tau_d}{v} = v'$}
+      \\ \sidecond{and $e' = \vsubst{e}{x}{v'}$}
       \\[1ex]
-      (\vmonfun{(\tarr{\tau_d}{\tau_c})}{f})~v & \rrFS
+      (\vmonfun{(\tarr{\tau_d}{\tau_c})}{(\vlam{\tann{x}{\tau}}{\!e})})~v & \rrFS
       & \boundaryerror
-      \\ \sidecond{if $f = \vlam{\tann{x}{\tau}}{e}$}
-      \\ \sidecond{and $\mchk{\tau}{v} = \boundaryerror$}
+      \\ \sidecond{if $\mchk{\tau}{v} = \boundaryerror$}
       \\[1ex]
-      \efst{(\vmonpair{(\tpair{\tau_0}{\tau_1})}{v})} & \rrFS
+      \eapp{(\vmonfun{(\tarr{\tau_d}{\tau_c})}{(\vlam{\tann{x}{\tau}}{\!e})})}{v}
+      & \rrFS & \echk{\tau_c}{\!e'}
+      \\ \sidecond{if $\mchk{\tau}{v} = v'$}
+      \\ \sidecond{and $e' = \vsubst{e}{x}{v'}$}
+      \\[1ex]
+      \efst{(\vmonpair{(\tpair{\tau_0}{\tau_1})}{\vpair{v_0}{v_1}})} & \rrFS
       & \mchk{\tau_0}{v_0}
-      \\ \sidecond{if $v = \vpair{v_0}{v_1}$}
       \\[1ex]
-      \esnd{(\vmonpair{(\tpair{\tau_0}{\tau_1})}{v})} & \rrFS
+      \esnd{(\vmonpair{(\tpair{\tau_0}{\tau_1})}{\vpair{v_0}{v_1}})} & \rrFS
       & \mchk{\tau_1}{v_1}
-      \\ \sidecond{if $v = \vpair{v_0}{v_1}$}
       \\[1ex]
       \echk{\tau}{v} & \rrFS
       & \mchk{\tau}{v}
@@ -92,32 +118,30 @@
   \multicolsbreak
 
   \lblextra{$e \rrFD A$}{ (selected rules)}{
-    $\begin{array}{l@{\hspace{0.5em}}c@{\hspace{0.5em}}l}
-      \eapp{(\vmonfun{(\tarr{\tau_d}{\tau_c})}{f})}{v} & \rrFD
+    $\begin{array}{l@{~~}c@{~}l}
+      \eapp{(\vmonfun{(\tarr{\tau_d}{\tau_c})}{(\vlam{x}{e})})}{v} & \rrFD
       & \vsubst{e}{x}{v}
-      \\ \sidecond{if $f = \vlam{x}{e}$}
       \\[1ex]
       % placeholder, for "dyn function failure case"
       % this doesn't happen in rrFD
       \\
+      \\
+      \\
       \\[1ex]
-      \eapp{(\vmonfun{(\tarr{\tau_d}{\tau_c})}{f})}{v}
-      & \rrFD & \esta{\tau_c}{v''}
-      \\ \sidecond{if $f = \vlam{\tann{x}{\tau}}{e}$ and $\mchk{\tau}{v} = v'$}
-      \\ \sidecond{and $v'' = \echk{\tau_c}{\vsubst{e}{x}{v'}}$}
-      \\[1ex]
-      \eapp{(\vmonfun{(\tarr{\tau_d}{\tau_c})}{f})}{v} & \rrFD
+      \eapp{(\vmonfun{(\tarr{\tau_d}{\tau_c})}{(\vlam{\tann{x}{\tau}}{\!e})})}{v} & \rrFD
       & \boundaryerror
-      \\ \sidecond{if $f = \vlam{\tann{x}{\tau}}{e}$}
-      \\ \sidecond{and $\mchk{\tau}{v} = \boundaryerror$}
+      \\ \sidecond{if $\mchk{\tau}{v} = \boundaryerror$}
       \\[1ex]
-      \efst{(\vmonpair{(\tpair{\tau_0}{\tau_1})}{v})} & \rrFD
+      \eapp{(\vmonfun{(\tarr{\tau_d}{\tau_c})}{(\vlam{\tann{x}{\tau}}{\!e})})}{v}
+      & \rrFD & \esta{\tau_c}{e'}
+      \\ \sidecond{if $\mchk{\tau}{v} = v'$}
+      \\ \sidecond{and $e' = \vsubst{e}{x}{v'}$}
+      \\[1ex]
+      \efst{(\vmonpair{(\tpair{\tau_0}{\tau_1})}{\vpair{v_0}{v_1}})} & \rrFD
       & \mchk{\tau_0}{v_0}
-      \\ \sidecond{if $v = \vpair{v_0}{v_1}$}
       \\[1ex]
-      \esnd{(\vmonpair{(\tpair{\tau_0}{\tau_1})}{v})} & \rrFD
+      \esnd{(\vmonpair{(\tpair{\tau_0}{\tau_1})}{\vpair{v_0}{v_1}})} & \rrFD
       & \mchk{\tau_1}{v_1}
-      \\ \sidecond{if $v = \vpair{v_0}{v_1}$}
       \\[1ex]
   %    \\
   %    (\vlam{x}{e})~v & \rrFD

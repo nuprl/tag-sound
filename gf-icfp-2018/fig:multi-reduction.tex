@@ -1,10 +1,16 @@
 \begin{TwoColumn}
 
-\lbl{Multi-language $\langM$}{
+\lblextra{Core Syntax}{ extends Surface Syntax}{
   $\begin{array}{l@{\hspace{0.5em}}c@{\hspace{0.5em}}l}
+    e & \BNFeq & x \mid v \mid \vpair{e}{e} \mid \eapp{e}{e} \mid \eunop{e} \mid \ebinop{e}{e} \mid
+    \\
+    & & \edyn{\tau}{e} \mid \esta{\tau}{e}
+    \\
     v & \BNFeq & i \mid \vpair{v}{v} \mid \vlam{\tann{x}{\tau}}{e} \mid \vlam{x}{e}
     \\
-    A & \BNFeq & e \mid \boundaryerror \mid \tagerror
+    \eerr & \BNFeq & \boundaryerror \mid \tagerror
+    \\
+    A & \BNFeq & e \mid \eerr
     \\
     \ebase & \BNFeq & \ehole \mid \eapp{\ebase}{e} \mid \eapp{v}{\ebase} \mid
                    \vpair{\ebase}{e} \mid \vpair{v}{\ebase} \mid
