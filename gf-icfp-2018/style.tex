@@ -115,6 +115,10 @@ showstringspaces=false            %
 \newcommand{\deltaS}{\delta_S}
 \newcommand{\ED}{E}
 \newcommand{\ES}{E}
+\newcommand{\ebase}{E^{\bullet}}
+\newcommand{\esd}{E}
+\newcommand{\Edyn}{E_{\mathbf{D}}}
+\newcommand{\Esta}{E_{\mathbf{S}}}
 \newcommand{\ctxD}[1]{\ED[#1]}
 \newcommand{\ctxS}[1]{\ES[#1]}
 \newcommand{\ctxE}[1]{E[#1]}
@@ -142,15 +146,18 @@ showstringspaces=false            %
 \newcommand{\edyn}[2]{\vdyn~#1~#2}
 \newcommand{\esta}[2]{\vsta~#1~#2}
 \newcommand{\echk}[2]{\vchk~#1~#2}
-\newcommand{\mchk}[2]{\quinequote{#2}_{#1}}
+\newcommand{\vfromany}{\mathcal{X}}
+\newcommand{\mchk}[2]{\vfromany(#1, #2)}
 
 \newcommand{\arrSD}{\mathrel{\textsc{s}\!\!\Rightarrow\!\!\textsc{d}}}
 \newcommand{\arrDS}{\mathrel{\textsc{d}\!\!\Rightarrow\!\!\textsc{s}}}
 \newcommand{\wellSD}[3]{#1, #2 \arrSD #3}
 \newcommand{\wellDS}[3]{#1, #2 \arrDS #3}
 
-\newcommand{\fromsta}{\mathsf{static{\rightarrow}dynamic}}
-\newcommand{\fromdyn}{\mathsf{dynamic{\rightarrow}static}}
+\newcommand{\vfromsta}{\mathcal{S}}
+\newcommand{\vfromdyn}{\mathcal{D}}
+\newcommand{\efromsta}[2]{\vfromsta(#1, #2)}
+\newcommand{\efromdyn}[2]{\vfromdyn(#1, #2)}
 \newcommand{\fromany}{\mathsf{check{\mhyphen}type}}
 
 \newcommand{\kany}{\mathsf{Any}}

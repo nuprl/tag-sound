@@ -2,10 +2,6 @@
 \lblextra{Language $\langN$}{ inherits $\langM$:}{
   $\begin{array}{l@{\hspace{0.5em}}c@{\hspace{0.5em}}l}
     v & \BNFeq & \ldots \mid \vmonfun{(\tarr{\tau}{\tau})}{v}
-    %\\
-    %\ES & \BNFeq & \ehole \mid \eapp{\ES}{e} \mid \eapp{v}{\ES} \mid
-    %               \vpair{\ES}{e} \mid \vpair{v}{\ES} \mid \eunop{\ES} \mid
-    %               \ebinop{\ES}{e} \mid \ebinop{v}{\ES}
   \end{array}$
 }
 
@@ -13,27 +9,64 @@
 %% --- reduction
 \begin{TwoColumn}
 
+  \lblextra{$\vfromdyn : \tau \times v \rightarrow A\vphantom{\vfromsta}$}{ from $\vdyn$ to $\vsta$}{
+    $\begin{array}{l@{~~}c@{~}l}
+      \efromdyn{\tarr{\tau_d}{\tau_c}}{v} & = & \vmonfun{\tarr{\tau_d}{\tau_c}}{v}
+      \\ \sidecond{if $v \valeq \vlam{x}{e}$ or $v \valeq \vmonfun{\tau'}{v'}$}
+      \\
+      \efromdyn{\tpair{\tau_0}{\tau_1}}{\vpair{v_0}{v_1}} & = & \vpair{\edyn{\tau_0}{v_0}}{\edyn{\tau_1}{v_1}}
+      \\
+      \efromdyn{\tint}{i} & = & i
+      \\
+      \efromdyn{\tnat}{i} & = & i
+      \\ \sidecond{if $i \in \naturals$}
+      \\
+      \efromdyn{\tau}{v} & = & \boundaryerror
+      \\ \sidecond{otherwise}
+    \end{array}$
+  }
+
+  \multicolsbreak
+
+  \lblextra{$\vfromsta : \tau \times v \rightarrow A$}{ from $\vsta$ to $\vdyn$}{
+    $\begin{array}{l@{~~}c@{~}l}
+      \efromsta{\tarr{\tau_d}{\tau_c}}{v} & = & \vmonfun{\tarr{\tau_d}{\tau_c}}{v}
+      \\
+      \efromsta{\tpair{\tau_0}{\tau_1}}{\vpair{v_0}{v_1}} & = & \vpair{\esta{\tau_0}{v_0}}{\esta{\tau_1}{v_1}}
+      \\
+      \efromsta{\tau}{v} & = & v
+      \\ \sidecond{otherwise}
+    \end{array}$
+  }
+\end{TwoColumn}
+
+\begin{TwoColumn}
+
+  \lblextra{$e \rrNS A$}{ (selected rules)}{
+    $\begin{array}{l@{\hspace{0.5em}}c@{\hspace{0.5em}}l}
+      \eapp{(\vmonfun{(\tarr{\tau_d}{\tau_c})}{v_f})}{v} & \rrNS
+      & \edyn{\tau_c}{(\eapp{v_f}{v'})}
+      \\ \sidecond{where $v' = \esta{\tau_d}{v}$}
+      \\[1ex]
+      \eapp{(\vlam{\tann{x}{\tau_d}}{e})}{v} & \rrNS
+      & \vsubst{e}{x}{v}
+%      \eunop{v} & \rrNS
+%      & A
+%      \\ \sidecond{if $\delta(\vunop, v) \expreq A$}
+%      \\
+%      \ebinop{v_0}{v_1} & \rrNS
+%      & A
+%      \\ \sidecond{if $\delta(\vbinop, v_0, v_1) \expreq A$}
+    \end{array}$
+  }
+
+  \multicolsbreak
+
   \lblextra{$e \rrND A$}{ (selected rules)}{
     $\begin{array}{l@{\hspace{0.5em}}c@{\hspace{0.5em}}l}
       \eapp{(\vmonfun{(\tarr{\tau_d}{\tau_c})}{v_f})}{v} & \rrND
       & \esta{\tau_c}{(\eapp{v_f}{v'})}
       \\ \sidecond{where $v' = \edyn{\tau_d}{v}$}
-      \\[1ex]
-      \esta{\tarr{\tau_d}{\tau_c}}{v} & \rrND
-      & \vmonfun{(\tarr{\tau_d}{\tau_c})}{v}
-      \\ \sidecond{}
-      \\[1ex]
-      \esta{\tpair{\tau_0}{\tau_1}}{\vpair{v_0}{v_1}} & \rrND
-      & \vpair{v_0'}{v_1'}
-      \\ \sidecond{where $v_0' = \esta{\tau_0}{v_0}$}
-      \\ \sidecond{and $v_1' = \esta{\tau_1}{v_1}$}
-      \\[1ex]
-      \esta{\tint}{v} & \rrND
-      & v
-      \\
-      \esta{\tnat}{v} & \rrND
-      & v
-      \\ \sidecond{}
       \\[1ex]
       \eapp{(\vlam{x}{e})}{v} & \rrND
       & \vsubst{e}{x}{v}
@@ -56,81 +89,50 @@
     \end{array}$
   }
 
-  \multicolsbreak
-
-  \smallskip
-  \lblextra{$e \rrNS A$}{ (selected rules)}{
-    $\begin{array}{l@{\hspace{0.5em}}c@{\hspace{0.5em}}l}
-      \eapp{(\vmonfun{(\tarr{\tau_d}{\tau_c})}{v_f})}{v} & \rrNS
-      & \edyn{\tau_c}{(\eapp{v_f}{v'})}
-      \\ \sidecond{where $v' = \esta{\tau_d}{v}$}
-      \\[1ex]
-      \edyn{\tarr{\tau_d}{\tau_c}}{v} & \rrNS
-      & \vmonfun{(\tarr{\tau_d}{\tau_c})}{v}
-      \\ \sidecond{if $v \valeq \vlam{x}{e}$ or $v \valeq \vmonfun{(\tarr{\tau_d'}{\tau_c'})}{v'}$}
-      \\[1ex]
-      \edyn{\tpair{\tau_0}{\tau_1}}{\vpair{v_0}{v_1}} & \rrNS
-      & \vpair{v_0'}{v_1'}
-      \\ \sidecond{where $v_0' = \edyn{\tau_0}{v_0}$}
-      \\ \sidecond{and $v_1' = \edyn{\tau_1}{v_1}$}
-      \\[1ex]
-      \edyn{\tint}{i} & \rrNS
-      & i
-      \\
-      \edyn{\tnat}{i} & \rrNS
-      & i
-      \\ \sidecond{if $i \in \naturals$}
-      \\[1ex]
-      \eapp{(\vlam{\tann{x}{\tau_d}}{e})}{v} & \rrNS
-      & \vsubst{e}{x}{v}
-%      \eunop{v} & \rrNS
-%      & A
-%      \\ \sidecond{if $\delta(\vunop, v) \expreq A$}
-%      \\
-%      \ebinop{v_0}{v_1} & \rrNS
-%      & A
-%      \\ \sidecond{if $\delta(\vbinop, v_0, v_1) \expreq A$}
-    \end{array}$
-  }
-
 \end{TwoColumn}
 
 \begin{TwoColumn}
 
-  \lbl{$e \ccND A$}{
+  \lblextra{$e \ccNS A$}{ (selected rules)}{
     $\begin{array}{l@{\hspace{0.5em}}c@{\hspace{0.5em}}l}
-      \ctxE{\esta{\tau}{e}} & \ccND & \ctxE{\esta{\tau}{e'}}
-      \\ \sidecond{if $e \ccNS e'$}
+      \ebase[e] \ccNS \ebase[e']
+      \\ \sidecond{if $e \rrNS e'$}
       \\
-      \ctxE{\esta{\tau}{e}} & \ccND & A
-      \\ \sidecond{if $e \ccNS A$ and $A \not\in e$}
+      \esd[\esta{\tau}{\ebase[e]}] \ccNS \esd[\esta{\tau}{\ebase[e']}]
+      \\ \sidecond{if $e \rrNS e'$}
       \\
-      \ctxE{e} & \ccND & \ctxE{e'}
+      \esd[\esta{\tau}{v}] \ccNS \esd[v']
+      \\ \sidecond{if $\efromsta{\tau}{v} = v'$}
+      \\
+      \esd[\edyn{\tau}{\ebase[e]}] \ccNS \esd[\edyn{\tau}{\ebase[e']}]
       \\ \sidecond{if $e \rrND e'$}
       \\
-      \ctxE{e} & \ccND & A
-      \\ \sidecond{if $e \rrND A$ and $A \not\in e$}
+      \esd[\edyn{\tau}{v}] \ccNS \esd[v']
+      \\ \sidecond{if $\efromdyn{\tau}{v} = v'$}
     \end{array}$
   }
 
   \multicolsbreak
 
-  \lbl{$e \ccNS A$}{
+  \lblextra{$e \ccND A$}{ (selected rules)}{
     $\begin{array}{l@{\hspace{0.5em}}c@{\hspace{0.5em}}l}
-      \ctxE{\edyn{\tau}{e}} & \ccNS & \ctxE{\edyn{\tau}{e'}}
-      \\ \sidecond{if $e \ccND e'$}
+      \ebase[e] \ccND \ebase[e']
+      \\ \sidecond{if $e \rrND e'$}
       \\
-      \ctxE{\edyn{\tau}{e}} & \ccNS & A
-      \\ \sidecond{if $e \ccND A$ and $A \not\in e$}
-      \\
-      \ctxE{e} & \ccNS & \ctxE{e'}
+      \esd[\esta{\tau}{\ebase[e]}] \ccND \esd[\esta{\tau}{\ebase[e']}]
       \\ \sidecond{if $e \rrNS e'$}
       \\
-      \ctxE{e} & \ccNS & A
-      \\ \sidecond{if $e \rrNS A$ and $A \not\in e$}
+      \esd[\esta{\tau}{v}] \ccND \esd[v']
+      \\ \sidecond{if $\efromsta{\tau}{v} = v'$}
+      \\
+      \esd[\edyn{\tau}{\ebase[e]}] \ccND \esd[\edyn{\tau}{\ebase[e']}]
+      \\ \sidecond{if $e \rrND e'$}
+      \\
+      \esd[\edyn{\tau}{v}] \ccND \esd[v']
+      \\ \sidecond{if $\efromdyn{\tau}{v} = v'$}
     \end{array}$
   }
 
 \end{TwoColumn}
 
-\fbox{$e \rrNEstar A$}{ reflexive, transitive closure of $\ccNS$}
+\lblextra{$e \rrNEstar A$}{ reflexive, transitive closure of $\ccNS$}{}

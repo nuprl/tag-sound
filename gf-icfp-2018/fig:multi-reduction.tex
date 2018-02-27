@@ -6,10 +6,15 @@
     \\
     A & \BNFeq & e \mid \boundaryerror \mid \tagerror
     \\
-    \ES & \BNFeq & \ehole \mid \eapp{\ES}{e} \mid \eapp{v}{\ES} \mid
-                   \vpair{\ES}{e} \mid \vpair{v}{\ES} \mid \eunop{\ES} \mid
+    \ebase & \BNFeq & \ehole \mid \eapp{\ebase}{e} \mid \eapp{v}{\ebase} \mid
+                   \vpair{\ebase}{e} \mid \vpair{v}{\ebase} \mid
     \\
-    & &            \ebinop{\ES}{e} \mid \ebinop{v}{\ES}
+    & &            \eunop{\ebase} \mid \ebinop{\ebase}{e} \mid \ebinop{v}{\ebase}
+    \\
+    \esd & \BNFeq & \ebase \mid \eapp{\esd}{e} \mid \eapp{v}{\esd} \mid
+                    \vpair{\esd}{e} \mid \vpair{v}{\esd} \mid \eunop{\esd} \mid
+    \\
+    & &             \ebinop{\esd}{e} \mid \ebinop{v}{\esd} \mid \edyn{\tau}{\esd} \mid \esta{\tau}{\esd}
   \end{array}$
 }
 

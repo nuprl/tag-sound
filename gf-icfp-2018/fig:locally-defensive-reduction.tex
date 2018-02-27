@@ -14,7 +14,10 @@
   %    \\
   %    A & \BNFeq & e \mid \boundaryerror \mid \tagerror
   %    \\
-      \ES & \BNFeq & \ldots \mid \echk{K}{E}
+      \ebase & \BNFeq & \ldots \mid \echk{K}{\ebase}
+      \\
+      \esd & \BNFeq & \ldots \mid \edyn{\kany}{\esd} \mid \esta{\kany}{\esd} \mid
+      \\ & &  \echk{K}{\esd}
     \end{array}$
   }
 
@@ -33,11 +36,57 @@
   }
 \end{TwoColumn}
 
-\smallskip
-\lbl{$\mchk{K}{v} = A$}{
+\lblmathparextra{$\Gamma \wellM e : \tau \carrow e$}{ (selected rules)}{
+  \inferrule*{
+    \Gamma \wellM e_0 : \tarr{\tau_d}{\tau_c} \carrow e_0'
+    \\\\
+    \Gamma \wellM e_1 : \tau_d \carrow e_1'
+    \\
+    \tagof{\tau_c} = K
+  }{
+    \Gamma \wellM e_0~e_1 : \tau_c \carrow \echk{K}{(e_0'~e_1')}
+  }
+
+  \inferrule*{
+    \Gamma \wellM e : \tpair{\tau_0}{\tau_1} \carrow e'
+    \\\\
+    \tagof{\tau_0} = K
+  }{
+    \Gamma \wellM \efst{e} : \tau_0 \carrow \echk{K}{(\efst{e'})}
+  }
+%
+%  \inferrule*{
+%    \Gamma \wellM e : \tpair{\tau_0}{\tau_1} \carrow e'
+%    \\\\
+%    \tagof{\tau_1} = K
+%  }{
+%    \Gamma \wellM \esnd{e} : \tau_1 \carrow \echk{K}{(\esnd{e'})}
+%  }
+}
+
+\begin{TwoColumn}
+  \lblextra{$\vfromdyn : \tau \times v \rightarrow A\vphantom{\vfromsta}$}{ from $\vdyn$ to $\vsta$}{
+    $\begin{array}{l@{~~}c@{~}l}
+      \efromdyn{\tau}{v} & = & \mchk{\tagof{\tau}}{v}
+    \end{array}$
+  }
+
+  \multicolsbreak
+
+  \lblextra{$\vfromsta : \tau \times v \rightarrow A$}{ from $\vsta$ to $\vdyn$}{
+    $\begin{array}{l@{~~}c@{~}l}
+      \efromsta{\tau}{v} & = & \mchk{\tagof{\tau}}{v}
+    \end{array}$
+  }
+\end{TwoColumn}
+
+\lbl{$\vfromany : K \times v \rightarrow A$}{
   \[\mchk{K}{v} = \left\{\begin{array}{l@{\hspace{1em}}l}
     v
-    & \mbox{if $~\wellKE v : K$}
+    & \mbox{if $K = \kfun$ and $[v \valeq \vlam{x}{e}$ or $v \valeq \vlam{\tann{x}{\tau}}{e}]$}
+    \\ & \mbox{or $K = \kpair$ and $v = \vpair{v_0}{v_1}$}
+    \\ & \mbox{or $K = \kint$ and $v \in \integers$}
+    \\ & \mbox{or $K = \knat$ and $v \in \naturals$}
     \\
     \boundaryerror
     & \mbox{otherwise}
@@ -48,15 +97,35 @@
 % --- reduction
 \begin{TwoColumn}
 
+  \lblextra{$e \rrKS A$}{ (selected rules)}{
+    $\begin{array}{l@{\hspace{0.5em}}c@{\hspace{0.5em}}l}
+      \echk{K}{v} & \rrKS
+      & \mchk{K}{v}
+      \\
+      (\vlam{x}{e})~v & \rrKS
+      & \edyn{\kany}{(\vsubst{e}{x}{v})}
+      \\
+      (\vlam{\tann{x}{\tau}}{e})~v & \rrKS
+      & \vsubst{e}{x}{v}
+      \\ \sidecond{if $\tagof{\tau} = K$ and $\mchk{K}{v} = v$}
+      \\[1ex]
+      (\vlam{\tann{x}{\tau}}{e})~v & \rrKS
+      & \boundaryerror
+      \\ \sidecond{if $\tagof{\tau} = K$ and $\mchk{K}{v} = \boundaryerror$}
+  %    \eunop{v} & \rrKS
+  %    & A
+  %    & \mbox{if $\delta(\vunop, v) = A$}
+  %    \\
+  %    \ebinop{v_0}{v_1} & \rrKS
+  %    & \delta(\vbinop, v_0, v_1)
+  %    & \mbox{if $\delta(\vbinop, v_0, v_1) = A$}
+    \end{array}$
+  }
+
+  \multicolsbreak
+
   \lblextra{$e \rrKD A$}{ (selected rules)}{
     $\begin{array}{l@{\hspace{0.5em}}c@{\hspace{0.5em}}l}
-      \esta{\tau}{v} & \rrKD
-      & v
-      \\
-      \\[1ex]
-      \esta{\kany}{v} & \rrKD
-      & v
-      \\
 
 
       \\
@@ -92,78 +161,56 @@
     \end{array}$
   }
 
-  \multicolsbreak
-
-  \lblextra{$e \rrKS A$}{ (selected rules)}{
-    $\begin{array}{l@{\hspace{0.5em}}c@{\hspace{0.5em}}l}
-      \edyn{\tau}{v} & \rrKS
-      & \mchk{K}{v}
-      \\ \sidecond{where $\tagof{\tau} = K$}
-      \\[1ex]
-      \edyn{\kany}{v} & \rrKS
-      & v
-      \\
-      \echk{K}{v} & \rrKS
-      & \mchk{K}{v}
-      \\
-      (\vlam{\tann{x}{\tau}}{e})~v & \rrKS
-      & \vsubst{e}{x}{v}
-      \\ \sidecond{if $\tagof{\tau} = K$ and $\mchk{K}{v} = v$}
-      \\[1ex]
-      (\vlam{\tann{x}{\tau}}{e})~v & \rrKS
-      & \boundaryerror
-      \\ \sidecond{if $\tagof{\tau} = K$ and $\mchk{K}{v} = \boundaryerror$}
-      \\[1ex]
-      (\vlam{x}{e})~v & \rrKS
-      & \edyn{\kany}{(\vsubst{e}{x}{v})}
-  %    \eunop{v} & \rrKS
-  %    & A
-  %    & \mbox{if $\delta(\vunop, v) = A$}
-  %    \\
-  %    \ebinop{v_0}{v_1} & \rrKS
-  %    & \delta(\vbinop, v_0, v_1)
-  %    & \mbox{if $\delta(\vbinop, v_0, v_1) = A$}
-    \end{array}$
-  }
-
 \end{TwoColumn}
 
 \begin{TwoColumn}
-
-  \lbl{$e \ccKD A$}{
+  \lblextra{$e \ccKS A$}{ (selected rules)}{
     $\begin{array}{l@{\hspace{0.5em}}c@{\hspace{0.5em}}l}
-      \ctxE{\esta{\tau}{e}} & \ccKD & \ctxE{\esta{\tau}{e'}}
-      \\ \sidecond{if $e \ccKS e'$}
+      \ebase[e] \ccKS \ebase[e']
+      \\ \sidecond{if $e \rrKS e'$}
       \\
-      \ctxE{\esta{\tau}{e}} & \ccKD & A
-      \\ \sidecond{if $e \ccKS A$ and $A \not\in e$}
+%      \esd[\esta{\tau}{\ebase[e]}] \ccKS \esd[\esta{\tau}{\ebase[e']}]
+%      \\ \sidecond{if $e \rrKS e'$}
+%      \\
+%      \esd[\esta{\tau}{v}] \ccKS \esd[v']
+%      \\ \sidecond{if $\efromsta{\tau}{v} = v'$}
+%      \\
+      \esd[\esta{\kany}{v}] \ccKS \esd[v]
       \\
-      \ctxE{e} & \ccKD & \ctxE{e'}
-      \\ \sidecond{if $e \rrKD e'$}
-      \\
-      \ctxE{e} & \ccKD & A
-      \\ \sidecond{if $e \rrKD A$ and $A \not\in e$}
+%      \esd[\edyn{\tau}{\ebase[e]}] \ccKS \esd[\edyn{\tau}{\ebase[e']}]
+%      \\ \sidecond{if $e \rrKD e'$}
+%      \\
+%      \esd[\edyn{\tau}{v}] \ccKS \esd[v']
+%      \\ \sidecond{if $\efromdyn{\tau}{v} = v'$}
+%      \\
+      \esd[\edyn{\kany}{v}] \ccKS \esd[v]
     \end{array}$
   }
 
   \multicolsbreak
 
-  \lbl{$e \ccKS A$}{
-    $\begin{array}{l@{\hspace{0.5em}}c@{\hspace{0.5em}}l@{\hspace{1em}}l}
-      \ctxE{\edyn{\tau}{e}} & \ccKS & \ctxE{\edyn{\tau}{e'}}
-      \\ \sidecond{if $e \ccKD e'$}
+  \lblextra{$e \ccKD A$}{ (selected rules)}{
+    $\begin{array}{l@{\hspace{0.5em}}c@{\hspace{0.5em}}l}
+      \ebase[e] \ccKD \ebase[e']
+      \\ \sidecond{if $e \rrKD e'$}
       \\
-      \ctxE{\edyn{\tau}{e}} & \ccKS & A
-      \\ \sidecond{if $e \ccKD A$ and $A \not\in e$}
+%      \esd[\esta{\tau}{\ebase[e]}] \ccKD \esd[\esta{\tau}{\ebase[e']}]
+%      \\ \sidecond{if $e \rrKS e'$}
+%      \\
+%      \esd[\esta{\tau}{v}] \ccKD \esd[v']
+%      \\ \sidecond{if $\efromsta{\tau}{v} = v'$}
+%      \\
+      \esd[\esta{\kany}{v}] \ccKD \esd[v]
       \\
-      \ctxE{e} & \ccKS & \ctxE{e'}
-      \\ \sidecond{if $e \rrKS e'$}
-      \\
-      \ctxE{e} & \ccKS & A
-      \\ \sidecond{if $e \rrKS A$ and $A \not\in e$}
+%      \esd[\edyn{\tau}{\ebase[e]}] \ccKD \esd[\edyn{\tau}{\ebase[e']}]
+%      \\ \sidecond{if $e \rrKD e'$}
+%      \\
+%      \esd[\edyn{\tau}{v}] \ccKD \esd[v']
+%      \\ \sidecond{if $\efromdyn{\tau}{v} = v'$}
+%      \\
+      \esd[\edyn{\kany}{v}] \ccKD \esd[v]
     \end{array}$
   }
-
 \end{TwoColumn}
 
-\fbox{$e \rrKEstar A$}{ reflexive, transitive closure of $\ccKS$}
+\lblextra{$e \rrKEstar A$}{ reflexive, transitive closure of $\ccKS$}{}

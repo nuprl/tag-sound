@@ -471,7 +471,6 @@ To prove that type-tag errors only
 
 
 @subsection{Check Completion}
-@include-figure["fig:locally-defensive-completion-delta.tex" @elem{Completion (selected rules)}]
 
 Unlike our previous languages, there is a gap between static typing for
  the multi-language @${\langM} and the language @${\langK} in @figure-ref{fig:locally-defensive-delta}.

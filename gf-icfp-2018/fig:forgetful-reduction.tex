@@ -6,11 +6,28 @@
                  \vmonfun{(\tarr{\tau}{\tau})}{(\vlam{\tann{x}{\tau}}{e})} \mid
                  \vmonpair{(\tpair{\tau}{\tau})}{\vpair{v}{v}}
     \\
-    E & \BNFeq & \ldots \mid \echk{\tau}{E}
+    \ebase & \BNFeq & \ldots \mid \echk{\tau}{\ebase}
+    \\
+    \esd & \BNFeq & \ldots \mid \echk{\tau}{\esd}
   \end{array}$
 }
 
-\smallskip
+\begin{TwoColumn}
+  \lblextra{$\vfromdyn : \tau \times v \rightarrow A\vphantom{\vfromsta}$}{ from $\vdyn$ to $\vsta$}{
+    $\begin{array}{l@{~~}c@{~}l}
+      \efromdyn{\tau}{v} & = & \mchk{\tau}{v}
+    \end{array}$
+  }
+
+  \multicolsbreak
+
+  \lblextra{$\vfromsta : \tau \times v \rightarrow A$}{ from $\vsta$ to $\vdyn$}{
+    $\begin{array}{l@{~~}c@{~}l}
+      \efromsta{\tau}{v} & = & \mchk{\tau}{v}
+    \end{array}$
+  }
+\end{TwoColumn}
+
 \lbl{$\mchk{\tau}{v} = A$}{
   \[\mchk{\tau}{v} = \left\{\begin{array}{l@{\hspace{1em}}l}
   \vmonfun{\tau}{v}
@@ -31,6 +48,48 @@
 }
 
 \begin{TwoColumn}
+  \lblextra{$e \rrFS A$}{ (selected rules)}{
+    $\begin{array}{l@{\hspace{0.5em}}c@{\hspace{0.5em}}l}
+      \eapp{(\vmonfun{(\tarr{\tau_d}{\tau_c})}{f})}{v} & \rrFS
+      & \edyn{\tau_c}{\vsubst{e}{x}{v'}}
+      \\ \sidecond{if $f = \vlam{x}{e}$ and $\mchk{\tau_d}{v} = v'$}
+      \\[1ex]
+      \eapp{(\vmonfun{(\tarr{\tau_d}{\tau_c})}{f})}{v} & \rrFS
+      & \boundaryerror
+      \\ \sidecond{if $f = \vlam{x}{e}$ and $\mchk{\tau_d}{v} = \boundaryerror$}
+      \\[1ex]
+      \eapp{(\vmonfun{(\tarr{\tau_d}{\tau_c})}{f})}{v}
+      & \rrFS & v''
+      \\ \sidecond{if $f = \vlam{\tann{x}{\tau}}{e}$ and $\mchk{\tau}{v} = v'$}
+      \\ \sidecond{and $v'' = \echk{\tau_c}{\vsubst{e}{x}{v'}}$}
+      \\[1ex]
+      (\vmonfun{(\tarr{\tau_d}{\tau_c})}{f})~v & \rrFS
+      & \boundaryerror
+      \\ \sidecond{if $f = \vlam{\tann{x}{\tau}}{e}$}
+      \\ \sidecond{and $\mchk{\tau}{v} = \boundaryerror$}
+      \\[1ex]
+      \efst{(\vmonpair{(\tpair{\tau_0}{\tau_1})}{v})} & \rrFS
+      & \mchk{\tau_0}{v_0}
+      \\ \sidecond{if $v = \vpair{v_0}{v_1}$}
+      \\[1ex]
+      \esnd{(\vmonpair{(\tpair{\tau_0}{\tau_1})}{v})} & \rrFS
+      & \mchk{\tau_1}{v_1}
+      \\ \sidecond{if $v = \vpair{v_0}{v_1}$}
+      \\[1ex]
+      \echk{\tau}{v} & \rrFS
+      & \mchk{\tau}{v}
+  %    \\
+  %    (\vlam{\tann{x}{\tau_d}}{e})~v & \rrFS & \vsubst{e}{x}{v}
+  %    \\
+  %    \eunop{v} & \rrFS & A
+  %    & \sidecond{if $\delta(\vunop, v) \expreq A$}
+  %    \\
+  %    \ebinop{v_0}{v_1} & \rrFS & A
+  %    & \sidecond{if $\delta(\vbinop, v_0, v_1) \expreq A$}
+    \end{array}$
+  }
+
+  \multicolsbreak
 
   \lblextra{$e \rrFD A$}{ (selected rules)}{
     $\begin{array}{l@{\hspace{0.5em}}c@{\hspace{0.5em}}l}
@@ -60,8 +119,6 @@
       & \mchk{\tau_1}{v_1}
       \\ \sidecond{if $v = \vpair{v_0}{v_1}$}
       \\[1ex]
-      \esta{\tau}{v} & \rrFD
-      & \mchk{\tau}{v}
   %    \\
   %    (\vlam{x}{e})~v & \rrFD
   %    & \vsubst{e}{x}{v}
@@ -84,92 +141,49 @@
   %    \\ \sidecond{\quad otherwise}
     \end{array}$
   }
-
-  \multicolsbreak
-
-  \lblextra{$e \rrFS A$}{ (selected rules)}{
-    $\begin{array}{l@{\hspace{0.5em}}c@{\hspace{0.5em}}l}
-      \eapp{(\vmonfun{(\tarr{\tau_d}{\tau_c})}{f})}{v} & \rrFS
-      & \edyn{\tau_c}{\vsubst{e}{x}{v'}}
-      \\ \sidecond{if $f = \vlam{x}{e}$ and $\mchk{\tau_d}{v} = v'$}
-      \\[1ex]
-      \eapp{(\vmonfun{(\tarr{\tau_d}{\tau_c})}{f})}{v} & \rrFS
-      & \boundaryerror
-      \\ \sidecond{if $f = \vlam{x}{e}$ and $\mchk{\tau_d}{v} = \boundaryerror$}
-      \\[1ex]
-      \eapp{(\vmonfun{(\tarr{\tau_d}{\tau_c})}{f})}{v}
-      & \rrFS & v''
-      \\ \sidecond{if $f = \vlam{\tann{x}{\tau}}{e}$ and $\mchk{\tau}{v} = v'$}
-      \\ \sidecond{and $v'' = \echk{\tau_c}{\vsubst{e}{x}{v'}}$}
-      \\[1ex]
-      (\vmonfun{(\tarr{\tau_d}{\tau_c})}{f})~v & \rrFS
-      & \boundaryerror
-      \\ \sidecond{if $f = \vlam{\tann{x}{\tau}}{e}$}
-      \\ \sidecond{and $\mchk{\tau}{v} = \boundaryerror$}
-      \\[1ex]
-      \efst{(\vmonpair{(\tpair{\tau_0}{\tau_1})}{v})} & \rrFS
-      & \mchk{\tau_0}{v_0}
-      \\ \sidecond{if $v = \vpair{v_0}{v_1}$}
-      \\[1ex]
-      \esnd{(\vmonpair{(\tpair{\tau_0}{\tau_1})}{v})} & \rrFS
-      & \mchk{\tau_1}{v_1}
-      \\ \sidecond{if $v = \vpair{v_0}{v_1}$}
-      \\[1ex]
-      \edyn{\tau}{v} & \rrFS
-      & \mchk{\tau}{v}
-      \\
-      \echk{\tau}{v} & \rrFS
-      & \mchk{\tau}{v}
-  %    \\
-  %    (\vlam{\tann{x}{\tau_d}}{e})~v & \rrFS & \vsubst{e}{x}{v}
-  %    \\
-  %    \eunop{v} & \rrFS & A
-  %    & \sidecond{if $\delta(\vunop, v) \expreq A$}
-  %    \\
-  %    \ebinop{v_0}{v_1} & \rrFS & A
-  %    & \sidecond{if $\delta(\vbinop, v_0, v_1) \expreq A$}
-    \end{array}$
-  }
-
 \end{TwoColumn}
 
 \begin{TwoColumn}
-
-  \lbl{$e \ccFD A$}{
+  \lblextra{$e \ccFS A$}{ (selected rules)}{
     $\begin{array}{l@{\hspace{0.5em}}c@{\hspace{0.5em}}l}
-      \ctxE{\esta{\tau}{e}} & \ccFD & \ctxE{\esta{\tau}{e'}}
-      \\ \sidecond{if $e \ccFS e'$}
+      \ebase[e] \ccFS \ebase[e']
+      \\ \sidecond{if $e \rrFS e'$}
       \\
-      \ctxE{\esta{\tau}{e}} & \ccFD & A
-      \\ \sidecond{if $e \ccFS A$ and $A \not\in e$}
+      \esd[\esta{\tau}{\ebase[e]}] \ccFS \esd[\esta{\tau}{\ebase[e']}]
+      \\ \sidecond{if $e \rrFS e'$}
       \\
-      \ctxE{e} & \ccFD & \ctxE{e'}
+      \esd[\esta{\tau}{v}] \ccFS \esd[v']
+      \\ \sidecond{if $\efromsta{\tau}{v} = v'$}
+      \\
+      \esd[\edyn{\tau}{\ebase[e]}] \ccFS \esd[\edyn{\tau}{\ebase[e']}]
       \\ \sidecond{if $e \rrFD e'$}
       \\
-      \ctxE{e} & \ccFD & A
-      \\ \sidecond{if $e \rrFD A$ and $A \not\in e$}
+      \esd[\edyn{\tau}{v}] \ccFS \esd[v']
+      \\ \sidecond{if $\efromdyn{\tau}{v} = v'$}
     \end{array}$
   }
 
   \multicolsbreak
 
-  \lbl{$e \ccFS A$}{
+  \lblextra{$e \ccFD A$}{ (selected rules)}{
     $\begin{array}{l@{\hspace{0.5em}}c@{\hspace{0.5em}}l}
-      \ctxE{\edyn{\tau}{e}} & \ccFS & \ctxE{\edyn{\tau}{e'}}
-      \\ \sidecond{if $e \ccFD e'$}
+      \ebase[e] \ccFD \ebase[e']
+      \\ \sidecond{if $e \rrFD e'$}
       \\
-      \ctxE{\edyn{\tau}{e}} & \ccFS & A
-      \\ \sidecond{if $e \ccFD A$ and $A \not\in e$}
-      \\
-      \ctxE{e} & \ccFS & \ctxE{e'}
+      \esd[\esta{\tau}{\ebase[e]}] \ccFD \esd[\esta{\tau}{\ebase[e']}]
       \\ \sidecond{if $e \rrFS e'$}
       \\
-      \ctxE{e} & \ccFS & A
-      \\ \sidecond{if $e \rrFS A$ and $A \not\in e$}
+      \esd[\esta{\tau}{v}] \ccFD \esd[v']
+      \\ \sidecond{if $\efromsta{\tau}{v} = v'$}
+      \\
+      \esd[\edyn{\tau}{\ebase[e]}] \ccFD \esd[\edyn{\tau}{\ebase[e']}]
+      \\ \sidecond{if $e \rrFD e'$}
+      \\
+      \esd[\edyn{\tau}{v}] \ccFD \esd[v']
+      \\ \sidecond{if $\efromdyn{\tau}{v} = v'$}
     \end{array}$
   }
-
 \end{TwoColumn}
 
-\fbox{$e \rrFEstar A$}{ reflexive, transitive closure of $\ccFS$}
+\lblextra{$e \rrFEstar A$}{ reflexive, transitive closure of $\ccFS$}{}
 
