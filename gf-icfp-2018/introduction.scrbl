@@ -6,16 +6,22 @@
 @; - imperial college, javascript
 @; - bigloo boo cecil shen
 
-Large, reliable programs cannot be coded from scratch; there has to be a plan
- for growth@~cite[growing-a-language].
-One alluring plan for growth is to start with a dynamically-typed program and
- later add explicit and checked type annotations@~cite[s-popl-1981
+@;{Large, reliable programs cannot be coded from scratch; there has to be a plan
+ for growth@~cite[growing-a-language].}
+
+@; -----------------------------------------------------------------------------
+
+For the past two decades, many programmers have switched to untyped programming
+ languages. Regardless of why they make this choice, they eventually discover
+ that they wish their code base came with types. To accommodate the migration of
+ a large code base from an untyped language to a typed one, researchers have
+ created migratory type systems@~cite[tfffgksst-snapl-2017]. In essence, a
+ migratory type system comes with the same expression and statement syntax as
+ the underlying untyped language but allows the addition of type annotations.
+ While all such systems @emph{check} the type annotations@~cite[s-popl-1981
  bg-oopsla-1993 wc-toplas-1997 st-sfp-2006 tf-dls-2006 wnlov-popl-2010
- bat-ecoop-2014 vss-popl-2017].
-A migratory typing system@~cite[tfffgksst-snapl-2017] supports this plan by
- adding a statically-typed twin language to an existing, dynamically-typed
- language and integrating the pair of languages in a common runtime system.
-@; TODO fix this whole paragraph, especially the final sentence
+ bat-ecoop-2014 vss-popl-2017], it remains unclear what types @emph{should mean}
+ in mixed-typed programs.
 
 Over the years, three approaches have emerged for integrating a dynamically-typed
  language with its statically-typed twin; each approach
