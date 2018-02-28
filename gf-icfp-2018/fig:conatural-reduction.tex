@@ -7,11 +7,11 @@
 \begin{TwoColumn}
   \lblextra{$\vfromdyn : \tau \times v \rightarrow e\vphantom{\vfromsta}$}{ from $\vdyn$ to $\vsta$}{
     $\begin{array}{l@{~~}c@{~}l}
-      \efromdyn{\tarr{\tau_d}{\tau_c}}{v} & = & \vmonfun{\tarr{\tau_d}{\tau_c}}{v}
-      \\ \sidecond{if $v \valeq \vlam{x}{e}$ or $v \valeq \vmonfun{\tarr{\tau_d'}{\tau_c'}}{v'}$}
+      \efromdyn{\tarr{\tau_d}{\tau_c}}{v} & = & \vmonfun{(\tarr{\tau_d}{\tau_c})}{v}
+      \\ \sidecond{if $v \valeq \vlam{x}{e}$ or $v \valeq \vmonfun{(\tarr{\tau_d'}{\tau_c'})}{v'}$}
       \\
-      \efromdyn{\tpair{\tau_0}{\tau_1}}{v} & = & \vmonpair{\tpair{\tau_0}{\tau_1}}{v}
-      \\ \sidecond{if $v \valeq \vpair{v_0}{v_1}$ or $v \valeq \vmonpair{\tpair{\tau_0}{\tau_1}}{v'}$}
+      \efromdyn{\tpair{\tau_0}{\tau_1}}{v} & = & \vmonpair{(\tpair{\tau_0}{\tau_1})}{v}
+      \\ \sidecond{if $v \valeq \vpair{v_0}{v_1}$ or $v \valeq \vmonpair{(\tpair{\tau_0}{\tau_1})}{v'}$}
       \\
       \efromdyn{\tint}{i} & = & i
       \\
@@ -27,10 +27,10 @@
 
   \lblextra{$\vfromsta : \tau \times v \rightarrow e$}{ from $\vsta$ to $\vdyn$}{
     $\begin{array}{l@{~~}c@{~}l}
-      \efromsta{\tarr{\tau_d}{\tau_c}}{v} & = & \vmonfun{\tarr{\tau_d}{\tau_c}}{v}
+      \efromsta{\tarr{\tau_d}{\tau_c}}{v} & = & \vmonfun{(\tarr{\tau_d}{\tau_c})}{v}
       \\
       \\
-      \efromsta{\tpair{\tau_0}{\tau_1}}{v} & = & \vmonpair{\tpair{\tau_0}{\tau_1}}{v}
+      \efromsta{\tpair{\tau_0}{\tau_1}}{v} & = & \vmonpair{(\tpair{\tau_0}{\tau_1})}{v}
       \\
       \\
       \efromsta{\tau}{v} & = & v
