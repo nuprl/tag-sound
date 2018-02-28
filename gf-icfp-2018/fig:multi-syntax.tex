@@ -1,6 +1,14 @@
 \lbl{Surface Syntax}{
   $\begin{array}{l@{\hspace{0.5em}}c@{\hspace{0.5em}}l}
-    e & \BNFeq & x \mid \vlam{x}{e} \mid \vlam{\tann{x}{\tau}}{e} \mid i \mid \vpair{e}{e} \mid \eapp{e}{e} \mid \eunop{e} \mid \ebinop{e}{e} \mid \edyn{\tau}{e} \mid \esta{\tau}{e}
+    \exprsta & \BNFeq & x \mid \vlam{\tann{x}{\tau}}{\exprsta} \mid
+                            i \mid \vpair{\exprsta}{\exprsta} \mid \eapp{\exprsta}{\exprsta} \mid
+                            \eunop{\exprsta} \mid \ebinop{\exprsta}{\exprsta} \mid
+                            \edyn{\tau}{\exprdyn}
+    \\
+    \exprdyn & \BNFeq & x \mid \vlam{x}{\exprdyn}
+         \mid i \mid \vpair{\exprdyn}{\exprdyn} \mid \eapp{\exprdyn}{\exprdyn} \mid
+         \eunop{\exprdyn} \mid \ebinop{\exprdyn}{\exprdyn} \mid
+         \esta{\tau}{\exprsta}
     \\
     \tau & \BNFeq & \tint \mid \tnat \mid \tpair{\tau}{\tau} \mid \tau \tarrow \tau
     \\
