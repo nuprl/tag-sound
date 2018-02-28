@@ -101,5 +101,21 @@
 
 \end{TwoColumn}
 
-\lblextra{$e \rrCEstar A$}{ reflexive, transitive closure of $\ccCS$, where $(\ccCS, \ccCD) = (\SDlift{\rrCS}{\rrCD})$}{}
+\lblextra{$e \ccCE e$}{}{
+  $\begin{array}{l@{\hspace{0.5em}}c@{\hspace{0.5em}}l}
+    \esd[\esta{\tau}{v}] & \ccCE & \esd[\efromsta{\tau}{v}]
+    \\
+    \esd[\edyn{\tau}{v}] & \ccCE & \esd[\efromdyn{\tau}{v}]
+    \\
+    \esd[\esta{\tau}{\ebase[e]}] & \ccCE & \esd[\esta{\tau}{\ebase[e']}]
+    \\ \sidecond{if $e \rrS e'$}
+    \\
+    \esd[\edyn{\tau}{\ebase[e]}] & \ccCE & \esd[\edyn{\tau}{\ebase[e']}]
+    \\ \sidecond{if $e \rrD e'$}
+    \\
+    \esd[\eerr] & \ccCE & \eerr
+  \end{array}$
+}
 
+\smallskip
+\lblextra{$e \rrCEstar A$}{ reflexive, transitive closure of $\ccCE$}{}

@@ -35,9 +35,9 @@
 \lblmathparextra{$\Gamma \wellM e : \tau \carrow e$}{ (selected rules)}{
   \inferrule*{
     \Gamma \wellM e_0 : \tarr{\tau_d}{\tau_c} \carrow e_0'
-    \\\\
-    \Gamma \wellM e_1 : \tau_d \carrow e_1'
     \\
+    \Gamma \wellM e_1 : \tau_d \carrow e_1'
+    \\\\
     \tagof{\tau_c} = K
   }{
     \Gamma \wellM e_0~e_1 : \tau_c \carrow \echk{K}{(e_0'~e_1')}
@@ -78,12 +78,18 @@
 \end{TwoColumn}
 
 \lbl{$\vfromany : K \times v \rightarrow e$}{
+  \begin{TwoColumn}
   $\begin{array}{l@{~~}c@{~}l}
     \efromany{\kfun}{\vlam{x}{e}} & = & \vlam{x}{e}
     \\
     \efromany{\kfun}{\vlam{\tann{x}{\tau}}{e}} & = & \vlam{\tann{x}{\tau}}{e}
     \\
     \efromany{\kpair}{\vpair{v_0}{v_1}} & = & \vpair{v_0}{v_1}
+  \end{array}$
+
+  \multicolsbreak
+
+  $\begin{array}{l@{~~}c@{~}l}
     \\
     \efromany{\kint}{i} & = & i
     \\
@@ -93,6 +99,7 @@
     \efromany{K}{v} & = & \boundaryerror
     \\ \sidecond{otherwise}
   \end{array}$
+  \end{TwoColumn}
 }
 
 % -----------------------------------------------------------------------------
@@ -165,23 +172,25 @@
 
 \end{TwoColumn}
 
-\lblextra{$e \rrKEstar e$}{ reflexive, transitive closure of $\ccKS$, where $(\ccKS', \ccKD') = (\SDlift{\rrKS}{\rrKD})$ and}{
-$\begin{array}{l@{\hspace{4.4em}}l}
-  \fbox{$e \ccKS e$} \mbox{ extends $\ccKS'$} & \fbox{$e \ccKD e$} \mbox{ extends $\ccKD'$}
-  \\
-  {
-    \begin{array}{l@{\hspace{0.5em}}c@{\hspace{0.5em}}l}
-      \esd[\esta{\kany}{v}] & \ccS & \esd[v]
-      \\
-      \esd[\edyn{\kany}{v}] & \ccS & \esd[v]
-    \end{array}
-  } & {
-    \begin{array}{l@{\hspace{0.5em}}c@{\hspace{0.5em}}l}
-      \esd[\esta{\kany}{v}] & \ccS & \esd[v]
-      \\
-      \esd[\edyn{\kany}{v}] & \ccS & \esd[v]
-    \end{array}
-  }
-\end{array}$
+\lblextra{$e \ccKE e$}{}{
+  $\begin{array}{l@{\hspace{0.5em}}c@{\hspace{0.5em}}l}
+    \esd[\esta{\kany}{v}] & \ccKE & \esd[v]
+    \\
+    \esd[\edyn{\kany}{v}] & \ccKE & \esd[v]
+    \\
+    \esd[\esta{\tau}{v}] & \ccKE & \esd[\efromsta{\tau}{v}]
+    \\
+    \esd[\edyn{\tau}{v}] & \ccKE & \esd[\efromdyn{\tau}{v}]
+    \\
+    \esd[\esta{\tau}{\ebase[e]}] & \ccKE & \esd[\esta{\tau}{\ebase[e']}]
+    \\ \sidecond{if $e \rrS e'$}
+    \\
+    \esd[\edyn{\tau}{\ebase[e]}] & \ccKE & \esd[\edyn{\tau}{\ebase[e']}]
+    \\ \sidecond{if $e \rrD e'$}
+    \\
+    \esd[\eerr] & \ccKE & \eerr
+  \end{array}$
 }
 
+\smallskip
+\lblextra{$e \rrKEstar e$}{ reflexive, transitive closure of $\ccKE$}{}
