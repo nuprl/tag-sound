@@ -1,8 +1,9 @@
 #lang gf-icfp-2018 @acmsmall @10pt @anonymous @review
 
 @; "Writing is nature's way of letting you know how sloppy your thinking is" -Dick Guindon
+@; :)))
 
-@title{The Spectrum of Soundness and Performance}
+@title{A Spectrum of Soundness and Performance}
 
 @(define NEU
    @affiliation[
@@ -24,30 +25,11 @@
 
 @; -----------------------------------------------------------------------------
 
-@abstract{
-
-TBA
-
-@;Gradual typing provides software developers with the means to
-@; re-factor an untyped code base into a typed one. As this re-factoring
-@; proceeds, the code base becomes a mixture of typed and untyped code.  In
-@; this mixed-typed world, developers may wish to rely on the soundness of
-@; the type system. Industrial variants of gradual typing, however, guarantee
-@; only an extremely limited form of soundness, and as recently shown, the
-@; soundness of academic implementations poses a serious performance
-@; bottleneck, which limits the deployability of mixed-typed software.
-
-@;{NOTE remove 'novel' when paper is accepted}
-
-@;In this paper, we develop the novel idea of a spectrum of type soundness and
-@; demonstrate that a tag-level, non-compositional form of
-@; soundness vastly improves the performance of Typed Racket, the most mature
-@; implementation of sound gradual typing. Specifically, we develop a series
-@; of theoretical models of gradual typing, starting with a classically sound
-@; gradual core language. Furthermore, we explain how to modify Typed Racket's
-@; implementation and present the results of measuring this revised
-@; implementation on the Takikawa-Greenman benchmarks.
-}
+@abstract{The literature on gradual typing presents three fundamentally 
+different ways of thinking about the integrity of programs that combine 
+statically typed and dynamically typed code. This paper
+systematically compares the theory of these approaches, their logical
+implications for the developer, and their performance.  }
 
 @include-section{introduction.scrbl}
 @include-section{background.scrbl}
