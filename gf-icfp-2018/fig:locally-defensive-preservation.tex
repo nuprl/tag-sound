@@ -71,7 +71,7 @@
   }
 }
 
-\lblmathparextra{$\Gamma \wellKE e : K$}{ (selected rules)}{
+\lblmathparextra{$\Gamma \wellKE e : K$}{}{
   \inferrule*{
     x \in \Gamma
   }{
@@ -106,17 +106,17 @@
     \Gamma \wellKE \vpair{e_0}{e_1} : \kpair
   }
 
-%  \inferrule*{
-%    i \in \naturals
-%  }{
-%    \Gamma \wellKE i : \knat
-%  }
-%
-%  \inferrule*{
-%  }{
-%    \Gamma \wellKE i : \kint
-%  }
-%
+  \inferrule*{
+    i \in \naturals
+  }{
+    \Gamma \wellKE i : \knat
+  }
+
+  \inferrule*{
+  }{
+    \Gamma \wellKE i : \kint
+  }
+
   \inferrule*{
     \Gamma \wellKE e_0 : \kfun
     \\\\
@@ -136,20 +136,20 @@
   }{
     \Gamma \wellKE \esnd{e} : \kany
   }
-%
-%  \inferrule*{
-%    \Gamma \wellKE e_0 : K_0
-%    \\
-%    \Gamma \wellKE e_1 : K_1
-%    %\\\\
-%    %\tau_0 = K_0
-%    %\\
-%    %\tau_1 = K_1
-%    \\\\
-%    \Delta(\vbinop, K_0, K_1) = K
-%  }{
-%    \Gamma \wellKE \vbinop~e_0~e_1 : K
-%  }
+
+  \inferrule*{
+    \Gamma \wellKE e_0 : K_0
+    \\
+    \Gamma \wellKE e_1 : K_1
+    %\\\\
+    %\tau_0 = K_0
+    %\\
+    %\tau_1 = K_1
+    \\\\
+    \Delta(\vbinop, K_0, K_1) = K
+  }{
+    \Gamma \wellKE \vbinop~e_0~e_1 : K
+  }
 
   \inferrule*{
     \Gamma \wellKE e
@@ -158,12 +158,12 @@
   }{
     \Gamma \wellKE \edyn{\tau}{e} : K
   }
-%
-%  \inferrule*{
-%    \Gamma \wellKE e
-%  }{
-%    \Gamma \wellKE \edyn{\kany}{e} : \kany
-%  }
+
+  \inferrule*{
+    \Gamma \wellKE e
+  }{
+    \Gamma \wellKE \edyn{\kany}{e} : \kany
+  }
 
   \inferrule*{
     \Gamma \wellKE e : \kany
@@ -171,13 +171,13 @@
     \Gamma \wellKE \echk{K}{e} : K
   }
 
-%  \inferrule*{
-%    \Gamma \wellKE e : K'
-%    \\
-%    K' \subk K
-%  }{
-%    \Gamma \wellKE e : K
-%  }
+  \inferrule*{
+    \Gamma \wellKE e : K'
+    \\
+    K' \subk K
+  }{
+    \Gamma \wellKE e : K
+  }
 }
 
 %\lblmathpar{$K \subk K$}{

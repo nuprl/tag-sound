@@ -9,7 +9,7 @@
 %% --- reduction
 \begin{TwoColumn}
 
-  \lblextra{$\vfromdyn : \tau \times v \rightarrow A\vphantom{\vfromsta}$}{ from $\vdyn$ to $\vsta$}{
+  \lblextra{$\vfromdyn : \tau \times v \rightarrow e\vphantom{\vfromsta}$}{ from $\vdyn$ to $\vsta$}{
     $\begin{array}{l@{~~}c@{~}l}
       \efromdyn{\tarr{\tau_d}{\tau_c}}{v} & = & \vmonfun{\tarr{\tau_d}{\tau_c}}{v}
       \\ \sidecond{if $v \valeq \vlam{x}{e}$ or $v \valeq \vmonfun{\tau'}{v'}$}
@@ -28,9 +28,10 @@
 
   \multicolsbreak
 
-  \lblextra{$\vfromsta : \tau \times v \rightarrow A$}{ from $\vsta$ to $\vdyn$}{
+  \lblextra{$\vfromsta : \tau \times v \rightarrow e$}{ from $\vsta$ to $\vdyn$}{
     $\begin{array}{l@{~~}c@{~}l}
       \efromsta{\tarr{\tau_d}{\tau_c}}{v} & = & \vmonfun{\tarr{\tau_d}{\tau_c}}{v}
+      \\
       \\
       \efromsta{\tpair{\tau_0}{\tau_1}}{\vpair{v_0}{v_1}} & = & \vpair{\esta{\tau_0}{v_0}}{\esta{\tau_1}{v_1}}
       \\
@@ -42,97 +43,57 @@
 
 \begin{TwoColumn}
 
-  \lblextra{$e \rrNS A$}{ (selected rules)}{
+  \lblextra{$e \rrNS e$}{}{
     $\begin{array}{l@{\hspace{0.5em}}c@{\hspace{0.5em}}l}
       \eapp{(\vmonfun{(\tarr{\tau_d}{\tau_c})}{v_f})}{v} & \rrNS
       & \edyn{\tau_c}{(\eapp{v_f}{e'})}
       \\ \sidecond{where $e' = \esta{\tau_d}{v}$}
-      \\[1ex]
+      \\
       \eapp{(\vlam{\tann{x}{\tau_d}}{e})}{v} & \rrNS
       & \vsubst{e}{x}{v}
-%      \eunop{v} & \rrNS
-%      & A
-%      \\ \sidecond{if $\delta(\vunop, v) \expreq A$}
-%      \\
-%      \ebinop{v_0}{v_1} & \rrNS
-%      & A
-%      \\ \sidecond{if $\delta(\vbinop, v_0, v_1) \expreq A$}
+      \\
+      \\
+      \\
+      \eunop{v} & \rrNS
+      & \delta(\vunop, v)
+      \\
+      \\
+      \\
+      \ebinop{v_0}{v_1} & \rrNS
+      & \delta(\vbinop, v_0, v_1)
+      \\
+      \\
     \end{array}$
   }
 
   \multicolsbreak
 
-  \lblextra{$e \rrND A$}{ (selected rules)}{
+  \lblextra{$e \rrND e$}{}{
     $\begin{array}{l@{\hspace{0.5em}}c@{\hspace{0.5em}}l}
       \eapp{(\vmonfun{(\tarr{\tau_d}{\tau_c})}{v_f})}{v} & \rrND
       & \esta{\tau_c}{(\eapp{v_f}{e'})}
       \\ \sidecond{where $e' = \edyn{\tau_d}{v}$}
-      \\[1ex]
+      \\
       \eapp{(\vlam{x}{e})}{v} & \rrND
       & \vsubst{e}{x}{v}
       \\
       \eapp{v_0}{v_1} & \rrND
       & \tagerror
       \\ \sidecond{if $v_0 \valeq i$ or $v_0 \valeq \vpair{v}{v'}$}
-%      \\
-%      \eunop{v} & \rrND & A
-%      \\ \sidecond{if $\delta(\vunop, v) \expreq A$}
-%      \\
-%      \eunop{v} & \rrND & \tagerror
-%      \\ \sidecond{if $\delta(\vunop, v)$ is undefined}
-%      \\
-%      \ebinop{v_0}{v_1} & \rrND & A
-%      \\ \sidecond{if $\delta(\vbinop, v_0, v_1) \expreq A$}
-%      \\
-%      \ebinop{v_0}{v_1} & \rrND & \tagerror
-%      \\ \sidecond{if $\delta(\vbinop, v_0, v_1)$ is undefined}
+      \\
+      \eunop{v} & \rrND & \delta(\vunop, v)
+      \\
+      \eunop{v} & \rrND & \tagerror
+      \\ \sidecond{if $\delta(\vunop, v)$ is undefined}
+      \\
+      \ebinop{v_0}{v_1} & \rrND & \delta(\vbinop, v_0, v_1)
+      \\
+      \ebinop{v_0}{v_1} & \rrND & \tagerror
+      \\ \sidecond{if $\delta(\vbinop, v_0, v_1)$ is undefined}
     \end{array}$
   }
 
 \end{TwoColumn}
 
-\begin{TwoColumn}
+\lblextra{$e \rrNEstar e$}{ reflexive, transitive closure of $\ccNS$, where $(\ccNS, \ccND) = (\SDlift{\rrNS}{\rrND})$}{}
 
-  \lblextra{$e \ccNS A$}{ (selected rules)}{
-    $\begin{array}{l@{\hspace{0.5em}}c@{\hspace{0.5em}}l}
-      \ebase[e] \ccNS \ebase[e']
-      \\ \sidecond{if $e \rrNS e'$}
-      \\
-      \esd[\esta{\tau}{\ebase[e]}] \ccNS \esd[\esta{\tau}{\ebase[e']}]
-      \\ \sidecond{if $e \rrNS e'$}
-      \\
-      \esd[\esta{\tau}{v}] \ccNS \esd[v']
-      \\ \sidecond{if $\efromsta{\tau}{v} = v'$}
-      \\
-      \esd[\edyn{\tau}{\ebase[e]}] \ccNS \esd[\edyn{\tau}{\ebase[e']}]
-      \\ \sidecond{if $e \rrND e'$}
-      \\
-      \esd[\edyn{\tau}{v}] \ccNS \esd[v']
-      \\ \sidecond{if $\efromdyn{\tau}{v} = v'$}
-    \end{array}$
-  }
-
-  \multicolsbreak
-
-  \lblextra{$e \ccND A$}{ (selected rules)}{
-    $\begin{array}{l@{\hspace{0.5em}}c@{\hspace{0.5em}}l}
-      \ebase[e] \ccND \ebase[e']
-      \\ \sidecond{if $e \rrND e'$}
-      \\
-      \esd[\esta{\tau}{\ebase[e]}] \ccND \esd[\esta{\tau}{\ebase[e']}]
-      \\ \sidecond{if $e \rrNS e'$}
-      \\
-      \esd[\esta{\tau}{v}] \ccND \esd[v']
-      \\ \sidecond{if $\efromsta{\tau}{v} = v'$}
-      \\
-      \esd[\edyn{\tau}{\ebase[e]}] \ccND \esd[\edyn{\tau}{\ebase[e']}]
-      \\ \sidecond{if $e \rrND e'$}
-      \\
-      \esd[\edyn{\tau}{v}] \ccND \esd[v']
-      \\ \sidecond{if $\efromdyn{\tau}{v} = v'$}
-    \end{array}$
-  }
-
-\end{TwoColumn}
-
-\lblextra{$e \rrNEstar A$}{ reflexive, transitive closure of $\ccNS$}{}

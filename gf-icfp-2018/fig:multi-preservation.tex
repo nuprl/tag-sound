@@ -6,9 +6,8 @@
   \end{array}$
 }
 
-\multicolsbreak
-
-\lbl{$\Delta(\vunop, \tau) = \tau$}{
+\smallskip
+\lbl{$\Delta : \vunop \times \tau \rightarrow \tau$}{
   $\begin{array}{l@{~~}c@{~~}l}
     \Delta(\vfst, \tpair{\tau_0}{\tau_1}) & = & \tau_0
     \\
@@ -17,17 +16,58 @@
 }
 
 \smallskip
-\lbl{$\Delta(\vbinop, \tau, \tau) = \tau$}{
+\lbl{$\Delta : \vbinop \times \tau \times \tau \rightarrow \tau$}{
   $\begin{array}{l@{~~}c@{~~}l}
-    \Delta(\vsum, \tnat, \tnat) & = & \tnat
+    \Delta(\vbinop, \tnat, \tnat) & = & \tnat
     \\
-    \Delta(\vsum, \tint, \tint) & = & \tint
-    \\
-    \Delta(\vquotient, \tnat, \tnat) & = & \tnat
-    \\
-    \Delta(\vquotient, \tint, \tint) & = & \tint
+    \Delta(\vbinop, \tint, \tint) & = & \tint
+%    \Delta(\vsum, \tnat, \tnat) & = & \tnat
+%    \\
+%    \Delta(\vsum, \tint, \tint) & = & \tint
+%    \\
+%    \Delta(\vquotient, \tnat, \tnat) & = & \tnat
+%    \\
+%    \Delta(\vquotient, \tint, \tint) & = & \tint
   \end{array}$
 }
+
+\multicolsbreak
+
+\lblmathpar{$\tau \subteq \tau$}{
+  \inferrule*{
+  }{
+    \tnat \subteq \tint
+  }
+}{\begin{mathpar}
+  \inferrule*{
+    \tau_d' \subteq \tau_d
+    \\
+    \tau_c \subteq \tau_c'
+  }{
+    \tarr{\tau_d}{\tau_c} \subteq \tarr{\tau_d'}{\tau_c'}
+  }
+
+  \inferrule*{
+    \tau_0 \subteq \tau_0'
+    \\
+    \tau_1 \subteq \tau_1'
+  }{
+    \tpair{\tau_0}{\tau_1} \subteq \tpair{\tau_0'}{\tau_1'}
+  }
+
+  \inferrule*{
+  }{
+    \tau \subteq \tau
+  }
+
+  \inferrule*{
+    \tau \subteq \tau'
+    \\
+    \tau' \subteq \tau''
+  }{
+    \tau \subteq \tau''
+  }
+\end{mathpar}}
 
 \end{TwoColumn}
 
@@ -159,42 +199,5 @@
     \Gamma \wellM e
   }{
     \Gamma \wellM \edyn{\tau}{e} : \tau
-  }
-}
-
-\bigskip
-\lblmathpar{$\tau \subteq \tau$}{
-  \inferrule*{
-  }{
-    \tnat \subteq \tint
-  }
-
-  \inferrule*{
-    \tau_d' \subteq \tau_d
-    \\
-    \tau_c \subteq \tau_c'
-  }{
-    \tarr{\tau_d}{\tau_c} \subteq \tarr{\tau_d'}{\tau_c'}
-  }
-
-  \inferrule*{
-    \tau_0 \subteq \tau_0'
-    \\
-    \tau_1 \subteq \tau_1'
-  }{
-    \tpair{\tau_0}{\tau_1} \subteq \tpair{\tau_0'}{\tau_1'}
-  }
-
-  \inferrule*{
-  }{
-    \tau \subteq \tau
-  }
-
-  \inferrule*{
-    \tau \subteq \tau'
-    \\
-    \tau' \subteq \tau''
-  }{
-    \tau \subteq \tau''
   }
 }

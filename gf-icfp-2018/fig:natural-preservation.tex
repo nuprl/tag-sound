@@ -49,6 +49,11 @@
 %  }
 
   \inferrule*{
+  }{
+    \Gamma \wellNE \eerr
+  }
+
+  \inferrule*{
     \Gamma \wellNE v : \tarr{\tau_d}{\tau_c}
   }{
     \Gamma \wellNE \vmonfun{(\tarr{\tau_d}{\tau_c})}{v}
@@ -127,6 +132,11 @@
 %  }{
 %    \GammaS \wellNE e : \tau
 %  }
+
+  \inferrule*{
+  }{
+    \Gamma \wellNE \eerr : \tau
+  }
 
   \inferrule*{
     \Gamma \wellNE v

@@ -168,7 +168,7 @@ showstringspaces=false            %
 \newcommand{\knat}{\tnat}
 
 \newcommand{\cclift}[2]{\mapsto_{#2}^{#1}}
-\newcommand{\DSlift}[4]{#2~\bowtie_{#1}\,#4} % ignores argument 3
+\newcommand{\SDlift}[2]{{#1, \vfromdyn}~\bowtie~{#2, \vfromsta}}
 \newcommand{\vtuple}[2]{(#1, #2)}
 
 \newcommand{\torigin}{\lozenge}
@@ -177,10 +177,10 @@ showstringspaces=false            %
 \newcommand{\rrR}{\mathrel{\textsc{r}}}
 \newcommand{\rrRp}{\mathrel{\textsc{r}'}}
 \newcommand{\rrfont}[1]{\mathbf{#1}}
-\newcommand{\rrD}{\mathrel{\textsc{d}}}
-\newcommand{\rrS}{\mathrel{\textsc{s}}}
 
 \newcommand{\rrsymb}{\vartriangleright}
+\newcommand{\rrD}{\mathrel{\rrsymb_{\rrfont{D}}}}
+\newcommand{\rrS}{\mathrel{\rrsymb_{\rrfont{S}}}}
 \newcommand{\rrEE}{\mathrel{\rrsymb_{\rrfont{E}}}}
 \newcommand{\rrND}{\mathrel{\rrsymb_{\rrfont{D_N}}}}
 \newcommand{\rrNS}{\mathrel{\rrsymb_{\rrfont{S_N}}}}

@@ -6,7 +6,7 @@
 @; - dyn / static twin language in inline figures
 
 @include-figure["fig:multi-syntax.tex" @elem{Twin languages syntax}]
-@include-figure["fig:multi-property.tex" @elem{Twin languages static typing judgments}]
+@include-figure["fig:multi-preservation.tex" @elem{Twin languages static typing judgments}]
 @include-figure["fig:multi-reduction.tex" @elem{Common semantic notions}]
 
 @; TODO I'm assuming base types are O(1) to check no matter what ... that they're taggged ... don't think this comes across
@@ -138,7 +138,7 @@ The rest of this section introduces @integer->word[NUM-EMBEDDINGS]
  alternative semantics, each with unique tradeoffs.
 @Figure-ref{fig:mixed-delta} does include a meta-function that
  defines two mutually-recursive reduction relations from two notions of reduction.
-We use @${\DSlift{E}{\rrR}{E'}{\rrRp}}, pronounced ``@${\rrR}-static bowtie-@${E} @${\rrRp}-dynamic'',
+We use @${\SDlift{E}{\rrR}{E'}{\rrRp}}, pronounced ``@${\rrR}-static bowtie-@${E} @${\rrRp}-dynamic'',
  to build: (1) a reduction relation @${\ccR} for statically-typed expressions,
  and (2) a reduction relation @${\ccRp} for dynamically-typed expressions.
 Informally, @${\ccR} applied to a statically-typed expression @${e}

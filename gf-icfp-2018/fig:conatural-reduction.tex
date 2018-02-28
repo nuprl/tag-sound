@@ -5,7 +5,7 @@
 }
 
 \begin{TwoColumn}
-  \lblextra{$\vfromdyn : \tau \times v \rightarrow A\vphantom{\vfromsta}$}{ from $\vdyn$ to $\vsta$}{
+  \lblextra{$\vfromdyn : \tau \times v \rightarrow e\vphantom{\vfromsta}$}{ from $\vdyn$ to $\vsta$}{
     $\begin{array}{l@{~~}c@{~}l}
       \efromdyn{\tarr{\tau_d}{\tau_c}}{v} & = & \vmonfun{\tarr{\tau_d}{\tau_c}}{v}
       \\ \sidecond{if $v \valeq \vlam{x}{e}$ or $v \valeq \vmonfun{\tarr{\tau_d'}{\tau_c'}}{v'}$}
@@ -25,11 +25,13 @@
 
   \multicolsbreak
 
-  \lblextra{$\vfromsta : \tau \times v \rightarrow A$}{ from $\vsta$ to $\vdyn$}{
+  \lblextra{$\vfromsta : \tau \times v \rightarrow e$}{ from $\vsta$ to $\vdyn$}{
     $\begin{array}{l@{~~}c@{~}l}
       \efromsta{\tarr{\tau_d}{\tau_c}}{v} & = & \vmonfun{\tarr{\tau_d}{\tau_c}}{v}
       \\
+      \\
       \efromsta{\tpair{\tau_0}{\tau_1}}{v} & = & \vmonpair{\tpair{\tau_0}{\tau_1}}{v}
+      \\
       \\
       \efromsta{\tau}{v} & = & v
       \\ \sidecond{otherwise}
@@ -38,12 +40,12 @@
 \end{TwoColumn}
 
 \begin{TwoColumn}
-  \lblextra{$e \rrCS A$}{ (selected rules)}{
+  \lblextra{$e \rrCS e$}{ (selected rules)}{
     $\begin{array}{l@{\hspace{0.5em}}c@{\hspace{0.5em}}l}
       (\vmonfun{(\tarr{\tau_d}{\tau_c})}{v_f})~v & \rrCS
       & \edyn{\tau_c}{(v_f~e')}
       \\ \sidecond{where $e' = \esta{\tau_d}{v}$}
-      \\[1ex]
+      \\
       \efst{(\vmonpair{(\tpair{\tau_0}{\tau_1})}{v})} & \rrCS
       & \edyn{\tau_0}{(\efst{v})}
       \\
@@ -55,22 +57,22 @@
 %      \\
 %      (\vlam{\tann{x}{\tau_d}}{e})~v & \rrCS & \vsubst{e}{x}{v}
 %      \\
-%      \eunop{v} & \rrCS & A
-%      \\ \sidecond{if $A = \delta(\vunop, v)$}
+%      \eunop{v} & \rrCS & e
+%      \\ \sidecond{if $e = \delta(\vunop, v)$}
 %      \\
-%      \ebinop{v_0}{v_1} & \rrCS & A
-%      \\ \sidecond{if $A = \delta(\vbinop, v_0, v_1)$}
+%      \ebinop{v_0}{v_1} & \rrCS & e
+%      \\ \sidecond{if $e = \delta(\vbinop, v_0, v_1)$}
     \end{array}$
   }
 
   \multicolsbreak
 
-  \lblextra{$e \rrCD A$}{ (selected rules)}{
+  \lblextra{$e \rrCD e$}{ (selected rules)}{
     $\begin{array}{l@{\hspace{0.5em}}c@{\hspace{0.5em}}l}
       (\vmonfun{(\tarr{\tau_d}{\tau_c})}{v_f})~v & \rrCD
       & \esta{\tau_c}{(v_f~e')}
       \\ \sidecond{where $e' = \edyn{\tau_d}{v}$}
-      \\[1ex]
+      \\
       \efst{(\vmonpair{(\tpair{\tau_0}{\tau_1})}{v})} & \rrCD
       & \esta{\tau_0}{(\efst{v})}
       \\
@@ -83,14 +85,14 @@
 %      v_0~v_1 & \rrCD & \tagerror
 %      \\ \sidecond{if $v_0 \valeq i$ or $v_0 \valeq \vpair{v}{v'}$ or $v_0 \valeq \vmonpair{(\tpair{\tau_0}{\tau_1})}{v'}$}
 %      \\
-%      \eunop{v} & \rrCD & A
-%      \\ \sidecond{if $A = \delta(\vunop, v)$}
+%      \eunop{v} & \rrCD & e
+%      \\ \sidecond{if $e = \delta(\vunop, v)$}
 %      \\
 %      \eunop{v} & \rrCD & \tagerror
 %      \\ \sidecond{otherwise}
 %      \\
-%      \ebinop{v_0}{v_1} & \rrCD & A
-%      \\ \sidecond{if $A = \delta(\vbinop, v_0, v_1)$}
+%      \ebinop{v_0}{v_1} & \rrCD & e
+%      \\ \sidecond{if $e = \delta(\vbinop, v_0, v_1)$}
 %      \\
 %      \ebinop{v_0}{v_1} & \rrCD & \tagerror
 %      \\ \sidecond{otherwise}
@@ -99,46 +101,5 @@
 
 \end{TwoColumn}
 
-\begin{TwoColumn}
-  \lblextra{$e \ccCS A$}{ (selected rules)}{
-    $\begin{array}{l@{\hspace{0.5em}}c@{\hspace{0.5em}}l}
-      \ebase[e] \ccCS \ebase[e']
-      \\ \sidecond{if $e \rrCS e'$}
-      \\
-      \esd[\esta{\tau}{\ebase[e]}] \ccCS \esd[\esta{\tau}{\ebase[e']}]
-      \\ \sidecond{if $e \rrCS e'$}
-      \\
-      \esd[\esta{\tau}{v}] \ccCS \esd[v']
-      \\ \sidecond{if $\efromsta{\tau}{v} = v'$}
-      \\
-      \esd[\edyn{\tau}{\ebase[e]}] \ccCS \esd[\edyn{\tau}{\ebase[e']}]
-      \\ \sidecond{if $e \rrCD e'$}
-      \\
-      \esd[\edyn{\tau}{v}] \ccCS \esd[v']
-      \\ \sidecond{if $\efromdyn{\tau}{v} = v'$}
-    \end{array}$
-  }
+\lblextra{$e \rrCEstar A$}{ reflexive, transitive closure of $\ccCS$, where $(\ccCS, \ccCD) = (\SDlift{\rrCS}{\rrCD})$}{}
 
-  \multicolsbreak
-
-  \lblextra{$e \ccCD A$}{ (selected rules)}{
-    $\begin{array}{l@{\hspace{0.5em}}c@{\hspace{0.5em}}l}
-      \ebase[e] \ccCD \ebase[e']
-      \\ \sidecond{if $e \rrCD e'$}
-      \\
-      \esd[\esta{\tau}{\ebase[e]}] \ccCD \esd[\esta{\tau}{\ebase[e']}]
-      \\ \sidecond{if $e \rrCS e'$}
-      \\
-      \esd[\esta{\tau}{v}] \ccCD \esd[v']
-      \\ \sidecond{if $\efromsta{\tau}{v} = v'$}
-      \\
-      \esd[\edyn{\tau}{\ebase[e]}] \ccCD \esd[\edyn{\tau}{\ebase[e']}]
-      \\ \sidecond{if $e \rrCD e'$}
-      \\
-      \esd[\edyn{\tau}{v}] \ccCD \esd[v']
-      \\ \sidecond{if $\efromdyn{\tau}{v} = v'$}
-    \end{array}$
-  }
-\end{TwoColumn}
-
-\lblextra{$e \rrCEstar A$}{ reflexive, transitive closure of $\ccCS$}{}

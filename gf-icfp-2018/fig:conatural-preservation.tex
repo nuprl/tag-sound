@@ -1,16 +1,16 @@
 
 \lblmathparextra{$\Gamma \wellCE e$}{ (selected rules)}{
-  \inferrule*{
-    x \in \GammaD
-  }{
-    \GammaD \wellCE x
-  }
-
-  \inferrule*{
-    x,\GammaD \wellCE e
-  }{
-    \GammaD \wellCE \vlam{x}{e}
-  }
+%  \inferrule*{
+%    x \in \GammaD
+%  }{
+%    \GammaD \wellCE x
+%  }
+%
+%  \inferrule*{
+%    x,\GammaD \wellCE e
+%  }{
+%    \GammaD \wellCE \vlam{x}{e}
+%  }
 %
 %  \inferrule*{
 %  }{
@@ -74,17 +74,17 @@
 }
 
 \lblmathparextra{$\Gamma \wellCE e : \tau$}{ (selected rules)}{
-  \inferrule*{
-    \tann{x}{\tau} \in \GammaS
-  }{
-    \GammaS \wellCE x : \tau
-  }
-
-  \inferrule*{
-    \tann{x}{\tau_d},\GammaS \wellCE e : \tau_c
-  }{
-    \GammaS \wellCE \vlam{\tann{x}{\tau_d}}{e} : \tarr{\tau_d}{\tau_c}
-  }
+%  \inferrule*{
+%    \tann{x}{\tau} \in \GammaS
+%  }{
+%    \GammaS \wellCE x : \tau
+%  }
+%
+%  \inferrule*{
+%    \tann{x}{\tau_d},\GammaS \wellCE e : \tau_c
+%  }{
+%    \GammaS \wellCE \vlam{\tann{x}{\tau_d}}{e} : \tarr{\tau_d}{\tau_c}
+%  }
 %
 %  \inferrule*{
 %    i \in \naturals
