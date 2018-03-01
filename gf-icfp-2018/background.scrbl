@@ -22,16 +22,6 @@
 
 @; -----------------------------------------------------------------------------
 
-The introduction does not have the space to talk about related work.
-This secetion needs to fill the gap: justify informal claims, summarize the
- pre-migratory typing work, trace the origins of the three approaches, and
- the origins of ``spectrum of soundness''.
-
-It is very important that we compare to like types and explain how this is not that.
-The breezy related work that we tried last time clearly did not work.
-
-@exact{\clearpage}
-
 @;Given a dynamically typed language, the design of a migratory type system
 @;poses two problems. The first one concerns the existing programming idioms. 
 @;To avoid the need for large-scale rewrites, the new type system ought to
