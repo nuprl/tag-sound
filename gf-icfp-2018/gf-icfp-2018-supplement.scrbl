@@ -31,8 +31,8 @@ This appendix contains:
 @; a diff between Typed Racket and Tag-Sound Racket.
 
 
-@include-section{appendix-descriptions.scrbl}
-@include-section{appendix-linear.scrbl}
-@include-section{appendix-implementation.scrbl}
-@include-section{appendix-model.scrbl}
-@include-section{appendix-reduction.scrbl}
+@include-section{supplement-descriptions.scrbl}
+@include-section{supplement-linear.scrbl}
+@include-section{supplement-implementation.scrbl}
+@include-section{supplement-model.scrbl}
+@include-section{supplement-reduction.scrbl}

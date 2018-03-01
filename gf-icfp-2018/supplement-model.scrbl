@@ -14,7 +14,7 @@ Aside from the common notions in @section-ref{appendix:preliminaries},
 
 @; -----------------------------------------------------------------------------
 
-@include-section{appendix-model-background.scrbl}
+@include-section{supplement-model-background.scrbl}
 
 @;@figure["fig:model-roadmap" "Models Roadmap"
 @;  @models-roadmap[
@@ -29,14 +29,14 @@ Aside from the common notions in @section-ref{appendix:preliminaries},
 
 @; -----------------------------------------------------------------------------
 
-@;@include-section{appendix-model-d.scrbl}
-@;@include-section{appendix-model-s.scrbl}
-@;@include-section{appendix-model-m.scrbl}
+@;@include-section{supplement-model-d.scrbl}
+@;@include-section{supplement-model-s.scrbl}
+@;@include-section{supplement-model-m.scrbl}
 
-@include-section{appendix-model-e.scrbl}
-@include-section{appendix-model-n.scrbl}
-@include-section{appendix-model-c.scrbl}
-@include-section{appendix-model-f.scrbl}
-@include-section{appendix-model-k.scrbl}
+@include-section{supplement-model-e.scrbl}
+@include-section{supplement-model-n.scrbl}
+@include-section{supplement-model-c.scrbl}
+@include-section{supplement-model-f.scrbl}
+@include-section{supplement-model-k.scrbl}
 
-@include-section{appendix-model-bridge.scrbl}
+@include-section{supplement-model-bridge.scrbl}
