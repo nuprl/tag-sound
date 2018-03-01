@@ -58,6 +58,7 @@ performance with the need for guarantees.
   @; redex-check
   @; NSF funding
   @; early feedback at PI meeting
+  @; pldi reviewers for skimming the paper and letting us know it wasn't shiny and new enough
 }
 
 
