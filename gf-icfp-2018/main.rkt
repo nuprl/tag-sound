@@ -48,8 +48,11 @@
   ~a
 
   note-to-self
+  mytech
 
   proof-sketch
+
+  appendix
 
   ;; ---------------------------------------------------------------------------
   ;; --- old stuff
@@ -123,6 +126,7 @@
   (only-in gtp-plot/util
     log-gtp-plot-warning)
   racket/format
+  racket/set
   racket/string
   scribble/acmart
   scribble/core
@@ -233,8 +237,10 @@
       (cons (element #f (list " (" (emph term) ") ")) defn*))))
 
 ;; TODO just use Scribble's tech?
-(define (tech #:key [key #f] . pc*)
-  (emph pc*))
+(define TECH-TERMS (mutable-set))
+(define (mytech #:key [key #f] . pc*)
+  (set-add! TECH-TERMS (content->string pc*))
+  pc*)
 
 (define (lemmaref what)
   (emph what))
@@ -364,4 +370,8 @@
     (parag title)  (smaller "from " author)
     (linebreak)
     descr))
+
+(define appendix
+  (make-paragraph (make-style 'pretitle '())
+    (make-element (make-style "appendix" '(exact-chars)) '())))
 

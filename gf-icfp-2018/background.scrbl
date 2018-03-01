@@ -2,11 +2,14 @@
 @title[#:tag "sec:background"]{Related Work}
 
 @; TODO
+@; - SOURCES OF COST, introduce idea so the natural embedding doesn't need
+@;   to motivate that "there is an embedding coming up and it will have these costs"
 @; - space-efficient contracts has a useful summary at the top,
 @;   we should at least put that in section 2
 @;   ... erased/natural are the standard, here's sketch of our three embeddings
 @;   (2017-12-21 : what does this mean?)
 @; - change 'untyped code' ... to something else ..  dynamic , legacy , 
+
 
 @; @parag{Assumptions}
 @; (0) no lump embedding! want observationally-equal values across boundaries
