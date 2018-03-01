@@ -1,9 +1,9 @@
 #lang gf-icfp-2018
-@title[#:tag "sec:evaluation"]{Performance Evaluation}
+@title[#:tag "sec:evaluation"]{Apples-to-Apples Performance}
 
 @; TODO
 @; - goals
-@; - implementation
+@; - implementation (how measured all 3 embeddings)
 @; - overhead plots
 @; - typed/untyped ratios (maybe also, worst-case performance?)
 

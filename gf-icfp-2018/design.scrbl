@@ -1,13 +1,15 @@
 #lang gf-icfp-2018
-@title[#:tag "sec:design"]{Five Embeddings}
+@title[#:tag "sec:design"]{Apples-to-Apples Logic and Metatheory}
 
 @; TODO
 @; - the multi-language approach
-@; - natural, conatural, ... (body of the last paper)
+@; - natural, tag, erasure [[nothing else!]]
 @; ? why do we call it embedding?
 @; - A @mytech{migratory typing system} is XXX and must YYY
 
 @; -----------------------------------------------------------------------------
+
+Beginning with the surface syntax in @figure-ref{fig:multi-syntax}, 
 
 @Figure-ref{fig:multi-syntax} 
 

@@ -1,5 +1,5 @@
 #lang gf-icfp-2018
-@title[#:tag "sec:implications"]{Spectrum of Soundness}
+@title[#:tag "sec:implications"]{Apples-to-Apples Implications}
 @require[(only-in "techreport.rkt" tr-theorem tr-lemma)]
 
 @; TODO
