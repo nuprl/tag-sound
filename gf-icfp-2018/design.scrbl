@@ -106,32 +106,144 @@ Division by zero raises a boundary error because one language (math) received
 @include-figure["fig:multi-preservation.tex" @elem{Twin languages static typing judgments}]
 @include-figure["fig:multi-reduction.tex" @elem{Common semantic notions}]
 
+@;In order to provide some kind of type soundness, an embedding must restrict
+@; the dynamically-typed values that can flow into typed contexts.
+
 
 @; -----------------------------------------------------------------------------
 @section[#:tag "sec:natural-embedding"]{Natural Embedding}
 @include-figure*["fig:natural-reduction.tex" "Natural Embedding"]
 @include-figure*["fig:natural-preservation.tex" "Property judgments for the natural embedding"]
 
-In order to provide some kind of type soundness, an embedding must restrict
- the dynamically-typed values that can flow into typed contexts.
-A natural kind of restriction is to let a value @${v} cross a boundary
- expecting values of type @${\tau} only if @${v} matches the canonical forms
- of the static type, and raise a @${\boundaryerror} otherwise.
-For base types, this requires a generalized kind of type-tag check.
-For non-base types that describe finitely-observable values,
- this requires one tag check and a recursive check of the value's components.
+@; Thesis for this section?
+@; - impossible to provide conventional soundness, but can faithfully
+@;   approximate with runtime checks ?
+@; ... simple idea just od `\vdash e : \tau` at runtime
 
-This inductive checking strategy fails, however, for types that describe
- values with infinitely many observable behaviors, such as a function
-  or an object.
-@;;For instance, it is generally impossible to check whether a run-time value @${v}
-@;; matches a function type.
-@;;@;@note{It may be possible
-@;;@;  to dynamically check the type @${(\tarr{\tau_d}{\tau_c})} in a pure language
-@;;@;  if @${\tau_d} describes a small number of values, but this check is impossible
-@;;@;  in any language worth building a migratory typing system for.}
-@;;The same problem arises for types such as @${(\mathsf{Stream}~\tau)} that
-@;; describe infinite sources of data.
+@subsection{Overview}
+
+A standard type soundness theorem guarantees that if a well-typed expression
+ reduces to a value, the value is of the same type.
+This guarantee comes about because the static type checker establishes a type
+ for every sub-expression, and these proofs compose.
+The analogous guarantee for the surface syntax (@figure-ref{fig:multi-syntax})
+ and typing system (@figure-ref{fig:multi-reduction}) is the following:
+
+@$$|{
+  \mbox{\emph{(ideal)}}
+    {\cdot \wellM \exprsta : \tau}
+    \wedge
+    {\exprsta \rastar v}
+    \Rightarrow
+    {\cdot \wellM v : \tau}
+}|
+
+It is impossible to realize this guarantee in the same way as in a statically-typed
+ language, because some terms are intentionally untyped.
+In the expression @${(\edyn{\tau}{e})} there is no guarantee that the expression
+ @${e} has type @${\tau}, or any type at all.
+Instead, however, it is possible to approximate the same guarantee with
+ runtime checks.
+When a value @${v} flows from dynamically-typed code into a statically-typed
+ context expecting a value of type @${\tau}, a runtime check can try to establish
+ that the value is well-typed.
+The question is then how to implement such checks.
+
+For base types such as @${\tint} and @${\tnat}, we suppose that the language
+ comes with primitives that implement @${v \in \integers} and @${v \in \naturals}
+ (see @secref{sec:implementation:tag-check} for a discussion).
+For inductive types such as @${\tpair{\tau_0}{\tau_1}}, an inductive checking
+ strategy can confirm that a value is a pair and that its components match
+ the types @${\tau_0} and @${\tau_1}, respectively.@note{Notation: @${\tau_0} is the type at index zero in the pair type, @${\tau_1} is the type at index one.}
+For coinductive types such as @${\tarr{\tau_d}{\tau_c}}, the @emph{natural}
+ approach is to check that the value is a function and monitor its future
+ behavior for counterexamples to the conjecture that it treats its inputs as
+ values of type @${\tau_d} and yields values of type @${\tau_c}.@note{Notation: @${\tau_d} is the domain type, @${\tau_c} is the codomain type.}
+Monitoring delays a type error until the runtime system finds a witness
+ that the given value does not match the coinductive type.
+
+@Figure-ref{fig:natural-reduction} implements the above checking strategy
+ and uses it to define a reduction relation.
+@; ??? really just want to say "Fig 1 implements the above"
+
+
+@subsection{Implementation}
+
+@; concrete examples ... ???
+
+The natural embedding defined in @figure-ref{fig:natural-reduction} adds
+ one new value form, two functions for checking values at boundary terms,
+ and two reduction rules to handle the new value form.
+The new value form, @${(\vmonfun{(\tarr{\tau_d}{\tau_c})}{v})}, is a monitor
+ that associates a value @${v} with a type.
+Such monitors arise at runtime as the result of calls to the @${\vfromdyn}
+ and @${\vfromsta} conversion functions.
+
+@;In principle, the one monitor value @${(\vmonfun{(\tarr{\tau_d}{\tau_c})}{v})}
+@; could be split into two value forms: one for protecting the domain of a statically-typed
+@; function and one for checking the range of a dynamically-typed function.
+@;The split would clarify @${\rrNS} and @${\rrND} but it would also create a
+@; larger gap between the model and implementation (@secref{sec:implementation}).
+
+The purpose of @${\efromdyn{\tau}{v}} is to import a dynamically-typed value
+ into a statically-typed context, such that the result matches the assumptions
+ of the context.
+If @${\tau} is a base type, then @${\efromdyn{\tau}{v}} returns @${v} if the
+ value matches the type and raises a boundary error otherwise.
+If @${\tau} is a product type, then @${\efromdyn{\tau}{v}} asserts that @${v}
+ is a pair value and returns a pair expression to import the components of the
+ pair at the appropriate type.
+Finally if @${\tau} is a function type, then @${\efromdyn{\tau}{v}} asserts
+ that @${v} is a function (or a monitored function) and wraps @${v} in a monitor.
+
+The purpose of @${\efromsta{\tau}{v}} is to import a statically-typed value
+ into a dynamically-typed context such that context cannot break any assumption
+ made by the value.
+Integers and natural numbers do not interact with their context, thus
+ @${\efromsta{\tint}{v}} returns the given value.
+Pair values may indirectly interact with the context via their components,
+ so @${\efromsta{\tpair{\tau_0}{\tau_1}}{v}} returns a pair expression to import
+ the components.
+Function values interact with their context by receiving arguments, and so
+ @${\efromdyn{\tarr{\tau_d}{\tau_c}}{v}} wraps the function @${v} in a monitor
+ to protect it from dynamically-typed arguments.
+
+The implementations of @${\vfromdyn} and @${\vfromsta} establish an invariant
+ about monitors occurring in dynamic and static contexts.
+For every monitor @${(\vmonfun{\tau}{v})} in dynamically-typed code,
+ the value @${v} is either a statically-typed function or a monitor.
+For every monitor in statically-typed code, the encapsulated value is either
+ a dynamically-typed function or a monitor.
+This invariant provides the basis for the notions of reduction defined in @figure-ref{fig:natural-reduction}.
+
+The notion of reduction @${\rrNS} adds a rule for applying a monitor as a function
+ in statically-typed code.
+Since the contents of the monitor came from dynamically-typed code, the rule is
+ to export the typed argument value and import the result.
+The ``export'' and ``import'' are implemented with boundary terms.
+Conversely, the notion of reduction @${\rrND} adds a rule for applying a monitor
+ as a dynamically-typed function.
+In this case the contents of the monitor are typed, so the conversion strategy
+ is dual: convert the argument to typed, convert the result back to untyped.
+
+The final components in @figure-ref{fig:natural-reduction} define a reduction
+ relation @${\ccNE} for evaluation contexts and take the reflexive, transitive
+ closure of this relation.
+These define the operational semantics of an expression @${e}; a single step
+ finds the innermost boundary term in @${e} and advances it.
+If the innermost boundary has the form @${(\esta{\tau}{e'})} then @${\ccNE}
+ either uses @${\rrNS} to step @${e'} or @${\vfromsta} to cross the boundary.
+If the innermost boundary has the form @${(\edyn{\tau}{e'})} then @${\ccNE}
+ either uses @${\rrNS} or @${\vfromdyn} to advance.
+
+@; (internalize encapsulate) a boundary
+
+
+@subsection{Soundness}
+
+
+
+
 The classic solution is to use a coinductive strategy and monitor the
  future behaviors of values@~cite[ff-icfp-2002].
 For function types, this means a boundary expecting values of type
@@ -160,22 +272,6 @@ Monitor values establish a key invariant: every value in statically-typed
 This invariant yields a soundness like that of @${\langS}, in which only dynamically-typed
  code can raise a type-tag error.
 @; TODO still unclear, this previous sentence
-
-@theorem[@elem{@${\langE} type soundness}]{
-  If @${\wellM e : \tau}
-   then @${\wellNE e : \tau} and either:
-  @itemlist[
-    @item{ @${e \rrNEstar v \mbox{ and } \wellNE v : \tau} }
-    @item{ @${e \rrNEstar \ctxE{e'} \mbox{ and } e' \ccND \tagerror} }
-    @item{ @${e \rrNEstar \boundaryerror} }
-    @item{ @${e} diverges}
-  ]
-}@;
-@proof-sketch{
-  By progress and preservation lemmas for the @${\Gamma \wellNE \cdot : \tau} relation.
-  The lack of type-tag errors in statically-typed code follows from the
-   definition of @${\ccNS}.
-}
 
 @; TODO need to be explicit that TR compiles to R?
 
@@ -220,6 +316,74 @@ The following three embeddings address these costs systematically.
 Consequently, they demonstrate that the erasure and natural embeddings lie on
  opposite ends of a spectrum between soundness and performance.
 
+
+@; -----------------------------------------------------------------------------
+@section[#:tag "sec:erasure-embedding"]{Erasure Embedding}
+@include-figure["fig:erasure-reduction.tex" "Erasure Embedding"]
+@include-figure["fig:erasure-preservation.tex" "Property judgments for the erasure embedding"]
+
+NATURAL EMBEDDING HAS COSTS
+
+Intuitively, we can create a multi-language that avoids undefined behavior
+ but ignores type annotations
+ in two easy steps.
+First, let statically-typed values and dynamically-typed values freely cross boundary terms.
+Second, base the evaluator on the dynamically-typed notion of reduction.
+
+@Figure-ref{fig:erasure-delta} specifies this @emph{erasure semantics} for
+ the @${\langM} language.
+The notion of reduction @${\rrEE} extends the dynamically-typed reduction to handle
+ type-annotated functions and boundary expressions.
+Its definition relies on an extension of evaluation contexts
+ to allow reduction under boundaries
+ and takes the appropriate closure of @${\rrEE}.
+The typing judgment @${\Gamma \wellEE e} extends the notion of
+ a well-formed program to ignore any type annotations.
+As a result, the soundness theorem for @${\langE} resembles that of @${\langD}.
+
+@theorem[@elem{@${\langE} soundness}]{
+  If @${\wellM e : \tau}
+   then @${\wellEE e} and either:
+  @itemlist[
+    @item{ @${e \rrEEstar v} and @${\wellEE v} }
+    @item{ @${e \rrEEstar \tagerror} }
+    @item{ @${e \rrEEstar \boundaryerror} }
+    @item{ @${e} diverges }
+  ]
+}@;
+@;@proof-sketch{
+@; By progress and preservation of @${\wellEE}.
+@;}
+
+Clearly, the erasure embedding completely lacks predictability with respect to static types.
+One can easily build a well-typed expression that reduces to a value
+ of a completely different type.
+For example, @${(\edyn{\tint}{\vlam{x}{x}})}
+ has the static type @${\tint} but evaluates to a function.
+Worse yet, well-typed expressions may produce unexpected errors (a category I disaster)
+ or silently compute nonsensical results (a category II disaster).
+
+@; TODO remove this, silliness
+To illustrate this second kind of danger, recall the classic story of
+ Professor Bessel, who @emph{
+  announced that a complex number was an ordered pair of reals
+  the first of which was nonnegative}@~cite[r-ip-1983].
+A student might use the type @${(\tpair{\tnat}{\tint})}
+ to model (truncated) Bessel numbers and define a few functions based on the lecture notes.
+Calling one of these functions with the dynamically-typed value @${\vpair{-1}{1}}
+ may give a result, but probably not the right one.
+
+Despite its disrespect for types, the erasure embedding has found increasingly widespread use.
+For example,
+ Hack, @;@note{@url{http://hacklang.org/}},
+ TypeScript, @;@note{@url{https://www.typescriptlang.org/}},
+ and Typed Clojure@~cite[bdt-esop-2016] implement this embedding by
+ statically erasing types and re-using the PHP, JavaScript, or Clojure
+ runtime.
+@; @note{Anecdotal evidence of nasty TypeScript bugs from the @href["http://plasma.cs.umass.edu/"]{PLASMA group} at UMass.}
+
+@; python annotations API @note{@url{https://www.python.org/dev/peps/pep-3107/}}
+@; pluggable type systems @~cite[bracha-pluggable-types].
 
 
 @; -----------------------------------------------------------------------------
@@ -337,68 +501,3 @@ We state soundness for @${\langK} in terms of the static typing judgment
 @; we conjecture that the semantics are observationally equivalent.
 
 
-@; -----------------------------------------------------------------------------
-@section[#:tag "sec:erasure-embedding"]{Erasure Embedding}
-@include-figure["fig:erasure-reduction.tex" "Erasure Embedding"]
-@include-figure["fig:erasure-preservation.tex" "Property judgments for the erasure embedding"]
-
-Intuitively, we can create a multi-language that avoids undefined behavior
- but ignores type annotations
- in two easy steps.
-First, let statically-typed values and dynamically-typed values freely cross boundary terms.
-Second, base the evaluator on the dynamically-typed notion of reduction.
-
-@Figure-ref{fig:erasure-delta} specifies this @emph{erasure semantics} for
- the @${\langM} language.
-The notion of reduction @${\rrEE} extends the dynamically-typed reduction to handle
- type-annotated functions and boundary expressions.
-Its definition relies on an extension of evaluation contexts
- to allow reduction under boundaries
- and takes the appropriate closure of @${\rrEE}.
-The typing judgment @${\Gamma \wellEE e} extends the notion of
- a well-formed program to ignore any type annotations.
-As a result, the soundness theorem for @${\langE} resembles that of @${\langD}.
-
-@theorem[@elem{@${\langE} soundness}]{
-  If @${\wellM e : \tau}
-   then @${\wellEE e} and either:
-  @itemlist[
-    @item{ @${e \rrEEstar v} and @${\wellEE v} }
-    @item{ @${e \rrEEstar \tagerror} }
-    @item{ @${e \rrEEstar \boundaryerror} }
-    @item{ @${e} diverges }
-  ]
-}@;
-@;@proof-sketch{
-@; By progress and preservation of @${\wellEE}.
-@;}
-
-Clearly, the erasure embedding completely lacks predictability with respect to static types.
-One can easily build a well-typed expression that reduces to a value
- of a completely different type.
-For example, @${(\edyn{\tint}{\vlam{x}{x}})}
- has the static type @${\tint} but evaluates to a function.
-Worse yet, well-typed expressions may produce unexpected errors (a category I disaster)
- or silently compute nonsensical results (a category II disaster).
-
-@; TODO remove this, silliness
-To illustrate this second kind of danger, recall the classic story of
- Professor Bessel, who @emph{
-  announced that a complex number was an ordered pair of reals
-  the first of which was nonnegative}@~cite[r-ip-1983].
-A student might use the type @${(\tpair{\tnat}{\tint})}
- to model (truncated) Bessel numbers and define a few functions based on the lecture notes.
-Calling one of these functions with the dynamically-typed value @${\vpair{-1}{1}}
- may give a result, but probably not the right one.
-
-Despite its disrespect for types, the erasure embedding has found increasingly widespread use.
-For example,
- Hack, @;@note{@url{http://hacklang.org/}},
- TypeScript, @;@note{@url{https://www.typescriptlang.org/}},
- and Typed Clojure@~cite[bdt-esop-2016] implement this embedding by
- statically erasing types and re-using the PHP, JavaScript, or Clojure
- runtime.
-@; @note{Anecdotal evidence of nasty TypeScript bugs from the @href["http://plasma.cs.umass.edu/"]{PLASMA group} at UMass.}
-
-@; python annotations API @note{@url{https://www.python.org/dev/peps/pep-3107/}}
-@; pluggable type systems @~cite[bracha-pluggable-types].

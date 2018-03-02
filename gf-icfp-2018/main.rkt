@@ -49,6 +49,7 @@
 
   note-to-self
   mytech
+  $$
 
   proof-sketch
 
@@ -289,6 +290,9 @@
 
 (define (format-step* arr src tgt)
   ($ (format "~a~~~a^*~~~a" src arr tgt)))
+
+(define ($$ . elem*)
+  (apply exact (list "\\[" elem* "\\]")))
 
 (define type-error
   "\\tagerror")
