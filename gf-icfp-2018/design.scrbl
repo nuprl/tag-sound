@@ -9,160 +9,106 @@
 
 @; -----------------------------------------------------------------------------
 
-Beginning with the surface syntax in @figure-ref{fig:multi-syntax}, 
+In this section we equip one syntax for @mytech{mixed-typed programs} (@figure-ref{fig:multi-syntax})
+ with one type system (@figure-ref{fig:multi-preservation}) and three semantics
+ (sections @secref{sec:natural-embedding}, @secref{sec:locally-defensive-embedding},
+ and @secref{sec:erasure-embedding}).
+Each semantics satisfies a unique soundness condition.
 
-@Figure-ref{fig:multi-syntax} 
+@Figure-ref{fig:multi-syntax} presents the syntax.
+The grammar for @${\exprdyn} defines an untyped host language; the
+ grammar @${\exprsta} defines an explicitly-typed twin language.
+Both expression languages, @${\exprdyn} and @${\exprsta}, describe a lambda
+ calculus extended with integers, pairs, related primitive operations,
+ and @emph{boundary terms}.
+The @${\exprdyn} boundary term @${(\esta{\tau}{\exprsta})} embeds a
+ typed expression in an untyped context.
+Conversely, the @${\exprsta} boundary term @${(\edyn{\tau}{\exprdyn})} embeds
+ a dynamically-typed expression; the type annotation @${\tau} describes the
+ context's assumptions about the value of the embedded expression.
 
+The syntax intentionally does not include recursive functions, arbitrary-length
+ data structures, mutable values, or infinite values such as streams.
+Incorporating these values and their types is straightforward given a strategy
+ that handles basic values, immutable data structures, and anonymous functions.
+See @secref{sec:implementation} for details.
+@; simple as possible ... well I guess pairs could be immutable boxes
 
+@Figure-ref{fig:multi-preservation} defines a type system for this
+ surface language.
+An expression @${e} is well-formed, written @${\cdot \wellM e}, if it
+ has no free variables and all its embedded terms are well-typed.
+An expression is well-typed, written @${\cdot \wellM \exprsta : \tau},
+ if it has no free variables, does not apply a function or primitive operation
+ to an argument outside its domain, and all its embedded terms are well-typed.
+
+The challenge is to define a sound semantics for well-typed expressions.
+Specifically, we are looking for a reduction relation @${\rastar} that provides:
+@itemlist[
+@item{
+  @emph{soundness for a single language}: for expressions without boundary
+   terms, the typing judgment in @figure-ref{fig:multi-preservation} is sound
+   with respect to the reduction semantics;
+}
+@item{
+  @emph{expressive boundary terms}: the static and dynamic twin languages can
+   share values at any type;
+  @; e.g. no rule (dyn t->t v) ==> error to prohibit sharing all function
+}
+@item{
+  @emph{soundness for the pair of languages}: for all expressions,
+   evaluation preserves some property, though it may be weaker than a standard
+   notion of type soundness.
+}
+]
+With these goals in mind, the following three subsections give strategies for
+ embedding untyped expressions (@${\exprdyn}) within typed expressions (@${\exprsta})
+ and vice-versa.
+Each embedding is made of five basic ingredients:
+ a notion of reduction @${\rrD} for dynamically-typed expressions;
+ a notion of reduction @${\rrS} for statically-typed expressions;
+ a function @${\vfromdyn} that imports a dynamically-typed value into a typed context;
+ a function @${\vfromsta} that imports a statically-typed value into an untyped context;
+ and a judgment form that is both implied by the typing judgment in
+ @figure-ref{fig:multi-preservation} and sound with respect to a semantics derived from the
+ four previous components.
+
+The starting point for these embeddings is the @mytech{evaluation syntax}
+ and @${\delta} function in @figure-ref{fig:multi-reduction}.
+The syntax provides a uniform language for reduction relations:
+ the expression grammar @${e} is the domain of evaluation,
+ evaluation ends in either a value @${v} or error @${\eerr},
+ and the order of evaluation is guided by contexts @${\ES}.
+There are two kinds of error.
+Since this is a multi-language system, a @mytech{boundary error} @${\boundaryerror}
+ can occur when one language receives an incompatible value from another.
+A @mytech{tag error} @${\tagerror} occurs when value of the wrong shape reaches
+ an elimination form.
+@; GAAAH
+High level: boundary errors and tag errors both occur because of bad values;
+ boundary error is from an impedence mismatch between languages,
+ tag error is from a mismatch between components in one language.
+Evaluation contexts have two levels.
+A pure context @${\ebase} does not contain boundary terms;
+ an evaluation context @${\esd} may contain boundary terms.
+This distinction is important if the embedding has two notions of reduction
+ for typed and untyped code.
+
+The @${\delta} function assigns meaning to the primitives.
+The primitives @${\vfst} and @${\vsnd} extract the first and second components
+ of a pair value, respectively.
+The primitive @${\vsum} adds integers and the primitive @${\vquotient} performs
+ integer division.
+Division by zero raises a boundary error because one language (math) received
+ an incompatible value from another language (@${\exprdyn} or @${\exprsta}) 
 
 @include-figure["fig:multi-syntax.tex" @elem{Twin languages syntax}]
 @include-figure["fig:multi-preservation.tex" @elem{Twin languages static typing judgments}]
 @include-figure["fig:multi-reduction.tex" @elem{Common semantic notions}]
 
-@; TODO I'm assuming base types are O(1) to check no matter what ... that they're taggged ... don't think this comes across
-The goal of a type-directed embedding is to describe how three
- classes of values may cross language boundaries:
- (1) values of a base type,
- (2) finite values of a non-base type,
- and (3) infinite values of a non-base type.
-As representative examples, we use integers, pairs, and anonymous functions.
-Scaling an embedding to accomodate other types and values is usually straightforward,
- see @section-ref{sec:implementation}.
-
-@Figure-ref{fig:common-syntax} introduces the syntactic
- and semantic notions common to all the embeddings.
-Expressions @${e} include variables, values, and the application of a
- function or primitive.
-The unary primitives @${\vfst} and @${\vsnd} are projections for pair values;
- the binary primitives @${\vsum} and @${\vquotient} are integer arithmetic operators.
-
-@; TODO 'boundary error' isn't clear enough ... I think need to explain boundary
-@;  first, then we can say what \delta is one instance of a boundary
-The semantics of the primitives is given by the partial @${\delta} function.
-In a real language, these primitives would be implemented by a runtime system
- that manipulates the machine representation of values.
-As such, we treat calls to @${\delta} as cross-language function calls.
-The result of such a function call is either a value, a token indicating
- a cross-language boundary error, or undefined behavior.
-
-Undefined behavior due to @${\delta} is a categorical evil.
-The baseline soundness requirement for our models is that they rule out
- programs that can lead to such evil.
-
-Other components in @figure-ref{fig:common-syntax} help define a reduction semantics.
-An answer @${A} is either an expression or an error token.
-Evaluation contexts @${E} impose the standard order of evaluation.
-Lastly, the meta-function @${\cclift{E}{\rrR}} lifts a
- notion of reduction@~cite[b-lambda-1981]
- over evaluation contexts in a way that detects and propagates errors@~cite[redex-book].
-
-
-@section{Source Languages}
-
-The language @${\langD} defined in @figure-ref{fig:dyn-delta} is a
- dynamically-typed extension of @figure-ref{fig:common-syntax}.
-An @${\langD} expression @${e} is well-formed according to the typing judgment
- @${\GammaD \welldyn e} if it contains no free variables.
-The notion of reduction @${\rrD} defines the semantics of well-formed expressions;
- in essence, it reduces a valid application of values to a value and
- maps an invalid application to a type-tag error.@note{The phrase @emph{type-tag}
- refers to an implementation technique for distinguishing the bit-level
- representations of values@~cite[a-cc-1992].}
-
-The language @${\langS} in @figure-ref{fig:sta-delta} is a statically-typed
- counterpart to @${\langD}.
-Types in @${\langS} (@figure-ref{fig:common-syntax}) describe four interesting classes of @${\langD} values:
- integers, natural numbers, pairs, and functions.
-The type for natural numbers is representative of subset types
- that do not have a matching low-level type tag@~cite[c-lp-1983].
-Migratory typing systems must accomodate such types, because they have emerged
- in dynamically-typed programming languages.
-An @${\langS} expression @${e} is well-typed if @${\GammaS \wellsta e : \tau}
- can be derived using the rules in @figure-ref{fig:sta-delta} for some type
- @${\tau}.@note{These typing rules are not syntax directed; @; because of subsumption
- see the PLT Redex models in our artifact for an implementation.}
-The purpose of this typing judgment is to guarantee that all applications
- apply a function and all primitive operations receive arguments for which
- @${\delta} yields an answer.
-If this is true, then the notion of reduction @${\rrS} is defined for all
- well-typed expressions.
-
-Both languages are sound in a precise sense.
-For @${\langD}, soundness means that the evaluation of any well-formed expression
- either produces a valid answer or runs forever.
-Expressions cannot send the evaluator to an undefined state.
-
-@theorem[@elem{@${\langD} soundness}]{
-  If @${\welldyn e} then either:
-  @itemlist[
-    @item{ @${e \rrDstar v} and @${\welldyn v} }
-    @item{ @${e \rrDstar \tagerror} }
-    @item{ @${e \rrDstar \boundaryerror} }
-    @item{ @${e} diverges }
-  ]
-}@;
-@proof-sketch{
-  By progress and preservation lemmas@~cite[type-soundness] for the @${\welldyn} relation.
-}
-
-The analogous soundness theorem for @${\langS} strengthens @${\langD} soundness
- in that no program raises a type-tag error.
-Additionally, we can prove that evaluation preserves types;
- if an expression has type @${\tau} and evaluates to a value @${v}, then
- @${v} also has type @${\tau}.
-This enhancement allows programmers to use static type information to reason about the run-time
- behavior of programs.
-
-@theorem[@elem{@${\langS} soundness}]{
-  If @${\wellsta e : \tau} then either:
-  @itemlist[
-    @item{ @${e \rrSstar v} and @${\wellsta v : \tau} }
-    @item{ @${e \rrSstar \boundaryerror} }
-    @item{ @${e} diverges }
-  ]
-}@;
-@proof-sketch{
-  By progress and preservation of the @${\wellsta \cdot : \tau} relation.
-  (The only boundary error is division by zero.)
-}
-
 
 @; -----------------------------------------------------------------------------
-@section{Multi-Language Syntax}
-
-@Figure-ref{fig:mixed-delta} defines the syntax and typing rules of a
- multi-language based on @${\langD} and @${\langS}.
-The multi-language @${\langM} extends the common syntax in @figure-ref{fig:common-syntax}
- with boundary expressions, combined value forms, and combined type contexts.
-This language comes with two mutually-recursive typing judgments, extending
- the judgments in @figure-ref["fig:dyn-delta" "fig:sta-delta"]:
- a well-formedness judgment @${\Gamma \wellM e} for dynamically-typed expressions
- and a type-checking judgment @${\Gamma \wellM e : \tau} for statically-typed expressions.
-Those typing rules prevent a dynamically-typed expression from
- directly referencing a statically-typed variable, and vice-versa.
-Cross-language references must go through a @${\vdyn} or @${\vsta} boundary
- expression.
-
-By intention, the definition of @${\langM} does not include a semantics.
-The rest of this section introduces @integer->word[NUM-EMBEDDINGS]
- alternative semantics, each with unique tradeoffs.
-@Figure-ref{fig:mixed-delta} does include a meta-function that
- defines two mutually-recursive reduction relations from two notions of reduction.
-We use @${\SDlift{E}{\rrR}{E'}{\rrRp}}, pronounced ``@${\rrR}-static bowtie-@${E} @${\rrRp}-dynamic'',
- to build: (1) a reduction relation @${\ccR} for statically-typed expressions,
- and (2) a reduction relation @${\ccRp} for dynamically-typed expressions.
-Informally, @${\ccR} applied to a statically-typed expression @${e}
- applies @${\rrR} provided @${e} is not currently evaluating a boundary term;
- otherwise @${\ccR} dispatches to the analogous @${\ccRp} and the two
- flip-flop for nested boundaries.
-@; TODO flip-flop is not really clear
-The payoff of this technical machinery is that a statically-typed term @${e}
- cannot step via @${\ccR} to a type-tag error if @${e} does not embed
- dynamically-typed code, facilitating a proof of soundness.
-
-
-@; -----------------------------------------------------------------------------
-@section{The Natural Embedding}
+@section[#:tag "sec:natural-embedding"]{Natural Embedding}
 @include-figure*["fig:natural-reduction.tex" "Natural Embedding"]
 @include-figure*["fig:natural-preservation.tex" "Property judgments for the natural embedding"]
 
@@ -277,7 +223,7 @@ Consequently, they demonstrate that the erasure and natural embeddings lie on
 
 
 @; -----------------------------------------------------------------------------
-@section{The Locally-Defensive Embedding}
+@section[#:tag "sec:locally-defensive-embedding"]{Locally-Defensive Embedding}
 @include-figure*["fig:locally-defensive-reduction.tex" "Locally-Defensive Embedding"]
 @include-figure*["fig:locally-defensive-preservation.tex" "Property judgments for the locally-defensive embedding"]
 
@@ -392,7 +338,7 @@ We state soundness for @${\langK} in terms of the static typing judgment
 
 
 @; -----------------------------------------------------------------------------
-@section{The Erasure Embedding}
+@section[#:tag "sec:erasure-embedding"]{Erasure Embedding}
 @include-figure["fig:erasure-reduction.tex" "Erasure Embedding"]
 @include-figure["fig:erasure-preservation.tex" "Property judgments for the erasure embedding"]
 
