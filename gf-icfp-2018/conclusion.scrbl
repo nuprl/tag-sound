@@ -9,6 +9,10 @@
 @; - what did we do in this paper? (where do I want to end up)
 @;   * different semantics => simple & blame-free notions of typescript, TR, retic soundness
 @;   * derive tag soundness, comes about by cutting costs
+@; - natural embedding, why runtime check and not typecheck?
+@;     maybe possible in pure language, probably not in any language worth building an MT system for
+
+
 
 @; -----------------------------------------------------------------------------
 
@@ -68,3 +72,4 @@ performance with the need for guarantees.
 @; - RTTI for TR, the models have (mon T v) but reality is (mon K,K v)
 @; - static analysis, to pick natural vs. co-natural for a boundary (for efficiency)
 @; - JIT for tagged, other things to reduce tag checks
+@; - semantic type soundness theorems, better classification

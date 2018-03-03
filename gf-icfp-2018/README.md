@@ -55,3 +55,11 @@ or, factory recycling
 MT: replace parts of program with "trust me" things in the gamma.
  could be very useful, like z3 or some fast library for fast things.
  what guarantees about "mixed" programs?
+
+- - -
+
+In Chinese, a phrase that has the similar meaning is 风马牛不相及 (fēng mǎ
+niú bù xiāng jí), literally meaning "horses and cattles won't mate with each
+other", and later used to describe things that are totally unrelated and
+incomparable.
+

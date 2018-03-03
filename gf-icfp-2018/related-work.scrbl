@@ -1,11 +1,20 @@
 #lang gf-icfp-2018
-@title[#:tag "sec:related-work"]{Related Work}
+@title[#:tag "sec:related-work"]{Apples to Oranges}
 
 @; -----------------------------------------------------------------------------
 
 @; TODO
 @; - "twin language" is special case of "multi-language"
 @;   not sure if related work on soundness for N languages ... 
+
+Apples, oranges, and good ideas grow on trees that have roots.
+
+@parag{Natural Embedding}
+
+@parag{Erasure Embedding}
+
+@parag{Locally-Defensive Embedding}
+
 
 @parag{Gradual Typing}
 In the broad sense, the term gradual typing@~cite[st-sfp-2006] describes

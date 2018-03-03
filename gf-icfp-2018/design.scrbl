@@ -1,4 +1,5 @@
 #lang gf-icfp-2018
+@require[(only-in "techreport.rkt" tr-theorem tr-lemma)]
 @title[#:tag "sec:design"]{Apples-to-Apples Logic and Metatheory}
 
 @; TODO
@@ -208,23 +209,22 @@ Function values interact with their context by receiving arguments, and so
  @${\efromdyn{\tarr{\tau_d}{\tau_c}}{v}} wraps the function @${v} in a monitor
  to protect it from dynamically-typed arguments.
 
-The implementations of @${\vfromdyn} and @${\vfromsta} establish an invariant
- about monitors occurring in dynamic and static contexts.
-For every monitor @${(\vmonfun{\tau}{v})} in dynamically-typed code,
- the value @${v} is either a statically-typed function or a monitor.
-For every monitor in statically-typed code, the encapsulated value is either
- a dynamically-typed function or a monitor.
-This invariant provides the basis for the notions of reduction defined in @figure-ref{fig:natural-reduction}.
-
 The notion of reduction @${\rrNS} adds a rule for applying a monitor as a function
- in statically-typed code.
-Since the contents of the monitor came from dynamically-typed code, the rule is
- to export the typed argument value and import the result.
+ in a typed context.
+The rule is to export the argument value to an untyped context and import the result
+ back into typed code.
 The ``export'' and ``import'' are implemented with boundary terms.
 Conversely, the notion of reduction @${\rrND} adds a rule for applying a monitor
- as a dynamically-typed function.
-In this case the contents of the monitor are typed, so the conversion strategy
- is dual: convert the argument to typed, convert the result back to untyped.
+ in an untyped context.
+In this case the conversion strategy is dual:
+ convert the argument to typed, convert the result back to untyped.
+
+These notions of reduction assume that all monitors in statically-typed contexts
+ contain dynamically-typed values, and that all monitors in dynamically-typed
+ contexts contain statically-typed values.
+@Figure-ref{fig:natural-property} captures this requirement by extending the
+ basic typing judgments for the evaluation syntax (@figure-ref{fig:multi-preservation})
+ with appropriate rules for monitors.
 
 The final components in @figure-ref{fig:natural-reduction} define a reduction
  relation @${\ccNE} for evaluation contexts and take the reflexive, transitive
@@ -236,85 +236,71 @@ If the innermost boundary has the form @${(\esta{\tau}{e'})} then @${\ccNE}
 If the innermost boundary has the form @${(\edyn{\tau}{e'})} then @${\ccNE}
  either uses @${\rrNS} or @${\vfromdyn} to advance.
 
-@; (internalize encapsulate) a boundary
-
-
+@exact{\clearpage}
 @subsection{Soundness}
 
+The soundness theorems for the natural embedding state two results about the
+ possible outcomes of evaluating a well-typed surface language term.
+First, the evaluation of a (terminating) statically-typed expression ends
+ in either a well-typed value, a boundary error, or a tag error in dynamically-typed code.
+Second, dynamically-typed code cannot exhibit undefined behavior.
+More formally:
 
+@twocolumn[
+  @tr-theorem[#:key "N-static-soundness" @elem{@${\mathbf{N}} static soundness}]{
+    If @${\wellM e : \tau} then @${\wellNE e : \tau} and
+    @linebreak[]
+    one of the following holds:
+    @itemlist[
+      @item{ @${e \rrNSstar v \mbox{ and } \wellNE v : \tau} }
+      @item{ @${e \rrNSstar \ctxE{\edyn{\tau'}{\ebase[e']}} \mbox{ and } e' \rrND \tagerror} }
+      @item{ @${e \rrNSstar \boundaryerror} }
+      @item{ @${e} diverges}
+    ] }
 
+  @tr-theorem[#:key "N-dynamic-soundness" @elem{@${\mathbf{N}} dynamic soundness}]{
+    If @${\wellM e} then @${\wellNE e} and
+    @linebreak[]
+    one of the following holds:
+    @itemlist[
+      @item{ @${e \rrNDstar v \mbox{ and } \wellNE v} }
+      @item{ @${e \rrNDstar \tagerror} }
+      @item{ @${e \rrNDstar \boundaryerror} }
+      @item{ @${e} diverges}
+    ] }
+]
 
-The classic solution is to use a coinductive strategy and monitor the
- future behaviors of values@~cite[ff-icfp-2002].
-For function types, this means a boundary expecting values of type
- @${(\tarr{\tau_d}{\tau_c})} accepts any function value
- and signals a boundary error if a future application of that value produces
- a result that does not match the @${\tau_c} type.
-Instead of finding a good reason that the value is typed,
- the language allows the value as long as there is no evidence that the value
- is not well-typed.
+The theorems follow from standard progress and preservation lemmas
+ for each reduction relation and the corresponding
+ property judgment.
+See the appendix for proofs.
 
-@Figure-ref{fig:natural-delta} specifies a natural embedding by extending
- the multi-language with function monitor values.
-A monitor @${(\vmonfun{\tarr{\tau_d}{\tau_c}}{v})} associates a type to a value;
- new reduction rules ensure that applying the monitor to an argument is
- the same as applying the underlying value @${v} across two boundary expressions.
+The central lemmas that connect this pair of theorems are a specification for
+ the @${\vfromdyn} and @${\vfromsta} functions:
 
-Statically-typed functions crossing into dynamically-typed code
- are wrapped in monitors.
-Such wrappers check that dynamically-typed arguments match the function's
- static type.
-Dynamically-typed functions that enter statically-typed code are wrapped
- in monitors to check the results they produce.
-Monitor values establish a key invariant: every value in statically-typed
- code is either a well-typed value or a monitor that encapsulates a
- potentially-dangerous value.
-This invariant yields a soundness like that of @${\langS}, in which only dynamically-typed
- code can raise a type-tag error.
-@; TODO still unclear, this previous sentence
-
-@; TODO need to be explicit that TR compiles to R?
-
-Typed Racket implements the natural embedding by compiling static types
- to contracts that check dynamically-typed code at run-time@~cite[tf-popl-2008].
-Under the protection of the contracts, Typed Racket may replace certain primitive operations
- with faster, unsafe versions that are defined for a subset of the Racket value domain@~cite[stff-padl-2012].
-This compilation technique can improve the performance of typed code.
- However, the overhead of checking the contracts is a significant problem in
- mixed programs@~cite[gtnffvf-jfp-2017 tfgnvf-popl-2016].
-
-
-@; -----------------------------------------------------------------------------
-@; TODO make new section? idk ... I like this as is and will like it better with simulation theorems
-@section{Soundness vs. Performance}
-
-The erasure embedding promises nothing in the way of type soudness,
- and lets values freely cross boundary expressions.
-The natural embedding is ideally type sound@~cite[tfffgksst-snapl-2017]
- but imposes a large performance overhead.
-In the context of Typed Racket, Takikawa @|etal| observed that a straightforward
- implementation of the natural embedding can slow down a working program
- by two orders of magnitude.
-
-At a high level, the performance overhead of the natural embedding comes from three sources:
-  checking, indirection, and allocation.
-By @emph{checking}, we refer to the cost of validating a type-tag and recursively
- validating the components of a structured value.
-For example, checking a list structure built from @${N} pair values requires
- (at least) @${2N} recursive calls.
-Function monitors add an @emph{indirection} cost.
-Every call to a monitored function incurs one additional boundary-crossing.
-If a value repeatedly crosses boundary terms, these type-checking layers
- can accumulate without bound.@note{In a language with a JIT compiler,
-  indirection may also affect inlining decisions.
-  @; TODO does Spenser's work validate this?
+@twocolumn[
+  @tr-lemma[#:key "N-D-soundness" @elem{@${\mathbf{N}} @${\vfromdyn} soundness}]{
+    If @${\Gamma \wellNE v} and @${\efromdyn{\tau}{v} = e} then @${\Gamma \wellNE e : \tau}
   }
-Finally, the @emph{allocation} cost of building a monitor value
- also adds to the performance overhead.
 
-The following three embeddings address these costs systematically.
-Consequently, they demonstrate that the erasure and natural embeddings lie on
- opposite ends of a spectrum between soundness and performance.
+  @tr-lemma[#:key "N-S-soundness" @elem{@${\mathbf{N}} @${\vfromsta} soundness}]{
+    If @${\Gamma \wellNE v : \tau} and @${\efromsta{\tau}{v} = e} then @${\Gamma \wellNE e}
+  }
+]
+
+@; Any choice of S/D that satisfies these theorems is probably OK for soundness
+
+In other words, the implementations of @${\vfromdyn} and @${\vfromsta} establish
+ an invariant about monitors occurring in dynamic and static contexts.
+Every monitor in dynamically-typed code encapsulates a typed value,
+ and every monitor in statically-typed code encapsulates an untyped value.
+
+The soundness guarantee for the natural embedding is very strong.
+@; with blame, TypeError at runtime is at least debuggable
+One goal of soundness is to eliminate a class of errors.
+The natural embedding eliminates tag errors in typed code.
+It cannot eliminate boundary errors, but it brings them under control in a
+ useful way.
 
 
 @; -----------------------------------------------------------------------------
@@ -322,7 +308,9 @@ Consequently, they demonstrate that the erasure and natural embeddings lie on
 @include-figure["fig:erasure-reduction.tex" "Erasure Embedding"]
 @include-figure["fig:erasure-preservation.tex" "Property judgments for the erasure embedding"]
 
-NATURAL EMBEDDING HAS COSTS
+@subsection{Overview}
+@subsection{Implementation}
+@subsection{Soundness}
 
 Intuitively, we can create a multi-language that avoids undefined behavior
  but ignores type annotations
@@ -500,4 +488,22 @@ We state soundness for @${\langK} in terms of the static typing judgment
 @;Type-tag soundness is superficially different from soundness for the forgetful, final language @${\langF}; however,
 @; we conjecture that the semantics are observationally equivalent.
 
+
+@section{Discussion}
+
+The performance overhead of the natural embedding comes from three sources:
+  checking, indirection, and allocation.
+By @emph{checking}, we refer to the cost of validating a type-tag and recursively
+ validating the components of a structured value.
+For example, checking a list structure built from @${N} pair values requires
+ (at least) @${2N} recursive calls.
+Function monitors add an @emph{indirection} cost.
+Every call to a monitored function incurs one additional boundary-crossing.
+If a value repeatedly crosses boundary terms, these type-checking layers
+ can accumulate without bound.@note{In a language with a JIT compiler,
+  indirection may also affect inlining decisions.
+  @; TODO does Spenser's work validate this?
+  }
+Finally, the @emph{allocation} cost of building a monitor value
+ also adds to the performance overhead.
 

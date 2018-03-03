@@ -1,17 +1,17 @@
 %% -----------------------------------------------------------------------------
 %% --- typing
-\lblmathparextra{$\Gamma \wellNE e$}{ (selected rules)}{
-  \inferrule*{
-    x \in \GammaD
-  }{
-    \GammaD \wellNE x
-  }
-
-  \inferrule*{
-    x,\GammaD \wellNE e
-  }{
-    \GammaD \wellNE \vlam{x}{e}
-  }
+\lblmathparextra{$\Gamma \wellNE e$}{ extends $\wellM$}{
+%  \inferrule*{
+%    x \in \GammaD
+%  }{
+%    \GammaD \wellNE x
+%  }
+%
+%  \inferrule*{
+%    x,\GammaD \wellNE e
+%  }{
+%    \GammaD \wellNE \vlam{x}{e}
+%  }
 %
 %  \inferrule*{
 %  }{
@@ -67,18 +67,18 @@
 }
 
 \smallskip
-\lblmathparextra{$\Gamma \wellNE e : \tau$}{ (selected rules)}{
-  \inferrule*{
-    \tann{x}{\tau} \in \GammaS
-  }{
-    \GammaS \wellNE x : \tau
-  }
-
-  \inferrule*{
-    \tann{x}{\tau_d},\GammaS \wellNE e : \tau_c
-  }{
-    \GammaS \wellNE \vlam{\tann{x}{\tau_d}}{e} : \tarr{\tau_d}{\tau_c}
-  }
+\lblmathparextra{$\Gamma \wellNE e : \tau$}{ extends $\wellM$}{
+%  \inferrule*{
+%    \tann{x}{\tau} \in \GammaS
+%  }{
+%    \GammaS \wellNE x : \tau
+%  }
+%
+%  \inferrule*{
+%    \tann{x}{\tau_d},\GammaS \wellNE e : \tau_c
+%  }{
+%    \GammaS \wellNE \vlam{\tann{x}{\tau_d}}{e} : \tarr{\tau_d}{\tau_c}
+%  }
 %
 %  \inferrule*{
 %    i \in \naturals

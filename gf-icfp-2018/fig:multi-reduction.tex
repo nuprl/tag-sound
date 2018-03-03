@@ -17,22 +17,73 @@
   \end{array}$
 }
 
-\lbl{$\delta : \vunop \times v \rightarrow e$}{
-  $\begin{array}{l@{~~}c@{~~}l}
-    \delta(\vfst, \vpair{v_0}{v_1}) & = & v_0
-    \\
-    \delta(\vsnd, \vpair{v_0}{v_1}) & = & v_1
-  \end{array}$
-}
+\begin{TwoColumn}
+  \lbl{$\delta : \vunop \times v \rightarrow e$}{
+    $\begin{array}{l@{~~}c@{~~}l}
+      \delta(\vfst, \vpair{v_0}{v_1}) & = & v_0
+      \\
+      \delta(\vsnd, \vpair{v_0}{v_1}) & = & v_1
+    \end{array}$
+  }
 
-\smallskip
-\lbl{$\delta : \vbinop \times v \times v \rightarrow e$}{
-  $\begin{array}{l@{~~}c@{~~}l}
-    \delta(\vsum, i_0, i_1) & = & i_0 + i_1
-    \\
-    \delta(\vquotient, i_0, 0) & = & \boundaryerror
-    \\
-    \delta(\vquotient, i_0, i_1) & = & \floorof{i_0 / i_1}
-    \\ \multicolumn{3}{l}{\mbox{\quad if $i_1 \neq 0$}}
-  \end{array}$
-}
+  \multicolsbreak
+
+  \lbl{$\delta : \vbinop \times v \times v \rightarrow e$}{
+    $\begin{array}{l@{~~}c@{~~}l}
+      \delta(\vsum, i_0, i_1) & = & i_0 + i_1
+      \\
+      \delta(\vquotient, i_0, 0) & = & \boundaryerror
+      \\
+      \delta(\vquotient, i_0, i_1) & = & \floorof{i_0 / i_1}
+      \\ \multicolumn{3}{l}{\mbox{\quad if $i_1 \neq 0$}}
+    \end{array}$
+  }
+\end{TwoColumn}
+
+\begin{TwoColumn}
+  \lblextra{$e \rrS e$}{}{
+    $\begin{array}{l@{\hspace{0.5em}}c@{\hspace{0.5em}}l}
+      \\
+      \\
+      \eapp{(\vlam{\tann{x}{\tau}}{e})}{v} & \rrS
+      & \vsubst{e}{x}{v}
+      \\
+      \\
+      \\
+      \eunop{v} & \rrS
+      & \delta(\vunop, v)
+      \\
+      \\
+      \\
+      \ebinop{v_0}{v_1} & \rrS
+      & \delta(\vbinop, v_0, v_1)
+    \end{array}$
+  }
+
+  \multicolsbreak
+
+  \lblextra{$e \rrD e$}{}{
+    $\begin{array}{l@{\hspace{0.5em}}c@{\hspace{0.5em}}l}
+      \eapp{v_0}{v_1} & \rrD
+      & \tagerror
+      \\ \sidecond{if $v_0 \in \integers$ or $v_0 = \vpair{v}{v'}$}
+      \\
+      \eapp{(\vlam{x}{e})}{v} & \rrD
+      & \vsubst{e}{x}{v}
+      \\
+      \eunop{v} & \rrD
+      & \tagerror
+      \\ \sidecond{if $\delta(\vunop, v)$ is undefined}
+      \\
+      \eunop{v} & \rrD
+      & \delta(\vunop, v)
+      \\
+      \ebinop{v_0}{v_1} & \rrD
+      & \tagerror
+      \\ \sidecond{if $\delta(\vbinop, v_0, v_1)$ is undefined}
+      \\
+      \ebinop{v_0}{v_1} & \rrD
+      & \delta(\vbinop, v_0, v_1)
+    \end{array}$
+  }
+\end{TwoColumn}

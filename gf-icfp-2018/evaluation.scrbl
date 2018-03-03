@@ -7,6 +7,9 @@
 @; - overhead plots
 @; - typed/untyped ratios (maybe also, worst-case performance?)
 
+@; - sec:implementation:tag-check
+@;    julia extreme tag checks
+
 @; -----------------------------------------------------------------------------
 
 

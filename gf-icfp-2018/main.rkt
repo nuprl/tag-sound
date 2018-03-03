@@ -50,6 +50,7 @@
   note-to-self
   mytech
   $$
+  twocolumn
 
   proof-sketch
 
@@ -293,6 +294,13 @@
 
 (define ($$ . elem*)
   (apply exact (list "\\[" elem* "\\]")))
+
+(define two-column-style
+  (style "TwoColumn" '()))
+
+(define (twocolumn a b)
+  (nested #:style 'no-break
+          (nested #:style two-column-style (list a (exact "\n\\multicolsbreak\n") b))))
 
 (define type-error
   "\\tagerror")
