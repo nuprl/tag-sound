@@ -121,7 +121,7 @@ Division by zero raises a boundary error because one language (math) received
 @;   approximate with runtime checks ?
 @; ... simple idea just od `\vdash e : \tau` at runtime
 
-@subsection{Overview}
+@subsection[#:tag "sec:natural:overview"]{Overview}
 
 A standard type soundness theorem guarantees that if a well-typed expression
  reduces to a value, the value is of the same type.
@@ -168,7 +168,7 @@ Monitoring delays a type error until the runtime system finds a witness
 @; ??? really just want to say "Fig 1 implements the above"
 
 
-@subsection{Implementation}
+@subsection[#:tag "sec:natural:implementation"]{Implementation}
 
 @; concrete examples ... ???
 
@@ -237,7 +237,7 @@ If the innermost boundary has the form @${(\edyn{\tau}{e'})} then @${\ccNE}
  either uses @${\rrNS} or @${\vfromdyn} to advance.
 
 @exact{\clearpage}
-@subsection{Soundness}
+@subsection[#:tag "sec:natural:soundness"]{Soundness}
 
 The soundness theorems for the natural embedding state two results about the
  possible outcomes of evaluating a well-typed surface language term.
@@ -248,9 +248,9 @@ More formally:
 
 @twocolumn[
   @tr-theorem[#:key "N-static-soundness" @elem{@${\mathbf{N}} static soundness}]{
-    If @${\wellM e : \tau} then @${\wellNE e : \tau} and
+    If @${\wellM e : \tau} then @${\wellNE e : \tau} and one
     @linebreak[]
-    one of the following holds:
+    of the following holds:
     @itemlist[
       @item{ @${e \rrNSstar v \mbox{ and } \wellNE v : \tau} }
       @item{ @${e \rrNSstar \ctxE{\edyn{\tau'}{\ebase[e']}} \mbox{ and } e' \rrND \tagerror} }
@@ -259,9 +259,9 @@ More formally:
     ] }
 
   @tr-theorem[#:key "N-dynamic-soundness" @elem{@${\mathbf{N}} dynamic soundness}]{
-    If @${\wellM e} then @${\wellNE e} and
+    If @${\wellM e} then @${\wellNE e} and one
     @linebreak[]
-    one of the following holds:
+    of the following holds:
     @itemlist[
       @item{ @${e \rrNDstar v \mbox{ and } \wellNE v} }
       @item{ @${e \rrNDstar \tagerror} }
@@ -308,9 +308,9 @@ It cannot eliminate boundary errors, but it brings them under control in a
 @include-figure["fig:erasure-reduction.tex" "Erasure Embedding"]
 @include-figure["fig:erasure-preservation.tex" "Property judgments for the erasure embedding"]
 
-@subsection{Overview}
-@subsection{Implementation}
-@subsection{Soundness}
+@subsection[#:tag "sec:erasure:overview"]{Overview}
+
+????
 
 Intuitively, we can create a multi-language that avoids undefined behavior
  but ignores type annotations
@@ -327,21 +327,6 @@ Its definition relies on an extension of evaluation contexts
  and takes the appropriate closure of @${\rrEE}.
 The typing judgment @${\Gamma \wellEE e} extends the notion of
  a well-formed program to ignore any type annotations.
-As a result, the soundness theorem for @${\langE} resembles that of @${\langD}.
-
-@theorem[@elem{@${\langE} soundness}]{
-  If @${\wellM e : \tau}
-   then @${\wellEE e} and either:
-  @itemlist[
-    @item{ @${e \rrEEstar v} and @${\wellEE v} }
-    @item{ @${e \rrEEstar \tagerror} }
-    @item{ @${e \rrEEstar \boundaryerror} }
-    @item{ @${e} diverges }
-  ]
-}@;
-@;@proof-sketch{
-@; By progress and preservation of @${\wellEE}.
-@;}
 
 Clearly, the erasure embedding completely lacks predictability with respect to static types.
 One can easily build a well-typed expression that reduces to a value
@@ -372,6 +357,59 @@ For example,
 
 @; python annotations API @note{@url{https://www.python.org/dev/peps/pep-3107/}}
 @; pluggable type systems @~cite[bracha-pluggable-types].
+
+
+@subsection[#:tag "sec:erasure:implementation"]{Implementation}
+
+To implement the erasure embedding, it suffices to ignore type annotations
+ and boundary terms in the surface language.
+The notion of reduction @${\rrEE} in @figure-ref{fig:erasure-reduction}
+ implements this idea by extending the dynamically-typed notion of reduction
+ with two rule to let any value cross a boundary term and one rule to reduce
+ the application of a statically-typed function to the application of a dynamically-typed
+ function.
+The reduction relation @${\rrEEstar} is the standard context closure of
+ this notion of reduction.
+
+The judgment in @figure-ref{fig:erasure-preservation} describes well-formed
+ evaluation syntax terms.
+Just like the notion of reduction, it extends a dynamically typed judgment
+ with rules that ignore type annotations.
+
+
+@subsection[#:tag "sec:erasure:soundness"]{Soundness}
+
+The erasure embedding treats typed code as untyped code.
+Consequently, erasure soundness for the pair of language is their lowest common
+ denominator --- well-typed programs have well-defined behavior.
+
+@twocolumn[
+  @tr-theorem[#:key "E-static-soundness" @elem{@${\mathbf{E}} static soundness}]{
+    If @${\wellM e : \tau} then @${\wellEE e} and one
+    @linebreak[]
+    of the following holds:
+    @itemlist[
+      @item{ @${e \rrEEstar v \mbox{ and } \wellEE v} }
+      @item{ @${e \rrEEstar \tagerror} }
+      @item{ @${e \rrEEstar \boundaryerror} }
+      @item{ @${e} diverges}
+    ] }
+
+  @tr-theorem[#:key "E-dynamic-soundness" @elem{@${\mathbf{E}} dynamic soundness}]{
+    If @${\wellM e} then @${\wellEE e} and one
+    @linebreak[]
+    of the following holds:
+    @itemlist[
+      @item{ @${e \rrEEstar v \mbox{ and } \wellEE v} }
+      @item{ @${e \rrEEstar \tagerror} }
+      @item{ @${e \rrEEstar \boundaryerror} }
+      @item{ @${e} diverges}
+    ] }
+]
+
+The proof follows from progress and preservation lemmas for the
+ @${\wellEE} judgment and the @${\rrEEstar} reduction relation.
+It is a weak theorem with a straightforward proof.
 
 
 @; -----------------------------------------------------------------------------

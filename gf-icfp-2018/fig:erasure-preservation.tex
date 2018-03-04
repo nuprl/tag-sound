@@ -1,12 +1,7 @@
+% does NOT extend the dynamically-typed judgment (see dyn rule)
 \lblmathparextra{$\Gamma \wellEE e$}{ (selected rules)}{
   \inferrule*{
     x \in \GammaD
-  }{
-    \GammaD \wellEE x
-  }
-
-  \inferrule*{
-    \tann{x}{\tau} \in \GammaD
   }{
     \GammaD \wellEE x
   }
@@ -18,7 +13,7 @@
   }
 
   \inferrule*{
-    \tann{x}{\tau},\Gamma \wellEE e
+    x,\Gamma \wellEE e
   }{
     \Gamma \wellEE \vlam{\tann{x}{\tau}}{e}
   }

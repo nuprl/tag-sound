@@ -1,62 +1,35 @@
 \lblextra{Language $\langE$}{ inherits Evaluation Syntax}{
-  $\begin{array}{l@{\hspace{0.5em}}c@{\hspace{0.5em}}l}
-    \ES & \BNFeq & \ldots \mid \edyn{\tau}{\ES} \mid \esta{\tau}{\ES}
-  \end{array}$
 }
 
 %% -----------------------------------------------------------------------------
 %% --- reduction
 
-\lblextra{$e \rrEE A$}{ (selected rules)}{
-  $\begin{array}{l@{\hspace{0.5em}}c@{\hspace{0.5em}}l}
-    \edyn{\tau}{v} & \rrEE
-    & v
-    \\
-    \esta{\tau}{v} & \rrEE
-    & v
-    \\
-    (\vlam{x}{e})~v & \rrEE
-    & \vsubst{e}{x}{v}
-    \\
-    (\vlam{\tann{x}{\tau_d}}{e})~v & \rrEE
-    & \vsubst{e}{x}{v}
-    \\
-    v_0~v_1 & \rrEE
-    & \tagerror
-    \\ \sidecond{if $v_0 \valeq i$ or $v_0 \valeq \vpair{v}{v'}$}
-%    \\
-%    \eunop{v} & \rrEE & A & \mbox{if $\delta(\vunop, v) \expreq A$}
-%    \\
-%    \eunop{v} & \rrEE & \tagerror & \mbox{otherwise}
-%    \\
-%    \ebinop{v_0}{v_1} & \rrEE & A & \mbox{if $\delta(\vbinop, v_0, v_1) \expreq A$}
-%    \\
-%    \ebinop{v_0}{v_1} & \rrEE & \tagerror & \mbox{otherwise}
-  \end{array}$
-}
+\begin{TwoColumn}
+  \lblextra{$e \rrEE A$}{ extends $\rrD$}{
+    $\begin{array}{l@{\hspace{0.5em}}c@{\hspace{0.5em}}l}
+      \edyn{\tau}{v} & \rrEE
+      & v
+      \\
+      \esta{\tau}{v} & \rrEE
+      & v
+      \\
+      (\vlam{\tann{x}{\tau_d}}{e})~v & \rrEE
+      & (\vlam{x}{e})~v
+    \end{array}$
+  }
 
-\smallskip
-\lbl{$e \ccEE A$}{
-  $\begin{array}{l@{\hspace{0.5em}}c@{\hspace{0.5em}}l}
-%    \ctxE{\edyn{\tau}{e}} & \ccEE & \ctxE{\edyn{\tau}{e'}}
-%    & \mbox{if $e \ccEE e'$}
-%    \\
-%    \ctxE{\edyn{\tau}{e}} & \ccEE & A
-%    & \mbox{if $e \ccEE A$ and $A \not\in e$}
-%    \\
-%    \ctxE{\esta{\tau}{e}} & \ccEE & \ctxE{\esta{\tau}{e'}}
-%    & \mbox{if $e \ccEE e'$}
-%    \\
-%    \ctxE{\esta{\tau}{e}} & \ccEE & A
-%    & \mbox{if $e \ccEE A$ and $A \not\in e$}
-%    \\
-    \ctxE{e} & \ccEE & \ctxE{e'}
-    \\ \sidecond{if $e \rrEE e'$}
-    \\
-    \ctxE{e} & \ccEE & A
-    \\ \sidecond{if $e \rrEE A$ and $A \not\in e$}
-  \end{array}$
-}
+  \multicolsbreak
 
-\smallskip
-\lblextra{$e \rrEEstar A$}{ reflexive, transitive closure of $\ccEE$}{}
+  \lbl{$e \ccEE A$}{
+    $\begin{array}{l@{\hspace{0.5em}}c@{\hspace{0.5em}}l}
+      \esd[e] & \ccEE & \ctxE{e'}
+      \\ \sidecond{if $e \rrEE e'$}
+      \\
+      \esd[\eerr] & \ccEE & \eerr
+    \end{array}$
+  }
+
+  \smallskip
+  \lblextra{$e \rrEEstar A$}{ reflexive, transitive closure of $\ccEE$}{}
+
+\end{TwoColumn}
