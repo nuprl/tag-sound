@@ -310,53 +310,19 @@ It cannot eliminate boundary errors, but it brings them under control in a
 
 @subsection[#:tag "sec:erasure:overview"]{Overview}
 
-????
+A second approach to migratory typing is to define soundness
+ for the pair of languages as the soundness of the dynamically-typed
+ host language.
+@; so unclear
+Instead of designing two notions of reduction and converting values at
+ boundary terms, the erasure embedding comes with one notion of reduction.
 
-Intuitively, we can create a multi-language that avoids undefined behavior
- but ignores type annotations
- in two easy steps.
-First, let statically-typed values and dynamically-typed values freely cross boundary terms.
-Second, base the evaluator on the dynamically-typed notion of reduction.
-
-@Figure-ref{fig:erasure-delta} specifies this @emph{erasure semantics} for
- the @${\langM} language.
-The notion of reduction @${\rrEE} extends the dynamically-typed reduction to handle
- type-annotated functions and boundary expressions.
-Its definition relies on an extension of evaluation contexts
- to allow reduction under boundaries
- and takes the appropriate closure of @${\rrEE}.
-The typing judgment @${\Gamma \wellEE e} extends the notion of
- a well-formed program to ignore any type annotations.
-
-Clearly, the erasure embedding completely lacks predictability with respect to static types.
-One can easily build a well-typed expression that reduces to a value
- of a completely different type.
-For example, @${(\edyn{\tint}{\vlam{x}{x}})}
- has the static type @${\tint} but evaluates to a function.
-Worse yet, well-typed expressions may produce unexpected errors (a category I disaster)
- or silently compute nonsensical results (a category II disaster).
-
-@; TODO remove this, silliness
-To illustrate this second kind of danger, recall the classic story of
- Professor Bessel, who @emph{
-  announced that a complex number was an ordered pair of reals
-  the first of which was nonnegative}@~cite[r-ip-1983].
-A student might use the type @${(\tpair{\tnat}{\tint})}
- to model (truncated) Bessel numbers and define a few functions based on the lecture notes.
-Calling one of these functions with the dynamically-typed value @${\vpair{-1}{1}}
- may give a result, but probably not the right one.
-
-Despite its disrespect for types, the erasure embedding has found increasingly widespread use.
-For example,
- Hack, @;@note{@url{http://hacklang.org/}},
- TypeScript, @;@note{@url{https://www.typescriptlang.org/}},
- and Typed Clojure@~cite[bdt-esop-2016] implement this embedding by
- statically erasing types and re-using the PHP, JavaScript, or Clojure
- runtime.
-@; @note{Anecdotal evidence of nasty TypeScript bugs from the @href["http://plasma.cs.umass.edu/"]{PLASMA group} at UMass.}
-
-@; python annotations API @note{@url{https://www.python.org/dev/peps/pep-3107/}}
-@; pluggable type systems @~cite[bracha-pluggable-types].
+@; omg this repeats the intro
+From the programmers' perspective, erased types can catch static errors
+ and enable tools like type-directed autocomplete.
+Erased types have no relation to the semantics of a program.
+For example, if an expression has the static type @${\tnat} then might
+ reduce to a natural number, a negative integer, a pair, or a function.
 
 
 @subsection[#:tag "sec:erasure:implementation"]{Implementation}
