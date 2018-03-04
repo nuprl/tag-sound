@@ -306,7 +306,6 @@ If the innermost boundary has the form @${(\esta{\tau}{e'})} then @${\ccNE}
 If the innermost boundary has the form @${(\edyn{\tau}{e'})} then @${\ccNE}
  either uses @${\rrNS} or @${\vfromdyn} to advance.
 
-@exact{\clearpage}
 @subsection[#:tag "sec:natural:soundness"]{Soundness}
 
 The soundness theorems for the natural embedding state two results about the
