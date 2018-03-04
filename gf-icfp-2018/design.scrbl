@@ -247,7 +247,7 @@ Second, dynamically-typed code cannot exhibit undefined behavior.
 More formally:
 
 @twocolumn[
-  @tr-theorem[#:key "N-static-soundness" @elem{@${\mathbf{N}} static soundness}]{
+  @tr-theorem[#:key "N-static-soundness" @elem{static @${\mathbf{N}}-soundness}]{
     If @${\wellM e : \tau} then @${\wellNE e : \tau} and one
     @linebreak[]
     of the following holds:
@@ -258,7 +258,7 @@ More formally:
       @item{ @${e} diverges}
     ] }
 
-  @tr-theorem[#:key "N-dynamic-soundness" @elem{@${\mathbf{N}} dynamic soundness}]{
+  @tr-theorem[#:key "N-dynamic-soundness" @elem{dynamic @${\mathbf{N}}-soundness}]{
     If @${\wellM e} then @${\wellNE e} and one
     @linebreak[]
     of the following holds:
@@ -279,11 +279,11 @@ The central lemmas that connect this pair of theorems are a specification for
  the @${\vfromdyn} and @${\vfromsta} functions:
 
 @twocolumn[
-  @tr-lemma[#:key "N-D-soundness" @elem{@${\mathbf{N}} @${\vfromdyn} soundness}]{
+  @tr-lemma[#:key "N-D-soundness" @elem{@${\vfromdyn} soundness}]{
     If @${\Gamma \wellNE v} and @${\efromdyn{\tau}{v} = e} then @${\Gamma \wellNE e : \tau}
   }
 
-  @tr-lemma[#:key "N-S-soundness" @elem{@${\mathbf{N}} @${\vfromsta} soundness}]{
+  @tr-lemma[#:key "N-S-soundness" @elem{@${\vfromsta} soundness}]{
     If @${\Gamma \wellNE v : \tau} and @${\efromsta{\tau}{v} = e} then @${\Gamma \wellNE e}
   }
 ]
@@ -350,7 +350,7 @@ Consequently, erasure soundness for the pair of language is their lowest common
  denominator --- well-typed programs have well-defined behavior.
 
 @twocolumn[
-  @tr-theorem[#:key "E-static-soundness" @elem{@${\mathbf{E}} static soundness}]{
+  @tr-theorem[#:key "E-static-soundness" @elem{static @${\mathbf{E}}-soundness}]{
     If @${\wellM e : \tau} then @${\wellEE e} and one
     @linebreak[]
     of the following holds:
@@ -361,7 +361,7 @@ Consequently, erasure soundness for the pair of language is their lowest common
       @item{ @${e} diverges}
     ] }
 
-  @tr-theorem[#:key "E-dynamic-soundness" @elem{@${\mathbf{E}} dynamic soundness}]{
+  @tr-theorem[#:key "E-dynamic-soundness" @elem{dynamic @${\mathbf{E}}-soundness}]{
     If @${\wellM e} then @${\wellEE e} and one
     @linebreak[]
     of the following holds:
@@ -383,131 +383,98 @@ It is a weak theorem with a straightforward proof.
 @include-figure*["fig:locally-defensive-reduction.tex" "Locally-Defensive Embedding"]
 @include-figure*["fig:locally-defensive-preservation.tex" "Property judgments for the locally-defensive embedding"]
 
-The final source of performance overhead in the natural embedding is the cost of
- allocating monitor values.
-@; TODO probably incorrect, definitely too loose
-To remove this cost, we must replace the run-time analysis that monitors implement with
- a static analysis that predicts where to insert soundness-enforcing run-time checks.
-@; TODO trying to say two things at once ...
-@;  1. a whole-program approach is needed (because need the whole typing derivation)
-@;  2. want to weaken the soundness criteria
+@; The key insight is to pick a sufficiently weak notion of soundness@~cite[vss-popl-2017].
 
-For a typical notion of type soundness in a language with
-first-class functions, predicting such checks is impossible
- without a whole-program analysis.
-The key insight is to pick a sufficiently weak notion of soundness@~cite[vss-popl-2017].
-Our contribution is to demonstrate that this type-tag soundness arises systematically
- from the co-natural and forgetful embeddings.
+@subsection[#:tag "sec:locally-defensive:overview"]{Overview}
+
+A third approach to soundness is to check only type constructors.
+This approach needs significant motivation.
+Who knows what we might eventually say here.
+
+Checking only constructors radically changes the boundaries in a program.
+See the diagram in fig N.
+Unsafe to run with static notion of reduction, because of false assumptions.
+Can fix by changing notion of reduction; this is probably inefficient.
+A second fix is to monitor values, see the forgetful final embedding in the
+ appendix, but monitors cost allocation.
+Another fix, rewrite typed code to defend itself.
+
+Do rewriting with a type-directed completion function.
+In the spirit of Henglein
+Produce an expression that is sure to have the right constructor given inputs
+ of the right constructor.
+@; static analysis, look for "maybe bad", just elimination forms
 
 
-@subsection{Monitor-Free Semantics}
+@subsection[#:tag "sec:locally-defensive:implementation"]{Implementation}
 
-The co-natural embedding decomposes deep checks at a boundary expression
- to one shallow check at the boundary and a set of shallow checks, one
- for each time the value is observed.
-The forgetful embedding ignores the history of a value;
- local type annotations completely determine the type checks in a context.
-Combining these two embeddings yields another semantics with
- local, defensive type-tag checks.
-In @${\langF}, these defensive checks occur in exactly three kinds of expressions:
-  (1) at boundary terms,
-  (2) at function call and return, and
-  (3) at calls to the projections @${\vfst} and @${\vsnd}.
+@Figure-ref{fig:locally-defensive-reduction} 
 
-We can statically determine whether an expression @emph{might} require a run-time check
- with a typing system that assumes any structured value can produce any kind
- of value.
-Function applications @${(e_0\,e_1)} and projections @${(\efst{e})} in this
- system need a type that represents any kind of value.
-In order to use these expressions in a context that requires a certain kind of
- value, for example @${(\esum{2}{\ehole})}, we add a form @${(\echk{K}{e})} to
- internalize the notion of a type-tag check.
-
-@Figure-ref{fig:locally-defensive-delta} defines a typing system @${\Gamma \wellKE e : K}
- that makes these ideas precise.
-The type-tags @${K} represent integers, natural numbers, pairs, functions,
+Constructors @${K} represent integers, natural numbers, pairs, functions,
  and unknown values.
-The meta-function @${\tagof{\cdot}} relates a type @${\tau} to a type-tag,
+
+The meta-function @${\tagof{\cdot}} relates a type @${\tau} to a constructor,
  and the subtyping relation @${K \subt K'} states when values of tag @${K}
  can safely be given to a context expecting values with a different tag.
-@; TODO stop saying 'trivial' ... just use 'Any' at least
-As for the typing system: (1) the rules for value constructors conclude
- with a non-trivial tag; (2) the rules for elimination forms require a non-trivial
- tag and conclude with the @${\kany} tag; and (3) the rules for @${\vdyn} and
- @${\vchk} conclude a non-trivial tag that is justified with a run-time check.
 
-@; TODO horrible paragraph, rewrite this
-@Figure-ref{fig:locally-defensive-delta} additionally defines a semantics for
- well-tagged expressions.
-Crucially, dynamically-typed arguments
+Very important, dynamically-typed arguments
  to typed functions get tag-checked by the @${\mchk{K}{\cdot}} meta-function.
 To prove that type-tag errors only
  occur in dynamically-typed code, we add the ``dummy'' boundary
  expressions @${(\edyn{\kany}{e})} and @${(\esta{\kany}{e})}.
 
 
-@subsection{Check Completion}
 
-Unlike our previous languages, there is a gap between static typing for
- the multi-language @${\langM} and the language @${\langK} in @figure-ref{fig:locally-defensive-delta}.
-If an expression @${e} has the static type @${\tau} and the type-tag of @${\tau}
- is @${K}, it is not necessarily true that @${e} is well-tagged via the @${\wellKE} relation.
-
-@; TODO check usage of 'completion'
-We bridge this gap with a @emph{completion}@~cite[henglein-scp-1994] elaboration pass.
-Informally, a completion takes a well-typed term @${\wellM e : \tau}
- and adds @${\vchk} forms to enforce the type-checker's assumptions against
- dynamically-typed pairs and functions.
-Such an elaboration is sound if it maps well-typed expressions to
- a similar, well-tagged expressions.
-For @${\langK}, the completion elaborator we use inserts checks to the three
- forms shown in @figure-ref{fig:locally-defensive-completion-delta} and
- otherwise folds over expressions.
+@subsection[#:tag "sec:locally-defensive:soundness"]{Soundness}
 
 
-@subsection{Type-Tag Soundness}
-
-We state soundness for @${\langK} in terms of the static typing judgment
- of the mixed language and the semantics of @${\langK}.
-
-@theorem[@elem{@${\langK} type-tag soundness}]{
-  If @${\wellM e : \tau}
-   and @${\tagof{\tau} = K}, then
-   @${\wellM e : \tau \carrow e'}
-   and
-   @${\wellKE e' : K}
-   and either:
-@itemlist[
-  @item{ @${e^+ \rrKEstar v} and @${\wellKE v : K} }
-  @item{ @${e^+ \rrKEstar E[\edyn{\tau'}{e'}] \mbox{ and } e' \ccKD \tagerror} }
-  @item{ @${e^+ \rrKEstar \boundaryerror} }
-  @item{ @${e^+} diverges }
-]}@;
-@proof-sketch{
-  The completion simply adds checks around every expression with type-tag
-   @${\kany} to enforce the expression's static type.
-  Soundness follows from progress and preservation lemmas for the @${\wellKE \cdot : K} relation.
-}
-
-@;Type-tag soundness is superficially different from soundness for the forgetful, final language @${\langF}; however,
-@; we conjecture that the semantics are observationally equivalent.
-
-
-@section{Discussion}
-
-The performance overhead of the natural embedding comes from three sources:
-  checking, indirection, and allocation.
-By @emph{checking}, we refer to the cost of validating a type-tag and recursively
- validating the components of a structured value.
-For example, checking a list structure built from @${N} pair values requires
- (at least) @${2N} recursive calls.
-Function monitors add an @emph{indirection} cost.
-Every call to a monitored function incurs one additional boundary-crossing.
-If a value repeatedly crosses boundary terms, these type-checking layers
- can accumulate without bound.@note{In a language with a JIT compiler,
-  indirection may also affect inlining decisions.
-  @; TODO does Spenser's work validate this?
+@twocolumn[
+  @tr-theorem[#:key "K-static-soundness" @elem{static @${\mathbf{K}}-soundness}]{
+    If @${\wellM e : \tau} then 
+    @${\wellM e : \tau \carrow e''}
+    and @${\wellKE e'' : \tagof{\tau}}
+    @linebreak[]
+    and one of the following holds:
+    @itemlist[
+      @item{ @${e'' \rrKSstar v} and @${\wellKE v : \tagof{\tau}} }
+      @item{ @${e'' \rrKSstar \ctxE{\edyn{\tau'}{\ebase[e']}} \mbox{ and } e' \rrKD \tagerror} }
+      @item{ @${e'' \rrKSstar \boundaryerror} }
+      @item{ @${e''} diverges }
+    ]
   }
-Finally, the @emph{allocation} cost of building a monitor value
- also adds to the performance overhead.
 
+  @tr-theorem[#:key "K-dynamic-soundness" @elem{dynamic @${\mathbf{K}}-soundness}]{
+    If @${\wellM e : \tau} then 
+    @${\wellM e \carrow e''}
+    and @${\wellKE e''}
+    @linebreak[]
+    and one of the following holds:
+    @itemlist[
+      @item{ @${e'' \rrKDstar v} and @${\wellKE v : \tagof{\tau}} }
+      @item{ @${e'' \rrKDstar \tagerror} }
+      @item{ @${e'' \rrKDstar \boundaryerror} }
+      @item{ @${e''} diverges }
+    ]
+  }
+]
+
+
+
+@;@section{Discussion}
+@;
+@;The performance overhead of the natural embedding comes from three sources:
+@;  checking, indirection, and allocation.
+@;By @emph{checking}, we refer to the cost of validating a type-tag and recursively
+@; validating the components of a structured value.
+@;For example, checking a list structure built from @${N} pair values requires
+@; (at least) @${2N} recursive calls.
+@;Function monitors add an @emph{indirection} cost.
+@;Every call to a monitored function incurs one additional boundary-crossing.
+@;If a value repeatedly crosses boundary terms, these type-checking layers
+@; can accumulate without bound.@note{In a language with a JIT compiler,
+@;  indirection may also affect inlining decisions.
+@;  @; TODO does Spenser's work validate this?
+@;  }
+@;Finally, the @emph{allocation} cost of building a monitor value
+@; also adds to the performance overhead.
+@;
