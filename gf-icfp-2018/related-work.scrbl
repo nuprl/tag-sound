@@ -15,6 +15,19 @@ Apples, oranges, and good ideas grow on trees that have roots.
 
 @parag{Locally-Defensive Embedding}
 
+@parag{Other Approaches}
+
+The erasure embedding treats a mixed-typed program as an untyped program.
+In principle, one could treat a mixed-typed program as a typed program by
+ reconstructing types for the untyped code.
+Researchers have worked on variants of this @emph{reconstruction embedding}
+ problem for decades with modest success.
+Current techniques cannot compete with, e.g., the natural embedding, when
+ it comes to dealing with legacy code.
+Migratory typing is motivated by this approaches failure.
+So, @emph{reconstruction embedding} is rather a mis-nomer --- it failed
+ and thence migratory typing.
+
 
 @parag{Gradual Typing}
 In the broad sense, the term gradual typing@~cite[st-sfp-2006] describes
