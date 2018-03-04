@@ -61,13 +61,13 @@
   \inferrule*{
     \Gamma \wellKE e : \tagof{\tau}
   }{
-    \Gamma \wellKE \esta~\tau~e
+    \Gamma \wellKE \esta{\tau}{e}
   }
 
   \inferrule*{
     \Gamma \wellKE e : \kany
   }{
-    \Gamma \wellKE \esta~\kany~e
+    \Gamma \wellKE \estafake{e}
   }
 }
 
@@ -162,7 +162,7 @@
   \inferrule*{
     \Gamma \wellKE e
   }{
-    \Gamma \wellKE \edyn{\kany}{e} : \kany
+    \Gamma \wellKE \edynfake{e} : \kany
   }
 
   \inferrule*{

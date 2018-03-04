@@ -421,7 +421,7 @@ Very important, dynamically-typed arguments
  to typed functions get tag-checked by the @${\mchk{K}{\cdot}} meta-function.
 To prove that type-tag errors only
  occur in dynamically-typed code, we add the ``dummy'' boundary
- expressions @${(\edyn{\kany}{e})} and @${(\esta{\kany}{e})}.
+ expressions @${(\edynfake{e})} and @${(\estafake{e})}.
 
 
 

@@ -1,8 +1,8 @@
 \begin{TwoColumn}
   \lblextra{Language $\langK$}{ inherits Evaluation Syntax}{
     $\begin{array}{l@{\hspace{0.5em}}c@{\hspace{0.5em}}l}
-      e & \BNFeq & \ldots \mid \edyn{\tau}{e} \mid \esta{\tau}{e} \mid \edyn{\kany}{e} \mid
-      \\ & &       \esta{\kany}{e} \mid \echk{K}{e}
+      e & \BNFeq & \ldots \mid \edynfake{e} \mid
+                   \estafake{e} \mid \echk{K}{e}
       \\
   %    v & \BNFeq & i \mid \vpair{v}{v} \mid \vlam{x}{e} \mid \vlam{\tann{x}{\tau}}{e}
   %    \\
@@ -12,8 +12,8 @@
       \\
       \ebase & \BNFeq & \ldots \mid \echk{K}{\ebase}
       \\
-      \esd & \BNFeq & \ldots \mid \edyn{\kany}{\esd} \mid \esta{\kany}{\esd} \mid
-      \\ & &  \echk{K}{\esd}
+      \esd & \BNFeq & \ldots \mid \edynfake{\esd} \mid \estafake{\esd} \mid
+              \echk{K}{\esd}
     \end{array}$
   }
 
@@ -62,7 +62,7 @@
 }
 
 \begin{TwoColumn}
-  \lblextra{$\vfromdyn : \tau \times v \rightarrow e\vphantom{\vfromsta}$}{ from $\vdyn$ to $\vsta$}{
+  \lblextra{$\vfromdyn : \tau \times v \rightarrow v\vphantom{\vfromsta}$}{ from $\vdyn$ to $\vsta$}{
     $\begin{array}{l@{~~}c@{~}l}
       \efromdyn{\tau}{v} & = & \mchk{\tagof{\tau}}{v}
     \end{array}$
@@ -70,57 +70,56 @@
 
   \multicolsbreak
 
-  \lblextra{$\vfromsta : \tau \times v \rightarrow e$}{ from $\vsta$ to $\vdyn$}{
+  \lblextra{$\vfromsta : \tau \times v \rightarrow v$}{ from $\vsta$ to $\vdyn$}{
     $\begin{array}{l@{~~}c@{~}l}
       \efromsta{\tau}{v} & = & \mchk{\tagof{\tau}}{v}
     \end{array}$
   }
 \end{TwoColumn}
 
-\lbl{$\vfromany : K \times v \rightarrow e$}{
-  \begin{TwoColumn}
-  $\begin{array}{l@{~~}c@{~}l}
-    \efromany{\kfun}{\vlam{x}{e}} & = & \vlam{x}{e}
-    \\
-    \efromany{\kfun}{\vlam{\tann{x}{\tau}}{e}} & = & \vlam{\tann{x}{\tau}}{e}
-    \\
-    \efromany{\kpair}{\vpair{v_0}{v_1}} & = & \vpair{v_0}{v_1}
+\lbl{$\vfromany : K \times v \rightarrow v$}{
+  $\begin{array}{l@{\hspace{4.4em}}l}
+    \begin{array}{l@{~~}c@{~}l}
+      \efromany{\kfun}{\vlam{x}{e}} & = & \vlam{x}{e}
+      \\
+      \efromany{\kfun}{\vlam{\tann{x}{\tau}}{e}} & = & \vlam{\tann{x}{\tau}}{e}
+      \\
+      \efromany{\kpair}{\vpair{v_0}{v_1}} & = & \vpair{v_0}{v_1}
+      \\
+      \\
+    \end{array}
+  &
+    \begin{array}{l@{~~}c@{~}l}
+      \\
+      \efromany{\kint}{i} & = & i
+      \\
+      \efromany{\knat}{i} & = & i
+      \\ \sidecond{if $i \in \naturals$}
+      \\
+      \efromany{K}{v} & = & \boundaryerror
+      \\ \sidecond{otherwise}
+    \end{array}
   \end{array}$
-
-  \multicolsbreak
-
-  $\begin{array}{l@{~~}c@{~}l}
-    \\
-    \efromany{\kint}{i} & = & i
-    \\
-    \efromany{\knat}{i} & = & i
-    \\ \sidecond{if $i \in \naturals$}
-    \\
-    \efromany{K}{v} & = & \boundaryerror
-    \\ \sidecond{otherwise}
-  \end{array}$
-  \end{TwoColumn}
 }
 
 % -----------------------------------------------------------------------------
 % --- reduction
 \begin{TwoColumn}
 
-  \lblextra{$e \rrKS e$}{ (selected rules)}{
+  \lblextra{$e \rrKS e$}{ inherits $\rrS$}{
     $\begin{array}{l@{\hspace{0.5em}}c@{\hspace{0.5em}}l}
       \echk{K}{v} & \rrKS
       & \mchk{K}{v}
-      \\[1ex]
+      \\
       (\vlam{x}{e})~v & \rrKS
-      & \edyn{\kany}{(\vsubst{e}{x}{v})}
-      \\[1ex]
+      & \edynfake{(\vsubst{e}{x}{v})}
+      \\
       (\vlam{\tann{x}{\tau}}{e})~v & \rrKS
       & \boundaryerror
       \\ \sidecond{if $\mchk{\tagof{\tau}}{v} = \boundaryerror$}
-      \\[1ex]
+      \\
       (\vlam{\tann{x}{\tau}}{e})~v & \rrKS
-      & \vsubst{e}{x}{v}
-      \\ \sidecond{if $\mchk{\tagof{\tau}}{v} = v$}
+      & \vsubst{e}{x}{\mchk{\tagof{\tau}}{v}}
   %    \eunop{v} & \rrKS
   %    & e
   %    & \mbox{if $\delta(\vunop, v) = e$}
@@ -133,64 +132,48 @@
 
   \multicolsbreak
 
-  \lblextra{$e \rrKD e$}{ (selected rules)}{
+  \lblextra{$e \rrKD e$}{ extends $\rrD$}{
     $\begin{array}{l@{\hspace{0.5em}}c@{\hspace{0.5em}}l}
-
-
-      \\[1ex]
-      (\vlam{x}{e})~v & \rrKD
-      & \vsubst{e}{x}{v}
-      \\[1ex]
+      % blank space for chk & dyn-app rules
+      \\
+      \\
       (\vlam{\tann{x}{\tau}}{e})~v & \rrKD
       & \boundaryerror
       \\ \sidecond{if $\mchk{\tagof{\tau}}{v} = \boundaryerror$}
-      \\[1ex]
+      \\
       (\vlam{\tann{x}{\tau}}{e})~v & \rrKD
-      & \esta{\kany}{(\vsubst{e}{x}{v})}
-      \\ \sidecond{if $\mchk{\tagof{\tau}}{v} = v$}
-      \\[1ex]
-      \eapp{v_0}{v_1} & \rrKD
-      & \tagerror
-      \\ \sidecond{if $v_0 \valeq i$ or $v_0 \valeq \vpair{v}{v'}$}
-  %    \eunop{v} & \rrKD
-  %    & e
-  %    \\ \sidecond{if $\delta(\vunop, v) \expreq e$}
-  %    \\
-  %    \eunop{v} & \rrKD
-  %    & \tagerror
-  %    \\ \sidecond{otherwise}
-  %    \\
-  %    \ebinop{v_0}{v_1} & \rrKD
-  %    & e
-  %    \\ \sidecond{if $\delta(\vbinop, v_0, v_1) \expreq e$}
-  %    \\
-  %    \ebinop{v_0}{v_1} & \rrKD
-  %    & \tagerror
-  %    \\ \sidecond{otherwise}
+      & \estafake{(\vsubst{e}{x}{\mchk{\tagof{\tau}}{v}})}
+    \end{array}$
+  }
+\end{TwoColumn}
+
+\begin{TwoColumn}
+  \lblextra{$e \ccKE e$}{}{
+    $\begin{array}{l@{\hspace{0.5em}}c@{\hspace{0.5em}}l}
+      \esd[\estafake{v}] & \ccKE & \esd[v]
+      \\
+      \esd[\edynfake{v}] & \ccKE & \esd[v]
+      \\
+      \esd[\esta{\tau}{v}] & \ccKE & \esd[\efromsta{\tau}{v}]
+      \\
+      \esd[\edyn{\tau}{v}] & \ccKE & \esd[\efromdyn{\tau}{v}]
+      \\
+      \esd[\esta{\tau}{\ebase[e]}] & \ccKE & \esd[\esta{\tau}{\ebase[e']}]
+      \\ \sidecond{if $e \rrKS e'$}
+      \\
+      \esd[\edyn{\tau}{\ebase[e]}] & \ccKE & \esd[\edyn{\tau}{\ebase[e']}]
+      \\ \sidecond{if $e \rrKD e'$}
+      \\
+      \ebase[e] & \ccKE & \ebase[e']
+      \\ \sidecond{if $e \rrVar{K} e'$}
+      \\
+      \esd[\eerr] & \ccKE & \eerr
     \end{array}$
   }
 
+  \multicolsbreak
+
+  \lblextra{$e \rrKSstar e$}{ reflexive, transitive closure of $\ccKS$}{}
+  \smallskip
+  \lblextra{$e \rrKDstar e$}{ reflexive, transitive closure of $\ccKD$}{}
 \end{TwoColumn}
-
-\lblextra{$e \ccKE e$}{}{
-  $\begin{array}{l@{\hspace{0.5em}}c@{\hspace{0.5em}}l}
-    \esd[\esta{\kany}{v}] & \ccKE & \esd[v]
-    \\
-    \esd[\edyn{\kany}{v}] & \ccKE & \esd[v]
-    \\
-    \esd[\esta{\tau}{v}] & \ccKE & \esd[\efromsta{\tau}{v}]
-    \\
-    \esd[\edyn{\tau}{v}] & \ccKE & \esd[\efromdyn{\tau}{v}]
-    \\
-    \esd[\esta{\tau}{\ebase[e]}] & \ccKE & \esd[\esta{\tau}{\ebase[e']}]
-    \\ \sidecond{if $e \rrS e'$}
-    \\
-    \esd[\edyn{\tau}{\ebase[e]}] & \ccKE & \esd[\edyn{\tau}{\ebase[e']}]
-    \\ \sidecond{if $e \rrD e'$}
-    \\
-    \esd[\eerr] & \ccKE & \eerr
-  \end{array}$
-}
-
-\smallskip
-\lblextra{$e \rrKEstar e$}{ reflexive, transitive closure of $\ccKE$}{}
