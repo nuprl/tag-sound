@@ -16,6 +16,76 @@ In this section we equip one syntax for @mytech{mixed-typed programs} (@figure-r
  and @secref{sec:erasure-embedding}).
 Each semantics satisfies a unique soundness condition.
 
+
+@section{Illustration}
+@; could be seeds / trees / fruits
+@; - apple / plant / fruit soundness?
+@; - harder to picture trees crossing boundaries,
+@;   or trees & picked fruit coexisting
+@;
+@; TODO need to add food
+
+Start with a special tank of fish and eggs.
+The fishtank is special because every thing in the tank is either:
+ an adult @emph{red snapper},
+ a red snapper egg,
+ or a box of red snapper food.
+A red snapper fish has a beautiful red color and is precisely @~a[(/ 1 RED-SNAPPER-RATIO)]
+ times as wide as it is tall.
+Red snappers can only eat certified red snapper food, else they get sick and die.
+A red snapper egg is certified to hatch into a red snapper (if it hatches at all).
+Over time, as old fish die out and new fish hatch from eggs, this @emph{red snapper soundness}
+ property always holds for this fishtank.
+
+@inline-pict[fishtank-pict]
+
+One day a pathway appears, linking our fishtank to the outside.
+The red snapper soundness property is now at risk.
+Anything might cross over the pathway, including but not limited to:
+ a red snapper, a blue snapper, a mysterious egg, or a jack-o-lantern.
+The question is, what to do about this pathway.
+
+@inline-pict[fishtank/biohazard]
+
+One option is to enforce the red snapper property.
+If an adult thing arrives at the boundary, conduct a physical examination to
+ check that it is an adult red snapper.
+If a mysterious egg arrives at the boundary, check its color (all red snapper
+ eggs are red, of course) and monitor it.
+When the egg hatches, immediately conduct a physical exam.
+If a box of food arrives, check that it is safe for red snappers.
+Conducting the physicals and monitoring the eggs may be costly, but is guaranteed
+ to let all incoming red snappers into the tank and keep all non-red-snappers
+ out.
+
+@inline-pict[fishtank/biohazard/natural]
+
+A second option is to let anything cross the pathway and forget about the
+ red snapper property.
+Instead we can be content with a trivial @emph{fish soundness} property;
+ namely, that every thing in the tank is either native to the tank or came
+ from the pathway.
+
+@inline-pict[fishtank/biohazard/erasure]
+
+A third option is to enforce a weaker @emph{red soundness} property.
+If an adult thing arrives at the boundary, check its color and allow only
+ red things.
+If an egg arrives, check its color and check the color of the baby when it hatches.
+These checks cannot ensure red snapper soundness in the face of arbitrary inputs.
+
+@inline-pict[fishtank/biohazard/locally-defensive]
+
+This concludes the illustration.
+The three options outlined above correspond to three notions of type soundness
+ for typed/untyped programs.
+The strategy to enforce red snapper soundness is the natural embedding.
+The strategy for fish soundness is the erasure embedding.
+The strategy for red soundness is the locally-defensive embedding.
+
+
+@section{Common Semantic Notions}
+
 @Figure-ref{fig:multi-syntax} presents the syntax.
 The grammar for @${\exprdyn} defines an untyped host language; the
  grammar @${\exprsta} defines an explicitly-typed twin language.

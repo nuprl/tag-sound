@@ -51,6 +51,7 @@
   mytech
   $$
   twocolumn
+  inline-pict
 
   proof-sketch
 
@@ -387,3 +388,5 @@
   (make-paragraph (make-style 'pretitle '())
     (make-element (make-style "appendix" '(exact-chars)) '())))
 
+(define (inline-pict p)
+  (centered (list p)))
