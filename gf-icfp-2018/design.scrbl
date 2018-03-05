@@ -466,7 +466,7 @@ Intuitively, this works out because the ``stuck'' judgment only looks at
 @; - `(op ...)` where `op` undefined for arguments
 
 For example, two values that match the outermost constructor of the type
- @${\tarr{\tnat}{\tnat}} are @${(\vlam{x}{x})} and @${(\vlam{\tann{y}{\tint}}{-4})},
+ @${\tarr{\tnat}{\tnat}} are @${(\vlam{x}{x})} and @${(\vlam{\tann{y}{\tint}}{y})},
  because both values are functions.
 These values, and indeed any other functions, are safe to place in the context
  @${(\eapp{\ehole}{1})} without making it stuck.
@@ -583,8 +583,10 @@ The reduction relations @${\rrKSstar} and @${\rrKDstar} are analogous to those
 
 @subsection[#:tag "sec:locally-defensive:soundness"]{Soundness}
 
-@Figure-ref{fig:locally-defensive-preservation} presents two typing judgments 
-
+@Figure-ref{fig:locally-defensive-preservation} presents two judgments for
+ expressions internal to the locally-defensive evaluator.
+The main theorem for this embedding is that these properties are sound with
+ respect to the @${\rrKSstar} and @${\rrKDstar} reduction relations.
 
 @twocolumn[
   @tr-theorem[#:key "K-static-soundness" @elem{static @${\mathbf{K}}-soundness}]{
@@ -602,7 +604,7 @@ The reduction relations @${\rrKSstar} and @${\rrKDstar} are analogous to those
   }
 
   @tr-theorem[#:key "K-dynamic-soundness" @elem{dynamic @${\mathbf{K}}-soundness}]{
-    If @${\wellM e : \tau} then 
+    If @${\wellM e} then 
     @${\wellM e \carrow e''}
     and @${\wellKE e''}
     @linebreak[]
@@ -616,6 +618,41 @@ The reduction relations @${\rrKSstar} and @${\rrKDstar} are analogous to those
   }
 ]
 
+In other words, a ``well-constructed'' expression @${\wellKE e'' : \kappa} can
+ reduce to either: a well-constructed value, a tag error (in untyped code), or
+ a boundary error.
+The link between well-constructed expressions and the surface syntax is the
+ completion judgment; a key lemma for the previous theorems is that the
+ completion judgment meets the following specification:
+
+@twocolumn[
+  @tr-lemma[#:key "K-S-completion" @elem{static @${\carrow} soundness}]{
+    If @${\Gamma \wellM e : \tau} then
+    @linebreak[]
+    @${\Gamma \vdash e : \tau \carrow e'} and @${\Gamma \wellKE e' : \tagof{\tau}}
+  }
+
+  @tr-lemma[#:key "K-D-completion" @elem{dynamic @${\carrow} soundness}]{
+    If @${\Gamma \wellM e} then
+    @linebreak[]
+    @${\Gamma \wellM e \carrow e'} and @${\Gamma \wellKE e'}
+  }
+]
+
+Any judgment that satisfies this spec could be substituted for the @${\carrow}
+ judgment.
+@; what are you going to improve without changing \wellKE ?
+
+The other main lemma is that boundary-crossing via @${\vfromany} is sound
+ with respect to the property judgment.
+
+@tr-lemma[#:key "K-check" @elem{@${\vfromany} soundness}]{
+  If @${\mchk{K}{v} = v}
+   @linebreak[]
+   then @${\wellKE v : K}
+}
+
+These lemmas hold because the definitions are good.
 
 
 @;@section{Discussion}
@@ -636,3 +673,8 @@ The reduction relations @${\rrKSstar} and @${\rrKDstar} are analogous to those
 @;Finally, the @emph{allocation} cost of building a monitor value
 @; also adds to the performance overhead.
 @;
+
+@; with no boundaries
+@; - natural has no overhead, fully sound
+@; - erasure has small overhead, fully sound
+@; - LD has overhead, though fully sound
