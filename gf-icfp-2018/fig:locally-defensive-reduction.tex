@@ -1,25 +1,24 @@
 \begin{TwoColumn}
   \lblextra{Language $\langK$}{ inherits Evaluation Syntax}{
     $\begin{array}{l@{\hspace{0.5em}}c@{\hspace{0.5em}}l}
-      e & \BNFeq & \ldots \mid \edynfake{e} \mid
-                   \estafake{e} \mid \echk{K}{e}
+      e & \BNFeq & \ldots \mid \echk{K}{e} \mid \edynfake{e} \mid \estafake{e}
       \\
   %    v & \BNFeq & i \mid \vpair{v}{v} \mid \vlam{x}{e} \mid \vlam{\tann{x}{\tau}}{e}
   %    \\
   %    \tau & \BNFeq & \tnat \mid \tint \mid \tpair{\tau}{\tau} \mid \tau \tarrow \tau
   %    \\
-      K & \BNFeq & \knat \mid \kint \mid \kpair \mid \kfun \mid \kany
-      \\
       \ebase & \BNFeq & \ldots \mid \echk{K}{\ebase}
       \\
       \esd & \BNFeq & \ldots \mid \edynfake{\esd} \mid \estafake{\esd} \mid
               \echk{K}{\esd}
+      \\
+      K & \BNFeq & \knat \mid \kint \mid \kpair \mid \kfun \mid \kany
     \end{array}$
   }
 
   \multicolsbreak
 
-  \lbl{$\tagof{\tau} = K$}{
+  \lbl{$\tagof{\cdot} : \tau \rightarrow K$}{
     $\begin{array}{l c l}
       \tagof{\tnat} & = & \knat
       \\
@@ -72,7 +71,7 @@
 
   \lblextra{$\vfromsta : \tau \times v \rightarrow v$}{ from $\vsta$ to $\vdyn$}{
     $\begin{array}{l@{~~}c@{~}l}
-      \efromsta{\tau}{v} & = & \mchk{\tagof{\tau}}{v}
+      \efromsta{\tau}{v} & = & v
     \end{array}$
   }
 \end{TwoColumn}

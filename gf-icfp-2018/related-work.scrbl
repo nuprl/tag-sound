@@ -87,7 +87,7 @@ Their so-called transient semantics is the motivation for our work;
  how the idea of rewriting statically-typed code related to other multi-language embeddings.
 
 The idea of rewriting an expression to add explicit safety checks goes back
- at least to @citet[henglein-scp-1994], from whom we adopt the name @emph{completion}.
+ at least to @citet[h-scp-1994], from whom we adopt the name @emph{completion}.
 
 
 @;@parag{Space-Efficient Contracts}

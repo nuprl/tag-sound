@@ -453,6 +453,8 @@ It is a weak theorem with a straightforward proof.
 
 @subsection[#:tag "sec:locally-defensive:overview"]{Overview}
 
+@; Maybe try: "3rd approach = enforce constructors, this can be done with local checks"
+
 A third approach to migratory typing is to ensure that every typed value matches
  the outermost constructor of its static type.
 If this shallow invariant holds, then one can prove that an evaluator
@@ -512,24 +514,76 @@ Need a technical device for this.
 
 @subsection[#:tag "sec:locally-defensive:implementation"]{Implementation}
 
-@Figure-ref{fig:locally-defensive-reduction} 
+@Figure-ref{fig:locally-defensive-reduction} presents the key components of a
+ @emph{locally-defensive} embedding.
+As a disclaimer, this embedding includes two technical devices to streamline
+ the proof of soundness: first is the use of the pseudo-boundary terms
+ @${(\edynfake{e})} and @${(\estafake{e})}, and second is the treatment
+ of typed functions in the reduction relation.
+These devices ensure that typed functions may be safely applied in typed or
+ untyped code; details follow.
 
-Constructors @${K} represent integers, natural numbers, pairs, functions,
- and unknown values.
+The syntax of the embedding extends the evaluation syntax from @figure-ref{fig:multi-reduction}
+ with new expressions, new contexts, and a grammar @${\kappa} for type constructors.
+The expression @${(\edynfake{e})} encapsulates the body of an untyped function
+ applied in a typed context; there is no type annotation for this boundary
+ term because (as we shall see) the evaluator does not know what type to expect.
+The expression @${(\estafake{e})} conversely encapsulates the body of a typed
+ function applied in an untyped context; again there is no type annotation.
+The expression @${(\echk{\kappa}{e})} associates a typed expression @${e} with an
+ expected type constructor.
+If we have the typed expression @${\wellM (f 0) : \tnat} and @${f} evaluates
+ to an untyped function @${(\vlam{x}{\esum{x}{1}})} then the immediate result
+ of the application must be @${\echk{\tnat}{\edyn{(\esum{0}{1})}}}.
+@; TODO do example first, to motivate the dyn and sta
+The extended definitions of contexts @${\ebase} and @${\esd} accomodate the
+ new expression forms.
 
-The meta-function @${\tagof{\cdot}} relates a type @${\tau} to a constructor,
- and the subtyping relation @${K \subt K'} states when values of tag @${K}
- can safely be given to a context expecting values with a different tag.
+Constructors @${\kappa} are first-order properties of values:
+ a value may be a number (@${\kint} or @${\knat}), a pair (@${\kpair}),
+ a function (@${\kfun}), or something else (@${\kany}).
+For instance, the first component of any @${\kpair} value is a @${\kany} value.
+The meta-function @${\tagof{\cdot}} maps a type to a constructor by ``truncating''
+ the contents of the type.@note{Notation from @citet[vss-popl-2017].}
 
-Very important, dynamically-typed arguments
- to typed functions get tag-checked by the @${\mchk{K}{\cdot}} meta-function.
-To prove that type-tag errors only
- occur in dynamically-typed code, we add the ``dummy'' boundary
- expressions @${(\edynfake{e})} and @${(\estafake{e})}.
+The judgment @${\Gamma e : \tau \carrow e'} states that @${e'} is the
+ checked @emph{completion}@~cite[h-scp-1994] of the typed expression.
+This completion is identical to the surface expression @${e} except that it
+ adds @${\echk{\tagof{\tau}}{\cdot}} forms around every function application
+ expecting a result of type @${\tau}, and around every call to @${\vfst} and
+ @${\vsnd} expecting a result of the same type.
+@Figure-ref{fig:locally-defensive-reduction} demonstrates the rules for
+ application and @${\vfst}; the rule for @${\vsnd} is similar, and the other
+ rules recursively take the completion of their sub-expressions.
 
+@; TODO this should parallel the discussion in natural embedding
+The dynamic boundary function @${\vfromdyn} computes the constructor of the given type
+ and invokes a generic boundary-crossing function @${\vfromany} to check that
+ the given value matches the constructor.
+The function @${\vfromsta} does nothing (justified in the next section).
+Lastly @${\efromany{\kappa}{v}} checks that the value @${v} matches the given
+ type constructor.
+If not, it raises a boundary error.
+
+The notions of reduction @${\rrKS} and @${\rrKD} define the semantics of
+ @${\vchk} expressions and function application.
+A @${\vchk} expression in typed code steps to the result of the @${\vfromany}
+ boundary-crossing function.
+A @${\vchk} expression in untyped code is stuck.
+Typed and untyped functions can appear anywhere, so @${\rrKS} includes a
+ rule for dynamically-typed application and @${\rrKD} includes rules for
+ statically-typed application.
+The application rules for a statically-typed function raise a boundary error
+ if the argument does not match constructor of the function's domain type.
+ 
+The reduction relations @${\rrKSstar} and @${\rrKDstar} are analogous to those
+ of the natural embedding, but include transitions for un-annotated boundary
+ terms.
 
 
 @subsection[#:tag "sec:locally-defensive:soundness"]{Soundness}
+
+@Figure-ref{fig:locally-defensive-preservation} presents two typing judgments 
 
 
 @twocolumn[

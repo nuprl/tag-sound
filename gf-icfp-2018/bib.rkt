@@ -590,7 +590,7 @@
    #:location (proceedings-location popl #:pages '(163 173))
    #:date 1994))
 
-(define henglein-scp-1994
+(define h-scp-1994
   (make-bib
    #:author "Fritz Henglein"
    #:title "Dynamic Typing: Syntax and Proof Theory"

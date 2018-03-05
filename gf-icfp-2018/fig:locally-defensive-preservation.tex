@@ -1,3 +1,21 @@
+\lblmathparextra{$K \subkeq K$}{}{
+  \inferrule*{
+  }{
+    K \subkeq K
+  }
+
+  \inferrule*{
+    K \neq \kany
+  }{
+    K \subkeq \kany
+  }
+
+  \inferrule*{
+  }{
+    \knat \subkeq \kint
+  }
+}
+
 \lblmathparextra{$\Gamma \wellKE e$}{ (selected rules)}{
   \inferrule*{
     x \in \Gamma
@@ -174,21 +192,8 @@
   \inferrule*{
     \Gamma \wellKE e : K'
     \\
-    K' \subk K
+    K' \subkeq K
   }{
     \Gamma \wellKE e : K
   }
 }
-
-%\lblmathpar{$K \subk K$}{
-%  \inferrule*{
-%    K \neq \kany
-%  }{
-%    K \subk \kany
-%  }
-%
-%  \inferrule*{
-%  }{
-%    \knat \subk \kint
-%  }
-%}
