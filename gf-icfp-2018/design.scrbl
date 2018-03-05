@@ -653,28 +653,3 @@ The other main lemma is that boundary-crossing via @${\vfromany} is sound
 }
 
 These lemmas hold because the definitions are good.
-
-
-@;@section{Discussion}
-@;
-@;The performance overhead of the natural embedding comes from three sources:
-@;  checking, indirection, and allocation.
-@;By @emph{checking}, we refer to the cost of validating a type-tag and recursively
-@; validating the components of a structured value.
-@;For example, checking a list structure built from @${N} pair values requires
-@; (at least) @${2N} recursive calls.
-@;Function monitors add an @emph{indirection} cost.
-@;Every call to a monitored function incurs one additional boundary-crossing.
-@;If a value repeatedly crosses boundary terms, these type-checking layers
-@; can accumulate without bound.@note{In a language with a JIT compiler,
-@;  indirection may also affect inlining decisions.
-@;  @; TODO does Spenser's work validate this?
-@;  }
-@;Finally, the @emph{allocation} cost of building a monitor value
-@; also adds to the performance overhead.
-@;
-
-@; with no boundaries
-@; - natural has no overhead, fully sound
-@; - erasure has small overhead, fully sound
-@; - LD has overhead, though fully sound

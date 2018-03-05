@@ -172,35 +172,41 @@
 
 ;; -----------------------------------------------------------------------------
 
+(define missing-key 'missing-key)
+
 (define (tr-ref #:key user-key . pc*)
   (define k (key->string user-key))
   (tech #:key k (emph pc*)))
 
-(define (tr-definition name-elem #:key [user-key #f] . content*)
+(define (tr-definition name-elem #:key [user-key missing-key] . content*)
   (tr-def name-elem 'definition #:key user-key content*))
 
-(define (tr-counterexample name-elem #:key [user-key #f] . content*)
+(define (tr-counterexample name-elem #:key [user-key missing-key] . content*)
   (tr-def name-elem 'counterexample #:key user-key content*))
 
-(define (tr-convention name-elem #:key [key #f] . content*)
+(define (tr-convention name-elem #:key [key missing-key] . content*)
   (tr-def name-elem 'convention #:key key content*))
 
-(define (tr-theorem name-elem #:key [key #f] . content*)
+(define (tr-theorem name-elem #:key [key missing-key] . content*)
   (tr-def name-elem 'theorem #:key key content*))
 
-(define (tr-corollary name-elem #:key [key #f] . content*)
+(define (tr-corollary name-elem #:key [key missing-key] . content*)
   (tr-def name-elem 'corollary #:key key content*))
 
-(define (tr-lemma name-elem #:key [key #f] . content*)
+(define (tr-lemma name-elem #:key [key missing-key] . content*)
   (tr-def name-elem 'lemma #:key key content*))
 
 (define (tr-def name-elem
                 kind
-                #:key [user-key #f]
+                #:key [user-key missing-key]
                 content*)
   (define pre-key
-    (or user-key (if (string? name-elem) name-elem #f)))
-  (unless pre-key
+    (if (string? user-key)
+      user-key
+      (if (string? name-elem)
+        name-elem
+        #false)))
+  (when (eq? pre-key missing-key)
     (log-techreport-warning "missing key for ~a ~a" kind name-elem))
   (define uid (next-UID))
   (define key-str
@@ -208,11 +214,11 @@
       (begin
         (register-key! pre-key kind uid)
         (key->string pre-key))
-      ""))
+      #false))
   (nested #:style 'block
     (list
       @elem{@exact{\vspace{0.4ex}}
-            @bold{@kind->long-name[kind] @|uid|} : @deftech[#:key key-str name-elem]
+            @bold{@kind->long-name[kind] @|uid|} : @(if key-str @deftech[#:key key-str name-elem] @emph[name-elem])
             @exact{\vspace{0.2ex}}}
       (make-table
         boxed-style
