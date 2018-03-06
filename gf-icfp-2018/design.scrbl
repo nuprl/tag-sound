@@ -445,6 +445,17 @@ The proof follows from progress and preservation lemmas for the
  @${\wellEE} judgment and the @${\rrEEstar} reduction relation.
 It is a weak theorem with a straightforward proof.
 
+TODO
+
+  @tr-theorem[#:key "K-pure-static" @elem{@${\langK} static soundness}]{
+    If @${\wellM e : \tau} and @${e} does not contain a sub-term of the form
+     @${(\edyn{\tau'}{e'})} then one of the following holds:
+    @itemlist[
+      @item{ @${e \rrKEstar v \mbox{ and } \wellM v : \tau} }
+      @item{ @${e \rrKEstar \boundaryerror} }
+      @item{ @${e} diverges}
+    ]
+  }
 
 @; -----------------------------------------------------------------------------
 @section[#:tag "sec:locally-defensive-embedding"]{Locally-Defensive Embedding}
@@ -653,3 +664,14 @@ The other main lemma is that boundary-crossing via @${\vfromany} is sound
 }
 
 These lemmas hold because the definitions are good.
+
+TODO
+  @tr-theorem[#:key "E-pure-static" @elem{@${\langE} static soundness}]{
+    If @${\wellM e : \tau} and @${e} does not contain a sub-term of the form
+     @${(\edyn{\tau'}{e'})} then one of the following holds:
+    @itemlist[
+      @item{ @${e \rrEEstar v \mbox{ and } \wellM v : \tau} }
+      @item{ @${e \rrEEstar \boundaryerror} }
+      @item{ @${e} diverges}
+    ]
+  }
