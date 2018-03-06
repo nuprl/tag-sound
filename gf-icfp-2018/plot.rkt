@@ -20,11 +20,15 @@
   overhead-plot*
   exact-plot*
   models-roadmap
+
   render-max-overhead
   make-ratios-table
   make-max-table
   render-ratios-table
   render-max-table
+  ratios-table->typed
+  max-table->typed
+
   fishtank-pict
   fishtank/biohazard
   fishtank/biohazard/natural
@@ -418,6 +422,18 @@
 
 (define max-table-lookup table-lookup)
 (define ratios-table-lookup table-lookup)
+
+(define (table->typed rt)
+  (cdr (cadr rt)))
+
+(define ratios-table->typed table->typed)
+(define max-table->typed table->typed)
+
+(define (table->locally-defensive rt)
+  (cdr (caddr rt)))
+
+(define ratios-table->locally-defensive table->locally-defensive)
+(define max-table->locally-defensive table->locally-defensive)
 
 ;; --- FISH
 

@@ -188,7 +188,38 @@ This degredation occurs because the many constructor checks inserted by @|LD-Rac
 
 @section{Evaluation II: Fully-Typed Programs}
 
-TBA
+The second hypothesis concerns the performance of fully-typed programs.
+@|TR| is expected to be fastest, because the static types enable some
+ optimization@~cite[stff-padl-2012].
+@|LD-Racket| is expected to be slowest because it rewrites all typed code to include
+ checks.
+For example, the simple expressions @${\efst{\vpair{0}{1}}} reduces to a value
+ in one step in the natural embedding and in two steps in the locally-defensive
+ embedding:
+
+@$$|{
+  \wellM \efst{\vpair{0}{1}} : \tint \carrow \echk{\kint}{(\efst{\vpair{0}{1}})} \rrKSstar \echk{\kint}{0} \rrKSstar 0
+}|
+
+So much for the theory.
+How do the implementations stack up?
+
+@; TODO maybe should be a bar graph, with error lines
+@Figure-ref{fig:typed-baseline-ratios} lists peformance ratios for each of the
+ benchmarks.
+The first row lists abbreviated benchmark names.
+The second row lists the ratio of @|TR| on the fully-typed configuration
+ relative to Racket on the untyped configuration.
+The third and final row lists the ratio of @|LD-Racket| on the fully-typed
+ configuration relative to Racket on the untyped configuration.
+
+@|LD-Racket| is the slowest on every benchmark.
+@|TR| is the fastest on @integer->word[(for/sum ([n (in-list (ratios-table->typed RT))]) (if (< n 1) 1 0))]
+ of the @integer->word[(length TR-DATA*)] benchmarks.
+The @bm{zombie} benchmark is a surprising exception.
+Its fully-typed performance is very slow; this is because
+ it performs many type casts.
+Maybe we should equalize typed and untyped for these.
 
 
 @section{Threats to Validity}
