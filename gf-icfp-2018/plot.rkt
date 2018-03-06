@@ -22,7 +22,9 @@
   models-roadmap
   render-max-overhead
   make-ratios-table
+  make-max-table
   render-ratios-table
+  render-max-table
   fishtank-pict
   fishtank/biohazard
   fishtank/biohazard/natural
@@ -258,6 +260,13 @@
     [else
      (raise-argument-error 'data->typed/baseline-ratio "unrecognized data format" x)]))
 
+(define (data->max-overhead x)
+  (cond
+    [(path-string? x)
+     (max-overhead (make-typed-racket-info x))]
+    [else
+     (raise-argument-error 'data->max-overhead "unrecognized data format" x)]))
+
 (define (models-roadmap #:D dyn-name
                         #:S sta-name
                         #:M mixed-name
@@ -338,17 +347,26 @@
       (loop (cdr r*))])))
 
 (define (make-ratios-table . data**)
-  (define col0 (map filename->prefix (car data**)))
-  (define col*
-    (parameterize ([*with-cache-fasl?* #false]
-                   [*current-cache-directory* (build-path CWD CACHE-DIR)])
-      (for/list ([data* (in-list data**)])
-        (for/list ([data (in-list data*)])
-          (define tag (data->cache-tag data "ratio"))
-          (with-cache (cachefile tag)
-            (λ () 
-              (rnd (data->typed/baseline-ratio data))))))))
-  (cons col0 col*))
+  (make-data-table data->typed/baseline-ratio data** "ratio-table"))
+
+(define (make-max-table . data**)
+  (make-data-table data->max-overhead data** "max-table"))
+
+(define (make-data-table data->number data** key)
+  (define md5*
+    (for*/list ([data* (in-list data**)]
+                [data (in-list data*)])
+      (md5sum data)))
+  (parameterize ([*with-cache-fasl?* #false]
+                 [*current-cache-directory* (build-path CWD CACHE-DIR)])
+    (with-cache (cachefile (string-append key ".rktd"))
+      (λ ()
+        (define col0 (map filename->prefix (car data**)))
+        (define col*
+          (for/list ([data* (in-list data**)])
+            (for/list ([data (in-list data*)])
+              (rnd (data->number data)))))
+        (cons col0 col*)))))
 
 (define (render-table-name str)
   (define short-str
@@ -372,7 +390,7 @@
        #;(list "Benchmark" TR LD-Racket)
        (list "Benchmark" "TR" "LD")))
 
-(define (render-ratios-table rt)
+(define (render-numbers-table rt)
   (centered
     (tabular
       #:sep (hspace 2)
@@ -380,6 +398,9 @@
       #:row-properties '(left right)
       #:column-properties '(right)
       (map cons RATIOS-TITLE* (cons (map render-table-name (car rt)) (cdr rt))))))
+
+(define render-ratios-table render-numbers-table)
+(define render-max-table render-numbers-table)
 
 ;; --- FISH
 
