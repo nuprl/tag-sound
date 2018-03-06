@@ -95,11 +95,15 @@ It does not support Typed Racket's class and object system@~cite[tfdfftf-ecoop-2
          (overhead-plot* (map list TR-DATA* TAG-DATA*))]
 
 @(define MT (make-max-table TR-DATA* TAG-DATA*))
+@(define (maxo kind bm-name #:precision [psc #false])
+   (render-max-overhead kind bm-name #:tbl MT #:precision psc))
+
 @figure["fig:max-overhead"
         @elem{Worst-case overhead for @|TR| (TR) and @|LD-Racket| (LD)}
         @render-max-table[MT]]
 
 @(define RT (make-ratios-table TR-DATA* TAG-DATA*))
+
 @figure["fig:typed-baseline-ratios"
         @elem{Typed/untyped ratios for @|TR| (TR) and @|LD-Racket| (LD)}
         @render-ratios-table[RT]]
@@ -153,7 +157,7 @@ The data confirms that @|LD-Racket| is significantly more
  @bm{sieve}, @bm{fsm}, @bm{suffixtree}, @bm{kcfa},
  @bm{snake}, @bm{tetris}, and @bm{synth}.
 The improvement is most dramatic for @bm{synth}, in which the worst-case
- performance ovehead drops from @render-max-overhead['typed 'synth] to @render-max-overhead['tagged 'synth],
+ performance ovehead drops from @maxo['typed 'synth] to @maxo['tagged 'synth],
  mostly because Typed Racket @bm{synth} spends a large amount of time
  eagerly traversing data structures and monitoring their components.
 @; FSM also dramatic, removes huge indirection cost
@@ -161,13 +165,13 @@ The improvement is most dramatic for @bm{synth}, in which the worst-case
 The @bm{zombie} benchmark shows only a minor improvement;
  few configurations are @deliverable{10} in either Typed Racket or @|LD-Racket|.
 We remark, however, that the worst-case overhead in Typed Racket for @bm{zombie}
- is @render-max-overhead['typed 'zombie] whereas the worst-case for @|LD-Racket|
- is far lower, at @render-max-overhead['tagged 'zombie].
+ is @maxo['typed 'zombie] whereas the worst-case for @|LD-Racket|
+ is far lower, at @maxo['tagged 'zombie].
 
 The @bm{morsecode} benchmark is an anomaly.
 Using @|LD-Racket|
- increases its worst-case overhead from @render-max-overhead['typed 'morsecode #:precision '(= 1)]
- to @render-max-overhead['tagged 'morsecode #:precision '(= 1)].
+ increases its worst-case overhead from @maxo['typed 'morsecode #:precision '(= 1)]
+ to @maxo['tagged 'morsecode #:precision '(= 1)].
 This degredation occurs because the pervasive type-tag checks of @|LD-Racket|
  introduce more overhead than the boundary checks inserted by Typed Racket.
 

@@ -309,25 +309,27 @@
       (car src+dst) cb-find
       (cdr src+dst) ct-find)))
 
-(define (render-max-overhead kind bm-name #:precision [psc #f])
+(define (render-max-overhead kind bm-name #:tbl [tbl #f] #:precision [psc #f])
   (unless (valid-embedding? kind)
     (raise-argument-error 'max-overhead "valid-embedding?" 0 kind bm-name))
   (unless (memq bm-name BM-NAME*)
     (raise-argument-error 'max-overhead "benchmark-name?" 1 kind bm-name))
-  (define rktd
-    (case kind
-     [(typed)
-      (find-rktd TR-DATA* bm-name)]
-     [(tagged)
-      (find-rktd TAG-DATA* bm-name)]
-     [else
-      (error 'impossible)]))
-  (define pi (make-typed-racket-info rktd))
-  (define o (max-overhead pi))
+  (define overhead
+    (if tbl
+      (max-table-lookup tbl kind bm-name)
+      (let ([rktd
+             (case kind
+              [(typed)
+               (find-rktd TR-DATA* bm-name)]
+              [(tagged)
+               (find-rktd TAG-DATA* bm-name)]
+              [else
+               (error 'impossible)])])
+        (max-overhead (make-typed-racket-info rktd)))))
   (define rounded
     (if psc
-      (~r o #:precision psc)
-      (number->string (exact-round o))))
+      (~r overhead #:precision psc)
+      (number->string (exact-round overhead))))
   (string-append rounded "x"))
 
 (define (valid-embedding? k)
@@ -365,7 +367,7 @@
         (define col*
           (for/list ([data* (in-list data**)])
             (for/list ([data (in-list data*)])
-              (rnd (data->number data)))))
+              (data->number data))))
         (cons col0 col*)))))
 
 (define (render-table-name str)
@@ -397,10 +399,25 @@
       #:style 'block
       #:row-properties '(left right)
       #:column-properties '(right)
-      (map cons RATIOS-TITLE* (cons (map render-table-name (car rt)) (cdr rt))))))
+      (map cons RATIOS-TITLE*
+                (cons (map render-table-name (car rt))
+                      (for/list ([r (in-list (cdr rt))])
+                        (map rnd r)))))))
 
 (define render-ratios-table render-numbers-table)
 (define render-max-table render-numbers-table)
+
+(define (table-lookup tbl embedding bm-name)
+  (or
+    (for/or ([name (in-list (cdr (car tbl)))]
+             [tr (in-list (cdr (cadr tbl)))]
+             [ld (in-list (cdr (caddr tbl)))])
+      (and (eq? (string->symbol name) bm-name)
+           (if (eq? embedding 'typed) tr ld)))
+    (raise-arguments-error 'table-lookup "not found" "key" bm-name "table" tbl "embedding" embedding)))
+
+(define max-table-lookup table-lookup)
+(define ratios-table-lookup table-lookup)
 
 ;; --- FISH
 
