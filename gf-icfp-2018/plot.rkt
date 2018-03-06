@@ -66,7 +66,7 @@
 (define OVERHEADS-HSPACE 30)
 (define OVERHEADS-VSPACE 6)
 (define OVERHEADS-WIDTH 600)
-(define NUM-COLUMNS 3)
+(define NUM-COLUMNS 2)
 (define X-MAX 10)
 (define CACHE-DIR "cache")
 

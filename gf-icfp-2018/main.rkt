@@ -351,7 +351,7 @@
   (elem ($ d-str) "-deliverable"))
 
 (define LD-Racket
-  "Tagged Racket")
+  "Locally-Defensive Racket")
 
 (define TR
   "Typed Racket")

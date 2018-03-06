@@ -2,10 +2,9 @@
 @title[#:tag "sec:evaluation"]{Apples-to-Apples Performance}
 
 @; TODO
-@; - goals
 @; - implementation (how measured all 3 embeddings)
 @; - overhead plots
-@; - typed/untyped ratios (maybe also, worst-case performance?)
+@; - typed/untyped ratios
 
 @; - sec:implementation:tag-check
 @;    julia extreme tag checks
@@ -13,116 +12,129 @@
 @; -----------------------------------------------------------------------------
 
 
-Based on the models, the natural, locally-defensive, and erased embeddings seem to occupy
- three distinct points on a spectrum between soundness and performance.
-
-Hypotheses:
-- LD << natural on mixed-typed programs
-- natural < erasure < LD on fully-typed programs
-
-To measure how these embeddings stack up
- as competing implementation strategies for the same host language and typing system,
- we have implemented a locally-defensive embedding as an extension of Typed Racket.
-Since Typed Racket implements a natural embedding, this allows us to compare the three approaches:
-@itemlist[
+The models of the natural, erasure, and locally-defensive embeddings
+ have different performance characteristics.
+The apparent difference suggest two hypotheses about the relative performance
+ of these embeddings as three runtime systems for the same migratory typing
+ front-end:
+@itemlist[#:style 'ordered
 @item{
-  the natural embedding, via Typed Racket;
+  for mixed-typed programs, erasure @${<} locally-defensive @${\ll} natural
 }
 @item{
-  the locally-defensive embedding, via the prototype;
-}
-@item{
-  and the erasure embedding, via Racket.
+  for fully-typed programs, natural @${<} erasure @${<} locally-defensive
 }
 ]
 
-By contrast, we view the co-natural and forgetful embeddings as theoretical
- artifacts.
-An implementation of the natural embedding might benefit from more co-natural
- laziness, and an implementation of the locally-defensive embedding might benefit
- from careful use of monitors, but we leave these questions for future work.
+This section presents the results of a performance evaluation of the embeddings
+ for Typed Racket.
+The findings support the hypotheses.
 
 
 @section{Implementation Overview}
 
-Our implementation of the locally-defensive embedding exists as a fork of Typed Racket v6.10.1
- called @|LD-Racket|.
-@|LD-Racket| inherits the syntax and static type checker of Typed Racket.
-@|LD-Racket| extends Typed Racket with a type-to-tag compiler and a completion
- function for type-annotated programs.
+@; TODO compiled
 
-The type-to-tag function compiles a representation of a static
- type to a Racket predicate that checks whether a value matches the type.
-The completion function traverses a well-typed program and inserts two kinds of checks.
-It adds an @tt{assert} statement to every statically-typed function to defend
- the function body against dynamically-typed arguments.
-It wraps any destructor calls with a similar assert to confirm that the destructor
- returns a result with the expected tag.
+@|TR|@~cite[tf-popl-2008] is a migratory typing system for Racket that
+ implements the natural embedding.
+Whereas a Racket program starts with the line @tt|{#lang racket}| a
+ @|TR| program starts with the line @tt|{#lang typed/racket}| and
+ must type check before the compiler will generate bytecode.
+
+As a convenience for developers, the implementation of @|TR| comes
+ with a third language, @tt|{#lang typed/racket/no-check}|, that treats type
+ annotations as comments.
+This third language provides an easy way to compare the performance of the
+ natural embedding (standard @|TR|) against the erasure embedding (no-check)
+ for the same source code.
+
+To measure the performance of the locally-defensive embedding, we implemented
+ this embedding in a fork of @|TR|.
+The implementation re-uses the static type checker,
+ defines a new semantics for boundary terms,
+ and replaces the type-directed optimizer with a type-directed completion pass.
+The fork is based on Racket version 6.10, released in July 2017.
+All code is made available in the artifact for this paper.
+
+Re-using the type checker is difficult; this is why our implementation is a
+ fork instead of a package.
+
+The new semantics for boundary terms replaces the ``natural embedding'' type
+ checks with constructor checks.
+Actually replacing the checks is straightforward, but it is potentially unclear
+ how to check the constructor for certain types.
+For types of the form @${F(\tau)} that represent mutable data, for example
+ @${\tarray{\tau}}, check the constructor --- mutability makes no difference.
+For (true) union types of the form @${\tau_0 \cup \tau_1}, values that match
+ @${\tagof{\tau_0}} and @${\tagof{\tau_1}} are correct, so check the disjunction.
+For a universal type @${\tall{\alpha}{\tau}} or recursive type @${\mu{\alpha}{\tau}},
+ use the constructor @${\tagof{\tau}}.
+For a type variable @${\alpha}, define @${\tagof{\alpha} = \kany}; intuitively,
+ a typed context cannot make any assumptions about the constructor of a value
+ with type @${\alpha}, so there is no need to insert a check.
+
+The completion pass rewrites functions and function applications.
+Every typed function @racket[(lambda ([x : T] ....) e)] is rewritten to a checked
+ function @racket[(lambda ([x : T] ....) (check T x) .... e)].
+Every application @racket[(_f _x ....)] is rewritten to
+ @racket[(check _K (_f _x ....))], where @racket[_K] comes from the static type
+ of the expression.
+That is all; the only novelty is that we whitelist functions such as @racket[list]
+ that are trusted to give results with the expected constructor.
 
 The implementation is designed to support a functional subset of Racket.
 It does not support Typed Racket's class and object system@~cite[tfdfftf-ecoop-2015].
 
 
-@section{Evaluation Method}
-
-The promise of migratory typing is that programmers can freely mix statically-typed
- and dynamically-typed code.
-A performance evaluation of a migratory typing system must therefore give
- programmers a sense of the performance they can expect as they add static
- typing to a program@~cite[gtnffvf-jfp-2017 tfgnvf-popl-2016].
-
-To meet this goal, we measure the performance of all configurations of
- statically-typed and dynamically-typed code in a suite of Racket programs.
-Since Typed Racket (and our prototype) allows module-level type boundaries,
- this means that a Racket program with @${N} modules has @${2^N} configurations.
-
-To turn this raw data into a more direct message, we use the notion
- of a @deliverable{D} configuration from @citet[tfgnvf-popl-2016]
-A configuration is @deliverable{D} if its performance overhead relative to a fixed baseline configuration
- is at most @${D}.
-The baseline we use is the performance of Racket.
-We refer to this as the untyped configuration.
-Its performance corresponds to an erasure embedding.
-
-@emph{Remark} The premise of the @deliverable{D} measure is that programmers
- have a fixed performance requirement.
-Certain applications may have strict performance requirements and can
- only tolerate a 10% overhead, corresponding to @${D\,=\,1.1x}.
-Others may accept overhead as high as @${D\,=\,10x}.
-No matter the requirement, any programmer can instantiate @${D} and check whether
- the proportion of @deliverable{D} configurations is high enough to enable
- an incremental transition to a typed codebase.
-@emph{End}
-
-The programs we use are adapted from the functional benchmarks of @citet[tfgnvf-popl-2016].
-See the appendix for details and origins of each benchmark.
-
-To measure performance, we ran each configuration @~a[NUM-ITERS] times using
- Racket v6.10.1 on an
- unloaded Linux machine with two physical AMD Opteron 6376 processors@note{The Opteron is a NUMA architecture.}
- and 128GB RAM.
-The CPU cores on each processor were all configured to run at
- 2.30 GHz using the performance CPU governor.
-We did not collect measurements in parallel.
-
-
-@section{Results}
+@section{Evaluation I: Mixed-Typed Programs}
 @figure*["fig:locally-defensive-performance"
-         @elem{@|LD-Racket| (orange @|tag-color-sample| ) vs. Typed Racket (blue @|tr-color-sample| )}
+         @elem{@|LD-Racket| (orange @|tag-color-sample| ) vs. Typed Racket (blue @|tr-color-sample|).
+               The @|x-axis| is log-scaled. The unlabeled vertical ticks appear at:
+               @${1.2}x, @${1.4}x, @${1.6}x, @${1.8}x, @${4}x, @${6}x, and @${8}x overhead.}
   (overhead-plot* (map list TR-DATA* TAG-DATA*))]
 
-The plots in @figure-ref{fig:locally-defensive-performance} report the performance
- of Typed Racket (the natural embedding)
- and of @|LD-Racket| (the locally-defensive embedding)
- as two histograms.
-In the plot for a benchmark @sc{b}, the data for Typed Racket is a blue line
- and the data for @|LD-Racket| is an orange line.
+@Figure-ref{fig:locally-defensive-performance} plots
+ the overhead of @|TR| relative to Racket (TODO color)
+ and the overhead of @|LD-Racket| relative to Racket (TODO color)
+ for TODO functional programs.
+In summary, the area under the curve for @|LD-Racket| is larger so we conclude that
+ the locally-defensive embedding has better performance than the natural embedding
+ on mixed-typed programs.
+
+The data for the plots comes from applying the Takikawa method@~cite[tfgnvf-popl-2016 gtnffvf-jfp-2017]
+ to their functional benchmark programs.
+For a program with @${N} modules, the data is an average running time based
+ on @~a[NUM-ITERS] iterations for each of the @${2^N} configurations of the program.
+The value of @${2^N} is reported at the top-right of each plot in @figure-ref{fig:locally-defensive-performance}.
+
+All measurements were collected sequentially using Racket v6.10.1 on an unloaded Linux
+ machine with two physical AMD Opteron 6376 processors (a NUMA architecture) and
+ 128GB RAM.
+The CPU cores on each processor ran at 2.30 GHz using the @emph{performance} CPU governor.
+
+The lines on each plot show the percent of @deliverable{D} configurations as
+ the value of @${D} increases from @${1} to TODO.
+A configuration is @deliverable{D} if its running time is at most @${D} times
+ slower than the running time of the corresponding (untyped) Racket program.
 A point @${(X, Y)} on the line for Typed Racket says that @${Y}% of all Typed Racket configurations
  for the benchmark @sc{b} run at most @${X} times slower than Racket running
  the same code with all types erased.
-The line for @|LD-Racket| is analogous.
-Note that the @|x-axis| is log scaled; vertical tick marks appear at
- @${1.2}x, @${1.4}x, @${1.6}x, @${1.8}x, @${4}x, @${6}x, and @${8}x overhead.
+
+Ideally, the percent of @deliverable{D} configurations would be high for
+ @${D=1} and reach @${100\%} at a low value, perhaps @${D=1.8}.
+A @deliverable{1} configuration runs at least as fast as the untyped program.
+The worst case is that only a small percent of configurations are @deliverable{TODO},
+ meaning that many mixed-typed programs suffer a huge performance overhead.
+
+@;@emph{Remark} The premise of the @deliverable{D} measure is that programmers
+@; have a fixed performance requirement.
+@;Certain applications may have strict performance requirements and can
+@; only tolerate a 10% overhead, corresponding to @${D\,=\,1.1x}.
+@;Others may accept overhead as high as @${D\,=\,10x}.
+@;No matter the requirement, any programmer can instantiate @${D} and check whether
+@; the proportion of @deliverable{D} configurations is high enough to enable
+@; an incremental transition to a typed codebase.
+@;@emph{End}
 
 The data confirms that @|LD-Racket| is significantly more
  performant than @|TR|; see the plots for
@@ -147,10 +159,10 @@ Using @|LD-Racket|
 This degredation occurs because the pervasive type-tag checks of @|LD-Racket|
  introduce more overhead than the boundary checks inserted by Typed Racket.
 
-More broadly, the overhead in @bm{morsecode} speaks to a general trend:
- as the amount of statically-typed code increases, the performance overhead
- of @|LD-Racket| increases linearly.
-See the Appendix for details.
+
+@section{Evaluation II: Fully-Typed Programs}
+
+TBA
 
 
 @section{Threats to Validity}
@@ -197,23 +209,6 @@ Third, ascribing different types to the same program can affect its performance;
 Nevertheless we consider our results representative.
 
 
-@;@section{Experience}
-@;
-@;Type-tag error messages suck.
-@;More generally, forgetful-embedding error messages suck.
-
-
-@; =============================================================================
-@;#lang gf-icfp-2018
-@;@title[#:tag "sec:implementation"]{From Models to Implementations}
-@;
-@;@; -----------------------------------------------------------------------------
-@;
-@;The models from the preceding section do not address the full range of
-@; types found in practical languages.  Here we sketch how to address these
-@; limitations.
-@;
-@;
 @;@section{Compiling to a Host Language}
 @;
 @;The models employ a small-step operational semantics for an expression
@@ -244,43 +239,4 @@ Nevertheless we consider our results representative.
 @; reduction can skip checks that the dynamic reduction must perform, i.e., 
 @; it is safe to use the more conservative, dynamically-typed reduction
 @; relation.
-@;
-@;@section{Tags for Additional Types}
-@;
-@;The literature on migratory typing describes methods for implementing a
-@; variety of types, including untagged union types@~cite[tf-popl-2008] and
-@; structural class types@~cite[tfdfftf-ecoop-2015].  Those techniques apply
-@; to the co-natural and forgetful variants, though only if we ignore precise
-@; blame information for dynamically discovered type violations@~cite[dtf-esop-2012].
-@;
-@;Techniques for implementing the locally-defensive variant are less
-@; well-known, so we describe a few here.  To support @emph{types for mutable
-@; data}, it suffices to tag-check every read from a mutable data structure.
-@; If all reads are checked, then writes to a mutable value do not require a
-@; tag check.
-@;
-@;@; TODO synonym for 'incoming' ?
-@;To support @emph{structural class types} and functions with @emph{optional
-@; and keyword arguments}, a language designer has two choices.  One choice
-@; is to simply check that the incoming value is a class or procedure.  A
-@; second is to use reflective operations (if the language supports them) to
-@; count the methods and arity of the incoming value.  In our experience, the
-@; latter does not add significant overhead.
-@;
-@;To support @emph{untagged union types}, the language of tags @${K} requires
-@; a matching tag combinator.  Let @${\mathsf{or}} be this constructor; the
-@; tag for a union type @${(\cup~\tau_0~\tau_1)} is then
-@; @${(\mathsf{or}~K_0~K_1)} where @${K_i} is the tag of type @${\tau_i}.
-@;
-@;To support @emph{recursive types} of the form @${(\trec{\alpha}{\tau})}, a
-@; suitable type-tag is the tag of
-@; @${(\vsubst{\tau}{\alpha}{\trec{\alpha}{\tau}})}.  This definition is
-@; well-founded provided the type variable @${\alpha} appears only as the
-@; parameter to a @emph{guarded} type.  A non-base type is guarded if
-@; its type-tag does not depend on its argument types.
-@;
-@;To support @emph{universal types} of the form @${\tall{\alpha}{\tau}}, we
-@; use the tag @${\tagof{\tau}} and define @${\tagof{\alpha} = \kany}.
-@; Intuitively, there is no need to tag-check the use of a type variable
-@; because type variables have no elimination forms.
 @;
