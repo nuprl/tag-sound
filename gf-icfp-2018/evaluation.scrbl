@@ -15,6 +15,11 @@
 
 Based on the models, the natural, locally-defensive, and erased embeddings seem to occupy
  three distinct points on a spectrum between soundness and performance.
+
+Hypotheses:
+- LD << natural on mixed-typed programs
+- natural < erasure < LD on fully-typed programs
+
 To measure how these embeddings stack up
  as competing implementation strategies for the same host language and typing system,
  we have implemented a locally-defensive embedding as an extension of Typed Racket.
