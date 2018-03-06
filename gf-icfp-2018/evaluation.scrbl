@@ -79,11 +79,23 @@ Every typed function @racket[(lambda ([x : T] ....) e)] is rewritten to a checke
 Every application @racket[(_f _x ....)] is rewritten to
  @racket[(check _K (_f _x ....))], where @racket[_K] comes from the static type
  of the expression.
-That is all; the only novelty is that we whitelist functions such as @racket[list]
+One more thing: we whitelist functions such as @racket[list]
  that are trusted to give results with the expected constructor.
 
-The implementation is designed to support a functional subset of Racket.
-It does not support Typed Racket's class and object system@~cite[tfdfftf-ecoop-2015].
+@subsection{Compiling to a Host Language}
+
+The models employ a small-step operational semantics for an expression language.
+The natural and locally-defensive have two reduction relations.
+In practice, though, a migratory typing system compiles statically-typed code
+ to the host language, which raises two questions.
+
+The first question is how to represent the static types that the models use
+ in monitor values and function applications.
+We compile to contracts.
+
+The second question is whether it is sound to use the host language reduction
+ relation on statically-typed terms.
+Theorems in the previous section show that this is sound.
 
 
 @section{Evaluation I: Mixed-Typed Programs}
@@ -156,24 +168,22 @@ The data confirms that @|LD-Racket| is significantly more
  performant than @|TR|; see the plots for
  @bm{sieve}, @bm{fsm}, @bm{suffixtree}, @bm{kcfa},
  @bm{snake}, @bm{tetris}, and @bm{synth}.
-The improvement is most dramatic for @bm{synth}, in which the worst-case
- performance ovehead drops from @maxo['typed 'synth] to @maxo['tagged 'synth],
- mostly because Typed Racket @bm{synth} spends a large amount of time
+The improvement is most dramatic for @bm{synth}
+ because Typed Racket @bm{synth} spends a large amount of time
  eagerly traversing data structures and monitoring their components.
 @; FSM also dramatic, removes huge indirection cost
 
+Two bad things.
 The @bm{zombie} benchmark shows only a minor improvement;
  few configurations are @deliverable{10} in either Typed Racket or @|LD-Racket|.
-We remark, however, that the worst-case overhead in Typed Racket for @bm{zombie}
- is @maxo['typed 'zombie] whereas the worst-case for @|LD-Racket|
- is far lower, at @maxo['tagged 'zombie].
-
-The @bm{morsecode} benchmark is an anomaly.
-Using @|LD-Racket|
+The @bm{morsecode} benchmark is often a slow-down; using @|LD-Racket|
  increases its worst-case overhead from @maxo['typed 'morsecode #:precision '(= 1)]
  to @maxo['tagged 'morsecode #:precision '(= 1)].
-This degredation occurs because the pervasive type-tag checks of @|LD-Racket|
+This degredation occurs because the many constructor checks inserted by @|LD-Racket|
  introduce more overhead than the boundary checks inserted by Typed Racket.
+
+@Figure-ref{fig:max-overhead} presents a sky view of the benchmarks.
+@|LD-Racket| has much better worst-case performance.
 
 
 @section{Evaluation II: Fully-Typed Programs}
@@ -200,21 +210,23 @@ Improving these error messages with information about the source of an ill-tagge
 Similarly, the prototype avoids using Racket's contract system to implement
  type-tag checks.
 Contracts are a useful tool for defining predicates that give well-structured
- error messages, but they can add prohibitive overheads.
-Perhaps the implementation of contracts could be improved; perhaps they
- are just the wrong tool for implementing frequently-executed assert statements.
+ error messages, but they add a constant-factor overhead that wound up
+ being prohibitive.
+Some of these tag checks happen many times TODO.
+Perhaps the implementation of contracts could be improved;
+ perhaps the JIT needs to improve.
 
 @; === things that make prototype too slow
 On the other hand, the performance of the prototype could be improved in two
  obvious ways.
 First, @|LD-Racket| does not take advantage of the @|TR| optimizer
  to remove type-tag checks from primitive operations.
-Second, the prototype could use type-based static analysis
- to detect redundant type-tag checks.
+Second, the prototype is based on a model that introduces redundant checks;
+ a better model will improve the prototype.
 
 @; === things that make prototype non-representative
 Three other threats are worth noting.
-First, @|LD-Racket| does not support Racket's object-oriented features;
+First, @|LD-Racket| does not support Racket's object-oriented features@~cite[tfdfftf-ecoop-2015];
  programs using such features might not improve as drastically as the functional
  benchmarks we measure.
 Second, our benchmarks are relatively small; the largest is 10 modules and 800 lines (see appendix for full details).
@@ -224,35 +236,3 @@ Third, ascribing different types to the same program can affect its performance;
  a natural number or some other union type.
 Nevertheless we consider our results representative.
 
-
-@;@section{Compiling to a Host Language}
-@;
-@;The models employ a small-step operational semantics for an expression
-@; language.  Indeed, the type-sound ones (natural, co-natural, forgetful,
-@; and locally-defensive) use two mutually-recursive reduction relations.  In
-@; practice, though, a migratory typing system for a language @${\langD}
-@; compiles statically-typed code to this host language, which raises two
-@; questions.
-@;
-@;The first question is how to represent the static types that the models use
-@; in monitor values and function applications. A suitable compiled
-@; representation for @${(\vmonfun{\tarr{\tau_d}{\tau_c}}{v})} is
-@; @${(\vmonfun{\vpair{e_d}{e_c}}{v})} where @${e_d} is a host-language
-@; function that checks whether a value matches the domain type.  In the
-@; forgetful variant, the domain of @${(\vlam{\tann{x}{\tau}}{e})} can
-@; replace the domain type in its enclosing monitor. In the locally-defensive
-@; variant, @${(\vlam{\tann{x}{\tau}}{e})} compiles to a function that checks
-@; the actual value of @${x} against the type @${\tau} before executing the
-@; function body. @;{ @~cite[vss-popl-2017].}
-@;
-@;The second question is whether it is sound to use the @${\langD} reduction
-@; relation on statically-typed terms. Indeed, all of our models do not need
-@; separate reduction relations other than for the soundness proofs in the
-@; preceding section.  The reductions differ in two minor aspects: how they
-@; interpose boundary terms and how many run-time checks they perform.  As
-@; for the boundaries, they become irrelevant in an implementation because
-@; the set of values are the same. As for the run-time checks, the static
-@; reduction can skip checks that the dynamic reduction must perform, i.e., 
-@; it is safe to use the more conservative, dynamically-typed reduction
-@; relation.
-@;
