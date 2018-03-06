@@ -9,7 +9,6 @@
   bm-desc
   blockquote
   MT
-  TR
   good
   language
   MMT
@@ -38,7 +37,6 @@
   NUM-EMBEDDINGS
   EGOOD
   deliverable
-  LD-Racket
   x-axis
   y-axis
   IF-TECHREPORT
@@ -349,12 +347,6 @@
      [else
       (raise-argument-error 'deliverable "(or/c positive-real? string?)" D)]))
   (elem ($ d-str) "-deliverable"))
-
-(define LD-Racket
-  "Locally-Defensive Racket")
-
-(define TR
-  "Typed Racket")
 
 (define x-axis
   (exact "\\emph{x}-axis"))

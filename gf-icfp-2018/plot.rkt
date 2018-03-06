@@ -15,10 +15,14 @@
   NUM-TR
   NUM-ITERS
   X-MAX
+  TR
+  LD-Racket
   overhead-plot*
   exact-plot*
   models-roadmap
   render-max-overhead
+  make-ratios-table
+  render-ratios-table
   fishtank-pict
   fishtank/biohazard
   fishtank/biohazard/natural
@@ -30,7 +34,14 @@
   file/glob
   gtp-plot/plot
   gtp-plot/typed-racket-info
+  (only-in scribble/manual
+    centered
+    tabular
+    bold
+    tt
+    hspace)
   (only-in gtp-plot/performance-info
+    typed/baseline-ratio
     max-overhead)
   with-cache
   racket/runtime-path
@@ -69,6 +80,9 @@
 (define NUM-COLUMNS 2)
 (define X-MAX 10)
 (define CACHE-DIR "cache")
+(define LD-Racket "Locally-Defensive Racket")
+(define TR "Typed Racket")
+
 
 (define START-COLOR 3)
 
@@ -160,11 +174,7 @@
                  [*with-cache-fasl?* #f]
                  [*current-cache-directory* (build-path CWD CACHE-DIR)])
     (define (make-overhead-plot/cache x)
-      (define filename
-        (let ((base (data->filename x)))
-          (if extra-tag
-            (string-append extra-tag "-" base)
-            base)))
+      (define filename (data->cache-tag x extra-tag))
       (define current-md5 (data->md5sum x))
       (parameterize ([*current-cache-keys* (cons (λ () current-md5) base-cache-keys)])
         (with-cache (cachefile filename)
@@ -217,6 +227,12 @@
    [else
     (raise-argument-error 'data->md5sum "unrecognized data format" x)]))
 
+(define (data->cache-tag data [prefix #false])
+  (define base-tag (data->filename data))
+  (if prefix
+    (string-append prefix "-" base-tag)
+    base-tag))
+
 (define (data->plot x)
   (cond
    [(path-string? x)
@@ -234,6 +250,13 @@
     (exact-runtime-plot (map make-typed-racket-info x))]
    [else
     (raise-argument-error 'data->exact-plot "unrecognized data format" x)]))
+
+(define (data->typed/baseline-ratio x)
+  (cond
+    [(path-string? x)
+     (typed/baseline-ratio (make-typed-racket-info x))]
+    [else
+     (raise-argument-error 'data->typed/baseline-ratio "unrecognized data format" x)]))
 
 (define (models-roadmap #:D dyn-name
                         #:S sta-name
@@ -313,6 +336,52 @@
       (car r*)]
      [else
       (loop (cdr r*))])))
+
+(define (make-ratios-table . data**)
+  (define col0 (map filename->prefix (car data**)))
+  (define col*
+    (parameterize ([*with-cache-fasl?* #false]
+                   [*current-cache-directory* (build-path CWD CACHE-DIR)])
+      (for/list ([data* (in-list data**)])
+        (for/list ([data (in-list data*)])
+          (define tag (data->cache-tag data "ratio"))
+          (with-cache (cachefile tag)
+            (λ () 
+              (rnd (data->typed/baseline-ratio data))))))))
+  (cons col0 col*))
+
+(define (render-table-name str)
+  (define short-str
+    (if (< (string-length str) 5)
+      str
+      (string-append (substring str 0 3) ".")))
+  (tt short-str))
+
+(define (list-transpose col*)
+  (cond
+    [(andmap null? col*)
+     '()]
+    [(ormap null? col*)
+     (raise-argument-error 'list-transpose "list of equal-length lists" col*)]
+    [else
+     (define r (map car col*))
+     (cons r (list-transpose (map cdr col*)))]))
+
+(define RATIOS-TITLE*
+  (map bold
+       #;(list "Benchmark" TR LD-Racket)
+       (list "Benchmark" "TR" "LD")))
+
+(define (render-ratios-table rt)
+  (centered
+    (tabular
+      #:sep (hspace 2)
+      #:style 'block
+      #:row-properties '(left right)
+      #:column-properties '(right)
+      (map cons RATIOS-TITLE* (cons (map render-table-name (car rt)) (cdr rt))))))
+
+;; --- FISH
 
 (define fishtank-scene
   (let ()

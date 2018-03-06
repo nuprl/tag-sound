@@ -91,7 +91,7 @@ It does not support Typed Racket's class and object system@~cite[tfdfftf-ecoop-2
          @elem{@|LD-Racket| (orange @|tag-color-sample| ) vs. Typed Racket (blue @|tr-color-sample|).
                The @|x-axis| is log-scaled. The unlabeled vertical ticks appear at:
                @${1.2}x, @${1.4}x, @${1.6}x, @${1.8}x, @${4}x, @${6}x, and @${8}x overhead.}
-  (overhead-plot* (map list TR-DATA* TAG-DATA*))]
+         (overhead-plot* (map list TR-DATA* TAG-DATA*))]
 
 @Figure-ref{fig:locally-defensive-performance} plots
  the overhead of @|TR| relative to Racket (TODO color)
@@ -161,6 +161,11 @@ This degredation occurs because the pervasive type-tag checks of @|LD-Racket|
 
 
 @section{Evaluation II: Fully-Typed Programs}
+@(define RT (make-ratios-table TR-DATA* TAG-DATA*))
+
+@figure["fig:typed-baseline-ratios"
+        @elem{Typed/untyped ratios for @|TR| (TR) and @|LD-Racket| (LD)}
+        @render-ratios-table[RT]]
 
 TBA
 
