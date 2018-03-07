@@ -11,6 +11,7 @@
 @;   with dangerous bends
 @; - one point of GT is that need to build incrementally,
 @;   but the errors are definitely not incremental
+@; - notation for \rrKSstar when e = completion
 
 @; -----------------------------------------------------------------------------
 
@@ -310,32 +311,70 @@ If type boundaries are severely limited in expressiveness, then the
 
 @section{For the Performance of Mixed-Typed Programs}
 
-If a program has boundary terms, the natural embedding pays a significant price
- in three forms:
- checking, indirection, and allocation.
-By @emph{checking}, we refer to the cost of validating a type-tag and recursively
- validating the components of a structured value.
-For example, checking a list structure built from @${N} pair values requires
- (at least) @${2N} recursive calls.
-Function monitors add an @emph{indirection} cost.
-Every call to a monitored function incurs one additional boundary-crossing.
-If a value repeatedly crosses boundary terms, these type-checking layers
- can accumulate without bound.@note{In a language with a JIT compiler,
-  indirection may also affect inlining decisions.
-  @; TODO does Spenser's work validate this?
-  }
-Finally, the @emph{allocation} cost of building a monitor value
- also adds to the performance overhead.
+Each embedding pays a different cost when a value crosses a type boundary.
+The natural embedding eagerly checks finite values and allocates a monitor
+ for function values; the checks have variable cost depending on value and
+ expected type, and the allocation has a pervasive kind of cost.
+The erasure embedding pays zero cost.
+The locally-defensive embedding pays a unit cost for each crossing.
+If, for example, a well-typed value crosses a boundary expecting a pair
+ type, then each embedding takes a different course of action.
 
-These add up, visually too. TODO
+@dbend{
+  \begin{array}{l c l}
+    v & = & \vpair{1}{\vlam{x}{x}}
+  \\\esd & = & \edyn{\tpair{\tnat}{\tarr{\tint}{\tint}}}{\ehole}
+  \\\esd[v] & \rrNSstar & \vpair{1}{\edyn{\tarr{\tint}{\tint}}{\vlam{x}{x}}}
+  \\        & \rrNSstar & \vpair{1}{\vmonfun{\tarr{\tint}{\tint}}{\vlam{x}{x}}}
+  \\\esd[v] & \rrEEstar & v
+  \\\esd[v] & \rrKSstar & v
+  \end{array}
+}
 
-The erasure embedding has no soundness and no performance cost.
+If a function crosses multiple boundaries, the natural embedding allocates
+ one monitor for each.
+The erasure and locally-defensive embeddings do not allocate anything.
 
-The locally-defensive embedding has a small cost for each boundary,
- one constructor-check more than the erasure embedding.
-Illustrate please.
+@dbend{
+  \begin{array}{l c l}
+    v & = & \vlam{\tann{x}{\tint}}{x}
+  \\e & = & \edyn{\tarr{\tnat}{\tnat}}{(\esta{\tarr{\tint}{\tint}}{v})}
+  \\e & \rrNSstar & \vmonfun{\tarr{\tnat}{\tnat}}{(\vmonfun{\tarr{\tint}{\tint}}{v})}
+  \\e & \rrEEstar & v
+  \\e & \rrKSstar & v
+  \end{array}
+}
+
+When it comes time to apply a monitored function, the natural embedding suffers
+ an indirection cost as it traverses the monitors.
+The locally-defensive embedding, on the other hand, checks the type constructor
+ of the result.
+
+@dbend{
+  \begin{array}{l c l}
+  \eapp{(\vmonfun{\tarr{\tnat}{\tnat}}{(\vmonfun{\tarr{\tint}{\tint}}{v})})}{4} & \rrNSstar & \edyn{\tnat}{(\esta{\tint}{(\eapp{v}{\esta{\tint}{(\edyn{\tnat}{4})}})})}
+  \\ & \rrNSstar & \edyn{\tnat}{(\esta{\tint}{4}}
+  \\ & \rrNSstar & 4
+  \end{array}
+}
+
+@dbend{
+  \begin{array}{l c l}
+  \eapp{v}{4} : \tnat & \carrow & \echk{\knat}{(\eapp{v}{4})}
+  \\ & \rrKSstar & \echk{\knat}{4}
+  \\ & \rrKSstar & 4
+  \end{array}
+}
+
+The natural embedding pays for @emph{checking} any type,
+ and for @emph{allocation} and @emph{indirection} on higher-order values.
+The locally-defensive embeddings pays for checking constructors at the boundary
+ and for checking the result of any elimination form.
+In a program where large data structures or functions repeatedly cross
+ type boundaries, the natural embedding may suffer a huge performance overhead.
 
 
+@; -----------------------------------------------------------------------------
 @section{For the Performance of Fully-Typed Programs}
 
 @; with no boundaries
