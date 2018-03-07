@@ -2,10 +2,6 @@
 @title[#:tag "sec:evaluation"]{Apples-to-Apples Performance}
 
 @; TODO
-@; - implementation (how measured all 3 embeddings)
-@; - overhead plots
-@; - typed/untyped ratios
-
 @; - sec:implementation:tag-check
 @;    julia extreme tag checks
 
@@ -59,10 +55,13 @@ All code is made available in the artifact for this paper.
 Re-using the type checker is difficult; this is why our implementation is a
  fork instead of a package.
 
-The new semantics for boundary terms replaces the ``natural embedding'' type
- checks with constructor checks.
-Actually replacing the checks is straightforward, but it is potentially unclear
- how to check the constructor for certain types.
+@subsection{Constructor Checks}
+
+How to implement constructor checks?
+The checks in the model are just type-tag checks,
+ the kind that come built-in in any safe dynamic language.
+
+The implementation uses more checks.
 For types of the form @${F(\tau)} that represent mutable data, for example
  @${\tarray{\tau}}, check the constructor --- mutability makes no difference.
 For (true) union types of the form @${\tau_0 \cup \tau_1}, values that match
@@ -73,6 +72,18 @@ For a type variable @${\alpha}, define @${\tagof{\alpha} = \kany}; intuitively,
  a typed context cannot make any assumptions about the constructor of a value
  with type @${\alpha}, so there is no need to insert a check.
 
+In principle there is one check per type in the program, so a sophisticated
+ compiler can generate efficient code for these.
+We do not do this.
+Open question.
+
+We implement checks with procedures; basically as contracts.
+Use TR type to contract compiler, then insert a check.
+@; (if ((begin-encourage-inline ctc) v) v (error ....))
+
+
+@subsection{Completion}
+
 The completion pass rewrites functions and function applications.
 Every typed function @racket[(lambda ([x : T] ....) e)] is rewritten to a checked
  function @racket[(lambda ([x : T] ....) (check T x) .... e)].
@@ -81,6 +92,7 @@ Every application @racket[(_f _x ....)] is rewritten to
  of the expression.
 One more thing: we whitelist functions such as @racket[list]
  that are trusted to give results with the expected constructor.
+
 
 @subsection{Compiling to a Host Language}
 
@@ -220,6 +232,10 @@ The @bm{zombie} benchmark is a surprising exception.
 Its fully-typed performance is very slow; this is because
  it performs many type casts.
 Maybe we should equalize typed and untyped for these.
+
+This observation raises questions about optimizing the locally-defensive
+ embedding.
+We discuss these and other directions for future work in @secref{sec:conclusion}.
 
 
 @section{Threats to Validity}

@@ -1,5 +1,6 @@
 #lang gf-icfp-2018
-@appendix
+@|appendix|
+@|pre-clearpage|
 @title[#:tag "sec:appendix"]{Appendix}
 
 @; -----------------------------------------------------------------------------

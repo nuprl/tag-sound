@@ -54,6 +54,7 @@
   proof-sketch
 
   appendix
+  pre-clearpage
 
   ;; ---------------------------------------------------------------------------
   ;; --- old stuff
@@ -379,6 +380,10 @@
 (define appendix
   (make-paragraph (make-style 'pretitle '())
     (make-element (make-style "appendix" '(exact-chars)) '())))
+
+(define pre-clearpage
+  (make-paragraph (make-style 'pretitle '())
+    (exact "\\clearpage")))
 
 (define (inline-pict p)
   (centered (list p)))
