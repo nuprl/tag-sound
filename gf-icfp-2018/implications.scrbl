@@ -5,13 +5,12 @@
 @; thesis: soundness matters
 
 @; TODO
-@; - revisit soundness
-@; - contrast with examples
 @; - kind-of-mention performance, but do NOT focus, that's for next section
-@; - single-language corollaries ... not exactly sure how to weave these in
 @; - fill in TODO about what else is in the figure
 @; - classify examples as "good" "bad" "maybe"
 @;   with dangerous bends
+@; - one point of GT is that need to build incrementally,
+@;   but the errors are definitely not incremental
 
 @; -----------------------------------------------------------------------------
 
@@ -88,6 +87,7 @@ Here we contrast three broad classes of implications: implications for
 
 @section{For Compositional Reasoning}
 @; aaha THIS is the headline I'm looking for!
+@; thesis: types have weaker meaning
 
 The embeddings' notions of soundness hinder programmers' ability to compositionally
  reason about programs via type annotations.
@@ -145,11 +145,20 @@ In the locally-defensive embedding, the types confirm the constructors and
  then wash away.
 The client has to access the data in typed code to get anything deeper.
 
+Constructor-level is very shallow, allows a type-cast operator by sending
+ one value across two boundaries
+A function can have a completely incorrect type in one context.
+
 @dbend{
   \begin{array}{l c l}
     \edyn{\tpair{\tnat}{\tnat}}{\vpair{-2}{-3}} & \rrKSstar & \vpair{-2}{-3}
   \\\eapp{(\esta{\tarr{\tint}{\tint}}{\edyn{\tarr{\tnat}{\tnat}}{\vlam{x}{-3}}})}{1} & \rrKSstar & -3
   \end{array}
+}
+
+@; too much typing ... maybe leave forgetful-ness for the performance part?
+@dbend{
+  \emph{cast} = \vlam{\tann{f}{\tarr{\tau_d}{\tau_c}}}{\edyn{\tarr{\tau_d'}{\tau_c'}}{\esta{\tarr{\tau_d}{\tau_c}}{f}}}
 }
 
 In summary:
@@ -160,62 +169,111 @@ In summary:
   of reasoning.
 
 
+@; -----------------------------------------------------------------------------
 @section{For Errors and Error Messages}
+@; thesis: silent and hard-to-trace errors in typed contexts
+
+@; start with Reynolds?
 
 The change in the meaning of types expands the class of errors that a programmer
  must be prepared to debug.
+If one takes the view that types are assertions about the kind of values that
+ can inhabit variables, then these assertions can silently fail.
+This affects the ability to give informative error messages, or indicate any
+ error at all.
 
+The natural embedding may silently fail when a dynamically-typed function
+ enters typed code, because the function opaque to the type system.
+A silent failure will be detected, however, the first time this function is
+ applied to a witnessing input --- no matter the context.
+The erasure embedding fails silently at every opportunity.
+The locally-defensive embedding may silently fail for functions and pairs.
+Whether these failures are detected depends on the type annotations on their
+ uses.
 
+Here is a simple example for a product type.
 
+@dbend{
+  \begin{array}{l c l}
+    e & = & \efst{(\edyn{\tpair{\tnat}{\tnat}}{\vpair{-1}{-2}})}
+  \\ e & \rrNSstar & \efst{\boundaryerror}
+  \\ e & \rrEEstar & {-1}
+  \\ \wellM e : \tint & \carrow & \echk{\kint}{e} \rrKSstar \echk{\kint}{{-2}} \rrKSstar \boundaryerror
+  \end{array}
+}
 
+Analogous example for a function.
 
-The natural embedding does not eliminate the runtime type error, but
- detects such errors as soon as possible.
-If a finite value reaches a type boundary, the natural embedding checks that
- the value is well-typed.
-If an infinite (procedural) value reaches a type boundary, the natural embedding
- monitors the value and reports the first witness (if any) that the value
- is not well-typed.
-An implementation can leverage this property to provide detailed error messages.
+@dbend{
+  \begin{array}{l c l}
+    e & = & \eapp{(\vlam{\tann{f}{\tarr{\tnat}{\tint}}}{\eapp{f}{2}})}{(\edyn{\tarr{\tnat}{\tnat}}{\vlam{x}{{-4}}})}
+  \\e & \rrNSstar & \boundaryerror
+  \\e & \rrEEstar & {-4}
+  \\e & \rrKSstar & {-4}
+  \end{array}
+}
+
+Another simple example for a function.
+
+@dbend{
+  \begin{array}{l c l}
+    e & = & \edyn{\tarr{\tnat}{\tnat}}{\vlam{x}{\esum{x}{{-1}}}}
+  \\\eapp{e}{1} & \rrNSstar & 0
+  \\\eapp{e}{0} & \rrNSstar & \boundaryerror
+  \\\eapp{(\esta{\tarr{\tnat}{\tnat}}{e}}{0} & \rrNSstar & \boundaryerror
+  \\
+  \\\eapp{e}{1} & \rrEEstar & 0
+  \\\eapp{e}{0} & \rrEEstar & {-1}
+  \\\eapp{(\esta{\tarr{\tnat}{\tnat}}{e}}{0} & \rrEEstar & {-1}
+  \\
+  \\\eapp{e}{1} & \rrKSstar & 0
+  \\\eapp{e}{0} & \rrKSstar & \boundaryerror
+  \\\eapp{(\esta{\tarr{\tnat}{\tnat}}{e}}{0} & \rrKSstar & {-1}
+  \end{array}
+}
+
+An implementation of the natural embedding can use eager detection to provide
+ helpful error messages.
 Typed Racket, for example, implements the natural embedding and reports
- runtime type errors using the static boundary between typed and untyped
+ runtime type errors in terms of @emph{the} static boundary between typed and untyped
  code that led to the fault@~cite[tfffgksst-snapl-2017].
 If such an error occurs, the programmer knows exactly where to start looking
  for the source of the bug: either type annotation is wrong, or the untyped
  code has a latent bug.
+The error is either directly at the boundary or at a boundary internalized in a monitor.
+Monitors provide a hook.
 
-The erasure embedding does nothing to prevent runtime type errors.
-Anything can happen at runtime.
-When reasoning about correctness, a programmer needs to forget the types.
-Risk of silent failures!
+The erasure embedding has no ability to detect errors, and therefore its ability
+ to produce error messages is a moot point.
 
-Example: TODO
+The locally-defensive embedding has limited information.
+When an error occurs, the system has a plain value and an incompatible type
+ annotation.
+No clue how the value got there.
+This is especially bad if programmers follow John Hughes advice and build large
+ functions from small reusable components.
 
-There is nothing to say about error messages.
+Here is a tame example, adapted from @citet[vss-popl-2017].
+This function @${g} is unsafe IMO.
+The value of its argument can be any pair, but only pairs of integers can be
+ passed to @${f}.
+What happens is that @${f} raises a tag error and the user cannot tell where
+ they went wrong without looking at the body of @${f}.
 
-The locally-defensive embedding is a weak compromise.
-On one hand, it allows silent type errors for non-base types.
-In the Reynolds example, the locally-defensive embedding will substitute the
- ill-typed pair into the body of the function: TODO
+@dbend{
+  \begin{array}{l c l}
+    f & = & \vlam{x_0}{\esum{\efst{ints}}{\esnd{ints}}}
+  \\g & = & \vlam{\tann{x_1}{\tpair{\tint}{\tint}}}{\eapp{f}{x_1}}
+  \end{array}
+}
 
-On the other hand, the locally-defensive embedding detects any type errors
- involving base types.
-This halts the Reynolds program before it commits a type error: TODO
+@citet[vss-popl-2017] have explored one way of improving the locally-defensive
+ errorrs.
+They build a map from values (specifically, memory addresses) to type casts
+ (boundaries).
+When something goes wrong, they display a set of casts to narrow down the search.
 
-More generally, the locally-defensive embedding @emph{eventually} detects every
- type error in a ``live'' value, but misses type errors in unused code paths.
-
-When it comes to reporting these errors, however, the locally defensive embedding
- is at a serious disadvantage compared to the natural embedding.
-The only information at hand is that an assertion failed.
-Values are not monitored, so there is no way to attribute the failure to a boundary
- between typed and untyped code.
-
-@citet[vss-popl-2017] have explored one alternative to this limitation.
-They keep a registry of values and track the type annotations that each value
- flows through.
-This information can point to a set of boundaries when an assertion fails.
-Less precise!
+@; obviously set is worse ... can we give example where set inaccurate???
 
 
 @section{For First-Order Interactions}
