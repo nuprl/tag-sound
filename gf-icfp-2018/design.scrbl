@@ -1,5 +1,5 @@
 #lang gf-icfp-2018
-@require[(only-in "techreport.rkt" tr-theorem tr-lemma tr-definition tr-proof)]
+@require[(only-in "techreport.rkt" tr-theorem tr-lemma tr-definition tr-proof tr-and)]
 @title[#:tag "sec:design"]{Apples-to-Apples Logic and Metatheory}
 
 @; thesis: these models reflect the 3 modes from life
@@ -318,7 +318,7 @@ Second, dynamically-typed code cannot exhibit undefined behavior.
 More formally:
 
 @twocolumn[
-  @tr-theorem[#:key "N-static-soundness" @elem{static @${\mathbf{N}}-soundness}]{
+  @tr-theorem[#:key "N-static-soundness" @elem{static @|NE|-soundness}]{
     If @${\wellM e : \tau} then @${\wellNE e : \tau} and one
     @linebreak[]
     of the following holds:
@@ -329,7 +329,7 @@ More formally:
       @item{ @${e} diverges}
     ] }
 
-  @tr-theorem[#:key "N-dynamic-soundness" @elem{dynamic @${\mathbf{N}}-soundness}]{
+  @tr-theorem[#:key "N-dynamic-soundness" @elem{dynamic @|NE|-soundness}]{
     If @${\wellM e} then @${\wellNE e} and one
     @linebreak[]
     of the following holds:
@@ -421,7 +421,7 @@ Consequently, erasure soundness for the pair of language is their lowest common
  denominator --- well-typed programs have well-defined behavior.
 
 @twocolumn[
-  @tr-theorem[#:key "E-static-soundness" @elem{static @${\mathbf{E}}-soundness}]{
+  @tr-theorem[#:key "E-static-soundness" @elem{static @|EE|-soundness}]{
     If @${\wellM e : \tau} then @${\wellEE e} and one
     @linebreak[]
     of the following holds:
@@ -432,7 +432,7 @@ Consequently, erasure soundness for the pair of language is their lowest common
       @item{ @${e} diverges}
     ] }
 
-  @tr-theorem[#:key "E-dynamic-soundness" @elem{dynamic @${\mathbf{E}}-soundness}]{
+  @tr-theorem[#:key "E-dynamic-soundness" @elem{dynamic @|EE|-soundness}]{
     If @${\wellM e} then @${\wellEE e} and one
     @linebreak[]
     of the following holds:
@@ -603,7 +603,7 @@ The main theorem for this embedding is that these properties are sound with
  respect to the @${\rrKSstar} and @${\rrKDstar} reduction relations.
 
 @twocolumn[
-  @tr-theorem[#:key "K-static-soundness" @elem{static @${\mathbf{K}}-soundness}]{
+  @tr-theorem[#:key "K-static-soundness" @elem{static @|KE|-soundness}]{
     If @${\wellM e : \tau} then 
     @${\wellM e : \tau \carrow e''}
     and @${\wellKE e'' : \tagof{\tau}}
@@ -617,7 +617,7 @@ The main theorem for this embedding is that these properties are sound with
     ]
   }
 
-  @tr-theorem[#:key "K-dynamic-soundness" @elem{dynamic @${\mathbf{K}}-soundness}]{
+  @tr-theorem[#:key "K-dynamic-soundness" @elem{dynamic @|KE|-soundness}]{
     If @${\wellM e} then 
     @${\wellM e \carrow e''}
     and @${\wellKE e''}
@@ -708,7 +708,7 @@ This space reserved for discussing similarities or connections between the model
   ]
 }
 
-@tr-theorem[#:key "NK-base-type" @elem{@${\mathbf{N}}/@${\mathbf{K}} base type equivalence}]{
+@tr-theorem[#:key "NK-base-type" @elem{@|NE|/@|KE| base type equivalence}]{
   If @${\wellM e : \tau} and @${B(e) \subseteq \{\tint, \tnat\}}
   and @${\wellM e : \tau \carrow e''}, then
   @${(e, \ccNS)} and @${(e'', \ccKS)} are bisimilar.
@@ -723,3 +723,147 @@ More precisely, for any value @${v} the function @${\efromdyn{\tint}{v}} yields
 @; - D(t,v) = D(t, v) and S(t,v) = S(t,v) across embeddings
 @; - stuttering simulation because of chk terms
 @; - all checks pass in the LD term ... because every value is "actually typed"
+
+Helpful to compare the canonical forms and inversion principles in each language.
+
+@; natural
+@twocolumn[
+  @tr-lemma[#:key #false @elem{@|NE| canonical forms}]{
+    @itemlist[
+      @item{
+        If @${\wellNE v : \tpair{\tau_0}{\tau_1}}
+        then @${v \eeq \vpair{v_0}{v_1}}
+      }
+      @item{
+        If @${\wellNE v : \tarr{\tau_d}{\tau_c}}
+        then either:
+        @itemlist[
+          @item{
+            @${v \eeq \vlam{\tann{x}{\tau_x}}{e'}
+               @tr-and[]
+               \tau_d \subteq \tau_x}
+          }
+          @item{
+            or @${v \eeq \vmonfun{(\tarr{\tau_d'}{\tau_c'})}{v'}
+                  @tr-and[]
+                  \tarr{\tau_d'}{\tau_c'} \subteq \tarr{\tau_d}{\tau_c}}
+          }
+        ]
+      }
+      @item{
+        If @${\wellNE v : \tint}
+        then @${v \in \integers}
+      }
+      @item{
+        If @${\wellNE v : \tnat}
+        then @${v \in \naturals}
+      }
+    ]
+  }
+
+  @tr-lemma[#:key #false @elem{@|NE| inversion}]{
+    @itemlist[
+      @item{
+        If @${\wellNE \vpair{v_0}{v_1} : \tpair{\tau_0}{\tau_1}}
+        then @${\wellNE v_0 : \tau_0
+        @tr-and[] \wellNE v_1 : \tau_1}
+      }
+      @item{
+        If @${\wellNE \vlam{\tann{x}{\tau_x}}{e'} : \tarr{\tau_d}{\tau_c}}
+        then @${\tann{x}{\tau_d} \wellNE e' : \tau_c}
+      }
+      @item{
+        If @${\wellNE \vmonfun{(\tarr{\tau_d'}{\tau_c'})}{v'} : \tarr{\tau_d}{\tau_c}}
+        then @${\wellNE v'}
+      }
+    ]
+  }
+]
+
+@; erasure
+@twocolumn[
+  @tr-lemma[#:key #false @elem{@|EE| canonical forms}]{
+    If @${\wellEE v}
+    then either:
+    @itemlist[
+      @item{
+        @${v \eeq \vlam{x}{e'}}
+      }
+      @item{
+        @${v \eeq \vlam{\tann{x}{\tau_x}}{e'}}
+      }
+      @item{
+        @${v \eeq \vpair{v_0}{v_1}}
+      }
+      @item{
+        @${v \in \integers}
+      }
+    ]
+  }
+
+  @tr-lemma[#:key #false @elem{@|EE| inversion}]{
+    @itemlist[
+      @item{
+        If @${\wellEE \vpair{v_0}{v_1}}
+        then @${\wellEE v_0 @tr-and[] \wellEE v_1}
+      }
+      @item{
+        If @${\wellEE \vlam{\tann{x}{\tau_x}}{e'}}
+        then @${\tann{x}{\tau_x} \wellEE e'}
+      }
+      @item{
+        If @${\wellEE \vlam{x}{e'}}
+        then @${x \wellEE e'}
+      }
+    ]
+  }
+]
+
+@; locally-defensive
+@twocolumn[
+  @tr-lemma[#:key #false @elem{@|KE| canonical forms}]{
+    @itemlist[
+      @item{
+        If @${\wellKE v : \kpair}
+        then @${v \eeq \vpair{v_0}{v_1}}
+      }
+      @item{
+        If @${\wellKE v : \kfun}
+        then either:
+        @itemlist[
+          @item{
+            @${v \eeq \vlam{\tann{x}{\tau}}{e'}}
+          }
+          @item{
+            @${v \eeq \vlam{x}{e'}}
+          }
+        ]
+      }
+      @item{
+        If @${\wellKE v : \kint}
+        then @${v \in \integers}
+      }
+      @item{
+        If @${\wellKE v : \knat}
+        then @${v \in \naturals}
+      }
+    ]
+  }
+
+  @tr-lemma[#:key #false @elem{@|KE| inversion}]{
+    @itemlist[
+      @item{
+        If @${\wellKE \vpair{v_0}{v_1} : \kpair}
+        then @${\wellKE v_0 : \kany @tr-and[] \wellKE v_1 : \kany}
+      }
+      @item{
+        If @${\wellKE \vlam{\tann{x}{\tau_x}}{e'} : \kfun}
+        then @${\tann{x}{\tau_x} \wellEE e' : \kany}
+      }
+      @item{
+        If @${\wellKE \vlam{x}{e'} : \kfun}
+        then @${x \wellKE e' : \kany}
+      }
+    ]
+  }
+]

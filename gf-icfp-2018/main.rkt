@@ -51,6 +51,9 @@
   twocolumn
   inline-pict
   dbend
+  NE
+  EE
+  KE
 
   proof-sketch
 
@@ -406,3 +409,7 @@
     [(0) "?"]
     [(1) "\\dbend"]
     [else "\\dbend\\dbend"]))
+
+(define NE ($ "\\mathbf{N}"))
+(define EE ($ "\\mathbf{E}"))
+(define KE ($ "\\mathbf{K}"))
