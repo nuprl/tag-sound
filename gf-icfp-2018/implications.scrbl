@@ -377,22 +377,36 @@ In a program where large data structures or functions repeatedly cross
 @; -----------------------------------------------------------------------------
 @section{For the Performance of Fully-Typed Programs}
 
-@; with no boundaries
-@; - natural has no overhead, fully sound
-@; - erasure has small overhead, fully sound
-@; - LD has overhead, though fully sound
+If @${e} is completely statically typed, the natural embedding pays zero cost
+ for enforcing type soundness and may out-perform the erasure and locally-defensive
+ embeddings in a practical implementation.
+By contrast, the locally-defensive embedding adds constructor tests to all
+ typed programs.
+Let @emph{dist} be a function that adds the components of a pair of integers:
 
-If a typed expression has no boundary terms, the locally-defensive embedding
- pays a cost.
-This is because it defends all typed expressions against possible untyped input.
-Makes sense with separate compilation.
+@dbend{
+  \begin{array}{l c l}
+    \emph{dist} & = & \vlam{\tann{x}{\tpair{\tint}{\tint}}}{\esum{\efst{x}}{\esnd{x}}}
+  \end{array}
+}
 
-Example
+The locally-defensive completion of this function checks that the pair contains
+ integer values.
+Furthermore, every application of @emph{dist} must check the constructor of
+ its argument and result.
 
-In contrast, the natural embedding adds no overhead.
+@dbend{
+  \begin{array}{l c l}
+    \emph{dist} & \carrow & \vlam{\tann{x}{\tpair{\tint}{\tint}}}{\esum{\echk{\kint}{(\efst{x})}}{\echk{\kint}{(\esnd{x})}}}
+  \\
+  \\\eapp{\emph{dist}}{\vpair{0}{1}} & \carrow & \echk{\kint}{(\eapp{\emph{dist}}{\vpair{0}{1}})}
+  \end{array}
+}
 
-Furthermore, the natural embedding uses an efficient reduction relation in typed
- code.
-Should run faster than the erasure embedding, and a real implementation should
- be able to leverage typed optimizations.
+The difference between the natural embedding and the erasure embedding on typed
+ programs concerns the implementation of primitive operations.
+Type soundness guarantees that typed code never invokes @${\delta} with arguments
+ outside its domain.
+The erasure embedding must check that such calls supply correct arguments to
+ avoid undefined behavior.
 
