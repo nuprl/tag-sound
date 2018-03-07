@@ -50,6 +50,7 @@
   $$
   twocolumn
   inline-pict
+  dbend
 
   proof-sketch
 
@@ -387,3 +388,20 @@
 
 (define (inline-pict p)
   (centered (list p)))
+
+(define (dbend #:level [lvl 1] . content*)
+  ;; TODO do not use the dbend symbol because that has an established different meaning
+  ;;  use fourier-orns instead?
+  (exact
+    (string-append
+      "\\begin{tabular}{l c} "
+      (level->dbend lvl)
+      " & $"
+      (content->string content*)
+      "$ \\\\[1ex]  \\end{tabular}")))
+
+(define (level->dbend lvl)
+  (case lvl
+    [(0) "?"]
+    [(1) "\\dbend"]
+    [else "\\dbend\\dbend"]))
