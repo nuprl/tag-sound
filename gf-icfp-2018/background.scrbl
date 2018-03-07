@@ -1,5 +1,5 @@
 #lang gf-icfp-2018
-@title[#:tag "sec:background"]{Related Work}
+@title[#:tag "sec:background"]{Background}
 
 @; TODO
 @; - SOURCES OF COST, introduce idea so the natural embedding doesn't need

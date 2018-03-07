@@ -2,6 +2,8 @@
 @title[#:tag "sec:implications"]{Apples-to-Apples Implications}
 @require[(only-in "techreport.rkt" tr-theorem tr-lemma)]
 
+@; thesis: soundness matters
+
 @; TODO
 @; - revisit soundness
 @; - contrast with examples
@@ -20,11 +22,11 @@ At a high level, all three guarantee that reduction is fully-defined for
  well-typed programs.
 The natural and locally-defensive embeddings additionally guarantee that typed
  expressions do not raise tag errors.
-Only the natural embedding guarantees that well-typed expressions reduce to
+And only the natural embedding guarantees that well-typed expressions reduce to
  well-typed values.
 
-These three notions of soundness and notions of reduction have subtle consequences
- when it comes to predicting how a program will reduce.
+These three notions of soundness and evaluation have subtle consequences
+ when it comes to reasoning about programs.
 Soundness describes the possible result values, and possible errors that may
  arise.
 The notions of reduction describe performance when all goes well.
@@ -90,6 +92,12 @@ If a program is well-typed, then it cannot fail due to an ill-typed value flowin
 Programmers may use this property to compositionally verify the correctness
  of their programs.
 For example, TODO.
+
+
+@dbend{
+  \vlam{x}{x}
+}
+
 
 @; TODO what is a type error? should we define this?
 @; TODO what is a silent error?

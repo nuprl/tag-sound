@@ -2,6 +2,9 @@
 @require[(only-in "techreport.rkt" tr-theorem tr-lemma tr-definition tr-proof)]
 @title[#:tag "sec:design"]{Apples-to-Apples Logic and Metatheory}
 
+@; thesis: these models reflect the 3 modes from life
+
+
 @; TODO
 @; ? why do we call it embedding?
 @; - A @mytech{migratory typing system} is XXX and must YYY

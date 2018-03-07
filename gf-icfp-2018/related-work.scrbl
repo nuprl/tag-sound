@@ -1,6 +1,8 @@
 #lang gf-icfp-2018
 @title[#:tag "sec:related-work"]{Apples to Oranges}
 
+@; purpose: fill out all the history of the 3 embeddings, and anything else
+
 @; -----------------------------------------------------------------------------
 
 @; TODO

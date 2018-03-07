@@ -1,6 +1,8 @@
 #lang gf-icfp-2018
 @title[#:tag "sec:evaluation"]{Apples-to-Apples Performance}
 
+@; thesis: soundness matters for performance
+
 @; TODO
 @; - sec:implementation:tag-check
 @;    julia extreme tag checks
