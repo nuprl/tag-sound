@@ -392,6 +392,7 @@
 (define (dbend #:level [lvl 1] . content*)
   ;; TODO do not use the dbend symbol because that has an established different meaning
   ;;  use fourier-orns instead?
+  ;; TODO interpret newlines in the content?
   (exact
     (string-append
       "\\begin{tabular}{l c} "

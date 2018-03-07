@@ -15,6 +15,8 @@
 
 @; -----------------------------------------------------------------------------
 
+@; 0 the embeddings are weaker
+
 The natural, erasure, and locally-defensive embeddings implement distinct
  reduction relations that provide three different notions of soundness,
  reproduced in @figure-ref{fig:X-soundness}.
@@ -84,23 +86,88 @@ Here we contrast three broad classes of implications: implications for
 ]]
 
 
-@section{For Errors and Error Messages}
+@section{For Compositional Reasoning}
+@; aaha THIS is the headline I'm looking for!
 
-A standard type soundness theorem eliminates the runtime type error.
-If a program is well-typed, then it cannot fail due to an ill-typed value flowing
- into an incompatible context.
-Programmers may use this property to compositionally verify the correctness
- of their programs.
-For example, TODO.
+The embeddings' notions of soundness hinder programmers' ability to compositionally
+ reason about programs via type annotations.
+In a purely statically typed language, if @${v} is a value of type @${\tpair{\tau_0}{\tau_1}}
+ then it follows that @${v} must be a pair @${\vpair{v_0}{v_1}} and furthermore
+ @${v_0} is of type @${\tau_0} and @${v_1} is of type @${\tau_1}.
+Similarly, a value of type @${\tarr{\tau_d}{\tau_c}} must be a function;
+ expressions in the body of the function may compositionally assume
+ similar facts about arguments to the function, and clients of the function may
+ assume @${\tau_c} of the results it produces.
+A programmer building an application can compose proofs to derive:
+ if a function returns a value of type @${\tpair{\tau_0}{\tau_1}} then this
+ value has a first component of type @${\tau_0}; soundness guarantees this
+ reasoning at runtime.
 
+The same guarantee does not hold in the natural embedding.
+For example, a value of type @${\tarr{\tint}{\tint}} might be a typed function
+ or a monitor for a dynamically-typed value.
+But @${\rrNSstar} makes a monitor behave like a typed function; this kind of
+ function might error but it is safe.
+Same behavior in any future context.
 
 @dbend{
-  \vlam{x}{x}
+  \begin{array}{l c l}
+    v & = & \edyn{\tarr{\tint}{\tint}}{(\vlam{x}{\vpair{x}{x}})} \rrNSstar \vmonfun{(\tarr{\tint}{\tint}}{(\vlam{x}{\vpair{x}{x}})}
+  \\\esd_0 & = & \eapp{\ehole}{1}
+  \\\esd_1 & = & \eapp{(\esta{\tarr{\tint}{\tint}}{\ehole})}{1}
+  \\\esd_0[v] & \rrNSstar & \boundaryerror
+  \\\esd_1[v] & \rrNSstar & \boundaryerror
+  \end{array}
 }
 
+The erasure embedding provides no guarantees.
+Any value can inhabit any type, so there is no type-based reasoning whatsoever.
+Negative numbers can masquerade as natural numbers, and functions can pretend
+ to be simple values.
 
-@; TODO what is a type error? should we define this?
-@; TODO what is a silent error?
+@dbend{
+  \begin{array}{l c l}
+    \edyn{\tnat}{-4} & \rrEEstar & -4
+    \\\edyn{\tnat}{\vpair{\vlam{x}{x}}{\vlam{y}{y}}} & \rrEEstar & \vpair{\vlam{x}{x}}{\vlam{y}{y}}
+  \end{array}
+}
+
+The locally-defensive embedding guarantees only the outermost shape of a value.
+A value of type @${\tint} must be an integer and a value of type @${\tnat} must
+ be a natural number.
+A value of type @${\tpair{\tnat}{\tnat}} might contain any kind of values, however,
+ and a function of type @${\tarr{\tint}{\tint}} can produce any kind of result.
+
+One use case of gradual typing is inserting a typed API between an untyped
+ library and an untyped client@~cite[afgt-oopsla-2014].
+ @; DefinitelyTyped is not really an example of this
+In the locally-defensive embedding, the types confirm the constructors and
+ then wash away.
+The client has to access the data in typed code to get anything deeper.
+
+@dbend{
+  \begin{array}{l c l}
+    \edyn{\tpair{\tnat}{\tnat}}{\vpair{-2}{-3}} & \rrKSstar & \vpair{-2}{-3}
+  \\\eapp{(\esta{\tarr{\tint}{\tint}}{\edyn{\tarr{\tnat}{\tnat}}{\vlam{x}{-3}}})}{1} & \rrKSstar & -3
+  \end{array}
+}
+
+In summary:
+ the natural embedding supports compositional type-based reasoning with the
+  caveat of more errors;
+ the erasure embeddings does not support any kind of type-based reasoning;
+ and the locally-defensive supports a non-compositional constructor-based kind
+  of reasoning.
+
+
+@section{For Errors and Error Messages}
+
+The change in the meaning of types expands the class of errors that a programmer
+ must be prepared to debug.
+
+
+
+
 
 The natural embedding does not eliminate the runtime type error, but
  detects such errors as soon as possible.
