@@ -32,10 +32,8 @@ systematically compares the theory of these approaches, their logical
 implications for the developer, and their performance.  }
 
 @include-section{introduction.scrbl}
-@;@include-section{background.scrbl}
 @include-section{design.scrbl}
 @include-section{implications.scrbl}
-@;@include-section{reduce-checks-improve-errors.scrbl}
 @include-section{evaluation.scrbl}
 @include-section{related-work.scrbl}
 @include-section{conclusion.scrbl}
