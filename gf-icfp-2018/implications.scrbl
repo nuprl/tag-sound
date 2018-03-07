@@ -276,26 +276,36 @@ When something goes wrong, they display a set of casts to narrow down the search
 @; obviously set is worse ... can we give example where set inaccurate???
 
 
-@section{For First-Order Interactions}
+@section{For Base-Type Interactions}
 
-The natural and locally defensive embeddings give equivalent results for
- programs with first-order interactions.
-See theorem TODO.
+Despite their differences in general, the natural and locally-defensive
+ embeddings provide the same soundness for base types.
+The type @${\tint} is only inhabited by integers and the type @${\tnat}
+ is only inhabited by natural numbers (see the canonical forms lemmas, @secref{sec:bridge}).
+This similarity is because base types provide immediate accountability@~cite[mt-oopsla-2017]
+ at the cost of a single constructor check.
+It follows that the natural embedding and locally-defensive embedding provide
+ equal semantics for all expressions @${e} whose boundary terms only exchange
+ values of base type.
+For example:
 
-@; How does performance differ? I think natural is just BETTER
+@dbend{
+  \begin{array}{l c l}
+    e_0 & = & \edyn{\tint}{1}
+  \\e_0 & \rrNSstar & 1
+  \\e_0 & \rrKSstar & 1
+  \\
+  \\e_1 & = & \edyn{\tnat}{\vpair{1}{1}}
+  \\e_1 & \rrNSstar & \boundaryerror
+  \\e_1 & \rrKSstar & \boundaryerror
+  \end{array}
+}
 
-In retrospect, OOPSLA 2017 was a terrific conference for first-order migratory
- typing.
-@citet[mt-oopsla-2017] demonstrate a model and implementation of a sound
- nominally-typed object-oriented language.
-The type-checks are all first-order name checks; gradual typing is fast.
-Work by @citet[rat-oopsla-2017] suggests that if type checks are the same
- as the runtime system's tag checks, performance is also great.
+@; and more generally for any pure context
 
-@; Unclear exactly how these systems are ...
-@;  rat don't give a soundness theorem, I think they have the co-natural embedding
-@;  mt  are extremely limited in the programs they can write
-
+See the appendix for a formal statement and proof.
+If type boundaries are severely limited in expressiveness, then the
+ natural and locally-defensive embeddings agree.
 
 
 @section{For the Performance of Mixed-Typed Programs}

@@ -680,7 +680,7 @@ TODO
   }
 
 
-@section{Bridge Metatheory}
+@section[#:tag "sec:bridge"]{Bridge Metatheory}
 
 This space reserved for discussing similarities or connections between the models.
 
