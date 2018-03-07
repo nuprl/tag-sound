@@ -2196,3 +2196,18 @@
     #:author (authors "Guy L. Steele")
     #:location (book-location #:edition "2nd" #:publisher "Digital Press")
     #:date 1990))
+
+(define gct-popl-2016
+  (make-bib
+    #:title "Abstracting Gradual Typing"
+    #:author (authors "Ronald Garcia" "Alison M. Clark" "Éric Tanter")
+    #:location (proceedings-location popl #:pages '(429 442))
+    #:date 2016))
+
+(define g-tfp-2016
+  (make-bib
+   #:author "Michael Greenberg"
+   #:title "Space-Efficient Latent Contracts"
+   #:location (proceedings-location tfp)
+   #:date 2016))
+
