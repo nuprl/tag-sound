@@ -142,9 +142,9 @@ Theorems in the previous section show that this is sound.
 
 
 @Figure-ref{fig:locally-defensive-performance} plots
- the overhead of @|TR| relative to Racket (TODO color)
- and the overhead of @|LD-Racket| relative to Racket (TODO color)
- for TODO functional programs.
+ the overhead of @|TR| relative to Racket (@|tr-color-text| color)
+ and the overhead of @|LD-Racket| relative to Racket (@|tag-color-text| color)
+ for @|NUM-TR| functional programs.
 In summary, the area under the curve for @|LD-Racket| is larger so we conclude that
  the locally-defensive embedding has better performance than the natural embedding
  on mixed-typed programs.
@@ -161,7 +161,7 @@ All measurements were collected sequentially using Racket v6.10.1 on an unloaded
 The CPU cores on each processor ran at 2.30 GHz using the @emph{performance} CPU governor.
 
 The lines on each plot show the percent of @deliverable{D} configurations as
- the value of @${D} increases from @${1} to TODO.
+ the value of @${D} increases from @${1} to @${@~a[X-MAX]}.
 A configuration is @deliverable{D} if its running time is at most @${D} times
  slower than the running time of the corresponding (untyped) Racket program.
 A point @${(X, Y)} on the line for Typed Racket says that @${Y}% of all Typed Racket configurations
@@ -171,7 +171,7 @@ A point @${(X, Y)} on the line for Typed Racket says that @${Y}% of all Typed Ra
 Ideally, the percent of @deliverable{D} configurations would be high for
  @${D=1} and reach @${100\%} at a low value, perhaps @${D=1.8}.
 A @deliverable{1} configuration runs at least as fast as the untyped program.
-The worst case is that only a small percent of configurations are @deliverable{TODO},
+The worst case is that only a small percent of configurations are @deliverable[X-MAX],
  meaning that many mixed-typed programs suffer a huge performance overhead.
 
 @;@emph{Remark} The premise of the @deliverable{D} measure is that programmers
@@ -267,7 +267,8 @@ Similarly, the prototype avoids using Racket's contract system to implement
 Contracts are a useful tool for defining predicates that give well-structured
  error messages, but they add a constant-factor overhead that wound up
  being prohibitive.
-Some of these tag checks happen many times TODO.
+Some of these tag checks happen many times.
+@; TODO count number of checks
 Perhaps the implementation of contracts could be improved;
  perhaps the JIT needs to improve.
 

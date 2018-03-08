@@ -10,6 +10,8 @@
   BM-NAME*
   TR-DATA*
   TAG-DATA*
+  tag-color-text
+  tr-color-text
   tag-color-sample
   tr-color-sample
   NUM-TR
@@ -105,11 +107,23 @@
       (define fill-color (apply make-color (->brush i)))
       (filled-rounded-rectangle 8 8 #:color fill-color #:border-color border-color #:border-width 1))))
 
-(define tr-color-sample
-  (color-sample START-COLOR))
+(define (color-text i)
+  (case i
+    [(0) "black"]
+    [(1) "red"]
+    [(2) "green"]
+    [(3) "blue"]
+    [(4) "orange"]
+    [(5) "slate"]
+    [else "purple"]))
 
-(define tag-color-sample
-  (color-sample (+ 1 START-COLOR)))
+(define-values [tr-color-sample tr-color-text]
+  (let ([tr-color START-COLOR])
+    (values (color-sample tr-color) (color-text tr-color))))
+
+(define-values [tag-color-sample tag-color-text]
+  (let ([tag-color (+ 1 START-COLOR)])
+    (values (color-sample tag-color) (color-text tag-color))))
 
 ;; -----------------------------------------------------------------------------
 
