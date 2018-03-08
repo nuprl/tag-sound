@@ -186,8 +186,8 @@ The worst case is that only a small percent of configurations are @deliverable[X
 @; an incremental transition to a typed codebase.
 @;@emph{End}
 
-The data confirms that @|LD-Racket| is significantly more
- performant than @|TR|; see the plots for
+The data confirms that @|LD-Racket| yields better performance on mixed-typed
+ programs than @|TR|; see the plots for
  @bm{sieve}, @bm{fsm}, @bm{suffixtree}, @bm{kcfa},
  @bm{snake}, @bm{tetris}, and @bm{synth}.
 The improvement is most dramatic for @bm{synth}
@@ -249,6 +249,8 @@ We discuss these and other directions for future work in @secref{sec:conclusion}
 
 
 @section{Threats to Validity}
+@; TODO there should be no conclusions in this section, but the threats are
+@;  still important for interpreting the data
 
 The performance of our @|LD-Racket| prototype is an order-of-magnitude improvement
  over @|TR|.
