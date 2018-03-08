@@ -269,7 +269,7 @@ What happens is that @${f} raises a tag error and the user cannot tell where
 }
 
 @citet[vss-popl-2017] have explored one way of improving the locally-defensive
- errorrs.
+ errors.
 They build a map from values (specifically, memory addresses) to type casts
  (boundaries).
 When something goes wrong, they display a set of casts to narrow down the search.
@@ -307,6 +307,28 @@ For example:
 See the appendix for a formal statement and proof.
 If type boundaries are severely limited in expressiveness, then the
  natural and locally-defensive embeddings agree.
+
+What about the erasure embedding?
+There is a difference
+
+@dbend{
+  \begin{array}{l c l}
+    \emph{natd} & = & \vlam{\tann{n}{\tnat}}{\vlam{\tann{d}{\tnat}}{\equotient{n}{d}}}
+  \\e & = & \eapp{\eapp{\esta{\tarr{\tnat}{\tarr{\tnat}{\tnat}}}{\emph{natd}}}{{-2}}}{{-2}}
+  \\ e & \rrNSstar & \boundaryerror
+  \\ e & \rrEEstar & 1
+  \\ e & \rrKSstar & \boundaryerror
+  \end{array}
+}
+
+The issue here is the @${\Delta} rule @${\Delta(\vquotient, \tnat, \tnat) = \tnat},
+ if types are not enforced, then calls to @${\vquotient} can receive any type
+ of arguments.
+Unless the type system is limited to the host language and nothing more,
+ some programs behave differently when the types are not enforced.
+Too bad!
+The silent failure with @emph{natd} can be hard to debug, but its an error
+ that a type system can prevent.
 
 
 @section{For the Performance of Mixed-Typed Programs}
