@@ -9,26 +9,32 @@
 
 @; -----------------------------------------------------------------------------
 
-
-The models of the natural, erasure, and locally-defensive embeddings
- have different performance characteristics.
-The apparent difference suggest two hypotheses about the relative performance
- of these embeddings as three runtime systems for the same migratory typing
- front-end:
+The models support two general hypotheses about the relative performance
+ of the embeddings:
 @itemlist[#:style 'ordered
 @item{
-  for mixed-typed programs, erasure @${<} locally-defensive @${\ll} natural
+  For mixed-typed programs, the erasure embedding adds less overhead
+   than the locally-defensive embedding, and both add significantly less
+   overhead than the natural embedding.
 }
 @item{
-  for fully-typed programs, natural @${<} erasure @${<} locally-defensive
+  For fully-typed programs, the natural embedding may out-perform the erasure
+   embedding, and both add significantly less overhead than the locally-defensive
+   embedding.
 }
 ]
+It remains to be seen whether these hypotheses hold for a practical implementation.
 
-This section presents the results of a performance evaluation of the embeddings
- for Typed Racket.
-The findings support the hypotheses.
+This section presents the results of a comparative evaluation of the natural,
+ erasure, and locally-defensive embeddings in the context of Typed Racket.
+The data suggests that the locally-defensive embedding is a large
+ improvement over the natural embedding for mixed-typed programs, and slightly
+ worse for fully-typed programs.
+The erasure embedding offers the best performance, except in the case of
+ mostly-typed programs that benefit from the Typed Racket optimizer@~cite[stff-padl-2012].
 
 
+@; -----------------------------------------------------------------------------
 @section{Implementation Overview}
 
 @; TODO compiled
@@ -57,7 +63,7 @@ All code is made available in the artifact for this paper.
 Re-using the type checker is difficult; this is why our implementation is a
  fork instead of a package.
 
-@subsection{Constructor Checks}
+@subsection[#:tag "sec:implementation:checks"]{Constructor Checks}
 
 How to implement constructor checks?
 The checks in the model are just type-tag checks,

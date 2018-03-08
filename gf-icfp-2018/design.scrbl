@@ -9,15 +9,38 @@
 
 @; -----------------------------------------------------------------------------
 
-In this section we equip one syntax for @mytech{mixed-typed programs} (@figure-ref{fig:multi-syntax})
- with one type system (@figure-ref{fig:multi-preservation}) and three semantics
- (sections @secref{sec:natural-embedding}, @secref{sec:locally-defensive-embedding},
- and @secref{sec:erasure-embedding}).
-Each semantics satisfies a unique soundness condition.
+The three main approaches to migratory typing can be understood as three
+ techniques for @emph{embedding} dynamically-typed values in
+ statically-typed contexts, and vice-versa.
+Eagerly enforcing types corresponds to a @emph{natural}@~cite[mf-toplas-2007]
+ type-directed embedding, ignoring types corresponds to an @emph{erasure} embedding,
+ and the transient approach defined by @citet[vss-popl-2017] is, in essence,
+ a @emph{locally-defensive} embedding.@note{@Secref{sec:related-work:locally-defensive}
+ contrasts the terms @emph{locally-defensive} and @emph{transient}.
+ In short, the latter obscures a meaningful distinction.}
+
+This section begins with one user-facing syntax and typing system (@secref{sec:common});
+ defines three embeddings, states their soundness theorems
+ (@secref{sec:natural-embedding}, @secref{sec:erasure-embedding}, and @secref{sec:locally-defensive-embedding});
+ and compares the meta-theoretic properties of the embeddings (@secref{sec:bridge}).
+Each embedding builds off a common semantic framework (@figure-ref{fig:multi-reduction})
+ to keep the presentation to a minimum.
 
 
+@; -----------------------------------------------------------------------------
+@section[#:tag "sec:common"]{Common Semantic Notions}
 
-@section{Common Semantic Notions}
+A migratory typing system extends a dynamically-typed @mytech{host language}
+ with a statically-typed counterpart.
+The type checker and semantics for the extended language must handle
+ programs that combine statically-typed and dynamically-typed expressions.
+For the type checker, the challenge is to define types and judgments that
+ accomodate the idioms of the host language; for further discussion, see
+ the related work (@secref{sec:related-work}).
+For the semantics, the challenge is to allow values to cross between
+ static and dynamic contexts while preserving some notion of type soundness.
+Different approaches to migratory typing enforce different invariants at
+ these type boundaries and consequently provide different soundness guarantees.
 
 @Figure-ref{fig:multi-syntax} presents the syntax.
 The grammar for @${\exprdyn} defines an untyped host language; the

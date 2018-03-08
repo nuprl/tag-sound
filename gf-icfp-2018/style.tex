@@ -158,12 +158,6 @@ showstringspaces=false            %
 \newcommand{\wellSD}[3]{#1, #2 \arrSD #3}
 \newcommand{\wellDS}[3]{#1, #2 \arrDS #3}
 
-\newcommand{\vfromsta}{\mathcal{S}}
-\newcommand{\vfromdyn}{\mathcal{D}}
-\newcommand{\efromsta}[2]{\vfromsta(#1, #2)}
-\newcommand{\efromdyn}[2]{\vfromdyn(#1, #2)}
-\newcommand{\fromany}{\mathsf{check{\mhyphen}type}}
-
 \renewcommand{\kappa}{K}
 \newcommand{\kany}{\mathsf{Any}}
 \newcommand{\kpair}{\mathsf{Pair}}
@@ -181,6 +175,29 @@ showstringspaces=false            %
 \newcommand{\rrR}{\mathrel{\textsc{r}}}
 \newcommand{\rrRp}{\mathrel{\textsc{r}'}}
 \newcommand{\rrfont}[1]{\mathbf{#1}}
+
+\newcommand{\vfromsta}{\mathcal{S}}
+\newcommand{\vfromdyn}{\mathcal{D}}
+\newcommand{\efromX}[3]{#1(#2, #3)}
+\newcommand{\efromsta}[2]{\efromX{\vfromsta}{#1}{#2}}
+\newcommand{\efromdyn}[2]{\efromX{\vfromdyn}{#1}{#2}}
+
+\newcommand{\vfromdynN}{\vfromdyn_{\rrfont{N}}}
+\newcommand{\vfromstaN}{\vfromsta_{\rrfont{N}}}
+\newcommand{\efromdynN}[2]{\efromX{\vfromdynN}{#1}{#2}}
+\newcommand{\efromstaN}[2]{\efromX{\vfromstaN}{#1}{#2}}
+
+\newcommand{\vfromdynE}{\vfromdyn_{\rrfont{E}}}
+\newcommand{\vfromstaE}{\vfromsta_{\rrfont{E}}}
+\newcommand{\efromdynE}[2]{\efromX{\vfromdynE}{#1}{#2}}
+\newcommand{\efromstaE}[2]{\efromX{\vfromstaE}{#1}{#2}}
+
+\newcommand{\vfromdynK}{\vfromdyn_{\rrfont{K}}}
+\newcommand{\vfromstaK}{\vfromsta_{\rrfont{K}}}
+\newcommand{\efromdynK}[2]{\efromX{\vfromdynK}{#1}{#2}}
+\newcommand{\efromstaK}[2]{\efromX{\vfromstaK}{#1}{#2}}
+
+\newcommand{\fromany}{\mathsf{check{\mhyphen}type}}
 
 \newcommand{\rrsymb}{\vartriangleright}
 \newcommand{\rrD}{\mathrel{\rrsymb_{\rrfont{D}}}}

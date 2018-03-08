@@ -82,7 +82,7 @@ A pluggable type system starts with a type-annotated program,
 This is slightly different from embedding.
 
 
-@section{Locally-Defensive Embedding}
+@section[#:tag "sec:related-work:locally-defensive"]{Locally-Defensive Embedding}
 
 The locally-defensive embedding is distilled from Vitousek's transient semantics.
 First, the history.
@@ -95,6 +95,16 @@ This is just one of many nice properties in the implementation,
 @; but needed a deeper understanding of why the compiler was correct,
 @; what design choices were essential, and
 @; how the idea of rewriting statically-typed code related to other multi-language embeddings.
+
+We prefer the name @emph{locally defensive} over @emph{transient} because the
+ latter conflates two of the three novel ideas that characterize the approach.
+The first novel idea is to check only type constructors at a boundary.
+The second is to forget typing obligations unless they are crucial to the
+ soundness of the current context.
+The third is to implement forgetful constructor checks with in-line assertions
+ rather than monitors.
+@; Each step individually leads to a different embedding ... appendix has 1/2 and 2/3
+
 
 Darts checked mode might implement a locally-defensive embedding.
 We don't know of anything older.
