@@ -27,14 +27,7 @@
   render-ratios-table
   render-max-table
   ratios-table->typed
-  max-table->typed
-
-  fishtank-pict
-  fishtank/biohazard
-  fishtank/biohazard/natural
-  fishtank/biohazard/erasure
-  fishtank/biohazard/locally-defensive
-  RED-SNAPPER-RATIO)
+  max-table->typed)
 
 (require
   file/glob
@@ -434,50 +427,6 @@
 
 (define ratios-table->locally-defensive table->locally-defensive)
 (define max-table->locally-defensive table->locally-defensive)
-
-;; --- FISH
-
-(define fishtank-scene
-  (let ()
-    (define W 200)
-    (define H 60)
-    (filled-rectangle W H #:color "CornflowerBlue" #:border-color "Black")))
-
-(define RED-SNAPPER-RATIO 1/6)
-
-(define (red-snapper W)
-  (standard-fish W (* W RED-SNAPPER-RATIO) #:color "OrangeRed"))
-
-(define (red-egg d)
-  (filled-ellipse d d #:color "white" #:border-color "black"))
-
-(define fishtank-pict
-  (lt-superimpose
-    (lb-superimpose
-      fishtank-scene
-      (red-egg 6))
-    (red-snapper 60)))
-
-(define biohazard-pict
-  (text "!!!" '() 40))
-
-(define (pathway-pict a b path)
-  (hc-append 5 a path b))
-
-(define (fishtank-pathway p)
-  (pathway-pict fishtank-pict biohazard-pict p))
-
-(define fishtank/biohazard
-  (fishtank-pathway (blank 10 2)))
-
-(define fishtank/biohazard/natural
-  (fishtank-pathway (file-icon 40 50 "bisque")))
-
-(define fishtank/biohazard/erasure
-  (fishtank-pathway (filled-rectangle 10 10 #:color "green" #:border-color "green")))
-
-(define fishtank/biohazard/locally-defensive
-  (fishtank-pathway (rectangle 10 10 #:border-color "OrangeRed")))
 
 ;; =============================================================================
 

@@ -4,10 +4,7 @@
 
 @; thesis: these models reflect the 3 modes from life
 
-
 @; TODO
-@; ? why do we call it embedding?
-@; - A @mytech{migratory typing system} is XXX and must YYY
 @; - define/explain "getting stuck", (a b) and (op1 a) and (op2 a b)
 
 @; -----------------------------------------------------------------------------
@@ -18,72 +15,6 @@ In this section we equip one syntax for @mytech{mixed-typed programs} (@figure-r
  and @secref{sec:erasure-embedding}).
 Each semantics satisfies a unique soundness condition.
 
-
-@section{Illustration}
-@; could be seeds / trees / fruits
-@; - apple / plant / fruit soundness?
-@; - harder to picture trees crossing boundaries,
-@;   or trees & picked fruit coexisting
-@;
-@; TODO need to add food
-
-Start with a special tank of fish and eggs.
-The fishtank is special because every thing in the tank is either:
- an adult @emph{red snapper},
- a red snapper egg,
- or a box of red snapper food.
-A red snapper fish has a beautiful red color and is precisely @~a[(/ 1 RED-SNAPPER-RATIO)]
- times as wide as it is tall.
-Red snappers can only eat certified red snapper food, else they get sick and die.
-A red snapper egg is certified to hatch into a red snapper (if it hatches at all).
-Over time, as old fish die out and new fish hatch from eggs, this @emph{red snapper soundness}
- property always holds for this fishtank.
-
-@inline-pict[fishtank-pict]
-
-One day a pathway appears, linking our fishtank to the outside.
-The red snapper soundness property is now at risk.
-Anything might cross over the pathway, including but not limited to:
- a red snapper, a blue snapper, a mysterious egg, or a jack-o-lantern.
-The question is, what to do about this pathway.
-
-@inline-pict[fishtank/biohazard]
-
-One option is to enforce the red snapper property.
-If an adult thing arrives at the boundary, conduct a physical examination to
- check that it is an adult red snapper.
-If a mysterious egg arrives at the boundary, check its color (all red snapper
- eggs are red, of course) and monitor it.
-When the egg hatches, immediately conduct a physical exam.
-If a box of food arrives, check that it is safe for red snappers.
-Conducting the physicals and monitoring the eggs may be costly, but is guaranteed
- to let all incoming red snappers into the tank and keep all non-red-snappers
- out.
-
-@inline-pict[fishtank/biohazard/natural]
-
-A second option is to let anything cross the pathway and forget about the
- red snapper property.
-Instead we can be content with a trivial @emph{fish soundness} property;
- namely, that every thing in the tank is either native to the tank or came
- from the pathway.
-
-@inline-pict[fishtank/biohazard/erasure]
-
-A third option is to enforce a weaker @emph{red soundness} property.
-If an adult thing arrives at the boundary, check its color and allow only
- red things.
-If an egg arrives, check its color and check the color of the baby when it hatches.
-These checks cannot ensure red snapper soundness in the face of arbitrary inputs.
-
-@inline-pict[fishtank/biohazard/locally-defensive]
-
-This concludes the illustration.
-The three options outlined above correspond to three notions of type soundness
- for typed/untyped programs.
-The strategy to enforce red snapper soundness is the natural embedding.
-The strategy for fish soundness is the erasure embedding.
-The strategy for red soundness is the locally-defensive embedding.
 
 
 @section{Common Semantic Notions}
@@ -224,7 +155,7 @@ The question is then how to implement such checks.
 
 For base types such as @${\tint} and @${\tnat}, we suppose that the language
  comes with primitives that implement @${v \in \integers} and @${v \in \naturals}
- (see @secref{sec:implementation:tag-check} for a discussion).
+ (see @secref{sec:implementation:checks} for a discussion).
 For inductive types such as @${\tpair{\tau_0}{\tau_1}}, an inductive checking
  strategy can confirm that a value is a pair and that its components match
  the types @${\tau_0} and @${\tau_1}, respectively.@note{Notation: @${\tau_0} is the type at index zero in the pair type, @${\tau_1} is the type at index one.}
@@ -249,8 +180,8 @@ The natural embedding defined in @figure-ref{fig:natural-reduction} adds
  and two reduction rules to handle the new value form.
 The new value form, @${(\vmonfun{(\tarr{\tau_d}{\tau_c})}{v})}, is a monitor
  that associates a value @${v} with a type.
-Such monitors arise at runtime as the result of calls to the @${\vfromdyn}
- and @${\vfromsta} conversion functions.
+Such monitors arise at runtime as the result of calls to the @${\vfromdynN}
+ and @${\vfromstaN} conversion functions.
 
 @;In principle, the one monitor value @${(\vmonfun{(\tarr{\tau_d}{\tau_c})}{v})}
 @; could be split into two value forms: one for protecting the domain of a statically-typed
@@ -258,27 +189,27 @@ Such monitors arise at runtime as the result of calls to the @${\vfromdyn}
 @;The split would clarify @${\rrNS} and @${\rrND} but it would also create a
 @; larger gap between the model and implementation (@secref{sec:implementation}).
 
-The purpose of @${\efromdyn{\tau}{v}} is to import a dynamically-typed value
+The purpose of @${\efromdynN{\tau}{v}} is to import a dynamically-typed value
  into a statically-typed context, such that the result matches the assumptions
  of the context.
-If @${\tau} is a base type, then @${\efromdyn{\tau}{v}} returns @${v} if the
+If @${\tau} is a base type, then @${\efromdynN{\tau}{v}} returns @${v} if the
  value matches the type and raises a boundary error otherwise.
-If @${\tau} is a product type, then @${\efromdyn{\tau}{v}} asserts that @${v}
+If @${\tau} is a product type, then @${\efromdynN{\tau}{v}} asserts that @${v}
  is a pair value and returns a pair expression to import the components of the
  pair at the appropriate type.
-Finally if @${\tau} is a function type, then @${\efromdyn{\tau}{v}} asserts
+Finally if @${\tau} is a function type, then @${\efromdynN{\tau}{v}} asserts
  that @${v} is a function (or a monitored function) and wraps @${v} in a monitor.
 
-The purpose of @${\efromsta{\tau}{v}} is to import a statically-typed value
+The purpose of @${\efromstaN{\tau}{v}} is to import a statically-typed value
  into a dynamically-typed context such that context cannot break any assumption
  made by the value.
 Integers and natural numbers do not interact with their context, thus
- @${\efromsta{\tint}{v}} returns the given value.
+ @${\efromstaN{\tint}{v}} returns the given value.
 Pair values may indirectly interact with the context via their components,
- so @${\efromsta{\tpair{\tau_0}{\tau_1}}{v}} returns a pair expression to import
+ so @${\efromstaN{\tpair{\tau_0}{\tau_1}}{v}} returns a pair expression to import
  the components.
 Function values interact with their context by receiving arguments, and so
- @${\efromdyn{\tarr{\tau_d}{\tau_c}}{v}} wraps the function @${v} in a monitor
+ @${\efromdynN{\tarr{\tau_d}{\tau_c}}{v}} wraps the function @${v} in a monitor
  to protect it from dynamically-typed arguments.
 
 The notion of reduction @${\rrNS} adds a rule for applying a monitor as a function
@@ -304,9 +235,9 @@ The final components in @figure-ref{fig:natural-reduction} define a reduction
 These define the operational semantics of an expression @${e}; a single step
  finds the innermost boundary term in @${e} and advances it.
 If the innermost boundary has the form @${(\esta{\tau}{e'})} then @${\ccNE}
- either uses @${\rrNS} to step @${e'} or @${\vfromsta} to cross the boundary.
+ either uses @${\rrNS} to step @${e'} or @${\vfromstaN} to cross the boundary.
 If the innermost boundary has the form @${(\edyn{\tau}{e'})} then @${\ccNE}
- either uses @${\rrNS} or @${\vfromdyn} to advance.
+ either uses @${\rrNS} or @${\vfromdynN} to advance.
 
 @subsection[#:tag "sec:natural:soundness"]{Soundness}
 
@@ -347,21 +278,21 @@ The theorems follow from standard progress and preservation lemmas
 See the appendix for proofs.
 
 The central lemmas that connect this pair of theorems are a specification for
- the @${\vfromdyn} and @${\vfromsta} functions:
+ the @${\vfromdynN} and @${\vfromstaN} functions:
 
 @twocolumn[
-  @tr-lemma[#:key "N-D-soundness" @elem{@${\vfromdyn} soundness}]{
-    If @${\Gamma \wellNE v} and @${\efromdyn{\tau}{v} = e} then @${\Gamma \wellNE e : \tau}
+  @tr-lemma[#:key "N-D-soundness" @elem{@${\vfromdynN} soundness}]{
+    If @${\Gamma \wellNE v} and @${\efromdynN{\tau}{v} = e} then @${\Gamma \wellNE e : \tau}
   }
 
-  @tr-lemma[#:key "N-S-soundness" @elem{@${\vfromsta} soundness}]{
-    If @${\Gamma \wellNE v : \tau} and @${\efromsta{\tau}{v} = e} then @${\Gamma \wellNE e}
+  @tr-lemma[#:key "N-S-soundness" @elem{@${\vfromstaN} soundness}]{
+    If @${\Gamma \wellNE v : \tau} and @${\efromstaN{\tau}{v} = e} then @${\Gamma \wellNE e}
   }
 ]
 
 @; Any choice of S/D that satisfies these theorems is probably OK for soundness
 
-In other words, the implementations of @${\vfromdyn} and @${\vfromsta} establish
+In other words, the implementations of @${\vfromdynN} and @${\vfromstaN} establish
  an invariant about monitors occurring in dynamic and static contexts.
 Every monitor in dynamically-typed code encapsulates a typed value,
  and every monitor in statically-typed code encapsulates an untyped value.
@@ -571,10 +502,10 @@ This completion is identical to the surface expression @${e} except that it
  rules recursively take the completion of their sub-expressions.
 
 @; TODO this should parallel the discussion in natural embedding
-The dynamic boundary function @${\vfromdyn} computes the constructor of the given type
+The dynamic boundary function @${\vfromdynK} computes the constructor of the given type
  and invokes a generic boundary-crossing function @${\vfromany} to check that
  the given value matches the constructor.
-The function @${\vfromsta} does nothing (justified in the next section).
+The function @${\vfromstaK} does nothing (justified in the next section).
 Lastly @${\efromany{\kappa}{v}} checks that the value @${v} matches the given
  type constructor.
 If not, it raises a boundary error.
@@ -716,7 +647,7 @@ This space reserved for discussing similarities or connections between the model
 
 The proof follows from the fact that boundary terms of base type have the same
  semantics in both embeddings.
-More precisely, for any value @${v} the function @${\efromdyn{\tint}{v}} yields
+More precisely, for any value @${v} the function @${\efromdynK{\tint}{v}} yields
  the same result in the natural and locally-defensive embeddings.
 
 @; TODO do the proof, but should be easy
