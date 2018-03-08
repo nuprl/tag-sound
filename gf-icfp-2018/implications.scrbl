@@ -1,5 +1,5 @@
 #lang gf-icfp-2018
-@title[#:tag "sec:implications"]{Apples-to-Apples Implications}
+@title[#:tag "sec:implications"]{Implications}
 @require[(only-in "techreport.rkt" tr-theorem tr-lemma)]
 
 @; thesis: soundness matters

@@ -1,5 +1,5 @@
 #lang gf-icfp-2018
-@title[#:tag "sec:related-work"]{Apples-to-Oranges}
+@title[#:tag "sec:related-work"]{Related Work}
 
 @; purpose: fill out all the history of the 3 embeddings, and anything else
 

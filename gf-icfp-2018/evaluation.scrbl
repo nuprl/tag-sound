@@ -1,5 +1,5 @@
 #lang gf-icfp-2018
-@title[#:tag "sec:evaluation"]{Apples-to-Apples Performance}
+@title[#:tag "sec:evaluation"]{Performance}
 
 @; thesis: soundness matters for performance
 
@@ -8,6 +8,8 @@
 @;    julia extreme tag checks
 
 @; -----------------------------------------------------------------------------
+
+@; TODO revise intro, because this comes right after the models now
 
 The models support two general hypotheses about the relative performance
  of the embeddings:
