@@ -25,6 +25,9 @@
 @; -----------------------------------------------------------------------------
 
 @section{For Base Types}
+
+
+
 @subsection[#:tag "sec:base-type:verdict"]{Summary}
 
 The natural and locally-defensive embeddings are dynamically sound for base
@@ -52,6 +55,34 @@ The erasure embedding has no ability to detect type errors at runtime.
 
 
 @section{For the Performance of Mixed-Typed Programs}
+
+Enforcing soundness in a mixed-typed program adds performance overhead.
+This cost can be high in the locally-defensive embedding, and enormous in the
+ natural embedding.
+
+The locally-defensive embedding incurs type-constructor checks at:
+ type boundaries, applications of typed functions, and explicit @${\vchk} terms.
+Each check adds a small cost,@note{In the model, checks have @${O(1)} cost.
+  In the implementation, checks have basically-constant cost @${O(n)} where
+  @${n} is the number of types in the widest union type
+  @${(\tau_0 \cup \ldots \cup \tau_{n-1})} in the program.}
+ however, these costs accumulate.
+Furthermore, the added code and branches may affect JIT compilation.
+
+The natural embedding incurs three significantly larger kinds of costs.
+First, there is the cost of checking a value at a boundary.
+Such checks may need to traverse the entire value to compute its type.
+Second, there is an allocation cost when a higher-order value crosses a boundary.
+Third, monitored values suffer an indirection cost; for example,
+ a monitor guarding a dynamically-typed function checks every result computed
+ by the function.
+@; add note about TR contract optimizer?
+
+@Secref{sec:conclusion} offers suggestions for reducing the cost of soundness.
+The most promising direction is to combine @|LD-Racket| with the Pycket
+ tracing JIT compiler@~cite[bbst-oopsla-2017].
+
+
 @subsection[#:tag "sec:mixed-perf:verdict"]{Summary}
 
 The cost of enforcing soundness in the natural embedding may slow a working
@@ -61,7 +92,38 @@ The cost of the locally-defensive embedding is far lower, typically within
 The erasure embedding adds no overhead to mixed-typed programs.
 
 
-@section{For the Performance of Higher-Order Programs}
+@section{For the Performance of Fully-Typed Programs}
+
+If a program has few dynamically-typed components, then the locally-defensive
+ embedding is likely to perform the worst of the three embeddings.
+This poor performance stems from the ahead-of-time completion function,
+ which rewrites all typed expressions to unconditionally check each function
+ application and pair projection.
+For example, a function that adds both elements of a pair value must check
+ that its input has integer-valued components.
+These checks cost time, and are unnecessary if the input value is typed.
+
+@dbend{
+  \begin{array}{l}
+  \wellM \vlam{\tann{x}{\tpair{\tint}{\tint}}}{\esum{(\efst{x})}{(\esnd{x})}} : \tarr{\tpair{\tint}{\tint}}{\tint}
+  \\ \carrow \vlam{\tann{x}{\tpair{\tint}{\tint}}}{\esum{(\echk{\tint}{(\efst{x})})}{(\echk{\tint}{(\esnd{x})})}}
+  \\
+  \end{array}
+}
+
+As a general rule, adding type annotations leads to a linear performance
+ degredation in the locally-defensive embedding@~cite[gm-pepm-2018 gf-tr-2018].
+
+By contrast, the natural embedding only pays to enforce soundness when static
+ and dynamic components interact.
+Furthermore, a compiler may leverage the soundness of the natural embedding
+ to produce code that is more efficient than the erasure embedding.
+In many dynamically typed language, primitives such as @${\vsum} check the
+ type-tag of their arguments and dispatch to a low-level routine.
+Sound static types can eliminate the need to dispatch.
+Typed Racket implements this@~cite[stff-padl-2012] 
+
+
 @subsection[#:tag "sec:typed-perf:verdict"]{Summary}
 
 The natural embedding adds no overhead to fully-typed programs and may enable
@@ -453,41 +515,3 @@ The erasure embedding adds no overhead to fully-typed programs.
 @; and for checking the result of any elimination form.
 @;In a program where large data structures or functions repeatedly cross
 @; type boundaries, the natural embedding may suffer a huge performance overhead.
-@;
-@;
-@;@; -----------------------------------------------------------------------------
-@;@section{For the Performance of Fully-Typed Programs}
-@;
-@;If @${e} is completely statically typed, the natural embedding pays zero cost
-@; for enforcing type soundness and may out-perform the erasure and locally-defensive
-@; embeddings in a practical implementation.
-@;By contrast, the locally-defensive embedding adds constructor tests to all
-@; typed programs.
-@;Let @emph{dist} be a function that adds the components of a pair of integers:
-@;
-@;@dbend{
-@;  \begin{array}{l c l}
-@;    \emph{dist} & = & \vlam{\tann{x}{\tpair{\tint}{\tint}}}{\esum{\efst{x}}{\esnd{x}}}
-@;  \end{array}
-@;}
-@;
-@;The locally-defensive completion of this function checks that the pair contains
-@; integer values.
-@;Furthermore, every application of @emph{dist} must check the constructor of
-@; its argument and result.
-@;
-@;@dbend{
-@;  \begin{array}{l c l}
-@;    \emph{dist} & \carrow & \vlam{\tann{x}{\tpair{\tint}{\tint}}}{\esum{\echk{\kint}{(\efst{x})}}{\echk{\kint}{(\esnd{x})}}}
-@;  \\
-@;  \\\eapp{\emph{dist}}{\vpair{0}{1}} & \carrow & \echk{\kint}{(\eapp{\emph{dist}}{\vpair{0}{1}})}
-@;  \end{array}
-@;}
-@;
-@;The difference between the natural embedding and the erasure embedding on typed
-@; programs concerns the implementation of primitive operations.
-@;Type soundness guarantees that typed code never invokes @${\delta} with arguments
-@; outside its domain.
-@;The erasure embedding must check that such calls supply correct arguments to
-@; avoid undefined behavior.
-@;
