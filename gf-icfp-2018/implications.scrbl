@@ -103,6 +103,41 @@ The locally-defensive embedding only enforces the top-level type constructor,
 
 @section{For Higher-Order Types}
 
+One promising application of migratory typing is to layer a typed interface
+ over an existing, dynamically-typed library of functions.
+As a corollary of type soundness, the natural embedding check that the library
+ and the clients match the interface.
+
+The locally-defensive and erasure embeddings do not support this use-case.
+Retrofitting a type onto a dynamically-typed function @${f} does not
+ guarantee that @${f} respects its arguments.
+Conversely, there is no guarantee that untyped clients of a function @${g} match its interface;
+ the erasure embedding ignores the types, and the locally-defensive embedding
+ only checks that the exported value is a function.
+
+@dbend{
+  \begin{array}{l}
+  f = \vlam{x}{\efst{x}}
+  \\
+  \wellM \eapp{(\edyn{\tarr{\tint}{\tint}}{f})}{2} : \tint \carrow \rrKSstar \tagerror
+  \\
+  g = \edyn{(\tarr{\tpair{\tint}{\tint}}{\tint})}{(\vlam{x}{\efst{x}})}
+  \\
+  \wellM \eapp{(\esta{\tarr{\tint}{\tint}}{g})}{{2}} \carrow \rrKDstar \tagerror
+  \end{array}
+}
+
+On a related note, it is possible to cast a function type to any other
+ in the locally defensive embedding.
+Programmers must take care not to write such code by accident:
+
+@dbend{
+  \begin{array}{l}
+       \wellM \vlam{\tann{f}{\tarr{\tint}{\tint}}}{}
+    \\ \qquad \edyn{(\tarr{\tnat}{\tnat})}{(\esta{(\tarr{\tint}{\tint})}{f})}
+    \\ : \tarr{(\tarr{\tint}{\tint})}{(\tarr{\tnat}{\tnat})}
+  \end{array}
+}
 
 
 @subsection[#:tag "sec:higher-order-type:verdict"]{Summary}
@@ -114,11 +149,31 @@ The locally-defensive embedding checks each the constructor any result
 The erasure embedding is unsound for higher-order values.
 
 
-@section{For Errors and Error Messages}
+@section{For Error Messages}
 
-Reynolds
+The examples above have shown that moving from the natural embedding
+ to the locally-defensive embedding increases the opportunities for a type
+ error to go undetected at runtime.
+But even if the locally-defensive embedding detects an error, it is at a
+ disadvantage for constructing a helpful error message.
 
-Error messages.
+In the natural embedding, a runtime type error can occur at a boundary term
+ or during the application of a monitored function.
+If an implementation records the boundary that generated each monitor,
+ then the runtime system can attribute any runtime type error to a specific
+ boundary between static and dynamic code.
+Thus, the programmer knows that either the type annotation is wrong or the
+ dynamically-typed code has a latent bug.
+Typed Racket implements this@~cite[tfffgksst-snapl-2017].
+
+In the locally-defensive embedding, a runtime type error can occur at a boundary
+ term or at a @${\vchk} expression.
+Since the checks come from local type annotations and boundary terms do not
+ wrap the values that cross them, there is no straightforward way to trace
+ the symptom of a runtime type error to the boundary where it originated.
+@citet[vss-popl-2017] implemented an error-reporting scheme that tracks what
+ types a value has been associated with, but this technique can only report
+ a set of potentially-faulty boundaries rather than the single guilty one.
 
 
 @subsection[#:tag "sec:errors:verdict"]{Summary}
@@ -209,386 +264,3 @@ The locally-defensive embedding suffers its worst-case overhead on fully-typed
  programs, as it defends all typed code against possibly-untyped inputs.
 The erasure embedding adds no overhead to fully-typed programs.
 
-
-@; =============================================================================
-@; =============================================================================
-
-@;@; 0 the embeddings are weaker
-@;
-@;The natural, erasure, and locally-defensive embeddings implement distinct
-@; reduction relations that provide three different notions of soundness,
-@; reproduced in @figure-ref{fig:X-soundness}.
-@;At a high level, all three guarantee that reduction is fully-defined for
-@; well-typed programs.
-@;The natural and locally-defensive embeddings additionally guarantee that typed
-@; expressions do not raise tag errors.
-@;And only the natural embedding guarantees that well-typed expressions reduce to
-@; well-typed values.
-@;
-@;These three notions of soundness and evaluation have subtle consequences
-@; when it comes to reasoning about programs.
-@;Soundness describes the possible result values, and possible errors that may
-@; arise.
-@;The notions of reduction describe performance when all goes well.
-@;Here we contrast three broad classes of implications: implications for
-@; type-based reasoning, implications for mixed-typed programs, and
-@; implications for fully-typed programs.
-@;
-@;@figure["fig:X-soundness" "Soundness" @list[
-@;  @twocolumn[
-@;    @tr-theorem[#:key #false @elem{static @${\mathbf{N}}-soundness}]{
-@;      If @${\wellM e : \tau} then @${\wellNE e : \tau} and one
-@;      @linebreak[]
-@;      of the following holds:
-@;      @itemlist[
-@;        @item{ @${e \rrNSstar v \mbox{ and } \wellNE v : \tau} }
-@;        @item{ @${e \rrNSstar \ctxE{\edyn{\tau'}{\ebase[e']}} \mbox{ and } e' \rrND \tagerror} }
-@;        @item{ @${e \rrNSstar \boundaryerror} }
-@;        @item{ @${e} diverges}
-@;      ] }
-@;
-@;    "example"
-@;  ]
-@;
-@;  @twocolumn[
-@;    @tr-theorem[#:key #false @elem{static @${\mathbf{E}}-soundness}]{
-@;      If @${\wellM e : \tau} then @${\wellEE e} and one
-@;      @linebreak[]
-@;      of the following holds:
-@;      @itemlist[
-@;        @item{ @${e \rrEEstar v \mbox{ and } \wellEE v} }
-@;        @item{ @${e \rrEEstar \tagerror} }
-@;        @item{ @${e \rrEEstar \boundaryerror} }
-@;        @item{ @${e} diverges}
-@;      ] }
-@;
-@;    "example"
-@;  ]
-@;
-@;  @twocolumn[
-@;    @tr-theorem[#:key #false @elem{static @${\mathbf{K}}-soundness}]{
-@;      If @${\wellM e : \tau} then 
-@;      @${\wellM e : \tau \carrow e''}
-@;      and @${\wellKE e'' : \tagof{\tau}}
-@;      @linebreak[]
-@;      and one of the following holds:
-@;      @itemlist[
-@;        @item{ @${e'' \rrKSstar v} and @${\wellKE v : \tagof{\tau}} }
-@;        @item{ @${e'' \rrKSstar \ctxE{\edyn{\tau'}{\ebase[e']}} \mbox{ and } e' \rrKD \tagerror} }
-@;        @item{ @${e'' \rrKSstar \boundaryerror} }
-@;        @item{ @${e''} diverges }
-@;      ] }
-@;
-@;    "example"
-@;  ]
-@;]]
-@;
-@;
-@;@section{For Compositional Reasoning}
-@;@; aaha THIS is the headline I'm looking for!
-@;@; thesis: types have weaker meaning
-@;
-@;The embeddings' notions of soundness hinder programmers' ability to compositionally
-@; reason about programs via type annotations.
-@;In a purely statically typed language, if @${v} is a value of type @${\tpair{\tau_0}{\tau_1}}
-@; then it follows that @${v} must be a pair @${\vpair{v_0}{v_1}} and furthermore
-@; @${v_0} is of type @${\tau_0} and @${v_1} is of type @${\tau_1}.
-@;Similarly, a value of type @${\tarr{\tau_d}{\tau_c}} must be a function;
-@; expressions in the body of the function may compositionally assume
-@; similar facts about arguments to the function, and clients of the function may
-@; assume @${\tau_c} of the results it produces.
-@;A programmer building an application can compose proofs to derive:
-@; if a function returns a value of type @${\tpair{\tau_0}{\tau_1}} then this
-@; value has a first component of type @${\tau_0}; soundness guarantees this
-@; reasoning at runtime.
-@;
-@;The same guarantee does not hold in the natural embedding.
-@;For example, a value of type @${\tarr{\tint}{\tint}} might be a typed function
-@; or a monitor for a dynamically-typed value.
-@;But @${\rrNSstar} makes a monitor behave like a typed function; this kind of
-@; function might error but it is safe.
-@;Same behavior in any future context.
-@;
-@;@dbend{
-@;  \begin{array}{l c l}
-@;    v & = & \edyn{\tarr{\tint}{\tint}}{(\vlam{x}{\vpair{x}{x}})} \rrNSstar \vmonfun{(\tarr{\tint}{\tint}}{(\vlam{x}{\vpair{x}{x}})}
-@;  \\\esd_0 & = & \eapp{\ehole}{1}
-@;  \\\esd_1 & = & \eapp{(\esta{\tarr{\tint}{\tint}}{\ehole})}{1}
-@;  \\\esd_0[v] & \rrNSstar & \boundaryerror
-@;  \\\esd_1[v] & \rrNSstar & \boundaryerror
-@;  \end{array}
-@;}
-@;
-@;The erasure embedding provides no guarantees.
-@;Any value can inhabit any type, so there is no type-based reasoning whatsoever.
-@;Negative numbers can masquerade as natural numbers, and functions can pretend
-@; to be simple values.
-@;
-@;@dbend{
-@;  \begin{array}{l c l}
-@;    \edyn{\tnat}{-4} & \rrEEstar & -4
-@;    \\\edyn{\tnat}{\vpair{\vlam{x}{x}}{\vlam{y}{y}}} & \rrEEstar & \vpair{\vlam{x}{x}}{\vlam{y}{y}}
-@;  \end{array}
-@;}
-@;
-@;The locally-defensive embedding guarantees only the outermost shape of a value.
-@;A value of type @${\tint} must be an integer and a value of type @${\tnat} must
-@; be a natural number.
-@;A value of type @${\tpair{\tnat}{\tnat}} might contain any kind of values, however,
-@; and a function of type @${\tarr{\tint}{\tint}} can produce any kind of result.
-@;
-@;One use case of gradual typing is inserting a typed API between an untyped
-@; library and an untyped client@~cite[afgt-oopsla-2014].
-@; @; DefinitelyTyped is not really an example of this
-@;In the locally-defensive embedding, the types confirm the constructors and
-@; then wash away.
-@;The client has to access the data in typed code to get anything deeper.
-@;
-@;Constructor-level is very shallow, allows a type-cast operator by sending
-@; one value across two boundaries
-@;A function can have a completely incorrect type in one context.
-@;
-@;@dbend{
-@;  \begin{array}{l c l}
-@;    \edyn{\tpair{\tnat}{\tnat}}{\vpair{-2}{-3}} & \rrKSstar & \vpair{-2}{-3}
-@;  \\\eapp{(\esta{\tarr{\tint}{\tint}}{\edyn{\tarr{\tnat}{\tnat}}{\vlam{x}{-3}}})}{1} & \rrKSstar & -3
-@;  \end{array}
-@;}
-@;
-@;@; too much typing ... maybe leave forgetful-ness for the performance part?
-@;@dbend{
-@;  \emph{cast} = \vlam{\tann{f}{\tarr{\tau_d}{\tau_c}}}{\edyn{\tarr{\tau_d'}{\tau_c'}}{\esta{\tarr{\tau_d}{\tau_c}}{f}}}
-@;}
-@;
-@;In summary:
-@; the natural embedding supports compositional type-based reasoning with the
-@;  caveat of more errors;
-@; the erasure embeddings does not support any kind of type-based reasoning;
-@; and the locally-defensive supports a non-compositional constructor-based kind
-@;  of reasoning.
-@;
-@;
-@;@; -----------------------------------------------------------------------------
-@;@section{For Errors and Error Messages}
-@;@; thesis: silent and hard-to-trace errors in typed contexts
-@;
-@;@; start with Reynolds?
-@;
-@;The change in the meaning of types expands the class of errors that a programmer
-@; must be prepared to debug.
-@;If one takes the view that types are assertions about the kind of values that
-@; can inhabit variables, then these assertions can silently fail.
-@;This affects the ability to give informative error messages, or indicate any
-@; error at all.
-@;
-@;The natural embedding may silently fail when a dynamically-typed function
-@; enters typed code, because the function opaque to the type system.
-@;A silent failure will be detected, however, the first time this function is
-@; applied to a witnessing input --- no matter the context.
-@;The erasure embedding fails silently at every opportunity.
-@;The locally-defensive embedding may silently fail for functions and pairs.
-@;Whether these failures are detected depends on the type annotations on their
-@; uses.
-@;
-@;Here is a simple example for a product type.
-@;
-@;@dbend{
-@;  \begin{array}{l c l}
-@;    e & = & \efst{(\edyn{\tpair{\tnat}{\tnat}}{\vpair{-1}{-2}})}
-@;  \\ e & \rrNSstar & \efst{\boundaryerror}
-@;  \\ e & \rrEEstar & {-1}
-@;  \\ \wellM e : \tint & \carrow & \echk{\kint}{e} \rrKSstar \echk{\kint}{{-2}} \rrKSstar \boundaryerror
-@;  \end{array}
-@;}
-@;
-@;Analogous example for a function.
-@;
-@;@dbend{
-@;  \begin{array}{l c l}
-@;    e & = & \eapp{(\vlam{\tann{f}{\tarr{\tnat}{\tint}}}{\eapp{f}{2}})}{(\edyn{\tarr{\tnat}{\tnat}}{\vlam{x}{{-4}}})}
-@;  \\e & \rrNSstar & \boundaryerror
-@;  \\e & \rrEEstar & {-4}
-@;  \\e & \rrKSstar & {-4}
-@;  \end{array}
-@;}
-@;
-@;Another simple example for a function.
-@;
-@;@dbend{
-@;  \begin{array}{l c l}
-@;    e & = & \edyn{\tarr{\tnat}{\tnat}}{\vlam{x}{\esum{x}{{-1}}}}
-@;  \\\eapp{e}{1} & \rrNSstar & 0
-@;  \\\eapp{e}{0} & \rrNSstar & \boundaryerror
-@;  \\\eapp{(\esta{\tarr{\tnat}{\tnat}}{e}}{0} & \rrNSstar & \boundaryerror
-@;  \\
-@;  \\\eapp{e}{1} & \rrEEstar & 0
-@;  \\\eapp{e}{0} & \rrEEstar & {-1}
-@;  \\\eapp{(\esta{\tarr{\tnat}{\tnat}}{e}}{0} & \rrEEstar & {-1}
-@;  \\
-@;  \\\eapp{e}{1} & \rrKSstar & 0
-@;  \\\eapp{e}{0} & \rrKSstar & \boundaryerror
-@;  \\\eapp{(\esta{\tarr{\tnat}{\tnat}}{e}}{0} & \rrKSstar & {-1}
-@;  \end{array}
-@;}
-@;
-@;An implementation of the natural embedding can use eager detection to provide
-@; helpful error messages.
-@;Typed Racket, for example, implements the natural embedding and reports
-@; runtime type errors in terms of @emph{the} static boundary between typed and untyped
-@; code that led to the fault@~cite[tfffgksst-snapl-2017].
-@;If such an error occurs, the programmer knows exactly where to start looking
-@; for the source of the bug: either type annotation is wrong, or the untyped
-@; code has a latent bug.
-@;The error is either directly at the boundary or at a boundary internalized in a monitor.
-@;Monitors provide a hook.
-@;
-@;The erasure embedding has no ability to detect errors, and therefore its ability
-@; to produce error messages is a moot point.
-@;
-@;The locally-defensive embedding has limited information.
-@;When an error occurs, the system has a plain value and an incompatible type
-@; annotation.
-@;No clue how the value got there.
-@;This is especially bad if programmers follow John Hughes advice and build large
-@; functions from small reusable components.
-@;
-@;Here is a tame example, adapted from @citet[vss-popl-2017].
-@;This function @${g} is unsafe IMO.
-@;The value of its argument can be any pair, but only pairs of integers can be
-@; passed to @${f}.
-@;What happens is that @${f} raises a tag error and the user cannot tell where
-@; they went wrong without looking at the body of @${f}.
-@;
-@;@dbend{
-@;  \begin{array}{l c l}
-@;    f & = & \vlam{x_0}{\esum{\efst{ints}}{\esnd{ints}}}
-@;  \\g & = & \vlam{\tann{x_1}{\tpair{\tint}{\tint}}}{\eapp{f}{x_1}}
-@;  \end{array}
-@;}
-@;
-@;@citet[vss-popl-2017] have explored one way of improving the locally-defensive
-@; errors.
-@;They build a map from values (specifically, memory addresses) to type casts
-@; (boundaries).
-@;When something goes wrong, they display a set of casts to narrow down the search.
-@;
-@;@; obviously set is worse ... can we give example where set inaccurate???
-@;
-@;
-@;@section{For Base-Type Interactions}
-@;
-@;Despite their differences in general, the natural and locally-defensive
-@; embeddings provide the same soundness for base types.
-@;The type @${\tint} is only inhabited by integers and the type @${\tnat}
-@; is only inhabited by natural numbers (see the canonical forms lemmas, @secref{sec:bridge}).
-@;This similarity is because base types provide immediate accountability@~cite[mt-oopsla-2017]
-@; at the cost of a single constructor check.
-@;It follows that the natural embedding and locally-defensive embedding provide
-@; equal semantics for all expressions @${e} whose boundary terms only exchange
-@; values of base type.
-@;For example:
-@;
-@;@dbend{
-@;  \begin{array}{l c l}
-@;    e_0 & = & \edyn{\tint}{1}
-@;  \\e_0 & \rrNSstar & 1
-@;  \\e_0 & \rrKSstar & 1
-@;  \\
-@;  \\e_1 & = & \edyn{\tnat}{\vpair{1}{1}}
-@;  \\e_1 & \rrNSstar & \boundaryerror
-@;  \\e_1 & \rrKSstar & \boundaryerror
-@;  \end{array}
-@;}
-@;
-@;@; and more generally for any pure context
-@;
-@;See the appendix for a formal statement and proof.
-@;If type boundaries are severely limited in expressiveness, then the
-@; natural and locally-defensive embeddings agree.
-@;
-@;What about the erasure embedding?
-@;There is a difference
-@;
-@;@dbend{
-@;  \begin{array}{l c l}
-@;    \emph{natd} & = & \vlam{\tann{n}{\tnat}}{\vlam{\tann{d}{\tnat}}{\equotient{n}{d}}}
-@;  \\e & = & \eapp{\eapp{\esta{\tarr{\tnat}{\tarr{\tnat}{\tnat}}}{\emph{natd}}}{{-2}}}{{-2}}
-@;  \\ e & \rrNSstar & \boundaryerror
-@;  \\ e & \rrEEstar & 1
-@;  \\ e & \rrKSstar & \boundaryerror
-@;  \end{array}
-@;}
-@;
-@;The issue here is the @${\Delta} rule @${\Delta(\vquotient, \tnat, \tnat) = \tnat},
-@; if types are not enforced, then calls to @${\vquotient} can receive any type
-@; of arguments.
-@;Unless the type system is limited to the host language and nothing more,
-@; some programs behave differently when the types are not enforced.
-@;Too bad!
-@;The silent failure with @emph{natd} can be hard to debug, but its an error
-@; that a type system can prevent.
-@;
-@;
-@;@section{For the Performance of Mixed-Typed Programs}
-@;
-@;Each embedding pays a different cost when a value crosses a type boundary.
-@;The natural embedding eagerly checks finite values and allocates a monitor
-@; for function values; the checks have variable cost depending on value and
-@; expected type, and the allocation has a pervasive kind of cost.
-@;The erasure embedding pays zero cost.
-@;The locally-defensive embedding pays a unit cost for each crossing.
-@;If, for example, a well-typed value crosses a boundary expecting a pair
-@; type, then each embedding takes a different course of action.
-@;
-@;@dbend{
-@;  \begin{array}{l c l}
-@;    v & = & \vpair{1}{\vlam{x}{x}}
-@;  \\\esd & = & \edyn{\tpair{\tnat}{\tarr{\tint}{\tint}}}{\ehole}
-@;  \\\esd[v] & \rrNSstar & \vpair{1}{\edyn{\tarr{\tint}{\tint}}{\vlam{x}{x}}}
-@;  \\        & \rrNSstar & \vpair{1}{\vmonfun{\tarr{\tint}{\tint}}{\vlam{x}{x}}}
-@;  \\\esd[v] & \rrEEstar & v
-@;  \\\esd[v] & \rrKSstar & v
-@;  \end{array}
-@;}
-@;
-@;If a function crosses multiple boundaries, the natural embedding allocates
-@; one monitor for each.
-@;The erasure and locally-defensive embeddings do not allocate anything.
-@;
-@;@dbend{
-@;  \begin{array}{l c l}
-@;    v & = & \vlam{\tann{x}{\tint}}{x}
-@;  \\e & = & \edyn{\tarr{\tnat}{\tnat}}{(\esta{\tarr{\tint}{\tint}}{v})}
-@;  \\e & \rrNSstar & \vmonfun{\tarr{\tnat}{\tnat}}{(\vmonfun{\tarr{\tint}{\tint}}{v})}
-@;  \\e & \rrEEstar & v
-@;  \\e & \rrKSstar & v
-@;  \end{array}
-@;}
-@;
-@;When it comes time to apply a monitored function, the natural embedding suffers
-@; an indirection cost as it traverses the monitors.
-@;The locally-defensive embedding, on the other hand, checks the type constructor
-@; of the result.
-@;
-@;@dbend{
-@;  \begin{array}{l c l}
-@;  \eapp{(\vmonfun{\tarr{\tnat}{\tnat}}{(\vmonfun{\tarr{\tint}{\tint}}{v})})}{4} & \rrNSstar & \edyn{\tnat}{(\esta{\tint}{(\eapp{v}{\esta{\tint}{(\edyn{\tnat}{4})}})})}
-@;  \\ & \rrNSstar & \edyn{\tnat}{(\esta{\tint}{4}}
-@;  \\ & \rrNSstar & 4
-@;  \end{array}
-@;}
-@;
-@;@dbend{
-@;  \begin{array}{l c l}
-@;  \eapp{v}{4} : \tnat & \carrow & \echk{\knat}{(\eapp{v}{4})}
-@;  \\ & \rrKSstar & \echk{\knat}{4}
-@;  \\ & \rrKSstar & 4
-@;  \end{array}
-@;}
-@;
-@;The natural embedding pays for @emph{checking} any type,
-@; and for @emph{allocation} and @emph{indirection} on higher-order values.
-@;The locally-defensive embeddings pays for checking constructors at the boundary
-@; and for checking the result of any elimination form.
-@;In a program where large data structures or functions repeatedly cross
-@; type boundaries, the natural embedding may suffer a huge performance overhead.
