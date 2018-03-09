@@ -74,10 +74,10 @@
 (define RKT-VERSION "6.10.1")
 (define NUM-SAMPLES 200)
 (define TAG-VERSION "v0.14")
-(define OVERHEADS-HEIGHT 670)
-(define OVERHEADS-HSPACE 30)
+(define OVERHEADS-HEIGHT 680)
+(define OVERHEADS-HSPACE 50)
 (define OVERHEADS-VSPACE 6)
-(define OVERHEADS-WIDTH 600)
+(define OVERHEADS-WIDTH 440)
 (define NUM-COLUMNS 2)
 (define X-MAX 10)
 (define CACHE-DIR "cache")
@@ -143,7 +143,11 @@
 (define (line-count fname)
   (with-input-from-file fname
     (λ ()
-      (for/sum ((ln (in-lines))) 1))))
+      (for/sum ((ln (in-lines)))
+        (if (comment-line? ln) 0 1)))))
+
+(define (comment-line? str)
+  (string-prefix? str ";"))
 
 (define (data-files name->pattern)
   (sort-by-size
@@ -169,7 +173,7 @@
   8)
 
 (define (make-plot* make-f x* [extra-tag #f])
-  (define base-cache-keys (list *GRID-X* *GRID-Y* *OVERHEAD-MAX*))
+  (define base-cache-keys (list *GRID-X* *GRID-Y* *GRID-NUM-COLUMNS* *OVERHEAD-MAX*))
   (parameterize ([*OVERHEAD-SHOW-RATIO* #f]
                  [*OVERHEAD-SAMPLES* NUM-SAMPLES]
                  [*OVERHEAD-LINE-COLOR* START-COLOR]
@@ -371,7 +375,8 @@
                 [data (in-list data*)])
       (md5sum data)))
   (parameterize ([*with-cache-fasl?* #false]
-                 [*current-cache-directory* (build-path CWD CACHE-DIR)])
+                 [*current-cache-directory* (build-path CWD CACHE-DIR)]
+                 [*current-cache-keys* (list (lambda () md5*))])
     (with-cache (cachefile (string-append key ".rktd"))
       (λ ()
         (define col0 (map filename->prefix (car data**)))
