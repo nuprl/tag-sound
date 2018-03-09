@@ -47,11 +47,7 @@ For example, if a negative number flows into a typed context
 
 @dbend{
   \begin{array}{l}
-  \tann{x}{\tnat} \wellM \equotient{x}{x} : \tnat
-  \\
-  \wellM \edyn{\tnat}{-2} : \tnat
-  \\
-  \equotient{(\edyn{\tnat}{-2})}{(\edyn{\tnat}{-2})} \rrEEstar 0
+  \wellM \equotient{(\edyn{\tnat}{{-2}})}{(\edyn{\tnat}{{-2}})} : \tnat \rrEEstar 0
   \end{array}
 }
 
@@ -59,7 +55,7 @@ Both the natural embedding and the locally-defensive embedding are sound for
  base types, in the sense that if @${v} is a value of type @${\tnat} according
  to the embedding, then @${v} is a natural number.
 Furthermore, these embeddings define equivalent reduction sequences for any
- expression in which all type boundaries are of base type.
+ expression in which all type boundaries are of base type@~cite[gf-tr-2018].
 
 
 @subsection[#:tag "sec:base-type:verdict"]{Summary}
@@ -70,6 +66,34 @@ The erasure embedding is unsound for base types.
 
 
 @section{For First-Order, Non-Base Types}
+
+The practical difference between the natural and locally-defensive embeddings
+ becomes clear in a mixed-typed program that deals with pair values.
+The natural embedding checks the contents of a pair; the locally-defensive
+ embedding only checks the constructor.
+
+@dbend{
+  \begin{array}{l}
+    \wellM \edyn{\tpair{\tnat}{\tnat}}{\vpair{-2}{-2}} : \tpair{\tnat}{\tnat} \rrNSstar \boundaryerror
+    \\
+    \wellM \edyn{\tpair{\tnat}{\tnat}}{\vpair{-2}{-2}} : \tpair{\tnat}{\tnat} \carrow ; \rrKSstar \vpair{-2}{-2}
+  \end{array}
+}
+
+Extracting a value from an ill-typed pair may detect the mismatch.
+The semantics depends on what type the context happens to expect.
+
+@dbend{
+  \begin{array}{l}
+    \wellM \efst{(\edyn{\tpair{\tnat}{\tnat}}{\vpair{-2}{-2}})} : \tnat \carrow ; \rrKSstar \boundaryerror
+    \\
+    \wellM \efst{(\edyn{\tpair{\tnat}{\tnat}}{\vpair{-2}{-2}})} : \tint \carrow ; \rrKSstar {-2}
+  \end{array}
+}
+
+@; more to say?
+
+
 @subsection[#:tag "sec:first-order-type:verdict"]{Summary}
 
 The natural embedding is dynamically sound for first-order, non-base types.
