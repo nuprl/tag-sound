@@ -24,6 +24,82 @@
 
 @; -----------------------------------------------------------------------------
 
+@figure["fig:X-soundness" "Soundness" @list[
+  @twocolumn[
+    @tr-theorem[#:key #false @elem{static @${\mathbf{N}}-soundness}]{
+      If @${\wellM e : \tau} then @${\wellNE e : \tau} and one
+      @linebreak[]
+      of the following holds:
+      @itemlist[
+        @item{ @${e \rrNSstar v \mbox{ and } \wellNE v : \tau} }
+        @item{ @${e \rrNSstar \ctxE{\edyn{\tau'}{\ebase[e']}} \mbox{ and } e' \rrND \tagerror} }
+        @item{ @${e \rrNSstar \boundaryerror} }
+        @item{ @${e} diverges}
+      ] }
+
+    @${\begin{array}{l}
+      \edyn{\tint}{\vpair{1}{1}}
+    \\\qquad \rrNSstar \boundaryerror
+    \\[1.2ex]
+      \edyn{\tpair{\tint}{\tint}}{\vpair{1}{\vlam{x}{x}}}
+    \\\qquad \rrNSstar \boundaryerror
+    \\[1.2ex]
+      \edyn{(\tarr{\tint}{\tint})}{(\vlam{x}{\vpair{x}{x}})}
+    \\\qquad \rrNSstar \vmonfun{(\tarr{\tint}{\tint})}{(\vlam{x}{\vpair{x}{x}})}
+    \end{array}}
+  ]
+
+  @twocolumn[
+    @tr-theorem[#:key #false @elem{static @${\mathbf{E}}-soundness}]{
+      If @${\wellM e : \tau} then @${\wellEE e} and one
+      @linebreak[]
+      of the following holds:
+      @itemlist[
+        @item{ @${e \rrEEstar v \mbox{ and } \wellEE v} }
+        @item{ @${e \rrEEstar \tagerror} }
+        @item{ @${e \rrEEstar \boundaryerror} }
+        @item{ @${e} diverges}
+      ] }
+
+    @${\begin{array}{l}
+      \edyn{\tint}{\vpair{1}{1}}
+    \\\qquad \rrEEstar \vpair{1}{1}
+    \\[1.2ex]
+      \edyn{\tpair{\tint}{\tint}}{\vpair{1}{\vlam{x}{x}}}
+    \\\qquad \rrEEstar \vpair{1}{\vlam{x}{x}}
+    \\[1.2ex]
+      \edyn{(\tarr{\tint}{\tint})}{(\vlam{x}{\vpair{x}{x}})}
+    \\\qquad \rrEEstar \vlam{x}{\vpair{x}{x}}
+    \end{array}}
+  ]
+
+  @twocolumn[
+    @tr-theorem[#:key #false @elem{static @${\mathbf{K}}-soundness}]{
+      If @${\wellM e : \tau} then 
+      @${\wellM e : \tau \carrow e''}
+      and @${\wellKE e'' : \tagof{\tau}}
+      @linebreak[]
+      and one of the following holds:
+      @itemlist[
+        @item{ @${e'' \rrKSstar v} and @${\wellKE v : \tagof{\tau}} }
+        @item{ @${e'' \rrKSstar \ctxE{\edyn{\tau'}{\ebase[e']}} \mbox{ and } e' \rrKD \tagerror} }
+        @item{ @${e'' \rrKSstar \boundaryerror} }
+        @item{ @${e''} diverges }
+      ] }
+
+    @${\begin{array}{l}
+      \edyn{\tint}{\vpair{1}{1}}
+    \\ \qquad \rrKSstar \boundaryerror
+    \\[1.2ex]
+      \edyn{\tpair{\tint}{\tint}}{\vpair{1}{\vlam{x}{x}}}
+    \\\qquad \rrKSstar \vpair{1}{\vlam{x}{x}}
+    \\[1.2ex]
+      \edyn{(\tarr{\tint}{\tint})}{(\vlam{x}{\vpair{x}{x}})}
+    \\\qquad \rrKSstar \vlam{x}{\vpair{x}{x}}
+    \end{array}}
+  ]
+]]
+
 @section{For Base Types}
 
 For a program that computes a value of base type, it can be tempting to think
