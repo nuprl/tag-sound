@@ -1,6 +1,6 @@
 #lang gf-icfp-2018
 @require[(only-in "techreport.rkt" tr-theorem tr-lemma tr-definition tr-proof tr-and)]
-@title[#:tag "sec:design"]{Apples-to-Apples Logic and Metatheory}
+@title[#:tag "sec:design"]{Logic and Metatheory}
 
 @; thesis: these models reflect the 3 modes from life
 
@@ -13,10 +13,11 @@ The three main approaches to migratory typing can be understood as three
  techniques for @emph{embedding} dynamically-typed values in
  statically-typed contexts, and vice-versa.
 Eagerly enforcing types corresponds to a @emph{natural}@~cite[mf-toplas-2007]
- type-directed embedding, ignoring types corresponds to an @emph{erasure} embedding,
- and the transient approach defined by @citet[vss-popl-2017] is, in essence,
+ type-directed embedding.
+Ignoring types corresponds to an @emph{erasure} embedding.
+And the transient approach defined by @citet[vss-popl-2017] is, in essence,
  a @emph{locally-defensive} embedding.@note{@Secref{sec:related-work:locally-defensive}
- contrasts the terms @emph{locally-defensive} and @emph{transient}.
+ contrasts the names @emph{locally-defensive} and @emph{transient}.
  In short, the latter obscures a meaningful distinction.}
 
 This section begins with one user-facing syntax and typing system (@secref{sec:common});
@@ -24,50 +25,68 @@ This section begins with one user-facing syntax and typing system (@secref{sec:c
  (@secref{sec:natural-embedding}, @secref{sec:erasure-embedding}, and @secref{sec:locally-defensive-embedding});
  and compares the meta-theoretic properties of the embeddings (@secref{sec:bridge}).
 Each embedding builds off a common semantic framework (@figure-ref{fig:multi-reduction})
- to keep the presentation to a minimum.
+ to keep the technical presentation focused on their differences rather than
+ similarities.
+Unabridged definitions appear in the technical appendix@~cite[gf-tr-2018].
 
 
 @; -----------------------------------------------------------------------------
-@section[#:tag "sec:common"]{Common Semantic Notions}
+@section[#:tag "sec:common-syntax"]{Common Syntactic Notions}
 
 A migratory typing system extends a dynamically-typed @mytech{host language}
- with a statically-typed counterpart.
-The type checker and semantics for the extended language must handle
- programs that combine statically-typed and dynamically-typed expressions.
-For the type checker, the challenge is to define types and judgments that
- accomodate the idioms of the host language; for further discussion, see
- the related work (@secref{sec:related-work}).
-For the semantics, the challenge is to allow values to cross between
- static and dynamic contexts while preserving some notion of type soundness.
-Different approaches to migratory typing enforce different invariants at
- these type boundaries and consequently provide different soundness guarantees.
+ with syntax for optional type annotations and for declaring parts of the
+ program as statically typed.
+The type checker for the extended language must be able to validate mixed-typed
+ programs, and the semantics must define a protocol that allows all kinds of
+ values to cross the boundaries between statically-typed and dynamically-typed contexts.
 
-@Figure-ref{fig:multi-syntax} presents the syntax.
-The grammar for @${\exprdyn} defines an untyped host language; the
- grammar @${\exprsta} defines an explicitly-typed twin language.
-Both expression languages, @${\exprdyn} and @${\exprsta}, describe a lambda
- calculus extended with integers, pairs, related primitive operations,
- and @emph{boundary terms}.
-The @${\exprdyn} boundary term @${(\esta{\tau}{\exprsta})} embeds a
- typed expression in an untyped context.
-Conversely, the @${\exprsta} boundary term @${(\edyn{\tau}{\exprdyn})} embeds
- a dynamically-typed expression; the type annotation @${\tau} describes the
- context's assumptions about the value of the embedded expression.
+When it comes to the semantics of boundary terms, the essential questions
+ are how to enforce three kinds of types: base types, inductive types, and
+ coinductive types.
+The surface language presented in @figure-ref{fig:multi-syntax} is therefore
+ a lambda calculus extended with integers and pairs.
+Types @${\tau} in this language represent integers, pairs, functions, and natural numbers.
+Of these, the first three types serve as example base, inductive, and coinductive types.
+The last type, @${\tnat}, adds a logical distinction to the type system that
+ is not automatically enforced by the host language.
 
-The syntax intentionally does not include recursive functions, arbitrary-length
- data structures, mutable values, or infinite values such as streams.
-Incorporating these values and their types is straightforward given a strategy
- that handles basic values, immutable data structures, and anonymous functions.
-See @secref{sec:implementation} for details.
-@; simple as possible ... well I guess pairs could be immutable boxes
+An expression in the surface language may be dynamically typed (@${\exprdyn})
+ or statically typed (@${\exprsta}).
+Naturally, these grammars are nearly identical.
+The main difference between @${\exprdyn} and @${exprsta} is that a statically-typed
+ function must provide a type annotation for its formal parameter.
+The second, minor difference is that both grammars include a different kind
+ of @emph{boundary term} for embedding an expression of the other grammar.
+The expression @${(\edyn{\tau}{e})} embeds a dynamically-typed expression in a
+ dynamically typed context, and the expression @${(\esta{\tau}{e})} embeds a
+ statically-typed expression in a dynamically-typed context.
 
-@Figure-ref{fig:multi-preservation} defines a type system for this
- surface language.
-An expression @${e} is well-formed, written @${\cdot \wellM e}, if it
- has no free variables and all its embedded terms are well-typed.
-An expression is well-typed, written @${\cdot \wellM \exprsta : \tau},
- if it has no free variables, does not apply a function or primitive operation
- to an argument outside its domain, and all its embedded terms are well-typed.
+The last components in @figure-ref{fig:multi-syntax} are the names of
+ unary (@${\vunop}) and binary (@${\vbinop}) primitives.
+These names represent low-level procedures that lie outside the language
+ and do not respect its abstractions.
+For example, invoking the @${\vsum} procedure with arguments that are not
+ integers is undefined behavior.
+
+@Figure-ref{fig:multi-preservation} combines the expression syntax and the
+ type syntax.
+To accomodate the two kinds of expressions, there are two typing judgments.
+The first judgment, @${\Gamma \wellM e}, states that the expression @${e} is
+ well-formed; this weak property characterizes the weak ahead-of-time checking
+ in dynamically-typed languages.
+The second judgment, @${\Gamma \wellM e : \tau}, is a conventional static
+ typing system.
+Both judgments are mutually recursive to handle boundary terms.
+
+Two auxiliary components of the type system are the @${\Delta} function
+ and the @${\subteq} subtyping judgment.
+The purpose of @${\Delta} is to assign a (dependent) type to the primitives.
+The purpose of subtyping is to reflect the subset relation between natural
+ numbers and integers.
+
+
+@; -----------------------------------------------------------------------------
+@section[#:tag "sec:common-semantics"]{Common Semantic Notions}
 
 The challenge is to define a sound semantics for well-typed expressions.
 Specifically, we are looking for a reduction relation @${\rastar} that provides:
