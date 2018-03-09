@@ -227,29 +227,49 @@ The erasure embedding is unsound for higher-order values.
 
 @section{For Error Messages}
 
-The examples above have shown that moving from the natural embedding
- to the locally-defensive embedding increases the opportunities for a type
- error to go undetected at runtime.
-But even if the locally-defensive embedding detects an error, it is at a
- disadvantage for constructing a helpful error message.
+The examples above have shown that the natural embedding detects errors
+ earlier than the locally-defensive and erasure embeddings.
+This temporal difference has implications for the quality of error messages
+ that each embedding can produce.
 
-In the natural embedding, a runtime type error can occur at a boundary term
- or during the application of a monitored function.
-If an implementation records the boundary that generated each monitor,
- then the runtime system can attribute any runtime type error to a specific
- boundary between static and dynamic code.
-Thus, the programmer knows that either the type annotation is wrong or the
- dynamically-typed code has a latent bug.
-Typed Racket implements this@~cite[tfffgksst-snapl-2017].
+The erasure embedding detects a runtime type mismatch as late as possible, namely,
+ just before invoking @${\delta} with an invalid argument.
+Outside of printing a stack trace, it cannot do much to infer the source of the
+ bad value.
 
-In the locally-defensive embedding, a runtime type error can occur at a boundary
- term or at a @${\vchk} expression.
-Since the checks come from local type annotations and boundary terms do not
- wrap the values that cross them, there is no straightforward way to trace
- the symptom of a runtime type error to the boundary where it originated.
-@citet[vss-popl-2017] implemented an error-reporting scheme that tracks what
- types a value has been associated with, but this technique can only report
- a set of potentially-faulty boundaries rather than the single guilty one.
+@dbend{
+  \begin{array}{l}
+  \esum{1}{(\edyn{\tint}{\vpair{2}{2}})} \rrEEstar \esum{1}{\vpair{2}{2}} \rrEEstar \tagerror
+  \end{array}
+}
+
+The locally-defensive embedding can detect a runtime type mismatch in two ways:
+ at a type boundary or at a @${\vchk} expression.
+In the latter case, the locally-defensive embedding is no better off than the
+ erasure embedding.
+It is unclear how to trace the value that failed the check back to the type
+ boundary where it originated.
+@citet[vss-popl-2017] have explored one strategy for improving these error
+ messages, but the strategy reports a set of potentially-guilty boundaries
+ rather than pinpointing the faulty one.
+
+By contrast, an implementation of the natural embedding can store debugging
+ information in the monitor values it creates.
+When such a monitor detects a type mismatch, it can identify the boundary term
+ that originated the error.
+Typed Racket implements this strategy@~cite[tfffgksst-snapl-2017];
+ when it detects a runtime type error, the programmer knows that either the
+ boundary type is wrong or the dynamically-typed code has a latent bug.
+
+@;; too big
+@;To illustrate the differences between the three embeddings, the following
+@; example traces the execution of a dynamically-typed function that returns
+@; an unexpected result to a typed context.
+@;
+@;@dbend{
+@;  \esum{1}{(\eapp{(\edyn{(\tarr{\tint}{\tint})}{(\vlam{x}{\vpair{x}{x}})})}{2})}
+@;    \rrNSstar \esum{1}{(\esta{\tint}{
+@;}
 
 
 @subsection[#:tag "sec:errors:verdict"]{Summary}
