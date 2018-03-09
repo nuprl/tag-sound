@@ -24,6 +24,23 @@
 
 @; -----------------------------------------------------------------------------
 
+The natural, erasure, and locally-defensive embeddings provide three different
+ notions of soundness, reproduced in @figure-ref{fig:X-soundness}.
+At a high level, all three guarantee that reduction is fully-defined for
+ well-typed programs.
+The natural and locally-defensive embeddings additionally guarantee that typed
+ expressions do not raise tag errors.
+And only the natural embedding guarantees that well-typed expressions reduce to
+ well-typed values.
+
+When it comes to predicting the behavior of programs, the three notions
+ of soundness have subtle consequences.
+The examples on the right column of @figure-ref{fig:X-soundness} give an
+ illustration; the natural embedding eagerly enforces boundary terms,
+ the erasure embedding never enforces boundary terms,
+ and the locally-defensive embedding enforces type constructors but nothing else.
+The rest of this section compares the embeddings along a few different axes.
+
 @figure["fig:X-soundness" "Soundness" @list[
   @twocolumn[
     @tr-theorem[#:key #false @elem{static @${\mathbf{N}}-soundness}]{
