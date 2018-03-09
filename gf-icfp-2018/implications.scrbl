@@ -26,6 +26,40 @@
 
 @section{For Base Types}
 
+For a program that computes a value of base type, it can be tempting to think
+ that dynamic typing provides all the soundness that matters in practice.
+After all, Ruby and Python throw a @tt{TypeError} if a program attempts to
+ add an integer to a string.
+Similarly, the erasure embedding throws a tag error if an expression adds a
+ number to a pair.
+It appears that dynamic typing catches any mismatch between a value and a
+ base type.
+
+This claim is only true, however, if the static typing system is restricted
+ to match the domain checks that dynamic typing happens to enforce.
+Adding a @emph{logical} distinction between natural numbers and integers,
+ as in the erasure embedding, can lead to silent failures at runtime.
+For example, if a negative number flows into a typed context
+ expecting a natural number, the context may compute a well-typed result
+ by dividing the ill-typed input by itself.@note{Reynolds classic paper on
+  types and abstraction begins with a similar example, based on a distinction
+  between real numbers and non-negative reals@~cite[r-ip-1983].}
+
+@dbend{
+  \begin{array}{l}
+  \tann{x}{\tnat} \wellM \equotient{x}{x} : \tnat
+  \\
+  \wellM \edyn{\tnat}{-2} : \tnat
+  \\
+  \equotient{(\edyn{\tnat}{-2})}{(\edyn{\tnat}{-2})} \rrEEstar 0
+  \end{array}
+}
+
+Both the natural embedding and the locally-defensive embedding are sound for
+ base types, in the sense that if @${v} is a value of type @${\tnat} according
+ to the embedding, then @${v} is a natural number.
+Furthermore, these embeddings define equivalent reduction sequences for any
+ expression in which all type boundaries are of base type.
 
 
 @subsection[#:tag "sec:base-type:verdict"]{Summary}
@@ -43,7 +77,26 @@ The locally-defensive embedding only enforces the top-level type constructor,
  and the erasure embedding is unsound.
 
 
+@section{For Higher-Order Types}
+
+
+
+@subsection[#:tag "sec:higher-order-type:verdict"]{Summary}
+
+The natural embedding monitors higher-order values and reports the first
+ evidence of a type mismatch.
+The locally-defensive embedding checks each the constructor any result
+ sent from a higher-order value to a typed context.
+The erasure embedding is unsound for higher-order values.
+
+
 @section{For Errors and Error Messages}
+
+Reynolds
+
+Error messages.
+
+
 @subsection[#:tag "sec:errors:verdict"]{Summary}
 
 In the natural embedding, every error due to a dynamically-typed value in
