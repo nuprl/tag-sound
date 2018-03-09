@@ -38,7 +38,7 @@ implications for the developer, and their performance.  }
 @include-section{related-work.scrbl}
 @include-section{conclusion.scrbl}
 
-@include-section{appendix.scrbl}
+@;@include-section{appendix.scrbl}
 
 @generate-bibliography[]
 
