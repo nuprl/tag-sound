@@ -20,11 +20,11 @@ And the transient approach defined by @citet[vss-popl-2017] is, in essence,
  contrasts the names @emph{locally-defensive} and @emph{transient}.
  In short, the latter obscures a meaningful distinction.}
 
-This section begins with one user-facing syntax and typing system (@secref{sec:common});
+This section begins with one user-facing syntax and typing system (@secref{sec:common-syntax});
  defines three embeddings, states their soundness theorems
  (@secref{sec:natural-embedding}, @secref{sec:erasure-embedding}, and @secref{sec:locally-defensive-embedding});
  and compares the meta-theoretic properties of the embeddings (@secref{sec:bridge}).
-Each embedding builds off a common semantic framework (@figure-ref{fig:multi-reduction})
+Each embedding builds off a common semantic framework (@secref{sec:common-semantics})
  to keep the technical presentation focused on their differences rather than
  similarities.
 Unabridged definitions appear in the technical appendix@~cite[gf-tr-2018].
@@ -64,9 +64,12 @@ The expression @${(\edyn{\tau}{e})} embeds a dynamically-typed expression in a
 The last components in @figure-ref{fig:multi-syntax} are the names of
  unary (@${\vunop}) and binary (@${\vbinop}) primitives.
 These names represent low-level procedures that lie outside the language
- and do not respect its abstractions.
+ and compute in terms of bitstrings rather than abstract syntax.
 For example, invoking the @${\vsum} procedure with arguments that are not
  integers is undefined behavior.
+
+@include-figure["fig:multi-syntax.tex" @elem{Twin languages syntax}]
+@include-figure["fig:multi-preservation.tex" @elem{Twin languages static typing judgments}]
 
 @Figure-ref{fig:multi-preservation} combines the expression syntax and the
  type syntax.
@@ -88,8 +91,10 @@ The purpose of subtyping is to reflect the subset relation between natural
 @; -----------------------------------------------------------------------------
 @section[#:tag "sec:common-semantics"]{Common Semantic Notions}
 
-The challenge is to define a sound semantics for well-typed expressions.
-Specifically, we are looking for a reduction relation @${\rastar} that provides:
+
+The goal of an embedding is to define a sound semantics for well-typed
+ surface language expressions.
+More precisely, the challenge is to define a reduction relation @${\rastar} that provides:
 @itemlist[
 @item{
   @emph{soundness for a single language}: for expressions without boundary
@@ -97,9 +102,9 @@ Specifically, we are looking for a reduction relation @${\rastar} that provides:
    with respect to the reduction semantics;
 }
 @item{
-  @emph{expressive boundary terms}: the static and dynamic twin languages can
-   share values at any type;
-  @; e.g. no rule (dyn t->t v) ==> error to prohibit sharing all function
+  @emph{expressive boundary terms}: the static and dynamic contexts can
+   share values at any type (for example, there must be some @${v} such that
+   @${(\edyn{(\tarr{\tint}{\tint})}{v})} does not reduce to an error);
 }
 @item{
   @emph{soundness for the pair of languages}: for all expressions,
@@ -107,53 +112,41 @@ Specifically, we are looking for a reduction relation @${\rastar} that provides:
    notion of type soundness.
 }
 ]
-With these goals in mind, the following three subsections give strategies for
- embedding untyped expressions (@${\exprdyn}) within typed expressions (@${\exprsta})
- and vice-versa.
-Each embedding is made of five basic ingredients:
- a notion of reduction @${\rrD} for dynamically-typed expressions;
- a notion of reduction @${\rrS} for statically-typed expressions;
- a function @${\vfromdyn} that imports a dynamically-typed value into a typed context;
- a function @${\vfromsta} that imports a statically-typed value into an untyped context;
- and a judgment form that is both implied by the typing judgment in
- @figure-ref{fig:multi-preservation} and sound with respect to a semantics derived from the
- four previous components.
+To streamline the definition of such reduction relations,
+ @figure-ref{fig:multi-reduction} introduces common semantic notions.
+The syntactic components of this figure are a language of expressions @${e},
+ a notion of irreducible result @${R}, and two kinds of evaluation context.
+A context @${\ebase} does not contain boundary terms; a context @${\esd} may
+ contain boundary terms.
 
-The starting point for these embeddings is the @mytech{evaluation syntax}
- and @${\delta} function in @figure-ref{fig:multi-reduction}.
-The syntax provides a uniform language for reduction relations:
- the expression grammar @${e} is the domain of evaluation,
- evaluation ends in either a value @${v} or error @${\eerr},
- and the order of evaluation is guided by contexts @${\ES}.
-There are two kinds of error.
-Since this is a multi-language system, a @mytech{boundary error} @${\boundaryerror}
- can occur when one language receives an incompatible value from another.
-A @mytech{tag error} @${\tagerror} occurs when value of the wrong shape reaches
- an elimination form.
-@; GAAAH
-High level: boundary errors and tag errors both occur because of bad values;
- boundary error is from an impedence mismatch between languages,
- tag error is from a mismatch between components in one language.
-Evaluation contexts have two levels.
-A pure context @${\ebase} does not contain boundary terms;
- an evaluation context @${\esd} may contain boundary terms.
-This distinction is important if the embedding has two notions of reduction
- for typed and untyped code.
+The semantic components in @figure-ref{fig:multi-reduction} are the @${\delta}
+ function for primitives and the @${\rrS} and @${\rrD} notions of reduction.
+The @${\delta} function is a mathematical specification for the
+ procedures in @${\vunop} and @${\vbinop}.
+Note that @${\delta} is undefined for certain arguments (to represent
+ low-level undefined behavior) and raises a boundary error @${\boundaryerror}
+ for division by zero (meaning the language @${e} sent a bad value to the
+ language that @${\vquotient} is implemented in).
+The static notion of reduction @${\rrS} defines a semantics for expressions
+ that are well-typed according to the judgment in @figure-ref{fig:multi-typing}.
+@; first theorem: \vdash (op1 v) : \tau implies delta(op1, v) is defined
+The dynamic notion of reduction @${\rrD} defines a semantics for expressions
+ that are well-formed, namely @${e} such that @${\wellM e} holds.
+Such expressions may attempt to apply an integer to an argument or give
+ nonsensical arguments to a primitive, hence @${\rrD} explicitly checks for
+ malformed expressions and raises a tag error @${\tagerror} as indication that
+ an elimination form received a value of incorrect shape.
 
-The @${\delta} function assigns meaning to the primitives.
-The primitives @${\vfst} and @${\vsnd} extract the first and second components
- of a pair value, respectively.
-The primitive @${\vsum} adds integers and the primitive @${\vquotient} performs
- integer division.
-Division by zero raises a boundary error because one language (math) received
- an incompatible value from another language (@${\exprdyn} or @${\exprsta}) 
+The three embeddings in the following sections extend @figure-ref{fig:multi-reduction}.
+Each embedding extends the @${\rrS} and @${\rrD} notions of reduction,
+ defines functions @${\vfromdyn} and @${\vfromsta} for transporting a value across
+ a boundary term, and defines a reduction relation for evaluation contexts.
+As part of defining the transport functions, an embedding may extend the grammar
+ of values @${v} (and thereby extend the possible expressions @${e}).
+Lastly, the embeddings define a property that is sound with respect to their
+ semantics.
 
-@include-figure["fig:multi-syntax.tex" @elem{Twin languages syntax}]
-@include-figure["fig:multi-preservation.tex" @elem{Twin languages static typing judgments}]
 @include-figure["fig:multi-reduction.tex" @elem{Common semantic notions}]
-
-@;In order to provide some kind of type soundness, an embedding must restrict
-@; the dynamically-typed values that can flow into typed contexts.
 
 
 @; -----------------------------------------------------------------------------
@@ -267,7 +260,7 @@ In this case the conversion strategy is dual:
 These notions of reduction assume that all monitors in statically-typed contexts
  contain dynamically-typed values, and that all monitors in dynamically-typed
  contexts contain statically-typed values.
-@Figure-ref{fig:natural-property} captures this requirement by extending the
+@Figure-ref{fig:natural-preservation} captures this requirement by extending the
  basic typing judgments for the evaluation syntax (@figure-ref{fig:multi-preservation})
  with appropriate rules for monitors.
 
@@ -421,9 +414,11 @@ The proof follows from progress and preservation lemmas for the
  @${\wellEE} judgment and the @${\rrEEstar} reduction relation.
 It is a weak theorem with a straightforward proof.
 
-TODO
+If an expression does not contain boundary terms, then it is possible to prove
+ a standard soundness theorem by progress and preservation lemmas for @${\wellM} (@figure-ref{fig:multi-typing})
+ with respect to erasure reduction.
 
-  @tr-theorem[#:key "K-pure-static" @elem{@${\langK} static soundness}]{
+  @tr-theorem[#:key "E-pure-static" @elem{@${\langK} static soundness}]{
     If @${\wellM e : \tau} and @${e} does not contain a sub-term of the form
      @${(\edyn{\tau'}{e'})} then one of the following holds:
     @itemlist[
@@ -519,7 +514,7 @@ The expression @${(\estafake{e})} conversely encapsulates the body of a typed
  function applied in an untyped context; again there is no type annotation.
 The expression @${(\echk{\kappa}{e})} associates a typed expression @${e} with an
  expected type constructor.
-If we have the typed expression @${\wellM (f 0) : \tnat} and @${f} evaluates
+If we have the typed expression @${\wellM (\eapp{f}{0}) : \tnat} and @${f} evaluates
  to an untyped function @${(\vlam{x}{\esum{x}{1}})} then the immediate result
  of the application must be @${\echk{\tnat}{\edyn{(\esum{0}{1})}}}.
 @; TODO do example first, to motivate the dyn and sta
@@ -639,18 +634,18 @@ The other main lemma is that boundary-crossing via @${\vfromany} is sound
    then @${\wellKE v : K}
 }
 
-These lemmas hold because the definitions are good.
-
-TODO
-  @tr-theorem[#:key "E-pure-static" @elem{@${\langE} static soundness}]{
-    If @${\wellM e : \tau} and @${e} does not contain a sub-term of the form
-     @${(\edyn{\tau'}{e'})} then one of the following holds:
-    @itemlist[
-      @item{ @${e \rrEEstar v \mbox{ and } \wellM v : \tau} }
-      @item{ @${e \rrEEstar \boundaryerror} }
-      @item{ @${e} diverges}
-    ]
-  }
+@;A standard type soundness theorem holds of expressions that do not contain
+@; boundary terms.
+@;
+@;  @tr-theorem[#:key "K-pure-static" @elem{@${\langE} static soundness}]{
+@;    If @${\wellM e : \tau} and @${e} does not contain a sub-term of the form
+@;     @${(\edyn{\tau'}{e'})} then one of the following holds:
+@;    @itemlist[
+@;      @item{ @${e \rrEEstar v \mbox{ and } \wellM v : \tau} }
+@;      @item{ @${e \rrEEstar \boundaryerror} }
+@;      @item{ @${e} diverges}
+@;    ]
+@;  }
 
 
 @section[#:tag "sec:bridge"]{Bridge Metatheory}
@@ -751,8 +746,8 @@ Helpful to compare the canonical forms and inversion principles in each language
       }
     ]
   }
-]
-
+]@;
+@;
 @; erasure
 @twocolumn[
   @tr-lemma[#:key #false @elem{@|EE| canonical forms}]{
@@ -790,8 +785,8 @@ Helpful to compare the canonical forms and inversion principles in each language
       }
     ]
   }
-]
-
+]@;
+@;
 @; locally-defensive
 @twocolumn[
   @tr-lemma[#:key #false @elem{@|KE| canonical forms}]{
