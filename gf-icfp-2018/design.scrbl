@@ -128,7 +128,7 @@ Note that @${\delta} is undefined for certain arguments (to represent
  for division by zero (meaning the language @${e} sent a bad value to the
  language that @${\vquotient} is implemented in).
 The static notion of reduction @${\rrS} defines a semantics for expressions
- that are well-typed according to the judgment in @figure-ref{fig:multi-typing}.
+ that are well-typed according to the judgment in @figure-ref{fig:multi-preservation}.
 @; first theorem: \vdash (op1 v) : \tau implies delta(op1, v) is defined
 The dynamic notion of reduction @${\rrD} defines a semantics for expressions
  that are well-formed, namely @${e} such that @${\wellM e} holds.
@@ -409,7 +409,7 @@ The proof follows from progress and preservation lemmas for the
 It is a weak theorem with a straightforward proof.
 
 If an expression does not contain boundary terms, then it is possible to prove
- a standard soundness theorem by progress and preservation lemmas for @${\wellM} (@figure-ref{fig:multi-typing})
+ a standard soundness theorem by progress and preservation lemmas for @${\wellM} (@figure-ref{fig:multi-preservation})
  with respect to erasure reduction.
 
   @tr-theorem[#:key "E-pure-static" @elem{@${\langK} static soundness}]{
