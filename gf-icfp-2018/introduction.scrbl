@@ -61,13 +61,12 @@ a proper comparison:
  @; TODO add citations (if any) that claim TypeScript / Hack are sound
 
  To answer this question precisely, this paper explains the three
- approaches in a systematic manner. For the same source languages, it
- formulates the three approaches as three different semantics and, for each
- semantics, articulates a theorem that precisely states which properties
- are preserved. It also demonstrates with source-language examples how
- these theorems differ and the consequences for developers.
-
-}
+ approaches in a systematic manner with a novel semantic framework. For the
+ same source languages, it formulates the three approaches as three
+ different semantics and, for each semantics, articulates a theorem that
+ precisely states which properties are preserved. It also demonstrates with
+ source-language examples how these theorems differ and the consequences
+ for developers.}
 
 @item{@emph{How do the three approaches compare with respect to performance}? 
 
