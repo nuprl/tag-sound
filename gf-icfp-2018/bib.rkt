@@ -2218,3 +2218,9 @@
     #:location (techrpt-location #:institution "Anonymous University" #;"Northeastern University" #:number "N")
     #:date 2018))
 
+(define agd-ecoop-2005
+  (make-bib
+    #:author (authors "Christopher Anderson" "Paola Giannini" "Sophia Drossopoulou")
+    #:title "Towards Type Inference for JavaScript"
+    #:location (proceedings-location ecoop)
+    #:date 2005))

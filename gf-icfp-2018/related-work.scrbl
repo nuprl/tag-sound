@@ -14,25 +14,29 @@
 @section{Migratory Typing}
 
 The idea of equipping a dynamically typed language with static type information
- is almost as old as dynamic typing.
+ is almost as old as dynamic typing@~cite[m-maclisp-1974].
+Early work in this area focused on type inference strategies in the hope that all the dynamically-typed code could be replaced@~cite[s-popl-1981 wc-toplas-1997 agd-ecoop-2005].
+Over the past decade, researchers changed focus to designing sound @emph{multi-language} systems@~cite[gff-oopsla-2005 st-sfp-2006 mf-toplas-2007].
 
-This work is the direct descendant of Typed Racket@~cite[tf-popl-2008 tfffgksst-snapl-2017].
-Typed Racket is the first sound migratory typing system (via the natural embedding)
- as has continued improving.
-@;Tobin-Hochstadt and Felleisen introduced the idea of migratory typing
-@; with Typed Racket@~cite[tf-dls-2006].
-@;This led to a series of works on designing types to accomodate the idioms
-@; of dynamically-typed Racket; see @citet[tfffgksst-snapl-2017] for an overview.
-@;Other migratory typing systems target
-@; JavaScript@~cite[bat-ecoop-2014],
-@; Python@~cite[vksb-dls-2014], and
-@; Smalltalk@~cite[acftd-scp-2013].
+;; oh sage ktgff-tech-2007
+
+This works builds directly on Typed Racket, a migratory typing system for
+ Racket developed by Tobin-Hochstadt and others@~cite[tf-popl-2008 tsth-esop-2013 tf-icfp-2010 tfdfftf-ecoop-2015 tfffgksst-snapl-2017].
+Other migratory typing systems target
+ JavaScript@~cite[bat-ecoop-2014],@note{See also, Flow: @url{https://flow.org/}}
+ PHP,@note{Hack: @url{http://mypy-lang.org/}}
+ Python@~cite[vksb-dls-2014],@note{See also, mypy: @url{http://mypy-lang.org/}}
+ and Smalltalk@~cite[acftd-scp-2013].
 
 Migratory typing is closely related to gradual typing@~cite[st-sfp-2006 svcb-snapl-2015].
 Gradual typing begins with a static typing system and generalizes it to allow
- dynamically typed code@~cite[gct-popl-2016];
+ fine-grained combinations of typed and untyped code@~cite[gct-popl-2016];
  migratory typing begins with a dynamically typed language and designs a type
  system to accomodate its particular idioms.
+A migratory typing system can be gradual, and a gradual typing system can be
+ a migratory typing system.
+@; though the latter is unlikely
+
 @; In the broad sense, the term gradual typing@~cite[st-sfp-2006] describes
 @;  any research that combines static and dynamic typing.
 @; In the more precise sense defined by @citet[svcb-snapl-2015], a gradual typing
@@ -45,11 +49,12 @@ Gradual typing begins with a static typing system and generalizes it to allow
 
 @section{Natural Embedding}
 
-Typed Racket and other migratory typing systems implement the natural embedding.
-The original formalization is from Matthews and Findler's multi-language semantics.
-Other multi-language systems use the natural embedding.
-The name is from Matthews and Findler, the idea goes back much further
- at least to work on typed FFIs.
+@citet[mf-toplas-2007] introduce the name @emph{natural embedding} to describe
+ a type-directed strategy for converting Scheme values to ML values and vice-versa.
+Typed Racket@~cite[tf-dls-2006 tf-popl-2008], GradualTalk@~cite[acftd-scp-2013],
+ and SafeTypeScript@~cite[rsfbv-popl-2015] are three migratory typing systems
+ that implement the natural embedding.
+
 
 @;@parag{Multi-Language Semantics}
 @;@citet[mf-toplas-2007] introduce the first formal semantics for a multi-language.
@@ -62,36 +67,22 @@ The name is from Matthews and Findler, the idea goes back much further
 
 @section{Erasure Embedding}
 
-The erasure embedding is the original and most successful approach to migratory
- typing.
-Goes back to MACLISP and Common Lisp.
-
-TypeScript and Flow are popular erasure embeddings for JavaScript,
- Hack is an erasure embedding for PHP,
- and mypy is an erasure embedding for Python.
-
-More precisely, the above are pluggable type systems.
-A pluggable type system starts with a type-annotated program,
- checks the annotations,
- and compiles a host-language program.
-This is slightly different from embedding.
+The erasure embedding is the original approach to migratory typing.
+Both MACLISP and Common Lisp supported optional type annotations@~cite[m-maclisp-1974 s-lisp-1990].
+The idea of pluggable type systems@~cite[bg-oopsla-1993] was a modern revival of optional typing.
+And currently, at least four industry teams are maintaining optional typing / erasure embedding
+ systems --- for JavaScript, PHP, and Python.
 
 
 @section[#:tag "sec:related-work:locally-defensive"]{Locally-Defensive Embedding}
 
 The locally-defensive embedding is distilled from Vitousek's transient semantics.
-First, the history.
-Vitousek developed transient to avoid the challenge of implementing proxies that
- preserve object identity.
-This is just one of many nice properties in the implementation,
- its a very simple way to get some kind of soundness.
-@;Transient is the motivation for our work;
-@; we began by trying to implement a variant of their compiler for Typed Racket,
-@; but needed a deeper understanding of why the compiler was correct,
-@; what design choices were essential, and
-@; how the idea of rewriting statically-typed code related to other multi-language embeddings.
+Vitousek developed transient to avoid the challenge of adding proxies that
+ preserve object identity to the Python language@~cite[vksb-dls-2014].
+Later work proved that the approach provided a constructor-level notion of
+ soundness@~cite[vss-popl-2017] at relatively low cost to mixed-typed programs@~cite[gm-pepm-2018].
 
-We prefer the name @emph{locally defensive} over @emph{transient} because the
+In this work, we use the name @emph{locally defensive} rather @emph{transient} because the
  latter conflates two of the three novel ideas that characterize the approach.
 The first novel idea is to check only type constructors at a boundary.
 The second is to forget typing obligations unless they are crucial to the
@@ -100,11 +91,7 @@ The third is to implement forgetful constructor checks with in-line assertions
  rather than monitors.
 @; Each step individually leads to a different embedding ... appendix has 1/2 and 2/3
 
-
-Darts checked mode might implement a locally-defensive embedding.
-We don't know of anything older.
-As far as we know, it's an original Vitousek idea to address the
- challenges of migratory typing.
+@; https://www.dartlang.org/dart-2
 
 The idea of rewriting an expression to add explicit safety checks goes back
  at least to @citet[h-scp-1994], from whom we adopt the name @emph{completion}.
@@ -152,7 +139,7 @@ They apply the method to Typed Racket and find that its performance is a serious
 
 @parag{Alternative Soundness}
 
-Most papers with a type soundness theorem dress it up like Milners.
+@; Most papers with a type soundness theorem dress it up like Milners.
 
 Two related works led us towards the idea of a spectrum of type soundness.
 @emph{Like types} are static type annotations that are erased before run-time@~cite[bfnorsvw-oopsla-2009 rzv-ecoop-2015].
