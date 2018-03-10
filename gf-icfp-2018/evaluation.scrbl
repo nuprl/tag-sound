@@ -11,21 +11,21 @@
 
 @; TODO revise intro, because this comes right after the models now
 
-The models support two general hypotheses about the relative performance
- of the embeddings:
-@itemlist[#:style 'ordered
-@item{
-  For mixed-typed programs, the erasure embedding adds less overhead
-   than the locally-defensive embedding, and both add significantly less
-   overhead than the natural embedding.
-}
-@item{
-  For fully-typed programs, the natural embedding may out-perform the erasure
-   embedding, and both add significantly less overhead than the locally-defensive
-   embedding.
-}
-]
-It remains to be seen whether these hypotheses hold for a practical implementation.
+@;The models support two general hypotheses about the relative performance
+@; of the embeddings:
+@;@itemlist[#:style 'ordered
+@;@item{
+@;  For mixed-typed programs, the erasure embedding adds less overhead
+@;   than the locally-defensive embedding, and both add significantly less
+@;   overhead than the natural embedding.
+@;}
+@;@item{
+@;  For fully-typed programs, the natural embedding may out-perform the erasure
+@;   embedding, and both add significantly less overhead than the locally-defensive
+@;   embedding.
+@;}
+@;]
+@;It remains to be seen whether these hypotheses hold for a practical implementation.
 
 This section presents the results of a comparative evaluation of the natural,
  erasure, and locally-defensive embeddings in the context of Typed Racket.
@@ -45,33 +45,28 @@ The erasure embedding offers the best performance, except in the case of
  implements the natural embedding.
 Whereas a Racket program starts with the line @tt|{#lang racket}| a
  @|TR| program starts with the line @tt|{#lang typed/racket}| and
- must type check before the compiler will generate bytecode.
-
-As a convenience for developers, the implementation of @|TR| comes
- with a third language, @tt|{#lang typed/racket/no-check}|, that treats type
- annotations as comments.
-This third language provides an easy way to compare the performance of the
- natural embedding (standard @|TR|) against the erasure embedding (no-check)
- for the same source code.
+ must satisfy the type checker.
+By removing the type annotations in a Typed Racket program, we can
+ therefore compare the performance of the natural embedding against
+ the erasure embedding.
 
 To measure the performance of the locally-defensive embedding, we implemented
  this embedding in a fork of @|TR|.
 The implementation re-uses the static type checker,
  defines a new semantics for boundary terms,
  and replaces the type-directed optimizer with a type-directed completion pass.
-The fork is based on Racket version 6.10, released in July 2017.
+The fork is based on Racket version @|RKT-VERSION|, released in @|RKT-RELEASE-MONTH|.
 All code is made available in the artifact for this paper.
 
-Re-using the type checker is difficult; this is why our implementation is a
- fork instead of a package.
+@;Re-using the type checker is difficult; this is why our implementation is a
+@; fork instead of a package.
 
 @subsection[#:tag "sec:implementation:checks"]{Constructor Checks}
 
-How to implement constructor checks?
-The checks in the model are just type-tag checks,
- the kind that come built-in in any safe dynamic language.
+@emph{This subsection needs to say something about the implementation of
+ locally-defensive checks and how they relate to low level type-tags.}
 
-The implementation uses more checks.
+The implementation comes with more types than the model.
 For types of the form @${F(\tau)} that represent mutable data, for example
  @${\tarray{\tau}}, check the constructor --- mutability makes no difference.
 For (true) union types of the form @${\tau_0 \cup \tau_1}, values that match
@@ -84,40 +79,33 @@ For a type variable @${\alpha}, define @${\tagof{\alpha} = \kany}; intuitively,
 
 In principle there is one check per type in the program, so a sophisticated
  compiler can generate efficient code for these.
-We do not do this.
-Open question.
+Our prototype does not attempt this kind of optimization.
 
-We implement checks with procedures; basically as contracts.
-Use TR type to contract compiler, then insert a check.
-@; (if ((begin-encourage-inline ctc) v) v (error ....))
-
-
-@subsection{Completion}
-
-The completion pass rewrites functions and function applications.
-Every typed function @racket[(lambda ([x : T] ....) e)] is rewritten to a checked
- function @racket[(lambda ([x : T] ....) (check T x) .... e)].
-Every application @racket[(_f _x ....)] is rewritten to
- @racket[(check _K (_f _x ....))], where @racket[_K] comes from the static type
- of the expression.
-One more thing: we whitelist functions such as @racket[list]
- that are trusted to give results with the expected constructor.
+@;We implement checks with procedures; basically as contracts.
+@;Use TR type to contract compiler, then insert a check.
+@;@; (if ((begin-encourage-inline ctc) v) v (error ....))
 
 
-@subsection{Compiling to a Host Language}
+@;@subsection{Completion}
+@;
+@;The completion pass rewrites functions and function applications.
+@;Every typed function @racket[(lambda ([x : T] ....) e)] is rewritten to a checked
+@; function @racket[(lambda ([x : T] ....) (check T x) .... e)].
+@;Every application @racket[(_f _x ....)] is rewritten to
+@; @racket[(check _K (_f _x ....))], where @racket[_K] comes from the static type
+@; of the expression.
+@;One more thing: we whitelist functions such as @racket[list]
+@; that are trusted to give results with the expected constructor.
 
-The models employ a small-step operational semantics for an expression language.
-The natural and locally-defensive have two reduction relations.
-In practice, though, a migratory typing system compiles statically-typed code
- to the host language, which raises two questions.
 
-The first question is how to represent the static types that the models use
- in monitor values and function applications.
-We compile to contracts.
-
-The second question is whether it is sound to use the host language reduction
- relation on statically-typed terms.
-Theorems in the previous section show that this is sound.
+@;@subsection{Compiling to a Host Language}
+@;
+@;The models employ a small-step operational semantics for an expression language.
+@;The natural and locally-defensive have two reduction relations.
+@;In practice, though, a migratory typing system compiles statically-typed code
+@; to the host language, which raises the question of whether it is sound to
+@; use the host-language reduction relation.
+@;Of course it is, because the dynamic reduction is a subset of static reduction.
 
 
 @section{Evaluation I: Mixed-Typed Programs}
@@ -157,10 +145,13 @@ For a program with @${N} modules, the data is an average running time based
  on @~a[NUM-ITERS] iterations for each of the @${2^N} configurations of the program.
 The value of @${2^N} is reported at the top-right of each plot in @figure-ref{fig:locally-defensive-performance}.
 
-All measurements were collected sequentially using Racket v6.10.1 on an unloaded Linux
+All measurements were collected sequentially using Racket v@|RKT-VERSION| on an unloaded Linux
  machine with two physical AMD Opteron 6376 processors (a NUMA architecture) and
  128GB RAM.
 The CPU cores on each processor ran at 2.30 GHz using the @emph{performance} CPU governor.
+The Racket compiler generates bytecode ahead-of-time and employs a standard
+ JIT compiler.
+@; throw away 1 config
 
 The lines on each plot show the percent of @deliverable{D} configurations as
  the value of @${D} increases from @${1} to @${@~a[X-MAX]}.
@@ -210,25 +201,24 @@ This degredation occurs because the many constructor checks inserted by @|LD-Rac
 
 @section{Evaluation II: Fully-Typed Programs}
 
-The second hypothesis concerns the performance of fully-typed programs.
-@|TR| is expected to be fastest, because the static types enable some
- optimization@~cite[stff-padl-2012].
-@|LD-Racket| is expected to be slowest because it rewrites all typed code to include
- checks.
-For example, the simple expressions @${\efst{\vpair{0}{1}}} reduces to a value
- in one step in the natural embedding and in two steps in the locally-defensive
- embedding:
-
-@$$|{
-  \wellM \efst{\vpair{0}{1}} : \tint \carrow \echk{\kint}{(\efst{\vpair{0}{1}})} \rrKSstar \echk{\kint}{0} \rrKSstar 0
-}|
-
-So much for the theory.
-How do the implementations stack up?
+@;@|TR| is expected to be fastest, because the static types enable some
+@; optimization@~cite[stff-padl-2012].
+@;@|LD-Racket| is expected to be slowest because it rewrites all typed code to include
+@; checks.
+@;For example, the simple expressions @${\efst{\vpair{0}{1}}} reduces to a value
+@; in one step in the natural embedding and in two steps in the locally-defensive
+@; embedding:
+@;
+@;@$$|{
+@;  \wellM \efst{\vpair{0}{1}} : \tint \carrow \echk{\kint}{(\efst{\vpair{0}{1}})} \rrKSstar \echk{\kint}{0} \rrKSstar 0
+@;}|
+@;
+@;So much for the theory.
+@;How do the implementations stack up?
 
 @; TODO maybe should be a bar graph, with error lines
-@Figure-ref{fig:typed-baseline-ratios} lists peformance ratios for each of the
- benchmarks.
+@Figure-ref{fig:typed-baseline-ratios} compares the performance of the fully-typed
+ configuration in each benchmark against the performance of the erasure embedding.
 The first row lists abbreviated benchmark names.
 The second row lists the ratio of @|TR| on the fully-typed configuration
  relative to Racket on the untyped configuration.
@@ -238,14 +228,11 @@ The third and final row lists the ratio of @|LD-Racket| on the fully-typed
 @|LD-Racket| is the slowest on every benchmark.
 @|TR| is the fastest on @integer->word[(for/sum ([n (in-list (ratios-table->typed RT))]) (if (< n 1) 1 0))]
  of the @integer->word[(length TR-DATA*)] benchmarks.
-The @bm{zombie} benchmark is a surprising exception.
-Its fully-typed performance is very slow; this is because
- it performs many type casts.
-Maybe we should equalize typed and untyped for these.
+Note, the high overhead in the @bm{zombie} benchmark is due to type casts
+ it performs to validate its input data.
 
-This observation raises questions about optimizing the locally-defensive
- embedding.
-We discuss these and other directions for future work in @secref{sec:conclusion}.
+We leave open the question of improving performance of the locally-defensive
+ embedding on fully-typed programs.
 
 
 @section{Threats to Validity}

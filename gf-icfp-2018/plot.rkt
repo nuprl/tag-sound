@@ -10,6 +10,8 @@
   BM-NAME*
   TR-DATA*
   TAG-DATA*
+  RKT-VERSION
+  RKT-RELEASE-MONTH
   tag-color-text
   tr-color-text
   tag-color-sample
@@ -72,6 +74,7 @@
 (define-runtime-path CWD ".")
 
 (define RKT-VERSION "6.10.1")
+(define RKT-RELEASE-MONTH "September 2017")
 (define NUM-SAMPLES 200)
 (define TAG-VERSION "v0.14")
 (define OVERHEADS-HEIGHT 680)
