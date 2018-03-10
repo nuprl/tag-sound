@@ -5,21 +5,16 @@
 
 @; -----------------------------------------------------------------------------
 
-Migratory typing in general and the embeddings in particular have an
- intertwined history.
-Our work is the first unified presentation and implementation of these ideas.
-
-@; need to establish
-@; - this is the related work section
-@; - embeddings have long history
-@; - we put something novel on top (reinforce, for reviewers)
+@;Migratory typing in general and the embeddings in particular have an
+@; intertwined history.
+@;Since our work is the first unified presentation and implementation of these ideas,
+@; it is important to acknowledge where they came from.
 
 
 @section{Migratory Typing}
 
 The idea of equipping a dynamically typed language with static type information
- is nearly as old as dynamic typing.
-Explain the references in the introduction.
+ is almost as old as dynamic typing.
 
 This work is the direct descendant of Typed Racket@~cite[tf-popl-2008 tfffgksst-snapl-2017].
 Typed Racket is the first sound migratory typing system (via the natural embedding)

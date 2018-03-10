@@ -248,6 +248,7 @@ The examples above have shown that the natural embedding detects errors
  earlier than the locally-defensive and erasure embeddings.
 This temporal difference has implications for the quality of error messages
  that each embedding can produce.
+@; A top-quality error message accurately blames one boundary for the fault.
 
 The erasure embedding detects a runtime type mismatch as late as possible, namely,
  just before invoking @${\delta} with an invalid argument.
