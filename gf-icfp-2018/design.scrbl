@@ -166,16 +166,8 @@ A standard type soundness theorem guarantees that if a well-typed expression
 This guarantee comes about because the static type checker establishes a type
  for every sub-expression, and these proofs compose.
 The analogous guarantee for the surface syntax (@figure-ref{fig:multi-syntax})
- and typing system (@figure-ref{fig:multi-reduction}) is the following:
-
-@$$|{
-  \mbox{\emph{(ideal)}}
-    {\cdot \wellM \exprsta : \tau}
-    \wedge
-    {\exprsta \rastar v}
-    \Rightarrow
-    {\cdot \wellM v : \tau}
-}|
+ and typing system (@figure-ref{fig:multi-reduction}) is that if a program
+ is well-typed and reduces to a value, the value is also well-typed.
 
 It is impossible to realize this guarantee in the same way as in a statically-typed
  language, because some terms are intentionally untyped.
@@ -311,6 +303,8 @@ The theorems follow from standard progress and preservation lemmas
  for each reduction relation and the corresponding
  property judgment.
 See the appendix for proofs.
+
+@exact{\newpage}
 
 The central lemmas that connect this pair of theorems are a specification for
  the @${\vfromdynN} and @${\vfromstaN} functions:
@@ -788,6 +782,8 @@ Helpful to compare the canonical forms and inversion principles in each language
 ]@;
 @;
 @; locally-defensive
+
+@exact{\newpage}
 @twocolumn[
   @tr-lemma[#:key #false @elem{@|KE| canonical forms}]{
     @itemlist[
