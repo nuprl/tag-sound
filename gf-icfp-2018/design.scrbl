@@ -81,11 +81,9 @@ The second judgment, @${\Gamma \wellM e : \tau}, is a conventional static
  typing system.
 Both judgments are mutually recursive to handle boundary terms.
 
-Two auxiliary components of the type system are the @${\Delta} function
- and the @${\subteq} subtyping judgment.
-The purpose of @${\Delta} is to assign a (dependent) type to the primitives.
-The purpose of subtyping is to reflect the subset relation between natural
- numbers and integers.
+Two auxiliary components of the type system are the function @${\Delta},
+ which assigns a (dependent) type to the primitives, and a subtyping
+ judgment based on the subset relation between natural numbers and integers.
 
 
 @; -----------------------------------------------------------------------------
