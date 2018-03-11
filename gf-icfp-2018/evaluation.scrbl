@@ -246,14 +246,15 @@ We believe this high-level conclusion is valid; however, the exact performance o
 
 @; === things that make prototype too fast
 On one hand, the prototype is likely to be faster than a complete implementation
- because it makes little effort to provide useful error messages.
+ for two reasons.
+First, it makes little effort to provide useful error messages.
 When a tag check fails, the prototype simply directs programmers to the
  source code associated with the tag check using information available to the
  completion function.
 Improving these error messages with information about the source of an ill-tagged
  value is likely to degrade performance.
 
-Similarly, the prototype avoids using Racket's contract system to implement
+Second, the prototype avoids using Racket's contract system to implement
  type-tag checks.
 Contracts are a useful tool for defining predicates that give well-structured
  error messages, but they add a constant-factor overhead that wound up
@@ -272,14 +273,18 @@ Second, the prototype is based on a model that introduces redundant checks;
  a better model will improve the prototype.
 
 @; === things that make prototype non-representative
-Three other threats are worth noting.
-First, @|LD-Racket| does not support Racket's object-oriented features@~cite[tfdfftf-ecoop-2015];
- programs using such features might not improve as drastically as the functional
- benchmarks we measure.
+Four other threats are worth noting.
+First, @|LD-Racket| does not support Racket's object-oriented features@~cite[tfdfftf-ecoop-2015].
+@; ... though we expect OO to improve even more
+@; TODO update "largest" for jpeg
 Second, our benchmarks are relatively small; the largest is 10 modules and 800 lines (see appendix for full details).
 @; TODO auto-compute
 Third, ascribing different types to the same program can affect its performance;
  for example the tag check for an integer is less expensive than the tag check for
  a natural number or some other union type.
+Fourth, the @|LD-Racket| version of the @bm{jpeg} benchmark depends on an
+ @|LD-Racket| version of a @|TR| library because @|LD-Racket| and @|TR|
+ cannot share type definitions.
+ @; consequences: (1) slower math library, (2) no chaperones to protect TR from LD
 Nevertheless we consider our results representative.
 
