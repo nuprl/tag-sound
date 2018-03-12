@@ -11,17 +11,17 @@
 
   \lblextra{$\vfromdyn : \tau \times v \rightarrow e\vphantom{\vfromsta}$}{ from $\vdyn$ to $\vsta$}{
     $\begin{array}{l@{~~}c@{~}l}
-      \efromdyn{\tarr{\tau_d}{\tau_c}}{v} & = & \vmonfun{(\tarr{\tau_d}{\tau_c})}{v}
+      \efromdynN{\tarr{\tau_d}{\tau_c}}{v} & = & \vmonfun{(\tarr{\tau_d}{\tau_c})}{v}
       \\ \sidecond{if $v \valeq \vlam{x}{e}$ or $v \valeq \vmonfun{\tau'}{v'}$}
       \\
-      \efromdyn{\tpair{\tau_0}{\tau_1}}{\vpair{v_0}{v_1}} & = & \vpair{\edyn{\tau_0}{v_0}}{\edyn{\tau_1}{v_1}}
+      \efromdynN{\tpair{\tau_0}{\tau_1}}{\vpair{v_0}{v_1}} & = & \vpair{\edyn{\tau_0}{v_0}}{\edyn{\tau_1}{v_1}}
       \\
-      \efromdyn{\tint}{i} & = & i
+      \efromdynN{\tint}{i} & = & i
       \\
-      \efromdyn{\tnat}{i} & = & i
+      \efromdynN{\tnat}{i} & = & i
       \\ \sidecond{if $i \in \naturals$}
       \\
-      \efromdyn{\tau}{v} & = & \boundaryerror
+      \efromdynN{\tau}{v} & = & \boundaryerror
       \\ \sidecond{otherwise}
     \end{array}$
   }
@@ -30,12 +30,12 @@
 
   \lblextra{$\vfromsta : \tau \times v \rightarrow e$}{ from $\vsta$ to $\vdyn$}{
     $\begin{array}{l@{~~}c@{~}l}
-      \efromsta{\tarr{\tau_d}{\tau_c}}{v} & = & \vmonfun{(\tarr{\tau_d}{\tau_c})}{v}
+      \efromstaN{\tarr{\tau_d}{\tau_c}}{v} & = & \vmonfun{(\tarr{\tau_d}{\tau_c})}{v}
       \\
       \\
-      \efromsta{\tpair{\tau_0}{\tau_1}}{\vpair{v_0}{v_1}} & = & \vpair{\esta{\tau_0}{v_0}}{\esta{\tau_1}{v_1}}
+      \efromstaN{\tpair{\tau_0}{\tau_1}}{\vpair{v_0}{v_1}} & = & \vpair{\esta{\tau_0}{v_0}}{\esta{\tau_1}{v_1}}
       \\
-      \efromsta{\tau}{v} & = & v
+      \efromstaN{\tau}{v} & = & v
       \\ \sidecond{otherwise}
     \end{array}$
   }
@@ -66,9 +66,9 @@
 \begin{TwoColumn}
   \lblextra{$e \ccNE e$}{}{
     $\begin{array}{l@{\hspace{0.5em}}c@{\hspace{0.5em}}l}
-      \esd[\esta{\tau}{v}] & \ccNE & \esd[\efromsta{\tau}{v}]
+      \esd[\esta{\tau}{v}] & \ccNE & \esd[\efromstaN{\tau}{v}]
       \\
-      \esd[\edyn{\tau}{v}] & \ccNE & \esd[\efromdyn{\tau}{v}]
+      \esd[\edyn{\tau}{v}] & \ccNE & \esd[\efromdynN{\tau}{v}]
       \\
       \esd[\esta{\tau}{\ebase[e]}] & \ccNE & \esd[\esta{\tau}{\ebase[e']}]
       \\ \sidecond{if $e \rrNS e'$}

@@ -73,7 +73,8 @@ For example, invoking the @${\vsum} procedure with arguments that are not
 
 @Figure-ref{fig:multi-preservation} combines the expression syntax and the
  type syntax.
-To accomodate the two kinds of expressions, there are two typing judgments.
+To accomodate the two kinds of expressions (@${\exprsta} and @${\exprdyn}),
+ there are two typing judgments.
 The first judgment, @${\Gamma \wellM e}, states that the expression @${e} is
  well-formed; this weak property characterizes the weak ahead-of-time checking
  in dynamically-typed languages.
@@ -168,8 +169,8 @@ In a conventional typed language, this kind of enforcement happens statically;
 Migratory typing can provide a similar guarantee if the types on untyped
  values are checked at runtime.
 
-The natural embedding uses a type-directed strategy to check-and-transport an untyped value
- into a typed context.
+The natural embedding uses a type-directed strategy to check an untyped value
+ and @mytech{transport} it into a typed context.
 If the context expects a value of a base type, such as @${\tint} or @${\tnat},
  then the strategy is to check the value constructor and immediately reject
  ill-typed values.
@@ -183,22 +184,28 @@ In the case of an untyped function and the type @${\tarr{\tnat}{\tnat}},
  a monitor checks that every result computed by the function is of type
  @${\tnat} and otherwise rejects the original value.
 
-@; TODO actually discuss boundaries
-
 
 @subsection[#:tag "sec:natural:implementation"]{Implementation}
 
-@; TODO lets get started!!!
+@Figure-ref{fig:natural-reduction} presents an implementation of the natural
+ embedding for the evaluation syntax.
+The key aspects of the implementation are the transport functions @${\vfromdynN}
+ (from dynamic to static)
+ and @${\vfromstaN} (from static to dynamic).
+First, @${\vfromdynN} imports a dynamically-typed value into a statically-typed
+ context by checking the shape of the value and proceeding as outlined above.
+In particular, if the context expects a function with domain @${\tau_d} and
+ codomain @${\tau_c}, then @${\vfromdynN} returns a monitor
+ @${\vmonfun{(\tarr{\tau_d}{\tau_c})}{v}} that encapsulates the untyped function.
+Second, @${\vfromstaN} exports a typed value to an untyped context.
+Since an exported function may receive an argument from the untyped context,
+ the @${\vfromstaN} function protects the exported value with a monitor.
 
-@; concrete examples ... ???
+The notions of reduction for the natural embedding 
+ 
 
-The natural embedding defined in @figure-ref{fig:natural-reduction} adds
- one new value form, two functions for checking values at boundary terms,
- and two reduction rules to handle the new value form.
-The new value form, @${(\vmonfun{(\tarr{\tau_d}{\tau_c})}{v})}, is a monitor
- that associates a value @${v} with a type.
-Such monitors arise at runtime as the result of calls to the @${\vfromdynN}
- and @${\vfromstaN} conversion functions.
+This function 
+
 
 @;In principle, the one monitor value @${(\vmonfun{(\tarr{\tau_d}{\tau_c})}{v})}
 @; could be split into two value forms: one for protecting the domain of a statically-typed
@@ -206,28 +213,7 @@ Such monitors arise at runtime as the result of calls to the @${\vfromdynN}
 @;The split would clarify @${\rrNS} and @${\rrND} but it would also create a
 @; larger gap between the model and implementation (@secref{sec:implementation}).
 
-The purpose of @${\efromdynN{\tau}{v}} is to import a dynamically-typed value
- into a statically-typed context, such that the result matches the assumptions
- of the context.
-If @${\tau} is a base type, then @${\efromdynN{\tau}{v}} returns @${v} if the
- value matches the type and raises a boundary error otherwise.
-If @${\tau} is a product type, then @${\efromdynN{\tau}{v}} asserts that @${v}
- is a pair value and returns a pair expression to import the components of the
- pair at the appropriate type.
-Finally if @${\tau} is a function type, then @${\efromdynN{\tau}{v}} asserts
- that @${v} is a function (or a monitored function) and wraps @${v} in a monitor.
-
-The purpose of @${\efromstaN{\tau}{v}} is to import a statically-typed value
- into a dynamically-typed context such that context cannot break any assumption
- made by the value.
-Integers and natural numbers do not interact with their context, thus
- @${\efromstaN{\tint}{v}} returns the given value.
-Pair values may indirectly interact with the context via their components,
- so @${\efromstaN{\tpair{\tau_0}{\tau_1}}{v}} returns a pair expression to import
- the components.
-Function values interact with their context by receiving arguments, and so
- @${\efromdynN{\tarr{\tau_d}{\tau_c}}{v}} wraps the function @${v} in a monitor
- to protect it from dynamically-typed arguments.
+@;=---
 
 The notion of reduction @${\rrNS} adds a rule for applying a monitor as a function
  in a typed context.
