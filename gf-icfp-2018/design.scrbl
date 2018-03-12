@@ -329,19 +329,20 @@ It cannot eliminate boundary errors, but it brings them under control in a
 
 @subsection[#:tag "sec:erasure:overview"]{Overview}
 
-A second approach to migratory typing is to define soundness
- for the pair of languages as the soundness of the dynamically-typed
- host language.
-@; so unclear
-Instead of designing two notions of reduction and converting values at
- boundary terms, the erasure embedding comes with one notion of reduction.
+@; "syntactic discipline" is a quote from J. Reynolds
 
-@; omg this repeats the intro
-From the programmers' perspective, erased types can catch static errors
- and enable tools like type-directed autocomplete.
-Erased types have no relation to the semantics of a program.
-For example, if an expression has the static type @${\tnat} then might
- reduce to a natural number, a negative integer, a pair, or a function.
+The erasure embedding is based on a view of types as a (strictly) syntactic discipline.
+Types are just a structured kind of comment.
+Their main purpose is to help developers read a codebase.
+Their secondary purpose is to enable static type checking an IDE tools such
+ as type-based autocomplete.
+Whether or not the types are sound is basically an accident; type soundness
+ is only true for restricted languages under a closed-world assumption.
+
+If one adopts this point of view, then the proper semantics for a migratory
+ typing system is the untyped (or, type-agnostic) semantics of the host language.
+Transporting a value from untyped to typed or vice-versa is trivial,
+ since both kinds of context promise the same weak guarantees.
 
 
 @subsection[#:tag "sec:erasure:implementation"]{Implementation}
@@ -419,63 +420,33 @@ If an expression does not contain boundary terms, then it is possible to prove
 
 @subsection[#:tag "sec:locally-defensive:overview"]{Overview}
 
-@; Maybe try: "3rd approach = enforce constructors, this can be done with local checks"
+The locally-defensive embedding is the result of two assumptions: one philosophical,
+ one pragmatic.
+The philosophical assumption is that well-typed programs should not ``go wrong''
+ in the sense of applying an elimination form to a value outside its domain.
+For example, the elimination forms in the surface language are function application
+ and primitive application.
+Function application @${(\eapp{v_0}{v_1})} expects that @${v_0} is a function;
+ primitive application expects a primitive and arguments for which @${\delta}
+ is defined.
+The goal of the locally-defensive embedding is to ensure that such assumptions
+ are always satisfied in typed code.
+@; ... what about Nat? ... generalized form of tag error
 
-A third approach to migratory typing is to ensure that every typed value matches
- the outermost constructor of its static type.
-If this shallow invariant holds, then one can prove that an evaluator
- similar to @${\rrS} never gets stuck.
-Intuitively, this works out because the ``stuck'' judgment only looks at
- type constructors.
-@; Where "getting stuck" is precisely:
-@; - `(a b)` where `a` is not a function
-@; - `(op ...)` where `op` undefined for arguments
+The pragmatic assumption is that run-time monitoring
+ (see the natural embedding, @secref{sec:natural-embedding}) is impractical.
+For one, implementing ``transparent'' monitors requires a significant engineering
+ investment.
+Second, monitoring adds a prohibitive run-time cost.
 
-For example, two values that match the outermost constructor of the type
- @${\tarr{\tnat}{\tnat}} are @${(\vlam{x}{x})} and @${(\vlam{\tann{y}{\tint}}{y})},
- because both values are functions.
-These values, and indeed any other functions, are safe to place in the context
- @${(\eapp{\ehole}{1})} without making it stuck.
-Similarly, the context @${\efst{x}} is stuck if and only if @${x} is not a
- pair value.
+Based on these assumptions, the locally-defensive embedding rewrites typed code
+ to defend itself against possibly-untyped inputs.
+The defense takes the form of type-constructor checks; that is, first-order
+ checks on values flowing in to the typed context.
+These checks do not require monitors and ensure that the typed context cannot
+ ``go wrong''.
 
-These are one-level examples.
-What about @${\efst{\efst{x}}}?
-To avoid getting stuck, @${x} needs to be a pair value whose first component is
- a pair value.
-If this is a well-typed program and evaluation preserves the invariant that
- every value matches the top-level constructor of its type, then both @${x} and
- @${\efst{x}} are guaranteed to be pair values at runtime and the program is
- safe.
-
-The question becomes, how to implement the invariant.
-The straightforward way is to start from the natural embedding and change
- the interpretation of boundary terms.
-In particular: (1) check only value constructors, (2) wrap functions and pairs,
- with monitors that check the constructor of their components / arguments / results.
-This approach is fine, see appendix.
-
-A different strategy, due to @citet[vss-popl-2017], is to ditch the monitors
- and rewrite typed code with assertions that check value constructors.
-Assertions are sufficient because the invariant depends only on local
- typing assumptions.
-(Monitors can accumulate checks from boundaries, rack up the history of a value.
- This history doesn't matter for the soundness of the currently-executing context.)
-So we just need to be sure the assertions go in the right places.
-The right places are wherever a monitor would insert a check.
-Oh dear @bold{this} is very hard to motivate without the co-natural embedding.
-
-In summary, the plan is to use a programs typing derivation to decide what
- checks to insert.
-The rewritten program can reduce using a semantics similar to the common
- reduction relations, except that both typed and untyped functions can appear
- in both typed and untyped contexts.
-Need a technical device for this.
-
-@; Dynamically typed languages often come with efficient constructor-checking
-@;  procedures, so the work required to implement this approach is probably all
-@;  about making sure checks go in the right place.
-
+@; ???
 
 
 @subsection[#:tag "sec:locally-defensive:implementation"]{Implementation}
