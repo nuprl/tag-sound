@@ -100,7 +100,7 @@
     (raise-argument-error 'my-color-converter "unknown kind" 0 kind i)]))
 
 (define BM-NAME* '(
-  fsm kcfa morsecode sieve snake suffixtree synth tetris zombie))
+  fsm jpeg kcfa morsecode sieve snake suffixtree synth tetris zombie))
 
 (define color-sample
   (let ([->pen (my-color-converter 'pen)]
