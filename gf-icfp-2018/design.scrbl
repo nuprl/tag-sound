@@ -89,7 +89,6 @@ Two auxiliary components of the type system are the function @${\Delta},
 @; -----------------------------------------------------------------------------
 @section[#:tag "sec:common-semantics"]{Common Semantic Notions}
 
-
 The goal of an embedding is to define a sound semantics for well-typed
  surface language expressions.
 More precisely, the challenge is to define a reduction relation @${\rastar} that provides:
@@ -114,8 +113,8 @@ To streamline the definition of such reduction relations,
  @figure-ref{fig:multi-reduction} introduces common semantic notions.
 The syntactic components of this figure are a language of expressions @${e},
  a notion of irreducible result @${R}, and two kinds of evaluation context.
-A context @${\ebase} does not contain boundary terms; a context @${\esd} may
- contain boundary terms.
+A basic context @${\ebase} does not contain boundary terms, and a multi-language
+ context @${\esd} may contain boundary terms.
 
 The semantic components in @figure-ref{fig:multi-reduction} are the @${\delta}
  function for primitives and the @${\rrS} and @${\rrD} notions of reduction.
@@ -135,14 +134,18 @@ Such expressions may attempt to apply an integer to an argument or give
  malformed expressions and raises a tag error @${\tagerror} as indication that
  an elimination form received a value of incorrect shape.
 
+@; maybe make this more structured? finish the draft first tho
+@; ... maybe less structure, because erasure doesn't really match
 The three embeddings in the following sections extend @figure-ref{fig:multi-reduction}.
 Each embedding extends the @${\rrS} and @${\rrD} notions of reduction,
  defines functions @${\vfromdyn} and @${\vfromsta} for transporting a value across
- a boundary term, and defines a reduction relation for evaluation contexts.
+ a boundary term, and lifts the (two) notions of reduction to reduction relations
+ @${\ccS} and @${\ccD} for (multi-language) evaluation contexts.
 As part of defining the transport functions, an embedding may extend the grammar
  of values @${v} (and thereby extend the possible expressions @${e}).
-Lastly, the embeddings define a property that is sound with respect to their
- semantics.
+Lastly, each embedding defines a syntactic property that is:
+ (1) implied by a typing property in @figure-ref{fig:multi-preservation},
+ and (2) sound with respect to a reduction relation.
 
 @include-figure["fig:multi-reduction.tex" @elem{Common semantic notions}]
 
@@ -152,48 +155,33 @@ Lastly, the embeddings define a property that is sound with respect to their
 @include-figure*["fig:natural-reduction.tex" "Natural Embedding"]
 @include-figure*["fig:natural-preservation.tex" "Property judgments for the natural embedding"]
 
-@; Thesis for this section?
-@; - impossible to provide conventional soundness, but can faithfully
-@;   approximate with runtime checks ?
-@; ... simple idea just od `\vdash e : \tau` at runtime
+@; types should provide strong guarantees
 
 @subsection[#:tag "sec:natural:overview"]{Overview}
 
-A standard type soundness theorem guarantees that if a well-typed expression
- reduces to a value, the value is of the same type.
-This guarantee comes about because the static type checker establishes a type
- for every sub-expression, and these proofs compose.
-The analogous guarantee for the surface syntax (@figure-ref{fig:multi-syntax})
- and typing system (@figure-ref{fig:multi-reduction}) is that if a program
- is well-typed and reduces to a value, the value is also well-typed.
+@; "levels of abstraction" is a quote from J. Reynolds
 
-It is impossible to realize this guarantee in the same way as in a statically-typed
- language, because some terms are intentionally untyped.
-In the expression @${(\edyn{\tau}{e})} there is no guarantee that the expression
- @${e} has type @${\tau}, or any type at all.
-Instead, however, it is possible to approximate the same guarantee with
- runtime checks.
-When a value @${v} flows from dynamically-typed code into a statically-typed
- context expecting a value of type @${\tau}, a runtime check can try to establish
- that the value is well-typed.
-The question is then how to implement such checks.
+The natural embedding is based on the idea that types should enforce levels
+ of abstraction.
+In a conventional typed language, this kind of enforcement happens statically;
+ types define levels of abstraction and the type checker ensures compliance.
+Migratory typing can provide a similar guarantee if the types on untyped
+ values are checked at runtime.
 
-For base types such as @${\tint} and @${\tnat}, we suppose that the language
- comes with primitives that implement @${v \in \integers} and @${v \in \naturals}
- (see @secref{sec:implementation:checks} for a discussion).
-For inductive types such as @${\tpair{\tau_0}{\tau_1}}, an inductive checking
- strategy can confirm that a value is a pair and that its components match
- the types @${\tau_0} and @${\tau_1}, respectively.@note{Notation: @${\tau_0} is the type at index zero in the pair type, @${\tau_1} is the type at index one.}
-For coinductive types such as @${\tarr{\tau_d}{\tau_c}}, the @emph{natural}
- approach is to check that the value is a function and monitor its future
- behavior for counterexamples to the conjecture that it treats its inputs as
- values of type @${\tau_d} and yields values of type @${\tau_c}.@note{Notation: @${\tau_d} is the domain type, @${\tau_c} is the codomain type.}
-Monitoring delays a type error until the runtime system finds a witness
- that the given value does not match the coinductive type.
-
-@Figure-ref{fig:natural-reduction} implements the above checking strategy
- and uses it to define a reduction relation.
-@; ??? really just want to say "Fig 1 implements the above"
+The natural embedding uses a type-directed strategy to check-and-transport an untyped value
+ into a typed context.
+If the context expects a value of a base type, such as @${\tint} or @${\tnat},
+ then the strategy is to check the value constructor and immediately reject
+ ill-typed values.
+If the context expects a value of an inductive type, such as @${\tpair{\tint}{\tint}},
+ then the strategy is to the check the constructor and recursively transport
+ the components of the value.
+Finally, if the context expects a value of a coinductive type, such as
+ @${\tarr{\tnat}{\tnat}}, then the strategy is to check the constructor and
+ monitor its future interactions with the context.
+In the case of an untyped function and the type @${\tarr{\tnat}{\tnat}},
+ a monitor checks that every result computed by the function is of type
+ @${\tnat} and otherwise rejects the original value.
 
 
 @subsection[#:tag "sec:natural:implementation"]{Implementation}
@@ -337,6 +325,8 @@ It cannot eliminate boundary errors, but it brings them under control in a
 @include-figure["fig:erasure-reduction.tex" "Erasure Embedding"]
 @include-figure["fig:erasure-preservation.tex" "Property judgments for the erasure embedding"]
 
+@; types should not affect semantics.
+
 @subsection[#:tag "sec:erasure:overview"]{Overview}
 
 A second approach to migratory typing is to define soundness
@@ -424,6 +414,8 @@ If an expression does not contain boundary terms, then it is possible to prove
 @section[#:tag "sec:locally-defensive-embedding"]{Locally-Defensive Embedding}
 @include-figure*["fig:locally-defensive-reduction.tex" "Locally-Defensive Embedding"]
 @include-figure*["fig:locally-defensive-preservation.tex" "Property judgments for the locally-defensive embedding"]
+
+@; types should prevent logical stuck-ness
 
 @subsection[#:tag "sec:locally-defensive:overview"]{Overview}
 
@@ -641,6 +633,31 @@ The other main lemma is that boundary-crossing via @${\vfromany} is sound
 
 
 @section[#:tag "sec:bridge"]{Bridge Metatheory}
+
+Recall the embedding goals:
+@itemlist[
+@item{
+  @emph{soundness for a single language}
+}
+@item{
+  @emph{expressive boundary terms}
+}
+@item{
+  @emph{soundness for the pair of languages}
+}
+]
+
+First goal, made formal by typical progress and preservation arguments
+ for @${\wellM} (@figure-ref{fig:multi-preservation}) and the reduction relation
+ (effectively restricted to basic evaluation contexts).
+
+Second goal, made formal with easy theorems of the form:
+ for all @${\tau} exists @${v} and @${v'} such that @${\mathcal{F}(\tau, v) = v'}.
+(Not a great argument, but basic path coverage.)
+
+Third goal, already stated above.
+
+
 
 This space reserved for discussing similarities or connections between the models.
 
