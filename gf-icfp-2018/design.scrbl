@@ -183,8 +183,12 @@ In the case of an untyped function and the type @${\tarr{\tnat}{\tnat}},
  a monitor checks that every result computed by the function is of type
  @${\tnat} and otherwise rejects the original value.
 
+@; TODO actually discuss boundaries
+
 
 @subsection[#:tag "sec:natural:implementation"]{Implementation}
+
+@; TODO lets get started!!!
 
 @; concrete examples ... ???
 
@@ -422,15 +426,16 @@ If an expression does not contain boundary terms, then it is possible to prove
 
 The locally-defensive embedding is the result of two assumptions: one philosophical,
  one pragmatic.
-The philosophical assumption is that well-typed programs should not ``go wrong''
- in the sense of applying an elimination form to a value outside its domain.
-For example, the elimination forms in the surface language are function application
- and primitive application.
+The philosophical assumption is that the purpose of types is to prevent evaluation
+ from ``going wrong'' in the sense of applying an elimination form to a value
+ outside its domain.
+For example, the elimination forms in the surface
+ language are function application and primitive application.
 Function application @${(\eapp{v_0}{v_1})} expects that @${v_0} is a function;
  primitive application expects a primitive and arguments for which @${\delta}
  is defined.
 The goal of the locally-defensive embedding is to ensure that such assumptions
- are always satisfied in typed code.
+ are always satisfied in typed contexts.
 @; ... what about Nat? ... generalized form of tag error
 
 The pragmatic assumption is that run-time monitoring
@@ -441,12 +446,21 @@ Second, monitoring adds a prohibitive run-time cost.
 
 Based on these assumptions, the locally-defensive embedding rewrites typed code
  to defend itself against possibly-untyped inputs.
-The defense takes the form of type-constructor checks; that is, first-order
- checks on values flowing in to the typed context.
-These checks do not require monitors and ensure that the typed context cannot
- ``go wrong''.
+The defense takes the form of type-constructor checks; for example,
+ if a context is expecting a value of type @${\tarr{\tnat}{\tnat}} then a
+ run-time check asserts that the context receives a function.
+If the function is applied @emph{in the same context}, then a second run-time
+ check confirms that the result is a natural number.
+If the function is applied @emph{in a different typed context} expecting a
+ result of type @${\tpair{\tint}{\tint}}, then a run-time check confirms that
+ the result is a pair.
 
-@; ???
+Constructor checks do not require monitors,
+ run in near-constant time,
+ and ensure that every value in a typed context has the correct top-level shape.
+If elimination forms only rely on the top-level shape of a value,
+ then the latter guarantee implies that well-typed contexts do not ``go wrong''
+ as desired.
 
 
 @subsection[#:tag "sec:locally-defensive:implementation"]{Implementation}
