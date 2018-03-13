@@ -133,8 +133,8 @@ showstringspaces=false            %
 \newcommand{\tcross}{\times}
 \newcommand{\tpair}[2]{#1\!\tcross\!#2}
 \newcommand{\tlist}{\mathsf{List}}
-\newcommand{\tarrow}{\rightarrow}
-\newcommand{\tarr}[2]{#1 \tarrow #2}
+\newcommand{\tarrow}{\Rightarrow}
+\newcommand{\tarr}[2]{#1\!\tarrow\!#2}
 \newcommand{\tunion}{\bigcup}
 \newcommand{\tall}[2]{\forall\,#1.\,#2}
 \newcommand{\trec}[2]{\mu\,#1.\,#2}
@@ -217,26 +217,27 @@ showstringspaces=false            %
 
 \newcommand{\liftKD}{\cclift{E}{\rrKD}}
 \newcommand{\liftKS}{\cclift{E}{\rrKS}}
+\newcommand{\rrarrow}{\rightarrow}
 
-\newcommand{\ccR}{\mathrel{\rightarrow_{\rrR}}}
-\newcommand{\ccRp}{\mathrel{\rightarrow_{\rrRp}}}
-\newcommand{\ccD}{\mathrel{\rightarrow_{\rrfont{D}}}}
-\newcommand{\ccS}{\mathrel{\rightarrow_{\rrfont{S}}}}
-\newcommand{\ccEE}{\mathrel{\rightarrow_{\rrfont{E}}}}
-\newcommand{\ccND}{\mathrel{\rightarrow_{\rrND}}}
-\newcommand{\ccNS}{\mathrel{\rightarrow_{\rrNS}}}
-\newcommand{\ccNE}{\mathrel{\rightarrow_{\rrVar{N}}}}
-\newcommand{\ccFD}{\mathrel{\rightarrow_{\rrfont{D_F}}}}
-\newcommand{\ccFS}{\mathrel{\rightarrow_{\rrfont{S_F}}}}
-\newcommand{\ccFE}{\mathrel{\rightarrow_{\rrfont{F}}}}
-\newcommand{\ccCD}{\mathrel{\rightarrow_{\rrfont{D_C}}}}
-\newcommand{\ccCS}{\mathrel{\rightarrow_{\rrfont{S_C}}}}
-\newcommand{\ccCE}{\mathrel{\rightarrow_{\rrfont{C}}}}
-\newcommand{\ccKD}{\mathrel{\rightarrow_{\rrKD}}}
-\newcommand{\ccKS}{\mathrel{\rightarrow_{\rrKS}}}
-\newcommand{\ccKE}{\mathrel{\rightarrow_{\rrVar{K}}}}
+\newcommand{\ccR}{\mathrel{\rrarrow_{\rrR}}}
+\newcommand{\ccRp}{\mathrel{\rrarrow_{\rrRp}}}
+\newcommand{\ccD}{\mathrel{\rrarrow_{\rrfont{D}}}}
+\newcommand{\ccS}{\mathrel{\rrarrow_{\rrfont{S}}}}
+\newcommand{\ccEE}{\mathrel{\rrarrow_{\rrfont{E}}}}
+\newcommand{\ccND}{\mathrel{\rrarrow_{\rrND}}}
+\newcommand{\ccNS}{\mathrel{\rrarrow_{\rrNS}}}
+\newcommand{\ccNE}{\mathrel{\rrarrow_{\rrVar{N}}}}
+\newcommand{\ccFD}{\mathrel{\rrarrow_{\rrfont{D_F}}}}
+\newcommand{\ccFS}{\mathrel{\rrarrow_{\rrfont{S_F}}}}
+\newcommand{\ccFE}{\mathrel{\rrarrow_{\rrfont{F}}}}
+\newcommand{\ccCD}{\mathrel{\rrarrow_{\rrfont{D_C}}}}
+\newcommand{\ccCS}{\mathrel{\rrarrow_{\rrfont{S_C}}}}
+\newcommand{\ccCE}{\mathrel{\rrarrow_{\rrfont{C}}}}
+\newcommand{\ccKD}{\mathrel{\rrarrow_{\rrKD}}}
+\newcommand{\ccKS}{\mathrel{\rrarrow_{\rrKS}}}
+\newcommand{\ccKE}{\mathrel{\rrarrow_{\rrVar{K}}}}
 
-\newcommand{\rastar}{\rightarrow^{*}}
+\newcommand{\rastar}{\rrarrow^{*}}
 \newcommand{\rrDstar}{\rastar_{\rrfont{D}}}
 \newcommand{\rrSstar}{\rastar_{\rrfont{S}}}
 \newcommand{\rrEEstar}{\rastar_{\rrfont{E}}}
@@ -332,3 +333,5 @@ showstringspaces=false            %
 \newcommand{\erelprimeargfull}{\edyn{\tpair{\tint}{\tnat}}{(\esta{\tpair{\tnat}{\tnat}}{(\edyn{\tpair{\tnat}{\tnat}}{\vpair{-1}{-2}})})}}
 \newcommand{\erelprimefull}{\eapp{(\erelprimefunfull)}{(\erelprimeargfull)}}
 \newcommand{\erelprimefullcomplete}{\echk{\kpair}{\eapp{(\vlam{\tann{x}{\tpair{\tint}{\tnat}}}{\vpair{\echk{\kint}{(\efst{x})}}{\echk{\knat}{(\esnd{x})}}})}{(\edyn{\tpair{\tint}{\tnat}}{(\esta{\tpair{\tnat}{\tnat}}{(\edyn{\tpair{\tnat}{\tnat}}{\vpair{-1}{-2}})})})}}}
+
+\newcommand{\myinherits}{inherits}

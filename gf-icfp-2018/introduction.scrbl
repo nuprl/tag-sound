@@ -38,7 +38,7 @@ Over the years, three approaches have emerged for integrating a
  of the underlying dynamically typed language@~cite[b-ordl-2004
  bat-ecoop-2014]. While this lack of any dynamic enforcement is free of any
  overhead, it takes a ``garbage in, garbage out'' approach to runtime
- interactions between statically typed and dynamically typed parts of a
+ interactions between the statically typed and dynamically typed parts of a
  mixed-typed program.
 @; 
  Finally, a third approach is to compromise between those two
@@ -73,16 +73,17 @@ a proper comparison:
  @; TODO find citations other than Vitousek that make fully-typed/untyped claims
 
  Until recently, no research systematically investigated the performance of
- these three approaches@~cite[gtnffvf-jfp-2017 vss-popl-2017].  Some papers
+ these three approaches.  Some papers
  compared the performance of fully typed constructor-checking implementations to
  that of untyped implementations and proposed generalizations based on
  these results@~cite[vksb-dls-2014 vss-popl-2017]; others studied the performance of a
  range of mixed-typed programs and implied order-of-magnitude differences
- @emph{across completely different programming languages}@~cite[gm-pepm-2018].
+ @emph{across completely different programming languages} using (mostly) unrelated
+ benchmarks@~cite[gm-pepm-2018].
 
  To answer this question properly, this paper presents results of running
  the same benchmarks in three different implementations of the same
- language. While our results confirm the published conjectures to a large
+ language. While our results confirm the published conjectures to some
  degree, we consider it imperative for the future of this research area to
  put the science on solid ground.
 }

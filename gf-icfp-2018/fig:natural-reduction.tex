@@ -1,5 +1,5 @@
 
-\lblextra{Language $\langN$}{ inherits Evaluation Syntax}{
+\lblextra{Language $\langN$}{ \myinherits\ Evaluation Syntax}{
   $\begin{array}{l@{\hspace{0.5em}}c@{\hspace{0.5em}}l}
     v & \BNFeq & \ldots \mid \vmonfun{(\tarr{\tau}{\tau})}{v}
   \end{array}$
@@ -9,7 +9,7 @@
 %% --- reduction
 \begin{TwoColumn}
 
-  \lblextra{$\vfromdyn : \tau \times v \rightarrow e\vphantom{\vfromsta}$}{ from $\vdyn$ to $\vsta$}{
+  \lblextra{$\vfromdynN : \tau \times v \rightarrow e\vphantom{\vfromstaN}$}{}{
     $\begin{array}{l@{~~}c@{~}l}
       \efromdynN{\tarr{\tau_d}{\tau_c}}{v} & = & \vmonfun{(\tarr{\tau_d}{\tau_c})}{v}
       \\ \sidecond{if $v \valeq \vlam{x}{e}$ or $v \valeq \vmonfun{\tau'}{v'}$}
@@ -28,15 +28,16 @@
 
   \multicolsbreak
 
-  \lblextra{$\vfromsta : \tau \times v \rightarrow e$}{ from $\vsta$ to $\vdyn$}{
+  \lblextra{$\vfromstaN : \tau \times v \rightarrow e$}{}{
     $\begin{array}{l@{~~}c@{~}l}
       \efromstaN{\tarr{\tau_d}{\tau_c}}{v} & = & \vmonfun{(\tarr{\tau_d}{\tau_c})}{v}
       \\
       \\
       \efromstaN{\tpair{\tau_0}{\tau_1}}{\vpair{v_0}{v_1}} & = & \vpair{\esta{\tau_0}{v_0}}{\esta{\tau_1}{v_1}}
       \\
-      \efromstaN{\tau}{v} & = & v
-      \\ \sidecond{otherwise}
+      \efromstaN{\tint}{v} & = & v
+      \\ 
+      \efromstaN{\tnat}{v} & = & v
     \end{array}$
   }
 \end{TwoColumn}
@@ -64,29 +65,46 @@
 \end{TwoColumn}
 
 \begin{TwoColumn}
-  \lblextra{$e \ccNE e$}{}{
+  \lblextra{$e \rrNSstar e$}{ reflexive, transitive closure of $\ccNS$}{
     $\begin{array}{l@{\hspace{0.5em}}c@{\hspace{0.5em}}l}
-      \esd[\esta{\tau}{v}] & \ccNE & \esd[\efromstaN{\tau}{v}]
-      \\
-      \esd[\edyn{\tau}{v}] & \ccNE & \esd[\efromdynN{\tau}{v}]
-      \\
-      \esd[\esta{\tau}{\ebase[e]}] & \ccNE & \esd[\esta{\tau}{\ebase[e']}]
+      \ebase[e] & \ccNS & \ebase[e']
       \\ \sidecond{if $e \rrNS e'$}
       \\
-      \esd[\edyn{\tau}{\ebase[e]}] & \ccNE & \esd[\edyn{\tau}{\ebase[e']}]
+      \esd[\esta{\tau}{v}] & \ccNS & \esd[\efromstaN{\tau}{v}]
+      \\
+      \esd[\edyn{\tau}{v}] & \ccNS & \esd[\efromdynN{\tau}{v}]
+      \\
+      \esd[\esta{\tau}{\ebase[e]}] & \ccNS & \esd[\esta{\tau}{\ebase[e']}]
+      \\ \sidecond{if $e \rrNS e'$}
+      \\
+      \esd[\edyn{\tau}{\ebase[e]}] & \ccNS & \esd[\edyn{\tau}{\ebase[e']}]
       \\ \sidecond{if $e \rrND e'$}
       \\
-      \ebase[e] & \ccNE & \ebase[e']
-      \\ \sidecond{if $e \rrVar{N} e'$}
-      \\
-      \esd[\eerr] & \ccNE & \eerr
+      \esd[\eerr] & \ccNS & \eerr
     \end{array}$
   }
 
   \multicolsbreak
 
-  \lblextra{$e \rrNSstar e$}{ reflexive, transitive closure of $\ccNS$}{}
   \smallskip
-  \lblextra{$e \rrNDstar e$}{ reflexive, transitive closure of $\ccND$}{}
+  \lblextra{$e \rrNDstar e$}{ reflexive, transitive closure of $\ccND$}{
+    $\begin{array}{l@{\hspace{0.5em}}c@{\hspace{0.5em}}l}
+      \ebase[e] & \ccND & \ebase[e']
+      \\ \sidecond{if $e \rrND e'$}
+      \\
+      \esd[\esta{\tau}{v}] & \ccND & \esd[\efromstaN{\tau}{v}]
+      \\
+      \esd[\edyn{\tau}{v}] & \ccND & \esd[\efromdynN{\tau}{v}]
+      \\
+      \esd[\esta{\tau}{\ebase[e]}] & \ccND & \esd[\esta{\tau}{\ebase[e']}]
+      \\ \sidecond{if $e \rrND e'$}
+      \\
+      \esd[\edyn{\tau}{\ebase[e]}] & \ccND & \esd[\edyn{\tau}{\ebase[e']}]
+      \\ \sidecond{if $e \rrND e'$}
+      \\
+      \esd[\eerr] & \ccND & \eerr
+    \end{array}$
+  }
+
 
 \end{TwoColumn}
