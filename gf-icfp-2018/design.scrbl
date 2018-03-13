@@ -610,47 +610,80 @@ Intuitively, the reduction of any defended expression is well-defined and
 
 @section[#:tag "sec:practical-semantics"]{From Models to Implementations}
 
+@; AKA threats to the validity of the models
+
 @; TODO
 @; - type-constructor checks suffice to prevent stuck-ness
-@; - monitors ... how to implement? how to represent types?
-@; - one reduction relation
-@;   - sound
-@;   - optimize
-@; - tag semantics vs. check at start of function
-
-The models employ a multi-language 
 
 
+The purpose of this section is to clarify the relation between the models
+ and practical migratory typing systems.
+By far the biggest difference concerns the natural and locally-defensive embeddings.
+The semantics of the models use @emph{two} notions of reduction; however, any
+ practical migratory typing system compiles typed expressions to the host
+ language and re-uses the host notion of reduction.
+In terms of the models, this means @${\rrD} is the only core notion of reduction.
+To resolve this challenge, it suffices to build a reduction relation based on @${\rrD}
+ and conservatively guard @${\vsta} boundaries with the @${\vfromdyn} boundary
+ function.
+The technical appendix demonstrates sound host-language reduction relations
+ for the natural and erasure embeddings.
 
-@section[#:tag "sec:goals"]{Did we meet goals?}
+Replacing the two notions of reduction with one, however, raises a question
+ about the performance of the host reduction relation on typed code.
+In particular, the former reduction for statically-typed code could safely
+ ignore the possibility of a tag error and use the more efficient @${\vfromsta}
+ boundary function.
+These performance losses may be recovered with a type-based, ahead-of-time optimizer.
+One pass of the optimizer can mark applications of primitives in typed code
+ so the evaluator knows they are safe from tag errors.
+A second pass can simplify the types in boundary terms.
+For every term of the form @${(\edyn{\tau}{e})}, it is safe to ignore
+ first-order types in negative positions of @${\tau} because a typed context
+ is statically known to respect such types.
+For every term of the form @${(\esta{\tau}{e})}, it is safe to ignore
+ first-order types in positive positions for the same reason.
+As a concrete example, the expression @${(\esta{\tint}{e})} may be optimized
+ to @${(\estafake{e})}, as soundness ensures that @${e} evaluates to a well-typed
+ value.
 
-Recall the embedding goals:
-@itemlist[
-@item{
-  @emph{soundness for a single language}
-}
-@item{
-  @emph{expressive boundary terms}
-}
-@item{
-  @emph{soundness for the pair of languages}
-}
-]
+A second semantic issue concerns the rules for the application of a typed
+ function in the locally-defensive embedding.
+As written, the @${\rrKD} notion of reduction implies a non-standard protocol
+ for function application @${(\eapp{v_0}{v_1})}, namely:
+ (1) check that @${v_0} is a function;
+ (2) check whether @${v_0} was defined in typed code;
+ (3) if so, then check @${v_1} against the static type of @${v_0}.
+The conservative work-around is to extend the completion judgment to add a constructor-check
+ to every typed function.
+Using pseudo-syntax @${e_0;\,e_1} to represent sequencing, a suitable completion rule is the following:
+@exact|{
+  \begin{mathpar}
+  \inferrule*{
+    \tann{x}{\tau}, \Gamma \wellM e \carrow e'
+  }{
+    \Gamma \wellM \vlam{\tann{x}{\tau_d}}{e} \carrow \vlam{\tann{x}{\tau_d}}{\vchk{\tagof{\tau_d}}{x};\,e'}
+  }
+  \end{mathpar}
+}|@;
+Both Reticulated and our implementation use a variant of the above rule.
 
-First goal, made formal by typical progress and preservation arguments
- for @${\wellM} (@figure-ref{fig:multi-preservation}) and the reduction relation
- (effectively restricted to basic evaluation contexts).
-
-Second goal, made formal with easy theorems of the form:
- for all @${\tau} exists @${v} and @${v'} such that @${\mathcal{F}(\tau, v) = v'}.
-(Not a great argument, but basic path coverage.)
-
-Third goal, already stated above.
-
-
-
-@section[#:tag "sec:bridge"]{Bridge}
-
-This space reserved for discussing similarities or connections between the models.
+Lastly, the models do not mention union types, universal types,
+ and recursive types---all of which are common tools for reasoning about
+ dynamically-typed code.
+To extend the natural embedding with support for these types, the language
+ must add new kinds of monitors to enforce type soundness for their
+ elimination forms (or lack thereof).
+The literature on Typed Racket presents one strategy for handling such types@~cite[tfdfftf-ecoop-2015].
+To extend the locally-defensive embedding, the language must add unions @${K \cup K}
+ to its grammar of constructor checks and must extend the @${\tagof{\cdot}} function.
+For a union type, let @${\tagof{\tau_0 \cup \tau_1}} be @${\tagof{\tau_0} \cup \tagof{\tau_1}},
+ the tags of its constructors.
+For a universal type @${\tall{\alpha}{\tau}} or recursive type @${\mu{\alpha}{\tau}},
+ let the check be @${\tagof{\tau}}, ignoring the variable.
+This assumes that all occurrences of the bound variable appear under some type
+ with a concrete constructor.
+For a type variable, let @${\tagof{\alpha}} be @${\kany}, as there are no
+ elimination forms for a universally-quantified type variable.
 
 
