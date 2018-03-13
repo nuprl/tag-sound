@@ -1,6 +1,5 @@
-%% -----------------------------------------------------------------------------
-%% --- typing
-\lblmathparextra{$\Gamma \wellNE e$}{ \myiinherits\ $\Gamma \wellM e$}{
+\begin{TwoColumn}
+\lblmathparextra{$\Gamma \wellNE e$}{ \myinherits\ $\Gamma \wellM e$}{
 %  \inferrule*{
 %    x \in \GammaD
 %  }{
@@ -49,24 +48,20 @@
 %  }
 
   \inferrule*{
-  }{
-    \Gamma \wellNE \eerr
-  }
-
-  \inferrule*{
     \Gamma \wellNE v : \tarr{\tau_d}{\tau_c}
   }{
     \Gamma \wellNE \vmonfun{(\tarr{\tau_d}{\tau_c})}{v}
   }
-
-  \inferrule*{
-    \Gamma \wellNE e : \tau
-  }{
-    \Gamma \wellNE \esta{\tau}{e}
-  }
+%
+%  \inferrule*{
+%    \Gamma \wellNE e : \tau
+%  }{
+%    \Gamma \wellNE \esta{\tau}{e}
+%  }
 }
 
-\smallskip
+\multicolsbreak
+
 \lblmathparextra{$\Gamma \wellNE e : \tau$}{ \myinherits\ $\Gamma \wellM e : \tau$}{
 %  \inferrule*{
 %    \tann{x}{\tau} \in \GammaS
@@ -134,20 +129,15 @@
 %  }
 
   \inferrule*{
-  }{
-    \Gamma \wellNE \eerr : \tau
-  }
-
-  \inferrule*{
     \Gamma \wellNE v
   }{
     \Gamma \wellNE \vmonfun{(\tarr{\tau_d}{\tau_c})}{v} : \tarr{\tau_d}{\tau_c}
   }
-
-  \inferrule*{
-    \Gamma \wellNE e
-  }{
-    \Gamma \wellNE \edyn{\tau}{e} : \tau
-  }
+%
+%  \inferrule*{
+%    \Gamma \wellNE e
+%  }{
+%    \Gamma \wellNE \edyn{\tau}{e} : \tau
+%  }
 }
-
+\end{TwoColumn}

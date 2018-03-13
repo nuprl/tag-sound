@@ -1,5 +1,6 @@
 #lang gf-icfp-2018
-@require[(only-in "techreport.rkt" tr-theorem tr-lemma tr-definition tr-proof tr-and)]
+@require[(only-in "techreport.rkt" tr-theorem tr-lemma tr-definition tr-proof tr-and UID++)]
+@(void (UID++) (UID++))
 @title[#:tag "sec:design"]{Logic and Metatheory}
 
 @; thesis: these models reflect the 3 modes from life
@@ -64,11 +65,19 @@ The expression @${(\edyn{\tau}{e})} embeds a dynamically-typed expression in a
  statically-typed expression in a dynamically-typed context.
 
 The last components in @figure-ref{fig:multi-syntax} are the names of
- unary (@${\vunop}) and binary (@${\vbinop}) primitives.
-These names represent low-level procedures that
+ primitives and possible run-time errors.
+These primitives in @${\vunop} and @${\vbinop} represent low-level procedures that
  compute in terms of bitstrings rather than abstract syntax.
 For example, invoking the @${\vsum} procedure with arguments that are not
  integers is undefined behavior.
+The defined errors are of two types.
+A boundary error may occur when one ``language'' sends a bad value to another;
+ such an error can arise between typed and untyped parts of an expression,
+ or between a surface-language expression and the implicit language that
+ implements the primitives.
+A tag error may occur during when an expression reaches a malformed state during
+ evaluation.
+@Secref{sec:common-semantics} gives concrete examples of these errors.
 
 @include-figure["fig:multi-syntax.tex" @elem{Twin languages syntax}]
 @include-figure["fig:multi-preservation.tex" @elem{Twin languages static typing judgments}]
@@ -95,6 +104,8 @@ Two auxiliary components of the type system are the function @${\Delta},
 
 @; -----------------------------------------------------------------------------
 @section[#:tag "sec:common-semantics"]{Common Semantic Notions}
+
+@; TODO only 1 reduction for erasure!
 
 An embedding defines a semantics for the surface language.
 Since the typing system distinguishes two kinds of surface-language expression,
@@ -147,29 +158,17 @@ A dynamically-typed expression may attempt to apply an integer to an argument or
  malformed expressions and raises a tag error @${\tagerror} as indication that
  an @mytech{elimination form} received a value of incorrect shape.
 
-@; TODO revise
-You see, the language has two kinds of errors.
-A boundary error @${\boundaryerror} means that one language received a bad
- value from another; we use ``language'' in a general sense, for example
- @${\vquotient} raises a boundary error because the low-level language that
- implements this procedure receives values from the surface language.
-A tag error @${\tagerror} means that something went wrong inside one language's
- evaluator.
-The name is because many practical languages detect similar errors by inspecting
- type tags on a value.
-@; citations here? or can we move the cite-able part to related work?
-
 @; maybe make this more structured? finish the draft first tho
 @; ... maybe less structure, because erasure doesn't really match
 
 The three embeddings in the following sections build upon @figure-ref{fig:multi-reduction}.
-Each embedding extends the @${\rrS} and @${\rrD} notions of reduction,
- defines functions @${\vfromdyn} and @${\vfromsta} for transporting a value across
- a boundary term, and lifts its notions of reduction to reduction relations
- @${\ccS} and @${\ccD} for (multi-language) evaluation contexts.
-As part of defining the transport functions, an embedding may extend the grammar
- of values @${v}.
-Lastly, each embedding defines a (two-part) syntactic property that is
+Two of the embeddings support a form of type soundness; the other embedding is simpler.
+The sound embeddings
+ define functions @${\vfromdyn} and @${\vfromsta} for transporting a value across a boundary term,
+ extend the @${\rrS} and @${\rrD} notions of reduction,
+ and lift the notions of reduction to reduction relations @${\rrSstar} and
+ @${\rrDstar} for (multi-language) evaluation contexts.
+Lastly, the sound embeddings define a (two-part) syntactic property that is
  implied by a typing property in @figure-ref{fig:multi-preservation},
  and comes with a proof that the property is sound with respect to the
  corresponding reduction relation (static-static vs dynamic-dynamic).
@@ -246,14 +245,7 @@ The difference between the two relations is how they act on an expression that
  does not contain any boundary terms.
 The typed reduction relation steps via @${\rrS} by default, and the
  untyped relation steps via @${\rrD} by default.
-Otherwise, the relations are similar.
-For a context in which a value has reached a boundary term---either @${(\edyn{\tau}{v})}
- or @${(\esta{\tau}{v})}---both relations step by applying the matching boundary
- function.
-For a context in which the hole appears under a boundary term,
- both step via @${\rrS} if the innermost boundary is of the form
- @${(\esta{\tau}{\ebase})} and step via @${\rrD} otherwise.
-Lastly, both drop the context if an error occurs.
+For other cases, the relations are identical.
 
 @;In principle, the one monitor value @${(\vmonfun{(\tarr{\tau_d}{\tau_c})}{v})}
 @; could be split into two value forms: one for protecting the domain of a statically-typed
@@ -264,18 +256,21 @@ Lastly, both drop the context if an error occurs.
 
 @subsection[#:tag "sec:natural:soundness"]{Soundness}
 
-The evaluation of a typed expression may not preserve the typing judgment
- for the surface language; however, it does preserve the weaker property
- defined in @figure-ref{fig:natural-preservation}.
-@; simple example, stepping functions
+@Figure-ref{fig:natural-preservation} presents two properties for the natural
+ embedding evaluation syntax: one for dynamically-typed expressions and one
+ for statically-typed expressions.
+Each property extends the corresponding judgment from @figure-ref{fig:multi-preservation}
+ with a rule for monitors.
+The property for dynamic expressions (in the left column) states that a
+ typed value may be wrapped in a monitor of the same type.
+The static property states that any untyped value may be wrapped in a monitor,
+ and that monitor is assumed to follow its type annotation.
 
-
-The soundness theorems for the natural embedding state two results about the
- possible outcomes of evaluating a well-typed surface language term.
-First, the evaluation of a (terminating) statically-typed expression ends
- in either a well-typed value, a boundary error, or a tag error in dynamically-typed code.
-Second, dynamically-typed code cannot exhibit undefined behavior.
-More formally:
+The soundness theorems for the natural embedding state three results about
+ well-typed / well-formed expressions:
+ (1) reduction is fully defined, (2) reduction in a statically-typed context
+ cannot raise a tag error, and (3) reduction preserves the properties from
+ @figure-ref{fig:natural-preservation}.
 
 @twocolumn[
   @tr-theorem[#:key "N-static-soundness" @elem{static @|NE|-soundness}]{
@@ -284,7 +279,7 @@ More formally:
     of the following holds:
     @itemlist[
       @item{ @${e \rrNSstar v \mbox{ and } \wellNE v : \tau} }
-      @item{ @${e \rrNSstar \ctxE{\edyn{\tau'}{\ebase[e']}} \mbox{ and } e' \rrND \tagerror} }
+      @item{ @${e \rrNSstar \ctxE{\edyn{\tau'}{\ebase[e']}}} and @linebreak[] @${e' \rrND \tagerror} }
       @item{ @${e \rrNSstar \boundaryerror} }
       @item{ @${e} diverges}
     ] }
@@ -301,39 +296,27 @@ More formally:
     ] }
 ]
 
-The theorems follow from standard progress and preservation lemmas
- for each reduction relation and the corresponding
- property judgment.
-See the appendix for proofs.
+@tr-proof[#:sketch? #true]{
+  First, @${\wellM e : \tau} implies @${\wellNE e : \tau} because the latter
+   judgment generalizes the former.
+  A similar lemma holds for the dynamic typing judgment.
+  The other statements in the two theorems follow from progress and
+   preservation lemmas for the corresponding property and reduction
+   relation@~cite[gf-tr-2018].
+}
 
-@exact{\newpage}
+The proof of preservation depends on a notable lemma about the @${\vfromdynN}
+ boundary function, namely, that its codomain is typed.
 
-The central lemmas that connect this pair of theorems are a specification for
- the @${\vfromdynN} and @${\vfromstaN} functions:
-
-@twocolumn[
-  @tr-lemma[#:key "N-D-soundness" @elem{@${\vfromdynN} soundness}]{
-    If @${\Gamma \wellNE v} and @${\efromdynN{\tau}{v} = e} then @${\Gamma \wellNE e : \tau}
-  }
-
-  @tr-lemma[#:key "N-S-soundness" @elem{@${\vfromstaN} soundness}]{
-    If @${\Gamma \wellNE v : \tau} and @${\efromstaN{\tau}{v} = e} then @${\Gamma \wellNE e}
-  }
-]
-
-@; Any choice of S/D that satisfies these theorems is probably OK for soundness
-
-In other words, the MODEL of @${\vfromdynN} and @${\vfromstaN} establish
- an invariant about monitors occurring in dynamic and static contexts.
-Every monitor in dynamically-typed code encapsulates a typed value,
- and every monitor in statically-typed code encapsulates an untyped value.
-
-The soundness guarantee for the natural embedding is very strong.
-@; with blame, TypeError at runtime is at least debuggable
-One goal of soundness is to eliminate a class of errors.
-The natural embedding eliminates tag errors in typed code.
-It cannot eliminate boundary errors, but it brings them under control in a
- useful way.
+@tr-lemma[#:key "N-D-soundness" @elem{@${\vfromdynN} soundness}]{
+  If @${\Gamma \wellNE v} and @${\efromdynN{\tau}{v} = e} then @${\Gamma \wellNE e : \tau}
+}@;
+@;
+A similar lemma does not hold of the surface-language typing judgment.
+The proof breaks down when @${\tau} is a function type, and thereby demonstrates
+ a key tradeoff in migratory typing.
+If the language is to allow values of coinductive type to cross a boundary,
+ then it must generalize its soundness guarantee.
 
 
 @; -----------------------------------------------------------------------------
@@ -348,42 +331,41 @@ It cannot eliminate boundary errors, but it brings them under control in a
 @; "syntactic discipline" is a quote from J. Reynolds
 
 The erasure embedding is based on a view of types as a (strictly) syntactic discipline.
-Types are just a structured kind of comment.
+Types are just a structured kind of comment and should be orthogonal to the
+ evaluation model of a language.
 Their main purpose is to help developers read a codebase.
-Their secondary purpose is to enable static type checking an IDE tools such
- as type-based autocomplete.
-Whether or not the types are sound is basically an accident; type soundness
- is only true for restricted languages under a closed-world assumption.
+Their secondary purpose is to enable static type checking and IDE tools such
+ as type-based autocompletion.
+Whether or not the types are sound is incidental; type soundness
+ never holds for the entirety of a practical language.
 
 If one adopts this point of view, then the proper semantics for a migratory
- typing system is the untyped (or, type-agnostic) semantics of the host language.
-Transporting a value from untyped to typed or vice-versa is trivial,
- since both kinds of context promise the same weak guarantees.
+ typing system is an extension of the host language's untyped semantics that ignores type annotations.
+Any value may freely cross any type boundary, and thus the embedding uses
+ the reductionist approach of relying on the soundness of the host language.
+The embedding uses the reductionist approach of relying on the soundness of the
+ the dynamically-typed host language.
 
 
 @subsection[#:tag "sec:erasure:model"]{Model}
 
-To implement the erasure embedding, it suffices to ignore type annotations
- and boundary terms in the surface language.
-The notion of reduction @${\rrEE} in @figure-ref{fig:erasure-reduction}
- implements this idea by extending the dynamically-typed notion of reduction
- with two rule to let any value cross a boundary term and one rule to reduce
- the application of a statically-typed function to the application of a dynamically-typed
- function.
-The reduction relation @${\rrEEstar} is the standard context closure of
+@Figure-ref{fig:erasure-reduction} presents a model of the erasure embedding.
+The notion of reduction @${\rrEE} defines rules for boundary
+ terms and type-annotated functions, and otherwise uses the dynamically-typed
+ notion of reduction from @figure-ref{fig:multi-reduction}.
+The reduction relation @${\rrEEstar} is based on the context closure of
  this notion of reduction.
-
-The judgment in @figure-ref{fig:erasure-preservation} describes well-formed
- evaluation syntax terms.
-Just like the notion of reduction, it extends a dynamically typed judgment
- with rules that ignore type annotations.
 
 
 @subsection[#:tag "sec:erasure:soundness"]{Soundness}
 
-The erasure embedding treats typed code as untyped code.
-Consequently, erasure soundness for the pair of language is their lowest common
- denominator --- well-typed programs have well-defined behavior.
+@Figure-ref{fig:erasure-preservation} extends the judgment for a well-formed
+ dynamically-typed expression to accomodate type-annotated expressions.
+This judgment ignores the type annotations; for any expression @${e}, the
+ judgment @${\wellEE e} holds if @${e} is closed.
+
+Soundness for the erasure embedding states that reduction is well-defined
+ for statically-typed and dynamically-typed expressions.
 
 @twocolumn[
   @tr-theorem[#:key "E-static-soundness" @elem{static @|EE|-soundness}]{
@@ -409,23 +391,32 @@ Consequently, erasure soundness for the pair of language is their lowest common
     ] }
 ]
 
-The proof follows from progress and preservation lemmas for the
- @${\wellEE} judgment and the @${\rrEEstar} reduction relation.
-It is a weak theorem with a straightforward proof.
+@tr-proof[#:sketch? #true]{
+  A well-typed term is closed, therefore @${\wellM e : \tau} implies that @${\wellEE e} holds.
+  The statements about @${\rrEEstar} follow from progress and preservation lemmas@~cite[gf-tr-2018].
+}
 
-If an expression does not contain boundary terms, then it is possible to prove
- a standard soundness theorem by progress and preservation lemmas for @${\wellM} (@figure-ref{fig:multi-preservation})
- with respect to erasure reduction.
+The erasure embedding is clearly unsound with respect to types for mixed-typed
+ expressions.
+A simple example is the expression @${(\edyn{\tint}{\vpair{2}{2}})}, which has the static
+ type @${\tint} but reduces to a pair.
+The embedding is sound, however, for well-typed expressions that do not
+ contain boundary terms.
 
-  @tr-theorem[#:key "E-pure-static" @elem{@${\langK} static soundness}]{
-    If @${\wellM e : \tau} and @${e} does not contain a sub-term of the form
-     @${(\edyn{\tau'}{e'})} then one of the following holds:
-    @itemlist[
-      @item{ @${e \rrKEstar v \mbox{ and } \wellM v : \tau} }
-      @item{ @${e \rrKEstar \boundaryerror} }
-      @item{ @${e} diverges}
-    ]
-  }
+@tr-theorem[#:key "E-pure-static" @elem{@${\langE} boundary-free soundness}]{
+  If @${\wellM e : \tau} and @${e} has the form @${\ebase[e']}, then 
+   one of the following holds:
+  @itemlist[
+    @item{ @${e \rrEEstar v \mbox{ and } \wellM v : \tau} }
+    @item{ @${e \rrEEstar \boundaryerror} }
+    @item{ @${e} diverges}
+  ]
+}
+@tr-proof[#:sketch? #true]{
+  By standard progress and preservation lemmas.
+  Intuitively, this theorem holds because every sub-expression of @${e} is statically typed.
+}
+
 
 @; -----------------------------------------------------------------------------
 @section[#:tag "sec:locally-defensive-embedding"]{Locally-Defensive Embedding}
@@ -450,26 +441,26 @@ The goal of the locally-defensive embedding is to ensure that such assumptions
  are always satisfied in typed contexts.
 @; ... what about Nat? ... generalized form of tag error
 
-The pragmatic assumption is that run-time monitoring
- (see the natural embedding, @secref{sec:natural-embedding}) is impractical.
+The pragmatic assumption is that run-time monitoring, like that employed in
+ the natural embedding, is impractical.
 For one, implementing ``transparent'' monitors requires a significant engineering
- investment.
+ effort.
 Second, monitoring adds a prohibitive run-time cost.
 
 Based on these assumptions, the locally-defensive embedding rewrites typed code
  to defend itself against possibly-untyped inputs.
 The defense takes the form of type-constructor checks; for example,
- if a context is expecting a value of type @${\tarr{\tnat}{\tnat}} then a
+ if a typed context is expecting a value of type @${\tarr{\tnat}{\tnat}} then a
  run-time check asserts that the context receives a function.
-If the function is applied @emph{in the same context}, then a second run-time
+If this function is applied @emph{in the same context}, then a second run-time
  check confirms that the result is a natural number.
 If the function is applied @emph{in a different typed context} expecting a
  result of type @${\tpair{\tint}{\tint}}, then a run-time check confirms that
  the result is a pair.
 
 Constructor checks do not require monitors,
- run in near-constant time,
- and ensure that every value in a typed context has the correct top-level shape.
+ they run in near-constant time,
+ and they ensure that every value in a typed context has the correct top-level shape.
 If elimination forms only rely on the top-level shape of a value,
  then the latter guarantee implies that well-typed contexts do not ``go wrong''
  as desired.

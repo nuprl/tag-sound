@@ -8,7 +8,7 @@
   \end{array}$
 }
 
-\medskip
+\smallskip
 \lbl{$\Delta : \vunop \times \tau \rightarrow \tau$}{
   $\begin{array}{l@{~~}c@{~~}l}
     \Delta(\vfst, \tpair{\tau_0}{\tau_1}) & = & \tau_0
@@ -17,7 +17,7 @@
   \end{array}$
 }
 
-\medskip
+\smallskip
 \lbl{$\Delta : \vbinop \times \tau \times \tau \rightarrow \tau$}{
   $\begin{array}{l@{~~}c@{~~}l}
     \Delta(\vbinop, \tnat, \tnat) & = & \tnat
@@ -124,6 +124,11 @@
   }
 
   \inferrule*{
+  }{
+    \Gamma \wellM \eerr
+  }
+
+  \inferrule*{
     \Gamma \wellM e : \tau
   }{
     \Gamma \wellM \esta{\tau}{e}
@@ -195,6 +200,11 @@
     \tau' \subteq \tau
   }{
     \Gamma \wellM e : \tau
+  }
+
+  \inferrule*{
+  }{
+    \Gamma \wellM \eerr : \tau
   }
 
   \inferrule*{
