@@ -450,11 +450,11 @@ Second, monitoring adds a prohibitive run-time cost.
 Based on these assumptions, the locally-defensive embedding rewrites typed code
  to defend itself against possibly-untyped inputs.
 The defense takes the form of type-constructor checks; for example,
- if a typed context is expecting a value of type @${\tarr{\tnat}{\tnat}} then a
+ if a typed context expects a value of type @${\tarr{\tnat}{\tnat}} then a
  run-time check asserts that the context receives a function.
 If this function is applied @emph{in the same context}, then a second run-time
  check confirms that the result is a natural number.
-If the function is applied @emph{in a different typed context} expecting a
+If the function is applied @emph{in a different typed context} that expects a
  result of type @${\tpair{\tint}{\tint}}, then a run-time check confirms that
  the result is a pair.
 
@@ -468,7 +468,12 @@ If elimination forms only rely on the top-level shape of a value,
 
 @subsection[#:tag "sec:locally-defensive:model"]{Model}
 
-@Figure-ref{fig:locally-defensive-reduction} presents the key components of a
+@Figure-ref{fig:locally-defensive-reduction} presents a model of the
+ locally-defensive embedding.
+
+STOP
+
+
  @emph{locally-defensive} embedding.
 As a disclaimer, this embedding includes two technical devices to streamline
  the proof of soundness: first is the use of the pseudo-boundary terms

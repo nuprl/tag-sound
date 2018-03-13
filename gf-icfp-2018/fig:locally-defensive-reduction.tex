@@ -1,5 +1,5 @@
 \begin{TwoColumn}
-  \lblextra{Language $\langK$}{ inherits Evaluation Syntax}{
+  \lblextra{Language $\langK$}{ \myinherits\ Evaluation Syntax}{
     $\begin{array}{l@{\hspace{0.5em}}c@{\hspace{0.5em}}l}
       e & \BNFeq & \ldots \mid \echk{K}{e} \mid \edynfake{e} \mid \estafake{e}
       \\
@@ -9,8 +9,7 @@
   %    \\
       \ebase & \BNFeq & \ldots \mid \echk{K}{\ebase}
       \\
-      \esd & \BNFeq & \ldots \mid \edynfake{\esd} \mid \estafake{\esd} \mid
-              \echk{K}{\esd}
+      \esd & \BNFeq & \ldots \mid \echk{K}{\esd} \mid \edynfake{\esd} \mid \estafake{\esd}
       \\
       K & \BNFeq & \knat \mid \kint \mid \kpair \mid \kfun \mid \kany
     \end{array}$
@@ -76,7 +75,8 @@
   }
 \end{TwoColumn}
 
-\lbl{$\vfromany : K \times v \rightarrow v$}{
+\begin{flushleft}
+\fbox{$\vfromany : K \times v \rightarrow v$}\\[-2.7ex]{
   $\begin{array}{l@{\hspace{4.4em}}l}
     \begin{array}{l@{~~}c@{~}l}
       \efromany{\kfun}{\vlam{x}{e}} & = & \vlam{x}{e}
@@ -100,12 +100,13 @@
     \end{array}
   \end{array}$
 }
-
+\end{flushleft}
 % -----------------------------------------------------------------------------
 % --- reduction
 \begin{TwoColumn}
 
-  \lblextra{$e \rrKS e$}{ inherits $\rrS$}{
+  % this one "inherits", because it changes typed function application
+  \lblextra{$e \rrKS e$}{ \myinherits\ $\rrS$}{
     $\begin{array}{l@{\hspace{0.5em}}c@{\hspace{0.5em}}l}
       \echk{K}{v} & \rrKS
       & \mchk{K}{v}
@@ -147,32 +148,51 @@
 \end{TwoColumn}
 
 \begin{TwoColumn}
-  \lblextra{$e \ccKE e$}{}{
+  \lblextra{$e \rrKSstar e$}{ reflexive, transitive closure of $\ccKS$}{
     $\begin{array}{l@{\hspace{0.5em}}c@{\hspace{0.5em}}l}
-      \esd[\estafake{v}] & \ccKE & \esd[v]
-      \\
-      \esd[\edynfake{v}] & \ccKE & \esd[v]
-      \\
-      \esd[\esta{\tau}{v}] & \ccKE & \esd[\efromsta{\tau}{v}]
-      \\
-      \esd[\edyn{\tau}{v}] & \ccKE & \esd[\efromdyn{\tau}{v}]
-      \\
-      \esd[\esta{\tau}{\ebase[e]}] & \ccKE & \esd[\esta{\tau}{\ebase[e']}]
+      \ebase[e] & \ccKS & \ebase[e']
       \\ \sidecond{if $e \rrKS e'$}
       \\
-      \esd[\edyn{\tau}{\ebase[e]}] & \ccKE & \esd[\edyn{\tau}{\ebase[e']}]
+      \esd[\estafake{v}] & \ccKS & \esd[v]
+      \\
+      \esd[\edynfake{v}] & \ccKS & \esd[v]
+      \\
+      \esd[\esta{\tau}{v}] & \ccKS & \esd[\efromsta{\tau}{v}]
+      \\
+      \esd[\edyn{\tau}{v}] & \ccKS & \esd[\efromdyn{\tau}{v}]
+      \\
+      \esd[\esta{\tau}{\ebase[e]}] & \ccKS & \esd[\esta{\tau}{\ebase[e']}]
+      \\ \sidecond{if $e \rrKS e'$}
+      \\
+      \esd[\edyn{\tau}{\ebase[e]}] & \ccKS & \esd[\edyn{\tau}{\ebase[e']}]
       \\ \sidecond{if $e \rrKD e'$}
       \\
-      \ebase[e] & \ccKE & \ebase[e']
-      \\ \sidecond{if $e \rrVar{K} e'$}
-      \\
-      \esd[\eerr] & \ccKE & \eerr
+      \esd[\eerr] & \ccKS & \eerr
     \end{array}$
   }
 
   \multicolsbreak
 
-  \lblextra{$e \rrKSstar e$}{ reflexive, transitive closure of $\ccKS$}{}
-  \smallskip
-  \lblextra{$e \rrKDstar e$}{ reflexive, transitive closure of $\ccKD$}{}
+  \lblextra{$e \rrKDstar e$}{ reflexive, transitive closure of $\ccKD$}{
+    $\begin{array}{l@{\hspace{0.5em}}c@{\hspace{0.5em}}l}
+      \ebase[e] & \ccKD & \ebase[e']
+      \\ \sidecond{if $e \rrKD e'$}
+      \\
+      \esd[\estafake{v}] & \ccKD & \esd[v]
+      \\
+      \esd[\edynfake{v}] & \ccKD & \esd[v]
+      \\
+      \esd[\esta{\tau}{v}] & \ccKD & \esd[\efromsta{\tau}{v}]
+      \\
+      \esd[\edyn{\tau}{v}] & \ccKD & \esd[\efromdyn{\tau}{v}]
+      \\
+      \esd[\esta{\tau}{\ebase[e]}] & \ccKD & \esd[\esta{\tau}{\ebase[e']}]
+      \\ \sidecond{if $e \rrKD e'$}
+      \\
+      \esd[\edyn{\tau}{\ebase[e]}] & \ccKD & \esd[\edyn{\tau}{\ebase[e']}]
+      \\ \sidecond{if $e \rrKD e'$}
+      \\
+      \esd[\eerr] & \ccKD & \eerr
+    \end{array}$
+  }
 \end{TwoColumn}
