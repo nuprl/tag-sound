@@ -226,9 +226,9 @@
 
 ;; -----------------------------------------------------------------------------
 
-(define (tr-proof . elem*)
+(define (tr-proof #:sketch? [sketch? #false] . elem*)
   (nested
-    (emph "Proof") ": "
+    (emph (string-append "Proof" (if sketch? " (sketch)" ""))) ": "
     (nested #:style 'inset elem*)
     @exact{\raisebox{0.5ex}{$\qedsymbol$}}))
 
