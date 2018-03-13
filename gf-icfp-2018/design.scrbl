@@ -430,12 +430,12 @@ The embedding is sound, however, for well-typed expressions that do not
 The locally-defensive embedding is the result of two assumptions: one philosophical,
  one pragmatic.
 The philosophical assumption is that the purpose of types is to prevent evaluation
- from ``going wrong'' in the sense of applying an elimination form to a value
+ from ``going wrong'' in the sense of applying a typed elimination form to a value
  outside its domain.
 For example, the elimination forms in the surface
  language are function application and primitive application.
 Function application @${(\eapp{v_0}{v_1})} expects that @${v_0} is a function;
- primitive application expects a primitive and arguments for which @${\delta}
+ primitive application expects arguments for which @${\delta}
  is defined.
 The goal of the locally-defensive embedding is to ensure that such assumptions
  are always satisfied in typed contexts.
@@ -448,14 +448,14 @@ For one, implementing ``transparent'' monitors requires a significant engineerin
 Second, monitoring adds a prohibitive run-time cost.
 
 Based on these assumptions, the locally-defensive embedding rewrites typed code
- to defend itself against possibly-untyped inputs.
+ to defend itself against untyped inputs.
 The defense takes the form of type-constructor checks; for example,
- if a typed context expects a value of type @${\tarr{\tnat}{\tnat}} then a
+ if a typed context expects a value of type @${(\tarr{\tnat}{\tnat})} then a
  run-time check asserts that the context receives a function.
 If this function is applied @emph{in the same context}, then a second run-time
  check confirms that the result is a natural number.
 If the function is applied @emph{in a different typed context} that expects a
- result of type @${\tpair{\tint}{\tint}}, then a run-time check confirms that
+ result of type @${(\tpair{\tint}{\tint})}, then a run-time check confirms that
  the result is a pair.
 
 Constructor checks do not require monitors,
@@ -464,23 +464,52 @@ Constructor checks do not require monitors,
 If elimination forms only rely on the top-level shape of a value,
  then the latter guarantee implies that well-typed contexts do not ``go wrong''
  as desired.
+@; or rather, "do not apply a typed elimination form to a value outside its domain" ?
 
 
 @subsection[#:tag "sec:locally-defensive:model"]{Model}
 
 @Figure-ref{fig:locally-defensive-reduction} presents a model of the
  locally-defensive embedding.
+The model represents a defensive type-constructor check as an @${\vchk} expression;
+ intuitively, the semantics of @${(\echk{K}{e})} is to reduce @${e} to a value
+ and affirm that it matches the @${K} type constructor.
+Type constructors @${K} include one constructor @${\tagof{\tau}} for each
+ kind of type @${\tau}, and the exceptional @${\kany} constructor, which
+ does not correspond to a static type.
 
-STOP
+The purpose of @${\kany} is to reflect the weak invariants of the locally-defensive
+ embedding.
+In contrast to types @${\tau}, type constructors say nothing about the
+ contents of a structured value.
+The first and second components of a generic @${\kpair} value can have any shape,
+ and the result of applying a function of constructor @${\kfun} can be any
+ value.@note{Since the direct result of function application is an expression
+  and not a value, the model includes the ``no-op'' boundary terms @${(\edynfake{e})}
+  and @${(\estafake{e})} to support the application of a typed function in an untyped
+  context, and vice-versa.}
+Put another way, the @${\kany} constructor is necessary because information about
+ type constructors does not compose under the algebra of expressions.
+
+To ensure that the evaluation of a typed expression does not lead to undefined
+ behavior, the @emph{completion} judgment @${\Gamma \vdash e : \tau \carrow e'}
+ rewrites a surface-syntax expression to a similar, safe expression.
+The rewritten expression includes @${\vchk} forms around three kinds of typed
+ expressions: function application, @${\vfst} projection, and @${\vsnd} projection.
+For any other kind expression, the completion is constructed from the completion
+ of its sub-expressions.
 
 
- @emph{locally-defensive} embedding.
-As a disclaimer, this embedding includes two technical devices to streamline
- the proof of soundness: first is the use of the pseudo-boundary terms
- @${(\edynfake{e})} and @${(\estafake{e})}, and second is the treatment
- of typed functions in the reduction relation.
-These devices ensure that typed functions may be safely applied in typed or
- untyped code; details follow.
+The completion of any other expression, including dynamically-typed expressions,
+ the made of the completion of its components.
+
+
+ @note{The full definition of @${\carrow} depends on a similar judgment for dynamically-typed
+  expressions. That judgment does not insert checks in dynamically-typed code.}
+
+
+
+
 
 The syntax of the embedding extends the evaluation syntax from @figure-ref{fig:multi-reduction}
  with new expressions, new contexts, and a grammar @${\kappa} for type constructors.
@@ -626,6 +655,12 @@ The other main lemma is that boundary-crossing via @${\vfromany} is sound
 
 
 @section[#:tag "sec:practical-semantics"]{From Models to Implementations}
+
+@; TODO
+@; - type-constructor checks suffice to prevent stuck-ness
+@; - monitors ... how to implement? how to represent types?
+@; - one reduction relation
+@; - 
 
 The models (except for erasure) define a multi-language semantics.
 A real programming language doesn't work like this.
