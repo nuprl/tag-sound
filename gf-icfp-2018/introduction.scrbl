@@ -22,7 +22,7 @@ For the past two decades, many programmers have switched to untyped programming
  it remains unclear what types @emph{should mean} in mixed-typed programs.
 
 Over the years, three approaches have emerged for integrating a
- dynamically typed language with its statically typed twin. Each approach
+ dynamically typed language with a statically typed twin. Each approach
  corresponds to a generalization of type soundness from one language to a
  pair of related languages.
 @;
@@ -62,7 +62,7 @@ a proper comparison:
 
  To answer this question precisely, this paper explains the three
  approaches in a systematic manner with a novel semantic framework. For the
- same source languages, it formulates the three approaches as three
+ same source languages and type system, it formulates the three approaches as three
  different semantics and, for each semantics, articulates a theorem that
  precisely states which properties are preserved. It also demonstrates with
  source-language examples how these theorems differ and the consequences

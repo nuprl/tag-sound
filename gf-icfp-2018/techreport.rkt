@@ -219,7 +219,7 @@
     (list
       @elem{@exact{\vspace{0.4ex}}
             @bold{@kind->long-name[kind] @|uid|} : @(if key-str @deftech[#:key key-str name-elem] @emph[name-elem])
-            @exact{\vspace{0.2ex}}}
+            @exact{\\[-1.8ex]}}
       (make-table
         boxed-style
         (list (list (nested content*)))))))
@@ -227,10 +227,13 @@
 ;; -----------------------------------------------------------------------------
 
 (define (tr-proof #:sketch? [sketch? #false] . elem*)
-  (nested
-    (emph (string-append "Proof" (if sketch? " (sketch)" ""))) ": "
-    (nested #:style 'inset elem*)
-    @exact{\raisebox{0.5ex}{$\qedsymbol$}}))
+  (if sketch?
+    (nested
+      (emph "Proof (sketch)") ": " elem* @${\hfill\qedsymbol})
+    (nested
+      (emph (string-append "Proof" (if sketch? " (sketch)" ""))) ": "
+      (nested #:style 'inset elem*)
+      @exact{\raisebox{0.5ex}{$\qedsymbol$}})))
 
 (define (tr-case #:itemize? [itemize? #true] #:box? [box? #false] title . content*)
   (tr-labeled "case" box? itemize? title content*))

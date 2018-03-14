@@ -404,10 +404,12 @@
       (content->string content*)
       "$ \\\\[1ex]  \\end{tabular}")))
 
+;; fourier-orns : danger noway bomb
+;; arevmath : skull radiation biohazard
 (define (level->dbend lvl)
   (case lvl
     [(0) "?"]
-    [(1) "\\dbend"]
+    [(1) "\\LARGE\\danger"]
     [else "\\dbend\\dbend"]))
 
 (define NE ($ "\\mathbf{N}"))
