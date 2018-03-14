@@ -68,6 +68,7 @@ Benchmark & \twoline{Untyped}{LOC} & \twoline{Annotation}{LOC} & \# Modules \\[1
 {\tt fsm} & 182 & 56~~(31\%) & 4 \\[0.3ex]
 {\tt morsecode} & 159 & 38~~(24\%) & 4 \\[0.3ex]
 {\tt zombie} & 302 & 27~~\hphantom{0}(9\%) & 4 \\[0.3ex]
+{\tt jpeg} & 1432 & 165~~{12\\%) & 5 \\[0.3ex]
 {\tt suffixtree} & 537 & 129~~(24\%) & 6 \\[0.3ex]
 {\tt kcfa} & 229 & 53~~(23\%) & 7 \\[0.3ex]
 {\tt snake} & 160 & 51~~(32\%) & 8 \\[0.3ex]
