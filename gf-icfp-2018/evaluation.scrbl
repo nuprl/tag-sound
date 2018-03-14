@@ -9,31 +9,13 @@
 
 @; -----------------------------------------------------------------------------
 
-@; TODO revise intro, because this comes right after the models now
-
-@;The models support two general hypotheses about the relative performance
-@; of the embeddings:
-@;@itemlist[#:style 'ordered
-@;@item{
-@;  For mixed-typed programs, the erasure embedding adds less overhead
-@;   than the locally-defensive embedding, and both add significantly less
-@;   overhead than the natural embedding.
-@;}
-@;@item{
-@;  For fully-typed programs, the natural embedding may out-perform the erasure
-@;   embedding, and both add significantly less overhead than the locally-defensive
-@;   embedding.
-@;}
-@;]
-@;It remains to be seen whether these hypotheses hold for a practical implementation.
-
-This section presents the results of a comparative evaluation of the natural,
- erasure, and locally-defensive embeddings in the context of Typed Racket.
+To evaluation the performance of the three approaches in a single language with
+the same benchmark suite, we use the Takikawa-Greenman approach and Typed Racket.
 The data suggests that the locally-defensive embedding is a large
  improvement over the natural embedding for mixed-typed programs, and slightly
- worse for fully-typed programs.
+ worse for (mostly) fully-typed programs.
 The erasure embedding offers the best performance, except in the case of
- mostly-typed programs that benefit from the Typed Racket optimizer@~cite[stff-padl-2012].
+ mostly-typed programs which significantly benefit from the Typed Racket optimizer@~cite[stff-padl-2012].
 
 
 @; -----------------------------------------------------------------------------
@@ -41,12 +23,12 @@ The erasure embedding offers the best performance, except in the case of
 
 @; TODO compiled
 
-@|TR|@~cite[tf-popl-2008] is a migratory typing system for Racket that
+@|TR|@~cite[tf-popl-2008] is a migratory typing system for Racket and faithfully
  implements the natural embedding.
 Whereas a Racket program starts with the line @tt|{#lang racket}| a
  @|TR| program starts with the line @tt|{#lang typed/racket}| and
  must satisfy the type checker.
-By removing the type annotations in a Typed Racket program, we can
+Removing the type annotations in a Typed Racket program, we can
  therefore compare the performance of the natural embedding against
  the erasure embedding.
 
@@ -97,16 +79,7 @@ Our prototype does not attempt this kind of optimization.
 @;One more thing: we whitelist functions such as @racket[list]
 @; that are trusted to give results with the expected constructor.
 
-
-@;@subsection{Compiling to a Host Language}
-@;
-@;The models employ a small-step operational semantics for an expression language.
-@;The natural and locally-defensive have two reduction relations.
-@;In practice, though, a migratory typing system compiles statically-typed code
-@; to the host language, which raises the question of whether it is sound to
-@; use the host-language reduction relation.
-@;Of course it is, because the dynamic reduction is a subset of static reduction.
-
+@subsection{The Benchmarks}
 
 @section{Evaluation I: Mixed-Typed Programs}
 
@@ -124,20 +97,15 @@ Our prototype does not attempt this kind of optimization.
         @elem{Worst-case overhead for @|TR| (TR) and @|LD-Racket| (LD)}
         @render-max-table[MT]]
 
-@(define RT (make-ratios-table TR-DATA* TAG-DATA*))
-
-@figure["fig:typed-baseline-ratios"
-        @elem{Typed/untyped ratios for @|TR| (TR) and @|LD-Racket| (LD)}
-        @render-ratios-table[RT]]
-
 
 @Figure-ref{fig:locally-defensive-performance} plots
  the overhead of @|TR| relative to Racket (@|tr-color-text| color)
  and the overhead of @|LD-Racket| relative to Racket (@|tag-color-text| color)
- for @|NUM-TR| functional programs.
-In summary, the area under the curve for @|LD-Racket| is larger so we conclude that
+ for the @integer->word[NUM-TR] functional programs.
+Since the area under the curve for @|LD-Racket| is larger than that of @|TR|, we conclude that
  the locally-defensive embedding has better performance than the natural embedding
  on mixed-typed programs.
+Racket out-performs both.
 
 The data for the plots comes from applying the Takikawa method@~cite[tfgnvf-popl-2016 gtnffvf-jfp-2017]
  to their functional benchmark programs.
@@ -149,7 +117,7 @@ All measurements were collected sequentially using Racket v@|RKT-VERSION| on an 
  machine with two physical AMD Opteron 6376 processors (a NUMA architecture) and
  128GB RAM.
 The CPU cores on each processor ran at 2.30 GHz using the @emph{performance} CPU governor.
-The Racket compiler generates bytecode ahead-of-time and employs a standard
+The Racket compiler generates bytecode ahead-of-time and employs a simple
  JIT compiler.
 @; throw away 1 config
 
@@ -201,6 +169,13 @@ This degredation occurs because the many constructor checks inserted by @|LD-Rac
 
 @section{Evaluation II: Fully-Typed Programs}
 
+@(define RT (make-ratios-table TR-DATA* TAG-DATA*))
+
+@figure["fig:typed-baseline-ratios"
+        @elem{Typed/untyped ratios for @|TR| (TR) and @|LD-Racket| (LD)}
+        @render-ratios-table[RT]]
+
+
 @;@|TR| is expected to be fastest, because the static types enable some
 @; optimization@~cite[stff-padl-2012].
 @;@|LD-Racket| is expected to be slowest because it rewrites all typed code to include
@@ -218,7 +193,7 @@ This degredation occurs because the many constructor checks inserted by @|LD-Rac
 
 @; TODO maybe should be a bar graph, with error lines
 @Figure-ref{fig:typed-baseline-ratios} compares the performance of the fully-typed
- configuration in each benchmark against the performance of the erasure embedding.
+ configuration for each benchmark against the performance of the erasure embedding.
 The first row lists abbreviated benchmark names.
 The second row lists the ratio of @|TR| on the fully-typed configuration
  relative to Racket on the untyped configuration.
@@ -228,63 +203,52 @@ The third and final row lists the ratio of @|LD-Racket| on the fully-typed
 @|LD-Racket| is the slowest on every benchmark.
 @|TR| is the fastest on @integer->word[(for/sum ([n (in-list (ratios-table->typed RT))]) (if (< n 1) 1 0))]
  of the @integer->word[(length TR-DATA*)] benchmarks.
-Note, the high overhead in the @bm{zombie} benchmark is due to type casts
+The high overhead in the @bm{zombie} benchmark is due to type casts
  it performs to validate its input data.
-
-We leave open the question of improving performance of the locally-defensive
- embedding on fully-typed programs.
 
 
 @section{Threats to Validity}
-@; TODO there should be no conclusions in this section, but the threats are
-@;  still important for interpreting the data
 
-The performance of our @|LD-Racket| prototype is an order-of-magnitude improvement
- over @|TR|.
-We believe this high-level conclusion is valid; however, the exact performance of a full
- implementation is likely to vary from our prototype implementation.
+The performance of the @|LD-Racket| prototype demonstrates an
+ order-of-magnitude improvement over @|TR| on mixed-typed programs.
+The performance of a full-fledged implementation, however, may
+ have slightly different performance characteristics.
 
 @; === things that make prototype too fast
-On one hand, the prototype is likely to be faster than a complete implementation
+On one hand, the prototype is likely to be faster than a full implementation
  for two reasons.
 First, it makes little effort to provide useful error messages.
-When a tag check fails, the prototype simply directs programmers to the
- source code associated with the tag check using information available to the
- completion function.
-Improving these error messages with information about the source of an ill-tagged
- value is likely to degrade performance.
+When a constructor check fails, the prototype simply directs programmers to the
+ source location of the check.
+Improving these error messages with information about the source of the
+ incompatible value is likely to degrade performance in a significant manner.
 
-Second, the prototype avoids using Racket's contract system to implement
- type-tag checks.
-Contracts are a useful tool for defining predicates that give well-structured
- error messages, but they add a constant-factor overhead that wound up
- being prohibitive.
-Some of these tag checks happen many times.
-@; TODO count number of checks
-Perhaps the implementation of contracts could be improved;
- perhaps the JIT needs to improve.
+Second, the prototype avoids using the Racket contract library to implement
+ type-constructor checks because our initial experiments suggested a high
+ overhead for doing so.
+Instead of using a contract combinator to encode a test for, e.g., positive
+ real numbers, the prototype uses a function.
 
 @; === things that make prototype too slow
-On the other hand, the performance of the prototype could be improved in two
- obvious ways.
+On the other hand, the performance of a full implementation could improve over
+ the prototype in two ways.
 First, @|LD-Racket| does not take advantage of the @|TR| optimizer
- to remove type-tag checks from primitive operations.
-Second, the prototype is based on a model that introduces redundant checks;
- a better model will improve the prototype.
+ to remove checks for tag errors;
+ integrating the optimizer may offset some cost of the defensive checks.
+Second, the prototype is based on a completion judgment that introduces
+ redundant checks.
 
 @; === things that make prototype non-representative
 Four other threats are worth noting.
 First, @|LD-Racket| does not support Racket's object-oriented features@~cite[tfdfftf-ecoop-2015].
 @; ... though we expect OO to improve even more
-@; TODO update "largest" for jpeg
-Second, our benchmarks are relatively small; the largest is 10 modules and 800 lines (see appendix for full details).
-@; TODO auto-compute
+Second, our benchmarks are relatively small; the largest is @bm{jpeg} with
+ approximately 1500 lines of code.
+@; TODO auto-compute (this is a big effort, the paper repo doesn't know where the benchmarks live)
 Third, ascribing different types to the same program can affect its performance;
- for example the tag check for an integer is less expensive than the tag check for
- a natural number or some other union type.
+ for example the constructor check for an integer is less expensive than the check for
+ a natural number or a union type.
 Fourth, the @|LD-Racket| version of the @bm{jpeg} benchmark depends on an
- @|LD-Racket| version of a @|TR| library because @|LD-Racket| and @|TR|
+ locally-defensive version of a @|TR| library because @|LD-Racket| and @|TR|
  cannot share type definitions.
  @; consequences: (1) slower math library, (2) no chaperones to protect TR from LD
-Nevertheless we consider our results representative.
-
