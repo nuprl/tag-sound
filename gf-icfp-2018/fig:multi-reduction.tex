@@ -7,7 +7,7 @@
     \\
     \eerr & \BNFeq & \boundaryerror \mid \tagerror
     \\
-    R & \BNFeq & v \mid \eerr
+    \vresult & \BNFeq & v \mid \eerr
     \\
     \ebase & \BNFeq & \ehole \mid \eapp{\ebase}{e} \mid \eapp{v}{\ebase} \mid
                    \vpair{\ebase}{e} \mid \vpair{v}{\ebase} \mid
@@ -20,7 +20,7 @@
 }
 
 \begin{TwoColumn}
-  \lbl{$\delta : \vunop \times v \rightarrow e$}{
+  \lbl{$\delta : \specarr{\tpair{\vunop}{v}}{v}$}{
     $\begin{array}{l@{~~}c@{~~}l}
       \delta(\vfst, \vpair{v_0}{v_1}) & = & v_0
       \\
@@ -30,7 +30,7 @@
 
   \multicolsbreak
 
-  \lbl{$\delta : \vbinop \times v \times v \rightarrow e$}{
+  \lbl{$\delta : \specarr{\tpair{\vbinop}{\tpair{v}{v}}}{\vresult}$}{
     $\begin{array}{l@{~~}c@{~~}l}
       \delta(\vsum, i_0, i_1) & = & i_0 + i_1
       \\

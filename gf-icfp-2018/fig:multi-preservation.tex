@@ -1,37 +1,37 @@
 \begin{TwoColumn}
 
-\lblextra{Typing Syntax}{ extends Surface Syntax}{
-  $\begin{array}{l@{\hspace{0.5em}}c@{\hspace{0.5em}}l}
-    e & \BNFeq & \exprsta \mid \exprdyn
-    \\
-    \Gamma & \BNFeq & \cdot \mid x,\Gamma \mid \tann{x}{\tau},\Gamma
-  \end{array}$
-}
+  \lblextra{Typing Syntax}{ extends Surface Syntax}{
+    $\begin{array}{l@{\hspace{0.5em}}c@{\hspace{0.5em}}l}
+      e & \BNFeq & \exprsta \mid \exprdyn
+      \\
+      \Gamma & \BNFeq & \cdot \mid x,\Gamma \mid \tann{x}{\tau},\Gamma
+    \end{array}$
+  }
 
-\smallskip
-\lbl{$\Delta : \vunop \times \tau \rightarrow \tau$}{
-  $\begin{array}{l@{~~}c@{~~}l}
-    \Delta(\vfst, \tpair{\tau_0}{\tau_1}) & = & \tau_0
-    \\
-    \Delta(\vsnd, \tpair{\tau_0}{\tau_1}) & = & \tau_1
-  \end{array}$
-}
+  \smallskip
+  \lbl{$\Delta : \specarr{\tpair{\vunop}{\tau}}{\tau}$}{
+    $\begin{array}{l@{~~}c@{~~}l}
+      \Delta(\vfst, \tpair{\tau_0}{\tau_1}) & = & \tau_0
+      \\
+      \Delta(\vsnd, \tpair{\tau_0}{\tau_1}) & = & \tau_1
+    \end{array}$
+  }
 
-\smallskip
-\lbl{$\Delta : \vbinop \times \tau \times \tau \rightarrow \tau$}{
-  $\begin{array}{l@{~~}c@{~~}l}
-    \Delta(\vbinop, \tnat, \tnat) & = & \tnat
-    \\
-    \Delta(\vbinop, \tint, \tint) & = & \tint
-%    \Delta(\vsum, \tnat, \tnat) & = & \tnat
-%    \\
-%    \Delta(\vsum, \tint, \tint) & = & \tint
-%    \\
-%    \Delta(\vquotient, \tnat, \tnat) & = & \tnat
-%    \\
-%    \Delta(\vquotient, \tint, \tint) & = & \tint
-  \end{array}$
-}
+  \smallskip
+  \lbl{$\Delta : \specarr{\tpair{\vbinop}{\tpair{\tau}{\tau}}}{\tau}$}{
+    $\begin{array}{l@{~~}c@{~~}l}
+      \Delta(\vbinop, \tnat, \tnat) & = & \tnat
+      \\
+      \Delta(\vbinop, \tint, \tint) & = & \tint
+      %\Delta(\vsum, \tnat, \tnat) & = & \tnat
+      %\\
+      %\Delta(\vsum, \tint, \tint) & = & \tint
+      %\\
+      %\Delta(\vquotient, \tnat, \tnat) & = & \tnat
+      %\\
+      %\Delta(\vquotient, \tint, \tint) & = & \tint
+    \end{array}$
+  }
 
 \multicolsbreak
 
@@ -123,11 +123,11 @@
     \Gamma \wellM \vbinop~e_0~e_1
   }
 
-  \inferrule*{
-  }{
-    \Gamma \wellM \eerr
-  }
-
+%  \inferrule*{
+%  }{
+%    \Gamma \wellM \eerr
+%  }
+%
   \inferrule*{
     \Gamma \wellM e : \tau
   }{
@@ -202,11 +202,11 @@
     \Gamma \wellM e : \tau
   }
 
-  \inferrule*{
-  }{
-    \Gamma \wellM \eerr : \tau
-  }
-
+%  \inferrule*{
+%  }{
+%    \Gamma \wellM \eerr : \tau
+%  }
+%
   \inferrule*{
     \Gamma \wellM e
   }{

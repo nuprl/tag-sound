@@ -10,8 +10,8 @@
 The three approaches to migratory typing can be understood as three
  semantics for @emph{embedding} dynamically-typed expressions in
  statically-typed contexts, and vice-versa.
-Eagerly enforcing types corresponds to a @emph{natural}@~cite[mf-toplas-2007]
- type-directed embedding.
+Eagerly enforcing types corresponds to a @emph{natural}
+ type-directed embedding@~cite[mf-toplas-2007].
 Ignoring types corresponds to an @emph{erasure} embedding.
 The transient approach of @citet[vss-popl-2017] is
  a @emph{locally-defensive} embedding.@note{@Secref{sec:related-work:locally-defensive}
@@ -38,11 +38,11 @@ The type checker for the extended language must be able to validate mixed-typed
 
 Regarding the semantics of boundary terms, the essential questions
  are how to enforce three kinds of types: base types, inductive types, and
- coinductive types.
+ higher types.
 The surface language presented in @figure-ref{fig:multi-syntax} is therefore
  a functional language with integers and pairs.
-Types @${\tau} in this language represent integers, pairs, functions, and natural numbers.
-Of these, the first three types serve as example base, inductive, and coinductive types.
+Types in this language represent integers, pairs, functions, and natural numbers.
+Of these, the first three types serve as example base, inductive, and higher types.
 The last type, @${\tnat}, is a subset of the type of integers; it is included
  to illustrate the set-based reasoning that dynamically-typed languages
  support via (true) union types.
@@ -54,23 +54,16 @@ The main difference is that a statically-typed
  function must provide a type annotation for its formal parameter.
 The second, minor difference is that both grammars include a different kind
  of @emph{boundary term} for embedding an expression of the other grammar.
-The expression @${(\edyn{\tau}{e})} embeds a dynamically-typed subexpression in a
- statically-typed context, and the expression @${(\esta{\tau}{e})} embeds a
+The expression @${(\edyn{\tau}{\exprdyn})} embeds a dynamically-typed subexpression in a
+ statically-typed context, and the expression @${(\esta{\tau}{\exprsta})} embeds a
  statically-typed subexpression in a dynamically-typed context.
 
 The last components in @figure-ref{fig:multi-syntax} are the names of
- primitives and the possible run-time errors.
-These primitives in @${\vunop} and @${\vbinop} represent low-level procedures that
+ primitives.
+The primitives in @${\vunop} and @${\vbinop} represent low-level procedures that
  compute in terms of bitstrings rather than abstract syntax.
 For example, invoking the @${\vsum} procedure with arguments that are not
  integers is undefined behavior.
-The defined errors are of two types.
-A boundary error may occur when one ``language'' sends a bad value to another;
- such an error can arise between a typed context and an untyped subexpression,
- or between a surface-language expression and the implicit language that
- implements the primitives.
-A tag error may occur when an expression reaches a malformed state during
- evaluation.
 
 @include-figure["fig:multi-syntax.tex" @elem{Twin languages syntax}]
 @include-figure["fig:multi-preservation.tex" @elem{Twin languages static typing judgments}]
@@ -78,18 +71,18 @@ A tag error may occur when an expression reaches a malformed state during
 @Figure-ref{fig:multi-preservation} presents a relatively straightforward typing
  system for the complete syntax.
 To accomodate the two kinds of expressions, there are two typing judgments.
-The first judgment, @${\Gamma \wellM e}, essentially states that the expression @${e} is
- closed; this weak property characterizes the ahead-of-time checking
- common to dynamically-typed languages.
-The second judgment, @${\Gamma \wellM e : \tau}, is a mostly-conventional static
+The first judgment, @${\Gamma \wellM \exprdyn}, essentially states that the
+ expression @${e} is closed; this weak property characterizes the ahead-of-time
+ checking common to dynamically-typed languages.
+The second judgment, @${\Gamma \wellM \exprsta : \tau}, is a mostly-conventional static
  type checker; given an expression and a type, the judgment holds if the two match up.
 The unconvential part of both judgments are the mutually-recursive rules for boundary terms,
  which invoke the opposite judgment on their subexpressions.
-For example, @${\Gamma \wellM \esta{\tau}{e}} holds only if the enclosed expression
+For example, @${\Gamma \wellM \esta{\tau}{\exprsta}} holds only if the enclosed expression
  matches the @${\tau} type.
 
 Two auxiliary components of the type system are the function @${\Delta},
- which assigns a (dependent) type to the primitives, and a subtyping
+ which assigns a type to the primitives, and a subtyping
  judgment based on the subset relation between natural numbers and integers.
 Subtyping adds a logical distinction to the type system that is not automatically
  enforced by the untyped host language.
@@ -102,17 +95,13 @@ For example, the expression @${(\vquotient{x}{y})}
 @; -----------------------------------------------------------------------------
 @section[#:tag "sec:common-semantics"]{Common Semantic Notions}
 
-@; TODO only 1 reduction for erasure!
+Our semantic models generalize the Matthews-Findler multi-language approach@~cite[mf-toplas-2007].
+Specifically, the semantics consists of two reduction relations, one for statically-typed
+ expressions and one for dynamically-typed ones.
+The set-up easily permits separate definitions for interconnecting the reduction relation
+ and then modeling the common approaches.
 
-An embedding defines a semantics for the surface language.
-Since the typing system distinguishes two kinds of surface-language expression,
- it is convenient to define a type-sound semantics through two reduction relations:
- one for statically-typed code and one for dynamically-typed code.
-This multi-language approach@~cite[mf-toplas-2007] simplifies the proofs of
- soundness and explains one role of type-driven optimizations in a practical
- migratory typing system (see @secref{sec:practical-semantics}).
-
-Precisely put, the two reduction relations in an embedding (@${\rrSstar} and @${\rrDstar}) must satisfy:
+Precisely put, the two reduction relations (@${\rrSstar} and @${\rrDstar}) must satisfy:
 @; the following criteria:
 @itemlist[
 @item{
@@ -122,13 +111,15 @@ Precisely put, the two reduction relations in an embedding (@${\rrSstar} and @${
 }
 @item{
   @emph{expressive boundary terms}: the static and dynamic contexts can
-   share values at any type; more formally, for any type @${\tau} there must
-   be at least four values such that @${(\edyn{\tau}{v_d}) \rrSstar v} and
-   @${(\esta{\tau}{v_s}) \rrDstar v'}; and
+   share values at any type; and
+   @;more formally, for any type @${\tau} there must
+   @;be at least four values such that @${(\edyn{\tau}{v_d}) \rrSstar v} and
+   @;@${(\esta{\tau}{v_s}) \rrDstar v'};
 }
 @item{
   @emph{soundness for the pair of languages}: for all expressions,
-   evaluation preserves some property that is implied by the surface notion of typing.
+   evaluation preserves some property that is implied by the surface notion of typing,
+   but it is neither the same nor necessarily a natural generalization.
 }
 ]
 To streamline the definitions of the three multi-language semantics that follow,
@@ -140,15 +131,17 @@ A basic context @${\ebase} does not contain boundary terms; a multi-language
  context @${\esd} may contain boundaries.
 
 The semantic components in @figure-ref{fig:multi-reduction} are the @${\delta}
- function for primitives and the @${\rrS} and @${\rrD} notions of reduction.
-The @${\delta} function is a mathematical specification for the
+ function for primitives and the @${\rrS} and @${\rrD} notions of reduction for the core subsets of the two kinds of expressions.
+The @${\delta} function is a partial mathematical specification for the
  procedures in @${\vunop} and @${\vbinop}.
 It is undefined for certain arguments---to represent
  low-level undefined behavior---and raises a boundary error @${\boundaryerror}
  for division by zero.
 
-The notion of reduction @${\rrS} defines a semantics for statically-typed expressions (@figure-ref{fig:multi-preservation}).
-    @; first theorem: \vdash (op1 v) : \tau implies delta(op1, v) is defined
+The notion of reduction @${\rrS} defines a semantics for statically-typed expressions.
+It relates the left-hand side to the right-hand side on an unconditional basis,
+ which expresses the reliance on the type system to prevent stuck terms up
+ front.
 The notion of reduction @${\rrD} defines a semantics for dynamically-typed expressions.
 A dynamically-typed expression may attempt to apply an integer to an argument or give
  nonsensical arguments to a primitive, hence @${\rrD} explicitly checks for
@@ -158,14 +151,14 @@ A dynamically-typed expression may attempt to apply an integer to an argument or
 @; maybe make this more structured? finish the draft first tho
 @; ... maybe less structure, because erasure doesn't really match
 
-The three embeddings in the following sections build upon @figure-ref{fig:multi-reduction}.
-Two of the embeddings
+The three models in the following sections build upon @figure-ref{fig:multi-reduction}.
+Two of them
  define functions @${\vfromdyn} and @${\vfromsta} for transporting a value across a boundary term,
  extend the @${\rrS} and @${\rrD} notions of reduction,
  and lift the notions of reduction to reduction relations @${\rrSstar} and
  @${\rrDstar} for (multi-language) evaluation contexts.
-The other embedding defines one reduction relation.
-Lastly, the embeddings define a (two-part) syntactic property that is
+The other model defines one reduction relation.
+Lastly, the models define a (two-part) syntactic property that is
  implied by a typing property in @figure-ref{fig:multi-preservation},
  and comes with a proof that the property is sound with respect to the
  corresponding reduction relation.
@@ -174,6 +167,13 @@ Lastly, the embeddings define a (two-part) syntactic property that is
 
 @include-figure["fig:multi-reduction.tex" @elem{Common semantic notions}]
 
+@;The defined errors are of two types.
+@;A boundary error may occur when one ``language'' sends a bad value to another;
+@; such an error can arise between a typed context and an untyped subexpression,
+@; or between a surface-language expression and the implicit language that
+@; implements the primitives.
+@;A tag error may occur when the evaluation of an expression reaches a
+@; malformed state during evaluation.
 
 @; -----------------------------------------------------------------------------
 @section[#:tag "sec:natural-embedding"]{Natural Embedding}
@@ -183,11 +183,11 @@ Lastly, the embeddings define a (two-part) syntactic property that is
 @; types should provide strong guarantees
 @; "levels of abstraction" is a quote from J. Reynolds
 
-The natural embedding is based on the idea that types should enforce levels
+The natural embedding@~cite[mf-toplas-2007] is based on the idea that types should enforce levels
  of abstraction.
 In a conventional typed language, this kind of enforcement happens statically;
  types define levels of abstraction and the type checker ensures compliance.
-Migratory typing can provide a similar guarantee if the types on untyped
+Migratory typing can provide a similar guarantee if the type specifications for untyped
  values are checked at runtime.
 
 The natural embedding uses a type-directed strategy to @mytech{transport} a value across
@@ -198,7 +198,7 @@ If the value is untyped and entering a context that expects
 If the context expects a value of an inductive type, such as @${(\tpair{\tint}{\tint})},
  then the strategy is to the check the constructor and recursively transport
  the components of the value.
-Lastly, if the context expects a value of a coinductive type, such as
+Lastly, if the context expects a value of a higher type, such as
  @${(\tarr{\tnat}{\tnat})}, then the strategy is to check the constructor and
  monitor the future interactions between the value and the context.
 For the specific case of an untyped function @${f} and the type @${(\tarr{\tnat}{\tnat})},
@@ -221,7 +221,7 @@ Conversely, the @${\vfromstaN} function exports a typed value to an untyped cont
 It transports an integer as-is, transports a pair recursively,
  and wraps a function in a monitor to protect the typed function against untyped arguments.
 
-The notions of reduction define the semantics of monitor application.
+The extended notions of reduction define the complete semantics of monitor application.
 In a statically-typed context, applying a monitor means applying a
  dynamically-typed function to a typed argument.
 Thus the semantics unfolds the monitor into two boundary terms:
@@ -234,8 +234,8 @@ The boundary functions and the notions of reductions come together
  to define the semantics of mixed-typed expressions.
 There are two main reduction relations: @${\rrNSstar} for typed expressions
  and @${\rrNDstar} for untyped expressions.
-The difference between the two relations is how they act on an expression that
- does not contain any boundary terms.
+The difference is how they act on an expression that
+ does not contain boundary terms.
 The typed reduction relation steps via @${\rrS} by default, and the
  untyped relation steps via @${\rrD} by default.
 For other cases, the relations are identical.
@@ -272,7 +272,7 @@ The soundness theorems for the natural embedding state three results about
     of the following holds:
     @itemlist[
       @item{ @${e \rrNSstar v \mbox{ and } \wellNE v : \tau} }
-      @item{ @${e \rrNSstar \ctxE{\edyn{\tau'}{\ebase[e']}}} and @linebreak[] @${e' \rrND \tagerror} }
+      @item{ @${e \rrNSstar \ctxE{\edyn{\tau'}{\ebase[e']}}} and @${e' \rrND \tagerror} }
       @item{ @${e \rrNSstar \boundaryerror} }
       @item{ @${e} diverges}
     ] }
@@ -306,9 +306,9 @@ The proof of preservation depends on a notable lemma about the @${\vfromdynN}
 A similar lemma does not hold of the surface-language typing judgment.
 The proof breaks down when @${\tau} is a function type, and thereby demonstrates
  a key tradeoff in migratory typing.
-If the language is to allow values of coinductive type to cross a boundary,
- then it must generalize its soundness guarantee to consider such values
- well-typed until proven otherwise.
+If the language is to allow values of higher type to cross a boundary,
+ then it must generalize its soundness guarantee.
+ @; to consider such values well-typed until proven otherwise.
 
 
 @; -----------------------------------------------------------------------------
@@ -319,24 +319,25 @@ If the language is to allow values of coinductive type to cross a boundary,
 @; types should not affect semantics.
 @; "syntactic discipline" is a quote from J. Reynolds
 
-The erasure embedding is based on a view of types as a (strictly) syntactic discipline.
-Types are just a structured kind of comment and should be orthogonal to the
- evaluation model of a language.
+An erasure embedding is based on a view of types as a (strictly) optional artifact.
+Types are just a structured kind of comment and should be irrelevant for the
+ evaluation of programs.
 Their main purpose is to help developers read a codebase.
 Their secondary purpose is to enable static type checking and IDE tools such
  as type-based autocompletion.
-Whether or not the types are sound is incidental, since type soundness
- never holds for the entirety of a practical language.
+Whether the types are sound is incidental.
+ @; , since type soundness never holds for the entirety of a practical language.
 
 If one adopts this point of view, then the proper semantics for a migratory
  typing system is an extension of the host language's untyped semantics that ignores type annotations.
-Any value may freely cross any type boundary, and thus the embedding uses
- the reductionist approach of relying on the soundness of the host language.
+Any value may freely cross any type boundary.
+The embedding uses the reductionist approach of relying on the soundness of the
+ host language.
 
 
 @subsection[#:tag "sec:erasure:model"]{Model}
 
-@Figure-ref{fig:erasure-reduction} presents a model of the erasure embedding.
+@Figure-ref{fig:erasure-reduction} presents a semantics of the erasure embedding.
 The notion of reduction @${\rrEE} defines rules for boundary
  terms and type-annotated functions, and otherwise relies on the dynamically-typed
  notion of reduction from @figure-ref{fig:multi-reduction}.
@@ -408,11 +409,10 @@ The embedding is sound, however, for well-typed expressions that do not
 @; -----------------------------------------------------------------------------
 @section[#:tag "sec:locally-defensive-embedding"]{Locally-Defensive Embedding}
 @include-figure*["fig:locally-defensive-reduction.tex" "Locally-Defensive Embedding"]
-@include-figure*["fig:locally-defensive-preservation.tex" "Property judgments for the locally-defensive embedding"]
 
 @; types should prevent logical stuck-ness
 
-The locally-defensive embedding is the result of two assumptions: one philosophical,
+The locally-defensive approach is the result of two assumptions, one philosophical,
  one pragmatic.
 The philosophical assumption is that the purpose of types is to prevent evaluation
  from ``going wrong'' in the sense of applying a typed elimination form to a value
@@ -422,32 +422,34 @@ For example, the elimination forms in the surface
 Function application @${(\eapp{v_0}{v_1})} expects that @${v_0} is a function;
  primitive application expects arguments for which @${\delta}
  is defined.
-The goal of the locally-defensive embedding is to ensure that such assumptions
+The goal of the locally-defensive semantics is to ensure that such assumptions
  are always satisfied in typed contexts.
 @; ... what about Nat? ... generalized form of tag error
 
 The pragmatic assumption is that run-time monitoring, like that employed in
  the natural embedding, is impractical.
-For one, implementing ``transparent'' monitors requires a significant engineering
- effort.
+For one, implementing monitors requires a significant engineering effort.
+Such monitors must preserve all the observations that dynamically-typed code
+ can make of the original value, including object-identity tests.
+@; TODO treatJS ? also cite chaperones, TS*, Retic
 Second, monitoring adds a prohibitive run-time cost.
 
-Based on these assumptions, the locally-defensive embedding rewrites typed code
- to defend itself against untyped inputs.
+Based on these assumptions, the locally-defensive semantics employs a type-driven
+ rewriting pass on typed code to defend against untyped inputs.
 The defense takes the form of type-constructor checks; for example,
  if a typed context expects a value of type @${(\tarr{\tnat}{\tnat})} then a
  run-time check asserts that the context receives a function.
 If this function is applied @emph{in the same context}, then a second run-time
  check confirms that the result is a natural number.
-If the function is applied @emph{in a different typed context} that expects a
+If the same function is applied @emph{in a different typed context} that expects a
  result of type @${(\tpair{\tint}{\tint})}, then a run-time check confirms that
  the result is a pair.
 
 Constructor checks do not require monitors,
  they run in near-constant time,
  and they ensure that every value in a typed context has the correct top-level shape.
-If elimination forms only rely on the top-level shape of a value,
- then the latter guarantee implies that well-typed contexts do not ``go wrong''
+If elimination forms rely only on the top-level shape of a value,
+ then the latter guarantee implies that well-typed programs do not ``go wrong''
  as desired.
 @; or rather, "do not apply a typed elimination form to a value outside its domain" ?
 
@@ -455,16 +457,16 @@ If elimination forms only rely on the top-level shape of a value,
 @subsection[#:tag "sec:locally-defensive:model"]{Model}
 
 @Figure-ref{fig:locally-defensive-reduction} presents a model of the
- locally-defensive embedding.
+ locally-defensive approach.
 The model represents a defensive type-constructor check as a @${\vchk} expression;
  intuitively, the semantics of @${(\echk{K}{e})} is to reduce @${e} to a value
  and affirm that it matches the @${K} type constructor.
 Type constructors @${K} include one constructor @${\tagof{\tau}} for each
- kind of type @${\tau}, and the exceptional @${\kany} constructor, which
+ kind of type @${\tau}, and the technical @${\kany} constructor, which
  does not correspond to a static type.
 
 The purpose of @${\kany} is to reflect the weak invariants of the locally-defensive
- embedding.
+ semantics.
 In contrast to types @${\tau}, type constructors say nothing about the
  contents of a structured value.
 The first and second components of a generic @${\kpair} value can have any shape,
@@ -472,68 +474,70 @@ The first and second components of a generic @${\kpair} value can have any shape
  value.@note{Since the direct result of function application is an expression,
   the model includes the ``no-op'' boundary term @${(\edynfake{e})}
   to support the application of an untyped function in a typed context.
-  The @${(\estafake{e})} boundary serves a dual purpose.}
+  The @${(\estafake{e})} boundary serves a dual purpose. The two forms facilitate
+  the proofs of the progress and preservation lemmas.}
 Put another way, the @${\kany} constructor is necessary because information about
  type constructors does not compose under the algebra of expressions.
 
 @; TODO more parallel structure with the previous paragraph?
-To ensure that the evaluation of a typed expression does not lead to undefined
- behavior, the judgment @${\Gamma \vdash e : \tau \carrow e'}
- rewrites a surface-syntax expression to a similar, safe expression.
-The rewritten expression includes @${\vchk} forms around three kinds of typed
+In the context of the model, the above-mentioned type-driven rewriting pass corresponds
+ to the judgment @${\Gamma \vdash e : \tau \carrow e'}, which states that @${e'}
+ is the checked @emph{completion}@~cite[h-scp-1994] of the surface language expression.
+The rewritten expression @${e'} includes @${\vchk} forms around three kinds of typed
  expressions: function application, @${\vfst} projection, and @${\vsnd} projection.
-For any other kind expression, the result is constructed by structural recursion.
-Since the only difference between @${e} and @${e'} is that the latter includes
- explicit type-constructor checks, we refer to @${e'} as the
- @emph{completion}@~cite[h-scp-1994] of the surface-language expression.
+For any other expression, the result is constructed by structural recursion.
 
-The semantic components of the model cooperate to ensure that every expression of type
- @${\tau} reduces to a value that matches the @${\tagof{\tau}} type constructor.
+The semantics ensures that every expression of type
+ @${\tau} reduces to a value that matches the @${\tagof{\tau}} (type) constructor.
 The boundary function @${\vfromdynK} checks that an untyped value
  entering typed code matches the type constructor of the expected type.
 This function defers to a more general function @${\vfromany}, which checks
  that a given value of constructor @${\kany} matches a more precise type constructor.
 The boundary function @${\vfromstaK} lets any kind of typed
- value---including typed fuctions---cross into an untyped context.
+ value---including typed fuctions---cross into an untyped context, which reflects
+ the idea of making typed code defensive up front.
 In order to protect a typed function in an untyped context, the @${\rrKD}
  notion of reduction includes rules that check the constructor of an untyped
  argument to a typed function.
 The static @${\rrKS} notion of reduction includes similar rules to protect typed
  functions against @emph{typed} arguments.
-Given the weak invariants of
- the locally-defensive embedding, this protection is necessary for
- typed functions that return from an untyped context; for example:
+This protection is necessary for typed functions that return from an untyped context,
+ as taking a static--dynamic--static round trip is essentially a type cast.
+The following example applies an integer function to a pair:
 
 @dbend{
-  \wellM \esta{(\tarr{\tint}{\tint})}{(\edyn{(\tarr{\tnat}{\tnat})}{(\vlam{\tann{x}{\tnat}}{x})})} : \tarr{\tint}{\tint}
+  \wellM (\eapp{(\esta{(\tarr{\tpair{\tint}{\tint}}{\tint})}{(\edyn{(\tarr{\tint}{\tint})}{(\vlam{\tann{x}{\tint}}{\esum{x}{x}})})})}{\vpair{0}{0}}) : \tint
 }
 
-The remaining rules of @${\rrKS} give semantics to the application of an
+@exact{\noindent} The remaining rules of @${\rrKS} give semantics to the application of an
  untyped function and to the @${\vchk} type-constructor checks.
 
 Finally, the @${\rrKSstar} and @${\rrKDstar} reduction relations define
  a multi-language semantics for the model.
-These relations are similar to those of the natural embedding, and include
+These relations are similar to those of the natural embedding, though they include
  no-op transitions to let values cross unannotated boundary terms.
 
 
 @subsection[#:tag "sec:locally-defensive:soundness"]{Soundness}
 
 @Figure-ref{fig:locally-defensive-preservation} presents two judgments that express
- the invariants of the locally-defensive embedding.
+ the invariants of the locally-defensive reductions.
 The first judgment, @${\Gamma \wellKE e}, holds for closed dynamically-typed
  expressions.
 The second judgment is a constructor-typing system.
-This judgment formalizes the many intuitions stated above; for example,
- that the value of a typed variable is guaranteed to match its type constructor,
- that the @${\vfst} projection can produce any kind of value,
- and that the result of a @${\vchk} expression matches the
+This judgment formalizes the intuitions stated above.
+In particular,
+ the value of a typed variable is guaranteed to match its type constructor,
+ the @${\vfst} projection can produce any kind of value,
+ and the result of a @${\vchk} expression matches the
  given constructor.
 
 Soundness for the locally-defensive embedding is a statement about the completion
  of a surface-language expression.
 Intuitively, the reduction of any defended expression is well-defined and
  furthermore reduction in any typed context cannot raise a tag error.
+
+@include-figure*["fig:locally-defensive-preservation.tex" "Property judgments for the locally-defensive embedding"]
 
 @twocolumn[
   @tr-theorem[#:key "K-static-soundness" @elem{static @|KE|-soundness}]{
@@ -544,8 +548,7 @@ Intuitively, the reduction of any defended expression is well-defined and
     and one of the following holds:
     @itemlist[
       @item{ @${e'' \rrKSstar v} and @${\wellKE v : \tagof{\tau}} }
-      @item{ @${e'' \rrKSstar \ctxE{\edyn{\tau'}{\ebase[e']}}} and @linebreak[]
-             @${e' \rrKD \tagerror} }
+      @item{ @${e'' \rrKSstar \ctxE{\edyn{\tau'}{\ebase[e']}}} and @${e' \rrKD \tagerror} }
       @item{ @${e'' \rrKSstar \boundaryerror} }
       @item{ @${e''} diverges }
     ]
@@ -610,24 +613,26 @@ Intuitively, the reduction of any defended expression is well-defined and
 @; TODO
 @; - type-constructor checks suffice to prevent stuck-ness
 
-By far the biggest difference between the models and a practical migratory typing
- system concerns the natural and locally-defensive embeddings.
-The semantics of these models use @emph{two} notions of reduction; however, any
- practical migratory typing system compiles typed expressions to the host
- language and re-uses the host notion of reduction.
-In terms of the models, this means @${\rrD} is the only core notion of reduction.
-To resolve this challenge, it suffices to build a reduction relation based on @${\rrD}
- and conservatively guard @${\vsta} boundaries with the @${\vfromdyn} boundary
- function.
-The technical appendix demonstrates with sound host-language reduction relations
- for the natural and erasure embeddings.
+By far the biggest gap between the models and implementations of migratory typing
+ is visible in the natural and locally-defensive models.
+These models use @emph{two} reductions, one for the typed and one for the untyped
+ fragments of code.
+By contrast, any practical migratory typing system compiles typed expressions to the
+ (dynamically-typed) host language.
+In terms of the models, this means @${\rrD} is the only core notion of reduction,
+ and statically-typed expressions are rewritten so that @${\rrDstar} applies.
+The technical appendix demonstratess how to bridge this gap systematically@~cite[gf-tr-2018].
 
-Replacing the two notions of reduction with one, however, raises a question
+@;To resolve this challenge, it suffices to build a reduction relation based on @${\rrD}
+@; and conservatively guard @${\vsta} boundaries with the @${\vfromdyn} boundary
+@; function.
+
+Replacing the two notions of reduction with one raises a question
  about the performance of the host reduction relation on typed code.
 In particular, the former reduction for statically-typed code could safely
  ignore the possibility of a tag error and use the more efficient @${\vfromsta}
  boundary function.
-These performance losses may be partially recovered with a type-based, ahead-of-time optimizer.
+These performance losses may be (partially) recovered with a type-based, ahead-of-time optimizer.
 One pass of the optimizer can mark applications of primitives in typed code
  so the evaluator knows they are safe from tag errors.
 A second pass can simplify the types in boundary terms.
@@ -640,7 +645,7 @@ As a concrete example, the expression @${(\esta{\tint}{e})} may be optimized
  to @${(\estafake{e})}, as soundness ensures that @${e} evaluates to a well-typed
  value.
 
-A second semantic issue concerns the rules for the application of a typed
+A secondary semantic issue concerns the rules for the application of a typed
  function in the locally-defensive embedding.
 As written, the @${\rrKD} notion of reduction implies a non-standard protocol
  for function application @${(\eapp{v_0}{v_1})}, namely:
@@ -659,7 +664,7 @@ Using pseudo-syntax @${e_0;\,e_1} to represent sequencing, a suitable completion
   }
   \end{mathpar}
 }|@;
-Both Reticulated and our implementation use a variant of the above rule.
+Both Reticulated and our implementation of this semantics use a variant of this rule.
 
 Lastly, the models do not mention union types, universal types,
  and recursive types---all of which are common tools for reasoning about
@@ -671,12 +676,12 @@ The literature on Typed Racket presents one strategy for handling such types@~ci
 To extend the locally-defensive embedding, the language must add unions @${K \cup K}
  to its grammar of constructor checks and must extend the @${\tagof{\cdot}} function.
 For a union type, let @${\tagof{\tau_0 \cup \tau_1}} be @${\tagof{\tau_0} \cup \tagof{\tau_1}},
- the tags of its members.
-For a universal type @${(\tall{\alpha}{\tau})} or recursive type @${\trec{\alpha}{\tau}},
- let the check be @${\tagof{\tau}}, ignoring the variable.
-This assumes that all occurrences of the bound variable appear under some type
+ i.e., the tags of its members.
+For a universal type @${(\tall{\alpha}{\tau})} let the constructor be @${\tagof{\tau}},
+ and for a type variable let @${\tagof{\alpha}} be @${\kany} because there are
+ no elimination forms for a universally-quantified type variable.
+For a recursive type @${\trec{\alpha}{\tau}}, let the constructor be
+ @${\tagof{\vsubst{\tau}{\alpha}{\trec{\alpha}{\tau}}}}; this definition is
+ well-founded if all occurrences of the variable appear under some type
  @${\tau'} such that @${\tagof{\tau'}} has a non-recursive definition.
-For a type variable, let @${\tagof{\alpha}} be @${\kany}, as there are no
- elimination forms for a universally-quantified type variable.
-
 

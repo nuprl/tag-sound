@@ -7,7 +7,7 @@
 @tr-definition[#:key "divergence" @elem{@${\rastar}-divergence}]{
   An expression @${e} diverges for the reduction relation @${\rastar} if for
    all @${e'} such that @${e\!\rastar\!e'} there exists an @${e''} such that
-   @${e'\!\rightarrow\!e''}.
+   @${e'\!\rrarrow\!e''}.
 }@|smallskip|
 
 @tr-convention["variable convention"]{

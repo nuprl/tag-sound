@@ -17,7 +17,7 @@
 
   \multicolsbreak
 
-  \lbl{$\tagof{\cdot} : \tau \rightarrow K$}{
+  \lbl{$\tagof{\cdot} : \specarr{\tau}{K}$}{
     $\begin{array}{l c l}
       \tagof{\tnat} & = & \knat
       \\
@@ -60,7 +60,7 @@
 }
 
 \begin{TwoColumn}
-  \lblextra{$\vfromdynK : \tau \times v \rightarrow v\vphantom{\vfromstaK}$}{}{
+  \lblextra{$\vfromdynK : \specarr{\tpair{\tau}{v}}{v}\vphantom{\vfromstaK}$}{}{
     $\begin{array}{l@{~~}c@{~}l}
       \efromdynK{\tau}{v} & = & \mchk{\tagof{\tau}}{v}
     \end{array}$
@@ -68,7 +68,7 @@
 
   \multicolsbreak
 
-  \lblextra{$\vfromstaK : \tau \times v \rightarrow v$}{}{
+  \lblextra{$\vfromstaK : \specarr{\tpair{\tau}{v}}{v}$}{}{
     $\begin{array}{l@{~~}c@{~}l}
       \efromstaK{\tau}{v} & = & v
     \end{array}$
@@ -76,7 +76,7 @@
 \end{TwoColumn}
 
 \begin{flushleft}
-\fbox{$\vfromany : K \times v \rightarrow v$}\\[-2.7ex]{
+  \fbox{$\vfromany : \specarr{\tpair{K}{v}}{v}$}\\[-2.7ex]{
   $\begin{array}{l@{\hspace{4.4em}}l}
     \begin{array}{l@{~~}c@{~}l}
       \efromany{\kfun}{\vlam{x}{e}} & = & \vlam{x}{e}
@@ -106,7 +106,7 @@
 \begin{TwoColumn}
 
   % this one "inherits", because it changes typed function application
-  \lblextra{$e \rrKS e$}{ \myinherits\ $\rrS$}{
+  \lblextra{$e \rrKS e$}{ extends and overrides $\rrS$}{
     $\begin{array}{l@{\hspace{0.5em}}c@{\hspace{0.5em}}l}
       (\vlam{\tann{x}{\tau}}{e})~v & \rrKS
       & \boundaryerror

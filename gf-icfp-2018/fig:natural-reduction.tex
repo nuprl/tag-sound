@@ -9,7 +9,7 @@
 %% --- reduction
 \begin{TwoColumn}
 
-  \lblextra{$\vfromdynN : \tau \times v \rightarrow e\vphantom{\vfromstaN}$}{}{
+  \lblextra{$\vfromdynN : \specarr{\tpair{\tau}{v}}{e}\vphantom{\vfromstaN}$}{}{
     $\begin{array}{l@{~~}c@{~}l}
       \efromdynN{\tarr{\tau_d}{\tau_c}}{v} & = & \vmonfun{(\tarr{\tau_d}{\tau_c})}{v}
       \\ \sidecond{if $v \valeq \vlam{x}{e}$ or $v \valeq \vmonfun{\tau'}{v'}$}
@@ -28,7 +28,7 @@
 
   \multicolsbreak
 
-  \lblextra{$\vfromstaN : \tau \times v \rightarrow e$}{}{
+  \lblextra{$\vfromstaN : \specarr{\tpair{\tau}{v}}{e}$}{}{
     $\begin{array}{l@{~~}c@{~}l}
       \efromstaN{\tarr{\tau_d}{\tau_c}}{v} & = & \vmonfun{(\tarr{\tau_d}{\tau_c})}{v}
       \\
