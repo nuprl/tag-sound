@@ -2,6 +2,38 @@
 @title[#:tag "sec:implications"]{Implications}
 @require[(only-in "techreport.rkt" tr-theorem tr-lemma *extra-def-space*)]
 
+@Secref{sec:design} and 3 present the two critical aspects of the three
+approaches to combining statically typed and dynamically typed code via a
+twin-pair of languages: their semantics within a single framework and
+their performance characteristics relative to a single base language and
+the same suite of benchmark programs. Equipped with this objective
+information, we can now explain the logical and performance consequences of
+choosing one of these three approaches. 
+
+For the logical consequences, we proceed in a type-directed manner. As
+@secref{sub:base} explains, developers do not notice a difference between
+the natural embedding and the locally defensive one, but the erasure
+embedding may yield totally distinct (wrong) answers. Once developers are
+allowed to observe trees over first-order types, they can also distinguish
+the natural from the locally defensive embedding (see
+@secref{sub:first-order}). By looking at higher-order types, we can explain
+the truly essential difference; while the natural embedding allows
+developers to reason compositionally about type annotations, the users of
+the locally defensive variant must always consider the whole program (see
+@secref{sub:ho}). As mentioned already, the three approaches provide
+radically different support when it comes to boundary errors and debugging
+them (see @secref{sub:err}). 
+
+For consequences with respect to performance, our work somewhat confirms
+the implicit conjectures of the literature that lowering the standards of
+safety pays off---but only to some degree.  As @secref{sub:perf-mixed}
+interprets the findings of the proceeding section, the locally-defensive
+embedding is significantly more efficient when it comes to mixed-typed
+programs. By contrast, we remind readers in @secref{sub:perf-total} that
+fully typed programs run safely and faster with the natural embedding
+because the optimizer can take full advantage of the types, and the natural
+embedding naturally skips checking in this case. 
+
 @; TODO
 @; - classify examples as "good" "bad" "maybe"
 @;   with dangerous bends
@@ -115,7 +147,7 @@
     ]
 ])]
 
-@section{For Base Types}
+@section[#:tag "sub:base"]{For Base Types}
 
 For a program that computes a value of base type, it can be tempting to think
  that dynamic typing provides all the soundness that matters in practice.
@@ -156,7 +188,7 @@ The natural and locally-defensive embeddings are dynamically sound for base
 The erasure embedding is unsound for base types.
 
 
-@section{For First-Order, Non-Base Types}
+@section[#:tag "sub:first-order"]{For First-Order, Non-Base Types}
 
 The practical difference between the natural and locally-defensive embeddings
  becomes clear in a mixed-typed program that deals with pair values.
@@ -192,7 +224,7 @@ The locally-defensive embedding only enforces the top-level type constructor,
  and the erasure embedding is unsound.
 
 
-@section{For Higher-Order Types}
+@section[#:tag "sub:ho"]{For Higher-Order Types}
 
 One promising application of migratory typing is to layer a typed interface
  over an existing, dynamically-typed library of functions.
@@ -240,7 +272,7 @@ The locally-defensive embedding spot-checks the interactions between a higher-or
 The erasure embedding is unsound for higher-order values.
 
 
-@section{For Error Messages}
+@section[#:tag "sub:err"]{For Error Messages}
 
 The examples above have shown that the natural embedding detects errors
  earlier than the locally-defensive and erasure embeddings.
@@ -300,7 +332,7 @@ The locally-defensive embedding has limited ability to detect and report
 The erasure embedding has no ability to detect type boundary errors at runtime.
 
 
-@section{For the Performance of Mixed-Typed Programs}
+@section[#:tag "sub:perf-mixed"]{For the Performance of Mixed-Typed Programs}
 
 Enforcing soundness in a mixed-typed program adds performance overhead.
 This cost can be high in the locally-defensive embedding, and enormous in the
@@ -337,7 +369,7 @@ The cost of the locally-defensive embedding is far lower, typically within
 The erasure embedding adds no overhead.
 
 
-@section{For the Performance of Fully-Typed Programs}
+@section[#:tag "sub:perf-total"]{For the Performance of Fully-Typed Programs}
 
 If a program has few dynamically-typed components, then the locally-defensive
  embedding is likely to perform the worst of the three embeddings.
