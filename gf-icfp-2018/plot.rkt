@@ -469,7 +469,7 @@
 (define RATIOS-TITLE*
   (map bold
        #;(list "Benchmark" TR LD-Racket)
-       (list "Benchmark" "TR" "LD")))
+       (list "" "TR" "LD")))
 
 (define (render-numbers-table rt)
   (centered

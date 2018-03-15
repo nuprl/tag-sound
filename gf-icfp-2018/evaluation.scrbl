@@ -90,7 +90,7 @@ This protocol yields two potentially-different sets of measurements
  one for the fully-untyped configuration running via @|TR|
  and one for the untyped configuration via @|LD-Racket|.
 These measurements differ if the program depends on any typed libraries,
- as the semantics of typed code depend on the implementation of migratory typing.
+ as the semantics of the typed code depends on the implementation of migratory typing.
 It is therefore essential that we use the two sets to provide a fair baseline
  for discussing overhead.
 Only the @bm{jpeg} benchmark is affected by this technicality.
@@ -127,23 +127,21 @@ The lines on each plot give the percent of @deliverable{D} configurations
 In other words, a point @${(X, Y)} on the line for @|TR| says that @${Y}% of all @|TR| configurations
  run at most @${X} times slower than the same program with all types erased.
 
-The data confirms that @|LD-Racket| yields better performance on mixed-typed
+The data suggests that @|LD-Racket| yields better performance on mixed-typed
  programs than @|TR|; see the plots for
  @bm{sieve}, @bm{fsm}, @bm{suffixtree}, @bm{kcfa},
  @bm{snake}, @bm{tetris}, and @bm{synth}.
-The improvement is most dramatic for @bm{synth}
- because Typed Racket @bm{synth} spends a large amount of time
- eagerly traversing data structures and monitoring their components.
+The improvement is most dramatic for @bm{synth}.
 The @bm{morsecode} and @bm{zombie} benchmarks, however, show no improvement
  in the @${1}x to @${@~a[X-MAX]}x range.
 
 Since seven of the @integer->word[NUM-TR] benchmarks have at least one @|TR|
- configuration with over @~a[X-MAX]x overhead, @figure-ref{fig:max-overhead}
- tabulates the worst-case overhead in each benchmark.
-This table demonstrates that for pathological examples, the natural embedding
+ configuration that falls ``off the charts'' with an overhead above @~a[X-MAX]x,
+ @figure-ref{fig:max-overhead} tabulates the worst-case overhead in each benchmark.
+This table demonstrates that for pathological examples the natural embedding
  may slow a working program by over two orders of magnitude.
 By contrast, the worst-case performance of the locally-defensive embedding
- always within two orders of magnitude, and often under 10x.
+ is always within two orders of magnitude, and often under 10x.
 
 
 @section{Evaluation II: Fully-Typed Programs}
@@ -156,26 +154,17 @@ By contrast, the worst-case performance of the locally-defensive embedding
         @;@ratios-plot[TR-DATA* TAG-DATA*]
         ]
 
-@; TODO maybe should be a bar graph, with error lines
+The table in @figure-ref{fig:typed-baseline-ratios} compares the performance
+ of fully-typed programs.
+The first row presents the overhead of @|TR| relative to the erasure embedding
+ on each benchmark.
+The second row presents analogous data for @|LD-Racket| relative to its erasure
+ embedding.
 
-The locally-defensive approach rewrites typed code.
-In the worst case, when all code is typed, all code is defended with checks.
-A question is how this hypothetical worst-case compares to the natural
- embedding, which adds no overhead to typed code.
-
-@Figure-ref{fig:typed-baseline-ratios} addresses this question by presenting
- typed/untyped ratios for each benchmark.
-The first row lists abbreviated benchmark names.
-The second row lists the ratio of @|TR| on the fully-typed configuration
- relative to its untyped configuration.
-The final row lists the ratio of @|LD-Racket| on the fully-typed
- configuration relative to its untyped configuration.
-
-@|LD-Racket| is the slowest on every benchmark.
-@|TR| is the fastest on @integer->word[(for/sum ([n (in-list (ratios-table->typed RT))]) (if (< n 1) 1 0))]
- of the @integer->word[(length TR-DATA*)] benchmarks.
-The high overhead in the @bm{zombie} benchmark is due to type casts
- it performs to validate its input data.
+On fully-typed programs, @|TR| often runs faster than the erasure approach.
+This is due to type-driven optimizations@~cite[stff-padl-2012] and, in the case
+ of @bm{jpeg}, the removal of a boundary between the user program and a typed library.
+@|LD-Racket|, by contrast, is always slower than erasure on fully-typed programs.
 
 
 @section{Threats to Validity}
@@ -210,16 +199,19 @@ Second, the prototype is based on a completion judgment that introduces
  redundant checks.
 
 @; === things that make prototype non-representative
-Four other threats are worth noting.
+Three other threats are worth noting.
 First, @|LD-Racket| does not support Racket's object-oriented features@~cite[tfdfftf-ecoop-2015].
 @; ... though we expect OO to improve even more
 Second, our benchmarks are relatively small; the largest is @bm{jpeg} with
  approximately 1500 lines of code.
 @; TODO auto-compute (this is a big effort, the paper repo doesn't know where the benchmarks live)
-Third, ascribing different types to the same program can affect its performance;
- for example the constructor check for an integer is less expensive than the check for
- a natural number or a union type.
-Fourth, the @|LD-Racket| version of the @bm{jpeg} benchmark depends on an
- locally-defensive version of a @|TR| library because @|LD-Racket| and @|TR|
- cannot share type definitions.
- @; consequences: (1) slower math library, (2) no chaperones to protect TR from LD
+Third, the evaluation considers one fully-typed version of each benchmark,
+ but ascribing different types to the same program can affect its performance.
+For example, the constructor check for an integer may be less expensive than the
+ check for a natural number.
+
+@; @; This point about jpeg is pretty much noted above
+@;Fourth, the @|LD-Racket| version of the @bm{jpeg} benchmark depends on an
+@; locally-defensive version of a @|TR| library because @|LD-Racket| and @|TR|
+@; cannot share type definitions.
+@; @; consequences: (1) slower math library, (2) no chaperones to protect TR from LD

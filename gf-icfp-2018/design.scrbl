@@ -503,7 +503,7 @@ The static @${\rrKS} notion of reduction includes similar rules to protect typed
  functions against @emph{typed} arguments.
 This protection is necessary for typed functions that return from an untyped context,
  as taking a static--dynamic--static round trip is essentially a type cast.
-The following example applies an integer function to a pair:
+The following well-typed example applies an integer function to a pair:
 
 @dbend{
   \wellM (\eapp{(\esta{(\tarr{\tpair{\tint}{\tint}}{\tint})}{(\edyn{(\tarr{\tint}{\tint})}{(\vlam{\tann{x}{\tint}}{\esum{x}{x}})})})}{\vpair{0}{0}}) : \tint
