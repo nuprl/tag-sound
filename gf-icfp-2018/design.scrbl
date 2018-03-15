@@ -677,7 +677,7 @@ To extend the locally-defensive embedding, the language must add unions @${K \cu
  to its grammar of constructor checks and must extend the @${\tagof{\cdot}} function.
 For a union type, let @${\tagof{\tau_0 \cup \tau_1}} be @${\tagof{\tau_0} \cup \tagof{\tau_1}},
  i.e., the tags of its members.
-For a universal type @${(\tall{\alpha}{\tau})} let the constructor be @${\tagof{\tau}},
+For a universal type @${\tall{\alpha}{\tau}} let the constructor be @${\tagof{\tau}},
  and for a type variable let @${\tagof{\alpha}} be @${\kany} because there are
  no elimination forms for a universally-quantified type variable.
 For a recursive type @${\trec{\alpha}{\tau}}, let the constructor be
