@@ -9,77 +9,97 @@
 
 @; -----------------------------------------------------------------------------
 
-To evaluation the performance of the three approaches in a single language with
-the same benchmark suite, we use the Takikawa-Greenman approach and Typed Racket.
+To compare the performance of the three approaches as practical implementations
+ for one surface language, we use Typed Racket and a suite of @integer->word[NUM-TR]
+ functional programs.
 The data suggests that the locally-defensive embedding is a large
  improvement over the natural embedding for mixed-typed programs, and slightly
- worse for (mostly) fully-typed programs.
-The erasure embedding offers the best performance, except in the case of
- mostly-typed programs which significantly benefit from the Typed Racket optimizer@~cite[stff-padl-2012].
+ worse for fully-typed programs.
+The erasure embedding offers the best performance, except in typed programs
+ that happen to benefit from the Typed Racket optimizer@~cite[stff-padl-2012].
 
 
 @; -----------------------------------------------------------------------------
 @section{Implementation Overview}
 
-@; TODO compiled
-
 @|TR|@~cite[tf-popl-2008] is a migratory typing system for Racket and faithfully
- implements the natural embedding.
-Whereas a Racket program starts with the line @tt|{#lang racket}| a
- @|TR| program starts with the line @tt|{#lang typed/racket}| and
- must satisfy the type checker.
-Removing the type annotations in a Typed Racket program, we can
- therefore compare the performance of the natural embedding against
- the erasure embedding.
+ implements the natural embedding by compiling types to (higher-order) contracts@~cite[ff-icfp-2002].
+Its soundness guarantee is essentially that of the natural embedding,
+ but @|TR| handles additional types and guarantees that every boundary error
+ blames one of the static boundaries between typed and untyped code@~cite[tfffgksst-snapl-2017].
 
-To measure the performance of the locally-defensive embedding, we implemented
- this embedding in a fork of @|TR|.
-The implementation re-uses the static type checker,
- defines a new semantics for boundary terms,
- and replaces the type-directed optimizer with a type-directed completion pass.
-The fork is based on Racket version @|RKT-VERSION|, released in @|RKT-RELEASE-MONTH|.
-All code is made available in the artifact for this paper.
+Removing the type annotations from a @|TR| program yields a valid Racket
+ program.
+For any mixed-typed program, we can therefore compare the natural embedding
+ to the erasure embedding by removing types and measuring the underlying Racket
+ program.
 
-@;Re-using the type checker is difficult; this is why our implementation is a
-@; fork instead of a package.
-
-@subsection[#:tag "sec:implementation:checks"]{Constructor Checks}
-
-@emph{This subsection needs to say something about the implementation of
- locally-defensive checks and how they relate to low level type-tags.}
-
-The implementation comes with more types than the model.
-For types of the form @${F(\tau)} that represent mutable data, for example
- @${\tarray{\tau}}, check the constructor --- mutability makes no difference.
-For (true) union types of the form @${\tau_0 \cup \tau_1}, values that match
- @${\tagof{\tau_0}} and @${\tagof{\tau_1}} are correct, so check the disjunction.
-For a universal type @${\tall{\alpha}{\tau}} or recursive type @${\mu{\alpha}{\tau}},
- use the constructor @${\tagof{\tau}}.
-For a type variable @${\alpha}, define @${\tagof{\alpha} = \kany}; intuitively,
- a typed context cannot make any assumptions about the constructor of a value
- with type @${\alpha}, so there is no need to insert a check.
-
-In principle there is one check per type in the program, so a sophisticated
- compiler can generate efficient code for these.
-Our prototype does not attempt this kind of optimization.
-
-@;We implement checks with procedures; basically as contracts.
-@;Use TR type to contract compiler, then insert a check.
-@;@; (if ((begin-encourage-inline ctc) v) v (error ....))
+To compare against the locally-defensive approach, we modified the @|TR|
+ compiler to rewrite typed code and to compile types to (flat) contracts
+ that check first-order properties of values.
+The soundness guarantee of this implementation is that evaluation preserves the
+ first-order properties; it makes no claim about the quality of boundary error messages.
 
 
-@;@subsection{Completion}
-@;
-@;The completion pass rewrites functions and function applications.
-@;Every typed function @racket[(lambda ([x : T] ....) e)] is rewritten to a checked
-@; function @racket[(lambda ([x : T] ....) (check T x) .... e)].
-@;Every application @racket[(_f _x ....)] is rewritten to
-@; @racket[(check _K (_f _x ....))], where @racket[_K] comes from the static type
-@; of the expression.
-@;One more thing: we whitelist functions such as @racket[list]
-@; that are trusted to give results with the expected constructor.
+@section[#:tag "sec:evaluation:method"]{Method}
 
-@subsection{The Benchmarks}
+To evaluate performance, we use the exhaustive method for module-level
+ migratory typing@~cite[tfgnvf-popl-2016 gtnffvf-jfp-2017].
+Starting from one mixed-typed program, we migrate the whole program (ignoring
+ any libraries) to @|TR|.
+From this fully-typed program, we generate all typed/untyped configurations
+ by converting a subset of modules back to (untyped) Racket.
+A program with @${N} modules thus leads to @${2^N} configurations,
+ which represent all the variations of one program that a developer might
+ construct through migratory typing.
+
+Since the promise of migratory typing is that a developer may choose to run any
+ mixed-typed configuration, the main goal of our evaluation is to classify all
+ configurations by their overhead relative to the completely-untyped configuration.
+If many configurations are @deliverable{D}, in the sense that they run no
+ more than @${D}x slower than the untyped configuration@~cite[tfgnvf-popl-2016 gtnffvf-jfp-2017],
+ then a developer willing to accept a @${D}x slowdown can fearlessly apply migratory typing.
+Otherwise, that developer may prefer the erasure approach (remove all types)
+ over natural or locally-defensive migratory typing.
+
+For this paper, we present the number of @deliverable{D} configurations
+ for @${D} between 1x and @~a[X-MAX]x.
+The supplementary material contains the uninterpreted data.
+
+
+@section[#:tag "sec:evaluation:experiment"]{Experiment}
+
+The evaluation measured the performance of @|TR| and our
+ @|LD-Racket| on @integer->word[NUM-TR] programs.
+Nine programs are the functional benchmarks from prior work on
+ Typed Racket@~cite[tfgnvf-popl-2016 gtnffvf-jfp-2017].
+The tenth program is adapted from a JPEG library; the original author of this
+ application noticed poor performance due to untyped code interacting with
+ a @|TR| array library.
+Further details on the size, origin, and purpose of each benchmark are in the
+ appendix.
+
+For each configuration of each benchmark, we collected data using both @|TR|
+ and @|LD-Racket|.
+The data for each semantics is a sequence of @~a[NUM-ITERS] running times,
+ which we obtained by running the program once to account for JIT warmup and
+ then an additional @~a[NUM-ITERS] times to collect data.
+
+This protocol yields two potentially-different sets of measurements
+ corresponding to the erasure embedding:
+ one for the fully-untyped configuration running via @|TR|
+ and one for the untyped configuration via @|LD-Racket|.
+These measurements differ if the program depends on any typed libraries,
+ as the semantics of typed code depend on the implementation of migratory typing.
+It is therefore essential that we use the two sets to provide a fair baseline
+ for discussing overhead.
+Only the @bm{jpeg} benchmark is affected by this technicality.
+
+All measurements were collected sequentially using Racket v@|RKT-VERSION| on an
+ unloaded Linux machine with two physical AMD Opteron 6376 processors (a NUMA architecture) and
+ 128GB RAM.
+The CPU cores on each processor ran at 2.30 GHz using the @emph{performance} CPU governor.
+
 
 @section{Evaluation I: Mixed-Typed Programs}
 
@@ -99,51 +119,13 @@ Our prototype does not attempt this kind of optimization.
 
 
 @Figure-ref{fig:locally-defensive-performance} plots
- the overhead of @|TR| relative to Racket (@|tr-color-text| color)
- and the overhead of @|LD-Racket| relative to Racket (@|tag-color-text| color)
+ the overhead of @|TR| relative to its untyped configuration (@|tr-color-text| color)
+ and the overhead of @|LD-Racket| relative to its untyped configuration (@|tag-color-text| color)
  for the @integer->word[NUM-TR] functional programs.
-Since the area under the curve for @|LD-Racket| is larger than that of @|TR|, we conclude that
- the locally-defensive embedding has better performance than the natural embedding
- on mixed-typed programs.
-Racket out-performs both.
-
-The data for the plots comes from applying the Takikawa method@~cite[tfgnvf-popl-2016 gtnffvf-jfp-2017]
- to their functional benchmark programs.
-For a program with @${N} modules, the data is an average running time based
- on @~a[NUM-ITERS] iterations for each of the @${2^N} configurations of the program.
-The value of @${2^N} is reported at the top-right of each plot in @figure-ref{fig:locally-defensive-performance}.
-
-All measurements were collected sequentially using Racket v@|RKT-VERSION| on an unloaded Linux
- machine with two physical AMD Opteron 6376 processors (a NUMA architecture) and
- 128GB RAM.
-The CPU cores on each processor ran at 2.30 GHz using the @emph{performance} CPU governor.
-The Racket compiler generates bytecode ahead-of-time and employs a simple
- JIT compiler.
-@; throw away 1 config
-
-The lines on each plot show the percent of @deliverable{D} configurations as
- the value of @${D} increases from @${1} to @${@~a[X-MAX]}.
-A configuration is @deliverable{D} if its running time is at most @${D} times
- slower than the running time of the corresponding (untyped) Racket program.
-A point @${(X, Y)} on the line for Typed Racket says that @${Y}% of all Typed Racket configurations
- for the benchmark @sc{b} run at most @${X} times slower than Racket running
- the same code with all types erased.
-
-Ideally, the percent of @deliverable{D} configurations would be high for
- @${D=1} and reach @${100\%} at a low value, perhaps @${D=1.8}.
-A @deliverable{1} configuration runs at least as fast as the untyped program.
-The worst case is that only a small percent of configurations are @deliverable[X-MAX],
- meaning that many mixed-typed programs suffer a huge performance overhead.
-
-@;@emph{Remark} The premise of the @deliverable{D} measure is that programmers
-@; have a fixed performance requirement.
-@;Certain applications may have strict performance requirements and can
-@; only tolerate a 10% overhead, corresponding to @${D\,=\,1.1x}.
-@;Others may accept overhead as high as @${D\,=\,10x}.
-@;No matter the requirement, any programmer can instantiate @${D} and check whether
-@; the proportion of @deliverable{D} configurations is high enough to enable
-@; an incremental transition to a typed codebase.
-@;@emph{End}
+The lines on each plot give the percent of @deliverable{D} configurations
+ for values of @${D} between @${1} to @${@~a[X-MAX]}.
+In other words, a point @${(X, Y)} on the line for @|TR| says that @${Y}% of all @|TR| configurations
+ run at most @${X} times slower than the same program with all types erased.
 
 The data confirms that @|LD-Racket| yields better performance on mixed-typed
  programs than @|TR|; see the plots for
@@ -152,19 +134,16 @@ The data confirms that @|LD-Racket| yields better performance on mixed-typed
 The improvement is most dramatic for @bm{synth}
  because Typed Racket @bm{synth} spends a large amount of time
  eagerly traversing data structures and monitoring their components.
-@; FSM also dramatic, removes huge indirection cost
+The @bm{morsecode} and @bm{zombie} benchmarks, however, show no improvement
+ in the @${1}x to @${@~a[X-MAX]}x range.
 
-Two bad things.
-The @bm{zombie} benchmark shows only a minor improvement;
- few configurations are @deliverable{10} in either Typed Racket or @|LD-Racket|.
-The @bm{morsecode} benchmark is often a slow-down; using @|LD-Racket|
- increases its worst-case overhead from @maxo['typed 'morsecode #:precision '(= 1)]
- to @maxo['tagged 'morsecode #:precision '(= 1)].
-This degredation occurs because the many constructor checks inserted by @|LD-Racket|
- introduce more overhead than the boundary checks inserted by Typed Racket.
-
-@Figure-ref{fig:max-overhead} presents a sky view of the benchmarks.
-@|LD-Racket| has much better worst-case performance.
+Since seven of the @integer->word[NUM-TR] benchmarks have at least one @|TR|
+ configuration with over @~a[X-MAX]x overhead, @figure-ref{fig:max-overhead}
+ tabulates the worst-case overhead in each benchmark.
+This table demonstrates that for pathological examples, the natural embedding
+ may slow a working program by over two orders of magnitude.
+By contrast, the worst-case performance of the locally-defensive embedding
+ always within two orders of magnitude, and often under 10x.
 
 
 @section{Evaluation II: Fully-Typed Programs}
@@ -173,32 +152,24 @@ This degredation occurs because the many constructor checks inserted by @|LD-Rac
 
 @figure["fig:typed-baseline-ratios"
         @elem{Typed/untyped ratios for @|TR| (TR) and @|LD-Racket| (LD)}
-        @render-ratios-table[RT]]
-
-
-@;@|TR| is expected to be fastest, because the static types enable some
-@; optimization@~cite[stff-padl-2012].
-@;@|LD-Racket| is expected to be slowest because it rewrites all typed code to include
-@; checks.
-@;For example, the simple expressions @${\efst{\vpair{0}{1}}} reduces to a value
-@; in one step in the natural embedding and in two steps in the locally-defensive
-@; embedding:
-@;
-@;@$$|{
-@;  \wellM \efst{\vpair{0}{1}} : \tint \carrow \echk{\kint}{(\efst{\vpair{0}{1}})} \rrKSstar \echk{\kint}{0} \rrKSstar 0
-@;}|
-@;
-@;So much for the theory.
-@;How do the implementations stack up?
+        @render-ratios-table[RT]
+        @;@ratios-plot[TR-DATA* TAG-DATA*]
+        ]
 
 @; TODO maybe should be a bar graph, with error lines
-@Figure-ref{fig:typed-baseline-ratios} compares the performance of the fully-typed
- configuration for each benchmark against the performance of the erasure embedding.
+
+The locally-defensive approach rewrites typed code.
+In the worst case, when all code is typed, all code is defended with checks.
+A question is how this hypothetical worst-case compares to the natural
+ embedding, which adds no overhead to typed code.
+
+@Figure-ref{fig:typed-baseline-ratios} addresses this question by presenting
+ typed/untyped ratios for each benchmark.
 The first row lists abbreviated benchmark names.
 The second row lists the ratio of @|TR| on the fully-typed configuration
- relative to Racket on the untyped configuration.
-The third and final row lists the ratio of @|LD-Racket| on the fully-typed
- configuration relative to Racket on the untyped configuration.
+ relative to its untyped configuration.
+The final row lists the ratio of @|LD-Racket| on the fully-typed
+ configuration relative to its untyped configuration.
 
 @|LD-Racket| is the slowest on every benchmark.
 @|TR| is the fastest on @integer->word[(for/sum ([n (in-list (ratios-table->typed RT))]) (if (< n 1) 1 0))]
