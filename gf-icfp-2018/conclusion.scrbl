@@ -10,6 +10,10 @@
 @;   Profiler to choose between LD and natural
 @; - natural embedding, why runtime check and not typecheck?
 @;     maybe possible in pure language, probably not in any language worth building an MT system for
+@; - meta: what is a boundary?
+@;   - natural = dyn/sta/mon
+@;   - erasure = none
+@;   - LD      = elims
 
 @; Future work:
 @; - static/dynamic analysis to attribute run-time cost to boundaries
@@ -18,6 +22,18 @@
 @; - semantic type soundness theorems, better classification
 
 @; -----------------------------------------------------------------------------
+
+@;What should types mean in a mixed-typed program?
+@;In the natural embedding, base and inductive types have the same meaning as
+@; in a statically-typed language.
+@;Coinductive types have a different meaning, but semantically equivalent.
+@;In the erasure embedding, types are meaningless.
+@;In the locally-defensive embedding, types mean assertions.
+@;Having lots of types probably avoids catastrophic failure, but adds an
+@; unpleasant performance overhead.
+
+
+
 
 The paper contributes two major results:
  @; species of migratory typing?
@@ -44,7 +60,7 @@ Each embedding and its corresponding soundness condition has different implicati
 Indeed, a violation of the types in the source code may go unnoticed.
 }
 @item{
- Running a Typed Racket program in @|LD-Racket| is guaranteed to reveal a
+ Running a Typed Racket program under the locally-defensive semantics is guaranteed to reveal a
   violation of types @emph{eventually} if it affects the execution.
  The delayed checking schema may completely obscure the source of the error,
   however.
@@ -74,7 +90,7 @@ An occurrence typing system@~cite[tf-icfp-2010] seems a perfect fit for this job
 A second strategy is to design a JIT compiler that can recognize and avoid
  redundant constructor checks; the compiler by @citet[rat-oopsla-2017] might
  be a promising context to experiment.
-Alternatively, combining @|LD-Racket| with the orthogonal work on Pycket@~cite[bauman-et-al-icfp-2015 bbst-oopsla-2017]
+Alternatively, combining the locally-defensive approach with the orthogonal work on Pycket@~cite[bauman-et-al-icfp-2015 bbst-oopsla-2017]
  may yield an implementation with good performance in all configurations.
 A third strategy is to automatically switch to the natural embedding when it
  is likely to give better performance.

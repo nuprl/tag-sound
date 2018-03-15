@@ -19,8 +19,7 @@
   NUM-TR
   NUM-ITERS
   X-MAX
-  TR
-  LD-Racket
+
   overhead-plot*
   exact-plot*
 
@@ -92,8 +91,6 @@
 (define NUM-COLUMNS 2)
 (define X-MAX 10)
 (define CACHE-DIR "cache")
-(define LD-Racket "Locally-Defensive Racket")
-(define TR "Typed Racket")
 
 
 (define START-COLOR 3)
@@ -469,16 +466,16 @@
 (define RATIOS-TITLE*
   (map bold
        #;(list "Benchmark" TR LD-Racket)
-       (list "" "TR" "LD")))
+       (list "" "TR-N" "TR-LD")))
 
-(define (render-numbers-table rt)
+(define (render-numbers-table rt titles)
   (centered
     (tabular
       #:sep (hspace 2)
       #:style 'block
       #:row-properties '(left right)
       #:column-properties '(right)
-      (map cons RATIOS-TITLE*
+      (map cons (cons "" titles)
                 (cons (map render-table-name (car rt))
                       (for/list ([r (in-list (cdr rt))])
                         (map rnd r)))))))
