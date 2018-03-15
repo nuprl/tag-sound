@@ -3,14 +3,12 @@
 @require[(only-in "techreport.rkt" tr-theorem tr-lemma *extra-def-space*)]
 
 @; TODO
-@; - fill in TODO about what else is in the figure
 @; - classify examples as "good" "bad" "maybe"
 @;   with dangerous bends
 @; - one point of GT is that need to build incrementally,
 @;   but the errors are definitely not incremental
 @; - erasure's simplicity is GREAT, easy to implement understand maintain,
 @;   more time to spend on the IDE
-@; - N / LD agree for base types
 
 @; ML = static typing , N = natural embedding , E = erasure embedding , K = locally-defensive embedding
 @; t = type or sizeof type , e = small number , d = small number
@@ -27,24 +25,13 @@
 
 @; -----------------------------------------------------------------------------
 
-@; TODO new intro ... all 3 lie on spectrum of soundness & spectrum of performnace . what means?
+The three approaches to migratory typing evidently lie on a spectrum.
+At one end, the natural semantics guarantees a strong form of type soundness
+ but may add significant type-checking overhead to a working program.
+At the other end, the erasure semantics guarantees no soundness beyond the
+ soundness of the host language but adds no performance overhead.
+The locally-defensive semantics is a compromise. @emph{Unfinished}
 
-The natural, erasure, and locally-defensive embeddings provide three different
- notions of soundness, reproduced in @figure-ref{fig:X-soundness}.
-At a high level, all three guarantee that reduction is fully-defined for
- well-typed programs.
-The natural and locally-defensive embeddings additionally guarantee that typed
- expressions do not raise tag errors.
-Only the natural embedding guarantees that well-typed expressions reduce to
- well-typed values.
-
-When it comes to predicting the behavior of programs, the three notions
- of soundness have subtle consequences.
-The examples on the right column of @figure-ref{fig:X-soundness} give an
- illustration; the natural embedding eagerly enforces boundary terms,
- the erasure embedding never enforces boundary terms,
- and the locally-defensive embedding enforces type constructors but nothing else.
-The rest of this section compares the embeddings along a few different axes.
 
 
 @figure["fig:X-soundness" "Soundness" @(parameterize ((*extra-def-space* "[1ex]")) @list[
