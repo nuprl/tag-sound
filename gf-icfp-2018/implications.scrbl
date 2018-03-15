@@ -25,14 +25,19 @@
 
 @; -----------------------------------------------------------------------------
 
-The three approaches to migratory typing evidently lie on a spectrum.
-At one end, the natural semantics guarantees a strong form of type soundness
- but may add significant type-checking overhead to a working program.
-At the other end, the erasure semantics guarantees no soundness beyond the
- soundness of the host language but adds no performance overhead.
-The locally-defensive semantics is a compromise. @emph{Unfinished}
-
-
+@;From an abstract perspective, the three approaches to migratory typing evidently lie on a spectrum.
+@;At one end, the natural semantics guarantees a strong form of type soundness
+@; but may add significant type-checking overhead to a working program.
+@;At the other end, the erasure semantics guarantees no soundness beyond the
+@; soundness of the host language but adds no performance overhead.
+@;The locally-defensive semantics lies in between, guaranteeing a shallow notion of soundness for a relatively low performance price.
+@;
+@;In this section, we
+@;
+@;The three approaches to migratory typing evidently lie on a spectrum of
+@; soundness and performance.
+@;For mixed-typed programs in general, the natural semantics provides the strongest
+@; soundness guarantee and the erasure semantics provides the best performance.
 
 @figure["fig:X-soundness" "Soundness" @(parameterize ((*extra-def-space* "[1ex]")) @list[
     @twocolumn[
