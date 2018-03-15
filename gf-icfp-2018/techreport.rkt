@@ -41,6 +41,11 @@
 
   tr-qed
   tr-contradiction
+
+  *extra-def-space*
+  ;; (parameterof string?)
+  ;; this is a hack to put space between a theorem title & its body, because
+  ;;  I don't know how to actually get the spacing right
 )
 
 (require
@@ -58,6 +63,9 @@
 )
 
 ;; =============================================================================
+
+(define *extra-def-space*
+  (make-parameter "[-1.8ex]"))
 
 (define UID
   (mcons 0 0))
@@ -219,7 +227,7 @@
     (list
       @elem{@exact{\vspace{0.4ex}}
             @bold{@kind->long-name[kind] @|uid|} : @(if key-str @deftech[#:key key-str name-elem] @emph[name-elem])
-            @exact{\\[-1.8ex]}}
+            @(exact (string-append "\\\\" (*extra-def-space*)))}
       (make-table
         boxed-style
         (list (list (nested content*)))))))

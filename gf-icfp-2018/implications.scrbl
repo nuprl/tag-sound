@@ -1,6 +1,6 @@
 #lang gf-icfp-2018
 @title[#:tag "sec:implications"]{Implications}
-@require[(only-in "techreport.rkt" tr-theorem tr-lemma)]
+@require[(only-in "techreport.rkt" tr-theorem tr-lemma *extra-def-space*)]
 
 @; TODO
 @; - fill in TODO about what else is in the figure
@@ -8,6 +8,9 @@
 @;   with dangerous bends
 @; - one point of GT is that need to build incrementally,
 @;   but the errors are definitely not incremental
+@; - erasure's simplicity is GREAT, easy to implement understand maintain,
+@;   more time to spend on the IDE
+@; - N / LD agree for base types
 
 @; ML = static typing , N = natural embedding , E = erasure embedding , K = locally-defensive embedding
 @; t = type or sizeof type , e = small number , d = small number
@@ -24,13 +27,15 @@
 
 @; -----------------------------------------------------------------------------
 
+@; TODO new intro ... all 3 lie on spectrum of soundness & spectrum of performnace . what means?
+
 The natural, erasure, and locally-defensive embeddings provide three different
  notions of soundness, reproduced in @figure-ref{fig:X-soundness}.
 At a high level, all three guarantee that reduction is fully-defined for
  well-typed programs.
 The natural and locally-defensive embeddings additionally guarantee that typed
  expressions do not raise tag errors.
-And only the natural embedding guarantees that well-typed expressions reduce to
+Only the natural embedding guarantees that well-typed expressions reduce to
  well-typed values.
 
 When it comes to predicting the behavior of programs, the three notions
@@ -41,81 +46,82 @@ The examples on the right column of @figure-ref{fig:X-soundness} give an
  and the locally-defensive embedding enforces type constructors but nothing else.
 The rest of this section compares the embeddings along a few different axes.
 
-@figure["fig:X-soundness" "Soundness" @list[
-  @twocolumn[
-    @tr-theorem[#:key #false @elem{static @${\mathbf{N}}-soundness}]{
-      If @${\wellM e : \tau} then @${\wellNE e : \tau} and one
-      @linebreak[]
-      of the following holds:
-      @itemlist[
-        @item{ @${e \rrNSstar v \mbox{ and } \wellNE v : \tau} }
-        @item{ @${e \rrNSstar \ctxE{\edyn{\tau'}{\ebase[e']}} \mbox{ and } e' \rrND \tagerror} }
-        @item{ @${e \rrNSstar \boundaryerror} }
-        @item{ @${e} diverges}
-      ] }
 
-    @${\begin{array}{l}
-      \edyn{\tint}{\vpair{1}{1}}
-    \\\qquad \rrNSstar \boundaryerror
-    \\[1.2ex]
-      \edyn{\tpair{\tint}{\tint}}{\vpair{1}{\vlam{x}{x}}}
-    \\\qquad \rrNSstar \boundaryerror
-    \\[1.2ex]
-      \edyn{(\tarr{\tint}{\tint})}{(\vlam{x}{\vpair{x}{x}})}
-    \\\qquad \rrNSstar \vmonfun{(\tarr{\tint}{\tint})}{(\vlam{x}{\vpair{x}{x}})}
-    \end{array}}
-  ]
+@figure["fig:X-soundness" "Soundness" @(parameterize ((*extra-def-space* "[1ex]")) @list[
+    @twocolumn[
+      @tr-theorem[#:key #false @elem{static @${\mathbf{N}}-soundness}]{
+        If @${\wellM e : \tau} then @${\wellNE e : \tau} and one
+        @linebreak[]
+        of the following holds:
+        @itemlist[
+          @item{ @${e \rrNSstar v \mbox{ and } \wellNE v : \tau} }
+          @item{ @${e \rrNSstar \ctxE{\edyn{\tau'}{\ebase[e']}} \mbox{ and } e' \rrND \tagerror} }
+          @item{ @${e \rrNSstar \boundaryerror} }
+          @item{ @${e} diverges}
+        ] }
 
-  @twocolumn[
-    @tr-theorem[#:key #false @elem{static @${\mathbf{E}}-soundness}]{
-      If @${\wellM e : \tau} then @${\wellEE e} and one
-      @linebreak[]
-      of the following holds:
-      @itemlist[
-        @item{ @${e \rrEEstar v \mbox{ and } \wellEE v} }
-        @item{ @${e \rrEEstar \tagerror} }
-        @item{ @${e \rrEEstar \boundaryerror} }
-        @item{ @${e} diverges}
-      ] }
+      @${\begin{array}{l}
+        \edyn{\tint}{\vpair{1}{1}}
+      \\\qquad \rrNSstar \boundaryerror
+      \\[1.2ex]
+        \edyn{\tpair{\tint}{\tint}}{\vpair{1}{\vlam{x}{x}}}
+      \\\qquad \rrNSstar \boundaryerror
+      \\[1.2ex]
+        \edyn{(\tarr{\tint}{\tint})}{(\vlam{x}{\vpair{x}{x}})}
+      \\\qquad \rrNSstar \vmonfun{(\tarr{\tint}{\tint})}{\vclosure}
+      \end{array}}
+    ]
 
-    @${\begin{array}{l}
-      \edyn{\tint}{\vpair{1}{1}}
-    \\\qquad \rrEEstar \vpair{1}{1}
-    \\[1.2ex]
-      \edyn{\tpair{\tint}{\tint}}{\vpair{1}{\vlam{x}{x}}}
-    \\\qquad \rrEEstar \vpair{1}{\vlam{x}{x}}
-    \\[1.2ex]
-      \edyn{(\tarr{\tint}{\tint})}{(\vlam{x}{\vpair{x}{x}})}
-    \\\qquad \rrEEstar \vlam{x}{\vpair{x}{x}}
-    \end{array}}
-  ]
+    @twocolumn[
+      @tr-theorem[#:key #false @elem{static @${\mathbf{E}}-soundness}]{
+        If @${\wellM e : \tau} then @${\wellEE e} and one
+        @linebreak[]
+        of the following holds:
+        @itemlist[
+          @item{ @${e \rrEEstar v \mbox{ and } \wellEE v} }
+          @item{ @${e \rrEEstar \tagerror} }
+          @item{ @${e \rrEEstar \boundaryerror} }
+          @item{ @${e} diverges}
+        ] }
 
-  @twocolumn[
-    @tr-theorem[#:key #false @elem{static @${\mathbf{K}}-soundness}]{
-      If @${\wellM e : \tau} then 
-      @${\wellM e : \tau \carrow e''}
-      and @${\wellKE e'' : \tagof{\tau}}
-      @linebreak[]
-      and one of the following holds:
-      @itemlist[
-        @item{ @${e'' \rrKSstar v} and @${\wellKE v : \tagof{\tau}} }
-        @item{ @${e'' \rrKSstar \ctxE{\edyn{\tau'}{\ebase[e']}} \mbox{ and } e' \rrKD \tagerror} }
-        @item{ @${e'' \rrKSstar \boundaryerror} }
-        @item{ @${e''} diverges }
-      ] }
+      @${\begin{array}{l}
+        \edyn{\tint}{\vpair{1}{1}}
+      \\\qquad \rrEEstar \vpair{1}{1}
+      \\[1.2ex]
+        \edyn{\tpair{\tint}{\tint}}{\vpair{1}{\vlam{x}{x}}}
+      \\\qquad \rrEEstar \vpair{1}{\vclosure}
+      \\[1.2ex]
+        \edyn{(\tarr{\tint}{\tint})}{(\vlam{x}{\vpair{x}{x}})}
+      \\\qquad \rrEEstar \vclosure
+      \end{array}}
+    ]
 
-    @${\begin{array}{l}
-      \edyn{\tint}{\vpair{1}{1}}
-    \\ \qquad \rrKSstar \boundaryerror
-    \\[1.2ex]
-      \edyn{\tpair{\tint}{\tint}}{\vpair{1}{\vlam{x}{x}}}
-    \\\qquad \rrKSstar \vpair{1}{\vlam{x}{x}}
-    \\[1.2ex]
-      \edyn{(\tarr{\tint}{\tint})}{(\vlam{x}{\vpair{x}{x}})}
-    \\\qquad \rrKSstar \vlam{x}{\vpair{x}{x}}
-    \end{array}}
-  ]
-]]
+    @twocolumn[
+      @tr-theorem[#:key #false @elem{static @${\mathbf{K}}-soundness}]{
+        If @${\wellM e : \tau} then 
+        @${\wellM e : \tau \carrow e''}
+        and @${\wellKE e'' : \tagof{\tau}}
+        @linebreak[]
+        and one of the following holds:
+        @itemlist[
+          @item{ @${e'' \rrKSstar v} and @${\wellKE v : \tagof{\tau}} }
+          @item{ @${e'' \rrKSstar \ctxE{\edyn{\tau'}{\ebase[e']}} \mbox{ and } e' \rrKD \tagerror} }
+          @item{ @${e'' \rrKSstar \boundaryerror} }
+          @item{ @${e''} diverges }
+        ] }
+
+      @${\begin{array}{l}
+        \edyn{\tint}{\vpair{1}{1}}
+      \\ \qquad \rrKSstar \boundaryerror
+      \\[1.2ex]
+        \edyn{\tpair{\tint}{\tint}}{\vpair{1}{\vlam{x}{x}}}
+      \\\qquad \rrKSstar \vpair{1}{\vclosure}
+      \\[1.2ex]
+        \edyn{(\tarr{\tint}{\tint})}{(\vlam{x}{\vpair{x}{x}})}
+      \\\qquad \rrKSstar \vclosure
+      \end{array}}
+    ]
+])]
 
 @section{For Base Types}
 
@@ -198,7 +204,7 @@ The locally-defensive embedding only enforces the top-level type constructor,
 
 One promising application of migratory typing is to layer a typed interface
  over an existing, dynamically-typed library of functions.
-As a corollary of type soundness, the natural embedding check that the library
+As a corollary of type soundness, the natural embedding checks that the library
  and the clients match the interface.
 
 The locally-defensive and erasure embeddings do not support this use-case.
@@ -206,7 +212,7 @@ Retrofitting a type onto a dynamically-typed function @${f} does not
  guarantee that @${f} respects its arguments.
 Conversely, there is no guarantee that untyped clients of a function @${g} match its interface;
  the erasure embedding ignores the types, and the locally-defensive embedding
- only checks that the exported value is a function.
+ checks only that the exported value is a function.
 
 @dbend{
   \begin{array}{l}
@@ -222,7 +228,7 @@ Conversely, there is no guarantee that untyped clients of a function @${g} match
 
 On a related note, it is possible to cast a function type to any other
  in the locally defensive embedding.
-Programmers must take care not to write such code by accident:
+Programmers must take care not to write such code by accident.
 
 @dbend{
   \begin{array}{l}
@@ -237,8 +243,8 @@ Programmers must take care not to write such code by accident:
 
 The natural embedding monitors higher-order values and reports the first
  evidence of a type mismatch.
-The locally-defensive embedding checks each the constructor any result
- sent from a higher-order value to a typed context.
+The locally-defensive embedding spot-checks the interactions between a higher-order
+ value and a typed context.
 The erasure embedding is unsound for higher-order values.
 
 
@@ -254,6 +260,7 @@ The erasure embedding detects a runtime type mismatch as late as possible, namel
  just before invoking @${\delta} with an invalid argument.
 Outside of printing a stack trace, it cannot do much to infer the source of the
  bad value.
+When the source is off the stack, the erasure embedding is helpless.
 
 @dbend{
   \begin{array}{l}
@@ -267,7 +274,7 @@ In the latter case, the locally-defensive embedding is no better off than the
  erasure embedding.
 It is unclear how to trace the value that failed the check back to the type
  boundary where it originated.
-@citet[vss-popl-2017] have explored one strategy for improving these error
+@citet[vss-popl-2017] have explored a strategy for improving these error
  messages, but the strategy reports a set of potentially-guilty boundaries
  rather than pinpointing the faulty one.
 
@@ -276,8 +283,9 @@ By contrast, an implementation of the natural embedding can store debugging
 When such a monitor detects a type mismatch, it can identify the boundary term
  that originated the error.
 Typed Racket implements this strategy@~cite[tfffgksst-snapl-2017];
- when it detects a runtime type error, the programmer knows that either the
- boundary type is wrong or the dynamically-typed code has a latent bug.
+ when it detects a runtime type error, the programmer knows exactly which
+ boundary violated its assertion: either the boundary type is wrong or the
+ dynamically-typed code has a latent bug.
 
 @;; too big
 @;To illustrate the differences between the three embeddings, the following
@@ -297,7 +305,7 @@ In the natural embedding, every error due to a dynamically-typed value in
  static and dynamic code.
 The locally-defensive embedding has limited ability to detect and report
  such errors.
-The erasure embedding has no ability to detect type errors at runtime.
+The erasure embedding has no ability to detect type boundary errors at runtime.
 
 
 @section{For the Performance of Mixed-Typed Programs}
@@ -306,27 +314,26 @@ Enforcing soundness in a mixed-typed program adds performance overhead.
 This cost can be high in the locally-defensive embedding, and enormous in the
  natural embedding.
 
-The locally-defensive embedding incurs type-constructor checks at:
+The locally-defensive embedding incurs type-constructor checks at three places:
  type boundaries, applications of typed functions, and explicit @${\vchk} terms.
-Each check adds a small cost,@note{In the model, checks have @${O(1)} cost.
+While each check adds a small cost,@note{In the model, checks have @${O(1)} cost.
   In the implementation, checks have basically-constant cost @${O(n)} where
   @${n} is the number of types in the widest union type
   @${(\tau_0 \cup \ldots \cup \tau_{n-1})} in the program.}
- however, these costs accumulate.
+ these costs accumulate.
 Furthermore, the added code and branches may affect JIT compilation.
 
 The natural embedding incurs three significantly larger kinds of costs.
 First, there is the cost of checking a value at a boundary.
-Such checks may need to traverse the entire value to compute its type.
+Such checks may need to traverse the (first-order) value to compute its type.
 Second, there is an allocation cost when a higher-order value crosses a boundary.
 Third, monitored values suffer an indirection cost; for example,
  a monitor guarding a dynamically-typed function checks every result computed
  by the function.
-@; add note about TR contract optimizer?
+This indirection may affect JIT inlining decisions.
 
-@Secref{sec:conclusion} offers suggestions for reducing the cost of soundness.
-The most promising direction is to combine @|LD-Racket| with the Pycket
- tracing JIT compiler@~cite[bbst-oopsla-2017].
+@; because Typed Racket @bm{synth} spends a large amount of time
+@; eagerly traversing data structures and monitoring their components.
 
 
 @subsection[#:tag "sec:mixed-perf:verdict"]{Summary}
@@ -335,7 +342,7 @@ The cost of enforcing soundness in the natural embedding may slow a working
  program by two orders of magnitude.
 The cost of the locally-defensive embedding is far lower, typically within
  one order of magnitude.
-The erasure embedding adds no overhead to mixed-typed programs.
+The erasure embedding adds no overhead.
 
 
 @section{For the Performance of Fully-Typed Programs}
@@ -347,7 +354,7 @@ This poor performance stems from the ahead-of-time completion function,
  application and pair projection.
 For example, a function that adds both elements of a pair value must check
  that its input has integer-valued components.
-These checks cost time, and are unnecessary if the input value is typed.
+These checks cost time and are unnecessary if the input value is typed.
 
 @dbend{
   \begin{array}{l}
@@ -360,14 +367,13 @@ These checks cost time, and are unnecessary if the input value is typed.
 As a general rule, adding type annotations leads to a linear performance
  degredation in the locally-defensive embedding@~cite[gm-pepm-2018 gf-tr-2018].
 
-By contrast, the natural embedding only pays to enforce soundness when static
+By contrast, the natural embedding pays to enforce soundness only when static
  and dynamic components interact.
 Furthermore, a compiler may leverage the soundness of the natural embedding
  to produce code that is more efficient than the erasure embedding.
-In many dynamically typed language, primitives such as @${\vsum} check the
- type-tag of their arguments and dispatch to a low-level routine.
-Sound static types can eliminate the need to dispatch.
-Typed Racket implements this@~cite[stff-padl-2012] 
+In many dynamically typed language, primitives check the
+ type-tag of their arguments and dispatch to a low-level procedure.
+Sound static types can eliminate the need to dispatch@~cite[stff-padl-2012] 
 
 
 @subsection[#:tag "sec:typed-perf:verdict"]{Summary}
@@ -375,6 +381,6 @@ Typed Racket implements this@~cite[stff-padl-2012]
 The natural embedding adds no overhead to fully-typed programs and may enable
  type-based optimizations that improve performance.
 The locally-defensive embedding suffers its worst-case overhead on fully-typed
- programs, as it defends all typed code against possibly-untyped inputs.
+ programs, as it always defends typed code against possibly-untyped inputs.
 The erasure embedding adds no overhead to fully-typed programs.
 
