@@ -23,6 +23,7 @@
   LD-Racket
   overhead-plot*
   exact-plot*
+
   models-roadmap
 
   render-max-overhead
@@ -57,11 +58,18 @@
     string-prefix?)
   (only-in racket/draw
     make-color)
+  ;plot/no-gui
   (only-in plot/utils
     ->brush-color
     ->pen-color)
   (only-in racket/path
     file-name-from-path)
+  (only-in racket/file
+    file->value)
+  (only-in racket/port
+    with-input-from-string)
+  (only-in math/statistics
+    mean)
   (only-in racket/math
     exact-round
     exact-floor))
@@ -169,7 +177,7 @@
   (number->string (length TAG-DATA*)))
 
 (define NUM-TR
-  (number->string (length TR-DATA*)))
+  (length TR-DATA*))
 
 (define NUM-ITERS
   ;; TODO
@@ -209,6 +217,58 @@
   (parameterize ([*OVERHEAD-FREEZE-BODY* #true]
                  [*POINT-COLOR* START-COLOR])
     (make-plot* data->exact-plot x* "exact")))
+
+(define (ratios-only data**)
+  (for/list ([tr+tag (in-list data**)])
+    (map data->ratios tr+tag)))
+
+(define (data->ratios fname)
+  (define v (file->value fname))
+  (map / (vector-ref v (- (vector-length v) 1))
+         (vector-ref v 0)))
+  #;(define-values [data-0 data-N]
+    (with-input-from-file fname
+      (values
+        (for/first ((ln (in-lines))
+                    #:when (list? (string->list ln)))
+          (string->list ln))
+        (for/last ((ln (in-lines))
+                   #:when (list? (string->list ln)))
+          (string->list ln)))))
+  #;(map / data-N data-0)
+
+(define (string->list str)
+  (with-handlers ((exn:fail:read? (lambda (x) #false)))
+    (with-input-from-string str read)))
+
+;(define (ratios-plot tr-data* tag-data*)
+;  ;; input (listof (list tr tag))
+;  ;; - [ ] plot average
+;  ;; - [ ] plot error bars
+;  (define tr-ratio** (ratios-only tr-data*))
+;  (define tag-ratio** (ratios-only tag-data*))
+;  (define name*
+;    (for/list ([tr (in-list tr-data*)])
+;      (render-table-name (filename->prefix tr))))
+;  (define SKIP 2)
+;  (define WIDTH OVERHEADS-WIDTH)
+;  (parameterize ([plot-font-size 8]
+;                 [plot-x-ticks no-ticks])
+;    (plot-pict
+;      (list
+;        ;; TODO error bars
+;        (for/list ([x-min (in-naturals START-COLOR)]
+;                   [col-title (in-list (list "TR" "LD"))] ;; TODO
+;                   [r** (in-list (list tr-ratio** tag-ratio**))])
+;          (discrete-histogram
+;            #:skip SKIP
+;            #:x-min x-min
+;            #:label "ugh"
+;            #:color x-min
+;            (for/list ([r* (in-list r**)]
+;                       [name (in-list name*)])
+;              (define y (mean r*))
+;              (vector name y))))))))
 
 (define (data->filename x)
   (cond
