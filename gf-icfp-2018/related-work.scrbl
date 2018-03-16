@@ -53,13 +53,16 @@ A migratory typing system can be gradual, and a gradual typing system can be
 @section{Natural Embedding}
 
 @citet[mf-toplas-2007] introduce the name @emph{natural embedding} to describe
- a type-directed strategy for converting Scheme values to ML values and vice-versa.
-Typed Racket@~cite[tf-dls-2006 tf-popl-2008], GradualTalk@~cite[acftd-scp-2013],
- and SafeTypeScript@~cite[rsfbv-popl-2015] are three migratory typing systems
- that implement the natural embedding.
+ a type-directed strategy for converting between (higher-order) Scheme values
+ and ML values.
+The name suggests that this inductive-checking, higher-order-wrapping technique
+ is the obvious approach to the problem; indeed, earlier work on typed foreign-function
+ interfaces@~cite[r-jfp-2008] and remote procedure calls@~cite[ok-popl-2003] used a similar approach
+@citet[fb-flops-2006] and @citet[nl-arxiv-2018] give a semantic justification.
 
-@citet[nl-arxiv-2018] demonstrate that the natural embedding checks are ``natural''
- in a categorical sense.
+Typed Racket@~cite[tf-dls-2006 tf-popl-2008], GradualTalk@~cite[acftd-scp-2013],
+ and wmwz-ecoop-2017
+ are three migratory typing systems that implement the natural embedding.
 
 
 @;@parag{Multi-Language Semantics}
@@ -73,15 +76,27 @@ Typed Racket@~cite[tf-dls-2006 tf-popl-2008], GradualTalk@~cite[acftd-scp-2013],
 
 @section{Erasure Embedding}
 
-The erasure embedding is the original approach to migratory typing.
-Both MACLISP and Common Lisp supported optional type annotations@~cite[m-maclisp-1974 s-lisp-1990].
-The idea of pluggable type systems@~cite[bg-oopsla-1993] was a modern revival of optional typing.
-And currently, at least four industry teams are maintaining optional typing / erasure embedding
- systems --- for JavaScript, PHP, and Python.
+The erasure embedding, also known as optional typing or pluggable
+ types@~cite[b-ordl-2004], is the oldest approach to migratory typing.
+Strongtalk@~cite[bg-oopsla-1993] is an early, optional type checker for Smalltalk.
+Modern optional typing systems exist for Clojure@~cite[bdt-esop-2016],
+ JavaScript@~cite[bat-ecoop-2014 cvgrl-arxiv-2017],
+ Lua@~cite[mmi-dyla-2014],
+ Ruby@~cite[rtsf-oops-2013],
+ PHP,@note{@url{http://hacklang.org/}}
+ and Python.@note{@url{http://mypy-lang.org/}}
+@citet[ddems-icse-2011] and @citet[pacpe-issta-2008] have implemented pluggable type systems for Java.
 
-@; cmscgbwf-dls-2011
+@; -- types for speed ONLY
+@; Both MACLISP@~cite[m-maclisp-1974] and Common Lisp@~cite[s-lisp-1990] use
+@;  optional type annotations for dynamic typing and compiler optimizations.
+
 
 @section[#:tag "sec:related-work:locally-defensive"]{Locally-Defensive Embedding}
+
+@citet[vksb-dls-2014] introduced a transient semantics for Python and
+ later presented a formalization based ]
+
 
 The locally-defensive embedding is distilled from Vitousek's transient semantics.
 Vitousek developed transient to avoid the challenge of adding proxies that

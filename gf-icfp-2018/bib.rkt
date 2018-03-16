@@ -2218,3 +2218,23 @@
 ;    #:location (proceedings-location ilc #:pages '(1 10))
 ;    #:date 2010))
 
+(define r-jfp-2008
+  (make-bib
+    #:author (authors "Norman Ramsey")
+    #:title "Embedding an interpreted language using higher-order functions and types"
+    #:location (journal-location jfp #:volume 21 #:number 6 #:pages '(585 615))
+    #:date 2008))
+
+(define ok-popl-2003
+  (make-bib
+    #:author (authors "Atsushi Ohori" "Kazuhiko Kato")
+    #:title "Semantics for communication primitives in a polymorphic language"
+    #:location (proceedings-location popl #:pages '(99 112))
+    #:date 1993))
+
+(define fb-flops-2006
+  (make-bib
+    #:author (authors "Robert Bruce Findler" "Matthias Blume")
+    #:title "Contracts as Pairs of Projections"
+    #:location (proceedings-location flops #:pages '(226 241))
+    #:date 2006))

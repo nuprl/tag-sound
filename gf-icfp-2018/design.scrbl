@@ -319,7 +319,8 @@ If the language is to allow values of higher type to cross a boundary,
 @; types should not affect semantics.
 @; "syntactic discipline" is a quote from J. Reynolds
 
-An erasure embedding is based on a view of types as an optional syntactic artifact.
+An erasure embedding, also known as optional typing, is based on a view of
+ types as an optional syntactic artifact.
 Types are just a structured kind of comment and should be irrelevant for the
  evaluation of programs.
 Their main purpose is to help developers read a codebase.
