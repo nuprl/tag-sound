@@ -43,9 +43,9 @@ The soundness guarantee of this implementation is that evaluation preserves the
  first-order properties.
 Like the model, it makes no claim about the quality of boundary error messages.
 
-@(define TR_N  @exact{TR-$\mathsf{N}$})
-@(define TR_E  @exact{TR-$\mathsf{E}$})
-@(define TR_LD @exact{TR-$\mathsf{LD}$})
+@(define TR_N  @exact{$\mathsf{TR}$-$\mathsf{N}$})
+@(define TR_E  @exact{$\mathsf{TR}$-$\mathsf{E}$})
+@(define TR_LD @exact{$\mathsf{TR}$-$\mathsf{LD}$})
 
 The three approaches outlined above define three ways to compile a well-typed
  Typed Racket program down to Racket.
@@ -237,3 +237,6 @@ For example, the constructor check for an integer may be less expensive than the
 Fourth, the choice to measure two versions of @bm{jpeg} is somewhat unrealistic;
  a developer is more likely to avoid a typed library than to recompile it under
  a different semantics.
+@; TODO in order for typed/tagged jpeg to share ....
+@; - LD needs to accept TR type definitions
+@; - or LD needs require/typed for polymorphic structs (definitely possible)

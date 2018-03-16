@@ -505,11 +505,13 @@ This protection is necessary for typed functions that return from an untyped con
  as taking a static--dynamic--static round trip is essentially a type cast.
 The following well-typed example applies an integer function to a pair:
 
-@dbend{
-  \wellM (\eapp{(\esta{(\tarr{\tpair{\tint}{\tint}}{\tint})}{(\edyn{(\tarr{\tint}{\tint})}{(\vlam{\tann{x}{\tint}}{\esum{x}{x}})})})}{\vpair{0}{0}}) : \tint
-}
+@dbend[
+  @warning{
+    \wellM (\eapp{(\esta{(\tarr{\tpair{\tint}{\tint}}{\tint})}{(\edyn{(\tarr{\tint}{\tint})}{(\vlam{\tann{x}{\tint}}{\esum{x}{x}})})})}{\vpair{0}{0}}) : \tint
+  }
+]
 
-@exact{\noindent} The remaining rules of @${\rrKS} give semantics to the application of an
+@exact{\noindent}The remaining rules of @${\rrKS} give semantics to the application of an
  untyped function and to the @${\vchk} type-constructor checks.
 
 Finally, the @${\rrKSstar} and @${\rrKDstar} reduction relations define

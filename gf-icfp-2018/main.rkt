@@ -50,7 +50,11 @@
   $$
   twocolumn
   inline-pict
+
   dbend
+  warning
+  safe
+
   NE
   EE
   KE
@@ -121,6 +125,8 @@
   ;; Useful for formatting identifiers
 
   parag
+
+  noindent
 )
 
 (require
@@ -392,26 +398,38 @@
 (define (inline-pict p)
   (centered (list p)))
 
-(define (dbend #:level [lvl 1] . content*)
-  ;; TODO do not use the dbend symbol because that has an established different meaning
-  ;;  use fourier-orns instead?
-  ;; TODO interpret newlines in the content?
+(define DBEND-SEP "\\\\[1ex]")
+
+(define (dbend . example*)
   (exact
     (string-append
-      "\\begin{tabular}{l c} "
-      (level->dbend lvl)
-      " & $"
-      (content->string content*)
-      "$ \\\\[1ex]  \\end{tabular}")))
+      "$\\begin{array}{c l} \\\\[-2ex]"
+      (string-join (map dexample->string example*) DBEND-SEP)
+      DBEND-SEP
+      " \\end{array}$")))
+
+(define (dexample->string ex)
+  (define lvl (level->dbend (car ex)))
+  (define str (content->string (cdr ex)))
+  (string-append "\\mbox{" lvl "} & " str))
 
 ;; fourier-orns : danger noway bomb
 ;; arevmath : skull radiation biohazard
 (define (level->dbend lvl)
   (case lvl
-    [(0) "?"]
+    [(0) "\\LARGE\\checkmark"]
     [(1) "\\LARGE\\danger"]
-    [else "\\dbend\\dbend"]))
+    [else "\\LARGE\\noway"]))
+
+(define (warning . elem*)
+  (cons 1 elem*))
+
+(define (safe . elem*)
+  (cons 0 elem*))
 
 (define NE ($ "\\mathbf{N}"))
 (define EE ($ "\\mathbf{E}"))
 (define KE ($ "\\mathbf{K}"))
+
+(define (noindent)
+  (exact "\\noindent"))
