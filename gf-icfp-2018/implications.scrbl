@@ -2,7 +2,7 @@
 @title[#:tag "sec:implications"]{Implications}
 @require[(only-in "techreport.rkt" tr-theorem tr-lemma *extra-def-space*)]
 
-@Secref{sec:design} and 3 present the two critical aspects of the three
+@Sections-ref{sec:design} and @secref{sec:evaluation} present the two critical aspects of the three
 approaches to combining statically typed and dynamically typed code via a
 twin-pair of languages: their semantics within a single framework and
 their performance characteristics relative to a single base language and
@@ -12,27 +12,27 @@ information, we can now explain the logical and performance consequences of
 choosing one of these three approaches. 
 
 For the logical consequences, we proceed in a type-directed manner.
-As @secref{sub:base} explains, there is no difference between the natural
+As @section-ref{sub:base} explains, there is no difference between the natural
  embedding and the locally-defensive one for vase types, but the erasure
  embedding may yield totally distinct (wrong) answers.
 After moving from base types to trees over first-order types, we can explain
  the truly essential difference; while the natural embedding allows
  developers to reason compositionally about type annotations, users of
- the locally defensive variant must always consider the whole program (see @secref{sub:first-order}).
+ the locally defensive variant must always consider the whole program (see @section-ref{sub:first-order}).
 For higher-order types, the non-compositional behavior means that logical
- errors may go undetected in seemingly type-correct code (@secref{sub:ho}).
+ errors may go undetected in seemingly type-correct code (@section-ref{sub:ho}).
 As mentioned already, the three approaches provide
  radically different support when it comes to boundary errors and debugging
- them (see @secref{sub:err}).
+ them (see @section-ref{sub:err}).
 
 For consequences with respect to performance, our work somewhat confirms
 the implicit conjectures of the literature that lowering the standards of
 safety pays off---but only to some degree.
-As @secref{sub:perf-mixed}
+As @section-ref{sub:perf-mixed}
 interprets the findings of the previous section, the locally-defensive
 embedding is significantly more efficient when it comes to mixed-typed
 programs.
-By contrast, we remind readers in @secref{sub:perf-total} that
+By contrast, we remind readers in @section-ref{sub:perf-total} that
 fully typed programs run safely and faster with the natural embedding
 because the optimizer can take full advantage of the types, and the natural
 embedding soundly skips checking in this case.
@@ -193,7 +193,7 @@ This information tells the developer exactly where to begin debugging:
 @section[#:tag "sub:perf-mixed"]{For the Performance of Mixed-Typed Programs}
 
 Enforcing soundness in a mixed-typed program adds performance overhead.
-As the graphs in @secref{sec:evaluation} demonstrate for the benchmarks,
+As the graphs in @section-ref{sec:evaluation} demonstrate for the benchmarks,
  this cost can be high in the locally-defensive embedding, and enormous in the
  natural embedding.
 

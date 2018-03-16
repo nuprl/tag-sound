@@ -60,7 +60,7 @@ Developers are probably not going to accept the fact that adding types always le
  to slower performance in the locally-defensive embedding, thus one important open
  question is how to reduce the cost of its type-constructor checks.
 One strategy is to design a more sophisticated completion function and
- evaluation property; the pair in @secref{sec:locally-defensive-embedding} is
+ evaluation property; the pair in @section-ref{sec:locally-defensive-embedding} is
  simple and includes some obviously redundant checks.
 Occurrence typing@~cite[tf-icfp-2010] is well-suited for this task.
 A second strategy is to design a JIT compiler that can recognize and avoid

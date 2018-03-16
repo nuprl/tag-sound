@@ -1,6 +1,9 @@
 #lang gf-icfp-2018
 @require{techreport.rkt}
 
+@; TODO
+@; - from -->D and treating sta as dyn, get sound semantics for N K
+
 @appendix-title++{The Big Picture}
 
 The paragraphs in this section summarize the five embeddings with four slogans.

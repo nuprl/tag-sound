@@ -114,7 +114,7 @@ To measure its @|TR_LD| performance, we compile the library using @|TR_LD|
  configuration using the @|TR_LD| library.
 This protocol accurately reports the overhead in two parallel implementations
  of the Typed Racket surface language, but it also presents a threat to validity
- (see @secref{sec:evaluation:threats}).
+ (see @section-ref{sec:evaluation:threats}).
 
 All measurements were collected sequentially using Racket v@|RKT-VERSION| on an
  unloaded Linux machine with two physical AMD Opteron 6376 processors (a NUMA architecture) and

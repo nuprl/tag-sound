@@ -14,14 +14,14 @@ Eagerly enforcing types corresponds to a @emph{natural}
  type-directed embedding@~cite[mf-toplas-2007].
 Ignoring types corresponds to an @emph{erasure} embedding.
 The transient approach of @citet[vss-popl-2017] is
- a @emph{locally-defensive} embedding.@note{@Secref{sec:related-work:locally-defensive}
+ a @emph{locally-defensive} embedding.@note{@Section-ref{sec:related-work:locally-defensive}
  contrasts the names @emph{locally-defensive} and @emph{transient}.
  In short, the latter obscures a meaningful distinction.}
 
-This section begins with the introduction of the surface syntax and typing system (@secref{sec:common-syntax}).
-It then defines three embeddings, states their soundness theorems (@secref{sec:natural-embedding}, @secref{sec:erasure-embedding}, and @secref{sec:locally-defensive-embedding}),
- and concludes with a discussion on scaling the models to a practical implementation (@secref{sec:practical-semantics}).
-Each embedding builds upon a common semantic framework (@secref{sec:common-semantics})
+This section begins with the introduction of the surface syntax and typing system (@section-ref{sec:common-syntax}).
+It then defines three embeddings, states their soundness theorems (@sections-ref{sec:natural-embedding}, @secref{sec:erasure-embedding}, and @secref{sec:locally-defensive-embedding}),
+ and concludes with a discussion on scaling the models to a practical implementation (@section-ref{sec:practical-semantics}).
+Each embedding builds upon a common semantic framework (@section-ref{sec:common-semantics})
  to keep the technical presentation focused on their differences.
 Unabridged definitions are in the appendix@~cite[gf-tr-2018].
 
@@ -245,7 +245,7 @@ For other cases, the relations are identical.
 @; could be split into two value forms: one for protecting the domain of a statically-typed
 @; function and one for checking the range of a dynamically-typed function.
 @;The split would clarify @${\rrNS} and @${\rrND} but it would also create a
-@; larger gap between the model and MODEL (@secref{sec:implementation}).
+@; larger gap between the model and MODEL (@section-ref{sec:implementation}).
 
 
 @subsection[#:tag "sec:natural:soundness"]{Soundness}
