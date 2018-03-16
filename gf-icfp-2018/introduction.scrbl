@@ -13,7 +13,7 @@
 
 For the past two decades, many programmers have switched to untyped programming
  languages. Regardless of why they make this choice, they eventually discover
- that they wish their code base came with some types. To accommodate the migration of
+ that they wish their code base came with types. To accommodate the migration of
  a large code base from an untyped language to a typed one, researchers have
  created migratory typing systems@~cite[tfffgksst-snapl-2017]. In essence, a
  migratory typing system comes with the same expression and statement syntax as
