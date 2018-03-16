@@ -69,7 +69,7 @@ For example, invoking the @${\vsum} procedure with arguments that are not
 @include-figure["fig:multi-preservation.tex" @elem{Twin languages static typing judgments}]
 
 @Figure-ref{fig:multi-preservation} presents a relatively straightforward typing
- system for the complete syntax.
+ system for the complete syntax, augmented with error terms.
 To accomodate the two kinds of expressions, there are two typing judgments.
 The first judgment, @${\Gamma \wellM \exprdyn}, essentially states that the
  expression @${e} is closed; this weak property characterizes the ahead-of-time
@@ -80,6 +80,14 @@ The unconvential part of both judgments are the mutually-recursive rules for bou
  which invoke the opposite judgment on their subexpressions.
 For example, @${\Gamma \wellM \esta{\tau}{\exprsta}} holds only if the enclosed expression
  matches the @${\tau} type.
+
+The defined errors are of two types.
+A boundary error may occur when one ``language'' sends a bad value to another;
+ such an error can arise between a typed context and an untyped subexpression,
+ or between a surface-language expression and the implicit language that
+ implements the primitives.
+A tag error may occur when the evaluation of an expression reaches a
+ malformed state.
 
 Two auxiliary components of the type system are the function @${\Delta},
  which assigns a type to the primitives, and a subtyping
@@ -167,13 +175,6 @@ Lastly, the models define a (two-part) syntactic property that is
 
 @include-figure["fig:multi-reduction.tex" @elem{Common semantic notions}]
 
-@;The defined errors are of two types.
-@;A boundary error may occur when one ``language'' sends a bad value to another;
-@; such an error can arise between a typed context and an untyped subexpression,
-@; or between a surface-language expression and the implicit language that
-@; implements the primitives.
-@;A tag error may occur when the evaluation of an expression reaches a
-@; malformed state during evaluation.
 
 @; -----------------------------------------------------------------------------
 @section[#:tag "sec:natural-embedding"]{Natural Embedding}

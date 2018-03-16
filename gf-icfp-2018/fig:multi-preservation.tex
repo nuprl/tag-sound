@@ -2,7 +2,9 @@
 
   \lblextra{Typing Syntax}{ extends Surface Syntax}{
     $\begin{array}{l@{\hspace{0.5em}}c@{\hspace{0.5em}}l}
-      e & \BNFeq & \exprsta \mid \exprdyn
+      e & \BNFeq & \exprsta \mid \exprdyn \mid \eerr
+      \\
+      \eerr & \BNFeq & \boundaryerror \mid \tagerror
       \\
       \Gamma & \BNFeq & \cdot \mid x,\Gamma \mid \tann{x}{\tau},\Gamma
     \end{array}$
@@ -123,11 +125,11 @@
     \Gamma \wellM \vbinop~e_0~e_1
   }
 
-%  \inferrule*{
-%  }{
-%    \Gamma \wellM \eerr
-%  }
-%
+  \inferrule*{
+  }{
+    \Gamma \wellM \eerr
+  }
+
   \inferrule*{
     \Gamma \wellM e : \tau
   }{
@@ -202,11 +204,11 @@
     \Gamma \wellM e : \tau
   }
 
-%  \inferrule*{
-%  }{
-%    \Gamma \wellM \eerr : \tau
-%  }
-%
+  \inferrule*{
+  }{
+    \Gamma \wellM \eerr : \tau
+  }
+
   \inferrule*{
     \Gamma \wellM e
   }{
