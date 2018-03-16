@@ -3,6 +3,9 @@
 
 @; purpose: fill out all the history of the 3 embeddings, and anything else
 
+@; TODO
+@; - add transparent proxies, chaperones ?
+
 @; -----------------------------------------------------------------------------
 
 @;Migratory typing in general and the embeddings in particular have an
@@ -11,14 +14,12 @@
 @; it is important to acknowledge where they came from.
 
 
-@section{Migratory Typing}
-
 The idea of equipping a dynamically typed language with static type information
  is almost as old as dynamic typing@~cite[m-maclisp-1974].
 Early work in this area focused on type inference strategies in the hope that all the dynamically-typed code could be replaced@~cite[s-popl-1981 wc-toplas-1997 agd-ecoop-2005].
 Over the past decade, researchers changed focus to designing sound @emph{multi-language} systems@~cite[gff-oopsla-2005 st-sfp-2006 mf-toplas-2007].
 
-;; oh sage ktgff-tech-2007
+@; oh sage ktgff-tech-2007
 
 This works builds directly on Typed Racket, a migratory typing system for
  Racket developed by Tobin-Hochstadt and others@~cite[tf-popl-2008 tsth-esop-2013 tf-icfp-2010 tfdfftf-ecoop-2015 tfffgksst-snapl-2017].
@@ -46,6 +47,8 @@ A migratory typing system can be gradual, and a gradual typing system can be
 @;  static type with the dynamic type can only affect the semantics of a term
 @;  by removing a boundary error.
 
+@; rtsf-oops-2013 ??? ruby type checker
+
 
 @section{Natural Embedding}
 
@@ -54,6 +57,9 @@ A migratory typing system can be gradual, and a gradual typing system can be
 Typed Racket@~cite[tf-dls-2006 tf-popl-2008], GradualTalk@~cite[acftd-scp-2013],
  and SafeTypeScript@~cite[rsfbv-popl-2015] are three migratory typing systems
  that implement the natural embedding.
+
+@citet[nl-arxiv-2018] demonstrate that the natural embedding checks are ``natural''
+ in a categorical sense.
 
 
 @;@parag{Multi-Language Semantics}
@@ -73,6 +79,7 @@ The idea of pluggable type systems@~cite[bg-oopsla-1993] was a modern revival of
 And currently, at least four industry teams are maintaining optional typing / erasure embedding
  systems --- for JavaScript, PHP, and Python.
 
+@; cmscgbwf-dls-2011
 
 @section[#:tag "sec:related-work:locally-defensive"]{Locally-Defensive Embedding}
 
@@ -105,9 +112,17 @@ In principle, one could design a dual embedding that treats the whole program
 Researchers have worked on variants of this @emph{reconstruction embedding}
  problem for decades with modest success.
 There are two problems: the technical challenge of efficiently inferring
- precise types, and the ergonimic challenge of debugging using the inferred types.
+ precise types, and the ergonomic challenge of debugging using the inferred types.
 By contrast it is usually much easier to figure out why a programmer-supplied
  type does not match programmer-supplied code.
+
+@; am-popl-1991
+@; hr-fpca-1995
+@; ffkwf-pldi-1996
+@; wc-toplas-1997
+@; mff-popl-2006
+@; hms-dls-2016
+@; rch-popl-2012
 
 
 @section{Theoretical Performance of Mixed-Typed Programs}

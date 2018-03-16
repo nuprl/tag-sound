@@ -500,7 +500,7 @@
    #:location "Submitted for publication"
    #:date 2017))
 
-(define rnv-ecoop-2015
+(define rzv-ecoop-2015
   (make-bib
    #:author (authors "Gregor Richards" "Zappa Nardelli, Francesco" "Jan Vitek")
    #:title "Concrete Types for TypeScript"

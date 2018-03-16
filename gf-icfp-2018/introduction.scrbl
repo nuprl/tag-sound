@@ -13,7 +13,10 @@ For the past two decades, many programmers have switched to dynamically typed pr
  created migratory typing systems@~cite[tfffgksst-snapl-2017]. In essence, a
  migratory typing system comes with the same expression and statement syntax as
  the underlying untyped language but allows the addition of type annotations.
- While all such systems @emph{check} the type annotations@~cite[tf-dls-2006 bmt-ecoop-2010 wnlov-popl-2010 bat-ecoop-2014 rtsf-oops-2013 rsfbv-popl-2015 vss-popl-2017],
+ While all such systems @emph{check} the type
+ annotations@~cite[mw-icfp-1997 tf-dls-2006 fafh-sac-2009 bmt-ecoop-2010
+ wnlov-popl-2010 chj-oopsla-2012 rtsf-oops-2013 bat-ecoop-2014 mmi-dyla-2014
+ rsfbv-popl-2015 rzv-ecoop-2015 bdt-esop-2016 vss-popl-2017 cvgrl-arxiv-2017],
  it remains unclear what types @emph{should mean} in mixed-typed programs.
 
 Over the years, three approaches have emerged for integrating a
@@ -48,12 +51,10 @@ a proper comparison:
 
 @item{@emph{How do the logical implications of the three approaches compare}?
 
- Publications on implementations of migratory typing often use the phrase
- ``type soundness'' to describe unconventional soundness claims
- about the pair of languages, without discussing how the new soundness differs
- from soundness for a single language.
- @; TODO add citations, Vitousek Richards Rastogi
- @; TODO add citations (if any) that claim TypeScript / Hack are sound
+ Publications on implementations of migratory typing often prove a
+ ``type soundness'' (or ``type safety'') theorem without formally discussing
+ how soundness for the pair of languages differs
+ from soundness for a single language@~cite[vss-popl-2017 rsfbv-popl-2015 cvgrl-arxiv-2017].
 
  To answer this question precisely, this paper explains the three
  approaches in a systematic manner with a novel semantic framework. For the
@@ -70,15 +71,14 @@ a proper comparison:
  Although the purpose of migratory typing is to accomodate the creation of
  mixed-typed languages, the researchers in this area studied the performance
  of implementations only recently@~cite[tfgnvf-popl-2016 gtnffvf-jfp-2017].
- Only one pair of researchers made an attempt to compare two of the three
- approaches and promptly implied order-of-magnitude differences
- @emph{across completely different programming languages} using (mostly) unrelated
- benchmarks@~cite[gm-pepm-2018].
- @; Vitousek POPL 2017 makes apples-to-oranges claims, too
+Previous attempts to compare two of the three
+ approaches and make claims about
+ @emph{different programming languages} using (mostly) unrelated
+ benchmarks@~cite[vss-popl-2017 gm-pepm-2018].
 
  To answer this question properly, this paper presents results of running
- the same benchmarks in three implementations of the same
- language corresponding to the three approaches. While our results confirm the
+ the same benchmarks in three implementations of the same language
+ corresponding to the three semantics.  While our results confirm the
  published conjectures to some degree, we consider it imperative for the future
  of this research area to put the science on solid ground.
 }
