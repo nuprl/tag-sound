@@ -94,16 +94,15 @@ Two auxiliary components of the type system are the function @${\Delta},
  judgment based on the subset relation between natural numbers and integers.
 Subtyping adds a logical distinction to the type system that is not automatically
  enforced by the untyped host language.
-For example, the expression @${(\vquotient{x}{y})}
+For example, the expression @${(\equotient{x}{y})}
  may compute a nonsensical result if @${x} and @${y} are expected to have type
- @${\tnat} but evaluate to negative integers (and evaluation does not respect
- the static types).
+ @${\tnat} but evaluate to negative integers.
 
 
 @; -----------------------------------------------------------------------------
 @section[#:tag "sec:common-semantics"]{Common Semantic Notions}
 
-Our semantic models generalize the Matthews-Findler multi-language approach@~cite[mf-toplas-2007].
+Our semantic models use the Matthews-Findler multi-language approach@~cite[mf-toplas-2007].
 Specifically, the semantics consists of two reduction relations, one for statically-typed
  expressions and one for dynamically-typed ones.
 The set-up easily permits separate definitions for interconnecting the reduction relation
@@ -127,7 +126,7 @@ Precisely put, the two reduction relations (@${\rrSstar} and @${\rrDstar}) must 
 @item{
   @emph{soundness for the pair of languages}: for all expressions,
    evaluation preserves some property that is implied by the surface notion of typing,
-   but it is neither the same nor necessarily a natural generalization.
+   but it is neither the same nor necessarily a straightforward generalization.
 }
 ]
 To streamline the definitions of the three multi-language semantics that follow,
@@ -135,15 +134,15 @@ To streamline the definitions of the three multi-language semantics that follow,
 The syntactic components of this figure are expressions @${e},
  values @${v}, irreducible results @${R},
  and two kinds of evaluation context: @${\ebase} and @${\esd}.
-A basic context @${\ebase} does not contain boundary terms; a multi-language
+A core context @${\ebase} does not contain boundary terms and a multi-language
  context @${\esd} may contain boundaries.
 
 The semantic components in @figure-ref{fig:multi-reduction} are the @${\delta}
- function for primitives and the @${\rrS} and @${\rrD} notions of reduction for the core subsets of the two kinds of expressions.
+ function and the @${\rrS} and @${\rrD} notions of reduction for the core subsets of the two kinds of expressions.
 The @${\delta} function is a partial mathematical specification for the
  procedures in @${\vunop} and @${\vbinop}.
 It is undefined for certain arguments---to represent
- low-level undefined behavior---and raises a boundary error @${\boundaryerror}
+ low-level undefined behavior---and raises a boundary error @${(\boundaryerror)}
  for division by zero.
 
 The notion of reduction @${\rrS} defines a semantics for statically-typed expressions.
@@ -153,7 +152,7 @@ It relates the left-hand side to the right-hand side on an unconditional basis,
 The notion of reduction @${\rrD} defines a semantics for dynamically-typed expressions.
 A dynamically-typed expression may attempt to apply an integer to an argument or give
  nonsensical arguments to a primitive, hence @${\rrD} explicitly checks for
- malformed expressions and raises a tag error @${\tagerror} as indication that
+ malformed expressions and raises a tag error @${(\tagerror)} as indication that
  an @mytech{elimination form} received a value of incorrect shape.
 
 @; maybe make this more structured? finish the draft first tho
@@ -211,7 +210,7 @@ The wrapper checks that every result computed by @${f} is of type @${\tnat}
 @subsection[#:tag "sec:natural:model"]{Model}
 
 @Figure-ref{fig:natural-reduction} presents a model of the natural embedding.
-The centerpiece of the model is the pair of boundary functions:
+The centerpiece of the model is the pair of @mytech{boundary functions}:
  @${\vfromdynN} and @${\vfromstaN}.
 The @${\vfromdynN} function imports a dynamically-typed value into a statically-typed
  context by checking the shape of the value and proceeding as outlined above.
@@ -222,14 +221,14 @@ Conversely, the @${\vfromstaN} function exports a typed value to an untyped cont
 It transports an integer as-is, transports a pair recursively,
  and wraps a function in a monitor to protect the typed function against untyped arguments.
 
-The extended notions of reduction define the complete semantics of monitor application.
+The extended notions of reduction in @figure-ref{fig:natural-reduction} define the complete semantics of monitor application.
 In a statically-typed context, applying a monitor means applying a
  dynamically-typed function to a typed argument.
 Thus the semantics unfolds the monitor into two boundary terms:
  a @${\vdyn} boundary in which to apply the dynamically-typed function
  and an inner @${\vsta} boundary to transport the argument.
 In a dynamically-typed context, a monitor encapsulates a typed function and
- so the process is reversed.
+ application unfolds into two dual boundary terms.
 
 The boundary functions and the notions of reductions come together
  to define the semantics of mixed-typed expressions.
@@ -449,7 +448,7 @@ If the same function is applied @emph{in a different typed context} that expects
 Constructor checks do not require monitors,
  they run in near-constant time,
  and they ensure that every value in a typed context has the correct top-level shape.
-If elimination forms rely only on the top-level shape of a value,
+If the core notions of reduction rely only on the top-level shape of a value,
  then the latter guarantee implies that well-typed programs do not ``go wrong''
  as desired.
 @; or rather, "do not apply a typed elimination form to a value outside its domain" ?
@@ -495,15 +494,22 @@ The boundary function @${\vfromdynK} checks that an untyped value
 This function defers to a more general function @${\vfromany}, which checks
  that a given value of constructor @${\kany} matches a more precise type constructor.
 The boundary function @${\vfromstaK} lets any kind of typed
- value---including typed fuctions---cross into an untyped context, which reflects
- the idea of making typed code defensive up front.
+ value---including typed fuctions---cross into an untyped context.
+The notions of reduction consequently treat the type annotation @${\tau} on
+ the formal parameter of a typed function @${(\vlam{\tann{x}{\tau}}{e})}
+ as an assertion that its actual parameters match the constructor @${\tagof{\tau}}.@note{Design alternatives:
+  extend the syntax of the core language to express domain checks@~cite[vss-popl-2017],
+  or encode domain checks into the completion of a typed function in the spirit of
+    @${(\vlam{\tann{x}{\tau_d}}{e}) \carrow
+       (\vlam{\tann{x}{\tau_d}}{(\eapp{(\eapp{(\vlam{y}{\vlam{z}{z}})}{(\echk{\tagof{\tau_d}}{x})})}{e})})}
+  }
 In order to protect a typed function in an untyped context, the @${\rrKD}
  notion of reduction includes rules that check the constructor of an untyped
  argument to a typed function.
 The static @${\rrKS} notion of reduction includes similar rules to protect typed
  functions against @emph{typed} arguments.
 This protection is necessary for typed functions that return from an untyped context,
- as taking a static--dynamic--static round trip is essentially a type cast.
+ because a static--dynamic--static round trip is essentially a type cast.
 The following well-typed example applies an integer function to a pair:
 
 @dbend[
