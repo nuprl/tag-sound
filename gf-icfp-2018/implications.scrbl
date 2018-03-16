@@ -132,6 +132,7 @@ Conversely, there is no guarantee that untyped clients of a function @${g} abide
       f = \edyn{\tarr{\tint}{\tint}}{(\vlam{x}{\efst{x}})}
       \\
       \wellM (\eapp{f}{2}) : \tint \rrKSstar \efst{2} \rrKSstar \tagerror
+      \\[1ex]
     \end{array}
   }
   @warning{
@@ -229,7 +230,7 @@ For example, a function that adds both elements of a pair value must check
     \begin{array}{l}
     \wellM \vlam{\tann{x}{\tpair{\tint}{\tint}}}{\esum{(\efst{x})}{(\esnd{x})}} : \tarr{\tpair{\tint}{\tint}}{\tint}
     \\ \carrow \vlam{\tann{x}{\tpair{\tint}{\tint}}}{\esum{(\echk{\tint}{(\efst{x})})}{(\echk{\tint}{(\esnd{x})})}}
-    \\
+    \\[0.4ex]
     \end{array}
   }
 ]

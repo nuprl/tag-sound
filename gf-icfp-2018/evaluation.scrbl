@@ -170,7 +170,7 @@ Since seven of the @integer->word[NUM-TR] benchmarks have at least one @|TR_N|
 This table demonstrates that for pathological examples the natural embedding
  may slow down a working program by over two orders of magnitude.
 By contrast, the worst-case performance of the locally-defensive embedding
- is always within two orders of magnitude, and often under 10x.
+ is always within two orders of magnitude.
 
 
 @section{Evaluation II: Fully-Typed Programs}
@@ -226,9 +226,10 @@ Three other threats are worth noting.
 First, @|TR_LD| does not support Racket's object-oriented features@~cite[tfdfftf-ecoop-2015].
 @; ... though we expect OO to improve even more
 Second, our benchmarks are relatively small; the largest is @bm{jpeg} with
- approximately 1500 lines of code; though in our experience and the experience
- of Typed Racket users, our results are likely to reflect the reality of large-scale
- programs.
+ approximately 1500 lines of code.
+@; ; though in our experience and the experience
+@; of Typed Racket users, our results are likely to reflect the reality of large-scale
+@; programs.
 @; TODO auto-compute (this is a big effort, the paper repo doesn't know where the benchmarks live)
 Third, the evaluation considers one fully-typed version of each benchmark,
  but ascribing different types to the same program can affect its performance.

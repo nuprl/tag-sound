@@ -319,12 +319,11 @@ If the language is to allow values of higher type to cross a boundary,
 @; types should not affect semantics.
 @; "syntactic discipline" is a quote from J. Reynolds
 
-An erasure embedding is based on a view of types as a (strictly) optional artifact.
+An erasure embedding is based on a view of types as an optional syntactic artifact.
 Types are just a structured kind of comment and should be irrelevant for the
  evaluation of programs.
 Their main purpose is to help developers read a codebase.
-Their secondary purpose is to enable static type checking and IDE tools such
- as type-based autocompletion.
+Their secondary purpose is to enable static type checking and to guide refactoring tools.
 Whether the types are sound is incidental.
  @; , since type soundness never holds for the entirety of a practical language.
 
@@ -531,10 +530,9 @@ These relations are similar to those of the natural embedding, though they inclu
 
 @Figure-ref{fig:locally-defensive-preservation} presents two judgments that express
  the invariants of the locally-defensive reductions.
-The first judgment, @${\Gamma \wellKE e}, holds for closed dynamically-typed
+The first judgment, @${\Gamma \wellKE e}, holds for closed untyped
  expressions.
-The second judgment is a constructor-typing system.
-This judgment formalizes the intuitions stated above.
+The second judgment is a constructor-typing system that formalizes the intuitions stated above.
 In particular,
  the value of a typed variable is guaranteed to match its type constructor,
  the @${\vfst} projection can produce any kind of value,
