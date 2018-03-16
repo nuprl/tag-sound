@@ -45,8 +45,8 @@ Indeed, a violation of the types in the source code may go unnoticed.
  boundary that is responsible.
 }
 ]@;
-In terms of performance on mixed-typed programs, the ranking is reversed:
- erasure adds zero overhead, locally-defensive checks lead to moderate overhead,
+In terms of performance on mixed-typed programs, the ranking is reversed.
+Erasure adds zero overhead, locally-defensive checks lead to moderate overhead,
  and the natural approach may render a working program unusably slow.
 For fully-typed programs the natural embedding is on par with erasure
  and significantly faster than the locally-defensive semantics,

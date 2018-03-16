@@ -55,10 +55,6 @@
   warning
   safe
 
-  NE
-  EE
-  KE
-
   proof-sketch
 
   appendix
@@ -426,10 +422,6 @@
 
 (define (safe . elem*)
   (cons 0 elem*))
-
-(define NE ($ "\\mathbf{N}"))
-(define EE ($ "\\mathbf{E}"))
-(define KE ($ "\\mathbf{K}"))
 
 (define (noindent)
   (exact "\\noindent"))

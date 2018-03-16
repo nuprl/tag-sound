@@ -43,9 +43,9 @@ The soundness guarantee of this implementation is that evaluation preserves the
  first-order properties.
 Like the model, it makes no claim about the quality of boundary error messages.
 
-@(define TR_N  @exact{$\mathsf{TR}$-$\mathsf{N}$})
-@(define TR_E  @exact{$\mathsf{TR}$-$\mathsf{E}$})
-@(define TR_LD @exact{$\mathsf{TR}$-$\mathsf{LD}$})
+@(define TR_N  @exact{$\mathsf{TR}\mhyphen\mathsf{N}$})
+@(define TR_E  @exact{$\mathsf{TR}\mhyphen\mathsf{E}$})
+@(define TR_LD @exact{$\mathsf{TR}\mhyphen\mathsf{LD}$})
 
 The three approaches outlined above define three ways to compile a well-typed
  Typed Racket program down to Racket.

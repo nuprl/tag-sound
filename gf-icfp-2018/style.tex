@@ -182,7 +182,7 @@ showstringspaces=false            %
 
 \newcommand{\rrR}{\mathrel{\textsc{r}}}
 \newcommand{\rrRp}{\mathrel{\textsc{r}'}}
-\newcommand{\rrfont}[1]{\mathbf{#1}}
+\newcommand{\rrfont}[1]{\mathsf{#1}}
 
 \newcommand{\vfromsta}{\mathcal{S}}
 \newcommand{\vfromdyn}{\mathcal{D}}
@@ -200,8 +200,8 @@ showstringspaces=false            %
 \newcommand{\efromdynE}[2]{\efromX{\vfromdynE}{#1}{#2}}
 \newcommand{\efromstaE}[2]{\efromX{\vfromstaE}{#1}{#2}}
 
-\newcommand{\vfromdynK}{\vfromdyn_{\rrfont{K}}}
-\newcommand{\vfromstaK}{\vfromsta_{\rrfont{K}}}
+\newcommand{\vfromdynK}{\vfromdyn_{\rrfont{LD}}}
+\newcommand{\vfromstaK}{\vfromsta_{\rrfont{LD}}}
 \newcommand{\efromdynK}[2]{\efromX{\vfromdynK}{#1}{#2}}
 \newcommand{\efromstaK}[2]{\efromX{\vfromstaK}{#1}{#2}}
 
@@ -211,20 +211,18 @@ showstringspaces=false            %
 \newcommand{\rrD}{\mathrel{\rrsymb_{\rrfont{D}}}}
 \newcommand{\rrS}{\mathrel{\rrsymb_{\rrfont{S}}}}
 \newcommand{\rrEE}{\mathrel{\rrsymb_{\rrfont{E}}}}
-\newcommand{\rrND}{\mathrel{\rrsymb_{\rrfont{D_N}}}}
-\newcommand{\rrNS}{\mathrel{\rrsymb_{\rrfont{S_N}}}}
-\newcommand{\rrFD}{\mathrel{\rrsymb_{\rrfont{D_F}}}}
-\newcommand{\rrFS}{\mathrel{\rrsymb_{\rrfont{S_F}}}}
-\newcommand{\rrCD}{\mathrel{\rrsymb_{\rrfont{D_C}}}}
-\newcommand{\rrCS}{\mathrel{\rrsymb_{\rrfont{S_C}}}}
+\newcommand{\rrND}{\mathrel{\rrsymb_{\rrfont{D{\mhyphen}N}}}}
+\newcommand{\rrNS}{\mathrel{\rrsymb_{\rrfont{S{\mhyphen}N}}}}
+\newcommand{\rrFD}{\mathrel{\rrsymb_{\rrfont{D{\mhyphen}F}}}}
+\newcommand{\rrFS}{\mathrel{\rrsymb_{\rrfont{S{\mhyphen}F}}}}
+\newcommand{\rrCD}{\mathrel{\rrsymb_{\rrfont{D{\mhyphen}C}}}}
+\newcommand{\rrCS}{\mathrel{\rrsymb_{\rrfont{S{\mhyphen}C}}}}
 \newcommand{\rrCE}{\mathrel{\rrsymb_{\rrfont{C}}}}
 \newcommand{\rrFE}{\mathrel{\rrsymb_{\rrfont{F}}}}
-\newcommand{\rrKD}{\mathrel{\rrsymb_{\rrfont{D_K}}}}
-\newcommand{\rrKS}{\mathrel{\rrsymb_{\rrfont{S_K}}}}
+\newcommand{\rrKD}{\mathrel{\rrsymb_{\rrfont{D{\mhyphen}LD}}}}
+\newcommand{\rrKS}{\mathrel{\rrsymb_{\rrfont{S{\mhyphen}LD}}}}
 \newcommand{\rrVar}[1]{\rrsymb_{\rrfont{?_{#1}}}}
 
-\newcommand{\liftKD}{\cclift{E}{\rrKD}}
-\newcommand{\liftKS}{\cclift{E}{\rrKS}}
 \newcommand{\rrarrow}{\rightarrow}
 
 \newcommand{\ccR}{\mathrel{\rrarrow_{\rrR}}}
@@ -232,8 +230,8 @@ showstringspaces=false            %
 \newcommand{\ccD}{\mathrel{\rrarrow_{\rrfont{D}}}}
 \newcommand{\ccS}{\mathrel{\rrarrow_{\rrfont{S}}}}
 \newcommand{\ccEE}{\mathrel{\rrarrow_{\rrfont{E}}}}
-\newcommand{\ccND}{\mathrel{\rrarrow_{\rrND}}}
-\newcommand{\ccNS}{\mathrel{\rrarrow_{\rrNS}}}
+\newcommand{\ccND}{\mathrel{\rrarrow_{\rrfont{D{\mhyphen}N}}}}
+\newcommand{\ccNS}{\mathrel{\rrarrow_{\rrfont{S{\mhyphen}N}}}}
 \newcommand{\ccNE}{\mathrel{\rrarrow_{\rrVar{N}}}}
 \newcommand{\ccFD}{\mathrel{\rrarrow_{\rrfont{D_F}}}}
 \newcommand{\ccFS}{\mathrel{\rrarrow_{\rrfont{S_F}}}}
@@ -241,21 +239,21 @@ showstringspaces=false            %
 \newcommand{\ccCD}{\mathrel{\rrarrow_{\rrfont{D_C}}}}
 \newcommand{\ccCS}{\mathrel{\rrarrow_{\rrfont{S_C}}}}
 \newcommand{\ccCE}{\mathrel{\rrarrow_{\rrfont{C}}}}
-\newcommand{\ccKD}{\mathrel{\rrarrow_{\rrKD}}}
-\newcommand{\ccKS}{\mathrel{\rrarrow_{\rrKS}}}
+\newcommand{\ccKD}{\mathrel{\rrarrow_{\rrfont{D{\mhyphen}LD}}}}
+\newcommand{\ccKS}{\mathrel{\rrarrow_{\rrfont{S{\mhyphen}LD}}}}
 \newcommand{\ccKE}{\mathrel{\rrarrow_{\rrVar{K}}}}
 
 \newcommand{\rastar}{\rrarrow^{*}}
 \newcommand{\rrDstar}{\rastar_{\rrfont{D}}}
 \newcommand{\rrSstar}{\rastar_{\rrfont{S}}}
 \newcommand{\rrEEstar}{\rastar_{\rrfont{E}}}
-\newcommand{\rrNSstar}{\rastar_{\rrNS}}
-\newcommand{\rrNDstar}{\rastar_{\rrND}}
+\newcommand{\rrNSstar}{\rastar_{\rrfont{D{\mhyphen}N}}}
+\newcommand{\rrNDstar}{\rastar_{\rrfont{S{\mhyphen}N}}}
 \newcommand{\rrNEstar}{\rastar_{\rrfont{N}}}
 \newcommand{\rrCEstar}{\rastar_{\rrfont{C}}}
-\newcommand{\rrFEstar}{\rastar_{\rrKS}}
-\newcommand{\rrKSstar}{\rastar_{\rrKS}}
-\newcommand{\rrKDstar}{\rastar_{\rrKD}}
+\newcommand{\rrFEstar}{\rastar_{\rrFS}}
+\newcommand{\rrKSstar}{\rastar_{\rrfont{D{\mhyphen}LD}}}
+\newcommand{\rrKDstar}{\rastar_{\rrfont{S{\mhyphen}LD}}}
 \newcommand{\rrKEstar}{\rastar_{\rrfont{K}}}
 
 \newcommand{\exprsta}{e_{\rrfont{S}}}
@@ -297,32 +295,31 @@ showstringspaces=false            %
 
 %% -----------------------------------------------------------------------------
 
-\newcommand{\langD}{\mathbf{L_D}}
-\newcommand{\langS}{\mathbf{L_S}}
-\newcommand{\langM}{\mathbf{L}}
-\newcommand{\langE}{\mathbf{L_E}}
-\newcommand{\langN}{\mathbf{L_N}}
-\newcommand{\langC}{\mathbf{L_C}}
-\newcommand{\langL}{\langC}
-\newcommand{\langF}{\mathbf{L_F}}
-\newcommand{\langk}{\mathbf{L_k}}
-\newcommand{\langK}{\mathbf{L_K}}
+\newcommand{\langfont}[1]{\mathsf{#1}}
+\newcommand{\langD}{\langfont{D}}
+\newcommand{\langS}{\langfont{S}}
+\newcommand{\langM}{\langfont{L}}
+\newcommand{\langE}{\langfont{E}}
+\newcommand{\langN}{\langfont{N}}
+\newcommand{\langC}{\langfont{C}}
+\newcommand{\langF}{\langfont{F}}
+\newcommand{\langK}{\langfont{LD}}
 
 \newcommand{\stastep}{\rightarrow_S}
 \newcommand{\dynstep}{\rightarrow_D}
 
-\newcommand{\myvdash}[1]{\mathrel{\vdash\kern-0.8em{\raisebox{-0.7ex}{\textsc{\scriptsize #1}}}}}
+\newcommand{\myvdash}[1]{\mathrel{\vdash\kern-0.8em{\raisebox{-0.7ex}{\textsf{\scriptsize #1}}}}}
 \newcommand{\welldyn}{\myvdash{d}}
 \newcommand{\wellsta}{\myvdash{s}}
 \newcommand{\wellD}{\welldyn}
 \newcommand{\wellS}{\wellsta}
 \newcommand{\wellM}{\vdash}
-\newcommand{\wellEE}{\myvdash{e}}
-\newcommand{\wellNE}{\myvdash{n}}
+\newcommand{\wellEE}{\myvdash{E}}
+\newcommand{\wellNE}{\myvdash{N}}
 \newcommand{\wellCE}{\myvdash{c}}
 \newcommand{\wellLE}{\wellCE}
 \newcommand{\wellFE}{\myvdash{f}}
-\newcommand{\wellKE}{\myvdash{k}}
+\newcommand{\wellKE}{\myvdash{LD}}
 \newcommand{\tagerror}{\mathsf{TagErr}}
 \newcommand{\boundaryerror}{\mathsf{BndryErr}}
 \newcommand{\costDS}[1]{\mathbf{cost}_{DS}(#1)}

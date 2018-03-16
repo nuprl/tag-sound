@@ -267,7 +267,7 @@ The soundness theorems for the natural embedding state three results about
  @figure-ref{fig:natural-preservation}.
 
 @twocolumn[
-  @tr-theorem[#:key "N-static-soundness" @elem{static @|NE|-soundness}]{
+  @tr-theorem[#:key "N-static-soundness" @elem{static @${\langN}-soundness}]{
     If @${\wellM e : \tau} then @${\wellNE e : \tau} and one
     @linebreak[]
     of the following holds:
@@ -278,7 +278,7 @@ The soundness theorems for the natural embedding state three results about
       @item{ @${e} diverges}
     ] }
 
-  @tr-theorem[#:key "N-dynamic-soundness" @elem{dynamic @|NE|-soundness}]{
+  @tr-theorem[#:key "N-dynamic-soundness" @elem{dynamic @${\langN}-soundness}]{
     If @${\wellM e} then @${\wellNE e} and one
     @linebreak[]
     of the following holds:
@@ -357,7 +357,7 @@ Soundness for the erasure embedding states that reduction is well-defined
  for statically-typed and dynamically-typed expressions.
 
 @twocolumn[
-  @tr-theorem[#:key "E-static-soundness" @elem{static @|EE|-soundness}]{
+  @tr-theorem[#:key "E-static-soundness" @elem{static @${\langE}-soundness}]{
     If @${\wellM e : \tau} then @${\wellEE e} and one
     @linebreak[]
     of the following holds:
@@ -368,7 +368,7 @@ Soundness for the erasure embedding states that reduction is well-defined
       @item{ @${e} diverges}
     ] }
 
-  @tr-theorem[#:key "E-dynamic-soundness" @elem{dynamic @|EE|-soundness}]{
+  @tr-theorem[#:key "E-dynamic-soundness" @elem{dynamic @${\langE}-soundness}]{
     If @${\wellM e} then @${\wellEE e} and one
     @linebreak[]
     of the following holds:
@@ -543,7 +543,7 @@ Intuitively, the reduction of any defended expression is well-defined and
 @include-figure*["fig:locally-defensive-preservation.tex" "Property judgments for the locally-defensive embedding"]
 
 @twocolumn[
-  @tr-theorem[#:key "K-static-soundness" @elem{static @|KE|-soundness}]{
+  @tr-theorem[#:key "K-static-soundness" @elem{static @${\langK}-soundness}]{
     If @${\wellM e : \tau} then
     @${\wellM e : \tau \carrow e''}
     and @${\wellKE e'' : \tagof{\tau}}
@@ -557,7 +557,7 @@ Intuitively, the reduction of any defended expression is well-defined and
     ]
   }
 
-  @tr-theorem[#:key "K-dynamic-soundness" @elem{dynamic @|KE|-soundness}]{
+  @tr-theorem[#:key "K-dynamic-soundness" @elem{dynamic @${\langK}-soundness}]{
     If @${\wellM e} then
     @${\wellM e \carrow e''}
     and @${\wellKE e''}
@@ -598,7 +598,7 @@ Intuitively, the reduction of any defended expression is well-defined and
 @;}
 
 @; --- boundary-free soundness
-@;  @tr-theorem[#:key "K-pure-static" @elem{@${\langE} boundary-free soundness}]{
+@;  @tr-theorem[#:key "E-pure-static" @elem{@${\langE} boundary-free soundness}]{
 @;    If @${\wellM e : \tau} and @${e} does not contain a sub-term of the form
 @;     @${(\edyn{\tau'}{e'})} then one of the following holds:
 @;    @itemlist[
