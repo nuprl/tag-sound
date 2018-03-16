@@ -17,7 +17,7 @@
 ;; ----------------------------------------
 
 ;; In a submodule so that it doesn't get exported automatically by
-;; the outer module
+;; the outer module's `(all-defined-out)`
 (module util racket/base
   (require racket/format)
   (provide (all-defined-out))
@@ -500,7 +500,7 @@
    #:location "Submitted for publication"
    #:date 2017))
 
-(define rzv-ecoop-2015
+(define rnv-ecoop-2015
   (make-bib
    #:author (authors "Gregor Richards" "Zappa Nardelli, Francesco" "Jan Vitek")
    #:title "Concrete Types for TypeScript"
@@ -516,9 +516,6 @@
    #:author (authors "Robert Bruce Findler" "Matthias Felleisen")
    #:location (proceedings-location icfp #:pages '(48 59))
    #:date "2002"))
-
-;; ----------------------------------------
-; Related
 
 ;; ----------------------------------------
 ; Contracts
@@ -748,7 +745,6 @@
    #:title "Proxies in Tracemonkey"
    #:url "http://hg.mozilla.org/tracemonkey/"))
 
-
 (define Eiffel
   (make-bib
    #:author "Bertrand Meyer"
@@ -804,18 +800,7 @@
    #:url "http://www.digitalmars.com/d/"))
 
 
-(define |Operational Semantics for Multi-Language Programs|
-  (make-bib
-   #:title "Operational Semantics for Multi-Language Programs"
-   #:author (authors "Jacob Matthews"
-                     "Robert Bruce Findler")
-   #:date "2009"
-   #:location (journal-location toplas
-                                #:volume 31
-                                #:number 3
-                                #:pages '("12:1" "12:44"))))
-
-(define TypeDynamic
+(define acpp-toplas-1991
   (make-bib
     #:title "Dynamic Typing in a Statically Typed Language"
     #:author (authors "Martin Abadi"
@@ -828,14 +813,7 @@
     #:number 2
     #:pages '("237" "268"))))
 
-(define |Space Efficient Gradual Typing|
-  (make-bib
-   #:title "Space Efficient Gradual Typing"
-   #:author (authors "David Herman" "Aaron Tomb" "Cormac Flanagan")
-   #:location (proceedings-location tfp)
-   #:date "2007"))
-
-(define |Nested and Dynamic Contract Boundaries|
+(define sf-ifl-2009
   (make-bib
    #:title "Nested and Dynamic Contract Boundaries"
    #:author (authors "T. Stephen Strickland"
@@ -844,7 +822,7 @@
                                     #:pages '(141 158))
    #:date "2009"))
 
- (define ClassContracts
+ (define sf-dls-2010
    (make-bib
     #:title "Contracts for First-Class Classes"
     #:author (authors "T. Stephen Strickland"
@@ -903,21 +881,21 @@
    #:location (proceedings-location popl)
    #:date 2011))
 
-(define harmless-advice
+(define dw-popl-2006
   (make-bib
    #:title "Harmless Advice"
    #:author (authors "Daniel S. Dantas" "David Walker")
    #:location (proceedings-location popl)
    #:date 2006))
 
-(define aspect-classification
+(define rsb-fse-2004
   (make-bib
    #:title "A Classification System and Analysis for Aspect-Oriented Programs"
    #:author (authors "Martin Rinard" "Alexandru Salcianu" "Suhabe Bugrara")
    #:location (proceedings-location fse)
    #:date 2004))
 
-(define observers-and-assistants
+(define cl-foal-2002
   (make-bib
    #:author (authors "Curtis Clifton" "Gary T. Leavens")
    #:title "Observers and assistants: A proposal for modular aspect-oriented reasoning"
@@ -964,11 +942,11 @@
    #:location (dissertation-location #:institution "John Hopkins University")
    #:date 2006))
 
-(define js-type-inference
+(define hg-pldi-2012
   (make-bib #:title "Fast and precise type inference for JavaScript"
             #:author (authors (author-name "Brian" "Hackett")
                               (author-name "Shu-Yu" "Guo"))
-            #:location (proceedings-location pldi) ; TODO pages
+            #:location (proceedings-location pldi #:pages '(239 250))
             #:date "2012"))
 
 (define min-cover-salient-curves
@@ -1009,9 +987,6 @@
                                 #:pages '(1156 1194))
    #:date 2013))
 
-;; ----------------------------------------
-; Misc
-
 (define cm-tech-1985
   (make-bib
    #:author (authors "Robert L. Constable" "Nax P. Mendler")
@@ -1026,9 +1001,6 @@
    #:title "Modular Set-Based Analysis from Contracts"
    #:location (proceedings-location popl #:pages '(218 231))
    #:date 2006))
-
-;; ----------------------------------------
-; Software engineering and types
 
 (define hkrts-empirical-2013
   (make-bib
@@ -1101,13 +1073,6 @@
    #:author (authors "Tim Sheard" "Simon Peyton Jones")
    #:location (proceedings-location haskell)
    #:date 2002))
-
-(define burmako-scala-2013
-  (make-bib
-   #:title "Scala Macros: Let Our Powers Combine!"
-   #:author "Eugene Burmako"
-   #:location (proceedings-location "Scala Workshop")
-   #:date 2013))
 
 ;; ----------------------------------------
 ; Contracts
@@ -2224,3 +2189,32 @@
     #:title "Towards Type Inference for JavaScript"
     #:location (proceedings-location ecoop)
     #:date 2005))
+
+(define nl-arxiv-2018
+  (make-bib
+    #:author (authors "Max S. New" "Daniel R. Licata")
+    #:title "Call-by-name Gradual Type Theory"
+    #:location "arXiv:1802.00061"
+    #:date 2018))
+
+(define cvgrl-arxiv-2017
+  (make-bib
+    #:author (authors "Avik Chaudhuri" "Panagiotis Vekris" "Sam Goldman" "Marshall Roch" "Gabriel Levy")
+    #:title "Fast and Precise Type Checking for JavaScript"
+    #:location "arXiv:1708.08021"
+    #:date 2017))
+
+(define hms-dls-2016
+  (make-bib
+    #:author (authors "Thomas S. Heinze" "Anders Møller" "Fabio Strucco")
+    #:title "Type Safety Analysis for Dart"
+    #:location (proceedings-location dls)
+    #:date 2016))
+
+;(define m-ilc-2010
+;  (make-bib
+;    #:author (authors "Hannes Mehnert")
+;    #:title "Extending Dylan's Type System for better type inference and error detection"
+;    #:location (proceedings-location ilc #:pages '(1 10))
+;    #:date 2010))
+
