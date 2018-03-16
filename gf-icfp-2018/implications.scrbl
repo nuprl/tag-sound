@@ -2,7 +2,7 @@
 @title[#:tag "sec:implications"]{Implications}
 @require[(only-in "techreport.rkt" tr-theorem tr-lemma *extra-def-space*)]
 
-@Sections-ref{sec:design} and @secref{sec:evaluation} present the two critical aspects of the three
+Sections 2 and @secref{sec:evaluation} present the two critical aspects of the three
 approaches to combining statically typed and dynamically typed code via a
 twin-pair of languages: their semantics within a single framework and
 their performance characteristics relative to a single base language and

@@ -1,6 +1,8 @@
 #lang gf-icfp-2018
 @title[#:tag "sec:conclusion"]{Finding Balance}
 
+@(require "evaluation.scrbl")
+
 @; Future work:
 @; - static/dynamic analysis to attribute run-time cost to boundaries
 @; - infer types, help with conversion
@@ -17,40 +19,55 @@
 @;In the locally-defensive embedding, types mean assertions --- having
 @; lots of types probably avoids catastrophic failure, but adds overhead.
 
+The paper contributes two major results. First, it delivers a common
+ theoretical framework for investigating different ways of combining twin
+ pairs of dynamically-typed and statically-typed languages. The framework
+ generalizes Matthews-Findler multi-language
+ approach@~cite[mf-toplas-2007]. With this framework, we could finally work
+ out a systematic comparison of the three current semantics of migratory
+ typing @note{In addition to the comparison, it also suggests two alternative
+ variants. While we have used these variants as stepping stones to derive the
+ locally-defensive semantics systematically from the natural one, we do not
+ expect them to have practical value; see the appendix for details.}
+ @emph{and} capture the locally defensive semantics in such a way that it
+ was easy to create the first alternative implementation. 
 
-The paper contributes two major results:
- (1) a common theoretical framework for the three forms of migratory typing
-     that have developed over time, and
- (2) an apples-to-apples performance evaluation based on Racket.
+Second, this paper is the first to present an apples-to-apples performance
+ evaluation of three implementations of these primary semantics of
+ migratory typing. This evaluation weakly confirms conjectures in the
+ literature, which is valuable, but most importantly it shows that none of
+ these approaches dominates across the whole spectrum. Jointly the two
+ contributions put the systematic and comparative study of ``soundness'' on
+ a firm basis that allows well-founded conclusions. 
 
-Each approach to migratory typing and its corresponding soundness condition has
- different implications for how a developer can reason about the code, especially when
- diagnosing the cause of a run-time error.
+Obviously, each approach has different implications for how a developer can
+reason about the code, especially when diagnosing the cause of a run-time error:
 @itemlist[
 @item{
- Running a Typed Racket program as a Racket program (via erasure)
-  gives a developer no clue as to what triggers an error; the type
+ Running a @TR_E program gives a developer no clue as to what triggers an error; the type
   information in the code does @emph{not} reduce the search space.
-Indeed, a violation of the types in the source code may go unnoticed.
+Indeed, a violation of the types in the source code may go completely unnoticed.
 }
 @item{
- Running a Typed Racket program under the locally-defensive semantics is guaranteed to reveal a
+ Running a @TR_LD program is guaranteed to reveal a
   violation of types @emph{eventually} if it affects the execution.
- The delayed checking schema may completely obscure the source of the error,
-  however.
+ The delayed checking schema is likely to obscure the source of the error,
+ however. 
 }
 @item{
- Running a Typed Racket program with the type-sound semantics uncovers a violation
+ Running a @TR_N program uncovers a violation
  of type annotations as soon as there is a witness and pinpoints the exact
- boundary that is responsible.
-}
+ boundary that is violated by this witness.}
 ]@;
-In terms of performance on mixed-typed programs, the ranking is reversed.
-Erasure adds zero overhead, locally-defensive checks lead to moderate overhead,
- and the natural approach may render a working program unusably slow.
-For fully-typed programs the natural embedding is on par with erasure
- and significantly faster than the locally-defensive semantics,
- but the thesis of migratory typing is that programs do not need to be fully-typed.
+
+In terms of performance, the picture is much more mixed than the literature
+ would suggest. On some mixed-typed programs, erasure adds zero overhead,
+ locally-defensive checks lead to moderate overhead, and the natural
+ approach may render a working program unusably slow.  For fully-typed
+ programs the natural embedding often dominates erasure and is
+ significantly faster than the locally-defensive semantics. Equipped with
+ this comparison platform, we intend to explore additional ways of making
+ some form of sound migratory typing sufficiently performant. 
 
 The question for researchers is thus what developers really want from a
  migratory type system.

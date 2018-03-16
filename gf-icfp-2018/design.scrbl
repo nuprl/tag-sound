@@ -19,7 +19,7 @@ The transient approach of @citet[vss-popl-2017] is
  In short, the latter obscures a meaningful distinction.}
 
 This section begins with the introduction of the surface syntax and typing system (@section-ref{sec:common-syntax}).
-It then defines three embeddings, states their soundness theorems (@sections-ref{sec:natural-embedding}, @secref{sec:erasure-embedding}, and @secref{sec:locally-defensive-embedding}),
+It then defines three embeddings, states their soundness theorems (Sections 2.2, @secref{sec:erasure-embedding}, and @secref{sec:locally-defensive-embedding}),
  and concludes with a discussion on scaling the models to a practical implementation (@section-ref{sec:practical-semantics}).
 Each embedding builds upon a common semantic framework (@section-ref{sec:common-semantics})
  to keep the technical presentation focused on their differences.

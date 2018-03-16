@@ -43,6 +43,8 @@ The soundness guarantee of this implementation is that evaluation preserves the
  first-order properties.
 Like the model, it makes no claim about the quality of boundary error messages.
 
+@(provide TR_N TR_E TR_LD)
+
 @(define TR_N  @exact{$\mathsf{TR}\mhyphen\mathsf{N}$})
 @(define TR_E  @exact{$\mathsf{TR}\mhyphen\mathsf{E}$})
 @(define TR_LD @exact{$\mathsf{TR}\mhyphen\mathsf{LD}$})
