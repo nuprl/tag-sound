@@ -1,7 +1,9 @@
 Models for _The Spectrum of Soundness and Performance_
 ===
 
-Series of simple PLT Redex models to describe the key ideas of type-tag soundness.
+Series of simple PLT Redex models.
+
+("Type tags" here are called "type constructors" in the paper.)
 
 
 #### High-level outline
