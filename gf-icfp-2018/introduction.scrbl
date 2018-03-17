@@ -76,11 +76,12 @@ Previous attempts to compare two of the three
  @emph{different programming languages} using (mostly) unrelated
  benchmarks@~cite[vss-popl-2017 gm-pepm-2018].
 
- To answer this question properly, this paper presents results of running
- the same benchmarks in three implementations of the same language
- corresponding to the three semantics.  While our results confirm the
- published conjectures to some degree, we consider it imperative for the future
- of this research area to put the science on solid ground.
+ To answer this question properly, we exploit the theoretical results above
+ and build three implementations of the same surface language.
+ The paper can thus present results of running the same benchmarks in the three implementations.
+ While our results confirm the published conjectures to some degree, we
+ consider it imperative for the future of this research area to put the science
+ on solid ground.
 }
 
 ]

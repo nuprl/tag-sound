@@ -13,17 +13,17 @@ choosing one of these three approaches.
 
 For the logical consequences, we proceed in a type-directed manner.
 As @section-ref{sub:base} explains, there is no difference between the natural
- embedding and the locally-defensive one for vase types, but the erasure
+ embedding and the locally-defensive one for base types, but the erasure
  embedding may yield totally distinct (wrong) answers.
 After moving from base types to trees over first-order types, we can explain
  the truly essential difference; while the natural embedding allows
  developers to reason compositionally about type annotations, users of
- the locally defensive variant must always consider the whole program (see @section-ref{sub:first-order}).
+ the locally defensive variant must always consider the whole program (@section-ref{sub:first-order}).
 For higher-order types, the non-compositional behavior means that logical
  errors may go undetected in seemingly type-correct code (@section-ref{sub:ho}).
 As mentioned already, the three approaches provide
  radically different support when it comes to boundary errors and debugging
- them (see @section-ref{sub:err}).
+ them (@section-ref{sub:err}).
 
 For consequences with respect to performance, our work somewhat confirms
 the implicit conjectures of the literature that lowering the standards of
@@ -35,7 +35,7 @@ programs.
 By contrast, we remind readers in @section-ref{sub:perf-total} that
 fully typed programs run safely and faster with the natural embedding
 because the optimizer can take full advantage of the types, and the natural
-embedding soundly skips checking in this case.
+embedding safely skips checking in this case.
 
 
 @section[#:tag "sub:base"]{For Base Types}
@@ -97,7 +97,8 @@ The natural embedding checks the contents of a pair; the locally-defensive
 @exact{\noindent}Extracting a value from an ill-typed pair may detect the mismatch,
  but the semantics depends on what type the context happens to expect.
 Put another way, a developer cannot compositionally reason that a value of type
- @${\tpair{\tau_0}{\tau_1}} contains components of type @${\tau_0} and type @${\tau_1}.
+ @${\tpair{\tau_0}{\tau_1}} contains components of type @${\tau_0} and type @${\tau_1};
+ only reasoning about the context can tell.
 
 @dbend[
   @safe{
@@ -221,7 +222,8 @@ Third, monitored values suffer an indirection cost; for example,
 If a program has few dynamically-typed components, then the locally-defensive
  embedding is likely to perform the worst of the three embeddings.
 This poor performance comes about because all typed expressions unconditionally
- check each function application and pair projection.
+ check each function application and pair projection; after all, a dynamically-typed
+ program may later invoke a compiled, typed function.
 For example, a function that adds both elements of a pair value must check
  that its input has integer-valued components.
 
@@ -238,12 +240,14 @@ For example, a function that adds both elements of a pair value must check
 @noindent[]As a general rule, adding type annotations adds a linear-time performance
  degredation@~cite[gm-pepm-2018 gf-tr-2018].
 
-By contrast, the natural embedding pays to enforce soundness only when static
+By contrast, the natural embedding pays to enforce soundness only if static
  and dynamic components interact.
+If there are few interactions, the program will spend little time enforcing soundness.
 Furthermore, a compiler may leverage the soundness of the natural embedding
  to produce code that is more efficient than the erasure embedding.
 In many dynamically typed language, primitives check the
  type-tag of their arguments and dispatch to a low-level procedure.
-Sound static types can eliminate the need to dispatch@~cite[stff-padl-2012] 
+Sound static types can eliminate the need to dispatch@~cite[stff-padl-2012],
+ and thus the natural embedding's performance can exceed that of the erasure embedding.
 
 

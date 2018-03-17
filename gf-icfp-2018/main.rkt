@@ -64,6 +64,8 @@
   section-ref
   sections-ref
 
+  TR_N TR_E TR_LD
+
   ;; ---------------------------------------------------------------------------
   ;; --- old stuff
   (all-from-out
@@ -445,3 +447,6 @@
 (define (sections-ref s)
   (X-ref "sections" s))
 
+(define TR_N  @exact{$\mathsf{TR}\mhyphen\mathsf{N}$})
+(define TR_E  @exact{$\mathsf{TR}\mhyphen\mathsf{E}$})
+(define TR_LD @exact{$\mathsf{TR}\mhyphen\mathsf{LD}$})

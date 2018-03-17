@@ -86,7 +86,7 @@ The second is to check a higher-order value against its dynamically-most-recent
 The third is to rewrite typed code instead of monitoring dynamically-typed values.
 
 
-@section{Anti-Erasure Embedding}
+@section{Reconstruction Embedding}
 
 Whereas the erasure embedding converts typed code to untyped code,
  in principle a @emph{reconstruction embedding} could convert all untyped code
@@ -97,7 +97,7 @@ Soft typing systems combined Hindley-Miler inference with flexible kinds of type
  applied variants of set-based flow analysis@~cite[h-lfp-1994].
 @citet[hr-fpca-1995] inferred types from the completion of an untyped term;
  that is, from a term with all implicit constructor-checks made explicit.
-In practice there are two main challenges:
+In practice there are two major challenges:
  quickly inferring precise types@~cite[mfsw-hosc-2005],
  and debugging type errors that involve the inferred types@~cite[tfffgksst-snapl-2017].
 

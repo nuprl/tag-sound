@@ -1,8 +1,6 @@
 #lang gf-icfp-2018
 @title[#:tag "sec:conclusion"]{Finding Balance}
 
-@(require "evaluation.scrbl")
-
 @; Future work:
 @; - static/dynamic analysis to attribute run-time cost to boundaries
 @; - infer types, help with conversion
@@ -19,16 +17,16 @@
 @;In the locally-defensive embedding, types mean assertions --- having
 @; lots of types probably avoids catastrophic failure, but adds overhead.
 
-The paper contributes two major results. First, it delivers a common
+The paper contributes two major results. First, it delivers a
  theoretical framework for investigating different ways of combining twin
  pairs of dynamically-typed and statically-typed languages. The framework
  generalizes the Matthews-Findler multi-language
- approach@~cite[mf-toplas-2007]. With this framework, we could finally work
+ approach@~cite[mf-toplas-2007]. With this framework, we can finally work
  out a systematic comparison of the three current semantics of migratory
  typing @note{In addition to the comparison, it also suggests two alternative
  variants. While we have used these variants as stepping stones to derive the
  locally-defensive semantics systematically from the natural one, we do not
- expect them to have practical value; see the appendix for details.}
+ expect them to have practical value@~cite[gf-tr-2018].}
  @emph{and} capture the locally defensive semantics in such a way that it
  was easy to create the first alternative implementation. 
 
@@ -37,20 +35,20 @@ Second, this paper is the first to present an apples-to-apples performance
  migratory typing. This evaluation weakly confirms conjectures in the
  literature, which is valuable, but most importantly it shows that none of
  these approaches dominates across the whole spectrum. Jointly the two
- contributions put the systematic and comparative study of ``soundness'' on
+ contributions put the systematic and comparative study of a ``spectrum'' on
  a firm basis that allows well-founded conclusions. 
 
-Obviously, each approach has different implications for how a developer can
+In practice, each approach has different implications for how a developer can
 reason about the code, especially when diagnosing the cause of a run-time error:
 @itemlist[
 @item{
- Running a @TR_E program gives a developer no clue as to what triggers an error; the type
+ Running a @TR_E program gives a developer no clue as to what in the source code triggers an error; i.e., the type
   information in the code does @emph{not} reduce the search space.
 Indeed, a violation of the types in the source code may go completely unnoticed.
 }
 @item{
  Running a @TR_LD program is guaranteed to reveal a
-  violation of types @emph{eventually} if it affects the execution.
+  violation of types @emph{if it affects the execution}.
  The delayed checking schema is likely to obscure the source of the error,
  however. 
 }
@@ -61,7 +59,7 @@ Indeed, a violation of the types in the source code may go completely unnoticed.
 ]@;
 
 In terms of performance, the picture is much more mixed than the literature
- would suggest. On some mixed-typed programs, erasure adds zero overhead,
+ would suggest. On mixed-typed programs, erasure adds zero overhead,
  locally-defensive checks lead to moderate overhead, and the natural
  approach may render a working program unusably slow.  For fully-typed
  programs the natural embedding often dominates erasure and is
@@ -69,24 +67,15 @@ In terms of performance, the picture is much more mixed than the literature
  this comparison platform, we intend to explore additional ways of making
  some form of sound migratory typing sufficiently performant. 
 
-The question for researchers is thus what developers really want from a
- migratory type system.
-More specifically, we need to ask how much performance they are willing to
- sacrifice for how much soundness.
-Developers are probably not going to accept the fact that adding types always leads
- to slower performance in the locally-defensive embedding, thus one important open
- question is how to reduce the cost of its type-constructor checks.
 One strategy is to design a more sophisticated completion function and
- evaluation property; the pair in @section-ref{sec:locally-defensive-embedding} is
+ evaluation property than the one extracted from the literature; the pair in @section-ref{sec:locally-defensive-embedding} is
  simple and includes some obviously redundant checks.
-Occurrence typing@~cite[tf-icfp-2010] is well-suited for this task.
+Occurrence typing@~cite[tf-icfp-2010] seems well-suited for this task.
 A second strategy is to design a JIT compiler that can recognize and avoid
  redundant constructor checks; the compiler by @citet[rat-oopsla-2017] might
  be a promising context in which to experiment.
-Alternatively, combining the locally-defensive approach with the orthogonal work on Pycket@~cite[bauman-et-al-icfp-2015 bbst-oopsla-2017]
+Alternatively, combining the locally-defensive approach with the Pycket@~cite[bauman-et-al-icfp-2015 bbst-oopsla-2017] compiler for Racket
  may yield an implementation with good performance in all configurations.
-A third strategy is to automatically switch to the natural embedding when it
- is likely to give better performance.
 
 @acks{
   @; redex-check
