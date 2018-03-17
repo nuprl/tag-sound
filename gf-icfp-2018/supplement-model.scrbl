@@ -39,4 +39,4 @@ Aside from the common notions in @section-ref{appendix:preliminaries},
 @include-section{supplement-model-f.scrbl}
 @include-section{supplement-model-k.scrbl}
 
-@include-section{supplement-model-bridge.scrbl}
+@;@include-section{supplement-model-bridge.scrbl}

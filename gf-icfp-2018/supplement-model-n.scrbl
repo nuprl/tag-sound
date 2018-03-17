@@ -3131,3 +3131,17 @@
   ]
 }
 
+@tr-theorem[#:key "N-compilation" @elem{@${\langN} compilation soundness}]{
+  If @${\wellM e : \tau} and @${\rastar} is a reduction relation based on @${\rrND}
+   in which @${\vfromstaN} is defined as @${\vfromdynN}, then
+  @${\wellNE e : \tau} and either:
+  @itemlist[
+    @item{ @${e \rastar v \mbox{ and } \wellNE v : \tau} }
+    @item{ @${e \rastar \tagerror} }
+    @item{ @${e \rastar \boundaryerror} }
+    @item{ @${e} diverges}
+  ]
+}@tr-proof[#:sketch? #true]{
+  Progress and preservation holds because @${\rrNS} is a subset of @${\rrND}
+   and @${\vfromdynN} performs a subset of the checks that @${\vfromstaN} does.
+}

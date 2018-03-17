@@ -19,7 +19,7 @@ High-level architecture of Typed Racket:
 }
 ]
 
-To implement @|LD-Racket|, we modified step 2 and replaced step 3.
+To implement @|TR_LD|, we modified step 2 and replaced step 3.
 
 @section{Generating Type-Tag Contracts}
 

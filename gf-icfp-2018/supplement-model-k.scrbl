@@ -4103,5 +4103,43 @@
 
 }
 
+@tr-definition[#:key "boundary-types" @elem{boundary types @${B(e)}}]{
+  Let @${B(e)} be the set of type annotations on boundary term in @${e},
+   namely, @${\{\tau \mid \edyn{\tau}{e'} \in e \vee \esta{\tau}{e'} \in e\}}.
+}
+
+@tr-definition[#:key "bisimilar-reduction" @elem{bisimilar reduction}]{
+  @${(e_0, \rightarrow_0)} and @${(e_1, \rightarrow_1)} are bisimilar if there
+   exists a relation @${R} such that @${(e_0, e_1) \in R} and either:
+  @itemlist[
+  @item{
+    @${e_0 \rightarrow_0 e_0'} and @${e_1 \rightarrow_1 e_1'}
+    and @${(e_0', \rightarrow_0)} and @${(e_1', \rightarrow_1)} are bisimilar;
+  }
+  @item{
+    @${e_0 \rightarrow_0 e_0'}
+    and @${(e_0', \rightarrow_0)} and @${(e_1, \rightarrow_1)} are bisimilar;
+  }
+  @item{
+    @${e_1 \rightarrow_1 e_1'}
+    and @${(e_0, \rightarrow_0)} and @${(e_1', \rightarrow_1)} are bisimilar.
+  }
+  ]
+}
+
+@tr-theorem[#:key "NK-base-type" @elem{@${\langN}/@${\langK} base type equivalence}]{
+  If @${\wellM e : \tau} and @${B(e) \subseteq \{\tint, \tnat\}}
+  and @${\wellM e : \tau \carrow e''}, then
+  @${(e, \ccNS)} and @${(e'', \ccKS)} are bisimilar.
+}
+@tr-proof[#:sketch? #true]{
+  The boundary terms of base type have the same semantics in both embeddings.
+}
+
+@; TODO do the proof, but should be easy
+@; - D(t,v) = D(t, v) and S(t,v) = S(t,v) across embeddings
+@; - stuttering simulation because of chk terms
+@; - all checks pass in the LD term ... because every value is "actually typed"
+
 
 @|clearpage|
