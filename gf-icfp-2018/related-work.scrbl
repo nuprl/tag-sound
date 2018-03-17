@@ -1,53 +1,28 @@
 #lang gf-icfp-2018
 @title[#:tag "sec:related-work"]{Related Work}
 
-@; purpose: fill out all the history of the 3 embeddings, and anything else
-
-@; TODO
-@; - add transparent proxies, chaperones ?
-
 @; -----------------------------------------------------------------------------
-
-@;Migratory typing in general and the embeddings in particular have an
-@; intertwined history.
-@;Since our work is the first unified presentation and implementation of these ideas,
-@; it is important to acknowledge where they came from.
-
 
 The idea of equipping a dynamically typed language with static type information
  is almost as old as dynamic typing@~cite[m-maclisp-1974].
-Early work in this area focused on type inference strategies in the hope that all the dynamically-typed code could be replaced@~cite[s-popl-1981 wc-toplas-1997 agd-ecoop-2005].
-Over the past decade, researchers changed focus to designing sound @emph{multi-language} systems@~cite[gff-oopsla-2005 st-sfp-2006 mf-toplas-2007].
-
-@; oh sage ktgff-tech-2007
-
-This works builds directly on Typed Racket, a migratory typing system for
- Racket developed by Tobin-Hochstadt and others@~cite[tf-popl-2008 tsth-esop-2013 tf-icfp-2010 tfdfftf-ecoop-2015 tfffgksst-snapl-2017].
-Other migratory typing systems target
- JavaScript@~cite[bat-ecoop-2014],@note{See also, Flow: @url{https://flow.org/}}
- PHP,@note{Hack: @url{http://mypy-lang.org/}}
- Python@~cite[vksb-dls-2014],@note{See also, mypy: @url{http://mypy-lang.org/}}
- and Smalltalk@~cite[acftd-scp-2013].
+Early work in this area focused on type inference strategies in the hope that
+ all the dynamically-typed code could be replaced@~cite[s-popl-1981
+ wc-toplas-1997 agd-ecoop-2005].
+Over the past decade, researchers turned to the problem of creating a
+ multi-language system@~cite[gff-oopsla-2005]
+ that provides a type soundness guarantee@~cite[st-sfp-2006 tf-dls-2006 mf-toplas-2007 gktff-sfp-2006].
 
 Migratory typing is closely related to gradual typing@~cite[st-sfp-2006 svcb-snapl-2015].
-Gradual typing begins with a static typing system and generalizes it to allow
- fine-grained combinations of typed and untyped code@~cite[gct-popl-2016];
- migratory typing begins with a dynamically typed language and designs a type
- system to accomodate its particular idioms.
-A migratory typing system can be gradual, and a gradual typing system can be
- a migratory typing system.
-@; though the latter is unlikely
-
-@; In the broad sense, the term gradual typing@~cite[st-sfp-2006] describes
-@;  any research that combines static and dynamic typing.
-@; In the more precise sense defined by @citet[svcb-snapl-2015], a gradual typing
-@;  system includes: (1) a dynamic type that may be implicitly cast to
-@;  any other type; (2) a relation between types that are equal up to occurrences
-@;  of the dynamic type; and (3) a proof that replacing any
-@;  static type with the dynamic type can only affect the semantics of a term
-@;  by removing a boundary error.
-
-@; rtsf-oops-2013 ??? ruby type checker
+In the broad sense, the term gradual typing@~cite[st-sfp-2006] describes
+ any type system that allows dynamically-typed code.
+In the more precise sense@~cite[svcb-snapl-2015], a gradual typing
+ system includes: (1) a dynamic type that may be implicitly cast to
+ any other type; (2) a relation between types that are equal up to occurrences
+ of the dynamic type; and (3) a proof that replacing any
+ static type with the dynamic type can only affect the semantics of a term
+ by removing a boundary error.
+Ultimately, gradual typing and migratory typing have different goals;
+ see @citet[gct-popl-2016].
 
 
 @section{Natural Embedding}
@@ -58,20 +33,9 @@ A migratory typing system can be gradual, and a gradual typing system can be
 The name suggests that this inductive-checking, higher-order-wrapping technique
  is the obvious approach to the problem; indeed, earlier work on typed foreign-function
  interfaces@~cite[r-jfp-2008] and remote procedure calls@~cite[ok-popl-2003] used a similar approach
-@citet[fb-flops-2006] and @citet[nl-arxiv-2018] give a semantic justification.
-
+For a semantic justification, see @citet[fb-flops-2006] and @citet[nl-arxiv-2018].
 Typed Racket@~cite[tf-dls-2006 tf-popl-2008], GradualTalk@~cite[acftd-scp-2013],
- and wmwz-ecoop-2017
- are three migratory typing systems that implement the natural embedding.
-
-
-@;@parag{Multi-Language Semantics}
-@;@citet[mf-toplas-2007] introduce the first formal semantics for a multi-language.
-@;
-@; barret tratt
-@; new ahmed
-@; matthews-findler
-@; gray findler flatt
+ and @emph{TPD}@~cite[wmwz-ecoop-2017] are three migratory typing systems that implement the natural embedding.
 
 
 @section{Erasure Embedding}
@@ -79,104 +43,96 @@ Typed Racket@~cite[tf-dls-2006 tf-popl-2008], GradualTalk@~cite[acftd-scp-2013],
 The erasure embedding, also known as optional typing or pluggable
  types@~cite[b-ordl-2004], is the oldest approach to migratory typing.
 Strongtalk@~cite[bg-oopsla-1993] is an early, optional type checker for Smalltalk.
-Modern optional typing systems exist for Clojure@~cite[bdt-esop-2016],
+Modern optional typing systems exist for
+ ActionScript@~cite[rch-popl-2012],
+ Clojure@~cite[bdt-esop-2016],
+ Dart,@note{@url{https://www.dartlang.org/}}
  JavaScript@~cite[bat-ecoop-2014 cvgrl-arxiv-2017],
  Lua@~cite[mmi-dyla-2014],
  Ruby@~cite[rtsf-oops-2013],
  PHP,@note{@url{http://hacklang.org/}}
  and Python.@note{@url{http://mypy-lang.org/}}
-@citet[ddems-icse-2011] and @citet[pacpe-issta-2008] have implemented pluggable type systems for Java.
-
-@; -- types for speed ONLY
-@; Both MACLISP@~cite[m-maclisp-1974] and Common Lisp@~cite[s-lisp-1990] use
-@;  optional type annotations for dynamic typing and compiler optimizations.
+@citet[ddems-icse-2011] and @citet[pacpe-issta-2008] have implemented pluggable
+ type systems for Java.
 
 
 @section[#:tag "sec:related-work:locally-defensive"]{Locally-Defensive Embedding}
 
-@citet[vksb-dls-2014] introduced a transient semantics for Python and
- later presented a formalization based ]
+The locally-defensive embedding is directly inspired by the transient semantics
+ for Reticulated Python@~cite[vksb-dls-2014 vss-popl-2017].
+The transient approach begins with a surface language expression and elaborates
+ into a typed core language.
+In other words, the main judgment has the form @${\Gamma \vdash e \carrow e' : \tau}
+ where both @${e'} and @${\tau} are outputs.
+At first we tried adapting this compiler from Reticulated's expression-level
+ migratory typing to Typed Racket's module-level gradual typing, but struggled
+ with the lack of a precise specification for the @${\carrow} judgment.
+The locally-defensive semantics thus separates surface-syntax typing (@figure-ref{fig:multi-preservation})
+ from evaluation-syntax typing (@figure-ref{fig:locally-defensive-preservation});
+ a suitable completion judgment (@${\carrow}) is one that inserts enough
+ constructor checks into a typed surface expression to produce a constructor-typed
+ expression.
 
+@citet[h-scp-1994] introduces the name @emph{completion} to decribe an untyped
+ expression annotated with explicit type constructor checks.
+Our completion judgment is a kind of typed coercion; see @citet[shb-icfp-2009]
+ for related work.
 
-The locally-defensive embedding is distilled from Vitousek's transient semantics.
-Vitousek developed transient to avoid the challenge of adding proxies that
- preserve object identity to the Python language@~cite[vksb-dls-2014].
-Later work proved that the approach provided a constructor-level notion of
- soundness@~cite[vss-popl-2017] at relatively low cost to mixed-typed programs@~cite[gm-pepm-2018].
-
-In this work, we use the name @emph{locally defensive} rather @emph{transient} because the
- latter conflates two of the three novel ideas that characterize the approach.
-The first novel idea is to check only type constructors at a boundary.
-The second is to forget typing obligations unless they are crucial to the
- soundness of the current context.
-The third is to implement forgetful constructor checks with in-line assertions
- rather than monitors.
-@; Each step individually leads to a different embedding ... appendix has 1/2 and 2/3
-
-@; https://www.dartlang.org/dart-2
-
-The idea of rewriting an expression to add explicit safety checks goes back
- at least to @citet[h-scp-1994], from whom we adopt the name @emph{completion}.
+The name ``locally-defensive'' is an attempt to tease apart three ideas
+ regarding typed/untyped boundaries.
+The first is to check only first-order properties at a boundary.
+The second is to check a higher-order value against its dynamically-most-recent
+ type, and no previous types.
+The third is to rewrite typed code instead of monitoring dynamically-typed values.
 
 
 @section{Anti-Erasure Embedding}
 
-The erasure embedding treats a mixed-typed program as an untyped program.
-In principle, one could design a dual embedding that treats the whole program
- as typed by reconstructing types for untyped code.
-Researchers have worked on variants of this @emph{reconstruction embedding}
- problem for decades with modest success.
-There are two problems: the technical challenge of efficiently inferring
- precise types, and the ergonomic challenge of debugging using the inferred types.
-By contrast it is usually much easier to figure out why a programmer-supplied
- type does not match programmer-supplied code.
-
-@; am-popl-1991
-@; hr-fpca-1995
-@; ffkwf-pldi-1996
-@; wc-toplas-1997
-@; mff-popl-2006
-@; hms-dls-2016
-@; rch-popl-2012
+Whereas the erasure embedding converts typed code to untyped code,
+ in principle a @emph{reconstruction embedding} could convert all untyped code
+ to typed code.
+Researchers have worked on variants of this problem for decades.
+Soft typing systems combined Hindley-Miler inference with flexible kinds of types@~cite[awl-popl-1994 wc-toplas-1997].
+@citet[ffkwf-pldi-1996], @citet[mff-popl-2006], @citet[hms-dls-2016], and @citet[rch-popl-2012]
+ applied variants of set-based flow analysis@~cite[h-lfp-1994].
+@citet[hr-fpca-1995] inferred types from the completion of an untyped term;
+ that is, from a term with all implicit constructor-checks made explicit.
+In practice there are two main challenges:
+ quickly inferring precise types@~cite[mfsw-hosc-2005],
+ and debugging type errors that involve the inferred types@~cite[tfffgksst-snapl-2017].
 
 
-@section{Theoretical Performance of Mixed-Typed Programs}
+@section{Performance of Mixed-Typed Programs}
 
-Space-efficient contracts.
-Greenberg's semantics for space-efficient manifest contracts@~cite[g-popl-2015 g-tfp-2016].
-
-
-
-@section{Practical Performance of Mixed-Typed Programs}
-
-@citet[tfgnvf-popl-2016] introduce a method for systematically evaluating
- the performance of a gradual typing system.
-They apply the method to Typed Racket and find that its performance is a serious
- problem.
-@citet[bbst-oopsla-2017] apply the method to a tracing JIT back-end for a subset of Typed
- Racket and report order-of-magnitude improvements without sacrificing soundness,
- performance, or error messages.
-
-@citet[gm-pepm-2018] apply the Takikawa evaluation method to Reticulated
- and find that the overhead of type-tag soundness is within 10x on their benchmarks.
-@citet[mt-oopsla-2017] evaluate the performance of an object calculus and
- report that natural-embedding gradual typing can yield an efficient implementation
- if the language of types is restricted to a finite set of base types.
-@citet[rat-oopsla-2017] demonstrate that an optimizing virtual machine for
- JavaScript@~cite[cf-ecoop-2016] can efficiently support a co-natural embedding
- when static types match the virtual machine's runtime types.
+Researchers quickly noticed the inefficiency of the natural embedding
+ and proposed theoretical solutions both for gradual typing@~cite[htf-hosc-2010 sw-popl-2010 sgt-esop-2009],
+ and for the more general context of higher-order contracts@~cite[g-popl-2015 g-tfp-2016].
+Recent work has explored the practical performance of migratory typing systems.
+@citet[aft-dls-2013] report the performance of mixed-typed Gradualtalk programs.
+@citet[tfgnvf-popl-2016] introduce a systematic method for performance evaluation and
+ report a high overhead for mixed-typed programs in Typed Racket;
+ @citet[bbst-oopsla-2017] demonstrate that a tracing JIT compiler can significantly
+ reduce this overhead.
+@citet[mt-oopsla-2017] propose a new language in which all types are
+ un-parameterized class names (i.e., atoms in an alphabet @${\Sigma}) and report
+ low overhead for mixed-typed programs.
+@citet[rat-oopsla-2017] suggest that runtime type tests should be integrated
+ with the safety checks of the host language.
 
 
-@parag{Alternative Soundness}
+@section{Type Soundness}
 
 @; Most papers with a type soundness theorem dress it up like Milners.
 
-Two related works led us towards the idea of a spectrum of type soundness.
-@emph{Like types} are static type annotations that are erased before run-time@~cite[bfnorsvw-oopsla-2009 rzv-ecoop-2015].
-Programmers can switch between like types and normal types to exchange
- soundness for performance without sacrificing any static type checking.
-
-The @emph{progressive types} vision paper describes a type system in which
- programmers can decide whether certain errors are caught statically or dynamically@~cite[pqk-onward-2012].
+Three related works led us towards the idea of a spectrum of type soundness.
+Like types are optional first-order types;
+ a programmer can mark any such type as ``concrete'' or ``like'' to enable
+ or disable run-time enforcement@~cite[wnlov-popl-2010 rzv-ecoop-2015].
+It is unclear, however what soundness means for like types.
+Confined gradual typing@~cite[afgt-oopsla-2014] gives the programmer control
+ over the implicit coercions that a gradual typing system would normally insert.
+The progressive types@~cite[pqk-onward-2012] vision paper describes a type system in which
+ programmers can decide whether certain errors are caught statically or dynamically.
 This offers a choice between (1) statically proving an expression is universally correct,
  and (2) letting the run-time dynamically check whether the code is safe in practice.
+

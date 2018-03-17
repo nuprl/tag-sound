@@ -54,7 +54,7 @@
   (define/short gpce "GPCE" "Generative Programming: Concepts & Experiences")
   (define/short haskell "Haskell Workshop")
   (define/short haskells "Haskell" (string-append ACM Symposium "on Haskell"))
-  (define/short hosc "HOSC" "Higher-Order and Symbolic Programming")
+  (define/short hosc "HOSC" "Higher-Order and Symbolic Computation")
   (define/short i&c "Info. & Comp." "Information and Computation")
   (define/short icalp "ICALP" (string-append International "Colloquium on Automata, Languages, and Programming"))
   (define/short icfp "ICFP" (string-append ACM International Conference "on Functional Programming"))
@@ -286,7 +286,7 @@
 
 (define wnlov-popl-2010
   (make-bib
-   #:title "Integrating Typed and Untyped Code in a Scripting Language."
+   #:title "Integrating Typed and Untyped Code in a Scripting Language"
    #:author (authors "Tobias Wrigstad" "Francesco Zappa Nardelli"
                      "Sylvain Lebresne" "Johan Östlund" "Jan Vitek")
    #:location (proceedings-location popl #:pages '(377 388))
@@ -997,7 +997,7 @@
 
 (define mff-popl-2006
   (make-bib
-   #:author (authors "Phillipe Meunier" "Robert Bruce Findler" "Matthias Felleisen")
+   #:author (authors "Philippe Meunier" "Robert Bruce Findler" "Matthias Felleisen")
    #:title "Modular Set-Based Analysis from Contracts"
    #:location (proceedings-location popl #:pages '(218 231))
    #:date 2006))
@@ -2238,3 +2238,17 @@
     #:title "Contracts as Pairs of Projections"
     #:location (proceedings-location flops #:pages '(226 241))
     #:date 2006))
+
+(define h-lfp-1994
+  (make-bib
+    #:author "Nevin Heintze"
+    #:title "Set-based analysis of ML-programs"
+    #:location (proceedings-location lfp #:pages '(306 317))
+    #:date 1994))
+
+(define mfsw-hosc-2005
+  (make-bib
+    #:author (authors "Philippe Meunier" "Robert Bruce Findler" "Paul Steckler" "Mitchell Wand")
+    #:title "Selectors make set-based analysis too hard"
+    #:location (journal-location hosc #:volume 18 #:pages '(245 269))
+    #:date 2005))
