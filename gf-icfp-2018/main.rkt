@@ -59,6 +59,10 @@
 
   appendix
   pre-clearpage
+  Sections-ref
+  Section-ref
+  section-ref
+  sections-ref
 
   ;; ---------------------------------------------------------------------------
   ;; --- old stuff
@@ -425,3 +429,19 @@
 
 (define (noindent)
   (exact "\\noindent"))
+
+(define (X-ref x s)
+  (elem x ~ (secref s)))
+
+(define (Section-ref s)
+  (X-ref "Section" s))
+
+(define (Sections-ref s)
+  (X-ref "Sections" s))
+
+(define (section-ref s)
+  (X-ref "section" s))
+
+(define (sections-ref s)
+  (X-ref "sections" s))
+

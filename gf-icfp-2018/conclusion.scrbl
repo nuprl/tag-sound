@@ -22,7 +22,7 @@
 The paper contributes two major results. First, it delivers a common
  theoretical framework for investigating different ways of combining twin
  pairs of dynamically-typed and statically-typed languages. The framework
- generalizes Matthews-Findler multi-language
+ generalizes the Matthews-Findler multi-language
  approach@~cite[mf-toplas-2007]. With this framework, we could finally work
  out a systematic comparison of the three current semantics of migratory
  typing @note{In addition to the comparison, it also suggests two alternative
