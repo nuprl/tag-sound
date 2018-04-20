@@ -629,7 +629,7 @@ By contrast, any practical migratory typing system compiles typed expressions to
  (dynamically-typed) host language.
 In terms of the models, this means @${\rrD} is the only core notion of reduction,
  and statically-typed expressions are rewritten so that @${\rrDstar} applies.
-The technical appendix demonstratess how to bridge this gap systematically@~cite[gf-tr-2018].
+The technical appendix demonstrates how to bridge this gap systematically@~cite[gf-tr-2018].
 
 @;To resolve this challenge, it suffices to build a reduction relation based on @${\rrD}
 @; and conservatively guard @${\vsta} boundaries with the @${\vfromdyn} boundary
