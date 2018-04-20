@@ -213,7 +213,7 @@ First, there is the cost of checking a value at a boundary.
 Such checks may need to traverse the (first-order) value to compute its type.
 Second, there is an allocation cost when a higher-order value crosses a boundary.
 Third, monitored values suffer an indirection cost; for example,
- a monitor guarding a dynamically-typed function must every result computed
+ a monitor guarding a dynamically-typed function must check every result computed
  by the function.
 
 
