@@ -32,10 +32,10 @@ apples-to-apples performance
   - jpeg different
   - 2 baselines
 "perp" programs
+equal for no boundaries
 N LD equal for base types
 LD E un-equal for base types (LD is a little more than eager dynamic typing)
 unequal for error messages
-equal for no boundaries
 
 #### less important, but still points
 
@@ -49,6 +49,10 @@ implementation,
  - only check constructor
  - forget previous type (Michael Greenberg)
  - static rewrite instead of monitors
+
+
+conatural + forgetful?
+
 
 ### Future
 

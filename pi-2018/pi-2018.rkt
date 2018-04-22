@@ -160,8 +160,251 @@
       Right, three approaches.
       These are based on three perspectives on the role of types.
       If you ask, "what is the meaning of types?"
+      - types are for enforcing levels of abstraction
+      - types are for static analysis
+      - types prevent undefined behavior (Milner: going wrong)
+      Thats the high-level intuition.
+      On a more technical level, the three approaches interpret boundary terms
+       in different ways
 
+      ONE: guarantee that if a value flow in from untyped code (dyn T v)
+       then the result has type T.
+      For base types this is easy to do, check that value is an Int or Nat.
+      For inductive types (rather, finitely constructed structures),
+       a full check implies checking the values shape and recursively checking
+       its components.
+      For coinductive types, we're a little stuck because 
+       You generally can't take a run-time representation of a function and
+       be sure that it always computes well-typed outputs.
+      --- use Robby's function-machine notation ---
+      So instead decompose and re-apply the boundary.
 
+      Notice there are two boundaries now, on the input and output of the
+       function.
+      So far we've been talking about the output; also need to talk about the
+       input to prevent typed functions from receiving arguments outside their
+       domain.
+      The reverse strategy is simpler: allow base types, recursively protect
+       inductive types, and monitor coinductive types.
+
+      Now that we have the new monitor values, need types and semantics for
+       these in the core language.
+      Here is a straightforward implementation.
+      Has some obvious inefficiencies ... allocation, indirection, and
+       unbounded space , also the cost of checking that we mentioned before
+       ... but now you get the idea.
+
+      (All on one slide) call this the natural embedding, because thats the
+       name Matthews and Findler used for a similar model that combined ML
+       and Scheme.
+
+       A few slides ago we said the important property of this embedding is
+        that untyped values flowing into typed have the correct type.
+       Based on this property, we can prove the following soundness results:
+       - if e:T then either ....
+       - if e then either .... w TagError
+       That concludes the first strategy
+
+       TWO: a second approach to boundaries is to let any kind of value
+        pass between typed and untyped code.
+       Based on the "static only" idea.
+       Whether the boundary says Int Nat pair or function, just let the value
+        through, and vice-versa for `stat` boundaries.
+       This has **zero** run-time cost and a simple semantics, there are no
+        new kinds of values, so no need for new rules.
+
+       But the guarantee is obviously weaker.
+       If (dyn T v) reduces to v' then the only sure thing is that v is
+        a well-formed value.
+       So when it comes to soundness for the pair of languages, we're down to
+        the lowest common-denominator.
+
+       In constrast to the natural embedding, call this the erasure embedding.
+
+       (summary slide, mark off 1 and 2 ?)
+
+       THREE: third approach, based on the idea that types are to prevent
+       undefined behavior.
+       First, we define undefined behavior as applying a non-function or
+        giving a primitive operation a value outside its domain.
+       In addition to the classic "* can only be applied to numbers", add a
+        logical distinction that says "* can only be applied to things matching
+        its static type".
+       So `((lambda (x : Nat) (* x x) : Nat) -1)` is going to get stuck because
+        `*` needs two natural numbers to return a natural number.
+       All these 'undefineds' are based on basic properties of values ---
+        which correspond to type constructors --- so
+        to a first approximation, can define the semantics of boundaries as
+        checking the first-order properties.
+       For integers and naturals, check the value.
+       For pair types, check the value is a pair.
+       For function types check the value is a closure.
+
+       This definition provides an interesting guarantee: if (dyn T v) = v'
+        then v' has the same type constructor as T ... more formally if we
+        define a map from types to constructors and a judgment that checks
+        whether a value matches a constructor, then we know v matches (floor T).
+       Also interesting, the boundary has unit-cost.
+       No matter what type we are expecting, it suffices to do one constructor
+        check.
+       No recursion, no allocation, no new values, no indirection.
+
+       However we can't state an interesting soundness theorem yet,
+        because although `(+ 2 HOLE)` cannot go wrong,
+        terms like `(+ 2 (fst HOLE))` can go wrong ... for example
+        `E[(dyn NatxNat ((0,1),(2,3)))]`
+
+       (actually step through the evaluation)
+
+       Similarly, terms like `(+ 2 (HOLE 2))` can go wrong for untyped functions,
+        e.g. `E[(dyn Nat->Nat (lambda (x) -9))]`
+
+       (step through again)
+
+       So we need to do something about inductive and coinductive types.
+       But we want to keep this semantics for the boundary terms --- it looks
+        good for performance.
+       What we can do instead is change the core language to look out for
+        problematic contexts like `(fst HOLE)` and `(HOLE e)` ... contexts
+        that extract 
+       In general these are elimination forms, and the property we want is
+        the same as for boundary terms; namely if the elimination form has
+        type T and reduces to a value, the value has the same constructor.
+
+       Mission accomplished by adding `(check K e)` to core language and
+        a translation that wraps typed calls of `(fst e)` and `(e e)` with a
+        check based on their static type.
+       That handles 2/4 the other two are `snd`, which is easy, and function
+        application, e.g. `((stat T->T' (lambda x:T e)) e')`
+       Fix by checking the argument of a typed function every time its applied;
+        this was can prove substitution `e[x <- v]` preserves the property.
+
+       This strategy is very much inspired by Vitousek's _transient_ semantics,
+        presented at an earlier one of these meetings.
+       We call it by a different name though, the **locally-defensive embedding**
+        as an effort to tease apart the three novel ideas in transient
+        - only check constructors
+        - forget previous types (migth know from M. Greenberg)
+        - static add defensive checks based on local type annotations
+       (Lunch would be a good time to argue about the name)
+
+       Now we can prove an interesting soundness that sits between the type-sound
+        and type-agnostic soundness for the first two strategies.
+       - if e:T then e~>e' and ... v:K
+       - if e then e~>e' and ...
+
+       Does everyone believe its possible to prove this theorem?
+         if not ... maybe helps to say we have 2 type systems, the unchanged
+          static and a dynamic one, and now .... \vdash (e e) : T and \vdash e e : Any
+
+       You may find this soundness upsetting.
+       Well for one it is sound but its non-compositional.
+       Suppose you have a pair value imported from dynamically-typed code,
+        `(dyn IntxInt v)`
+        might expect that every value extracted from `v` is an `Int`, but
+        that is only true **in the scope of the type annotation**.
+       If that same value flows out and in, it can change types:
+        `(dyn NatxNat (stat IntxInt (dyn IntxInt v)))`
+       Makes it much more difficult to reason about what is happening, in general.
+       In specific programs with lots of type annotations, maybe less of a problem.
+
+       At this point we've seen three strategies: check types, check constructors,
+        check nothing, and seen three soundness theorems.
+       Clearly types stronger than constructors stronger than nothing.
+
+       We also have an idea about the relative performance of the three,
+        seems typed will be significantly slower; unclear how slow constructored
+        will be.
+       Of course now that we have three "apples to apples" models, these serve
+        as a roadmap for three "apples to apples" implementations.
+
+       We forked Typed Racket and changed its semantics to enforce type constructor
+        soundness.
+       For the most part this was about cutting things, but two tasks deserve comment:
+       - rewriting type-checked terms with locally-defensive checks
+       - picking the constructor for other types
+
+       This gives three implementations
+       - typed racket, natural embedding
+       - racket, erasure embedding
+       - locally-defensive racket for the LD embedding
+
+       0. empty graphs, number of configurations
+          now you know there are 9 benchmarks, I can tell you they're all
+           functional programs, and you can basically see the number of modules in each
+          hey these look empty but they all report the performance of erasure,
+           relative to itself --- all that white space
+
+       1. blue line shows overhead of type soundness as implemented in Typed
+          Racket.
+          The x-axis is overhead, the y-axis is % of configurations that meet
+           this overhead
+          in FSM for example, half the configurations have at most 2x overhead
+           and the other half is off the charts
+          Shaded because this is a cumulative distribution function
+
+       2. lets add locally-defensive racket ... the orange line is overhead
+          of constructor soundness as implemented by our prototype
+          In many cases its better, FSM for sure is an improvement.
+
+          (pause to let them read)
+
+          Some cases are worse though, can see this by looking at where the
+          fully-typed configuration falls on the graphs (maybe graph by hand?)
+
+          Happens because constructor-sound does its rewriting pass on all
+           typed code.
+          Type-sound, on the other hand, adds overhead on demand when values
+           cross the boundary.
+          So that pays off in nearly-typed configurations, but usually the
+           boundaries outweight the optimizations
+
+       Any questions? This is all I'm planning to say about performance.
+
+       Moving on we've talked about soundness and we've seen an example of
+        performance.
+       We can also do apples-to-apples metatheory using the models.
+
+       First result, for typed expressions that do not contain any boundary
+        terms, all three approaches satisfy a strong "soundness for a single
+        language" theorem.
+       (straightforward, proves that pair-of-languages is harder?)
+
+       Second result, for program where only boundaries are of base type,
+        then N and LD are equivalent.
+       Not the same, because LD will perform checks in the typed code,
+        but they both check the same properties at a boundary.
+       (More precisely, follows from the same canonical forms lemma for base types)
+       "Third", LD and E are not equivalent for the same programs.
+       This is because we have a type for natural numbers --- more generally
+        a logical type that isn't enforced by the runtime.
+       Example (our favorite):
+        `(lambda x:Nat (* x x)) : Nat` applied to `(dyn Nat -2)`,
+        get error in LD and positive 4 in E.
+       Funny case where 2 wrongs make a right.
+
+       Final thing I want to mention, the strategies are not equal when it comes
+        to detecting a mismatch between a static type and an untyped value.
+       The natural embedding detects a mismatch as early as possible,
+        either by traversing a structured value `(dyn NatxNat (1, -2))`
+        or by monitoring a higher-order value.
+       The erasure embedding does not detect mismatches.
+       The locally-defensive embedding detects a mismatch as late as possible,
+        just before the program commits a type error.
+       Makes it much harder to trace the source of the type error back to
+        the original boundary term --- worth remarking that Vitousek etal
+        have a work-around for this, disclaimer it reports a set of boundary
+        terms and factors everything through a global space-unbounded blame heap.
+
+       Conclusion: soundness for a pair of languages is an intersting question;
+        there are at least five viable answers --- I've presented the three that
+        make the most sense to me, would love to know where monotonic and concrete
+        fit into this; ready to take questions.
+
+       ... 3d graph?
+       - erasure is having big practical impact
+       - type-sound, people can sympathize with after we explain but 2x is very upsetting
+       - constructor-sound, don't know! pyret doing well, dart maybe doing well
 
     })
   (void))
