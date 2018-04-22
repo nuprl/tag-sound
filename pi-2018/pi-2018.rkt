@@ -89,7 +89,80 @@
     @text["A Spectrum of Soundness and Performance" (current-main-font) (+ (current-font-size) 20)]
     @t{Ben Greenman, Northeastern University}
     @comment{
-      ???
+      As you all know, there are many choices in mixed-typed language design.
+      In the beginning, need to decide the expressions and types in the language,
+       and the granularity where types can be mixed.
+      Second, need to decide whether to add a dynamic type, and if so need to a type
+       precision relation.
+      Third, need to define a core language --- possibly the same as the
+       surface language --- and a translation from surface to core.
+      Finally, need a semantics for the core language.
+
+      None of these steps are entirely straightforward, though there is
+       significant progress on ``gradualizing'' the typing system and generating
+       a semantics .... I would say, AGT gives a specification and the gradualizer
+       is closer to an efficient implementation.
+      But that's part of why this is an exciting area.
+      There's no standard textbook for mixed-typed languages, no G-TAPL; in
+       some way we're all trying to figure out what chapters belong in a
+       textbook called ``gradual types and programming languages''.
+
+      Lately I have been interested in the relation between the static type
+       system and the semantics in different languages; in particular, looking
+       at "if a program is well typed, what soundness guarantee does the
+       semantics preserve?"
+      What are the implications for reasoning about programs and for performance.
+
+      (Need to say 'migratory typing')
+
+      To focus on these questions of soundness and performance, useful to step
+       outside the strictly-speaking world of gradual typing and drop the
+       dynamic type.
+      So we just have to worry about what are the types in the language and
+       what happens at runtime when an untyped value flows into a typed context.
+      With this in mind, I'm going to present one language, one static type
+       system, and three semantics.
+      Each semantics will ? its own soundness and performance.
+
+      Alright. A useful way to model this situation is by splitting the
+       surface language into two parts:
+       a dynamically-typed surface language e_D ::= x | e_D e_D | lam x e_D | ....
+       and a statically-typed surface language e_S ::= ... lam x t e_S | ....
+      The e_S language allows type annotations, so here is a bare-minimum
+       grammar for types.
+      Int is a base type, just to get things off the ground.
+      Nat is another base type, interesting because of its relation to Int:
+      - they're in a subtyping relation
+      - adds a logical distinction to the types that isn't part of the "host language"
+      - reflects the set-based reasoning that happens in e_D programs
+      That gives us two parallel languages.
+      To combine the languages, add so-called _boundary terms_ dyn and stat,
+       to go from e_D to e_S and vice-versa.
+
+      I've been calling "e_S" typed; we can make that precise by adding a
+       static typing system.
+      For the most part, a standard TAPL type system.
+      The important non-standard part is the rule for a boundary term.
+      To finish this rule, need a ``typing system'' for e_D terms to at least
+       make sure that embedded e_S terms are well-typed; the judgment
+       I've been using is one that also checks for free variables.
+      Pretty sure that is optional, for what I want to study that is to follow,
+
+      NAMELY, what is soundness for this pair of language?
+      If e_S has type T and we have a semantics (and translation) what parts
+       of T preserved?
+
+      Today I'm going to present three approaches.
+      All motivated by things that have proven useful in implementations
+      --- thats just to say these soundnesses are not my idea; I'm bringing
+          those ideas into a new common framework --- (needs work)
+
+      Right, three approaches.
+      These are based on three perspectives on the role of types.
+      If you ask, "what is the meaning of types?"
+
+
+
     })
   (void))
 
