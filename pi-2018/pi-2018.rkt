@@ -1,6 +1,6 @@
 #lang at-exp slideshow
 
-;; Slides for RacketCon mini-tutorial
+;; Slides for PI day 2018 (the last pi)
 
 (require
   pict
@@ -15,8 +15,10 @@
   (set-page-numbers-visible! #false)
   (set-margin! 0)
   (parameterize ([current-main-font "Inconsolata" #;"Avenir" #;"Monaco" #;"Optima"]
-                 [current-font-size 32])
-    (sec:title)
+                 [current-font-size 32]
+                 [current-code-font '(bold . modern)]
+                )
+    #;(sec:title)
     (sec:intro)
     #;(sec:short-answer)
     #;(sec:contribution-outline)
@@ -66,15 +68,23 @@
 (define (bebas-bold str)
   (text str "Bebas Neue, Bold" 72))
 
-(define-syntax-rule (mypara elem* ...)
-  ;; TODO work on alignment
-  (para #:align 'left elem* ...))
-
 (define (title str)
   (text str (cons 'bold (current-main-font)) (+ 10 (current-font-size))))
 
 (define (mytext str)
   (text str (current-main-font) (current-font-size)))
+
+(define (mypara a b)
+  (vc-append 10 (my->pict a) (my->pict b)))
+
+(define (my->pict x)
+  (cond
+    [(pict? x)
+     x]
+    [(string? x)
+     (mytext x)]
+    [else
+      (raise-user-error 'my->pict "cannot coerce ~a to pict" x)]))
 
 (define (question . elem*)
   (make-prompted "Q." elem*))
@@ -117,6 +127,7 @@
 
 (define color-of-soundness "coral")
 (define color-of-performance "skyblue")
+(define arrowhead-size 10)
 
 ;; -----------------------------------------------------------------------------
 
@@ -135,46 +146,86 @@
     }))
 
 (define (sec:intro)
+  (define static-typing-coord (coord 1/2 0.35 'ct))
+  (define static-typing-pict (mypara @mytext{Static typing} @codeblock-pict{Γ ⊢ e : τ}))
+  (define semantics-coord (coord 1/2 .65 'ct))
+  (define semantics-pict (mypara @mytext{Semantics} @codeblock-pict{→}))
   (pslide
-    (mytext "noise")
-    ;@comment{
-    ;  As you all know, there are many choices in mixed-typed language design.
-    ;  In the beginning, need to decide the expressions and types in the language,
-    ;   and the granularity where types can be mixed.
-    ;  Second, need to decide whether to add a dynamic type, and if so need to a type
-    ;   precision relation.
-    ;  Third, need to define a core language --- possibly the same as the
-    ;   surface language --- and a translation from surface to core.
-    ;  Finally, need a semantics for the core language.
-    ;}
-  ))
+    #:layout 'center
+    #:go (coord 0.2 0.14 'ct)
+    (tag-pict (mypara @mytext{Expressions} @codeblock-pict{e}) 'expr)
+    #:go (coord 0.4 0.18 'ct)
+    (tag-pict (mypara @mytext{Types} @codeblock-pict{τ}) 'type)
+    @;{
+      As you all know, there are many choices in mixed-typed language design.
+      In the beginning, need to decide the expressions and types in the language,
+       and the granularity where types can be mixed.
+    }
+    #:next
+    #:go (coord 0.6 0.08 'ct)
+    (tag-pict (mypara @mytext{Precision relation} @codeblock-pict{⊑}) 'prec)
+    #:go (coord 0.8 0.22 'ct)
+    (tag-pict (mypara @mytext{Dynamic type} @codeblock-pict{Dyn}) 'tdyn)
+    #:next
+    #:go static-typing-coord
+    (tag-pict static-typing-pict 'stat)
+    #:set (let ((p ppict-do-state))
+            (for/fold ((acc p))
+                      ((from (in-list '(expr type prec tdyn))))
+              ;; TODO move arrowheads left-to-right?
+              (pin-arrow-line arrowhead-size
+                              acc
+                              (find-tag acc from) cb-find
+                              (find-tag acc 'stat) ct-find)))
+    @;{
+      Second, need to decide whether to add a dynamic type.
+      If so, need to a type precision relation.
+      At any rate these combine in a static typing judgment.
+    }
+    #:next
+    #:go (coord 0.2 6/10 'ct)
+    (tag-pict (mypara @mytext{Core Expressions} @codeblock-pict{e'}) 'core-expr)
+    ;#:set (let ([p ppict-do-state])
+    ;        (pin-arrow-line arrowhead-size p (find-tag p 'expr) cb-find (find-tag p 'core-expr) ct-find
+    ;                        #:style 'short-dash))
+    #:go semantics-coord semantics-pict
+    @;{
+      Third, need to define a core language --- possibly the same as the
+       surface language --- and a translation from surface to core.
+      Finally, need a semantics for the core language.
+      None of these steps are entirely straightforward, though there is
+       significant progress on ``gradualizing'' the typing system and generating
+       a semantics .... I would say, AGT gives a specification and the gradualizer
+       is closer to an efficient implementation.
+      But that's part of why this is an exciting area.
+      There's no standard textbook for mixed-typed languages, no G-TAPL; in
+       some way we're all trying to figure out what chapters belong in a
+       textbook called ``gradual types and programming languages''.
+    }
+    #:next
+    #:set (let ((p ppict-do-state))
+            (cellophane p 0.4))
+    #:go static-typing-coord static-typing-pict
+    #:go semantics-coord semantics-pict
+    @;{
+      Right.
+      Different gradual typing systems make different choices for the semantics,
+       I've been looking at the relation between the static typing system and
+       the semantics.
+      i.e. How those choices affect the type soundness
+       and the performance that the language can provide.
+      To keep things simple, we can forget about the dynamic type and
+       type consistency ... so we moved away from gradual typing, and we
+       just have the general question of what's soundness and semantics for
+       a language that mixes typed and untyped code.
+      ...
+      plan for today is focus on one static typing system,
+       present 3 semantics based on prior work,
+       and talk about their soundness and performance.
+      TODO fix this text
+    })
+  )
 
-;      None of these steps are entirely straightforward, though there is
-;       significant progress on ``gradualizing'' the typing system and generating
-;       a semantics .... I would say, AGT gives a specification and the gradualizer
-;       is closer to an efficient implementation.
-;      But that's part of why this is an exciting area.
-;      There's no standard textbook for mixed-typed languages, no G-TAPL; in
-;       some way we're all trying to figure out what chapters belong in a
-;       textbook called ``gradual types and programming languages''.
-;
-;      Lately I have been interested in the relation between the static type
-;       system and the semantics in different languages; in particular, looking
-;       at "if a program is well typed, what soundness guarantee does the
-;       semantics preserve?"
-;      What are the implications for reasoning about programs and for performance.
-;
-;      (Need to say 'migratory typing')
-;
-;      To focus on these questions of soundness and performance, useful to step
-;       outside the strictly-speaking world of gradual typing and drop the
-;       dynamic type.
-;      So we just have to worry about what are the types in the language and
-;       what happens at runtime when an untyped value flows into a typed context.
-;      With this in mind, I'm going to present one language, one static type
-;       system, and three semantics.
-;      Each semantics will ? its own soundness and performance.
-;
 ;      Alright. A useful way to model this situation is by splitting the
 ;       surface language into two parts:
 ;       a dynamically-typed surface language e_D ::= x | e_D e_D | lam x e_D | ....
@@ -678,9 +729,9 @@
     (text "Erasure")
     #:next
     #:set (let ([p ppict-do-state])
-            (pin-arrow-line 10 p (find-tag p 'origin) lb-find (find-tag p 'top-left) lt-find))
+            (pin-arrow-line arrowhead-size p (find-tag p 'origin) lb-find (find-tag p 'top-left) lt-find))
     #:set (let ([p ppict-do-state])
-            (pin-arrow-line 10 p (find-tag p 'origin) lb-find (find-tag p 'bot-right) rb-find))
+            (pin-arrow-line arrowhead-size p (find-tag p 'origin) lb-find (find-tag p 'bot-right) rb-find))
     ;; TODO add grid?
     #:next
     #:go (at-find-pict 'origin cc-find 'cc)
