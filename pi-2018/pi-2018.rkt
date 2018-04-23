@@ -2,6 +2,12 @@
 
 ;; Slides for PI day 2018 (the last pi)
 
+;; TODO
+;; - gilad slogan for pluggable types
+;; - what is floorof for list, in the implementation?
+;;   etc.
+;; - add backgrounds to base-model slides
+
 (require
   pict
   ppict/2
@@ -19,19 +25,30 @@
                  [current-code-font '(bold . modern)]
                 )
     #;(sec:title)
-    (sec:intro)
-    #;(sec:short-answer)
-    #;(sec:contribution-outline)
-    #;(sec:getting-started)
-    #;(sec:install-source)
-    #;(sec:edit-code) #;(sec:contribution-outline)
-    #;(sec:render-documentation)
-    #;(sec:run-tests)
-    (sec:summary)
+    #;(sec:intro)
+    #;(sec:base-model)
+    (sec:natural)
+    #;(sec:erasure)
+    #;(sec:locally-defensive)
+    #;(sec:performance)
+    #;(sec:implications)
+    #;(sec:summary)
     #;(sec:extra)
     (void)))
 
 ;; -----------------------------------------------------------------------------
+
+(define top-left (coord 0.05 0.2 'lt))
+(define top-right (coord 0.60 0.2 'lt))
+
+(define rrN
+  (codeblock-pict "->N"))
+
+(define rrE
+  (codeblock-pict "->E"))
+
+(define rrLD
+  (codeblock-pict "->LD"))
 
 (define (tt str)
   (text str '(bold . modern) (- (current-font-size) 4)))
@@ -77,6 +94,13 @@
 (define (mypara a b)
   (vc-append 10 (my->pict a) (my->pict b)))
 
+(define (myframe p #:hmargin [hm 8] #:vmargin [vm 2])
+  (frame
+    (cc-superimpose
+      p
+      (blank (+ (* 2 hm) (pict-width p))
+             (+ (* 2 vm) (pict-height p))))))
+
 (define (my->pict x)
   (cond
     [(pict? x)
@@ -96,6 +120,12 @@
   (parameterize ([current-font-size (+ 4 (current-font-size))])
     (apply para (para #:width 40 pre)
       elem*)))
+
+(define (myinfer top bot)
+  (vc-append
+    top
+    (hline (pict-width bot) 2)
+    bot))
 
 (define (rectangle/gradient
                 width height
@@ -171,11 +201,11 @@
     (tag-pict static-typing-pict 'stat)
     #:set (let ((p ppict-do-state))
             (for/fold ((acc p))
-                      ((from (in-list '(expr type prec tdyn))))
+                      ((src (in-list '(expr type prec tdyn))))
               ;; TODO move arrowheads left-to-right?
               (pin-arrow-line arrowhead-size
                               acc
-                              (find-tag acc from) cb-find
+                              (find-tag acc src) cb-find
                               (find-tag acc 'stat) ct-find)))
     @;{
       Second, need to decide whether to add a dynamic type.
@@ -223,90 +253,177 @@
        present 3 semantics based on prior work,
        and talk about their soundness and performance.
       TODO fix this text
+    }))
+
+(define (sec:base-model)
+  (pslide
+    #:layout 'auto
+    #:go top-left
+    (ht-append 0
+      @codeblock-pict{e₀}
+      @codeblock-pict{ ::}
+      (tag-pict (codeblock-pict "= x\n| (e₀ e₀)\n| (λ(x : τ) e₀)\n| ...\n| (dyn τ e₁)") 'eS))
+    #:go top-right
+    (ht-append 0
+      @codeblock-pict{e₁}
+      @codeblock-pict{ ::}
+      (tag-pict (codeblock-pict "= x\n| (e₁ e₁)\n| (λ(x) e₁)\n| ...\n| (stat τ e₀)") 'eD))
+    #:next
+    #:go (coord 0.05 0.5 'lt)
+    (ht-append 0
+      @codeblock-pict{τ ::}
+      (codeblock-pict "= Int\n| Nat\n| (× τ τ)\n| (→ τ τ)"))
+    ;#:next ;; TODO be nice to add stat/dyn here
+    ;#:go (at-find-pict (find-tag ppict-do-state 'eS) lb-find #:abs-y 1)
+    ;(codeblock-pict "| dyn τ e₁")
+    ;#:go (at-find-pict (find-tag ppict-do-state 'eD) lb-find #:abs-y 1)
+    ;(codeblock-pict "| stat τ e₀")
+    @;{
+      Alright. A useful way to model this situation is by splitting the
+       surface language into two parts:
+       a dynamically-typed surface language e₁
+       and a statically-typed surface language e₀
+      The e₀ language allows type annotations, so here is a bare-minimum
+       grammar for types.
+      Int is a base type, just to get things off the ground.
+      Nat is another base type, interesting because of its relation to Int:
+      - they're in a subtyping relation
+      - adds a logical distinction to the types that isn't part of the "host language"
+      - reflects the set-based reasoning that happens in e₁ programs
+      That gives us two parallel languages.
+      The link between the two are the boundary terms dyn and stat,
+       which go from e₁ to e₀ and vice-versa.
     })
+
+  (pslide
+    #:layout 'auto
+    #:go top-left
+    (myframe (codeblock-pict "Γ ⊢ e₀ : τ"))
+    (myinfer
+      (codeblock-pict "Γ ⊢ e₁")
+      (codeblock-pict "Γ ⊢ (dyn τ e₁) : τ"))
+    #:go top-right
+    (myframe (codeblock-pict "Γ ⊢ e₁"))
+    (myinfer
+      (codeblock-pict "Γ ⊢ e₀ : τ")
+      (codeblock-pict "Γ ⊢ (stat τ e₀)"))
+    @;{
+      I've been calling "e₀" typed; we can make that precise by adding a
+       static typing system.
+      For the most part, a standard TAPL type system.
+      The important non-standard part is the rule for a boundary term.
+      To finish this rule, need a ``typing system'' for e₁ terms to at least
+       make sure that embedded e₀ terms are well-typed; the judgment
+       I've been using is one that also checks for free variables.
+      Pretty sure that is optional, for what I want to study that is to follow,
+    })
+  (pslide
+    #:go (coord 1/2 1/2)
+    (cc-superimpose
+      (rectangle/gradient client-w 300 #:color-1 color-of-soundness #:color-2 color-of-performance)
+      @title{What is soundness for the pair of languages?})
+    @;{
+      NAMELY, what is soundness for this pair of language?
+      If e₀ has type T and we have a semantics (and translation) what parts
+       of T preserved?
+    })
+  (pslide
+    #:layout 'auto
+    #:go (coord 1/2 0.3 'ct)
+    (tag-pict (codeblock-pict "Γ ⊢ e₀ : τ") 'stat)
+    #:next
+    #:go (coord 1/4 0.5 'ct)
+    (tag-pict rrN 'natural)
+    #:go (coord 2/4 0.5 'ct)
+    (tag-pict rrE 'erasure)
+    #:go (coord 3/4 0.5 'ct)
+    (tag-pict rrLD 'locally-defensive)
+    #:set (let ((p ppict-do-state))
+            (for/fold ((acc p))
+                      ((dst (in-list '(natural erasure locally-defensive))))
+              (pin-arrow-line arrowhead-size
+                              acc
+                              (find-tag acc 'stat) cb-find
+                              (find-tag acc dst) ct-find)))
+    @;{
+      Today I'm going to present three approaches.
+      All motivated by things that have proven useful in implementations
+      --- thats just to say these soundnesses are not my idea; I'm bringing
+          those ideas into a new common framework --- (needs work)
+
+      Right, three approaches.
+      These are based on three perspectives on the role of types.
+      If you ask, "what is the meaning of types?"
+      - types are for enforcing levels of abstraction
+      - types are for static analysis
+      - types prevent undefined behavior (Milner: going wrong)
+      Thats the high-level intuition.
+      On a more technical level, the three approaches interpret boundary terms
+       in different ways
+
+    })
+  (void))
+
+(define (sec:natural)
+  (pslide
+    #:layout 'auto
+    (mytext "slogan N: types enforce levels of abstraction"))
+  (pslide
+    #:layout 'auto
+    #:go top-left
+    (tag-pict (ht-append (codeblock-pict "(dyn Int v) ") rrN) 'dyn-int)
+    ;; TODO why the fuck isn't this showing up????
+    #:go (coord 0.05 2 'lt)
+    (tag-pict (ht-append (codeblock-pict "(dyn Nat v) ") rrN) 'dyn-nat)
+    #:go (coord 0.05 2.9 'lt)
+    (tag-pict (ht-append (codeblock-pict "(dyn (× τ₀ τ₁) v) ") rrN) 'dyn-pair)
+    #:go (coord 0.05 4.1 'lt)
+    (tag-pict (ht-append (codeblock-pict "(dyn (→ τ τ+) v) ") rrN) 'dyn-fun)
+
+    @;{
+      ONE: guarantee that if a value flows in from untyped code (dyn T v)
+       then the result has type T.
+      For base types this is easy to do, check that value is an Int or Nat.
+      For inductive types (rather, finitely constructed structures),
+       a full check implies checking the values shape and recursively checking
+       its components.
+      For coinductive types, we're a little stuck because 
+       You generally can't take a run-time representation of a function and
+       be sure that it always computes well-typed outputs.
+      --- use Robby's function-machine notation ---
+      So instead decompose and re-apply the boundary.
+
+      Notice there are two boundaries now, on the input and output of the
+       function.
+      So far we've been talking about the output; also need to talk about the
+       input to prevent typed functions from receiving arguments outside their
+       domain.
+      The reverse strategy is simpler: allow base types, recursively protect
+       inductive types, and monitor coinductive types.
+
+      Now that we have the new monitor values, need types and semantics for
+       these in the core language.
+      Here is a straightforward implementation.
+      Has some obvious inefficiencies ... allocation, indirection, and
+       unbounded space , also the cost of checking that we mentioned before
+       ... but now you get the idea.
+
+      (All on one slide) call this the natural embedding, because thats the
+       name Matthews and Findler used for a similar model that combined ML
+       and Scheme.
+
+       A few slides ago we said the important property of this embedding is
+        that untyped values flowing into typed have the correct type.
+       Based on this property, we can prove the following soundness results:
+       - if e:T then either ....
+       - if e then either .... w TagError
+       That concludes the first strategy
+     })
   )
 
-;      Alright. A useful way to model this situation is by splitting the
-;       surface language into two parts:
-;       a dynamically-typed surface language e_D ::= x | e_D e_D | lam x e_D | ....
-;       and a statically-typed surface language e_S ::= ... lam x t e_S | ....
-;      The e_S language allows type annotations, so here is a bare-minimum
-;       grammar for types.
-;      Int is a base type, just to get things off the ground.
-;      Nat is another base type, interesting because of its relation to Int:
-;      - they're in a subtyping relation
-;      - adds a logical distinction to the types that isn't part of the "host language"
-;      - reflects the set-based reasoning that happens in e_D programs
-;      That gives us two parallel languages.
-;      To combine the languages, add so-called _boundary terms_ dyn and stat,
-;       to go from e_D to e_S and vice-versa.
-;
-;      I've been calling "e_S" typed; we can make that precise by adding a
-;       static typing system.
-;      For the most part, a standard TAPL type system.
-;      The important non-standard part is the rule for a boundary term.
-;      To finish this rule, need a ``typing system'' for e_D terms to at least
-;       make sure that embedded e_S terms are well-typed; the judgment
-;       I've been using is one that also checks for free variables.
-;      Pretty sure that is optional, for what I want to study that is to follow,
-;
-;      NAMELY, what is soundness for this pair of language?
-;      If e_S has type T and we have a semantics (and translation) what parts
-;       of T preserved?
-;
-;      Today I'm going to present three approaches.
-;      All motivated by things that have proven useful in implementations
-;      --- thats just to say these soundnesses are not my idea; I'm bringing
-;          those ideas into a new common framework --- (needs work)
-;
-;      Right, three approaches.
-;      These are based on three perspectives on the role of types.
-;      If you ask, "what is the meaning of types?"
-;      - types are for enforcing levels of abstraction
-;      - types are for static analysis
-;      - types prevent undefined behavior (Milner: going wrong)
-;      Thats the high-level intuition.
-;      On a more technical level, the three approaches interpret boundary terms
-;       in different ways
-;
-;      ONE: guarantee that if a value flow in from untyped code (dyn T v)
-;       then the result has type T.
-;      For base types this is easy to do, check that value is an Int or Nat.
-;      For inductive types (rather, finitely constructed structures),
-;       a full check implies checking the values shape and recursively checking
-;       its components.
-;      For coinductive types, we're a little stuck because 
-;       You generally can't take a run-time representation of a function and
-;       be sure that it always computes well-typed outputs.
-;      --- use Robby's function-machine notation ---
-;      So instead decompose and re-apply the boundary.
-;
-;      Notice there are two boundaries now, on the input and output of the
-;       function.
-;      So far we've been talking about the output; also need to talk about the
-;       input to prevent typed functions from receiving arguments outside their
-;       domain.
-;      The reverse strategy is simpler: allow base types, recursively protect
-;       inductive types, and monitor coinductive types.
-;
-;      Now that we have the new monitor values, need types and semantics for
-;       these in the core language.
-;      Here is a straightforward implementation.
-;      Has some obvious inefficiencies ... allocation, indirection, and
-;       unbounded space , also the cost of checking that we mentioned before
-;       ... but now you get the idea.
-;
-;      (All on one slide) call this the natural embedding, because thats the
-;       name Matthews and Findler used for a similar model that combined ML
-;       and Scheme.
-;
-;       A few slides ago we said the important property of this embedding is
-;        that untyped values flowing into typed have the correct type.
-;       Based on this property, we can prove the following soundness results:
-;       - if e:T then either ....
-;       - if e then either .... w TagError
-;       That concludes the first strategy
-;
+(define (sec:erasure)
+  'todo)
+
 ;       TWO: a second approach to boundaries is to let any kind of value
 ;        pass between typed and untyped code.
 ;       Based on the "static only" idea.
@@ -325,6 +442,10 @@
 ;
 ;       (summary slide, mark off 1 and 2 ?)
 ;
+
+(define (sec:locally-defensive)
+  'todo)
+
 ;       THREE: third approach, based on the idea that types are to prevent
 ;       undefined behavior.
 ;       First, we define undefined behavior as applying a non-function or
