@@ -6,13 +6,48 @@ Paper #21 A Spectrum of Soundness and Performance
 General Response
 ===========================================================================
 
-- Thank you all for the comments.
-- Lots of places we can clarify related work.
-  - stw PLDI 2015
-- Review B raises serious questions 
-  * Kuhlenschmidt
-  * Chung
-  * Vitousek
+Thank you for the many comments and suggestions, especially about where our
+discussions of related work and future work must improve. See details below.
+
+Review #21B raises serious concerns about works that we failed to cite; namely:
+
+* _A Framework for Object-Oriented Gradual Typing_.
+  Chung, Li, Zappa Nardelli, Vitek.
+  ECOOP 2018
+
+* _Efficient Gradual Typing_.
+  Kuhlenschmidt, Almahallawi, Siek.
+  https://arxiv.org/abs/1802.06375
+
+We are familiar with both these works, as Siek and Vitek are co-PIs on a grant
+that our second author is PI for (NSF grant SHF 1518844).
+
+For the final version of this paper, we will compare our work to Chung et al.
+The main difference between their work and ours is that they do not prove
+soundness for their surface languages.
+
+We will not cite Kuhlenschmidt et al. because we are under no obligation to
+cite an arXiv paper and (more importantly) we find their performance evaluation
+lacking:
+
+- The evaluation for partially-typed programs reports performance relative to
+  Racket. This is an apples-to-oranges comparison. As the authors say in
+  Section 5.2, "[Grift] does not support a full language".
+
+- The evaluation uses an ad-hoc sampling method, rather than the systematic
+  (albiet coarse-grained) methods proposed by Takikawa et al. (2016) and
+  Greenman and Migeed (2018). We are not convinced that the Grift sampling
+  method supports the strong claims in the paper.
+
+- There are only 6 benchmark programs with data for partially-typed
+  configurations; these benchmarks do not include any of the Racket programs
+  from Takikawa et al. (2016) or Bauman et al. (2017).
+
+- The data for this paper is not avaiable; it is impossible to tell whether
+  the reported running times are on the order of minutes, seconds, or
+  milliseconds. (Based on our PI meetings, we suspect it is milliseconds.)
+
+P.S. we will forward this criticism to Kuhlenschmidt et al.
 
 
 Response to Review #21A
@@ -22,10 +57,8 @@ Response to Review #21A
 > discussion of mixed-semantics languages.  As such, Dart is badly characterized
 > in this paper as an optional/erasure style language.
 
-We will improve the discussion of Dart.
-Mixed-semantics is where we plan to go next with this work.
-
-TODO
+We will improve the discussion about Dart and draw attention to mixed-semantics
+languages as an area for future work. (It's an area we are excited about.)
 
 
 > Additionally, because the paper mentions universal types, it seems necessary to
@@ -46,7 +79,7 @@ better to be simple and clear.
 
 > - Please explain why errors do not propagate through E^\bullet contexts
 
-Errors do propagate through ---- E^\bullet is a subset of E.
+Errors do propagate through, because E^\bullet is a subset of E.
 
 
 > - In Theorem 2.0, 2nd reduction alternative, I don't understand why the right
@@ -54,25 +87,25 @@ Errors do propagate through ---- E^\bullet is a subset of E.
 >   to TarErr and that the reduction relation admits reduction under E*.
 > (same question for Theorem 2.6)
 
-YES THANK YOU, much simpler.
+You are right, thank you.
 
-TODO double-check
+(The 2nd alternative is an artifact of an earlier version of the semantics.)
 
 
 > - (l338) "A similar lemma does not hold": would help to state the lemma that
-> does not hold (there is space).
+>   does not hold (there is space).
 
-Thank you, we will elaborate.
+We will elaborate.
 
 
 > - The data of Figure 12 could be plotted (again, there is space)
 
-Good point. This table is easy to miss!
+Yes, this table is easy to miss.
 
 
 > - The discussion of the gradual guarantee in section 5 is a bit incomplete.
 
-Thank you, we will fix the discussion.
+Thanks for pointing this out.
 
 
 Response to Review #21B
@@ -85,17 +118,17 @@ Response to Review #21B
 >   that occur in naive implementations of the natural approach, but
 >   transient incurs overhead in statically typed code.
 
-Remarks like this are exactly why we prepared this paper. We are tired of
-seeing claims that make generalizations over different languages with
-different type systems and different guarantees.
+Remarks like this are exactly why we prepared this paper. It is time to stop
+making broad claims about different languages with different type systems and
+different guarantess. We're supposed to be scientists, not marketers.
 
 
 > * The semantic framework is a straightforward adaptation of
 >   the Matthews-Findler multi-language semantics.
 
 The first sentence of Section 2.2 and first paragraph of Section 6
-(the conclusion) acknowledge Matthews & Findler. If this is not enough
-acknowledgement, let us know and we can add more.
+(the conclusion) acknowledge Matthews & Findler. If this is not enough,
+we can add more.
 
 
 > * Theorem 2.0 is a just a combination of the usual Type Safety theorem
@@ -103,30 +136,26 @@ acknowledgement, let us know and we can add more.
 >   Theorem (Tobin-Hochstadt and Felleisen 2006, Wadler and Findler
 >   2009). The paper does not discuss these relationships.
 
-The novelty of the theorems is that it shows how 2 approaches to migratory
-typing lead 
+The paper does not claim that these theorems are novel. The important
+contribution is expressing the different approaches in a framework that
+draws attention to their meaningful distinctions.
 
-1. we will clarify
-2. \vdash different from \vdash_N ! if you don't expose proxies, surface vs. core
-3. soundness for a pair
-
-TODO double-check
+That said, the difference between Theorem 2.0 and prior work is that it
+explicitly connects the surface language (without proxy/monitor values) to the
+core language (with proxy values). This is an important distinction for
+language designers: even if the surface language does not expose proxies,
+users need to understand proxies to understand the language's soundness
+guarantee.
 
 
 > * Theorems 2.1, 2.3, and 2.4 are all the usual type safety theorem for
 >   dynamically typed languages.
 
-Point 2 still holds --- proxies in the core language.
+Again, the paper does not claim these theorems are novel but it is definitely
+**unusual** that these theorems include 2 typing judgments.
 
-But right the point of these is not something novel, but to contrast
-
-You are right that all this is _implied_ by the earlier work on gradual typing.
-But somehow over the past 10 years we moved from implications to a "type soundness"
-theorem published in Vitousek et al. 2017 that is fundamentally different from
-a standard type soundness theorem. What happened? I don't know but I think
-its a result of glossing over details like this.
-
-TODO
+These theorems also emphasize that soundness for a pair of languages comes
+as a pair of theorems.
 
 
 > * Theorem 2.5 is just type safety for a statically typed program, and
@@ -134,28 +163,29 @@ TODO
 >   typing on fully annotated programs (Siek et al. 2015).  The paper
 >   does not discuss this close relationship.
 
-Thank you, we will discuss the relationship.
-
-(This may be a good point in the paper to qualify our remark in the introduction
- about soundness for a single language vs. soundness for a pair.)
+Good point, we will discuss the relationship.
 
 
 > * Theorem 2.6 is an adaptation of Corollary 5.5.1 (Type soundness) of
 >   Vitousek et al. (2017).  The paper does not discuss this close
 >   relationship.
 
-No, Theorem 2.6 is not just an adaptation of Vitousek et al.'s "type soundness".
-Their Corollary 5.5.1 is about a single language.
+Theorem 2.6 is **not** an adaptation of Vitousek et al.'s "type soundness".
+Vitousek et al.'s Corollary 5.5.1 is about a single language.
 
-You might argue that our Theorem 2.6 is just an adaptation of Vitousek et al.'s
-Theorem 5.5 (Open-World Soundness), but there are three important differences:
+Nor is our Theorem 2.6 an adaptation of Vitousek et al.'s Theorem 5.5
+(Open-World Soundness). There are three important differences:
 
 - Vitousek et al. do not define a type system for the surface language;
   it is impossible to reason about programs independent of their core-language
-  translation (via Vitousek's \rightsquigarrow)
+  translation (via Vitousek's $\rightsquigarrow$).
 
 - Vitousek et al.'s "stuck terms" are defined in terms of the core language;
-  it is not clear that evaluation can only get stuck in the context.
+  it is not clear that typed programs cannot get stuck without studying their
+  translation into the core language. In contrast, our framework makes it
+  clear that only a dynamically-typed subexpression can step to a TagError.
+
+We will add a clarification to the paper.
 
 
 > * Theorem 2.7 should be another example of the usual type safety
@@ -170,8 +200,8 @@ Thank you, that is definitely a typo.
 
 The abstract says just what we choose it to say --- nothing more.
 
-Please let us know if there is something that NEEDS to be in the abstract and
-cannot wait until the introduction.
+If you believe something is missing from the abstract, we will consider
+including it.
 
 
 > p1. "But, it may impose a huge run-time cost"
@@ -191,12 +221,15 @@ Kuhlendschmidt et al.'s work does not change the past.
 > the Blame Theorem, which provides the same guarantees that are provided
 > by the theorems in this paper.
 
-All the blame theorems we know* are guarantees about casts in an intermediate
-language. Our type soundness theorems are guarantees about the results of
-evaluating a surface-language term. These are different guarantees.
+All the blame theorems we know (see below) are guarantees about casts in an
+intermediate language. Our type soundness theorems are guarantees about the
+results of evaluating a surface-language term. These are different guarantees.
 
-`*` Wadler and Findler (2009), Ahmed et al. (2011), Vitousek et al. (2017) ---
-    all of which are slightly different theorems!
+"The Blame Theorem"s:
+
+- Wadler and Findler (2009)
+- Ahmed et al. (2011)
+- Vitousek et al. (2017)
 
 
 > p9. "Second, monitoring adds prohibitive run-time cost."
@@ -212,20 +245,22 @@ Please let us know if you believe we have mis-represented Vitousek et al.
 > p4. It is confusing to use boundary errors for both cast errors and
 > for errors such as div-by-zero.
 
-We do this to show that soundness for a pair of languages is a generalization
- of soundness for a single "Landin-style" language with some \delta functions.
+We do this to show how soundness for a pair of languages is a natural
+generalization of soundness for a single language (i.e., a language that
+includes primitive operations such as division in its trusted code base).
+
+We will clarify in the paper.
 
 
 > p9. "near-constant time"
 > Why only "near" and not just "constant time"?
 
-One reason is for union types. The check for `(U String Integer)` must do
-at most two constructor checks.
+One reason is for union types. The check for `(U String Integer)` must perform
+at most two constructor checks at runtime.
 
-Vitousek et. al 2017 do a near-constant time check for objects; they check
- that the incoming value binds the right fields.
-
-TODO clarify, improve
+Another reason, from Vitousek et al. (2017), is for structural object types.
+Checking that an object has the expected members requires one check for each
+member in the structural type.
 
 
 > p10.
@@ -241,8 +276,8 @@ Footnote 3 (line 537) explains.
 > "This table demonstrates that for pathological examples..."
 > Those examples are not pathological.
 
-If you suggest a better word than "pathological" to describe "examples
-with worst-case performance", we will consider using it.
+Suggestions welcome. We just want a word to describe "examples with worst-case
+performance".
 
 
 > p17. "the implicit conjectures of the literature"
@@ -259,7 +294,7 @@ typed and untyped code.
 > which also induces problems with time efficiency.
 
 We did not forget, but you are right we need to be clearer that the cost
-of allocation is unbounded in principle. (We will elaborate in Section 4.5.)
+of **allocation** is unbounded in principle. (We will elaborate in Section 4.5.)
 
 
 > p19. "Sound static types can eliminate the need to dispatch, thus the
