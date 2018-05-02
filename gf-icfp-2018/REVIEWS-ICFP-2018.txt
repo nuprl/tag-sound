@@ -1,0 +1,244 @@
+ICFP '18 Paper #21 Reviews and Comments
+===========================================================================
+Paper #21 A Spectrum of Soundness and Performance
+
+
+Review #21A
+===========================================================================
+
+Overall merit
+-------------
+A. Good paper, I will champion it
+
+Reviewer expertise
+------------------
+X. I am an expert in this area
+
+Paper summary
+-------------
+This paper studies the three major flavors of migratory typing both in a common theoretical framework and in a common implementation substrate. 
+The theoretical framework enables a clear formulation of the key differences between all these approaches (as extensions/refinements of a common core), and in particular of the precise notion of type soundness that each approach supports. It is based on Matthews and Findler's seminal work on interlanguage semantics. The implementation substrate allows for a thorough evaluation of the performance impact of each of these approaches in a range of migration scenarios. It is based on Typed Racket.
+
+Rating rationale and comments for author
+----------------------------------------
+This is very solid paper that makes a timely contribution to the area of migratory typing and the closely related area of gradual typing. It is likely to serve as a reference for both theoretical developments and practical implementations. The theoretical part contributes mostly clarity and precision, while the implementation part brings about a number of insights regarding the respective costs of each approach. Interestingly, there is no single approach that reigns even from the performance-only point of view.
+
+The paper is very well written. The formal development is mostly clear (see more comments below). The benchmarks follow the methodology of exhaustive exploration used in prior work, which is a very solid way of evaluating migratory/gradual type systems. I found the "Implications" section particularly insightful.
+
+A weak part of the paper---which is easy to fix---is that there is no discussion of mixed-semantics languages. As such, Dart is badly characterized in this paper as an optional/erasure style language. But Dart has two execution modes: the "production mode", which is indeed an erasure embedding, and the "checked mode", which is a natural embedding (with the caveat that because the underlying language has a special notion of assignability, the semantics of these extra casts is also special). 
+
+Generalizing beyond Dart, it seems that the findings of this paper strongly suggest that a mixed-semantics language implementation is likely to be the best pragmatic choice for users: there are three levels of soundness guarantees, with different performance profiles, with no absolute winner, so why not let programmers decide under which regime they want their code to run? Some Dart developpers apparently like to use checked mode when developing, and turn to production mode when systems are deployed.
+
+Additionally, because the paper mentions universal types, it seems necessary to explicitly clarify (maybe as a footnote) that the discussion of type soundness elaborated in this work is syntactic; for migratory/gradual typing to ensure (a form of) relational parametricity for universal types is another level of complexity, and a very active field of research.
+
+Finally, the paper should relate to the work of Siek, Thiemann and Wadler (PLDI’15) on different calculi for gradual typing and their relations (with an eye on implementation, although that work is purely theoretical).
+
+Detailed comments
+
+- The two first sentences vaguely claim that many programmers "have switched" to dynamic languages, and that "they eventually discover that they wish" they had types. None of these sentences is based on evidence, however. Surely, there are many people in both camps, and there is demand for types in untyped languages (based on the objective recent developments of the major software companies and language communities out there). But that does not mean one can claim anything about actual "switches" and that those same "switching people" formulate "wishes". (It's a detail, but it's an unnecessary stain on an otherwise quite irreprochable paper from the point of view of scientific methodology and discourse.)
+
+- In 2.1, the paper mentions the "ahead-of-time checking common to dynamically-typed languages". From a Scheme community point of view, that is certainly true. But (unfortunately?) this checking is not so common; at least two major dynamic languages do not perform such checks: Python and JavaScript!
+
+- In Figures 4 and 8 the title boxes of the reduction relations are buggy (D-N/S-N and D-LD/S-ND are swapped). 
+
+- There is a similar "swapping bug" in theorems 2.0 and 2.1 (static N-soundness is formulated in terms of D-N reduction and vice versa)
+
+- In Figure 4, there is quite some redundancy between ->^*_{S-N} and ->^*_{D-N}: would it be possible to further factor out the common parts?
+
+- Please explain why errors do not propagate through E^\bullet contexts
+
+- In Theorem 2.0, 2nd reduction alternative, I don't understand why the right hand side cannot be simply: E[dyn t' E* [TagErr]], considering that e' steps to TarErr and that the reduction relation admits reduction under E*.
+(same question for Theorem 2.6)
+
+- (l338) "A similar lemma does not hold": would help to state the lemma that does not hold (there is space). Also, the text says that "the proof breaks down when \tau is a function type", but it does not explain why, and what insight to extract from it. This is a bit sad, because it is "a key tradeoff in migratory typing". What does "generalized its soundness guarantee" mean here? Overall this paragraph deserves more care and details. Please expand.
+
+- The data of Figure 12 could be plotted (again, there is space)
+
+- The discussion of the gradual guarantee in section 5 is a bit incomplete. The guarantee is not just about "can only remove a boundary error" -- that's the dynamic gradual guarantee; the static part says that it can also remove a static error. 
+
+
+l53 "previous attempts to compare" -> remove "to"
+l500 "fuctions"
+l502 should be "its actual parameter matches" (only one)
+l573 "demonstratess"
+l767 "that may introduces"
+l937 "approach For" (missing .)
+l1009 orphan footnote
+
+
+
+Review #21B
+===========================================================================
+
+Overall merit
+-------------
+C. Weak paper, though I will not fight strongly against it
+
+Reviewer expertise
+------------------
+X. I am an expert in this area
+
+Paper summary
+-------------
+The paper compares three semantics for gradually typed languages with
+a focus on type soundness and performance. In particular, the paper
+compares
+1. the traditional "natural" approach that involves monitors (aka. proxies),
+2. the type erasure approach, and
+3. the transient approach, here called the locally-defensive approach.
+
+The paper places all three approaches within a framework of
+coarse-grained gradual typing (aka. migratory typing) derived from the
+multi-language semantics of Matthews and Findler (2009).  The paper
+proves theorems about type soundness for the three approaches and
+investigates their performance in the setting of Typed Racket.
+
+Rating rationale and comments for author
+----------------------------------------
++ The paper does a thorough and controlled performance experiment that
+  confirms that the results of Vitousek et al. (2017) on Reticulated
+  Python carry over to the setting of Typed Racket. That is, the
+  transient semantics avoids the catastrophic performance problems
+  that occur in naive implementations of the natural approach, but
+  transient incurs overhead in statically typed code.
+
++ The formal development is clearly written and technically solid.
+
++ The discussion of logical implications is helpful for an audience
+  that is less familiar with the literature, collecting in one place
+  ideas from several papers.
+
+- The novelty of the formal development and theorems is overstated and
+  the closeness to prior work is not adequately explained.
+
+  * The semantic framework is a straightforward adaptation of
+    the Matthews-Findler multi-language semantics.
+
+  * Theorem 2.0 is a just a combination of the usual Type Safety theorem
+    for gradually typed languages (Siek and Taha 2006) and the Blame
+    Theorem (Tobin-Hochstadt and Felleisen 2006, Wadler and Findler
+    2009). The paper does not discuss these relationships.
+
+  * Theorems 2.1, 2.3, and 2.4 are all the usual type safety theorem for
+    dynamically typed languages.
+
+  * Theorem 2.5 is just type safety for a statically typed program, and
+    is a corollary of the equivalence between gradual typing and static
+    typing on fully annotated programs (Siek et al. 2015).  The paper
+    does not discuss this close relationship.
+  
+  * Theorem 2.6 is an adaptation of Corollary 5.5.1 (Type soundness) of
+    Vitousek et al. (2017).  The paper does not discuss this close
+    relationship.
+  
+  * Theorem 2.7 should be another exampale of the usual type safety
+    theorem for a dynamically typed language, but it looks like there
+    is a typo in saying |-_{LD} v : \lfloor \tau \rfloor
+    because there is no \tau to refer to here.
+
+
+Comments on Details
+
+The paper should describe its relationship with a couple more related
+works:
+
+* A Framework for Object-Oriented Gradual Typing
+  by Chung et al. accepted for ECOOP 2018.
+
+* Efficient Gradual Typing
+  by Kuhlenschmidt et al. 
+  https://arxiv.org/abs/1802.06375
+
+
+p1. The abstract is much too short.
+
+p1. "But, it may impose a huge run-time cost"
+It would be appropriate to cite recent work by Kuhlenschmidt et
+al. (see above) that shows that the natural semantics does nto have to
+impose a huge run-time cost.
+
+p1. In the discussion of "type soundness", this paper should discuss
+the Blame Theorem, which provides the same guarantees that are provided
+by the theorems in this paper.
+
+p4. It is confusing to use boundary errors for both cast errors and
+for errors such as div-by-zero.
+
+p7. It seems that the reduction relation subscripts D-N and S-N
+are mixed up.
+
+p8. "Whether the types are sound is incidental."
+You should instead say that they are unsound.
+
+p9. "Second, monitoring adds prohibitive run-time cost."
+That is only true of naive implementations. Again, see
+Kuhlenschmidt et al.
+
+p9. "near-constant time"
+Why only "near" and not just "constant time"?
+
+p10.
+Why do you perform checking of parameters in the reduction rules
+but insert all the other checks during compilation? This seems
+rather inconsistent and differs, as you later point out,
+from the implementations.
+
+p16.
+"This table demonstrates that for pathological examples..."
+Those examples are not pathological.
+
+p17. "the implicit conjectures of the literature"
+You seem to be overlooking the performance experiments
+reported on by Vitousek et al. (2017).
+
+p19. "The natural embedding incurs three significantly larger kinds of
+costs." You're forgetting the fourth: the natural embedding also has
+the space-efficiency problem pointed out by Herman et al. (2006),
+which also induces problems with time efficiency.
+
+p19. "Sound static types can eliminate the need to dispatch, thus the
+natural embedding's performance can exceed that of the erasure
+embedding"
+
+This paper does not provide empirical results regarding this claim.
+
+
+
+Review #21C
+===========================================================================
+
+Overall merit
+-------------
+A. Good paper, I will champion it
+
+Reviewer expertise
+------------------
+Y. I am knowledgeable in this area, but not an expert
+
+Paper summary
+-------------
+This paper proposes a semantic framework that gives the common ground
+of various kinds of the language whose type system is constituted as
+a mixture of static and dynamic type system.  It investigates three
+approaches to mix statically- and dynamically-typed portions:
+typecheck at boundaries, erasing types, and the compromise of them.
+The framework provides a common language of the mixed-typed languages.
+The difference of the three approaches is described as the difference
+of embedding two counterparts in each other.  Based on the framework,
+the three flavor is implemented in Typed Racket and the typecheck
+overhead is measured by extensive benchmarks.
+
+Rating rationale and comments for author
+----------------------------------------
+Good paper.  I enjoyed the paper and learned many things.
+It is well written, clearly structured, and very accessible, with
+comprehensive and careful examination of relevant works.
+
+I am a little bit surprised at the fact that static typing does not
+contribute the runtime performance at all.  I would like to see the
+runtime performance on a JIT compiler or a compiler equipped with
+type-conscious optimization.
+
+The explanation of benchmark programs should be extended.  I suggest
+at least to include the first three pages of the supplemental material
+to the main paper.
