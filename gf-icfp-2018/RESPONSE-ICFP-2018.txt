@@ -24,7 +24,7 @@ that our second author is PI for (NSF grant SHF 1518844).
 
 For the final version of this paper, we will compare our work to Chung et al.
 The main difference between their work and ours is that they do not prove
-soundness for their surface languages.
+soundness for their surface languages (only for the core language).
 
 We will not cite Kuhlenschmidt et al. because we are under no obligation to
 cite an arXiv paper and (more importantly) we find their performance evaluation
@@ -63,8 +63,8 @@ languages as an area for future work. (It's an area we are excited about.)
 
 > Additionally, because the paper mentions universal types, it seems necessary to
 > explicitly clarify (maybe as a footnote) that the discussion of type soundness
-> elaborated in this work is syntactic; for migratory/gradual typing to ensure (a
-> form of) relational parametricity for universal types is another level of
+> elaborated in this work is syntactic; for migratory/gradual typing to ensure
+> (a form of) relational parametricity for universal types is another level of
 > complexity, and a very active field of research.
 
 Yes, definitely.
@@ -119,8 +119,10 @@ Response to Review #21B
 >   transient incurs overhead in statically typed code.
 
 Remarks like this are exactly why we prepared this paper. It is time to stop
-making broad claims about different languages with different type systems and
-different guarantess. We're supposed to be scientists, not marketers.
+putting broad claims about different languages with different type systems and
+different guarantess in the scientific literature.
+
+Vitousek et al. (2017) does not directly compare transient to natural.
 
 
 > * The semantic framework is a straightforward adaptation of
@@ -155,7 +157,8 @@ Again, the paper does not claim these theorems are novel but it is definitely
 **unusual** that these theorems include 2 typing judgments.
 
 These theorems also emphasize that soundness for a pair of languages comes
-as a pair of theorems.
+as a pair of theorems. (Non-experts should be wary of papers that advertise
+a "Theorem 2.5"-style result without discussing partially-typed programs.)
 
 
 > * Theorem 2.5 is just type safety for a statically typed program, and
@@ -174,7 +177,7 @@ Theorem 2.6 is **not** an adaptation of Vitousek et al.'s "type soundness".
 Vitousek et al.'s Corollary 5.5.1 is about a single language.
 
 Nor is our Theorem 2.6 an adaptation of Vitousek et al.'s Theorem 5.5
-(Open-World Soundness). There are three important differences:
+(Open-World Soundness). There are two important differences:
 
 - Vitousek et al. do not define a type system for the surface language;
   it is impossible to reason about programs independent of their core-language
@@ -211,7 +214,7 @@ including it.
 
 We disagree, it would not be appropriate to cite Kuhlenschidt et al. here.
 The sentence you quote is trying to communicate the **historical fact** that
-the performance of the natural embedding has led researchers and implementors
+the performance of the natural embedding led researchers and implementors
 to consider other alternatives.
 
 Kuhlendschmidt et al.'s work does not change the past.
@@ -239,7 +242,7 @@ results of evaluating a surface-language term. These are different guarantees.
 Kuhlenschmidt et al's work is not relevant here --- the sentence you quote is
 summarizing the motivation for transient given in Vitousek et al. (2017).
 
-Please let us know if you believe we have mis-represented Vitousek et al.
+Please let us know if you believe we have mis-represented Vitousek et al. (2017)
 
 
 > p4. It is confusing to use boundary errors for both cast errors and
@@ -294,7 +297,9 @@ typed and untyped code.
 > which also induces problems with time efficiency.
 
 We did not forget, but you are right we need to be clearer that the cost
-of **allocation** is unbounded in principle. (We will elaborate in Section 4.5.)
+of **allocation** is a space+time cost and is unbounded in principle.
+
+We will elaborate in Section 4.5.
 
 
 > p19. "Sound static types can eliminate the need to dispatch, thus the
@@ -319,5 +324,4 @@ that this optimization can make a fully-typed program run faster than a
 type-erased program.
 
 Agreed though, it would be very interesting to see similar results for a
-language with a type-aware JIT compiler.
-
+language with a type-aware JIT compiler. Future work!
