@@ -20,7 +20,7 @@ by two papers (one of which is still unavailable in public):
 
 > _A Framework for Object-Oriented Gradual Typing_.
 >  Chung, Li, Zappa Nardelli, Vitek.
->  ECCOP 2018
+>  ECOOP 2018
 >
 > _Efficient Gradual Typing_.
 > Kuhlenschmidt, Almahallawi, Siek.
@@ -101,7 +101,7 @@ forward to reproducing our experimental work on top of that new
 backend. But this area remains future work for sound gradually typed
 approaches. 
 
-Detailed Response to Review #21B
+Response to Review #21B
 ===========================================================================
 
 > + The paper does a thorough and controlled performance experiment that
@@ -114,16 +114,15 @@ Detailed Response to Review #21B
 Vitousek et al. (2017) does not directly compare transient to natural.
 
 Remarks like this are exactly why we prepared this paper. It is time to stop
-polluting the scientific literature with general claims about different
-languages with different type systems and different guarantees.
+making unscientific claims about different languages with different type
+systems and different guarantees.
 
 
 > * The semantic framework is a straightforward adaptation of
 >   the Matthews-Findler multi-language semantics.
 
-The first sentence of Section 2.2 and first paragraph of Section 6
-(the conclusion) acknowledge Matthews & Findler. If this is not enough,
-we can add more.
+The first sentence of Section 2.2 and first paragraph of Section 6 acknowledge
+Matthews & Findler.
 
 
 > * Theorem 2.0 is a just a combination of the usual Type Safety theorem
@@ -159,7 +158,7 @@ a "Theorem 2.5"-style result without discussing partially-typed programs.)
 >   typing on fully annotated programs (Siek et al. 2015).  The paper
 >   does not discuss this close relationship.
 
-Good point, we will discuss the relationship.
+Correct, we will discuss the relationship.
 
 
 > * Theorem 2.6 is an adaptation of Corollary 5.5.1 (Type soundness) of
@@ -170,16 +169,17 @@ Theorem 2.6 is **not** an adaptation of Vitousek et al.'s "type soundness".
 Vitousek et al.'s Corollary 5.5.1 is about a single language.
 
 Nor is our Theorem 2.6 an adaptation of Vitousek et al.'s Theorem 5.5
-(Open-World Soundness). There are two important differences:
+(Open-World Soundness):
 
 - Vitousek et al. do not define a type system for the surface language;
   it is impossible to reason about programs independent of their core-language
-  translation (via Vitousek's $\rightsquigarrow$).
+  translation (via Vitousek et al.'s $\rightsquigarrow$).
 
 - Vitousek et al.'s "stuck terms" are defined in terms of the core language;
-  it is not clear from the theorem that typed programs cannot get stuck without
-  studying their translation into the core language. In contrast, our theorem
-  shows that only dynamically-typed expressions can reduce to a TagError.
+  it is not clear from their theorem that well-typed expressions cannot get
+  stuck. Again, one must study the translation of surface-language expressions
+  into the core language. In contrast, our theorems clearly state the
+  different guarantees for statically-typed and dynamically-typed expressions.
 
 We will add a clarification to the paper.
 
@@ -194,8 +194,6 @@ Thank you, that is definitely a typo.
 
 > p1. The abstract is much too short.
 
-The abstract says just what we choose it to say --- nothing more.
-
 If you believe something is missing from the abstract, we will consider
 including it.
 
@@ -206,33 +204,29 @@ including it.
 > impose a huge run-time cost.
 
 We disagree, it would not be appropriate to cite Kuhlenschidt et al. here.
-The sentence you quote is trying to communicate the historical fact that
-the performance of the natural embedding led researchers and implementors
-to consider other alternatives.
-
-Kuhlendschmidt et al.'s work does not change the past.
+The sentence above is trying to communicate the historical fact that the
+performance of the natural embedding led researchers and implementors to
+consider other alternatives. Kuhlendschmidt et al.'s work does not change the
+past.
 
 
 > p1. In the discussion of "type soundness", this paper should discuss
 > the Blame Theorem, which provides the same guarantees that are provided
 > by the theorems in this paper.
 
-All the blame theorems we know (see below) are guarantees about casts in an
-intermediate language. Our type soundness theorems are guarantees about the
-results of evaluating a surface-language term. These are different guarantees.
+None of the blame theorems (that we know) provide the same guarantees.
 
-"The Blame Theorem"s (all of which are slightly different):
-
-- Wadler and Findler (2009)
-- Ahmed et al. (2011)
-- Vitousek et al. (2017)
+The blame theorems in Wadler and Findler (2009), Ahmed et al. (2011), and
+Vitousek et al. (2017) are guarantees about casts in an intermediate language.
+Our soundness theorems are guarantees about the results of evaluating a
+surface-language term. These are different guarantees.
 
 
 > p9. "Second, monitoring adds prohibitive run-time cost."
 > That is only true of naive implementations. Again, see
 > Kuhlenschmidt et al.
 
-Kuhlenschmidt et al's work is not relevant here --- the sentence you quote is
+Kuhlenschmidt et al's work is not relevant here --- the sentence above is
 summarizing the motivation for transient given in Vitousek et al. (2017).
 
 Please let us know if you believe we have mis-represented Vitousek et al. (2017)
@@ -293,14 +287,5 @@ We did not forget, but you are right we need to be clearer that the cost
 of **allocation** is a space+time cost and is unbounded in principle.
 
 We will clarify.
-
-
-> p19. "Sound static types can eliminate the need to dispatch, thus the
-> natural embedding's performance can exceed that of the erasure
-> embedding"
->
-> This paper does not provide empirical results regarding this claim.
-
-See Figure 12.
 
 
