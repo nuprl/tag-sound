@@ -31,7 +31,9 @@ The papers were presented at the August 2017 PI day at Northeastern. When
 we submitted our paper, Chung et al.'s work was NOT ACCEPTED and NOT
 AVAILABLE in public. [[ We confirmed this statement with the authors who
 sit across the hallway from us. ]]  Once its status is changed, we will
-compare the two research results in the paper.
+compare the two research results in the paper. See the end of the response
+for a proposed prose addition to our paper, because this is the closest
+piece of research in existence. 
 
 Kuhlenschmidt et al. are working on an alternative approach to the compilation
 of NEWLY DESIGNED gradually typed languages. The language is a work-in-progress;
@@ -296,10 +298,21 @@ We will clarify.
 
 > The paper should describe its relationship with [Chung et al. 2018]
 
-Chung et al. (2018) define a calculus for object-oriented gradual typing and
-present four translations from a common surface language into the calculus.
-Through various examples, they demonstrate how the different translations can
-lead to core-calculus programs with different semantics. In contrast to our
-work, Chung et al. do not prove type soundness in terms of the surface language
-and do not evaluate the performance of their translations.
+Here is what we propose to add to the paper: 
 
+```
+Chung et al. (2018) study the relationship of four different designs of
+gradually typed object-oriented syntaxes. To this end, they develop a core
+language, dubbed Kafka, and prove a type-soundness theorem for it.  They
+define four translations from the four syntaxes to Kafka. For the
+comparative part of their work, they use examples to demonstrate how the
+four systems (syntax plus translation) can lead to seemingly similar
+core-calculus programs with rather different behavior. 
+
+By contrast, this paper assigns three different semantics to the same
+syntax and type system. It then articulates precise soundness theorems
+about each of these semantics, which give rise to a natural comparison of
+the subtleties underlying the known variants of gradually typed
+implementations. Also, Chung et al. do not implement their systems and do
+not present comparative performance evaluation results in their framework. 
+'''
