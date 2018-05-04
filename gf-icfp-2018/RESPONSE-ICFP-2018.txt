@@ -7,47 +7,40 @@ General Response
 ===========================================================================
 
 Thank you for the many comments and suggestions, especially about where our
-discussions of related work and future work must improve. See details below.
+discussions of related work and future work must improve.
 
-Review #21B raises serious concerns about works that we failed to cite; namely:
+Review #21B raises two serious concerns. First:
 
-* _A Framework for Object-Oriented Gradual Typing_.
-  Chung, Li, Zappa Nardelli, Vitek.
-  ECOOP 2018
+> the novelty of the formal development and theorems is overstated
 
-* _Efficient Gradual Typing_.
-  Kuhlenschmidt, Almahallawi, Siek.
-  https://arxiv.org/abs/1802.06375
+Our main contributions are:
 
-We are familiar with both these works, as Siek and Vitek are co-PIs on a grant
-that our second author is PI for (NSF grant SHF 1518844).
+1. explain three approaches to migratory typing in a framework that supports
+   scientific comparisons;
+2. systematically compare the implications of each approach for programmers
+   reasoning about the behavior of well-typed programs; and
+3. systematically compare the performance of each approach.
 
-For the final version of this paper, we will compare our work to Chung et al.
-The main difference between their work and ours is that they do not prove
-soundness for their surface languages (only for the core language).
+Our primary claim about the formal development is that it accurately represents
+the ideas (some explicit, some implicit) from prior work. We will use the
+review comments to more clearly spell out the connections.
 
-We will not cite Kuhlenschmidt et al. because we are under no obligation to
-cite an arXiv paper and (more importantly) we find their performance evaluation
-lacking:
+Second, Review #21B asks for a discussion of two recent works:
 
-- The evaluation for partially-typed programs reports performance relative to
-  Racket. This is an apples-to-oranges comparison. As the authors say in
-  Section 5.2, "[Grift] does not support a full language".
+> _A Framework for Object-Oriented Gradual Typing_.
+>  Chung, Li, Zappa Nardelli, Vitek.
+>  ECCOP 2018
+>
+> _Efficient Gradual Typing_.
+> Kuhlenschmidt, Almahallawi, Siek.
+> https://arxiv.org/abs/1802.06375
 
-- The evaluation uses an ad-hoc sampling method, rather than the systematic
-  (albiet coarse-grained) methods proposed by Takikawa et al. (2016) and
-  Greenman and Migeed (2018). We are not convinced that the Grift sampling
-  method supports the strong claims in the paper.
+We are familiar with these, as Siek and Vitek are co-PIs on a grant that
+supports our work.
 
-- There are only 6 benchmark programs with data for partially-typed
-  configurations; these benchmarks do not include any of the Racket programs
-  from Takikawa et al. (2016) or Bauman et al. (2017).
-
-- The data for this paper is not avaiable; it is impossible to tell whether
-  the reported running times are on the order of minutes, seconds, or
-  milliseconds. (Based on our PI meetings, we suspect it is milliseconds.)
-
-P.S. we will forward this criticism to Kuhlenschmidt et al.
+We will acknowledge these works; however, we have serious concerns about the
+validity of the conclusions reached by Kuhlenschmidt et al. (We will forward
+our concerns to the authors.)
 
 
 Response to Review #21A
@@ -89,7 +82,7 @@ Errors do propagate through, because E^\bullet is a subset of E.
 
 You are right, thank you.
 
-(The 2nd alternative is an artifact of an earlier version of the semantics.)
+(This 2nd alternative is an artifact of an earlier version of the semantics.)
 
 
 > - (l338) "A similar lemma does not hold": would help to state the lemma that
