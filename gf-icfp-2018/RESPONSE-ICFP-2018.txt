@@ -1,7 +1,7 @@
 ICFP '18 Paper #21 Author Response
 ===========================================================================
 
-Review #21B mischaracterizes our results in at least three ways. 
+Review #21B mischaracterizes our results in at least three ways.
 
 FIRST, the review misrepresents our theoretical results as variations of
 known theorems. 
@@ -16,7 +16,7 @@ statements in the literature denote distinct notions of soundness and must
 be read very carefully. For technical details, see below.
 
 SECOND, the review #21B seems to imply that our results might be preempted
-by two papers (one of which is still unavailable in public): 
+by two papers (one of which is still unavailable in public):
 
 > _A Framework for Object-Oriented Gradual Typing_.
 >  Chung, Li, Zappa Nardelli, Vitek.
@@ -30,24 +30,21 @@ Felleisen is the PI on a large NSF grant that also supports these efforts.
 The papers were presented at the August 2017 PI day at Northeastern. When
 we submitted our paper, Chung et al.'s work was NOT ACCEPTED and NOT
 AVAILABLE in public. [[ We confirmed this statement with the authors who
-sit across the hallway from us. ]]  Now that its status has changed we can
-easily compare the two research results and will do so in the paper. For
-a detailed comparison, see below.
+sit across the hallway from us. ]]  Once its status is changed, we will
+compare the two research results in the paper.
 
-We consider Kuhlenschmidt et al.'s very-extremely preliminary work.  In
-brief, Kuhlenschmidt et al. are working on an alternative approach to the
-compilation of NEWLY DESIGNED gradually typed languages. The language is
-extremely small and the paper warns readers not to use the compiler
-"because it does not support a full language" (p. 10, left).  Their work
-confirms that on a small number of micro-benchmarks, their Grift compiler
-performs differently for four different styles of casts. 
+Kuhlenschmidt et al. are working on an alternative approach to the compilation
+of NEWLY DESIGNED gradually typed languages. The language is a work-in-progress;
+indeed, the paper warns readers not to use the compiler "because it does not
+support a full language" (p. 10, left). Their work compares two kinds of
+references and two kinds of casts on an ad-hoc sample of mixed-typed
+configurations derived from 6 micro-benchmarks.
 
 But, we do not accept that this status report preempts any of our practical
 results. Kuhlenschmidt et al.'s work does not include an apples-to-apples
-comparison with full-fledged implementations of the three major
-semantics. Similarly, while our three implementations can deal with
-non-trivial benchmarks (programs used on a daily basis), Kuhlenschmidt et
-al.'s compiler cannot deal with anything realistic. 
+comparison with full-fledged implementations of the three major semantics.
+Similarly, while our evaluation measures non-trivial benchmarks,
+Kuhlenschmidt et al.'s compiler cannot handle most of the shootout benchmarks.
 
 THIRD, the review claims that our paper does not support our statements
 about performance. Specifically, the review claims 
@@ -57,9 +54,10 @@ about performance. Specifically, the review claims
 > embedding"
 > This paper does not provide empirical results regarding this claim.
 
-FIGURE 12 on PAGE ___ppp___ LINE __lll___ clearly demonstrates that the
+FIGURE 12 on PAGE 15 (LINE 730) clearly demonstrates that the
 performance of NATURAL dominates the performance of ERASURE on programs
 when the typed-driven optimizer can exploit sound information.
+
 
 Response to Review #21A
 ===========================================================================
@@ -72,34 +70,24 @@ Thank you for reminding us of Dart's mixed approach. We will include a
 brief discussion and draw attention to its approach, also as an area for
 future work. 
 
+
 > - Please explain why errors do not propagate through E^\bullet contexts
 
 Errors do propagate through, because E^\bullet is a subset of E.
+
 
 > - In Theorem 2.0, 2nd reduction alternative, I don't understand why the right
 >   hand side cannot be simply: E[dyn t' E* [TagErr]], considering that e' steps
 >   to TarErr and that the reduction relation admits reduction under E*.
 >   (same question for Theorem 2.6)
 
-You are correct. Thanks! 
+You are correct. Thanks!
+
 
 > - The data of Figure 12 could be plotted (again, there is space)
 
-Yes! This table is too easy to miss. 
+Yes! This table is too easy to miss.
 
-Response to Review #21C
-===========================================================================
-
-> I am a little bit surprised at the fact that static typing does not
-> contribute the runtime performance at all.  I would like to see the
-> runtime performance on a JIT compiler or a compiler equipped with
-> type-conscious optimization.
-
-This is a correct observation. The Indiana Typed Racket team is revising
-the Pycket compiler for Racket to address this issue. We are looking
-forward to reproducing our experimental work on top of that new
-backend. But this area remains future work for sound gradually typed
-approaches. 
 
 Response to Review #21B
 ===========================================================================
@@ -122,7 +110,7 @@ systems and different guarantees.
 >   the Matthews-Findler multi-language semantics.
 
 The first sentence of Section 2.2 and first paragraph of Section 6 acknowledge
-Matthews & Findler.
+Matthews and Findler.
 
 
 > * Theorem 2.0 is a just a combination of the usual Type Safety theorem
@@ -130,27 +118,28 @@ Matthews & Findler.
 >   Theorem (Tobin-Hochstadt and Felleisen 2006, Wadler and Findler
 >   2009). The paper does not discuss these relationships.
 
-The paper does not claim that these theorems are novel. The important
-contribution is expressing the different approaches in a framework that
-draws attention to their meaningful distinctions.
+Incorrect. The usual type soundness theorems relate ONE typing property to a
+semantics. Theorem 2.0 relates a surface-language typing property to a DIFFERENT
+evaluation-language property and a semantics. [[ Critically, surface-language
+typing is not preserved by the semantics. ]]
 
-That said, the difference between Theorem 2.0 and prior work is that it
-explicitly connects the surface language (without proxy/monitor values) to the
-core language (with proxy values). This is an important distinction for
-language designers: even if the surface language does not expose proxies,
-users need to understand proxies and the evaluation type system to understand
-the language's soundness guarantee.
+To clarify our point from the general response above, theorems 2.0, 2.3, and 2.6
+demonstrate how the various "type soundness" theorems from the literature are
+superficially similar, but rely on fundamentally different evaluation- language
+typing properties.
+
+We will try to clarify these important subtleties.
 
 
 > * Theorems 2.1, 2.3, and 2.4 are all the usual type safety theorem for
 >   dynamically typed languages.
 
-Again, the paper does not claim these theorems are novel but it is definitely
-unusual that these theorems include 2 typing judgments.
-
-These theorems also emphasize that soundness for a pair of languages comes
-as a pair of theorems. (Non-experts should be wary of papers that advertise
-a "Theorem 2.5"-style result without discussing partially-typed programs.)
+Incorrect. The "usual" type safety theorem relates ONE safety property to
+a semantics. In contrast, theorems 2.1, 2.3, and 2.4 relate a surface-language
+safety property to an evaluation-language safety property and semantics.
+An evaluation-language property is NECESSARY to handle the run-time interactions
+between typed and untyped code, and its meaning DEPENDS on the desired notion of
+type soundness.
 
 
 > * Theorem 2.5 is just type safety for a statically typed program, and
@@ -165,15 +154,15 @@ Correct, we will discuss the relationship.
 >   Vitousek et al. (2017).  The paper does not discuss this close
 >   relationship.
 
-Theorem 2.6 is **not** an adaptation of Vitousek et al.'s "type soundness".
+Theorem 2.6 is NOT an adaptation of Vitousek et al.'s "type soundness".
 Vitousek et al.'s Corollary 5.5.1 is about a single language.
 
-Nor is our Theorem 2.6 an adaptation of Vitousek et al.'s Theorem 5.5
+Nor is our Theorem 2.6 a simple adaptation of Vitousek et al.'s Theorem 5.5
 (Open-World Soundness):
 
 - Vitousek et al. do not define a type system for the surface language;
-  it is impossible to reason about programs independent of their core-language
-  translation (via Vitousek et al.'s $\rightsquigarrow$).
+  it is impossible to reason about programs in their system independent of the
+  translation from surface to core (via Vitousek et al.'s $\rightsquigarrow$).
 
 - Vitousek et al.'s "stuck terms" are defined in terms of the core language;
   it is not clear from their theorem that well-typed expressions cannot get
@@ -194,8 +183,7 @@ Thank you, that is definitely a typo.
 
 > p1. The abstract is much too short.
 
-If you believe something is missing from the abstract, we will consider
-including it.
+Why?
 
 
 > p1. "But, it may impose a huge run-time cost"
@@ -235,9 +223,12 @@ Please let us know if you believe we have mis-represented Vitousek et al. (2017)
 > p4. It is confusing to use boundary errors for both cast errors and
 > for errors such as div-by-zero.
 
-We do this to show how soundness for a pair of languages is a natural
-generalization of soundness for a single language that includes primitive
-operations (such as division) in its trusted code base.
+Cast errors and div-by-zero errors are the same kind of error. They
+both arise when one language sends invalid data to another.
+
+In other words, soundness for a pair of languages is a natural generalization
+of soundness for a single language that includes primitive operations
+(such as division) in its trusted code base.
 
 We will clarify in the paper.
 
@@ -284,8 +275,21 @@ typed and untyped code.
 > which also induces problems with time efficiency.
 
 We did not forget, but you are right we need to be clearer that the cost
-of **allocation** is a space+time cost and is unbounded in principle.
+of ALLOCATION is a space+time cost and is unbounded in principle.
 
 We will clarify.
 
 
+Response to Review #21C
+===========================================================================
+
+> I am a little bit surprised at the fact that static typing does not
+> contribute the runtime performance at all.  I would like to see the
+> runtime performance on a JIT compiler or a compiler equipped with
+> type-conscious optimization.
+
+This is a correct observation. The Indiana Typed Racket team is revising
+the Pycket compiler for Racket to address this issue. We are looking
+forward to reproducing our experimental work on top of that new
+backend. But this area remains future work for sound gradually typed
+approaches.
