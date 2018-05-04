@@ -4,16 +4,16 @@ ICFP '18 Paper #21 Author Response
 Review #21B mischaracterizes our results in at least three ways.
 
 FIRST, the review misrepresents our theoretical results as variations of
-known theorems. 
+known theorems.
 
 This claim is _wrong_. Our theorems articulate statements from the existing
 literature in a single framework, making them comparable. [[ We clearly
 must explicate how each section relates to prior literature directly. ]] On
 this apples-to-apples platform, our theorem statements expose the looseness
 of previous statements in the literature concerning "soundness" in the area
-of gradual typing. These three pairs of theorems explain that the
-statements in the literature denote distinct notions of soundness and must
-be read very carefully. For technical details, see below.
+of gradual typing. Our three pairs of theorems explain that the statements in
+the literature denote distinct notions of soundness and must be read very
+carefully. For technical details, see below.
 
 SECOND, the review #21B seems to imply that our results might be preempted
 by two papers (one of which is still unavailable in public):
@@ -68,7 +68,7 @@ Response to Review #21A
 
 Thank you for reminding us of Dart's mixed approach. We will include a
 brief discussion and draw attention to its approach, also as an area for
-future work. 
+future work.
 
 
 > - Please explain why errors do not propagate through E^\bullet contexts
@@ -89,6 +89,21 @@ You are correct. Thanks!
 Yes! This table is too easy to miss.
 
 
+Response to Review #21C
+===========================================================================
+
+> I am a little bit surprised at the fact that static typing does not
+> contribute the runtime performance at all.  I would like to see the
+> runtime performance on a JIT compiler or a compiler equipped with
+> type-conscious optimization.
+
+This is a correct observation. The Indiana Typed Racket team is revising
+the Pycket compiler for Racket to address this issue. We are looking
+forward to reproducing our experimental work on top of that new
+backend. But this area remains future work for sound gradually typed
+approaches.
+
+
 Response to Review #21B
 ===========================================================================
 
@@ -99,7 +114,7 @@ Response to Review #21B
 >   that occur in naive implementations of the natural approach, but
 >   transient incurs overhead in statically typed code.
 
-Vitousek et al. (2017) does not directly compare transient to natural.
+Vitousek et al. (2017) do not directly compare transient to natural.
 
 Remarks like this are exactly why we prepared this paper. It is time to stop
 making unscientific claims about different languages with different type
@@ -125,10 +140,10 @@ typing is not preserved by the semantics. ]]
 
 To clarify our point from the general response above, theorems 2.0, 2.3, and 2.6
 demonstrate how the various "type soundness" theorems from the literature are
-superficially similar, but rely on fundamentally different evaluation- language
+superficially similar, but rely on fundamentally different evaluation-language
 typing properties.
 
-We will try to clarify these important subtleties.
+We will explain these important subtleties in the paper.
 
 
 > * Theorems 2.1, 2.3, and 2.4 are all the usual type safety theorem for
@@ -191,10 +206,10 @@ Why?
 > al. (see above) that shows that the natural semantics does not have to
 > impose a huge run-time cost.
 
-We disagree, it would not be appropriate to cite Kuhlenschidt et al. here.
+We disagree, it would not be appropriate to cite Kuhlenschmidt et al. here.
 The sentence above is trying to communicate the historical fact that the
 performance of the natural embedding led researchers and implementors to
-consider other alternatives. Kuhlendschmidt et al.'s work does not change the
+consider other alternatives. Kuhlenschmidt et al.'s work does not change the
 past.
 
 
@@ -279,17 +294,12 @@ of ALLOCATION is a space+time cost and is unbounded in principle.
 
 We will clarify.
 
+> The paper should describe its relationship with [Chung et al. 2018]
 
-Response to Review #21C
-===========================================================================
+Chung et al. (2018) define a calculus for object-oriented gradual typing and
+present four translations from a common surface language into the calculus.
+Through various examples, they demonstrate how the different translations can
+lead to core-calculus programs with different semantics. In contrast to our
+work, Chung et al. do not prove type soundness in terms of the surface language
+and do not evaluate the performance of their translations.
 
-> I am a little bit surprised at the fact that static typing does not
-> contribute the runtime performance at all.  I would like to see the
-> runtime performance on a JIT compiler or a compiler equipped with
-> type-conscious optimization.
-
-This is a correct observation. The Indiana Typed Racket team is revising
-the Pycket compiler for Racket to address this issue. We are looking
-forward to reproducing our experimental work on top of that new
-backend. But this area remains future work for sound gradually typed
-approaches.
