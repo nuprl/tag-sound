@@ -6,14 +6,14 @@ Review #21B mischaracterizes our results in at least three ways.
 FIRST, the review misrepresents our theoretical results as variations of
 known theorems. 
 
-This claim is _completely wrong_ (with an exception). Our theorems expose
-the looseness of previous claims in the literature concerning "soundness"
-in the area of gradual typing. Our meta-theorems (and their logical
-implications) explain that these claims are incomparable and must be read
-very carefully. Technically our meta-theorems show that soundness results
-can be stated only in terms of properties preserved through run-time
-configurations. As a result, the implications for the programmer differ
-dramatically. For details, see below. 
+This claim is _wrong_. Our theorems articulate statements from the existing
+literature in a single framework, making them comparable. [[ We clearly
+must explicate how each section relates to prior literature directly. ]] On
+this apples-to-apples platform, our theorem statements expose the looseness
+of previous statements in the literature concerning "soundness" in the area
+of gradual typing. These three pairs of theorems explain that the
+statements in the literature denote distinct notions of soundness and must
+be read very carefully. For technical details, see below.
 
 SECOND, the review #21B seems to imply that our results might be preempted
 by two papers (one of which is still unavailable in public): 
@@ -34,22 +34,20 @@ sit across the hallway from us. ]]  Now that its status has changed we can
 easily compare the two research results and will do so in the paper. For
 a detailed comparison, see below.
 
-We do not consider Kuhlenschmidt et al.'s extremely preliminary work
-related and we do not accept that it contradicts our result. In brief,
-Kuhlenschmidt et al. are working on an alternative approach to the
-compilation of NEWLY DESIGNED gradually typed languages. Their work has
-confirmed that on a very small number of micro-benchmarks, the compiler can
-eliminate a large fraction of overhead due to the TRANSIENT semantics of
-gradual semantics. 
+We consider Kuhlenschmidt et al.'s very-extremely preliminary work.  In
+brief, Kuhlenschmidt et al. are working on an alternative approach to the
+compilation of NEWLY DESIGNED gradually typed languages. The language is
+extremely small and the paper warns readers not to use the compiler
+"because it does not support a full language" (p. 10, left).  Their work
+confirms that on a small number of micro-benchmarks, their Grift compiler
+performs differently for four different styles of casts. 
 
-Kuhlenschmidt et al.'s work does not include the apples-to-apples
-comparison of work, with full-fledged implementations of all three major
-semantics. Similarly, while our three implementations can deal with a dozen
+But, we do not accept that this status report preempts any of our practical
+results. Kuhlenschmidt et al.'s work does not include an apples-to-apples
+comparison with full-fledged implementations of the three major
+semantics. Similarly, while our three implementations can deal with
 non-trivial benchmarks (programs used on a daily basis), Kuhlenschmidt et
-al.'s compiler cannot deal with anything realistic so far. Of course, we do
-look forward to the day when their work supersedes the current state of the
-art with respect to performance.  We wish to use gradually typed languages
-on a daily basis.
+al.'s compiler cannot deal with anything realistic. 
 
 THIRD, the review claims that our paper does not support our statements
 about performance. Specifically, the review claims 
@@ -59,10 +57,9 @@ about performance. Specifically, the review claims
 > embedding"
 > This paper does not provide empirical results regarding this claim.
 
-The reviewer seems to have overlooked TABLE ____ttt___ on PAGE ___ppp___.
-This table clearly demonstrate that the performance of NATURAL dominates
-the performance of LOCALLY-DEFENSIVE on programs whose main modules are
-fully typed (though they may use untyped run-time libraries). 
+FIGURE 12 on PAGE ___ppp___ LINE __lll___ clearly demonstrates that the
+performance of NATURAL dominates the performance of ERASURE on programs
+when the typed-driven optimizer can exploit sound information.
 
 Response to Review #21A
 ===========================================================================
