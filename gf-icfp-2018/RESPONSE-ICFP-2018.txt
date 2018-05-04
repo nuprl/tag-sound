@@ -1,31 +1,22 @@
 ICFP '18 Paper #21 Author Response
 ===========================================================================
-Paper #21 A Spectrum of Soundness and Performance
 
+Review #21B mischaracterizes our results in at least three ways. 
 
-General Response
-===========================================================================
+FIRST, the review misrepresents our theoretical results as variations of
+known theorems. 
 
-Thank you for the many comments and suggestions, especially about where our
-discussions of related work and future work must improve.
+This claim is _completely wrong_ (with an exception). Our theorems expose
+the looseness of previous claims in the literature concerning "soundness"
+in the area of gradual typing. Our meta-theorems (and their logical
+implications) explain that these claims are incomparable and must be read
+very carefully. Technically our meta-theorems show that soundness results
+can be stated only in terms of properties preserved through run-time
+configurations. As a result, the implications for the programmer differ
+dramatically. For details, see below. 
 
-Review #21B raises two serious concerns. First:
-
-> the novelty of the formal development and theorems is overstated
-
-Our main contributions are:
-
-1. explain three approaches to migratory typing in a framework that supports
-   scientific comparisons;
-2. systematically compare the implications of each approach for programmers
-   reasoning about the behavior of well-typed programs; and
-3. systematically compare the performance of each approach.
-
-Our primary claim about the formal development is that it accurately represents
-the ideas (some explicit, some implicit) from prior work. We will use the
-review comments to more clearly spell out the connections.
-
-Second, Review #21B asks for a discussion of two recent works:
+SECOND, the review #21B seems to imply that our results might be preempted
+by two papers (one of which is still unavailable in public): 
 
 > _A Framework for Object-Oriented Gradual Typing_.
 >  Chung, Li, Zappa Nardelli, Vitek.
@@ -35,13 +26,43 @@ Second, Review #21B asks for a discussion of two recent works:
 > Kuhlenschmidt, Almahallawi, Siek.
 > https://arxiv.org/abs/1802.06375
 
-We are familiar with these, as Siek and Vitek are co-PIs on a grant that
-supports our work.
+Felleisen is the PI on a large NSF grant that also supports these efforts.
+The papers were presented at the August 2017 PI day at Northeastern. When
+we submitted our paper, Chung et al.'s work was NOT ACCEPTED and NOT
+AVAILABLE in public. [[ We confirmed this statement with the authors who
+sit across the hallway from us. ]]  Now that its status has changed we can
+easily compare the two research results and will do so in the paper. For
+a detailed comparison, see below.
 
-We will acknowledge these works; however, we have serious concerns about the
-validity of the conclusions reached by Kuhlenschmidt et al. (We will forward
-our concerns to the authors.)
+We do not consider Kuhlenschmidt et al.'s extremely preliminary work
+related and we do not accept that it contradicts our result. In brief,
+Kuhlenschmidt et al. are working on an alternative approach to the
+compilation of NEWLY DESIGNED gradually typed languages. Their work has
+confirmed that on a very small number of micro-benchmarks, the compiler can
+eliminate a large fraction of overhead due to the TRANSIENT semantics of
+gradual semantics. 
 
+Kuhlenschmidt et al.'s work does not include the apples-to-apples
+comparison of work, with full-fledged implementations of all three major
+semantics. Similarly, while our three implementations can deal with a dozen
+non-trivial benchmarks (programs used on a daily basis), Kuhlenschmidt et
+al.'s compiler cannot deal with anything realistic so far. Of course, we do
+look forward to the day when their work supersedes the current state of the
+art with respect to performance.  We wish to use gradually typed languages
+on a daily basis.
+
+THIRD, the review claims that our paper does not support our statements
+about performance. Specifically, the review claims 
+
+> p19. "Sound static types can eliminate the need to dispatch, thus the
+> natural embedding's performance can exceed that of the erasure
+> embedding"
+> This paper does not provide empirical results regarding this claim.
+
+The reviewer seems to have overlooked TABLE ____ttt___ on PAGE ___ppp___.
+This table clearly demonstrate that the performance of NATURAL dominates
+the performance of LOCALLY-DEFENSIVE on programs whose main modules are
+fully typed (though they may use untyped run-time libraries). 
 
 Response to Review #21A
 ===========================================================================
@@ -50,38 +71,40 @@ Response to Review #21A
 > discussion of mixed-semantics languages.  As such, Dart is badly characterized
 > in this paper as an optional/erasure style language.
 
-We will improve the discussion about Dart and draw attention to mixed-semantics
-languages as an area for future work. (It's an area we are excited about.)
-
-
-> - In Figure 4, there is quite some redundancy between ->^*_{S-N} and
->   ->^*_{D-N}: would it be possible to further factor out the common parts?
-
-We tried factoring the common parts into a meta-function, but decided it was
-better to be simple and clear.
-
+Thank you for reminding us of Dart's mixed approach. We will include a
+brief discussion and draw attention to its approach, also as an area for
+future work. 
 
 > - Please explain why errors do not propagate through E^\bullet contexts
 
 Errors do propagate through, because E^\bullet is a subset of E.
 
-
 > - In Theorem 2.0, 2nd reduction alternative, I don't understand why the right
 >   hand side cannot be simply: E[dyn t' E* [TagErr]], considering that e' steps
 >   to TarErr and that the reduction relation admits reduction under E*.
-> (same question for Theorem 2.6)
+>   (same question for Theorem 2.6)
 
-You are right, thank you.
-
-(This 2nd alternative is an artifact of an earlier version of the semantics.)
-
+You are correct. Thanks! 
 
 > - The data of Figure 12 could be plotted (again, there is space)
 
-Yes, this table is easy to miss.
+Yes! This table is too easy to miss. 
 
+Response to Review #21C
+===========================================================================
 
-Response to Review #21B
+> I am a little bit surprised at the fact that static typing does not
+> contribute the runtime performance at all.  I would like to see the
+> runtime performance on a JIT compiler or a compiler equipped with
+> type-conscious optimization.
+
+This is a correct observation. The Indiana Typed Racket team is revising
+the Pycket compiler for Racket to address this issue. We are looking
+forward to reproducing our experimental work on top of that new
+backend. But this area remains future work for sound gradually typed
+approaches. 
+
+Detailed Response to Review #21B
 ===========================================================================
 
 > + The paper does a thorough and controlled performance experiment that
@@ -284,17 +307,3 @@ We will clarify.
 See Figure 12.
 
 
-Response to Review #21C
-===========================================================================
-
-> I am a little bit surprised at the fact that static typing does not
-> contribute the runtime performance at all.  I would like to see the
-> runtime performance on a JIT compiler or a compiler equipped with
-> type-conscious optimization.
-
-Typed Racket does do some type-conscious optimization, and Figure 12 shows
-that this optimization can make a fully-typed program run faster than a
-type-erased program.
-
-Agreed though, it would be very interesting to see similar results for a
-language with a type-aware JIT compiler. Future work!
