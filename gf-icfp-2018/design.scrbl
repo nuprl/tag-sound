@@ -145,7 +145,7 @@ The semantic components in @figure-ref{fig:multi-reduction} are the
  error arises, for example, when an untyped subexpression evaluates to an
  integer if its typed context expects a function. A @italic{tag error} is a
  boundary error that is due to the application of a primitive operation to
- the wrong @emph{kinds} of values. In (virtual or abstract) machines one
+ the wrong kinds of values. In (virtual or abstract) machines one
  kind of value is often tagged differently from other values, e.g.,
  pointers to functions have one kind of tag while integers have a different
  one.  Thus, the addition of a function to an integer is a tag error, while
