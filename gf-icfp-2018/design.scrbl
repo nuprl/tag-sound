@@ -58,12 +58,13 @@ The expression @${(\edyn{\tau}{\exprdyn})} embeds a dynamically-typed subexpress
  statically-typed context, and the expression @${(\esta{\tau}{\exprsta})} embeds a
  statically-typed subexpression in a dynamically-typed context.
 
-The last components in @figure-ref{fig:multi-syntax} are the names of
- primitives.
-The primitives in @${\vunop} and @${\vbinop} represent low-level procedures that
- compute in terms of bitstrings rather than abstract syntax.
-For example, invoking the @${\vsum} procedure with arguments that are not
- integers is undefined behavior.
+The last components in @figure-ref{fig:multi-syntax} specify the names of
+ primitive operations. The primitives in @${\vunop} and @${\vbinop}
+ represent low-level procedures that operate on bitstrings rather than
+ abstract syntax.
+
+@;{For example, invoking the @${\vsum} procedure with arguments that are
+ not integers is undefined behavior.}
 
 @include-figure["fig:multi-syntax.tex" @elem{Twin languages syntax}]
 @include-figure["fig:multi-preservation.tex" @elem{Twin languages static typing judgments}]
@@ -80,14 +81,6 @@ The unconvential part of both judgments are the mutually-recursive rules for bou
  which invoke the opposite judgment on their subexpressions.
 For example, @${\Gamma \wellM \esta{\tau}{\exprsta}} holds only if the enclosed expression
  matches the @${\tau} type.
-
-The defined errors are of two types.
-A boundary error may occur when one ``language'' sends a bad value to another;
- such an error can arise between a typed context and an untyped subexpression,
- or between a surface-language expression and the implicit language that
- implements the primitives.
-A tag error may occur when the evaluation of an expression reaches a
- malformed state.
 
 Two auxiliary components of the type system are the function @${\Delta},
  which assigns a type to the primitives, and a subtyping
@@ -137,13 +130,26 @@ The syntactic components of this figure are expressions @${e},
 A core context @${\ebase} does not contain boundary terms and a multi-language
  context @${\esd} may contain boundaries.
 
-The semantic components in @figure-ref{fig:multi-reduction} are the @${\delta}
- function and the @${\rrS} and @${\rrD} notions of reduction for the core subsets of the two kinds of expressions.
-The @${\delta} function is a partial mathematical specification for the
- procedures in @${\vunop} and @${\vbinop}.
-It is undefined for certain arguments---to represent
- low-level undefined behavior---and raises a boundary error @${(\boundaryerror)}
- for division by zero.
+The semantic components in @figure-ref{fig:multi-reduction} are the
+ @${\delta} function and the @${\rrS} and @${\rrD} notions of reduction for
+ the core subsets of the two kinds of expressions.  The @${\delta} function
+ is a partial mathematical specification for the procedures in @${\vunop}
+ and @${\vbinop}. Primitive operations give rise to two kinds of errors.  A
+ @italic{boundary error} occurs when a program sends a bad value to the
+ run-time library that implements the primitive operations via the direct
+ manipulation of bits. When primitives receive inappropriate bitstrings,
+ they tend to produce random results that may lead to stuck states later;
+ the model represents this idea with the partiality of @${\delta}. The
+ terminology ``boundary error'' anticipates the generalization of the
+ concept to programs that mix typed and untyped code; there a boundary
+ error arises, for example, when an untyped subexpression evaluates to an
+ integer if its typed context expects a function. A @italic{tag error} is a
+ boundary error that is due to the application of a primitive operation to
+ the wrong @emph{kinds} of values. In (virtual or abstract) machines one
+ kind of value is often tagged differently from other values, e.g.,
+ pointers to functions have one kind of tag while integers have a different
+ one.  Thus, the addition of a function to an integer is a tag error, while
+ the division of an integer by 0 is just an boundary error.
 
 The notion of reduction @${\rrS} defines a semantics for statically-typed expressions.
 It relates the left-hand side to the right-hand side on an unconditional basis,
