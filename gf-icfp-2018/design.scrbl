@@ -134,22 +134,34 @@ The semantic components in @figure-ref{fig:multi-reduction} are the
  @${\delta} function and the @${\rrS} and @${\rrD} notions of reduction for
  the core subsets of the two kinds of expressions.  The @${\delta} function
  is a partial mathematical specification for the procedures in @${\vunop}
- and @${\vbinop}. Primitive operations give rise to two kinds of errors.  A
- @italic{boundary error} occurs when a program sends a bad value to the
- run-time library that implements the primitive operations via the direct
- manipulation of bits. When primitives receive inappropriate bitstrings,
- they tend to produce random results that may lead to stuck states later;
- the model represents this idea with the partiality of @${\delta}. The
- terminology ``boundary error'' anticipates the generalization of the
- concept to programs that mix typed and untyped code; there a boundary
- error arises, for example, when an untyped subexpression evaluates to an
- integer if its typed context expects a function. A @italic{tag error} is a
- boundary error that is due to the application of a primitive operation to
- the wrong kinds of values. In (virtual or abstract) machines one
- kind of value is often tagged differently from other values, e.g.,
- pointers to functions have one kind of tag while integers have a different
- one.  Thus, the addition of a function to an integer is a tag error, while
- the division of an integer by 0 is just an boundary error.
+ and @${\vbinop}. The partial nature of @${\delta} represents certain forms
+ of errors that the use of primitive operations may trigger. Specifically,
+ primitive operations give rise to two kinds of errors: 
+@itemlist[
+
+@item{The semantic models reduce a program to a @italic{tag error} when a
+ primitive operation is applied to inappropriate values.  Mathematically
+ speaking, the @${\delta} function is undefined for the values. The name
+ alludes to the idea that (virtual or abstract) machines tag one form of
+ value differently from others, e.g., pointers to functions have one of tag
+ while integers have a different one.  Thus, the addition of a function to
+ an integer is a tag error.}
+
+@item{By contrast, a @italic{boundary error} is the result of a applying a
+ partial primitive operation, such as division, to values for which it is
+ not defined. Here division-by-zero is the representative example.
+ Mathematically put, the @${\delta} function is defined for these values,
+ and the result represents a boundary error. The name suggests that the
+ run-time library, which implements these primitive operations directly as
+ hardware instructions, represents an untyped part of the program and that
+ both the statically typed and dynamically typed parts send values across a
+ boundary into this component. The terminology ``boundary error''
+ anticipates the generalization of the concept to programs that mix typed
+ and untyped code; there a boundary error arises, for example, when an
+ untyped subexpression evaluates to an integer if its typed context expects
+ a function.}
+
+]
 
 The notion of reduction @${\rrS} defines a semantics for statically-typed expressions.
 It relates the left-hand side to the right-hand side on an unconditional basis,
