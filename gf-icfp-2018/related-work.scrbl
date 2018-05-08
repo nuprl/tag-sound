@@ -136,3 +136,21 @@ The progressive types@~cite[pqk-onward-2012] vision paper describes a type syste
 This offers a choice between (1) statically proving an expression is universally correct,
  and (2) letting the run-time dynamically check whether the code is safe in practice.
 
+
+@section{Comparing Gradual Typing Systems}
+
+@citet[clzv-ecoop-2018] study the relationship between four different designs of
+ object-oriented gradual typing.
+To this end, they develop a core language, dubbed KafKa, and prove a
+ type-soundness theorem for it.
+They define four translations from a common source syntax into KafKa; each
+ translation corresponds to a form of gradual typing.
+For the comparative part of their work, they use examples to demonstrate how
+ the four can assign different behavior to the same source program.
+The core language is implemented for .NET.
+
+By contrast, this paper assigns three different semantics to the same
+ syntax and type system.
+It then articulates soundness theorems relating the surface language to the
+ semantics, and compares the performance of the three semantics as implementations
+ for a mature gradual typing system.
