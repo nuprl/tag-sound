@@ -82,5 +82,6 @@ Alternatively, combining the locally-defensive approach with the Pycket@~cite[ba
   @; NSF funding
   @; early feedback at PI meeting
   @; pldi reviewers for skimming the paper and letting us know it wasn't shiny and new enough
+  Felleisen would like to acknowledge insightful conversations with Ron Garcia and Eric Tanter about the meaning of types in a locally-defensive setting.
 }
 
