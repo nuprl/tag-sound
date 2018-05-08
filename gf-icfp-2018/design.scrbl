@@ -582,7 +582,7 @@ Intuitively, the reduction of any defended expression is well-defined and
     @linebreak[]
     and one of the following holds:
     @itemlist[
-      @item{ @${e'' \rrKDstar v} and @${\wellKE v : \tagof{\tau}} }
+      @item{ @${e'' \rrKDstar v} and @${\wellKE v} }
       @item{ @${e'' \rrKDstar \tagerror} }
       @item{ @${e'' \rrKDstar \boundaryerror} }
       @item{ @${e''} diverges }
