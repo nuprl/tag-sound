@@ -10,10 +10,10 @@
 @; -----------------------------------------------------------------------------
 
 To compare the performance of the three approaches,
- we use three distinct compilers for Typed Racket and a suite of @integer->word[NUM-TR]
- functional programs.
+ we use three distinct compilers for the Typed Racket syntax and typing system
+ on @integer->word[NUM-TR] functional benchmark programs.
 The data suggests that the locally-defensive embedding is a large
- improvement over the natural embedding for mixed-typed programs and slightly
+ improvement over the natural embedding for mixed-typed programs but slightly
  worse for fully-typed programs.
 The erasure embedding offers the best performance, except for typed programs
  that happen to benefit from the Typed Racket optimizer@~cite[stff-padl-2012].
@@ -55,7 +55,7 @@ The name ``Typed Racket'' henceforth refers to the syntax and typing system
 
 @section[#:tag "sec:evaluation:method"]{Method}
 
-To evaluate performance of these three implementations, we use the exhaustive method for module-level
+To evaluate the performance of these three implementations, we use the exhaustive method for module-level
  migratory typing@~cite[tfgnvf-popl-2016 gtnffvf-jfp-2017].
 Starting from one multi-module program, we migrate the whole program (ignoring
  any libraries beyond our control) to Typed Racket.
@@ -216,7 +216,7 @@ On the other hand, the performance of a full implementation could improve over
 First, @|TR_LD| does not take advantage of the @|TR_N| optimizer
  to remove checks for tag errors;
  integrating the optimizer may offset some cost of the defensive checks.
-Second, like Reticulated, the prototype is based on a completion judgment that
+Second, like Reticulated, the completion judgment for the prototype
  may introduce redundant checks.
 
 @; === things that make prototype non-representative
@@ -225,7 +225,7 @@ First, @|TR_LD| does not support Racket's object-oriented features@~cite[tfdfftf
  we do not expect that scaling it up would affect the functional benchmarks.
 @; ... though we expect OO to improve even more
 Second, our benchmarks are relatively small; the largest is @bm{jpeg} with
- approximately 1500 lines of code.
+ approximately 1,500 lines of code.
 @; ; though in our experience and the experience
 @; of Typed Racket users, our results are likely to reflect the reality of large-scale
 @; programs.

@@ -4,17 +4,17 @@
 
 @Sections-ref{sec:design} and @secref{sec:evaluation} present the two critical aspects of the three
 approaches to combining statically typed and dynamically typed code via a
-twin-pair of languages: their semantics within a single framework and
-their performance characteristics relative to a single base language and
+twin-pair of languages: (1) their semantics within a single framework and
+(2) their performance characteristics relative to a single base language and
 the same suite of benchmark programs.
 Equipped with this objective
 information, we can now explain the logical and performance consequences of
 choosing one of these three approaches. 
 
 For the logical consequences, we proceed in a type-directed manner.
-As @section-ref{sub:base} explains, there is no difference between the natural
- embedding and the locally-defensive one for base types, but the erasure
- embedding may yield totally distinct (wrong) answers.
+At the level of base types, there is no difference between the natural
+ embedding and the locally-defensive one, but the erasure
+ embedding may yield totally distinct (wrong) answers (@section-ref{sub:base}).
 After moving from base types to trees over first-order types, we can explain
  the truly essential difference; while the natural embedding allows
  developers to reason compositionally about type annotations, users of
@@ -28,14 +28,11 @@ As mentioned already, the three approaches provide
 For consequences with respect to performance, our work somewhat confirms
 the conjectures of the literature that lowering the standards of
 safety pays off---but only to some degree.
-As @section-ref{sub:perf-mixed}
-interprets the findings of the previous section, the locally-defensive
-embedding is significantly more efficient when it comes to mixed-typed
-programs.
-By contrast, we remind readers in @section-ref{sub:perf-total} that
+While the locally-defensive embedding is significantly more efficient when it comes to mixed-typed
+programs (@section-ref{sub:perf-mixed}), we must remind readers that
 fully typed programs run safely and faster with the natural embedding
 because the optimizer can take full advantage of the types, and the natural
-embedding safely skips checking in this case.
+embedding safely skips checking in this case (@section-ref{sub:perf-total}).
 
 
 @section[#:tag "sub:base"]{For Base Types}
@@ -125,7 +122,7 @@ The locally-defensive and erasure embeddings do not support this use-case;
  checks only that the exported value is a function.
 Retrofitting a type onto a dynamically-typed function @${f} therefore does not
  enforce that @${f} respects its arguments.
-Conversely, there is no guarantee that untyped clients of a function @${g} abide by its interface;
+Conversely, there is no guarantee that untyped clients of a function @${g} abide by its interface:
 
 @dbend[
   @warning{
@@ -188,7 +185,7 @@ By contrast, an implementation of the natural embedding can store debugging
 When such a monitor detects a type mismatch, it can identify the boundary term
  that originated the error, even when the boundary is off the stack@~cite[tfffgksst-snapl-2017].
 This information tells the developer exactly where to begin debugging:
- either the boundary type is wrong or the
+ either the type annotation is wrong or the
  dynamically-typed code has a latent bug.
 
 

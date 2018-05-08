@@ -6,9 +6,9 @@
 
 @; -----------------------------------------------------------------------------
 
-For the past two decades, many programmers have switched to dynamically typed programming
+For the past two decades, many programmers have built systems in dynamically typed programming
  languages. Regardless of why they make this choice, they eventually discover
- that they wish their code base came with some types. To accommodate the migration of
+ that they wish their code base came with some types. To accommodate the @emph{migration} of
  a large code base from an untyped language to a typed one, researchers have
  created migratory typing systems@~cite[tfffgksst-snapl-2017]. In essence, a
  migratory typing system comes with the same expression and statement syntax as
@@ -57,10 +57,10 @@ a proper comparison:
  from soundness for a single language@~cite[vss-popl-2017 rsfbv-popl-2015 cvgrl-arxiv-2017].
 
  To answer this question precisely, this paper explains the three
- approaches in a systematic manner with a novel semantic framework. For the
- same source languages and type system, it formulates the three approaches as three
- different semantics and, for each semantics, articulates a theorem that
- precisely states which properties are preserved. It also demonstrates with
+ approaches in a systematic manner within one semantic framework. For the
+ same source syntax and type system, it formulates the three approaches as three
+ different semantics and articulates three theorems that
+ precisely state which properties are preserved. It also demonstrates with
  source-language examples how these theorems differ and the consequences
  for developers.}
 
@@ -75,9 +75,9 @@ Previous attempts to compare the approaches make claims about
  @emph{different programming languages} using (mostly) unrelated
  benchmarks@~cite[vss-popl-2017 gm-pepm-2018].
 
- To answer this question properly, we exploit the theoretical results above
- and build three implementations of the same surface language.
- The paper can thus present results of running the same benchmarks in the three implementations.
+ To answer this question properly, the paper presents the results of running
+ the same benchmarks in three implementations of the same syntax and type system,
+ exploiting the common theoretical framework.
  While our results confirm the published conjectures to some degree, we
  consider it imperative for the future of this research area to put the science
  on solid ground.
