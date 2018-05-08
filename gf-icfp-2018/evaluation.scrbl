@@ -217,8 +217,7 @@ First, @|TR_LD| does not take advantage of the @|TR_N| optimizer
  to remove checks for tag errors;
  integrating the optimizer may offset some cost of the defensive checks.
 Second, like Reticulated, the prototype is based on a completion judgment that
- may introduces
- redundant checks.
+ may introduce redundant checks.
 
 @; === things that make prototype non-representative
 Three other threats are worth noting.

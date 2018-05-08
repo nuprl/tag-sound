@@ -26,7 +26,7 @@ As mentioned already, the three approaches provide
  them (@section-ref{sub:err}).
 
 For consequences with respect to performance, our work somewhat confirms
-the implicit conjectures of the literature that lowering the standards of
+the conjectures of the literature that lowering the standards of
 safety pays off---but only to some degree.
 As @section-ref{sub:perf-mixed}
 interprets the findings of the previous section, the locally-defensive

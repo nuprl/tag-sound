@@ -74,7 +74,7 @@ The last components in @figure-ref{fig:multi-syntax} specify the names of
 To accomodate the two kinds of expressions, there are two typing judgments.
 The first judgment, @${\Gamma \wellM \exprdyn}, essentially states that the
  expression @${e} is closed; this weak property characterizes the ahead-of-time
- checking common to dynamically-typed languages.
+ checking available in some dynamically-typed languages.
 The second judgment, @${\Gamma \wellM \exprsta : \tau}, is a mostly-conventional static
  type checker; given an expression and a type, the judgment holds if the two match up.
 The unconvential part of both judgments are the mutually-recursive rules for boundary terms,
@@ -512,10 +512,10 @@ The boundary function @${\vfromdynK} checks that an untyped value
 This function defers to a more general function @${\vfromany}, which checks
  that a given value of constructor @${\kany} matches a more precise type constructor.
 The boundary function @${\vfromstaK} lets any kind of typed
- value---including typed fuctions---cross into an untyped context.
+ value---including a typed fuction---cross into an untyped context.
 The notions of reduction consequently treat the type annotation @${\tau} on
  the formal parameter of a typed function @${(\vlam{\tann{x}{\tau}}{e})}
- as an assertion that its actual parameters match the constructor @${\tagof{\tau}}.@note{Design alternatives:
+ as an assertion that its actual parameter matches the constructor @${\tagof{\tau}}.@note{Design alternatives:
   extend the syntax of the core language to express domain checks@~cite[vss-popl-2017],
   or encode domain checks into the completion of a typed function in the spirit of
     @${(\vlam{\tann{x}{\tau_d}}{e}) \carrow

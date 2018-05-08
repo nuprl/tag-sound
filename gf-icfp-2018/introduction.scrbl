@@ -71,8 +71,7 @@ a proper comparison:
  Although the purpose of migratory typing is to accomodate the creation of
  mixed-typed languages, the researchers in this area studied the performance
  of implementations only recently@~cite[tfgnvf-popl-2016 gtnffvf-jfp-2017].
-Previous attempts to compare two of the three
- approaches and make claims about
+Previous attempts to compare the approaches make claims about
  @emph{different programming languages} using (mostly) unrelated
  benchmarks@~cite[vss-popl-2017 gm-pepm-2018].
 
