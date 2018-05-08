@@ -2252,3 +2252,10 @@
     #:title "Selectors make set-based analysis too hard"
     #:location (journal-location hosc #:volume 18 #:pages '(245 269))
     #:date 2005))
+
+(define clzv-ecoop-2018
+  (make-bib
+    #:author (authors "Benjamin W Chung" "Paley Li" "Francesco Zappa Nardelli" "Jan Vitek")
+    #:title "A Framework for Object-Oriented Gradual Typing"
+    #:location (proceedings-location ecoop)
+    #:date 2018))
