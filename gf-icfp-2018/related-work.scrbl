@@ -139,18 +139,18 @@ This offers a choice between (1) statically proving an expression is universally
 
 @section{Comparing Gradual Typing Systems}
 
-@citet[clzv-ecoop-2018] study the relationship between four different designs of
- object-oriented gradual typing.
-To this end, they develop a core language, dubbed KafKa, and prove a
- type-soundness theorem for it.
-They define four translations from a common source syntax into KafKa; each
- translation corresponds to a form of gradual typing.
-For the comparative part of their work, they use examples to demonstrate how
- the four can assign different behavior to the same source program.
-The core language is implemented for .NET.
+@citet[clzv-ecoop-2018] study the relationship of four different designs of
+object-oriented gradual typing. The paper presents a core language, dubbed
+KafKa, which is implemented in .NET and provably type-sound.  The
+comparison rests on four translations from the surface syntax to KafKa,
+each of which formulates a different semantics of gradual typing.  Finally,
+the paper applies the four semantics to examples, showing that the
+resulting behaviors are distinct. 
 
-By contrast, this paper assigns three different semantics to the same
- syntax and type system.
-It then articulates soundness theorems relating the surface language to the
- semantics, and compares the performance of the three semantics as implementations
- for a mature gradual typing system.
+By contrast, this paper assigns three different semantics to a surface
+language. It then articulates soundness theorems about each of these
+semantics; the theorems demonstrate how the three semantics differ with
+respect to the kind of properties that the type system correctly predicts.
+Furthermore, this paper presents the results of comparing the performance
+of the three semantics, fully implemented for the same language and
+exhaustively evaluated on the same benchmark suite.
