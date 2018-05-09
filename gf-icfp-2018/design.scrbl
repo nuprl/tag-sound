@@ -309,19 +309,29 @@ The soundness theorems for the natural embedding state three results about
    relation@~cite[gf-tr-2018].
 }
 
-The proof of preservation depends on a notable lemma about the @${\vfromdynN}
- boundary function, namely, that its codomain is typed.
+One notable lemma for the proof of preservation states that the codomain of
+ the @${\vfromdynN} boundary function is typed.
 
 @tr-lemma[#:key "N-D-soundness" @elem{@${\vfromdynN} soundness}]{
   If @${\Gamma \wellNE v} and @${\efromdynN{\tau}{v} = e} then @${\Gamma \wellNE e : \tau}
 }@;
 @;
 A similar lemma does not hold of the surface-language typing judgment.
-The proof breaks down when @${\tau} is a function type, and thereby demonstrates
- a key tradeoff in migratory typing.
-If the language is to allow values of higher type to cross a boundary,
- then it must generalize its soundness guarantee.
- @; to consider such values well-typed until proven otherwise.
+For example, if @${v} is the function @${\vlam{x}{x}} then
+ @${\efromdynN{(\tarr{\tint}{\tint})}{v}} returns a monitor and thus falls
+ outside the grammar of the source syntax.
+This illustrates an important subtlety: if a type-sound migratory
+ typing system allows dynamically-typed, higher-order values to flow into a
+ typed context, then the language must have a way to monitor the behavior of
+ such values.
+The choice adopted here is to extend the language with explicit monitor values
+ rather than use a surface-syntax encoding@~cite[ff-icfp-2002].
+Consequently, the canonical forms lemma states that a function type may be
+ inhabited by a typed function or a monitor encapsulating a dynamically-typed value.
+
+@tr-lemma[#:key "N-S-canonical" @elem{@${\langN} canonical forms (excerpt)}]{
+  If @${\wellNE v : \tarr{\tau_d}{\tau_c}} then either @${v \eeq \vlam{\tann{x}{\tau}}{e}} or @${v \eeq \vmonfun{(\tarr{\tau_d}{\tau_c})}{v'}}
+}
 
 
 @; -----------------------------------------------------------------------------
