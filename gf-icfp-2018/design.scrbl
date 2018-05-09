@@ -351,12 +351,16 @@ The embedding uses the reductionist approach of relying on the soundness of the
 
 @subsection[#:tag "sec:erasure:model"]{Model}
 
-@Figure-ref{fig:erasure-reduction} presents a semantics of the erasure embedding.
-The notion of reduction @${\rrEE} defines rules for boundary
- terms and type-annotated functions, and otherwise relies on the dynamically-typed
- notion of reduction from @figure-ref{fig:multi-reduction}.
-The reduction relation @${\rrEEstar} is based on the context closure of
- this notion of reduction.
+@Figure-ref{fig:erasure-reduction} presents a semantics for the erasure embedding.
+The semantics is based on two (equivalent) notions of reduction that let values
+ freely cross between statically-typed and dynamically-typed contexts.
+To accomodate these values, the static notion of reduction @${\rrES} allows
+ the application of dynamically-typed functions and checks for invalid uses
+ of the primitives.
+The dynamic notion of reduction @${\rrED} adds a rule to accomodate statically-typed
+ functions.
+The reduction relations @${\rrESstar} and @${\rrEDstar} are based on the
+ compatible closure@~cite[redex-book] of the corresponding notion of reduction.
 
 
 @subsection[#:tag "sec:erasure:soundness"]{Soundness}
@@ -375,9 +379,9 @@ Soundness for the erasure embedding states that reduction is well-defined
     @linebreak[]
     of the following holds:
     @itemlist[
-      @item{ @${e \rrEEstar v \mbox{ and } \wellEE v} }
-      @item{ @${e \rrEEstar \tagerror} }
-      @item{ @${e \rrEEstar \boundaryerror} }
+      @item{ @${e \rrESstar v \mbox{ and } \wellEE v} }
+      @item{ @${e \rrESstar \tagerror} }
+      @item{ @${e \rrESstar \boundaryerror} }
       @item{ @${e} diverges}
     ] }
 
@@ -386,16 +390,16 @@ Soundness for the erasure embedding states that reduction is well-defined
     @linebreak[]
     of the following holds:
     @itemlist[
-      @item{ @${e \rrEEstar v \mbox{ and } \wellEE v} }
-      @item{ @${e \rrEEstar \tagerror} }
-      @item{ @${e \rrEEstar \boundaryerror} }
+      @item{ @${e \rrEDstar v \mbox{ and } \wellEE v} }
+      @item{ @${e \rrEDstar \tagerror} }
+      @item{ @${e \rrEDstar \boundaryerror} }
       @item{ @${e} diverges}
     ] }
 ]
 
 @tr-proof[#:sketch? #true]{
   A well-typed term is closed, therefore @${\wellM e : \tau} implies that @${\wellEE e} holds.
-  The statements about @${\rrEEstar} follow from progress and preservation lemmas@~cite[gf-tr-2018].
+  The rest follows from progress and preservation lemmas@~cite[gf-tr-2018].
 }
 
 The erasure embedding is clearly unsound with respect to types for mixed-typed
@@ -404,13 +408,14 @@ A simple example is the expression @${(\edyn{\tint}{\vpair{2}{2}})}, which has t
  type @${\tint} but reduces to a pair.
 The embedding is sound, however, for well-typed expressions that do not
  contain boundary terms.
+@; TODO say more about optional typing? point finger at the Hack / SafeTypeScript theorems?
 
 @tr-theorem[#:key "E-pure-static" @elem{@${\langE} boundary-free soundness}]{
   If @${\wellM e : \tau} and @${e} does not contain a subexpression @${\edyn{\tau'}{e'}}, then
    one of the following holds:
   @itemlist[
-    @item{ @${e \rrEEstar v \mbox{ and } \wellM v : \tau} }
-    @item{ @${e \rrEEstar \boundaryerror} }
+    @item{ @${e \rrESstar v \mbox{ and } \wellM v : \tau} }
+    @item{ @${e \rrESstar \boundaryerror} }
     @item{ @${e} diverges}
   ]
 }

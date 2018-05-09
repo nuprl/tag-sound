@@ -5,28 +5,70 @@
 %% --- reduction
 
 \begin{TwoColumn}
-  \lblextra{$e \rrEE A$}{ extends $\rrD$}{
+
+  \lblextra{$e \rrES e$}{ extends $\rrS$}{
     $\begin{array}{l@{\hspace{0.5em}}c@{\hspace{0.5em}}l}
-      \edyn{\tau}{v} & \rrEE
+      \esta{\tau}{v} & \rrES
       & v
       \\
-      \esta{\tau}{v} & \rrEE
+      \edyn{\tau}{v} & \rrES
       & v
       \\
-      (\vlam{\tann{x}{\tau_d}}{e})~v & \rrEE
+      (\vlam{x}{e})~v & \rrES
       & \vsubst{e}{x}{v}
+      \\
+      \eapp{v_0}{v_1} & \rrES
+      & \tagerror
+      \\ \sidecond{if $v_0 \in \integers$ or $v_0 = \vpair{v}{v'}$}
+      \\
+      \eunop{v} & \rrES
+      & \tagerror
+      \\ \sidecond{if $\delta(\vunop, v)$ is undefined}
+      \\
+      \ebinop{v_0}{v_1} & \rrES
+      & \tagerror
+      \\ \sidecond{if $\delta(\vbinop, v_0, v_1)$ is undefined}
     \end{array}$
   }
 
   \multicolsbreak
 
-  \lblextra{$e \rrEEstar A$}{ reflexive, transitive closure of $\ccEE$}{
+  \lblextra{$e \rrED e$}{ extends $\rrD$}{
     $\begin{array}{l@{\hspace{0.5em}}c@{\hspace{0.5em}}l}
-      \esd[e] & \ccEE & \ctxE{e'}
-      \\ \sidecond{if $e \rrEE e'$}
+      \esta{\tau}{v} & \rrED
+      & v
       \\
-      \esd[\eerr] & \ccEE & \eerr
+      \edyn{\tau}{v} & \rrED
+      & v
+      \\
+      (\vlam{\tann{x}{\tau_d}}{e})~v & \rrED
+      & \vsubst{e}{x}{v}
     \end{array}$
   }
+
+\end{TwoColumn}
+
+\begin{TwoColumn}
+  \lblextra{$e \rrESstar A$}{ reflexive, transitive closure of $\ccES$}{
+    $\begin{array}{l@{\hspace{0.5em}}c@{\hspace{0.5em}}l}
+      \esd[e] & \ccES & \ctxE{e'}
+      \\ \sidecond{if $e \rrES e'$}
+      \\
+      \esd[\eerr] & \ccES & \eerr
+    \end{array}$
+  }
+
+  \multicolsbreak
+
+  \smallskip
+  \lblextra{$e \rrEDstar A$}{ reflexive, transitive closure of $\ccED$}{
+    $\begin{array}{l@{\hspace{0.5em}}c@{\hspace{0.5em}}l}
+      \esd[e] & \ccED & \ctxE{e'}
+      \\ \sidecond{if $e \rrED e'$}
+      \\
+      \esd[\eerr] & \ccED & \eerr
+    \end{array}$
+  }
+
 
 \end{TwoColumn}

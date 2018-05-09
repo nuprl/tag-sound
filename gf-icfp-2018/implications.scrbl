@@ -57,7 +57,7 @@ For example, if a negative number flows into a typed context
 
 @dbend[
   @warning{
-    \wellM (\equotient{(\edyn{\tnat}{{-2}})}{(\edyn{\tnat}{{-2}})}) : \tnat \rrEEstar (\equotient{{-2}}{{-2}}) \rrEEstar 1
+    \wellM (\equotient{(\edyn{\tnat}{{-2}})}{(\edyn{\tnat}{{-2}})}) : \tnat \rrESstar (\equotient{{-2}}{{-2}}) \rrESstar 1
   }
 ]
 
@@ -159,7 +159,7 @@ When the source is off the stack, the erasure embedding is helpless.
 
 @dbend[
   @warning{
-    \esum{1}{(\edyn{\tint}{\vpair{2}{2}})} \rrEEstar \esum{1}{\vpair{2}{2}} \rrEEstar \tagerror
+    \esum{1}{(\edyn{\tint}{\vpair{2}{2}})} \rrESstar \esum{1}{\vpair{2}{2}} \rrESstar \tagerror
   }
 ]
 
