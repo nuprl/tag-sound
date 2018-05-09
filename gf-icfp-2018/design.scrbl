@@ -305,11 +305,10 @@ The soundness theorems for the natural embedding state three results about
    judgment generalizes the former.
   A similar lemma holds for the dynamic typing judgment.
   The other statements in the two theorems follow from progress and
-   preservation lemmas for the corresponding property and reduction
-   relation@~cite[gf-tr-2018].
+   preservation lemmas@~cite[gf-tr-2018].
 }
 
-One notable lemma for the proof of preservation states that the codomain of
+One notable lemma for the proof states that the codomain of
  the @${\vfromdynN} boundary function is typed.
 
 @tr-lemma[#:key "N-D-soundness" @elem{@${\vfromdynN} soundness}]{
@@ -317,21 +316,13 @@ One notable lemma for the proof of preservation states that the codomain of
 }@;
 @;
 A similar lemma does not hold of the surface-language typing judgment.
-For example, if @${v} is the function @${\vlam{x}{x}} then
- @${\efromdynN{(\tarr{\tint}{\tint})}{v}} returns a monitor and thus falls
- outside the grammar of the source syntax.
-This illustrates an important subtlety: if a type-sound migratory
- typing system allows dynamically-typed, higher-order values to flow into a
- typed context, then the language must have a way to monitor the behavior of
- such values.
-The choice adopted here is to extend the language with explicit monitor values
- rather than use a surface-syntax encoding@~cite[ff-icfp-2002].
-Consequently, the canonical forms lemma states that a function type may be
- inhabited by a typed function or a monitor encapsulating a dynamically-typed value.
+For example, if @${v} is the function @${\vlam{x}{x}} then @${\wellM v}
+ but @${\efromdynN{(\tarr{\tint}{\tint})}{v}} returns a monitor, which is
+ not part of the surface language but rather an extension to support mixed-typed programs.
 
-@tr-lemma[#:key "N-S-canonical" @elem{@${\langN} canonical forms (excerpt)}]{
-  If @${\wellNE v : \tarr{\tau_d}{\tau_c}} then either @${v \eeq \vlam{\tann{x}{\tau}}{e}} or @${v \eeq \vmonfun{(\tarr{\tau_d}{\tau_c})}{v'}}
-}
+@;@tr-lemma[#:key "N-S-canonical" @elem{@${\langN} canonical forms (excerpt)}]{
+@;  If @${\wellNE v : \tarr{\tau_d}{\tau_c}} then either @${v \eeq \vlam{\tann{x}{\tau}}{e}} or @${v \eeq \vmonfun{(\tarr{\tau_d}{\tau_c})}{v'}}
+@;}
 
 
 @; -----------------------------------------------------------------------------
