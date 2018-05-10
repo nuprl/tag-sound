@@ -125,7 +125,8 @@ The CPU cores on each processor ran at 2.30 GHz using the ``performance'' CPU go
 @figure*["fig:locally-defensive-performance"
          @elem{@|TR_N| (blue @|tr-color-sample|) and @|TR_LD| (orange @|tag-color-sample|), each relative to erasure (@|TR_E|).
                The @|x-axis| is log-scaled. The unlabeled vertical ticks appear at:
-               @${1.2}x, @${1.4}x, @${1.6}x, @${1.8}x, @${4}x, @${6}x, and @${8}x overhead.}
+               @${1.2}x, @${1.4}x, @${1.6}x, @${1.8}x, @${4}x, @${6}x, and @${8}x overhead.
+               A larger area under the curve is better.}
          (overhead-plot* (map list TR-DATA* TAG-DATA*))]
 
 @(define MT (make-max-table TR-DATA* TAG-DATA*))
@@ -146,7 +147,8 @@ The CPU cores on each processor ran at 2.30 GHz using the ``performance'' CPU go
         @elem{Speedup of fully-typed
               @|TR_N| (@|tr-color-sample|)
               and @|TR_LD| (@|tag-color-sample|),
-              relative to erasure (@|TR_E|).}
+              relative to erasure (@|TR_E|).
+              Taller bars are better.}
         @(let ((TBL (make-typed-table TR-DATA* TAG-DATA*)))
            (render-speedup-barchart TBL))]
 
