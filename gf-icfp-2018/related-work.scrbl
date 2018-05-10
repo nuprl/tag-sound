@@ -46,14 +46,18 @@ Strongtalk@~cite[bg-oopsla-1993] is an early, optional type checker for Smalltal
 Modern optional typing systems exist for
  ActionScript@~cite[rch-popl-2012],
  Clojure@~cite[bdt-esop-2016],
- Dart,@note{@url{https://www.dartlang.org/}}
  JavaScript@~cite[bat-ecoop-2014 cvgrl-arxiv-2017],
  Lua@~cite[mmi-dyla-2014],
  Ruby@~cite[rtsf-oops-2013],
- PHP,@note{@url{http://hacklang.org/}}
- and Python.@note{@url{http://mypy-lang.org/}}
+ PHP,@note{@url{http://hacklang.org/}, accessed 2018-03-10.}
+ and Python.@note{@url{http://mypy-lang.org/}, accessed 2018-03-10.}
 @citet[ddems-icse-2011] and @citet[pacpe-issta-2008] have implemented pluggable
  type systems for Java.
+
+The Dart language v1.x implements the erasure embedding,@note{@url{https://v1-dartlang-org.firebaseapp.com/}, accessed 2018-05-10.}
+ however Dart 2.0 enforces types with run-time checks.@note{@url{https://www.dartlang.org/guides/language/sound-dart}, accessed 2018-05-10.}
+Users have the option to disable the inserted checks, thereby trading soundness
+ for performance.
 
 
 @section[#:tag "sec:related-work:locally-defensive"]{Locally-Defensive Embedding}
@@ -92,14 +96,14 @@ Whereas the erasure embedding converts typed code to untyped code,
  in principle a @emph{reconstruction embedding} could convert all untyped code
  to typed code.
 Researchers have worked on variants of this problem for decades.
-Soft typing systems combined Hindley-Miler inference with flexible kinds of types@~cite[awl-popl-1994 wc-toplas-1997].
+Soft typing systems combined Hindley-Milner inference with flexible kinds of types@~cite[awl-popl-1994 wc-toplas-1997].
 @citet[ffkwf-pldi-1996], @citet[mff-popl-2006], @citet[hms-dls-2016], and @citet[rch-popl-2012]
  applied variants of set-based flow analysis@~cite[h-lfp-1994].
 @citet[hr-fpca-1995] inferred types from the completion of an untyped term;
  that is, from a term with all implicit constructor-checks made explicit.
 In practice there are two major challenges:
  quickly inferring precise types@~cite[mfsw-hosc-2005],
- and debugging type errors that involve the inferred types@~cite[tfffgksst-snapl-2017].
+ and debugging type errors that involve the (potentially large) inferred types@~cite[tfffgksst-snapl-2017].
 
 
 @section{Performance of Mixed-Typed Programs}

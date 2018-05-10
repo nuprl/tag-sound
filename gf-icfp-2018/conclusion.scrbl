@@ -76,6 +76,9 @@ A second strategy is to design a JIT compiler that can recognize and avoid
  be a promising context in which to experiment.
 Alternatively, combining the locally-defensive approach with the Pycket@~cite[bauman-et-al-icfp-2015 bbst-oopsla-2017] compiler for Racket
  may yield an implementation with good performance in all configurations.
+A third strategy is to combine multiple semantics within a program, using
+ the natural embedding for fully-typed components and an embedding with weaker
+ guarantees for other components.
 
 @acks{
   @; redex-check
