@@ -6,7 +6,11 @@
 
 @; -----------------------------------------------------------------------------
 
-To accommodate the @emph{migration} of
+For the past two decades, many programmers have built systems in dynamically
+ typed programming languages.
+Regardless of why they make this choice, they eventually discover that they
+ wish their code base came with some types.
+ To accommodate the @emph{migration} of
  a large code base from an untyped language to a typed one, researchers have
  created migratory typing systems@~cite[tfffgksst-snapl-2017]. In essence, a
  migratory typing system comes with the same expression and statement syntax as
