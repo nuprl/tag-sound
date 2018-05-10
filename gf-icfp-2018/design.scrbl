@@ -293,7 +293,7 @@ The soundness theorems for the natural embedding state three results about
     of the following holds:
     @itemlist[
       @item{ @${e \rrNDstar v \mbox{ and } \wellNE v} }
-      @item{ @${e \rrNDstar \tagerror} }
+      @item{ @${e \rrNDstar \ctxE{e'}} and @${e' \rrND \tagerror} }
       @item{ @${e \rrNDstar \boundaryerror} }
       @item{ @${e} diverges}
     ] }@;
@@ -406,7 +406,8 @@ A simple example is the expression @${(\edyn{\tint}{\vpair{2}{2}})}, which has t
 The embedding is sound, however, for well-typed expressions that do not
  contain boundary terms.
 In other words, a disciplined programmer who avoids external libraries may be
- justified in assuming that evaluation preserves static types.
+ justified in assuming that evaluation preserves static types and never
+ ends in a tag error.
 
 @tr-theorem[#:key "E-pure-static" @elem{@${\langE} boundary-free soundness}]{
   If @${\wellM e : \tau} and @${e} does not contain a subexpression @${(\edyn{\tau'}{e'})}, then
@@ -587,7 +588,7 @@ Intuitively, the reduction of any defended expression is well-defined and
     and one of the following holds:
     @itemlist[
       @item{ @${e'' \rrKDstar v} and @${\wellKE v} }
-      @item{ @${e'' \rrKDstar \tagerror} }
+      @item{ @${e'' \rrKDstar \ctxE{e'}} and @${e' \rrKD \tagerror} }
       @item{ @${e'' \rrKDstar \boundaryerror} }
       @item{ @${e''} diverges }
     ]
