@@ -325,7 +325,7 @@ For example, if @${v} is the function @${\vlam{x}{x}} then @${\wellM v}
 @; -----------------------------------------------------------------------------
 @section[#:tag "sec:erasure-embedding"]{Erasure Embedding}
 @include-figure["fig:erasure-reduction.tex" "Erasure Embedding"]
-@include-figure["fig:erasure-preservation.tex" "Property judgments for the erasure embedding"]
+@include-figure["fig:erasure-preservation.tex" "Common property judgment for the erasure embedding"]
 
 @; types should not affect semantics.
 @; "syntactic discipline" is a quote from J. Reynolds
@@ -409,7 +409,7 @@ In other words, a disciplined programmer who avoids external libraries may be
  justified in assuming that evaluation preserves static types.
 
 @tr-theorem[#:key "E-pure-static" @elem{@${\langE} boundary-free soundness}]{
-  If @${\wellM e : \tau} and @${e} does not contain a subexpression @${\edyn{\tau'}{e'}}, then
+  If @${\wellM e : \tau} and @${e} does not contain a subexpression @${(\edyn{\tau'}{e'})}, then
    one of the following holds:
   @itemlist[
     @item{ @${e \rrESstar v \mbox{ and } \wellM v : \tau} }
@@ -696,7 +696,7 @@ To extend the natural embedding with support for these types, the language
  elimination forms (or lack thereof).
 The literature on Typed Racket presents one strategy for handling such types@~cite[stff-oopsla-2012 tfdfftf-ecoop-2015].
 To extend the locally-defensive embedding, the language must add unions @${K \cup K}
- to its grammar of constructor checks and must extend the @${\tagof{\cdot}} function.
+ to its grammar of type constructor and must extend the @${\tagof{\cdot}} function.
 For a union type, let @${\tagof{\tau_0 \cup \tau_1}} be @${\tagof{\tau_0} \cup \tagof{\tau_1}},
  i.e., the tags of its members.
 For a universal type @${\tall{\alpha}{\tau}} let the constructor be @${\tagof{\tau}},
@@ -704,7 +704,6 @@ For a universal type @${\tall{\alpha}{\tau}} let the constructor be @${\tagof{\t
  no elimination forms for a universally-quantified type variable.
 For a recursive type @${\trec{\alpha}{\tau}}, let the constructor be
  @${\tagof{\vsubst{\tau}{\alpha}{\trec{\alpha}{\tau}}}}; this definition is
- @; TODO "under some"
- well-founded if all occurrences of the variable appear under some type
+ well-founded if all occurrences of the variable occur within some type
  @${\tau'} such that @${\tagof{\tau'}} has a non-recursive definition.
 
