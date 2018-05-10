@@ -408,7 +408,8 @@ A simple example is the expression @${(\edyn{\tint}{\vpair{2}{2}})}, which has t
  type @${\tint} but reduces to a pair.
 The embedding is sound, however, for well-typed expressions that do not
  contain boundary terms.
-@; TODO say more about optional typing? point finger at the Hack / SafeTypeScript theorems?
+In other words, a disciplined programmer who avoids external libraries may be
+ justified in assuming that evaluation preserves static types.
 
 @tr-theorem[#:key "E-pure-static" @elem{@${\langE} boundary-free soundness}]{
   If @${\wellM e : \tau} and @${e} does not contain a subexpression @${\edyn{\tau'}{e'}}, then
