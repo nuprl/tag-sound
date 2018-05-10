@@ -77,7 +77,7 @@ The first judgment, @${\Gamma \wellM \exprdyn}, essentially states that the
  checking available in some dynamically-typed languages.
 The second judgment, @${\Gamma \wellM \exprsta : \tau}, is a mostly-conventional static
  type checker; given an expression and a type, the judgment holds if the two match up.
-The unconvential part of both judgments are the mutually-recursive rules for boundary terms,
+The unconventional part of both judgments are the mutually-recursive rules for boundary terms,
  which invoke the opposite judgment on their subexpressions.
 For example, @${\Gamma \wellM \esta{\tau}{\exprsta}} holds only if the enclosed expression
  matches the @${\tau} type.
