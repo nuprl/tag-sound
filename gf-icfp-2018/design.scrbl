@@ -121,12 +121,12 @@ To streamline the definitions of the three multi-language semantics that follow,
 The syntactic components of this figure are expressions @${e},
  values @${v}, irreducible results @${R},
  and two kinds of evaluation context: @${\ebase} and @${\esd}.
-A core context @${\ebase} does not contain boundary terms and a multi-language
+A boundary-free context @${\ebase} does not contain boundary terms and a multi-language
  context @${\esd} may contain boundaries.
 
 The semantic components in @figure-ref{fig:multi-reduction} are the
  @${\delta} function and the @${\rrS} and @${\rrD} notions of reduction for
- the core subsets of the two kinds of expressions.  The @${\delta} function
+ the two kinds of expressions.  The @${\delta} function
  is a partial mathematical specification for the procedures in @${\vunop}
  and @${\vbinop}. The partial nature of @${\delta} represents certain forms
  of errors that the use of primitive operations may trigger. Specifically,
@@ -468,7 +468,7 @@ If the same function is applied @emph{in a different typed context} that expects
 Constructor checks do not require monitors,
  run in near-constant time,
  and ensure that every value in a typed context has the correct top-level shape.
-If the core notions of reduction rely only on the top-level shape of a value,
+If the notions of reduction rely only on the top-level shape of a value,
  then the latter guarantee implies that well-typed programs do not ``go wrong''
  as desired.
 @; or rather, "do not apply a typed elimination form to a value outside its domain" ?
@@ -518,7 +518,7 @@ The boundary function @${\vfromstaK} lets any kind of typed
 The notions of reduction consequently treat the type annotation @${\tau} on
  the formal parameter of a typed function @${(\vlam{\tann{x}{\tau}}{e})}
  as an assertion that its actual parameter matches the constructor @${\tagof{\tau}}.@note{Design alternatives:
-  extend the syntax of the core language to express domain checks@~cite[vss-popl-2017],
+  extend the syntax of the evaluation language to express domain checks@~cite[vss-popl-2017],
   or encode domain checks into the completion of a typed function in the spirit of
     @${(\vlam{\tann{x}{\tau_d}}{e}) \carrow
        (\vlam{\tann{x}{\tau_d}}{(\eapp{(\eapp{(\vlam{y}{\vlam{z}{z}})}{(\echk{\tagof{\tau_d}}{x})})}{e})})}
@@ -644,7 +644,7 @@ Intuitively, the reduction of any defended expression is well-defined and
 While the models use @emph{two} reductions, one for the typed and one for the untyped
  fragments of code, any practical migratory typing system compiles typed expressions to the
  (dynamically-typed) host language.
-In terms of the models, this means @${\rrD} is the only core notion of reduction,
+In terms of the models, this means @${\rrD} is the only notion of reduction,
  and statically-typed expressions are rewritten so that @${\rrDstar} applies.
 The technical appendix demonstrates how to bridge this gap systematically@~cite[gf-tr-2018].
 

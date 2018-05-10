@@ -61,7 +61,7 @@ Modern optional typing systems exist for
 The locally-defensive embedding is directly inspired by the transient semantics
  for Reticulated Python@~cite[vksb-dls-2014 vss-popl-2017].
 The transient approach begins with a surface language expression and elaborates
- into a typed core language.
+ into a typed intermediate language.
 In other words, the main judgment has the form @${\Gamma \vdash e \carrow e' : \tau}
  where both @${e'} and @${\tau} are outputs.
 At first we tried adapting this compiler from Reticulated's expression-level
