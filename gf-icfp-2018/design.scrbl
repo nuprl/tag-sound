@@ -125,8 +125,8 @@ A boundary-free context @${\ebase} does not contain boundary terms and a multi-l
  context @${\esd} may contain boundaries.
 
 The semantic components in @figure-ref{fig:multi-reduction} are the
- @${\delta} function and the @${\rrS} and @${\rrD} notions of reduction for
- the two kinds of expressions.  The @${\delta} function
+ @${\delta} function and the @${\rrS} and @${\rrD} notions of reduction.
+ The @${\delta} function
  is a partial mathematical specification for the procedures in @${\vunop}
  and @${\vbinop}. The partial nature of @${\delta} represents certain forms
  of errors that the use of primitive operations may trigger. Specifically,
@@ -137,8 +137,8 @@ The semantic components in @figure-ref{fig:multi-reduction} are the
  primitive operation is applied to inappropriate values.  Mathematically
  speaking, the @${\delta} function is undefined for the values. The name
  alludes to the idea that (virtual or abstract) machines tag one form of
- value differently from others, e.g., pointers to functions have one of tag
- while integers have a different one.  Thus, the addition of a function to
+ value differently from others, e.g., pointers to functions have a different
+ tag than integers.  Thus, the addition of a function to
  an integer is a tag error.}
 
 @item{By contrast, a @italic{boundary error} is the result of a applying a
@@ -152,7 +152,7 @@ The semantic components in @figure-ref{fig:multi-reduction} are the
  boundary into this component. The terminology ``boundary error''
  anticipates the generalization of the concept to programs that mix typed
  and untyped code; there a boundary error arises, for example, when an
- untyped subexpression evaluates to an integer if its typed context expects
+ untyped subexpression evaluates to an integer and its typed context expects
  a function.}
 
 ]
@@ -175,15 +175,12 @@ Two of them
  define functions @${\vfromdyn} and @${\vfromsta} for transporting a value across a boundary term,
  extend the @${\rrS} and @${\rrD} notions of reduction,
  and lift the notions of reduction to reduction relations @${\rrSstar} and
- @${\rrDstar} for (multi-language) evaluation contexts.
-@; TODO use two reduction relations, make sure to have footnote
-The other model defines one reduction relation.
+ @${\rrDstar} for (multi-language) evaluation contexts;
+ the third model is simpler.
 Lastly, the models define a (two-part) syntactic property that is
  implied by a typing property in @figure-ref{fig:multi-preservation},
  and comes with a proof that the property is sound with respect to the
  corresponding reduction relation.
-
-@; TODO revise the above!!!
 
 @include-figure["fig:multi-reduction.tex" @elem{Common semantic notions}]
 
