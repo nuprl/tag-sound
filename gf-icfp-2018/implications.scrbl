@@ -51,7 +51,7 @@ Adding a @emph{logical} distinction between natural numbers and integers,
  can lead to silent failures at runtime.
 For example, if a negative number flows into a typed context
  expecting a natural number, the context may compute a well-typed result
- by dividing the ill-typed input by itself.@note{Reynolds classic paper on
+ by dividing the ill-typed input by itself:@note{Reynolds classic paper on
   types and abstraction begins with a similar example, based on a distinction
   between real numbers and non-negative reals@~cite[r-ip-1983].}
 
@@ -78,7 +78,7 @@ In the appendix, we show that these embeddings define equivalent reduction
 The practical difference between the natural and locally-defensive embeddings
  becomes clear in a mixed-typed program that deals with pair values.
 The natural embedding checks the contents of a pair; the locally-defensive
- embedding only checks the constructor.@note{In this and similar examples,
+ embedding only checks the constructor:@note{In this and similar examples,
   we write @${\wellM e : \tau \rrKSstar e'} as shorthand for
   @${\wellM e : \tau \carrow e'' \wedge e'' \rrKSstar e'}.}
 
@@ -91,11 +91,10 @@ The natural embedding checks the contents of a pair; the locally-defensive
   }
 ]
 
-@exact{\noindent}Extracting a value from an ill-typed pair may detect the mismatch,
- but the semantics depends on what type the context happens to expect.
-Put another way, a developer cannot compositionally reason that a value of type
- @${\tpair{\tau_0}{\tau_1}} contains components of type @${\tau_0} and type @${\tau_1};
- only reasoning about the context can tell.
+@exact{\noindent}Extracting a value from an ill-typed pair might detect the mismatch,
+ depending on what type of value the context expects.
+For example, a typed expression can safely extract a negative integer from a
+ pair of natural numbers if the expression is typed using the subtyping rule:
 
 @dbend[
   @safe{
@@ -105,6 +104,10 @@ Put another way, a developer cannot compositionally reason that a value of type
     \wellM \efst{(\edyn{\tpair{\tnat}{\tnat}}{\vpair{-2}{-2}})} : \tint \rrKSstar {-2}
   }
 ]
+
+@exact{\noindent}Put another way, a developer cannot assume
+ that a value of type @${\tpair{\tau_0}{\tau_1}} contains components of type
+ @${\tau_0} and type @${\tau_1}; type-constructor soundness is not compositional.
 
 
 @section[#:tag "sub:ho"]{For Higher-Order Types}
@@ -155,7 +158,7 @@ The erasure embedding detects a runtime type mismatch as late as possible, namel
  just before invoking @${\delta} with an invalid argument.
 Outside of printing a stack trace, it cannot do much to infer the source of the
  bad value.
-When the source is off the stack, the erasure embedding is helpless.
+When the source is off the stack, the erasure embedding is helpless:
 
 @dbend[
   @warning{
@@ -166,7 +169,7 @@ When the source is off the stack, the erasure embedding is helpless.
 The locally-defensive embedding can detect a runtime type mismatch in two ways:
  at a type boundary or at a @${\vchk} expression.
 In the latter case, the locally-defensive embedding is no better off than the
- erasure embedding.
+ erasure embedding:
 
 @dbend[
   @warning{
