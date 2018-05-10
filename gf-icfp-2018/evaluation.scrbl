@@ -137,13 +137,18 @@ The CPU cores on each processor ran at 2.30 GHz using the ``performance'' CPU go
         @elem{Worst-case overhead for the natural embedding (@|TR_N|) and the locally-defensive embedding (@|TR_LD|) relative to erasure.}
         @render-max-table[MT TITLE*]]
 
-@(define RT (make-ratios-table TR-DATA* TAG-DATA*))
+@;@figure["fig:typed-baseline-ratios"
+@;        @elem{Typed/untyped ratios for @|TR_N| and @|TR_LD|}
+@;        @(let ((RT (make-ratios-table TR-DATA* TAG-DATA*)))
+@;           (render-ratios-table RT TITLE*))]
 
-@figure["fig:typed-baseline-ratios"
-        @elem{Typed/untyped ratios for @|TR_N| and @|TR_LD|}
-        @render-ratios-table[RT TITLE*]
-        @;@ratios-plot[TR-DATA* TAG-DATA*]
-        ]
+@figure["fig:typed-speedup"
+        @elem{Speedup of fully-typed
+              @|TR_N| (@|tr-color-sample|)
+              and @|TR_LD| (@|tag-color-sample|),
+              relative to erasure (@|TR_E|).}
+        @(let ((TBL (make-typed-table TR-DATA* TAG-DATA*)))
+           (render-speedup-barchart TBL))]
 
 
 @Figure-ref{fig:locally-defensive-performance} plots
@@ -173,17 +178,17 @@ By contrast, the worst-case performance of the locally-defensive embedding
 
 @section{Evaluation II: Fully-Typed Programs}
 
-The table in @figure-ref{fig:typed-baseline-ratios} compares the performance
+The table in @figure-ref{fig:typed-speedup} compares the performance
  of fully-typed programs.
-The first row presents the overhead of @|TR_N| relative to the erasure embedding
+The blue bars plot the overhead of @|TR_N| relative to the erasure embedding
  on each benchmark.
-The second row presents analogous data for @|TR_LD| relative to its erasure
- embedding.
+The orange bars present analogous data for @|TR_LD|
+ relative to the erasure embedding.
 
-On fully-typed programs, @|TR_N| often runs faster than the erasure approach.
+On fully-typed programs, @|TR_N| may run faster than the erasure approach.
 This speed-up is due to type-driven optimizations@~cite[stff-padl-2012] and, in the case
  of @bm{jpeg}, the removal of a boundary between the user program and a typed library.
-By contrast, @|TR_LD| has the highest overhead of the three.
+By contrast, @|TR_LD| is the slowest on every benchmark.
 
 
 @section[#:tag "sec:evaluation:threats"]{Threats to Validity}

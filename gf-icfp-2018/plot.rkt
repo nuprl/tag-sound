@@ -28,39 +28,49 @@
   render-max-overhead
   make-ratios-table
   make-max-table
+  make-typed-table
   render-ratios-table
   render-max-table
   ratios-table->typed
-  max-table->typed)
+  max-table->typed
+  render-speedup-barchart)
 
 (require
   file/glob
+  (only-in gtp-plot/configuration-info
+    configuration-info->id
+    configuration-info->runtime*)
   gtp-plot/plot
   gtp-plot/typed-racket-info
+  (only-in gtp-plot/performance-info
+    typed/baseline-ratio
+    in-configurations
+    performance-info->typed-runtime
+    performance-info->untyped-runtime
+    max-overhead)
+  gtp-util
+  (only-in gtp-util/system
+    md5sum)
+  with-cache
+  racket/runtime-path
+  (only-in racket/format ~r)
+  pict
   (only-in scribble/manual
     centered
     tabular
     bold
     tt
     hspace)
-  (only-in gtp-plot/performance-info
-    typed/baseline-ratio
-    max-overhead)
-  with-cache
-  racket/runtime-path
-  (only-in racket/format ~r)
-  pict
-  gtp-plot/util
-  (only-in gtp-plot/system
-    md5sum)
   (only-in racket/string
     string-prefix?)
   (only-in racket/draw
     make-color)
-  ;plot/no-gui
-  (only-in plot/utils
-    ->brush-color
-    ->pen-color)
+  (only-in plot/no-gui
+    hrule
+    plot-pict
+    error-bars
+    discrete-histogram)
+  plot/utils
   (only-in racket/path
     file-name-from-path)
   (only-in racket/file
@@ -71,6 +81,7 @@
     mean)
   (only-in racket/math
     exact-round
+    exact-ceiling
     exact-floor))
 
 (module+ test
@@ -84,7 +95,7 @@
 (define RKT-RELEASE-MONTH "September 2017")
 (define NUM-SAMPLES 200)
 (define TAG-VERSION "v0.14")
-(define OVERHEADS-HEIGHT 750)
+(define OVERHEADS-HEIGHT 700)
 (define OVERHEADS-HSPACE 50)
 (define OVERHEADS-VSPACE 6)
 (define OVERHEADS-WIDTH 450)
@@ -92,8 +103,14 @@
 (define X-MAX 10)
 (define CACHE-DIR "cache")
 
-
 (define START-COLOR 3)
+(define TICK-FREQ 1)
+
+(define *bar-chart-height* (make-parameter 84))
+(define *bar-chart-log-scale* (make-parameter #false))
+(define *bar-chart-min* (make-parameter #false))
+(define *bar-chart-max* (make-parameter #false))
+(define neutral-color 0)
 
 (define ((my-color-converter kind) i)
   (case kind
@@ -335,6 +352,34 @@
     [else
      (raise-argument-error 'data->typed/baseline-ratio "unrecognized data format" x)]))
 
+(define (data->typed/untyped-runtime* x)
+  (cond
+    [(path-string? x)
+     (define pi (make-typed-racket-info x))
+     (cons (performance-info->typed-runtime* pi)
+           (performance-info->untyped-runtime* pi))]
+    [else
+     (raise-argument-error 'data->typed/baseline-ratio "unrecognized data format" x)]))
+
+(define (performance-info->runtime* pi good-cfg?)
+  (for/or ((cfg (in-configurations pi)))
+    (and (good-cfg? cfg)
+         (configuration-info->runtime* cfg))))
+
+(define (performance-info->typed-runtime* pi)
+  (performance-info->runtime* pi typed-config?))
+
+(define (performance-info->untyped-runtime* pi)
+  (performance-info->runtime* pi untyped-config?))
+
+(define (typed-config? cfg)
+  (for/and ([c (in-string (configuration-info->id cfg))])
+    (eq? c #\1)))
+
+(define (untyped-config? cfg)
+  (for/and ([c (in-string (configuration-info->id cfg))])
+    (eq? c #\0)))
+
 (define (data->max-overhead x)
   (cond
     [(path-string? x)
@@ -423,6 +468,9 @@
      [else
       (loop (cdr r*))])))
 
+(define (make-typed-table . data**)
+  (make-data-table data->typed/untyped-runtime* data** "typed-runtime"))
+
 (define (make-ratios-table . data**)
   (make-data-table data->typed/baseline-ratio data** "ratio-table"))
 
@@ -480,6 +528,122 @@
                       (for/list ([r (in-list (cdr rt))])
                         (map rnd r)))))))
 
+;; render-speedup-barchart : (-> (list/c (listof symbol?) (listof (listof (cons/c natural? natural?))) (listof (listof (cons/c natural? natural?)))) pict?)
+(define (render-speedup-barchart tbl)
+  (make-plot-labeled-data discrete-histogram/error-bars tbl #:invert? #true))
+
+(define (make-plot-labeled-data render-labeled-reals tbl #:invert? [invert? #false])
+  (define rt
+    ;; Immediately normalize the data into a table-like thing ... this function is doing too much
+    (cons (car tbl)
+          (for/list ([ab* (in-list (cdr tbl))])
+            (for/list ([ab (in-list ab*)])
+              (if invert?
+                (map / (cdr ab) (car ab))
+                (map / (car ab) (cdr ab)))))))
+  (define y-max (exact-ceiling (max*** (cdr rt))))
+  (parameterize ([plot-x-ticks no-ticks]
+                 [plot-y-ticks (make-overhead-bars-ticks)]
+                 [plot-y-transform (if (*bar-chart-log-scale*) log-transform id-transform)]
+                 [error-bar-width 8]
+                 [error-bar-alpha 0.8]
+                 [error-bar-line-width 1])
+    (define (make-tick-hrule y)
+      (hrule y #:color neutral-color #:style 'solid #:alpha 0.2))
+    (plot-pict
+      (append
+        (if (*bar-chart-log-scale*)
+          (for*/list ((i (in-range 0 (exact-ceiling (log y-max 10))))
+                      (j (in-range 2 10 2)))
+            (make-tick-hrule (* (expt 10 i) j)))
+          (for/list ((i (in-range 0 (* TICK-FREQ (or (*bar-chart-max*) y-max)))))
+            (make-tick-hrule (/ i TICK-FREQ))))
+        (for/list ([c*r (in-list (list cadr caddr))]
+                   [color (in-naturals START-COLOR)]
+                   [style (in-list (list 'solid 'fdiagonal-hatch))]
+                   [x-min (in-naturals 0)])
+          (render-labeled-reals
+            (for/list ([lbl (in-list (car rt))]
+                       [r (in-list (c*r rt))])
+              (list lbl r))
+            #:color color
+            #:style style
+            #:x-min x-min
+            #:skip 3))
+        (list (hrule 1 #:color 0 #:style 'solid #:alpha 1)))
+      #:title #f
+      #:x-min 0
+      ;#:x-max #f
+      #:y-min (*bar-chart-min*)
+      #:y-max (or (*bar-chart-max*) (round-ymax y-max))
+      #:x-label #false
+      #:y-label #false
+      #:width OVERHEADS-WIDTH
+      #:height (*bar-chart-height*))))
+
+(define (rnd+ n)
+  (if (exact-integer? n)
+    (number->string n)
+    (~r n #:precision '(= 1))))
+
+(define (make-overhead-bars-ticks)
+  (if (*bar-chart-log-scale*)
+    (ticks (λ (ax-min ax-max)
+             (define major-ticks
+               (for/list ((i (in-range 0 (log ax-max 10))))
+                 (pre-tick (expt 10 i) #true)))
+             (define minor-ticks
+               (for*/list ((i (in-range 0 (exact-ceiling (log ax-max 10))))
+                           (j (in-range 2 10 2)))
+                   (pre-tick (* (expt 10 i) j) #false)))
+             (append minor-ticks major-ticks))
+           (lambda (ax-min ax-max pre-ticks)
+             (for/list ([pt (in-list pre-ticks)])
+               (format "10~a" (integer->superscript (exact-floor (log (pre-tick-value pt) 10)))))))
+    (ticks (lambda (ax-min ax-max)
+             (define major-ticks
+               (for/list ((i (in-list (linear-seq ax-min ax-max 3 #:start? #true #:end? #true))))
+                 (pre-tick (exact-floor i) #true)))
+             (define minor-ticks
+               (for/list ((i (in-range (* ax-min TICK-FREQ) (* ax-max TICK-FREQ))))
+                 (pre-tick (/ i TICK-FREQ) #false)))
+             (define candidate-ticks
+               (append major-ticks minor-ticks))
+             (cond
+               [(for/or ([tick (in-list candidate-ticks)])
+                  (= (pre-tick-value tick) 1))
+                candidate-ticks]
+               [else
+                (cons (pre-tick 1 #t) candidate-ticks)]))
+           (lambda (ax-min ax-max pre-ticks)
+             (for/list ((pt (in-list pre-ticks)))
+               (rnd+ (pre-tick-value pt)))))))
+
+(define (discrete-histogram/error-bars labeled-r* #:x-min [x-min 0] #:skip [skip 2] #:color [color 0] #:add-ticks? [add-ticks? #true] #:style [style 'solid])
+  ;; 2018-05-10 : currently NOT plotting error bars, because `labeled-r*` doesn't have enough data
+  (list
+    (discrete-histogram
+      (for/list ([lbl+r* (in-list labeled-r*)])
+        (vector (car lbl+r*) (mean (cadr lbl+r*))))
+      #:alpha 0.9 #;(*MULTI-INTERVAL-ALPHA*)
+      #:x-min x-min
+      #:skip skip
+      #:label #f
+      #:style style
+      #:color ((my-color-converter 'brush) color)
+      #:line-color ((my-color-converter 'pen) color)
+      #:add-ticks? add-ticks?)
+    (if (*bar-chart-log-scale*)
+      '()
+      (error-bars
+        (for/list ([lbl+r* (in-list labeled-r*)]
+                   [i (in-naturals)])
+          (define x (+ 1/2 (+ x-min (* i skip))))
+          (define lo+hi (confidence-interval (cadr lbl+r*) #:cv 1.96))
+          (vector x
+                  (mean (list (car lo+hi) (cdr lo+hi)))
+                  (- (cdr lo+hi) (car lo+hi))))))))
+
 (define render-ratios-table render-numbers-table)
 (define render-max-table render-numbers-table)
 
@@ -506,6 +670,27 @@
 
 (define ratios-table->locally-defensive table->locally-defensive)
 (define max-table->locally-defensive table->locally-defensive)
+
+(define (round-ymax y)
+  (if (*bar-chart-log-scale*)
+    (round-up-to-next-log10-tick y)
+    y))
+
+(define (round-up-to-next-log10-tick n)
+  (let loop ([i 0])
+    (define e (expt 10 i))
+    (if (<= e n)
+      (loop (+ i 1))
+      e)))
+
+(define (max*** x***)
+  (for*/fold ((acc #false))
+             ((x** (in-list x***))
+              (x* (in-list x**))
+              (x (in-list x*)))
+    (if (or (not acc) (< acc x))
+      x
+      acc)))
 
 ;; =============================================================================
 
