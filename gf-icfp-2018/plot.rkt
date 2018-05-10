@@ -617,7 +617,10 @@
                 (cons (pre-tick 1 #t) candidate-ticks)]))
            (lambda (ax-min ax-max pre-ticks)
              (for/list ((pt (in-list pre-ticks)))
-               (rnd+ (pre-tick-value pt)))))))
+               (define str (rnd+ (pre-tick-value pt)))
+               (if (= (pre-tick-value pt) ax-max)
+                 (string-append str "x")
+                 str))))))
 
 (define (discrete-histogram/error-bars labeled-r* #:x-min [x-min 0] #:skip [skip 2] #:color [color 0] #:add-ticks? [add-ticks? #true] #:style [style 'solid])
   ;; 2018-05-10 : currently NOT plotting error bars, because `labeled-r*` doesn't have enough data
