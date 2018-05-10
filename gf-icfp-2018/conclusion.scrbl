@@ -65,7 +65,7 @@ In terms of performance, the picture is much more mixed than the literature
  programs the natural embedding often dominates erasure and is
  significantly faster than the locally-defensive semantics. Equipped with
  this comparison platform, we intend to explore additional ways of making
- some form of sound migratory typing sufficiently performant. 
+ some form of sound migratory typing sufficiently practical.
 
 One strategy is to design a more sophisticated completion function and
  evaluation property than the one extracted from the literature; the pair in @section-ref{sec:locally-defensive-embedding} is
