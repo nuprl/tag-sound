@@ -63,30 +63,30 @@ Users have the option to disable the inserted checks, thereby trading soundness
 @section[#:tag "sec:related-work:locally-defensive"]{Locally-Defensive Embedding}
 
 The locally-defensive embedding is directly inspired by the transient semantics
- for Reticulated Python@~cite[vksb-dls-2014 vss-popl-2017].
+ for Reticulated Python@~cite[vksb-dls-2014 vss-popl-2017], a migratory typing
+ system for Python that includes a dynamic type (@${\star}) and type compatibility
+ relation.
 The transient approach begins with a surface language expression and elaborates
  into a typed intermediate language.
 In other words, the main judgment has the form @${\Gamma \vdash e \carrow e' : \tau}
  where both @${e'} and @${\tau} are outputs.
-At first we tried adapting this compiler from Reticulated's expression-level
- migratory typing to Typed Racket's module-level gradual typing, but struggled
- with the lack of a precise specification for the @${\carrow} judgment.
-The locally-defensive semantics thus separates surface-syntax typing (@figure-ref{fig:multi-preservation})
- from evaluation-syntax typing (@figure-ref{fig:locally-defensive-preservation});
- a suitable completion judgment (@${\carrow}) is one that inserts enough
- constructor checks into a typed surface expression to produce a constructor-typed
- expression.
+At first we tried adapting the Reticulated elaboration to Typed Racket, but struggled
+ with the lack of a precise specification for the @${\carrow} judgment in
+ terms of the surface language.
+In particular, the inclusion of a dynamic type lets Reticulated adopt a more
+ flexible notion of boundary --- a true model of transient may insert run-time
+ checks for different reasons than our multi-language model (@section-ref{sec:locally-defensive-embedding}).
 
 @citet[h-scp-1994] introduces the name @emph{completion} to decribe an untyped
  expression annotated with explicit type constructor checks.
 Our completion judgment is a kind of typed coercion; see @citet[shb-icfp-2009]
  for related work.
 
-The name ``locally-defensive'' is an attempt to tease apart three ideas
- regarding typed/untyped boundaries.
+The name ``locally-defensive'' is an attempt to tease apart three design choices
+ apparent in @citet[vksb-dls-2014] regarding typed/untyped boundaries.
 The first is to check only first-order properties at a boundary.
-The second is to check a higher-order value against its dynamically-most-recent
- type, and no previous types.
+The second is to check a data structure or higher-order value against its
+ dynamically-most-recent type, and no previous types.
 The third is to rewrite typed code instead of monitoring dynamically-typed values.
 
 
