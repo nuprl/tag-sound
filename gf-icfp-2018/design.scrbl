@@ -37,12 +37,12 @@ The type checker for the extended language must be able to validate mixed-typed
  values across the boundaries between typed and untyped contexts.
 
 Regarding the semantics of boundary terms, the essential questions concern the
- enforcement of three kinds of types: base types, inductive types, and
+ enforcement of three kinds of types: base types, algebraic types, and
  higher types.
 The surface language presented in @figure-ref{fig:multi-syntax} is therefore
  a functional language with integers and pairs.
 Types in this language represent integers, pairs, functions, and natural numbers.
-Of these, the first three types serve as example base, inductive, and higher types.
+Of these, the first three types serve as example base, algebraic, and higher types.
 The last type, @${\tnat}, is a subset of the type of integers; it is included
  to illustrate the set-based reasoning that dynamically-typed languages
  support via (true) union types.
@@ -208,7 +208,7 @@ The natural embedding uses a type-directed strategy to @mytech{transport} a valu
 If the value is untyped and entering a context that expects
  a value of a base type, such as @${\tint} or @${\tnat},
  then it suffices to check the value's constructor.
-If the context expects a value of an inductive type, such as a pair,
+If the context expects a value of an algebraic type, such as a pair,
  then the strategy is to the check the constructor and recursively transport
  the components of the value.
 Lastly, if the context expects a value of a higher type, such as
