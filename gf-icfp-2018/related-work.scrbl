@@ -4,7 +4,7 @@
 @; -----------------------------------------------------------------------------
 
 The idea of equipping a dynamically typed language with static type information
- is almost as old as dynamic typing@~cite[m-maclisp-1974].
+ goes back at least to MACLISP@~cite[m-maclisp-1974].
 Early work in this area focused on type inference strategies in the hope that
  all the dynamically-typed code could be replaced@~cite[s-popl-1981
  wc-toplas-1997 agd-ecoop-2005].
