@@ -105,6 +105,15 @@ For example, a typed expression can safely extract a negative integer from a
   }
 ]
 
+@exact{\noindent}Similarly, a dynamically-typed expression may extract anything
+ from a type-annotated pair:
+
+@dbend[
+  @warning{
+    \wellM \edyn{\tnat}{(\esum{1}{(\esnd{(\esta{(\tpair{\tnat}{\tnat})}{(\edyn{(\tpair{\tnat}{\tnat})}{\vpair{1}{-2}})})})})} : \tnat \rrKSstar 0
+  }
+]
+
 @exact{\noindent}Put another way, a developer cannot assume
  that a value of type @${\tpair{\tau_0}{\tau_1}} contains components of type
  @${\tau_0} and type @${\tau_1}; type-constructor soundness is not compositional.
