@@ -2259,3 +2259,17 @@
     #:title "A Framework for Object-Oriented Gradual Typing"
     #:location (proceedings-location ecoop)
     #:date 2018))
+
+(define ajsw-icfp-2017
+  (make-bib
+    #:author (authors "Amal Ahmed" "Dustin Jamner" "Jeremy G. Siek" "Philip Wadler")
+    #:title "Theorems for Free for Free: Parametricity, With and Without Types"
+    #:location (proceedings-location icfp)
+    #:date 2017))
+
+(define isi-icfp-2017
+  (make-bib
+    #:author (authors "Yuu Igarashi" "Taro Sekiyama" "Atsushi Igarashi")
+    #:title "On Polymorphic Gradual Typing"
+    #:location (proceedings-location icfp)
+    #:date 2017))

@@ -11,6 +11,7 @@ Early work in this area focused on type inference strategies in the hope that
 Over the past decade, researchers turned to the problem of creating a
  multi-language system@~cite[gff-oopsla-2005]
  that provides a type soundness guarantee@~cite[st-sfp-2006 tf-dls-2006 mf-toplas-2007 gktff-sfp-2006].
+Recent work addresses stronger guarantees, such as parametricity@~cite[ajsw-icfp-2017 isi-icfp-2017].
 
 Migratory typing is closely related to gradual typing@~cite[st-sfp-2006 svcb-snapl-2015].
 In the broad sense, the term gradual typing@~cite[st-sfp-2006] describes
