@@ -52,8 +52,7 @@ Modern optional typing systems exist for
  Ruby@~cite[rtsf-oops-2013],
  PHP,@note{@url{http://hacklang.org/}, accessed 2018-03-10.}
  and Python.@note{@url{http://mypy-lang.org/}, accessed 2018-03-10.}
-@citet[ddems-icse-2011] and @citet[pacpe-issta-2008] have implemented pluggable
- type systems for Java.
+@citet[ddems-icse-2011] and @citet[pacpe-issta-2008] add pluggable type systems to Java.
 
 The Dart language v1.x implements the erasure embedding,@note{@url{https://v1-dartlang-org.firebaseapp.com/}, accessed 2018-05-10.}
  however Dart 2.0 enforces types with run-time checks.@note{@url{https://www.dartlang.org/guides/language/sound-dart}, accessed 2018-05-10.}
