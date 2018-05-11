@@ -464,7 +464,8 @@ If the same function is applied @emph{in a different typed context} that expects
  the result is a pair.
 
 Constructor checks do not require monitors,
- run in near-constant time,
+ run in near-constant time,@note{The constructor check for a union type or
+ structural object type may require time linear in the size of the type.}
  and ensure that every value in a typed context has the correct top-level shape.
 If the notions of reduction rely only on the top-level shape of a value,
  then the latter guarantee implies that well-typed programs do not ``go wrong''

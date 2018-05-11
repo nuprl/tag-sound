@@ -2273,3 +2273,24 @@
     #:title "On Polymorphic Gradual Typing"
     #:location (proceedings-location icfp)
     #:date 2017))
+
+(define stw-pldi-2015
+  (make-bib
+    #:author (authors "Jeremy Siek" "Peter Thiemann" "Philip Wadler")
+    #:title "Blame and Coercion: Together Again for the First Time"
+    #:location (proceedings-location pldi #:pages '(425 435))
+    #:date 2015))
+
+(define p-tcs-1977
+  (make-bib
+    #:author "G.D. Plotkin"
+    #:title "LCF Considered as a Programming Language"
+    #:location (journal-location tcs #:volume 5 #:pages '(223 255))
+    #:date 1977))
+
+(define kas-arxiv-2018
+  (make-bib
+    #:author (authors "Andre Kuhlenschmidt" "Deyaaeldeen Almahallawi" "Jeremy G. Siek")
+    #:title "Efficient Gradual Typing"
+    #:location "arXiv:1802.06375v1"
+    #:date 2018))
