@@ -144,6 +144,14 @@ This offers a choice between (1) statically proving an expression is universally
 
 @section{Comparing Gradual Typing Systems}
 
+@citet[stw-pldi-2015] is the first work to rigorously compare gradual typing
+ systems.
+The paper defines three calculi for gradual typing and relates them with
+ fully-abstract@~cite[p-tcs-1977] translations.
+Unlike the migratory typing systems that have arisen in practice, the three calculi
+ provide identical soundness guarantees.
+@; Recent work by @citet[kas-arxiv-2018] suggests some calculi may lead to an efficient implementation.
+
 @citet[clzv-ecoop-2018] study the relationship of four different designs of
 object-oriented gradual typing. The paper presents a core language, dubbed
 KafKa, which is implemented in .NET and provably type-sound.  The
