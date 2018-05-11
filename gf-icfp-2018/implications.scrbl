@@ -210,11 +210,28 @@ Furthermore, the added code and branches may affect JIT compilation.
 
 The natural embedding incurs three significantly larger kinds of costs.
 First, there is the cost of checking a value at a boundary.
-Such checks may need to traverse the (first-order) value to compute its type.
 Second, there is an allocation cost when a higher-order value crosses a boundary.
 Third, monitored values suffer an indirection cost; for example,
  a monitor guarding a dynamically-typed function must check every result computed
  by the function.
+Each kind of cost may be arbitrarily large.
+The (time) cost of checking an algebraic type depends on the size of the
+ given value.
+The (time, space) cost of allocation and indirection grows with the number
+ of boundary-crossings.
+In the following example, an untyped function crosses three boundaries and
+ accumulates three monitors (@section-ref{sec:related-work} reviews potential solutions):
+
+@dbend[
+  @warning{
+    \begin{array}{l}
+      \edyn{(\tarr{\tnat}{\tnat})}{(\esta{(\tarr{\tint}{\tint})}{(\edyn{(\tarr{\tint}{\tint})}{\vlam{x}{x}})})}
+      \\ \rrNSstar \vmonfun{(\tarr{\tnat}{\tnat})}{(\vmonfun{(\tarr{\tint}{\tint})}{(\vmonfun{(\tarr{\tint}{\tint})}{\vlam{x}{x}})})}
+      \\[0.4ex]
+    \end{array}
+  }
+]
+
 
 
 @section[#:tag "sub:perf-total"]{For the Performance of Fully-Typed Programs}
