@@ -20,8 +20,8 @@ In the more precise sense@~cite[svcb-snapl-2015], a gradual typing
  system includes: (1) a dynamic type that may be implicitly cast to
  any other type; (2) a relation between types that are equal up to occurrences
  of the dynamic type; and (3) a proof that replacing any
- static type with the dynamic type can only affect the semantics of a term
- by removing a boundary error.
+ static type with the dynamic type can only (a) remove a static type error
+ or (b) remove a run-time boundary error.
 Ultimately, gradual typing and migratory typing have different goals;
  see @citet[gct-popl-2016].
 
