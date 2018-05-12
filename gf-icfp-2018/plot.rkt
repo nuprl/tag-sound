@@ -33,9 +33,13 @@
   render-max-table
   ratios-table->typed
   max-table->typed
-  render-speedup-barchart)
+  render-speedup-barchart
+
+  db-app-pict
+  reynolds-pict)
 
 (require
+  "lined-codeblock.rkt"
   file/glob
   (only-in gtp-plot/configuration-info
     configuration-info->id
@@ -694,6 +698,66 @@
     (if (or (not acc) (< acc x))
       x
       acc)))
+
+(define reynolds-pict
+  (ht-append 60
+    (codeblock-pict/numbers #:title "bessel.rkt"
+#<<>>
+#lang typed/racket
+
+(define-type Bessel
+  (List Nonnegative-Real Real))
+
+(: multiply (-> Bessel Bessel Bessel))
+(define (multiply n0 n1)
+  (map * n0 n1))
+>>
+)
+    (codeblock-pict/numbers #:title "student.rkt"
+#<<>>
+#lang racket
+
+(require "bessel.rkt")
+
+(define bad-num (list -2 2))
+
+(multiply bad-num bad-num)
+>>
+)))
+
+(define db-app-pict
+  (vl-append 20
+    (codeblock-pict/numbers #:title "server.rkt"
+#<<>>
+#lang racket
+
+(provide init-database
+         add-user
+         lookup-user)
+
+;; ... implementation omitted
+>>
+)
+    (codeblock-pict/numbers #:title "type-ann.rkt"
+#<<>>
+#lang typed/racket
+
+(require/typed/provide "server.rkt" [add-user (-> Symbol Boolean)])
+>>
+)
+    (codeblock-pict/numbers #:title "client.rkt"
+#<<>>
+#lang racket
+
+(require "type-ann.rkt")
+
+;; ... omitted
+
+(add-user (get-current-username))
+
+;; ... omitted
+>>
+)))
 
 ;; =============================================================================
 

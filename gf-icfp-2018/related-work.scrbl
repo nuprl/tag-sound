@@ -106,7 +106,7 @@ In practice there are two major challenges:
  and debugging type errors that involve the (potentially large) inferred types@~cite[tfffgksst-snapl-2017].
 
 
-@section{Performance of Mixed-Typed Programs}
+@section[#:tag "sec:related-work:performance"]{Performance of Mixed-Typed Programs}
 
 Researchers quickly noticed the inefficiency of the natural embedding
  and proposed theoretical solutions both for gradual typing@~cite[htf-hosc-2010 sw-popl-2010 sgt-esop-2009],
