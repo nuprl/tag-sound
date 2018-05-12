@@ -147,7 +147,7 @@ The CPU cores on each processor ran at 2.30 GHz using the ``performance'' CPU go
         @elem{Speedup of fully-typed
               @|TR_N| (@|tr-color-sample|)
               and @|TR_LD| (@|tag-color-sample|),
-              relative to erasure (@|TR_E|).
+              relative to @|TR_E| (the 1x line).
               Taller bars are better.}
         @(let ((TBL (make-typed-table TR-DATA* TAG-DATA*)))
            (render-speedup-barchart TBL))]
