@@ -208,6 +208,16 @@ showstringspaces=false            %
 \newcommand{\efromdynK}[2]{\efromX{\vfromdynK}{#1}{#2}}
 \newcommand{\efromstaK}[2]{\efromX{\vfromstaK}{#1}{#2}}
 
+\newcommand{\vfromdynC}{\vfromdyn_{\rrfont{C}}}
+\newcommand{\vfromstaC}{\vfromsta_{\rrfont{C}}}
+\newcommand{\efromdynC}[2]{\efromX{\vfromdynC}{#1}{#2}}
+\newcommand{\efromstaC}[2]{\efromX{\vfromstaC}{#1}{#2}}
+
+\newcommand{\vfromdynF}{\vfromdyn_{\rrfont{F}}}
+\newcommand{\vfromstaF}{\vfromsta_{\rrfont{F}}}
+\newcommand{\efromdynF}[2]{\efromX{\vfromdynF}{#1}{#2}}
+\newcommand{\efromstaF}[2]{\efromX{\vfromstaF}{#1}{#2}}
+
 \newcommand{\fromany}{\mathsf{check{\mhyphen}type}}
 
 \newcommand{\rrsymb}{\vartriangleright}
@@ -256,11 +266,12 @@ showstringspaces=false            %
 \newcommand{\rrNEstar}{\rastar_{\rrfont{N}}}
 \newcommand{\rrESstar}{\rastar_{\rrfont{E{\mhyphen}S}}}
 \newcommand{\rrEDstar}{\rastar_{\rrfont{E{\mhyphen}D}}}
-\newcommand{\rrCEstar}{\rastar_{\rrfont{C}}}
-\newcommand{\rrFEstar}{\rastar_{\rrFS}}
+\newcommand{\rrCSstar}{\rastar_{\rrfont{C{\mhyphen}S}}}
+\newcommand{\rrCDstar}{\rastar_{\rrfont{C{\mhyphen}D}}}
+\newcommand{\rrFSstar}{\rastar_{\rrfont{F{\mhyphen}S}}}
+\newcommand{\rrFDstar}{\rastar_{\rrfont{F{\mhyphen}D}}}
 \newcommand{\rrKSstar}{\rastar_{\rrfont{LD{\mhyphen}S}}}
 \newcommand{\rrKDstar}{\rastar_{\rrfont{LD{\mhyphen}D}}}
-\newcommand{\rrKEstar}{\rastar_{\rrfont{K}}}
 
 \newcommand{\exprsta}{e_{\rrfont{S}}}
 \newcommand{\exprdyn}{e_{\rrfont{D}}}
@@ -322,9 +333,9 @@ showstringspaces=false            %
 \newcommand{\wellM}{\vdash}
 \newcommand{\wellEE}{\myvdash{E}}
 \newcommand{\wellNE}{\myvdash{N}}
-\newcommand{\wellCE}{\myvdash{c}}
+\newcommand{\wellCE}{\myvdash{C}}
 \newcommand{\wellLE}{\wellCE}
-\newcommand{\wellFE}{\myvdash{f}}
+\newcommand{\wellFE}{\myvdash{F}}
 \newcommand{\wellKE}{\myvdash{LD}}
 \newcommand{\tagerror}{\mathsf{TagErr}}
 \newcommand{\boundaryerror}{\mathsf{BndryErr}}

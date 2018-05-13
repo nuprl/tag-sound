@@ -1,8 +1,9 @@
-\lblextra{Language $\langF$}{ inherits Evaluation Syntax}{
+\lblextra{Language $\langF$}{ \myinherits\ Evaluation Syntax}{
   $\begin{array}{l@{\hspace{0.5em}}c@{\hspace{0.5em}}l}
     e & \BNFeq & \ldots \mid \echk{\tau}{e}
     \\
-    v & \BNFeq & \ldots \mid \vmonfun{(\tarr{\tau}{\tau})}{(\vlam{x}{e})} \mid
+    v & \BNFeq & \ldots \mid
+                 \vmonfun{(\tarr{\tau}{\tau})}{(\vlam{x}{e})} \mid
                  \vmonfun{(\tarr{\tau}{\tau})}{(\vlam{\tann{x}{\tau}}{e})} \mid
                  \vmonpair{(\tpair{\tau}{\tau})}{\vpair{v}{v}}
     \\
@@ -13,103 +14,78 @@
 }
 
 \begin{TwoColumn}
-  \lblextra{$\vfromdyn : \tau \times v \rightarrow e\vphantom{\vfromsta}$}{ from $\vdyn$ to $\vsta$}{
+  \lblextra{$\vfromdynF : \specarrf{\tpair{\tau}{v}}{e}\vphantom{\vfromsta}$}{}{
     $\begin{array}{l@{~~}c@{~}l}
-      \efromdyn{\tau}{v} & = & \mchk{\tau}{v}
+      \efromdynF{\tau}{v} & = & \efromany{\tau}{v}
     \end{array}$
   }
 
   \multicolsbreak
 
-  \lblextra{$\vfromsta : \tau \times v \rightarrow e$}{ from $\vsta$ to $\vdyn$}{
+  \lblextra{$\vfromstaF : \specarrf{\tpair{\tau}{v}}{e}$}{}{
     $\begin{array}{l@{~~}c@{~}l}
-      \efromsta{\tau}{v} & = & \mchk{\tau}{v}
+      \efromstaF{\tau}{v} & = & \efromany{\tau}{v}
     \end{array}$
   }
 \end{TwoColumn}
 
-\lbl{$\vfromany : \tau \times v \rightarrow e$}{
+\lblextra{$\vfromany : \specarrf{\tpair{\tau}{v}}{e}$}{}{
   $\begin{array}{l@{~~}c@{~}l}
-    \efromany{\tarr{\tau_d}{\tau_c}}{\vlam{x}{e}} & =
-    & \vmonfun{(\tarr{\tau_d}{\tau_c})}{(\vlam{x}{e})}
-    \\
-    \efromany{\tarr{\tau_d}{\tau_c}}{\vlam{\tann{x}{\tau}}{e}} & =
-    & \vmonfun{(\tarr{\tau_d}{\tau_c})}{(\vlam{\tann{x}{\tau}}{e})}
-    \\
-    \efromany{\tpair{\tau_0}{\tau_1}}{\vpair{v_0}{v_1}} & =
-    & \vmonpair{(\tpair{\tau_0}{\tau_1})}{\vpair{v_0}{v_1}}
-    \\
-    \efromany{\tarr{\tau_d}{\tau_c}}{\vmonfun{(\tarr{\tau_d'}{\tau_c'})}{v'}} & =
-    & \vmonfun{(\tarr{\tau_d}{\tau_c})}{v'}
-    \\
-    \efromany{(\tpair{\tau_0}{\tau_1})}{\vmonpair{(\tpair{\tau_0'}{\tau_1'})}{v'}} & =
-    & \vmonpair{(\tpair{\tau_0}{\tau_1})}{v'}
-    \\
-    \efromany{\tint}{i} & =
-    & i
-    \\
-    \efromany{\tnat}{i} & =
-    & i
-    \\ \sidecond{if $i \in \naturals$}
-    \\
-    \efromany{\tau}{v} & =
-    & \boundaryerror
-    \\ \sidecond{otherwise}
+      \efromany{\tarr{\tau_d}{\tau_c}}{\vlam{x}{e}} & =
+      & \vmonfun{(\tarr{\tau_d}{\tau_c})}{(\vlam{x}{e})}
+      \\
+      \efromany{\tarr{\tau_d}{\tau_c}}{\vlam{\tann{x}{\tau}}{e}} & =
+      & \vmonfun{(\tarr{\tau_d}{\tau_c})}{(\vlam{\tann{x}{\tau}}{e})}
+      \\
+      \efromany{\tpair{\tau_0}{\tau_1}}{\vpair{v_0}{v_1}} & =
+      & \vmonpair{(\tpair{\tau_0}{\tau_1})}{\vpair{v_0}{v_1}}
+      \\
+      \efromany{\tarr{\tau_d}{\tau_c}}{\vmonfun{(\tarr{\tau_d'}{\tau_c'})}{v'}} & =
+      & \vmonfun{(\tarr{\tau_d}{\tau_c})}{v'}
+      \\
+      \efromany{(\tpair{\tau_0}{\tau_1})}{\vmonpair{(\tpair{\tau_0'}{\tau_1'})}{v'}} & =
+      & \vmonpair{(\tpair{\tau_0}{\tau_1})}{v'}
+      \\
+      \efromany{\tint}{i} & =
+      & i
+      \\
+      \efromany{\tnat}{i} & =
+      & i
+      \\ \sidecond{if $i \in \naturals$}
+      \\
+      \efromany{\tau}{v} & =
+      & \boundaryerror
+      \\ \sidecond{otherwise}
   \end{array}$
 }
 
-%\lbl{$\vfromany : \tau \times v \rightarrow e$}{
-%  \[\mchk{\tau}{v} = \left\{\begin{array}{l@{\hspace{1em}}l}
-%  \vmonfun{\tau}{v}
-%  & \mbox{if $\tau = \tarr{\tau_d}{\tau_c}$ and $[v \valeq \vlam{x}{e}$ or $v \valeq \vlam{\tann{x}{\tau}}{e}]$}
-%  \\ & \mboxor{$\tau = \tpair{\tau_0}{\tau_1}$ and $v \valeq \vpair{v_0}{v_1}$}
-%  \\
-%  \vmonfun{\tau}{v'}
-%  & \mbox{if $\tau = \tarr{\tau_d}{\tau_c}$ and $v \valeq \vmonfun{(\tarr{\tau_d'}{\tau_c'})}{v'}$}
-%  \\ & \mboxor{$\tau = \tpair{\tau_0}{\tau_1}$ and $v \valeq \vmonpair{(\tpair{\tau_0'}{\tau_1'})}{v'}$}
-%  \\
-%  v
-%  & \mbox{if $\tau = \tint$ and $v \in \integers$}
-%  \\ & \mboxor{$\tau = \tnat$ and $v \in \naturals$}
-%  \\
-%  \boundaryerror
-%  & \mbox{otherwise}
-%  \end{array}\right.\]
-%}
-
+% -----------------------------------------------------------------------------
+% --- reduction
 \begin{TwoColumn}
-  \lblextra{$e \rrFS e$}{ (selected rules)}{
+  \lblextra{$e \rrFS e$}{ extends $\rrS$}{
     $\begin{array}{l@{~~}c@{~}l}
       \echk{\tau}{v} & \rrFS
-      & \mchk{\tau}{v}
+      & \efromany{\tau}{v}
       \\
       \eapp{(\vmonfun{(\tarr{\tau_d}{\tau_c})}{(\vlam{x}{e}}))}{v} & \rrFS
       & \edyn{\tau_c}{e'}
-      \\ \sidecond{where $e' = \eapp{(\vlam{x}{e})}{\mchk{\tau_d}{v}}$}
+      \\ \sidecond{where $e' = \eapp{(\vlam{x}{e})}{(\efromany{\tau_d}{v})}$}
       \\
       \eapp{(\vmonfun{(\tarr{\tau_d}{\tau_c})}{(\vlam{\tann{x}{\tau}}{e})})}{v}
       & \rrFS & \echk{\tau_c}{e'}
-      \\ \sidecond{where $e' = \eapp{(\vlam{\tann{x}{\tau}}{e})}{\mchk{\tau}{v}}$}
+      \\ \sidecond{where $e' = \eapp{(\vlam{\tann{x}{\tau}}{e})}{(\efromany{\tau}{v})}$}
       \\
       \efst{(\vmonpair{(\tpair{\tau_0}{\tau_1})}{\vpair{v_0}{v_1}})} & \rrFS
-      & \mchk{\tau_0}{v_0}
+      & \efromany{\tau_0}{v_0}
       \\
       \esnd{(\vmonpair{(\tpair{\tau_0}{\tau_1})}{\vpair{v_0}{v_1}})} & \rrFS
-      & \mchk{\tau_1}{v_1}
-  %    \\
-  %    (\vlam{\tann{x}{\tau_d}}{e})~v & \rrFS & \vsubst{e}{x}{v}
-  %    \\
-  %    \eunop{v} & \rrFS & e
-  %    & \sidecond{if $\delta(\vunop, v) \expreq e$}
-  %    \\
-  %    \ebinop{v_0}{v_1} & \rrFS & e
-  %    & \sidecond{if $\delta(\vbinop, v_0, v_1) \expreq e$}
+      & \efromany{\tau_1}{v_1}
     \end{array}$
   }
 
   \multicolsbreak
 
-  \lblextra{$e \rrFD e$}{ (selected rules)}{
+  \lblextra{$e \rrFD e$}{ extends $\rrD$}{
     $\begin{array}{l@{~~}c@{~}l}
       \\
       \eapp{(\vmonfun{(\tarr{\tau_d}{\tau_c})}{(\vlam{x}{e})})}{v} & \rrFD
@@ -118,53 +94,58 @@
       \\
       \eapp{(\vmonfun{(\tarr{\tau_d}{\tau_c})}{(\vlam{\tann{x}{\tau}}{e})})}{v}
       & \rrFD & \esta{\tau_c}{e'}
-      \\ \sidecond{where $e' = \echk{\tau_c}{(\eapp{(\vlam{\tann{x}{\tau}}{e})}{\mchk{\tau}{v}})}$}
+      \\ \sidecond{where $e' = \echk{\tau_c}{(\eapp{(\vlam{\tann{x}{\tau}}{e})}{(\efromany{\tau}{v})})}$}
       \\
       \efst{(\vmonpair{(\tpair{\tau_0}{\tau_1})}{\vpair{v_0}{v_1}})} & \rrFD
-      & \mchk{\tau_0}{v_0}
+      & \efromany{\tau_0}{v_0}
       \\
       \esnd{(\vmonpair{(\tpair{\tau_0}{\tau_1})}{\vpair{v_0}{v_1}})} & \rrFD
-      & \mchk{\tau_1}{v_1}
-      \\
-  %    \\
-  %    (\vlam{x}{e})~v & \rrFD
-  %    & \vsubst{e}{x}{v}
-  %    \\
-  %    v_0~v_1 & \rrFD
-  %    & \tagerror
-  %    \\ \sidecond{if $v_0 \valeq i$ or $v_0 \valeq \vpair{v}{v'}$ or $v_0 \valeq \vmonpair{(\tpair{\tau_0}{\tau_1})}{v}$}
-  %    \\
-  %    \eunop{v} & \rrFD
-  %    & e
-  %    \\ \sidecond{if $\delta(\vunop, v) \expreq e$}
-  %    \\
-  %    \eunop{v} & \rrFD & \tagerror
-  %    \\ \sidecond{otherwise}
-  %    \\
-  %    \ebinop{v_0}{v_1} & \rrFD & e
-  %    \\ \sidecond{if $\delta(\vbinop, v_0, v_1) \expreq e$}
-  %    \\
-  %    \ebinop{v_0}{v_1} & \rrFD & \tagerror
-  %    \\ \sidecond{\quad otherwise}
+      & \efromany{\tau_1}{v_1}
     \end{array}$
   }
 \end{TwoColumn}
 
-\lblextra{$e \ccFE e$}{}{
-  $\begin{array}{l@{\hspace{0.5em}}c@{\hspace{0.5em}}l}
-    \esd[\esta{\tau}{v}] & \ccFE & \esd[\efromsta{\tau}{v}]
-    \\
-    \esd[\edyn{\tau}{v}] & \ccFE & \esd[\efromdyn{\tau}{v}]
-    \\
-    \esd[\esta{\tau}{\ebase[e]}] & \ccFE & \esd[\esta{\tau}{\ebase[e']}]
-    \\ \sidecond{if $e \rrS e'$}
-    \\
-    \esd[\edyn{\tau}{\ebase[e]}] & \ccFE & \esd[\edyn{\tau}{\ebase[e']}]
-    \\ \sidecond{if $e \rrD e'$}
-    \\
-    \esd[\eerr] & \ccFE & \eerr
-  \end{array}$
-}
+\begin{TwoColumn}
+  \lblextra{$e \rrFSstar e$}{ reflexive, transitive closure of $\ccFS$}{
+    $\begin{array}{l@{\hspace{0.5em}}c@{\hspace{0.5em}}l}
+      \ebase[e] & \ccFS & \ebase[e']
+      \\ \sidecond{if $e \rrFS e'$}
+      \\
+      \esd[\esta{\tau}{v}] & \ccFS & \esd[\efromstaF{\tau}{v}]
+      \\
+      \esd[\edyn{\tau}{v}] & \ccFS & \esd[\efromdynF{\tau}{v}]
+      \\
+      \esd[\esta{\tau}{\ebase[e]}] & \ccFS & \esd[\esta{\tau}{\ebase[e']}]
+      \\ \sidecond{if $e \rrFS e'$}
+      \\
+      \esd[\edyn{\tau}{\ebase[e]}] & \ccFS & \esd[\edyn{\tau}{\ebase[e']}]
+      \\ \sidecond{if $e \rrFD e'$}
+      \\
+      \esd[\eerr] & \ccFS & \eerr
+    \end{array}$
+  }
 
-\smallskip
-\lblextra{$e \rrFEstar e$}{ reflexive, transitive closure of $\ccFE$}{}
+  \multicolsbreak
+
+  \smallskip
+  \lblextra{$e \rrFDstar e$}{ reflexive, transitive closure of $\ccFD$}{
+    $\begin{array}{l@{\hspace{0.5em}}c@{\hspace{0.5em}}l}
+      \ebase[e] & \ccFD & \ebase[e']
+      \\ \sidecond{if $e \rrFD e'$}
+      \\
+      \esd[\esta{\tau}{v}] & \ccFD & \esd[\efromstaF{\tau}{v}]
+      \\
+      \esd[\edyn{\tau}{v}] & \ccFD & \esd[\efromdynF{\tau}{v}]
+      \\
+      \esd[\esta{\tau}{\ebase[e]}] & \ccFD & \esd[\esta{\tau}{\ebase[e']}]
+      \\ \sidecond{if $e \rrFS e'$}
+      \\
+      \esd[\edyn{\tau}{\ebase[e]}] & \ccFD & \esd[\edyn{\tau}{\ebase[e']}]
+      \\ \sidecond{if $e \rrFD e'$}
+      \\
+      \esd[\eerr] & \ccFD & \eerr
+    \end{array}$
+  }
+
+
+\end{TwoColumn}
