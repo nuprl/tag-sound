@@ -2255,7 +2255,7 @@
 
 (define clzv-ecoop-2018
   (make-bib
-    #:author (authors "Benjamin W Chung" "Paley Li" "Francesco Zappa Nardelli" "Jan Vitek")
+    #:author (authors "Benjamin W. Chung" "Paley Li" "Francesco Zappa Nardelli" "Jan Vitek")
     #:title "A Framework for Object-Oriented Gradual Typing"
     #:location (proceedings-location ecoop)
     #:date 2018))
