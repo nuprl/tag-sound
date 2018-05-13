@@ -133,4 +133,58 @@ TODO
 
 @section[#:tag "sec:appendix:implications"]{Implications of Co-Natural and Forgetful}
 
-TBA
+Co-natural and forgetful fall between the natural and locally-defensive.
+
+Co-natural delays runtime type errors.
+This allows latent bugs.
+
+@dbend[
+  @safe{
+    \wellM \efst{(\edyn{\tpair{\tnat}{\tnat}}{\vpair{2}{-2}})} : \tpair{\tnat}{\tnat} \rrNSstar \boundaryerror
+  }
+  @warning{
+    \wellM \efst{(\edyn{\tpair{\tnat}{\tnat}}{\vpair{2}{-2}})} : \tpair{\tnat}{\tnat} \rrCSstar 2
+  }
+]
+
+To illustrate the difference between the co-natural and forgetful embeddings,
+ consider a structured value (pair, function) that crosses two boundary terms.
+The co-natural approach enforces both boundaries; the forgetful approach
+ enforces only the second.
+In the following example, a dynamically-typed pair flows in and out of
+ statically typed code.
+The first type annotation does not match the pair,
+ and the co-natural embedding detects this when the pair is dereferenced.
+The second annotation is weaker, and does match.
+Since the forgetful approach drops the first annotation, it fails to detect
+ the type mismatch:
+
+@dbend[
+  @safe{
+    \wellM \esnd{(\esta{\tpair{\tint}{\tint}}{(\edyn{\tpair{\tnat}{\tnat}}{\vpair{2}{-2}})}} \rrCDstar \boundaryerror
+  }
+  @warning{
+    \wellM \esnd{(\esta{\tpair{\tint}{\tint}}{(\edyn{\tpair{\tnat}{\tnat}}{\vpair{2}{-2}})}} \rrFDstar -2
+  }
+]
+
+Note, the example above illustrates a boundary error reported in a dynamically typed
+ expression.
+This distinguishes the forgetful and co-natural embeddings from the locally-defensive
+ approach, as locally-defensive (effectively) never raises a boundary error in
+ a dynamically-typed context.
+
+Also unlike the locally-defensive embedding, the runtime checks in the forgetful
+ embedding come from boundary terms.
+It is possible to hide a type mismatch using subtyping in the locally-defensive
+ embedding, but not in the forgetful embedding.
+
+@dbend[
+  @safe{
+    \wellM \esnd{(\edyn{\tpair{\tnat}{\tnat}}{\vpair{2}{-2}})} : \tpair{\tnat}{\tnat} \rrFSstar \boundaryerror
+  }
+  @warning{
+    \wellM \esnd{(\edyn{\tpair{\tnat}{\tnat}}{\vpair{2}{-2}})} : \tpair{\tnat}{\tnat} \rrKSstar -2
+  }
+]
+
