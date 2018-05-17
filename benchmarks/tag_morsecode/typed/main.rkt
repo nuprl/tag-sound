@@ -16,7 +16,6 @@
 (require/typed/check "levenshtein.rkt"
                [string-levenshtein (String String -> Integer)])
 
-;(define-runtime-path common-words-list "./../base/Lemmatized-NGSL-ezi1.txt")
 (define word-frequency-list "./../base/frequency.rktd")
 (define word-frequency-list-small "./../base/frequency-small.rktd")
 
@@ -45,5 +44,4 @@
     (string-levenshtein w2 w1)
     (void)))
 
-;(time (main allwords)) ;; 68,000ms
-(time (main words-small)) ;; 200ms
+(time (main words-small))

@@ -15,14 +15,14 @@
        w]))
   (void))
 
-(define SMALL_TEST "../base/tetris-hist-small.rktd")
-(define LARGE_TEST "../base/tetris-hist-large.rktd")
+(define DATA (with-input-from-file "../base/tetris-hist.rktd" read))
+(define LOOPS 2)
 
-(define (main filename)
+(define (main raw)
   (define w0 (world0))
-  (define raw (with-input-from-file filename read))
-  (unless (list? raw) (error "bad input"))
-  (replay w0 (reverse raw)))
+  (if (list? raw)
+    (for ((_i (in-range LOOPS)))
+      (replay w0 raw))
+    (error "bad input")))
 
-;(time (main SMALL_TEST)) ; 0ms
-(time (main LARGE_TEST)) ; 480ms
+(time (main DATA))

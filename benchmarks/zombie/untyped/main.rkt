@@ -31,17 +31,15 @@
       (define r ((world-on-tick w)))
       (loop r (cdr h))])])))
 
-(define SMALL_TEST "../base/zombie-hist-small.rktd")
-(define MICRO_TEST "../base/zombie-hist-micro.rktd")
+(define DATA
+  (with-input-from-file "../base/zombie-hist-small.rktd" read))
 
-(define (main filename)
-  (define raw-hist (with-input-from-file filename read))
+(define (main hist)
   (cond
-   [(list? raw-hist)
-    (define hist (reverse raw-hist))
-    (for ([i  (in-range 100)])
+   [(list? hist)
+    (for ((i (in-range 100)))
       (replay w0 hist))]
    [else
     (error "bad input")]))
 
-(time (main SMALL_TEST))
+(time (main DATA))

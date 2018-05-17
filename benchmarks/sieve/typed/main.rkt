@@ -38,9 +38,8 @@
 (: primes stream)
 (define primes (sieve (count-from 2)))
 
-;; Compute the 10,000th prime number
 (: N-1 Natural)
-(define N-1 9999)
+(define N-1 6666)
 
 (: main (-> Void))
 (define (main)

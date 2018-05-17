@@ -18,11 +18,13 @@
     [(_ sig:mixand ...)
      #'(mix (list sig.signal sig.weight) ...)]))
 
+(define LOOPS 6)
+
 ;; Test from Vincent's repo.
 (define (large-test)
  (emit
   (mix/sugar
-   (sequence 2 (list
+   (sequence LOOPS (list
      (note 'C 5 1)
      (cons #f 1)
      (note 'C 5 1)

@@ -41,19 +41,16 @@
       (define r ((world-on-tick w)))
       (loop r (cdr h))])])))
 
-(define SMALL_TEST "../base/zombie-hist-small.rktd")
-(define MICRO_TEST "../base/zombie-hist-micro.rktd")
+(define TEST
+  (with-input-from-file "../base/zombie-hist-small.rktd" read))
 
-(: main (-> Path-String Void))
-(define (main filename)
-  (define raw-hist (with-input-from-file filename read))
+(: main (-> Any Void))
+(define (main hist)
   (cond
-   [(list? raw-hist)
-    (define hist (reverse raw-hist))
+   [(list? hist)
     (for ([i : Integer (in-range 100)])
       (replay w0 hist))]
    [else
     (error "bad input")]))
 
-(time (main SMALL_TEST))
-;(t:count-chaps)
+(time (main TEST))

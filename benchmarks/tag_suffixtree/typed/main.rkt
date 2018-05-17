@@ -14,10 +14,9 @@
 (: main (-> String Void))
 (define (main testfile)
   (define lines (file->lines testfile))
-  (for* ([a lines] [b lines])
-    (longest-common-substring a b))
+  (time
+    (for* ([a lines] [b lines])
+      (longest-common-substring a b)))
   (void))
 
-;(time (main SMALL_TEST)) ; 110ms
-(time (main LARGE_TEST)) ; 1900ms
-;(time (main KCFA_TYPED)) ; 16235ms
+(time (main LARGE_TEST))

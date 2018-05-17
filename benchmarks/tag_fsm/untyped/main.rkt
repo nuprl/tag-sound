@@ -13,7 +13,7 @@
 ;; effect measure time needed for the simulation
 (define (main)
    (simulation->lines
-    (evolve (build-random-population 100) 1000 10 20))
+    (evolve (build-random-population 300) 500 100 20))
    (void))
 
 (define (simulation->lines data)

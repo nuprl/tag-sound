@@ -22,18 +22,15 @@
               w])
            (cdr h))))))
 
-(define SMALL_TEST "../base/snake-hist-small.rktd")
-(define LARGE_TEST "../base/snake-hist-large.rktd")
+(define DATA (with-input-from-file "../base/snake-hist.rktd" read))
+(define LOOPS 200)
 
-(define (main filename)
+(define (main hist)
   (define w0 (WORLD))
-  (define raw-hist (with-input-from-file filename read))
-  (cond [(list? raw-hist)
-         (define hist (reverse raw-hist))
-         (for ([i (in-range 100)])
+  (cond [(list? hist)
+         (for ((_i (in-range LOOPS)))
            (replay w0 hist))]
         [else
          (error "bad input")]))
 
-;; (time (main SMALL_TEST)) ; 100ms
-(time (main LARGE_TEST)) ; 390ms
+(time (main DATA))

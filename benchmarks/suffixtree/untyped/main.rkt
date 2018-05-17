@@ -12,10 +12,9 @@
 ;; LCS on all pairs of lines in a file
 (define (main testfile)
   (define lines (file->lines testfile))
-  (for* ([a lines] [b lines])
-    (longest-common-substring a b))
+  (time
+    (for* ([a lines] [b lines])
+      (longest-common-substring a b)))
   (void))
 
-;(time (main SMALL_TEST)) ;150ms
-(time (main LARGE_TEST)) ; 2500ms
-;(time (main KCFA_TYPED)) ; 22567ms
+(main LARGE_TEST)
