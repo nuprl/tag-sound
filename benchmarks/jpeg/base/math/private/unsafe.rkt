@@ -1,4 +1,4 @@
-#lang typed/racket/base
+#lang typed/racket
 
 (require (prefix-in : racket/unsafe/ops)
          racket/flonum

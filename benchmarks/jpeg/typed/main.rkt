@@ -29,6 +29,12 @@
 
 (require/typed/check "jfif.rkt"
   (#:struct jfif ((frame : frame) (misc-segments : (Listof misc)) (mcu-array : (Array MCU))))
+  (#:struct component
+    ((id : Byte)
+     (index : Natural)
+     (samp-x : Natural)
+     (samp-y : Natural)
+     (q-table : Natural)))
   (#:struct frame
     ((marker : Natural)
      (precision : Byte)
@@ -37,12 +43,6 @@
      (components : (Vectorof component))
      (samp-x : Natural)
      (samp-y : Natural)))
-  (#:struct component
-    ((id : Byte)
-     (index : Natural)
-     (samp-x : Natural)
-     (samp-y : Natural)
-     (q-table : Natural)))
   (#:struct misc
     ((marker : Natural)
      (bytes : Bytes)))

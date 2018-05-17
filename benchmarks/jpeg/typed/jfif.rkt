@@ -62,16 +62,18 @@
 ;; MISC := (DQT | DHT | DAC | DRI | COM | APP) LEN payload...
 ;; SHEADER := SOS LEN NCOMPONENTS SCOMP0 SCOMP1 ... SS SE A
 
-(define-type Jfif jfif)
-(define-type Frame frame)
-(define-type Component component)
-(define-type Misc misc)
-(define-type Params params)
-
 (struct jfif
   ((frame : Frame)
    (misc-segments : (Listof Misc))
    (mcu-array : (Array MCU)))
+  #:transparent)
+
+(struct component
+  ((id : Byte)
+   (index : Natural)
+   (samp-x : Natural)
+   (samp-y : Natural)
+   (q-table : Natural))
   #:transparent)
 
 (struct frame
@@ -82,14 +84,6 @@
    (components : (Vectorof Component))
    (samp-x : Natural)
    (samp-y : Natural))
-  #:transparent)
-
-(struct component
-  ((id : Byte)
-   (index : Natural)
-   (samp-x : Natural)
-   (samp-y : Natural)
-   (q-table : Natural))
   #:transparent)
 
 (struct misc
@@ -104,6 +98,12 @@
    (restart-interval : Natural)
    (misc-segments : (Listof Misc)))
   #:transparent)
+
+(define-type Jfif jfif)
+(define-type Frame frame)
+(define-type Component component)
+(define-type Misc misc)
+(define-type Params params)
 
 (: read-marker (-> Input-Port Integer))
 (define (read-marker port)
@@ -495,10 +495,9 @@
 (define (read-scan port frame params dest)
   (: find-component (-> Integer Component))
   (define (find-component id)
-    (assert (for/or : (U #f Component) ((component : Component (frame-components frame)))
+    (assert (for/or : Any ((component : Component (frame-components frame)))
           (and (= (component-id component) id)
-               component))
-        component?))
+               component)) component?))
   (unless (frame-dct? frame) (error "DCT frame expected" frame))
   (unless (frame-huffman-coded? frame) (error "Huffman coding expected" frame))
   (let ((len : Natural (read-u16 port)))
@@ -897,11 +896,11 @@
              (write-baseline-entropy-coded-data port codes huffman-tables)
              (write-eoi port)))))))))
 
-(module+ test
-  (require typed/rackunit)
-  (define test-file-name "../base/test.jpg")
-  (define expected-width 500)
-  (define expected-height 375)
-  (define test-jfif (read-jfif test-file-name #:with-body? #f))
-  (check-eqv? (frame-x (jfif-frame test-jfif)) expected-width)
-  (check-eqv? (frame-y (jfif-frame test-jfif)) expected-height))
+;(module+ test
+;  (require typed/rackunit)
+;  (define test-file-name "../base/test.jpg")
+;  (define expected-width 500)
+;  (define expected-height 375)
+;  (define test-jfif (read-jfif test-file-name #:with-body? #f))
+;  (check-eqv? (frame-x (jfif-frame test-jfif)) expected-width)
+;  (check-eqv? (frame-y (jfif-frame test-jfif)) expected-height))

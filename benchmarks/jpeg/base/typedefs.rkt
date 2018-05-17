@@ -1,4 +1,4 @@
-#lang typed/racket/base
+#lang typed/racket
 
 (provide
   PTs
@@ -11,7 +11,7 @@
   Value-Interpreter
   Huffman)
 
-(require (only-in "math/array.rkt" Array))
+(require (only-in "../base/math/array.rkt" Array))
 
 (define-type Bit-Port (Vector Natural Natural Port))
 
