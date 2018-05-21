@@ -1,6 +1,9 @@
 #lang gf-icfp-2018
 @title[#:tag "sec:related-work"]{Related Work}
 
+@; Note: the evaluation in rzv-ecoop-2015 does not report the performance of
+@;  code that does any runtime type checking
+
 @; -----------------------------------------------------------------------------
 
 The idea of equipping a dynamically typed language with static type information
