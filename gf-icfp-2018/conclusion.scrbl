@@ -85,6 +85,7 @@ A third strategy is to combine multiple semantics within a program, using
   @; NSF funding
   @; early feedback at PI meeting
   @; pldi reviewers for skimming the paper and letting us know it wasn't shiny and new enough
+  @; Artem P. for comments
   Felleisen would like to acknowledge insightful conversations with Ron Garcia and Eric Tanter about the meaning of types in a locally-defensive setting.
 }
 
