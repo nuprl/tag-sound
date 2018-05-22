@@ -8,9 +8,34 @@
   \end{array}$
 }
 
+%\lblmathpar{$\tau \subteq \tau$}{
+%  \inferrule{
+%    \thornclass\ C\ \thornextends\ D \{ \emph{fds}\,;\,\emph{mds} \}
+%  }{
+%    C \subteq D
+%  }
+%
+%  \inferrule{
+%  }{
+%    C \subteq \thornobject
+%  }
+%
+%  \inferrule{
+%    C_1 \subteq C_2
+%  }{
+%    \thornlike{C_1} \subteq \thornlike{C_2}
+%  }
+%
+%  \inferrule{
+%  }{
+%    C \subteq \thornlike{C}
+%  }
+%}
+
 \begin{TwoColumn}
   \lblextra{$\vfromdyn : \specarrf{\tpair{\tau}{v}}{e}\vphantom{\vfromsta}$}{}{
     $\begin{array}{l@{~~}c@{~}l}
+      \efromdyn{\tau}{v} & = & \efromany{\tau}{v}
     \end{array}$
   }
 
@@ -18,7 +43,23 @@
 
   \lblextra{$\vfromsta : \specarrp{\tpair{\tau}{v}}{e}$}{}{
     $\begin{array}{l@{~~}c@{~}l}
-      \efromsta{\tau}{v} & = & v
+      \efromsta{\tau}{v} & = & \efromany{\tau}{v}
     \end{array}$
   }
 \end{TwoColumn}
+
+\lblextra{$\vfromany : \specarrp{\tpair{\tau}{v}}{e}$}{}{
+  $\begin{array}{l@{~~}c@{~}l}
+    \efromany{C}{v} & = & p
+    \\ \sidecond{if $v \valeq p$ or $v \valeq \thorncast{\thorndyn}{p}$ or $v \valeq \thorncast{\thornlike{C'}}{p}$}
+    \\ \sidecond{and $p \valeq C''(f = v, \ldots)$}
+    \\ \sidecond{and $C'' \subteq C$}
+    \\
+    \efromany{\thornlike{C}}{v} & = & \thorncast{\thornlike{C}}{p}
+    \\ \sidecond{if $v \valeq p$ or $v \valeq \thorncast{\thorndyn}{p}$ or $v \valeq \thorncast{\thornlike{C'}}{p}$}
+    \\
+    \efromany{\thorndyn}{v} & = & \thorncast{\thorndyn}{p}
+    \\ \sidecond{if $v \valeq p$ or $v \valeq \thorncast{\thorndyn}{p}$ or $v \valeq \thorncast{\thornlike{C'}}{p}$}
+  \end{array}$
+}
+

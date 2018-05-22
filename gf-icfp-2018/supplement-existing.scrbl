@@ -11,30 +11,20 @@ Technical illustrations of prior work on gradual and migratory typing.
 @; -----------------------------------------------------------------------------
 @section[#:tag "existing-thorn"]{Thorn}
 
-@include-figure["fig:existing-thorn.tex" @elem{Thorn types, values, and boundary functions. The @${\vfromdyn} boundary function is undefined for all inputs.}]
+@include-figure["fig:existing-thorn.tex" @elem{Thorn types, values, and boundary functions.}]
 
 @Figure-ref{fig:existing-thorn} summarizes Thorn.
 
 The actual paper uses a heap.
 
+The @emph{this} variable ia always concretely typed.
+There are no untyped classes or objects.
+
 Thorn lets values pass from static to dynamic at runtime.
+(Cannot explicitly cast from static to dynamic.)
+
 Thorn does not let values cross from dynamic to static without an explicit type
- cast; all Thorn programs must pass the static type checker, and the static type
- checker rejects programs that send a more dynamic variable into a less dynamic context.
-For example, if a program contains a class @${\texttt{Integer}} with a method
- @${\texttt{add}} that expects in instance of the @${\texttt{Integer}} class,
- then applying the method to a dynamically-typed value raises a static typing error:
-
-@verbatim|{
-  class Integer Object {
-    def add(n1 : Integer) : Integer = { .... }
-    ....
-  }
-  Integer n0 = new Integer(0);
-  dyn n1 = (dyn) n0;
-  n0.add(n1) // static type error
-}|
-
+ cast.
 
 Thorn values are pointers to objects.
 A pointer may be wrapped in at most one cast.
@@ -49,6 +39,65 @@ A pointer may be wrapped in at most one cast.
     }
     @item{
       If @${\vdash v : \thorndyn} then @${v \valeq \thorncast{\thorndyn}{p}}
+    }
+  ]
+}
+
+
+@; -----------------------------------------------------------------------------
+@(define strongscript @${\strongscript})
+@section[#:tag "existing-strongscript"]{StrongScript}
+
+@include-figure["fig:existing-strongscript.tex" @elem{@|strongscript| boundary functions.}]
+
+Classes cannot have fields of function type or of undefined type.
+
+The dynamic type (@${\sstdyn}) is not a subtype or supertype of any other type.
+
+Not allowed to override methods.
+
+Not allowed to delete members of a class if those members are part of its type.
+
+Not allowed to change type of an object; an object imported from JavaScript
+ always has type @${\sstdyn}.
+
+@tr-lemma[#:key "strongscript-canonical" @elem{@|strongscript| canonical forms}]{
+  @itemlist[
+    @item{
+      If @${\vdash v : \sstconcrete{C}}
+      then @${v \valeq \ssobj{\tann{s}{v} \ldots m \ldots}{C'}}
+      and @${C' \subteq C}
+    }
+    @item{
+      If @${\vdash v : C}
+      then either:
+      @itemlist[
+      @item{
+        @${v \valeq \ssobj{\tann{s}{v} \ldots m \ldots}{C'}}
+      }
+      @item{
+        @${v \valeq \ssobj{\tann{s}{v} \ldots m \ldots}{\sstdyn}}
+      }
+      ]
+    }
+    @item{
+      If @${\vdash v : \tarr{\tau_d}{\tau_c}}
+      then @${v \valeq \ssfun{\tann{x}{\tau_d}}{e}{\tau_c}}
+    }
+    @item{
+      If @${\vdash v : \sstdyn}
+      then either:
+      @itemlist[
+      @item{
+        @${v \valeq \ssobj{\tann{s}{v} \ldots m \ldots}{C'}}
+      }
+      @item{
+        @${v \valeq \ssobj{\tann{s}{v} \ldots m \ldots}{\sstdyn}}
+      }
+      @item{
+        @${v \valeq \ssfun{\tann{x}{\sstdyn}}{e}{\sstdyn}}
+      }
+      ]
     }
   ]
 }
@@ -80,6 +129,11 @@ The type never goes away and is checked at runtime.
     }
   ]
 }
+
+In particular, a Dart value of type @${\darttdyn} has the form @${\dartval{b}{\tau}}
+ where @${\tau} is any type.
+
+@; need to emphasize the weirdness, that dynamic doesn't coerce to integer
 
 
 @; -----------------------------------------------------------------------------

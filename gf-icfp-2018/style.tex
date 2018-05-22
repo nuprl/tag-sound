@@ -363,6 +363,9 @@ showstringspaces=false            %
 \newcommand{\thornlike}[1]{\mathsf{like}\,#1}
 \newcommand{\thorndyn}{\mathsf{\mathbf{dyn}}}
 \newcommand{\thorncast}[2]{(#1)\,#2}
+\newcommand{\thornclass}{\mathsf{\mathbf{class}}}
+\newcommand{\thornextends}{\mathsf{\mathbf{extends}}}
+\newcommand{\thornobject}{\emph{Object}}
 
 \newcommand{\darttint}{\mathsf{int}}
 \newcommand{\darttnum}{\mathsf{num}}
@@ -372,3 +375,11 @@ showstringspaces=false            %
 \newcommand{\dartval}[2]{#1\!::\!#2}
 \newcommand{\dartlist}[1]{[#1]}
 \newcommand{\dartfun}[2]{(#1)\,\texttt{=>}\,#2}
+
+\newcommand{\strongscript}{\mathsf{StrongScript}}
+\newcommand{\sstdyn}{\mathsf{any}}
+\newcommand{\sstconcrete}[1]{!#1}
+\newcommand{\ssmth}[4]{#1\,#2\{\mathsf{return}\,#3 : #4\}}
+\newcommand{\ssfun}[3]{\ssmth{\mathsf{func}}{#1}{#2}{#3}}
+\newcommand{\ssobj}[2]{\{#1 \mid #2\}}
+\newcommand{\sscast}[2]{\langle #1 \rangle\,#2}
