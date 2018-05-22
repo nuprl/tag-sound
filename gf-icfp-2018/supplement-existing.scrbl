@@ -54,6 +54,35 @@ A pointer may be wrapped in at most one cast.
 }
 
 
+@; -----------------------------------------------------------------------------
+@section[#:tag "existing-dart"]{Dart}
+
+@include-figure["fig:existing-dart.tex" @elem{Dart boundary functions for a restricted grammar of types.}]
+
+The function syntax is an abuse of notation; to write the type @${\tarr{\darttint}{\darttint}}
+ one must define a new type:
+
+@verbatim{
+  typedef int Ifun(int _); // Ifun ~ int -> int
+}
+
+Dart also uses a heap.
+
+Dynamic is not a subtype of any type other than itself.
+
+Every value comes with a type.
+The type never goes away and is checked at runtime.
+
+@tr-lemma[#:key "dart-canonical" @elem{Dart canonical forms}]{
+  @itemlist[
+    @item{
+      If @${\vdash v : \tau} then @${v \valeq \dartval{b}{\tau'}} and @${\tau' \subteq \tau}
+    }
+  ]
+}
+
+
+@; -----------------------------------------------------------------------------
 @section[#:tag "existing-pyret"]{Pyret}
 
 @include-figure["fig:existing-pyret.tex" @elem{Pyret boundary functions and semantics for a restricted grammar of types.}]
@@ -61,7 +90,7 @@ A pointer may be wrapped in at most one cast.
 @tr-lemma[#:key "pyret-canonical" @elem{Pyret assert-canonical forms}]{
   If @${v} is a value with the static type @${\tau} then @${v} may be any kind of value;
    however, if @${v} is assigned to a variable @${x} with the programmer-assigned
-   type @${\tau}, then one of the following holds of @${x}:
+   type @${\tau}, then one of the following holds:
   @itemlist[
     @item{
       If @${\vdash x : \tpair{\tau_0}{\tau_1}} then @${v \valeq \vpair{v_0}{v_1}}

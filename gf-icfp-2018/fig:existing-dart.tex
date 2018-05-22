@@ -1,0 +1,60 @@
+\lblextra{Dart}{ (sketch)}{
+  $\begin{array}{l@{\hspace{0.5em}}c@{\hspace{0.5em}}l}
+    \tau & \BNFeq & \darttint \mid \darttnum \mid \darttlist{\tau} \mid \tarr{\tau}{\tau} \mid \darttdyn
+    \\
+    v & \BNFeq & \dartval{b}{\tau}
+    \\
+    b & \BNFeq & i \mid d \mid \dartlist{v \ldots} \mid \dartfun{\tau x}{e}
+  \end{array}$
+}
+
+\lblmathpar{$\tau \subteq \tau$}{
+  \inferrule{
+  }{
+    \tau \subteq \tau
+  }
+
+  \inferrule{
+  }{
+    \tau \subteq \darttdyn
+  }
+
+  \inferrule{
+  }{
+    \darttint \subteq \darttnum
+  }
+
+  \inferrule{
+    \tau \subteq \tau'
+  }{
+    \darttlist{\tau} \subteq \darttlist{\tau'}
+  }
+
+  \inferrule{
+    \tau_d' \subteq \tau_d
+    \\
+    \tau_c \subteq \tau_c'
+  }{
+    \tarr{\tau_d}{\tau_c} \subteq \tarr{\tau_d'}{\tau_c'}
+  }
+}
+
+\begin{TwoColumn}
+  \lblextra{$\vfromdyn : \specarrf{\tpair{\tau}{v}}{e}\vphantom{\vfromsta}$}{}{
+    $\begin{array}{l@{~~}c@{~}l}
+      \efromdyn{\tau}{\dartval{b}{\tau'}} & = & \dartval{b}{\tau'}
+      \\ \sidecond{if $\tau' \subteq \tau$}
+      \\
+      \efromdyn{\tau}{v} & = & \boundaryerror
+      \\ \sidecond{otherwise}
+    \end{array}$
+  }
+
+  \multicolsbreak
+
+  \lblextra{$\vfromsta : \specarrp{\tpair{\tau}{v}}{e}$}{}{
+    $\begin{array}{l@{~~}c@{~}l}
+      \efromsta{\tau}{v} & = & v
+    \end{array}$
+  }
+\end{TwoColumn}
