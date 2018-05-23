@@ -32,34 +32,25 @@
 %  }
 %}
 
-\begin{TwoColumn}
-  \lblextra{$\vfromdyn : \specarrf{\tpair{\tau}{v}}{e}\vphantom{\vfromsta}$}{}{
-    $\begin{array}{l@{~~}c@{~}l}
-      \efromdyn{\tau}{v} & = & \efromany{\tau}{v}
-    \end{array}$
-  }
-
-  \multicolsbreak
-
-  \lblextra{$\vfromsta : \specarrp{\tpair{\tau}{v}}{e}$}{}{
-    $\begin{array}{l@{~~}c@{~}l}
-      \efromsta{\tau}{v} & = & \efromany{\tau}{v}
-    \end{array}$
-  }
-\end{TwoColumn}
-
-\lblextra{$\vfromany : \specarrp{\tpair{\tau}{v}}{e}$}{}{
+\lblextra{$\vfromdyn : \specarrf{\tpair{\tau}{v}}{e}\vphantom{\vfromsta}$}{}{
   $\begin{array}{l@{~~}c@{~}l}
-    \efromany{C}{v} & = & p
+  \end{array}$
+}
+
+\lblextra{$\vfromsta : \specarrp{\tpair{\tau}{v}}{e}$}{}{
+  $\begin{array}{l@{~~}c@{~}l}
+    \efromsta{C}{v} & = & p
     \\ \sidecond{if $v \valeq p$ or $v \valeq \thorncast{\thorndyn}{p}$ or $v \valeq \thorncast{\thornlike{C'}}{p}$}
     \\ \sidecond{and $p \valeq C''(f = v, \ldots)$}
     \\ \sidecond{and $C'' \subteq C$}
     \\
-    \efromany{\thornlike{C}}{v} & = & \thorncast{\thornlike{C}}{p}
+    \efromsta{\thornlike{C}}{v} & = & \thorncast{\thornlike{C}}{p}
     \\ \sidecond{if $v \valeq p$ or $v \valeq \thorncast{\thorndyn}{p}$ or $v \valeq \thorncast{\thornlike{C'}}{p}$}
     \\
-    \efromany{\thorndyn}{v} & = & \thorncast{\thorndyn}{p}
+    \efromsta{\thorndyn}{v} & = & \thorncast{\thorndyn}{p}
     \\ \sidecond{if $v \valeq p$ or $v \valeq \thorncast{\thorndyn}{p}$ or $v \valeq \thorncast{\thornlike{C'}}{p}$}
+    \\
+    \efromsta{\tau}{v} & = & \boundaryerror
+    \\ \sidecond{otherwise}
   \end{array}$
 }
-

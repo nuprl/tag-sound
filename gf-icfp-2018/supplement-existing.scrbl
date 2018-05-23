@@ -11,14 +11,15 @@ Technical illustrations of prior work on gradual and migratory typing.
 @; -----------------------------------------------------------------------------
 @section[#:tag "existing-thorn"]{Thorn}
 
-@include-figure["fig:existing-thorn.tex" @elem{Thorn types, values, and boundary functions.}]
+@include-figure["fig:existing-thorn.tex" @elem{Thorn types, values, and boundary functions. The @${\vfromdyn} function is undefined for all inputs.}]
 
 @Figure-ref{fig:existing-thorn} summarizes Thorn.
 
 The actual paper uses a heap.
 
-The @emph{this} variable ia always concretely typed.
 There are no untyped classes or objects.
+Every value has a class name.
+Consequence: the @emph{this} variable ia always concretely typed in method calls.
 
 Thorn lets values pass from static to dynamic at runtime.
 (Cannot explicitly cast from static to dynamic.)
@@ -48,7 +49,7 @@ A pointer may be wrapped in at most one cast.
 @(define strongscript @${\strongscript})
 @section[#:tag "existing-strongscript"]{StrongScript}
 
-@include-figure["fig:existing-strongscript.tex" @elem{@|strongscript| boundary functions.}]
+@include-figure["fig:existing-strongscript.tex" @elem{@|strongscript| boundary functions. The @${\vfromdyn} function is undefined for all inputs.}]
 
 Classes cannot have fields of function type or of undefined type.
 
@@ -106,7 +107,7 @@ Not allowed to change type of an object; an object imported from JavaScript
 @; -----------------------------------------------------------------------------
 @section[#:tag "existing-dart"]{Dart}
 
-@include-figure["fig:existing-dart.tex" @elem{Dart boundary functions for a restricted grammar of types.}]
+@include-figure["fig:existing-dart.tex" @elem{Dart boundary functions for a restricted grammar of types. The @${\vfromdyn} function is undefined for all inputs.}]
 
 The function syntax is an abuse of notation; to write the type @${\tarr{\darttint}{\darttint}}
  one must define a new type:
@@ -191,29 +192,18 @@ The types we use here for illustration do not require the heap.
 
 
 @tr-lemma[#:key "safets-canonical" @elem{SafeTS canonical forms}]{
-  If @${v} is a value with the static type @${\tau} then @${v} may be any kind of value;
-   however, if @${v} is assigned to a variable @${x} with the programmer-assigned
-   type @${\tau}, then one of the following holds:
   @itemlist[
     @item{
-      If @${\vdash x : \tpair{\tau_0}{\tau_1}} then @${v \valeq \vpair{v_0}{v_1}}
+      If @${\vdash v : \safetstpair{\tau_0}{\tau_1}} then @${v \valeq \safetspair{\tau_0'}{v_0}{\tau_1'}{v_1}}
+      and @${\tau_0' \subteq \tau_0} and @${\tau_1' \subteq \tau_1}
     }
     @item{
-      If @${\vdash x : \tarr{\tau_d}{\tau_c}} then either:
-      @itemlist[
-      @item{
-        @${v \valeq \vlam{y}{e}}
-      }
-      @item{
-        @${v \valeq \vlam{\tann{\tann{y}{\tau_d'}}{\tau_c'}}{e}}
-      }
-      ]
+      If @${\vdash v : \safetstfun{\tau_d}{\tau_c}} then
+      @${v \valeq \safetsfun{\tau_d'}{x}{\tau_c'}{e}}
+      and @${\safetstfun{\tau_d'}{\tau_c'} \subteq \safetstfun{\tau_d}{\tau_c}}
     }
     @item{
-      If @${\vdash x : \tint} then @${v \in \integers}
-    }
-    @item{
-      If @${\vdash x : \tnat} then @${v \in \naturals}
+      If @${\vdash v : \safetstnum} then @${v \valeq i}
     }
   ]
 }

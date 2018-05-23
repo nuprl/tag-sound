@@ -39,22 +39,17 @@
   }
 }
 
-\begin{TwoColumn}
-  \lblextra{$\vfromdyn : \specarrf{\tpair{\tau}{v}}{e}\vphantom{\vfromsta}$}{}{
-    $\begin{array}{l@{~~}c@{~}l}
-      \efromdyn{\tau}{\dartval{b}{\tau'}} & = & \dartval{b}{\tau'}
-      \\ \sidecond{if $\tau' \subteq \tau$}
-      \\
-      \efromdyn{\tau}{v} & = & \boundaryerror
-      \\ \sidecond{otherwise}
-    \end{array}$
-  }
+\lblextra{$\vfromdyn : \specarrf{\tpair{\tau}{v}}{e}\vphantom{\vfromsta}$}{}{
+  $\begin{array}{l@{~~}c@{~}l}
+  \end{array}$
+}
 
-  \multicolsbreak
-
-  \lblextra{$\vfromsta : \specarrp{\tpair{\tau}{v}}{e}$}{}{
-    $\begin{array}{l@{~~}c@{~}l}
-      \efromsta{\tau}{v} & = & v
-    \end{array}$
-  }
-\end{TwoColumn}
+\lblextra{$\vfromsta : \specarrp{\tpair{\tau}{v}}{e}$}{}{
+  $\begin{array}{l@{~~}c@{~}l}
+    \efromsta{\tau}{\dartval{b}{\tau'}} & = & \dartval{b}{\tau'}
+    \\ \sidecond{if $\tau' \subteq \tau$}
+    \\
+    \efromsta{\tau}{v} & = & \boundaryerror
+    \\ \sidecond{otherwise}
+  \end{array}$
+}

@@ -10,40 +10,29 @@
   \end{array}$
 }
 
-\begin{TwoColumn}
-  \lblextra{$\vfromdyn : \specarrf{\tpair{\tau}{v}}{e}\vphantom{\vfromsta}$}{}{
-    $\begin{array}{l@{~~}c@{~}l}
-      \efromdyn{\tau}{v} & = & \efromany{\tau}{v}
-    \end{array}$
-  }
-
-  \multicolsbreak
-
-  \lblextra{$\vfromsta : \specarrp{\tpair{\tau}{v}}{e}$}{}{
-    $\begin{array}{l@{~~}c@{~}l}
-      \efromsta{\tau}{v} & = & \efromany{\tau}{v}
-    \end{array}$
-  }
-\end{TwoColumn}
-
-\lblextra{$\vfromany : \specarrp{\tpair{\tau}{v}}{e}$}{}{
+\lblextra{$\vfromdyn : \specarrf{\tpair{\tau}{v}}{e}\vphantom{\vfromsta}$}{}{
   $\begin{array}{l@{~~}c@{~}l}
-    \efromany{\tarr{\tau_d}{\tau_c}}{v} & = & v'
+  \end{array}$
+}
+
+\lblextra{$\vfromsta : \specarrp{\tpair{\tau}{v}}{e}$}{}{
+  $\begin{array}{l@{~~}c@{~}l}
+    \efromsta{\tarr{\tau_d}{\tau_c}}{v} & = & v'
     \\ \sidecond{if $v \valeq \ssfun{\tann{x}{\tau_x}}{e}{\tau_v}$}
     \\ \sidecond{where $v' \valeq \ssfun{\tann{x}{\tau_d}}{(\sscast{\tau_c}{(\eapp{v}{(\sscast{\tau_x}{x})})})}{\tau_c}$}
     \\
-    \efromany{C}{v} & = & v
+    \efromsta{C}{v} & = & v
     \\ \sidecond{if $v \valeq \ssobj{\tann{s}{v} \ldots m \ldots}{\tau}$}
     \\
-    \efromany{\sstdyn}{v} & = & v
+    \efromsta{\sstdyn}{v} & = & v
     \\ \sidecond{if $v \valeq \ssobj{\tann{s}{v}\ldots m \ldots}{\sstdyn}$}
     \\ \sidecond{or $v \valeq \ssobj{\tann{s}{v}\ldots m \ldots}{C}$}
     \\
-    \efromany{\sstdyn}{v} & = & v'
+    \efromsta{\sstdyn}{v} & = & v'
     \\ \sidecond{if $v \valeq \ssfun{\tann{x}{\tau_d}}{e}{\tau_c}$}
     \\ \sidecond{where $v' \valeq \ssfun{\tann{x}{\sstdyn}}{\sscast{\sstdyn}{(\eapp{v}{(\sscast{\tau_d}{x})})}}{\sstdyn}$}
     \\
-    \efromany{\tau}{v} & = & \boundaryerror
+    \efromsta{\tau}{v} & = & \boundaryerror
     \\ \sidecond{otherwise}
   \end{array}$
 }
