@@ -209,3 +209,20 @@ The types we use here for illustration do not require the heap.
 }
 
 
+@; -----------------------------------------------------------------------------
+@section[#:tag "existing-nom"]{Nom}
+
+@include-figure["fig:existing-nom.tex" @elem{Nom. The @${\vfromdyn} function is undefined for all inputs.}]
+
+Nom is a nominal object oriented language.
+Subset of pre-generics Java.
+Proven to satisfy the gradual guarantee.
+
+@tr-lemma[#:key "nom-canonical" @elem{Nom canonical forms}]{
+  @itemlist[
+    @item{
+      If @${\vdash v : C} then @${v = C'(v', \ldots)} and @${C' \subteq C}
+    }
+  ]
+}
+
