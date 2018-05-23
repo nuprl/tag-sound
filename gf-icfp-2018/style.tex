@@ -383,3 +383,10 @@ showstringspaces=false            %
 \newcommand{\ssfun}[3]{\ssmth{\mathsf{func}}{#1}{#2}{#3}}
 \newcommand{\ssobj}[2]{\{#1 \mid #2\}}
 \newcommand{\sscast}[2]{\langle #1 \rangle\,#2}
+
+\newcommand{\safets}{\textrm{SafeTS}}
+\newcommand{\safetstnum}{\mathsf{number}}
+\newcommand{\safetstpair}[2]{\{\mathsf{fst} : #1, \mathsf{snd} : #2\}}
+\newcommand{\safetstfun}[2]{\{ \mathsf{call}(#1) : #2 \}}
+\newcommand{\safetspair}[4]{\{\mathsf{fst} :_{#1} #2, \mathsf{snd} :_{#3} #4\}}
+\newcommand{\safetsfun}[4]{\{ \mathsf{call}(#2 : #1) : #3 \{\mathsf{return}\,#4\}\}}

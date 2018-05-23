@@ -1,0 +1,29 @@
+\lblextra{$\safets$}{ (sketch)}{}{
+  $\begin{array}{l@{\hspace{0.5em}}c@{\hspace{0.5em}}l}
+    \tau & \BNFeq & \safetstnum \mid \safetstpair{\tau}{\tau} \mid \safetstfun{\tau}{\tau}
+    \\
+    v & \BNFeq & i \mid \safetspair{\tau}{v}{\tau}{v} \mid \safetsfun{\tau}{x}{\tau}{e}
+  \end{array}$
+}
+
+\lblextra{$\vfromdyn : \specarrf{\tpair{\tau}{v}}{e}\vphantom{\vfromsta}$}{}{
+  $\begin{array}{l@{~~}c@{~}l}
+  \end{array}$
+}
+
+\lblextra{$\vfromsta : \specarrp{\tpair{\tau}{v}}{e}$}{}{
+  $\begin{array}{l@{~~}c@{~}l}
+    \efromsta{\safetstfun{\tau_d}{\tau_c}}{v} & = & v
+    \\ \sidecond{if $v \valeq \safetsfun{\tau_d'}{x}{\tau_c'}{e}$}
+    \\ \sidecond{and $\safetstfun{\tau_d'}{\tau_c'} \subteq \safetstfun{\tau_d}{\tau_c}$}
+    \\
+    \efromsta{\safetstpair{\tau_0}{\tau_1}}{v} & = & \safetspair{\tau_0'}{\efromsta{\tau_0}{v_0}}{\tau_1'}{\efromsta{\tau_1}{v_1}}
+    \\ \sidecond{if $v \valeq \safetspair{\tau_0'}{v_0}{\tau_1'}{v_1}$}
+    \\ \sidecond{and $\tau_0' \subteq \tau_0$ and $\tau_1' \subteq \tau_1$}
+    \\
+    \efromsta{\safetstnum}{i} & = & i
+    \\
+    \efromsta{\tau}{v} & = & \boundaryerror
+    \\ \sidecond{otherwise}
+  \end{array}$
+}

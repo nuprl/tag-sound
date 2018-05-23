@@ -168,3 +168,54 @@ In particular, a Dart value of type @${\darttdyn} has the form @${\dartval{b}{\t
     }
   ]
 }
+
+
+@; -----------------------------------------------------------------------------
+@section[#:tag "existing-safets"]{SafeTS}
+
+@include-figure["fig:existing-safets.tex" @elem{SafeTS. The @${\vfromdyn} function is undefined for all inputs.}]
+
+SafeTS is a formal core of Safe TypeScript.
+
+Every object is statically type-checked and comes with a type.
+(The embedding of compiled SafeTS to a formal semantics of JavaScript is beyond
+ the scope of this work.)
+
+A cast may add fields.
+
+A cast may not add methods; a cast fails if the source objects methods are not
+ all subtypes of the target objects methods.
+
+The model keeps types in an external tag heap.
+The types we use here for illustration do not require the heap.
+
+
+@tr-lemma[#:key "safets-canonical" @elem{SafeTS canonical forms}]{
+  If @${v} is a value with the static type @${\tau} then @${v} may be any kind of value;
+   however, if @${v} is assigned to a variable @${x} with the programmer-assigned
+   type @${\tau}, then one of the following holds:
+  @itemlist[
+    @item{
+      If @${\vdash x : \tpair{\tau_0}{\tau_1}} then @${v \valeq \vpair{v_0}{v_1}}
+    }
+    @item{
+      If @${\vdash x : \tarr{\tau_d}{\tau_c}} then either:
+      @itemlist[
+      @item{
+        @${v \valeq \vlam{y}{e}}
+      }
+      @item{
+        @${v \valeq \vlam{\tann{\tann{y}{\tau_d'}}{\tau_c'}}{e}}
+      }
+      ]
+    }
+    @item{
+      If @${\vdash x : \tint} then @${v \in \integers}
+    }
+    @item{
+      If @${\vdash x : \tnat} then @${v \in \naturals}
+    }
+  ]
+}
+
+
