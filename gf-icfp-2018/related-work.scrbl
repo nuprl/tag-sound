@@ -134,8 +134,9 @@ Recent work has explored the practical performance of migratory typing systems.
 Three related works led us towards the idea of a spectrum of type soundness.
 Like types are optional first-order types;
  a programmer can mark any such type as ``concrete'' or ``like'' to enable
- or disable run-time enforcement@~cite[wnlov-popl-2010 rzv-ecoop-2015].
-It is unclear, however what soundness means for like types.
+ or disable run-time enforcement, respectively.
+Existing like type system come with a weak soundness result@~cite[wnlov-popl-2010 rzv-ecoop-2015], stating that
+ reduction preserves typability.
 Confined gradual typing@~cite[afgt-oopsla-2014] gives the programmer control
  over the implicit coercions that a gradual typing system would normally insert.
 The progressive types@~cite[pqk-onward-2012] vision paper describes a type system in which
