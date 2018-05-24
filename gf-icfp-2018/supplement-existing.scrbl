@@ -1,6 +1,8 @@
 #lang gf-icfp-2018
 @require{techreport.rkt}
 
+@; GradualTalk : no model in the papers, and claims to do natural embedding
+
 @appendix-title{Existing Systems}
 
 Technical illustrations of prior work on gradual and migratory typing.
