@@ -46,6 +46,7 @@
   (define/short dyla "DYLA" (string-append Workshop "on Dynamic Languages and Applications"))
   (define/short ecoop "ECOOP" (string-append "European " Conference "on Object-Oriented Programming"))
   (define/short esop "ESOP" (string-append "European " Symposium "on Programming"))
+  (define/short fscd "FSCD" (string-append International Conference "on Formal Structures for Computation and Deduction"))
   (define/short flops "FLOPS" (string-append Symposium "Functional and Logic Programming"))
   (define/short foal "FOAL" "Foundations of Aspect-Oriented Languages")
   (define/short fool "FOOL" (string-append International Workshop "on Foundations of Object-Oriented Languages"))
@@ -2195,6 +2196,13 @@
     #:author (authors "Max S. New" "Daniel R. Licata")
     #:title "Call-by-name Gradual Type Theory"
     #:location "arXiv:1802.00061"
+    #:date 2018))
+
+(define nl-fscd-2018
+  (make-bib
+    #:author (authors "Max S. New" "Daniel R. Licata")
+    #:title "Call-by-name Gradual Type Theory"
+    #:location (proceedings-location fscd)
     #:date 2018))
 
 (define cvgrl-arxiv-2017

@@ -37,7 +37,7 @@ Ultimately, gradual typing and migratory typing have different goals;
 The name suggests that this inductive-checking, higher-order-wrapping technique
  is the obvious approach to the problem; indeed, earlier work on typed foreign-function
  interfaces@~cite[r-jfp-2008] and remote procedure calls@~cite[ok-popl-2003] used a similar approach.
-For a semantic justification, see @citet[fb-flops-2006] and @citet[nl-arxiv-2018].
+For a semantic justification, see @citet[fb-flops-2006] and @citet[nl-fscd-2018].
 Typed Racket@~cite[tf-dls-2006 tf-popl-2008], GradualTalk@~cite[acftd-scp-2013],
  and @emph{TPD}@~cite[wmwz-ecoop-2017] are three migratory typing systems that implement the natural embedding.
 
