@@ -726,6 +726,13 @@
    #:location (proceedings-location dyla #:pages '(1 10))
    #:date 2014))
 
+(define mmi-dls-2015
+  (make-bib
+    #:title "A Formalization of Typed Lua"
+    #:author (authors "Andre Murbach Maidl" "Fabio Mascarenhas" "Roberto Ierusalimschy")
+    #:location (proceedings-location dls #:pages '(13 25))
+    #:date 2015))
+
 (define clojure-macros
   (make-bib
    #:date 2016
@@ -1259,7 +1266,7 @@
 ;; ----------------------------------------
 ; Types for untyped languages
 
-(define rtsf-oops-2013
+(define rtsf-sac-2013
   (make-bib
    #:author (authors "Brianna M. Ren" "John Toman" "T. Stephen Strickland" "Jeffrey S. Foster")
    #:title "The Ruby Type Checker"
