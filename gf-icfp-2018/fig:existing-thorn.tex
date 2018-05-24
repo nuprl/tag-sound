@@ -32,12 +32,12 @@
 %  }
 %}
 
-\lblextra{$\vfromdyn : \specarrf{\tpair{\tau}{v}}{e}\vphantom{\vfromsta}$}{}{
+\lblextra{$\vfromdyn : \specarrf{\tpair{\tau}{v}}{e}\vphantom{\vfromsta}$}{ (undefined, all values have a static type)}{
   $\begin{array}{l@{~~}c@{~}l}
   \end{array}$
 }
 
-\lblextra{$\vfromsta : \specarrp{\tpair{\tau}{v}}{e}$}{}{
+\lblextra{$\vfromsta : \specarrp{\tpair{\tau}{v}}{e}$}{ (via explicit type-cast)}{
   $\begin{array}{l@{~~}c@{~}l}
     \efromsta{C}{v} & = & p
     \\ \sidecond{if $v \valeq p$ or $v \valeq \thorncast{\thorndyn}{p}$ or $v \valeq \thorncast{\thornlike{C'}}{p}$}
