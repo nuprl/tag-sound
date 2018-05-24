@@ -89,12 +89,13 @@
   (define/short snapl "SNAPL" "Summit oN Advances in Programming Languages")
   (define/short sigmod "SIGMOD" (string-append ACM "SIGMOD " International Conference "on Management of Data"))
   (define/short sigplan-notices "SIGPLAN Notices" (string-append ACM "SIGPLAN Notices"))
-  (define/short tacs (string-append International Symposium "Theoretical Aspects of Computer Science"))
   (define/short tacas (string-append International Conference "on Tools and Algorithms for the Construction and Analysis of Systems"))
+  (define/short tacs (string-append International Symposium "Theoretical Aspects of Computer Science"))
   (define/short tcs "Theoretical Computer Science")
   (define/short tfp "TFP" (string-append Symposium "Trends in Functional Programming"))
   (define/short tlca "TLCA" (string-append International Conference "Typed Lambda Calculi and Applications"))
   (define/short toplas "TOPLAS" (string-append Transactions "on Programming Languages and Systems"))
+  (define/short types (string-append International Workshop "on Types for Proofs and Programs"))
 ) (require 'util)
 
 ;; ----------------------------------------
@@ -2302,3 +2303,31 @@
     #:title "Efficient Gradual Typing"
     #:location "arXiv:1802.06375v1"
     #:date 2018))
+
+(define pmw-dls-2009
+  (make-bib
+    #:author (authors "Frédéric Pluquet" "Antoine Marot" "Roel Wuyts")
+    #:title "Fast Type Reconstruction for Dynamically Typed Programming Languages"
+    #:location (proceedings-location dls #:pages '(69 78))
+    #:date 2009))
+
+(define cs-popl-2016
+  (make-bib
+    #:author (authors "Matteo Cimini" "Jeremy G. Siek")
+    #:title "The Gradualizer: A Methodology and Algorithm for Generating Gradual Type Systems"
+    #:location (proceedings-location popl #:pages '(443 455))
+    #:date 2016))
+
+(define lt-popl-2017
+  (make-bib
+    #:author (authors "Nico Lehmann" "Éric Tanter")
+    #:title "Gradual Refinement Types"
+    #:location (proceedings-location popl #:pages '(775 788))
+    #:date 2017))
+
+(define b-types-1995
+  (make-bib
+    #:author "Gilles Barthe"
+    #:title "Implicit Coercions in Type Systems"
+    #:location (proceedings-location types #:pages '(1 15))
+    #:date 1995))
