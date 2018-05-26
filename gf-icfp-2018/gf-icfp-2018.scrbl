@@ -35,10 +35,11 @@ implications for the developer, and their performance.  }
 @include-section{design.scrbl}
 @include-section{evaluation.scrbl}
 @include-section{implications.scrbl}
+@include-section{existing-systems.scrbl}
 @include-section{related-work.scrbl}
 @include-section{conclusion.scrbl}
 
-@;@include-section{appendix.scrbl}
+@include-section{appendix.scrbl}
 
 @generate-bibliography[]
 
