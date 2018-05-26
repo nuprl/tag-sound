@@ -1,4 +1,4 @@
-#lang gf-icfp-2018 @acmsmall @10pt @anonymous @review
+#lang gf-icfp-2018 @acmsmall @10pt
 
 @; "Writing is nature's way of letting you know how sloppy your thinking is" -Dick Guindon
 @; :)))
