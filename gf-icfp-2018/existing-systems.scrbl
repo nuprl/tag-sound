@@ -1,12 +1,15 @@
 #lang gf-icfp-2018
 @title[#:tag "sec:existing-systems"]{Existing Systems}
 
-@; columns ...
-@; - overlap with D
-@; - new vs. migratory
-@; - 
+@; TODO
+@; Grace is related, but cannot tell if/how types enforced from the latest draft specification.@~cite[g-tr-2016]
+@;  - non-migratory probably-typed-values ???-casts ???-soundness
+@; Shen ??
 
-@figure["fig:existing-systems" "Existing migratory typing systems, URLs accessed in March 2018."
+@(define YES "X") @; @exact{\checkmark} not using checkmark, because don't want to suggest "no check = bad"
+@(define NO "-")
+
+@figure["fig:existing-systems" "Existing mixed-typed systems."
   @tabular[
     #:sep (hspace 2)
     #:style 'block
@@ -14,70 +17,98 @@
     #:column-properties '(left center center center left)
     (list
       (list @bold{System}
-            @bold{Migratory?}
+            @bold{Migratory}
             @bold{Untyped}
             @bold{Implicit}
             @bold{Soundness})
       (list ""
-            ""
+            @bold{Typing?}
             @bold{Values?}
             @bold{Casts?}
             "")
-      (list @elem{Gradualtalk@~cite[acftd-scp-2013], TPD@~cite[wmwz-ecoop-2017]}
+      (list @elem{Gradualtalk@~cite[acftd-scp-2013], TPD@~cite[wmwz-ecoop-2017],}
             "" "" "" "")
       (list @elem{Typed Racket@~cite[tf-popl-2008]}
             "X" "X" "X" "preserves types")
 
-      (list @elem{mypy, Flow, Hack, Pyre,}
+      (list @elem{ActionScript@~cite[rch-popl-2012], mypy, Flow,}
             "" "" "" "")
-      (list @elem{Pytype, rtc@~cite[rtsf-sac-2013], Strongtalk@~cite[bg-oopsla-1993],}
+      (list @elem{Hack, Pyre, Pytype, rtc@~cite[rtsf-sac-2013],}
             "" "" "" "")
-      (list @elem{TypeScript@~cite[bat-ecoop-2014], Typed Clojure@~cite[bdt-esop-2016]}
+      (list @elem{Strongtalk@~cite[bg-oopsla-1993], TypeScript@~cite[bat-ecoop-2014],}
             "" "" "" "")
-      (list @elem{Typed Lua@~cite[mmi-dls-2015]}
+      (list @elem{Typed Clojure@~cite[bdt-esop-2016], Typed Lua@~cite[mmi-dls-2015]}
             "X" "X" "X" "erasure")
 
       (list @elem{Reticulated@~cite[vss-popl-2017]}
             "X" "X" "X" "preserves constructors")
 
       (list @elem{Pyret}
-            "-" "X" "X" "checks constructors")
+            "X" "X" "X" "checks constructors")
 
-      (list @elem{Dart 2.0, Safe TypeScript@~cite[rsfbv-popl-2015]}
-            "-" "-" "X" "preserves heap")
+      (list @elem{Nom@~cite[mt-oopsla-2017], Safe TypeScript@~cite[rsfbv-popl-2015]}
+            "-" "-" "X" "preserves types")
 
-      (list @elem{StrongScript@~cite[rzv-ecoop-2015] Thorn@~cite[wnlov-popl-2010]}
+      (list @elem{C#@~cite[bmt-ecoop-2010]}
+            "X" "-" "-" "preserves types")
+
+      (list @elem{Dart 2.0}
+            "-" "-" "-" "sound heap")
+
+      (list @elem{StrongScript@~cite[rzv-ecoop-2015], Thorn@~cite[wnlov-popl-2010]}
             "-"  "-"  "-"  "preserves typability"))
-  @;ActionScript@~cite[rch-popl-2012]
-  @;Shen grace
   ]
 ]
 
-Evaluate using criteria above, important because ...
+@(define num-systems 22)
+@(define num-natural 3)
+@(define num-erasure 11)
+@(define TS "TypeScript")
+@(define JS "JavaScript")
 
-@; Existing languages that combine static and dynamic typing use diverse strategies.
+Many existing languages support a combination of static and dynamic typing.
+@Figure-ref{fig:existing-systems} illustrates the design space.
+Some languages are @emph{migratory typing} systems that add static typing to a
+ dynamically-typed language and support interactions between the host language and its typed twin.
+Others are typed languages with a modicum of dynamic typing;
+ @; TODO extrememA ... its really most-like-migratory
+ in the extreme, such languages permit the definition of @emph{untyped values}
+ and add @emph{implicit casts} to mediate between static and dynamic components.
+Naturally, the design choices of these languages affect their @emph{soundness} guarantee.
 
+Among the migratory typing systems, @integer->word[num-natural] languages
+ (grouped in the first row) implement the natural embedding and promise
+ a strong form of type soundness.
+@Integer->word[num-erasure] languages use types only for static analysis,
+ and thus implement the erasure embedding.
+Reticulated is a migratory typing system for Python that enforces soundness
+ at the level of type constructors.
+Pyret is a new language with optional type annotations.
+Each annotation is enforced by a type-constructor check at run-time, thus a
+ fully-annotated Pyret program is likely sound at the level of type constructors.
 
-The table in @figure-ref{fig:existing-systems} summarizes existing languages
- that combine static and dynamic typing.
-Three languages, in the first row, use the natural embedding;
- these languages eagerly enforce types on dynamically-typed values and
- attribute every boundary error to a syntactic boundary term.
-Nine languages (second row) use the erasure embedding.
-In these @emph{optionally typed} languages, the presence or absence of type
- annotations does not affect the behavior of a program.
-Reticulated is the only existing system that implements the locally-defensive
- approach and preserves type constructors.
-Pyret, however, is similar in that it compiles every type annotation to
- a type-constructor check.
-If every expression in a Pyret program comes with a type annotation, then
- the evaluation of that program is likely to satisfy locally-defensive soundness
-@; (theorem @tech[#:key "K-static-soundness"]{???}).
-Dart (version 2.0) and Safe TypeScript are typed languages that include a
- dynamic type.
-Every value in these languages comes with an intrinsic, static type but may
- flow in and out of a context expecting a value of the dynamic type.
-StrongScript and Thorn allow only statically-typed values, but such values
- may be explicitly cast to and from a dynamic type.
+The other languages in @figure-ref{fig:existing-systems} support diverse combinations
+ of static and dynamic typing.
+Nom is a gradually-typed@~cite[svcb-snapl-2015] language in which every object
+ has an intrinsic type, but may be bound to dynamically-typed variables.
+Nom supports a strong form of type soundness.
+Safe @|TS| is a type-sound variant of @|TS| that does not support sound
+ interaction with @|JS|.
+C# (version 4.0) includes a dynamic type;
+ contexts that use a dynamically-typed variable are re-compiled dynamically,
+ when the variable is bound to an object.
+Dart is a new language (incompatible with Dart 1.x) with a similar dynamic type;
+ in Dart, a dynamically-typed variable may receive any kind of method call
+ but cannot be sent directly to a statically-typed context.
+StrongScript is an extension of TypeScript in which every value has an intrinsic
+ static type, and a variable may have either a static type, the dynamic type,
+ or a @emph{like}-static type that constrains the context but not its clients.
+StrongScript supports limited interaction with JavaScript objects --- such
+ objects have a top type, and  ???.
+Thorn is a direct predecessor to Dart 2.0 and StrongScript.
+The soundness theorems of Thorn and StrongScript state that a typed expression
+ may step to another typed expression, but do not relate the types of the two
+ expressions.
 
-@; Soundness key?
+Final remark, systems without implicit casts are bad.
+

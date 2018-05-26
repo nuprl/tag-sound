@@ -2338,3 +2338,11 @@
     #:title "Implicit Coercions in Type Systems"
     #:location (proceedings-location types #:pages '(1 15))
     #:date 1995))
+
+(define g-tr-2016
+  (make-bib
+    #:author (authors "Andrew P. Black" "Kim B. Bruce" "James Noble")
+    #:title "The Grace Programming Language Draft Specification Version 0.7.0"
+    #:location "http://gracelang.org/documents/grace-spec-0.7.0.pdf accessed 2018-05-25"
+    #:date 2016))
+
