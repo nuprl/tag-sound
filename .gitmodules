@@ -1,0 +1,4 @@
+[submodule "src/typed-racket"]
+	path = src/typed-racket
+	url = https://github.com/bennn/typed-racket
+	branch = icfp-locally-defensive
