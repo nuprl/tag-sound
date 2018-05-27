@@ -382,21 +382,21 @@
 ;; -----------------------------------------------------------------------------
 
 (define-metafunction LK
-  theorem:tagged-safety : e MAYBE-τ -> any
-  [(theorem:tagged-safety e #f)
+  theorem:locally-defensive-safety : e MAYBE-τ -> any
+  [(theorem:locally-defensive-safety e #f)
    ,(or (not (judgment-holds (well-dyn () e)))
-        (safe-step* (term #{tagged-completion/dyn# e}) #f is-error? assert-well-dyn dyn-boundary-step))]
-  [(theorem:tagged-safety e τ)
+        (safe-step* (term #{locally-defensive-completion/dyn# e}) #f is-error? assert-well-dyn dyn-boundary-step))]
+  [(theorem:locally-defensive-safety e τ)
    ,(or (not (judgment-holds (well-typed () e τ)))
         (let ([K (term #{type->tag τ})])
-          (safe-step* (term #{tagged-completion/typed# e τ}) K is-error? assert-well-typed sta-boundary-step)))])
+          (safe-step* (term #{locally-defensive-completion/typed# e τ}) K is-error? assert-well-typed sta-boundary-step)))])
 
 (define (assert-well-dyn t dont-care)
-  (unless (judgment-holds (well-dyn/tagged () ,t))
+  (unless (judgment-holds (well-dyn/locally-defensive () ,t))
     (raise-arguments-error 'current-runtime-invariant "expected well-dyn" "term" t)))
 
 (define (assert-well-typed t ty)
-  (unless (judgment-holds (well-typed/tagged () ,t ,ty))
+  (unless (judgment-holds (well-typed/locally-defensive () ,t ,ty))
     (raise-arguments-error 'current-runtime-invariant "expected well-typed"
       "term" t
       "type" ty)))
@@ -408,33 +408,33 @@
 ;; -----------------------------------------------------------------------------
 
 (define-metafunction LK
-  tagged-completion/dyn# : e -> e
-  [(tagged-completion/dyn# e)
+  locally-defensive-completion/dyn# : e -> e
+  [(locally-defensive-completion/dyn# e)
    e_+
-   (judgment-holds (tagged-completion/dyn () e e_+))])
+   (judgment-holds (locally-defensive-completion/dyn () e e_+))])
 
 (define-metafunction LK
-  tagged-completion/typed# : e τ -> e
-  [(tagged-completion/typed# e τ)
+  locally-defensive-completion/typed# : e τ -> e
+  [(locally-defensive-completion/typed# e τ)
    e_+
-   (judgment-holds (tagged-completion/typed () e τ e_+))])
+   (judgment-holds (locally-defensive-completion/typed () e τ e_+))])
 
 (define-metafunction LK
-  tagged-erasure# : any -> any
-  [(tagged-erasure# (check K e))
-   #{tagged-erasure# e}]
-  [(tagged-erasure# (any ...))
-   (#{tagged-erasure# any} ...)]
-  [(tagged-erasure# any)
+  locally-defensive-erasure# : any -> any
+  [(locally-defensive-erasure# (check K e))
+   #{locally-defensive-erasure# e}]
+  [(locally-defensive-erasure# (any ...))
+   (#{locally-defensive-erasure# any} ...)]
+  [(locally-defensive-erasure# any)
    any])
 
 (module+ test
-  (test-case "tagged-erasure"
+  (test-case "locally-defensive-erasure"
     (check-equal?
-      (term #{tagged-erasure# (+ 2 2)})
+      (term #{locally-defensive-erasure# (+ 2 2)})
       (term (+ 2 2)))
     (check LK=?
-      (term #{tagged-erasure# (check Int ((λ (x : Int) x) (× 0 0)))})
+      (term #{locally-defensive-erasure# (check Int ((λ (x : Int) x) (× 0 0)))})
       (term ((λ (x : Int) x) (× 0 0))))
   )
 )
@@ -446,112 +446,112 @@
 ;; Alternative: add syntax for type-annotated terms, read type annotations
 ;;  instead of calling type checker
 (define-judgment-form LK
-  #:mode (tagged-completion/dyn I I O)
-  #:contract (tagged-completion/dyn Γ e e)
+  #:mode (locally-defensive-completion/dyn I I O)
+  #:contract (locally-defensive-completion/dyn Γ e e)
   [
    --- C-Int
-   (tagged-completion/dyn Γ integer integer)]
+   (locally-defensive-completion/dyn Γ integer integer)]
   [
-   (tagged-completion/dyn Γ e_0 e_0c)
-   (tagged-completion/dyn Γ e_1 e_1c)
+   (locally-defensive-completion/dyn Γ e_0 e_0c)
+   (locally-defensive-completion/dyn Γ e_1 e_1c)
    --- C-Pair
-   (tagged-completion/dyn Γ (× e_0 e_1) (× e_0c e_1c))]
+   (locally-defensive-completion/dyn Γ (× e_0 e_1) (× e_0c e_1c))]
   [
    (where Γ_x (x Γ))
-   (tagged-completion/dyn Γ_x e e_c)
+   (locally-defensive-completion/dyn Γ_x e e_c)
    --- C-Fun-0
-   (tagged-completion/dyn Γ (λ (x) e) (λ (x) e_c))]
+   (locally-defensive-completion/dyn Γ (λ (x) e) (λ (x) e_c))]
   [
    ;; No need to check Γ, already know term is closed,
    ;;  and its safe for dyn contexts to reference typed variables
    --- C-Var
-   (tagged-completion/dyn Γ x x)]
+   (locally-defensive-completion/dyn Γ x x)]
   [
-   (tagged-completion/dyn Γ e_0 e_0c)
-   (tagged-completion/dyn Γ e_1 e_1c)
+   (locally-defensive-completion/dyn Γ e_0 e_0c)
+   (locally-defensive-completion/dyn Γ e_1 e_1c)
    --- C-App
-   (tagged-completion/dyn Γ (e_0 e_1) (e_0c e_1c))]
+   (locally-defensive-completion/dyn Γ (e_0 e_1) (e_0c e_1c))]
   [
-   (tagged-completion/dyn Γ e_0 e_0c)
-   (tagged-completion/dyn Γ e_1 e_1c)
+   (locally-defensive-completion/dyn Γ e_0 e_0c)
+   (locally-defensive-completion/dyn Γ e_1 e_1c)
    --- C-Binop
-   (tagged-completion/dyn Γ (BINOP e_0 e_1) (BINOP e_0c e_1c))]
+   (locally-defensive-completion/dyn Γ (BINOP e_0 e_1) (BINOP e_0c e_1c))]
   [
-   (tagged-completion/dyn Γ e e_c)
+   (locally-defensive-completion/dyn Γ e e_c)
    --- C-Unop
-   (tagged-completion/dyn Γ (UNOP e) (UNOP e_c))]
+   (locally-defensive-completion/dyn Γ (UNOP e) (UNOP e_c))]
   [
-   (tagged-completion/typed Γ e τ e_c)
+   (locally-defensive-completion/typed Γ e τ e_c)
    --- C-Static
-   (tagged-completion/dyn Γ (static τ e) (static τ e_c))])
+   (locally-defensive-completion/dyn Γ (static τ e) (static τ e_c))])
 
 (define-judgment-form LK
-  #:mode (tagged-completion/typed I I I O)
-  #:contract (tagged-completion/typed Γ e τ e)
+  #:mode (locally-defensive-completion/typed I I I O)
+  #:contract (locally-defensive-completion/typed Γ e τ e)
   [
    --- K-Int
-   (tagged-completion/typed Γ integer _ integer)]
+   (locally-defensive-completion/typed Γ integer _ integer)]
   [
    (infer-type Γ (× e_0 e_1) (× τ_0 τ_1))
-   (tagged-completion/typed Γ e_0 τ_0 e_0c)
-   (tagged-completion/typed Γ e_1 τ_1 e_1c)
+   (locally-defensive-completion/typed Γ e_0 τ_0 e_0c)
+   (locally-defensive-completion/typed Γ e_1 τ_1 e_1c)
    --- K-Pair
-   (tagged-completion/typed Γ (× e_0 e_1) _ (× e_0c e_1c))]
+   (locally-defensive-completion/typed Γ (× e_0 e_1) _ (× e_0c e_1c))]
   [
    (where Γ_x ((x : τ) Γ))
    (infer-type Γ_x e τ_cod)
-   (tagged-completion/typed Γ_x e τ_cod e_c)
+   (locally-defensive-completion/typed Γ_x e τ_cod e_c)
    --- K-Fun-1
-   (tagged-completion/typed Γ (λ (x : τ) e) _ (λ (x : τ) e_c))]
+   (locally-defensive-completion/typed Γ (λ (x : τ) e) _ (λ (x : τ) e_c))]
   [
    ;; Doesn't matter if `x` or `x : τ` are in `Γ`
    --- K-Var
-   (tagged-completion/typed Γ x _ x)]
+   (locally-defensive-completion/typed Γ x _ x)]
   [
    (infer-type Γ e_0 (→ τ_dom τ_cod))
-   (tagged-completion/typed Γ e_0 (→ τ_dom τ_cod) e_0c)
-   (tagged-completion/typed Γ e_1 τ_dom e_1c)
+   (locally-defensive-completion/typed Γ e_0 (→ τ_dom τ_cod) e_0c)
+   (locally-defensive-completion/typed Γ e_1 τ_dom e_1c)
    ;; assert that τ_cod <: τ ??? should always hold because well-typed
    (where K #{type->tag τ})
    --- K-App
-   (tagged-completion/typed Γ (e_0 e_1) τ (check K (e_0c e_1c)))]
+   (locally-defensive-completion/typed Γ (e_0 e_1) τ (check K (e_0c e_1c)))]
   [
-   (tagged-completion/typed Γ e_0 Nat e_0c)
-   (tagged-completion/typed Γ e_1 Nat e_1c)
+   (locally-defensive-completion/typed Γ e_0 Nat e_0c)
+   (locally-defensive-completion/typed Γ e_1 Nat e_1c)
    --- K-Binop-0
-   (tagged-completion/typed Γ (BINOP e_0 e_1) Nat (BINOP e_0c e_1c))]
+   (locally-defensive-completion/typed Γ (BINOP e_0 e_1) Nat (BINOP e_0c e_1c))]
   [
    (where #false #{sub-tag# #{type->tag τ} Nat})
-   (tagged-completion/typed Γ e_0 Int e_0c)
-   (tagged-completion/typed Γ e_1 Int e_1c)
+   (locally-defensive-completion/typed Γ e_0 Int e_0c)
+   (locally-defensive-completion/typed Γ e_1 Int e_1c)
    --- K-Binop-1
-   (tagged-completion/typed Γ (BINOP e_0 e_1) τ (BINOP e_0c e_1c))]
+   (locally-defensive-completion/typed Γ (BINOP e_0 e_1) τ (BINOP e_0c e_1c))]
   [
    (infer-type Γ e (× τ_0 τ_1))
-   (tagged-completion/typed Γ e (× τ_0 τ_1) e_c)
+   (locally-defensive-completion/typed Γ e (× τ_0 τ_1) e_c)
    (where K #{type->tag τ})
    --- K-fst
-   (tagged-completion/typed Γ (fst e) τ (check K (fst e_c)))]
+   (locally-defensive-completion/typed Γ (fst e) τ (check K (fst e_c)))]
   [
    (infer-type Γ e (× τ_0 τ_1))
-   (tagged-completion/typed Γ e (× τ_0 τ_1) e_c)
+   (locally-defensive-completion/typed Γ e (× τ_0 τ_1) e_c)
    (where K #{type->tag τ})
    --- K-snd
-   (tagged-completion/typed Γ (snd e) τ (check K (snd e_c)))]
+   (locally-defensive-completion/typed Γ (snd e) τ (check K (snd e_c)))]
   [
-   (tagged-completion/dyn Γ e e_c)
+   (locally-defensive-completion/dyn Γ e e_c)
    ---
-   (tagged-completion/typed Γ (dynamic τ e) _ (dynamic τ e_c))])
+   (locally-defensive-completion/typed Γ (dynamic τ e) _ (dynamic τ e_c))])
 
 (module+ test
-  (test-case "tagged-completion/typed"
+  (test-case "locally-defensive-completion/typed"
     (check-true (redex-match? LK e
       (term (fst (dynamic (× (× Int Int) Int) (× 0 3))))))
     (check-equal?
-      (term #{tagged-completion/typed# (fst (dynamic (× (× Int Int) Int) (× 0 3))) (× Int Int)})
+      (term #{locally-defensive-completion/typed# (fst (dynamic (× (× Int Int) Int) (× 0 3))) (× Int Int)})
       (term (check Pair (fst (dynamic (× (× Int Int) Int) (× 0 3))))))
     ;(check LK=?
-    ;  (term #{tagged-completion/typed# ((λ (x : Int) (× x x)) (fst (dynamic (× (× Int Int) Int) (× 0 3)))) (× Int Int)})
+    ;  (term #{locally-defensive-completion/typed# ((λ (x : Int) (× x x)) (fst (dynamic (× (× Int Int) Int) (× 0 3)))) (× Int Int)})
     ;  (term (check Pair ((λ (x : Int) (× x x)) (check Int (fst (dynamic (× (× Int Int) Int) (× 0 3))))))))
   )
 )
@@ -560,60 +560,60 @@
 ;; - (dynamic ....)
 ;; - (check ....)
 (define-judgment-form LK
-  #:mode (well-dyn/tagged I I)
-  #:contract (well-dyn/tagged Γ e)
+  #:mode (well-dyn/locally-defensive I I)
+  #:contract (well-dyn/locally-defensive Γ e)
   [
    --- D-Int
-   (well-dyn/tagged Γ integer)]
+   (well-dyn/locally-defensive Γ integer)]
   [
-   (well-dyn/tagged Γ e_0)
-   (well-dyn/tagged Γ e_1)
+   (well-dyn/locally-defensive Γ e_0)
+   (well-dyn/locally-defensive Γ e_1)
    --- D-Pair
-   (well-dyn/tagged Γ (× e_0 e_1))]
+   (well-dyn/locally-defensive Γ (× e_0 e_1))]
   [
    (where Γ_x (x Γ))
-   (well-dyn/tagged Γ_x e)
+   (well-dyn/locally-defensive Γ_x e)
    --- D-Fun-0
-   (well-dyn/tagged Γ (λ (x) e))]
+   (well-dyn/locally-defensive Γ (λ (x) e))]
   [
    (where Γ_x ((x : τ) Γ))
-   (well-typed/tagged Γ_x e Any)
+   (well-typed/locally-defensive Γ_x e Any)
    --- D-Fun-1
-   (well-dyn/tagged Γ (λ (x : τ) e))]
+   (well-dyn/locally-defensive Γ (λ (x : τ) e))]
   [
    (where #true #{type-env-contains Γ x})
    --- D-Var-0
-   (well-dyn/tagged Γ x)]
+   (well-dyn/locally-defensive Γ x)]
   [
    (where _ #{type-env-ref Γ x})
    ;; fine because Dyn context cannot "mis-use" typed variable,
    ;;  worst case, `x` is a function and Dyn passes a bad value to a typed
    ;;  context. But tag checks mean that all typed functions are total.
    --- D-Var-1
-   (well-dyn/tagged Γ x)]
+   (well-dyn/locally-defensive Γ x)]
   [
-   (well-dyn/tagged Γ e_0)
-   (well-dyn/tagged Γ e_1)
+   (well-dyn/locally-defensive Γ e_0)
+   (well-dyn/locally-defensive Γ e_1)
    --- D-App
-   (well-dyn/tagged Γ (e_0 e_1))]
+   (well-dyn/locally-defensive Γ (e_0 e_1))]
   [
-   (well-dyn/tagged Γ e_0)
-   (well-dyn/tagged Γ e_1)
+   (well-dyn/locally-defensive Γ e_0)
+   (well-dyn/locally-defensive Γ e_1)
    --- D-Binop
-   (well-dyn/tagged Γ (BINOP e_0 e_1))]
+   (well-dyn/locally-defensive Γ (BINOP e_0 e_1))]
   [
-   (well-dyn/tagged Γ e)
+   (well-dyn/locally-defensive Γ e)
    --- D-Unop
-   (well-dyn/tagged Γ (UNOP e))]
+   (well-dyn/locally-defensive Γ (UNOP e))]
   [
    (where K #{type->tag τ})
-   (well-typed/tagged Γ e K)
+   (well-typed/locally-defensive Γ e K)
    --- D-Static-0
-   (well-dyn/tagged Γ (static τ e))]
+   (well-dyn/locally-defensive Γ (static τ e))]
   [
-   (well-typed/tagged Γ e Any)
+   (well-typed/locally-defensive Γ e Any)
    ---
-   (well-dyn/tagged Γ (static e))])
+   (well-dyn/locally-defensive Γ (static e))])
 
 (define-judgment-form LK
   #:mode (sub-tag I I)
@@ -657,13 +657,13 @@
     (check-false (judgment-holds (sub-tag Any Pair)))))
 
 (define-judgment-form LK
-  #:mode (well-typed/tagged I I I)
-  #:contract (well-typed/tagged Γ e K)
+  #:mode (well-typed/locally-defensive I I I)
+  #:contract (well-typed/locally-defensive Γ e K)
   [
    (infer-tag Γ e K_actual)
    (sub-tag K_actual K)
    ---
-   (well-typed/tagged Γ e K)])
+   (well-typed/locally-defensive Γ e K)])
 
 (define-judgment-form LK
   #:mode (infer-tag I I O)
@@ -676,18 +676,18 @@
    --- I-Int
    (infer-tag Γ integer Int)]
   [
-   (well-typed/tagged Γ e_0 Any)
-   (well-typed/tagged Γ e_1 Any)
+   (well-typed/locally-defensive Γ e_0 Any)
+   (well-typed/locally-defensive Γ e_1 Any)
    --- I-Pair
    (infer-tag Γ (× e_0 e_1) Pair)]
   [
    (where Γ_x (x Γ))
-   (well-dyn/tagged Γ_x e)
+   (well-dyn/locally-defensive Γ_x e)
    --- I-Fun-0
    (infer-tag Γ (λ (x) e) Fun)]
   [
    (where Γ_x ((x : τ) Γ))
-   (well-typed/tagged Γ_x e Any)
+   (well-typed/locally-defensive Γ_x e Any)
    --- I-Fun-1
    (infer-tag Γ (λ (x : τ) e) Fun)]
   [
@@ -700,8 +700,8 @@
    --- I-Var-1
    (infer-tag Γ x K)]
   [
-   (well-typed/tagged Γ e_0 Fun)
-   (well-typed/tagged Γ e_1 Any)
+   (well-typed/locally-defensive Γ e_0 Fun)
+   (well-typed/locally-defensive Γ e_1 Any)
    --- I-App
    (infer-tag Γ (e_0 e_1) Any)]
   [
@@ -721,24 +721,24 @@
    --- I-/
    (infer-tag Γ (/ e_0 e_1) K)]
   [
-   (well-typed/tagged Γ e Pair)
+   (well-typed/locally-defensive Γ e Pair)
    --- I-fst
    (infer-tag Γ (fst e) Any)]
   [
-   (well-typed/tagged Γ e Pair)
+   (well-typed/locally-defensive Γ e Pair)
    --- I-snd
    (infer-tag Γ (snd e) Any)]
   [
-   (well-dyn/tagged Γ e)
+   (well-dyn/locally-defensive Γ e)
    (where K #{type->tag τ})
    --- I-Dyn-0
    (infer-tag Γ (dynamic τ e) K)]
   [
-   (well-dyn/tagged Γ e)
+   (well-dyn/locally-defensive Γ e)
    --- I-Dyn-1
    (infer-tag Γ (dynamic e) Any)]
   [
-   (well-typed/tagged Γ e Any)
+   (well-typed/locally-defensive Γ e Any)
    --- I-Check
    (infer-tag Γ (check K e) K)])
 
@@ -751,7 +751,7 @@
 (module+ test
   (test-case "well-dyn"
     (check-false (judgment-holds
-      (well-dyn/tagged ()
+      (well-dyn/locally-defensive ()
         (static (→ (→ Nat (→ Int Nat)) Int)
           ((dynamic (→ (→ Nat Int) (→ (→ Nat (→ Nat Int)) Nat)) (λ (bs) bs))
            (λ (C : Int) C))))))
@@ -759,40 +759,40 @@
 
   (test-case "well-typed"
     (check-true (judgment-holds
-      (well-typed/tagged ()
+      (well-typed/locally-defensive ()
         (dynamic (→ (→ Nat Int) (→ (→ Nat (→ Nat Int)) Nat)) (λ (bs) bs))
         Fun)))
     (check-true (judgment-holds
-      (well-typed/tagged ()
+      (well-typed/locally-defensive ()
         (λ (C : Int) C)
         Fun)))
     (check-true (judgment-holds
-      (well-typed/tagged ()
+      (well-typed/locally-defensive ()
         ((dynamic (→ (→ Nat Int) (→ (→ Nat (→ Nat Int)) Nat)) (λ (bs) bs))
          (λ (C : Int) C))
         Any)))
     (check-true (judgment-holds
-      (well-typed/tagged ()
+      (well-typed/locally-defensive ()
         ((dynamic (→ (→ Nat Int) (→ (→ Nat (→ Nat Int)) Nat)) (λ (bs) bs))
          (λ (C : Int) C))
         Any)))
     (check-false (judgment-holds
-      (well-typed/tagged ()
+      (well-typed/locally-defensive ()
         ((dynamic (→ (→ Nat Int) (→ (→ Nat (→ Nat Int)) Nat)) (λ (bs) bs))
          (λ (C : Int) C))
         Fun)))
     (check-true (judgment-holds
-      (well-typed/tagged ()
+      (well-typed/locally-defensive ()
         (check Fun
           ((dynamic (→ (→ Nat Int) (→ (→ Nat (→ Nat Int)) Nat)) (λ (bs) bs))
            (λ (C : Int) C)))
         Fun)))
     (check-true (judgment-holds
-      (well-typed/tagged ()
+      (well-typed/locally-defensive ()
         (λ (C : Int) C)
         Fun)))
     (check-true (judgment-holds
-      (well-typed/tagged ()
+      (well-typed/locally-defensive ()
         (dynamic (× (→ (→ Nat Int) Nat) (→ Int Nat)) 3)
         Pair)))
   )
@@ -804,9 +804,9 @@
   (define (safe? t ty)
     (parameterize ((error-print-width 9999))
       (with-handlers ([exn:fail:contract? (λ (e) (exn-message e))])
-        (and (term #{theorem:tagged-safety ,t ,ty}) #true))))
+        (and (term #{theorem:locally-defensive-safety ,t ,ty}) #true))))
 
-  (test-case "tagged-safety"
+  (test-case "locally-defensive-safety"
     (check-true (safe? (term
       (+ (snd (fst (fst (dynamic (× (× (× Int Int) Int) (→ Int (× Int Nat))) 3))))
          (dynamic Int 0)))
@@ -849,17 +849,17 @@
   )
 
 (parameterize ((error-print-width 99999))
-  (test-case "tagged-safety:auto"
+  (test-case "locally-defensive-safety:auto"
     (check-true
       (redex-check LK #:satisfying (well-dyn () e)
-        (term (theorem:tagged-safety e #f))
+        (term (theorem:locally-defensive-safety e #f))
         #:attempts 1000
         #:print? #f))
         )
-  (test-case "tagged-ety:auto"
+  (test-case "locally-defensive-ety:auto"
     (check-true
       (redex-check LK #:satisfying (well-typed () e τ)
-        (term (theorem:tagged-safety e τ))
+        (term (theorem:locally-defensive-safety e τ))
         #:attempts 1000
         #:print? #f)))
 )
