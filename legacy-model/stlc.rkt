@@ -82,7 +82,6 @@
   (λ (x τ) e #:refers-to x))
 
 (module+ test
-  (*term-equal?* α=?)
 
   (test-case "define-language"
     (check-pred e? (term 2))

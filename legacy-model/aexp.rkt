@@ -1377,7 +1377,7 @@
           x))))
     (check-true
       (term (theorem:mon-soundness
-        (let (x (Box Nat) (box 3))
+        (let (x (make-box 3))
           (dyn (v Int (set-box! x -1))
             (unbox x))))))))
 
