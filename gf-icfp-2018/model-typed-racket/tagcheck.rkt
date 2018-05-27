@@ -118,7 +118,7 @@
   [
    (tagged-completion Γ e_0 Vector e_0+)
    (tagged-completion Γ e_1 Int e_1+)
-   (where e_+ (from-untyped κ (vector-ref e_0+ e_1+)))
+   (where e_+ (from-untyped κ (from-typed κ (vector-ref e_0+ e_1+))))
    --- C-Ref
    (tagged-completion Γ (vector-ref e_0 e_1) κ e_+)]
   [
@@ -338,7 +338,7 @@
      ((tagged-completion# ((xs (Listof Int))) (% 2 (first xs)) Int)
       (% 2 (from-untyped Int (first xs))))
      ((tagged-completion# () (vector-ref (make-vector (Vectorof Int) 1 2) 0) Nat)
-      (from-untyped Nat (vector-ref (make-vector (Vectorof Int) 1 2) 0)))
+      (from-untyped Nat (from-typed Nat (vector-ref (make-vector (Vectorof Int) 1 2) 0))))
      ((tagged-completion# () (vector-set! (make-vector (Vectorof Int) 1 2) 0 1) Nat)
       (vector-set! (make-vector (Vectorof Int) 1 2) 0 1))
      ((tagged-completion# () (first nil) Nat)

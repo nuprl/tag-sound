@@ -185,13 +185,9 @@
       T-step
       (judgment-holds (not-TST τ))
       (judgment-holds (well-tagged-state Σ τ))
-(side-condition (printf "yes well tagged ~a~n" (term Σ)))
       (where A #{typed-step# Σ})
-(side-condition (printf "yes took step ~a~n" (term A)))
       (side-condition (not (equal? (term Σ) (term A))))
-      (judgment-holds (well-tagged-answer A τ))
-(side-condition (printf "yes well-tagged ~a~n" (term τ)))
-]
+      (judgment-holds (well-tagged-answer A τ))]
     [-->
       (Σ TST)
       (A TST)
