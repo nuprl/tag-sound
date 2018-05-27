@@ -6,3 +6,7 @@
 	path = src/require-typed-check
 	url = https://github.com/bennn/require-typed-check
 	branch = icfp-locally-defensive
+[submodule "src/racket"]
+	path = src/racket
+	url = https://github.com/bennn/racket
+	branch = icfp-locally-defensive
