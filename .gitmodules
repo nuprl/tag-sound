@@ -10,3 +10,7 @@
 	path = src/racket
 	url = https://github.com/bennn/racket
 	branch = icfp-locally-defensive
+[submodule "src/scribble"]
+	path = src/scribble
+	url = https://github.com/bennn/scribble
+	branch = icfp-locally-defensive
