@@ -1,0 +1,2475 @@
+diff --git a/typed-racket-lib/typed-racket/base-env/base-env-numeric.rkt b/typed-racket-lib/typed-racket/base-env/base-env-numeric.rkt
+index 685b42a..47fd339 100644
+--- a/typed-racket-lib/typed-racket/base-env/base-env-numeric.rkt
++++ b/typed-racket-lib/typed-racket/base-env/base-env-numeric.rkt
+@@ -1903,6 +1903,8 @@
+ 
+ [infinite? (make-pred-ty (list -Real) B (Un -PosInfinity -NegInfinity))]
+ 
++[natural? (make-pred-ty -Nat)]
++
+ ;; racket/fixnum
+ [fx+ (fx+-type)]
+ [fx- (fx--type)]
+diff --git a/typed-racket-lib/typed-racket/core.rkt b/typed-racket-lib/typed-racket/core.rkt
+index d17f0a5..dc77e6f 100644
+--- a/typed-racket-lib/typed-racket/core.rkt
++++ b/typed-racket-lib/typed-racket/core.rkt
+@@ -20,19 +20,27 @@
+ (define (mb-core stx)
+   (syntax-parse stx
+     [(mb (~or (~optional
++                (~and #:locally-defensive (~bind [defend? #'#true])))
++              (~optional
+                (~or (~and #:optimize    (~bind [opt? #'#t])); kept for backward compatibility
+                     (~and #:no-optimize (~bind [opt? #'#f]))))
+               (~optional
+                (~and #:with-linear-integer-arithmetic linear-reasoning?)))
+          ...
+          forms ...)
+-     (let ([pmb-form (syntax/loc stx (#%plain-module-begin forms ...))])
+-       (parameterize ([optimize? (or (and (not (attribute opt?)) (optimize?))
+-                                     (and (attribute opt?) (syntax-e (attribute opt?))))]
++     (let ([pmb-form (syntax/loc stx (#%plain-module-begin forms ...))]
++           [defend? (and (attribute defend?) (syntax-e (attribute defend?)) #true)])
++       (parameterize ([optimize? (and (not defend?)
++                                      (or (and (not (attribute opt?)) (optimize?))
++                                          (and (attribute opt?) (syntax-e (attribute opt?)))))]
++                      [locally-defensive? defend?]
+                       [with-linear-integer-arithmetic? (or (attribute linear-reasoning?)
+                                                            (with-linear-integer-arithmetic?))])
+          (tc-module/full stx pmb-form
+           (λ (new-mod pre-before-code pre-after-code)
++            (define (defend/cache forms)
++              ;;bg; cannot re-use other caches because `define`s will be out of order
++              (maybe-defend forms (make-hash) (make-hash)))
+             (with-syntax*
+              (;; pmb = #%plain-module-begin
+               [(pmb . body2) new-mod]
+@@ -47,7 +55,7 @@
+               [(after-code ...) (begin0 (change-provide-fixups (flatten-all-begins pre-after-code))
+                                   (do-time "Generated contracts"))]
+               ;; potentially optimize the code based on the type information
+-              [(optimized-body ...) (maybe-optimize #'transformed-body)] ;; has own call to do-time
++              [(optimized-body ...) (maybe-optimize (defend/cache #'transformed-body))] ;; has own call to do-time
+               ;; add in syntax property on useless expression to draw check-syntax arrows
+               [check-syntax-help (syntax-property
+                                   (syntax-property
+diff --git a/typed-racket-lib/typed-racket/defender/defender.rkt b/typed-racket-lib/typed-racket/defender/defender.rkt
+new file mode 100644
+index 0000000..0aeef21
+--- /dev/null
++++ b/typed-racket-lib/typed-racket/defender/defender.rkt
+@@ -0,0 +1,800 @@
++#lang racket/base
++
++(require
++  (only-in racket/format ~a)
++  racket/match
++  syntax/id-set
++  syntax/parse
++  typed-racket/rep/type-rep
++  typed-racket/rep/values-rep
++  typed-racket/types/match-expanders
++  (only-in typed-racket/typecheck/internal-forms
++    typed-struct
++    typed-struct/exec)
++  (only-in typed-racket/types/base-abbrev
++    make-Listof)
++  (only-in typed-racket/types/abbrev
++    -Void
++    -String
++    -Symbol
++    -True
++    -False
++    ->
++    -values)
++  typed-racket/types/struct-table
++  typed-racket/types/type-table
++  typed-racket/types/union
++  typed-racket/types/utils
++  (only-in typed-racket/private/syntax-properties
++    type-ascription-property
++    type-inst-property
++    ignore^
++    ignore-some^
++    opt-lambda^
++    kw-lambda^)
++  (only-in racket/syntax
++    format-id
++    generate-temporary)
++  (only-in (submod typed-racket/private/type-contract test-exports)
++    type->contract)
++  (for-syntax
++    racket/base)
++  (for-template
++    racket
++    racket/unsafe/ops
++    typed-racket/types/numeric-predicates
++    (submod racket/performance-hint begin-encourage-inline)))
++
++(provide defend-top)
++
++(module+ test
++  (require rackunit))
++
++;; =============================================================================
++
++(define (defend-top stx ctc-cache sc-cache extra-defs*)
++  (let loop ([stx stx])
++    (syntax-parse stx
++     #:literals (values define-values #%plain-app begin define-syntaxes)
++     [_
++      #:when (is-ignored? stx) ;; lookup in type-table's "ignored table"
++      stx]
++     [(~or _:ignore^ _:ignore-some^) ;; for struct definitions ... not sure what else
++      stx]
++     [((~literal define-syntaxes) . _)
++      stx]
++     [(~and _:kw-lambda^ ((~literal let-values) ([(f) fun]) body))
++      (syntax/loc stx (let-values ([(f) fun]) body))]
++     [(~and _:opt-lambda^ ((~literal let-values) ([(f) fun]) body))
++      (syntax/loc stx (let-values ([(f) fun]) body))]
++     [(op:lambda-identifier formals . body)
++      (define dom-map (type->domain-map (stx->arrow-type stx) #f))
++      (with-syntax ([body+ (loop #'body)]
++                    [formals+ (protect-formals dom-map #'formals ctc-cache sc-cache extra-defs*)])
++        (syntax/loc stx
++          (op formals (void . formals+) . body+)))]
++     #;[(define-values (var ...) expr) (TODO need this?)]
++     [(x* ...)
++      #:when (is-application? stx)
++      (define stx+
++        (datum->syntax stx
++          (map loop (syntax-e #'(x* ...)))))
++      (define-values [pre* f post*] (split-application stx+))
++      (if (is-ignored? f)
++        stx+
++        (let ()
++          ;; TODO don't use orig?
++          (define-values [_orig-pre* orig-f orig-post*] (split-application stx))
++          (define-values [dom-types cod-type]
++            (let ([ty (stx->arrow-type orig-f (length (syntax-e orig-post*)))])
++              (values (type->domain-map ty f) (type->codomain-type ty f))))
++          (define stx/dom
++            (with-syntax ([(pre ...) pre*]
++                          [f f]
++                          [(dom ...) (protect-domain dom-types post* ctc-cache sc-cache extra-defs*)])
++              (syntax/loc stx+ (pre ... f dom ...))))
++          (define stx/cod
++            (protect-codomain cod-type stx/dom ctc-cache sc-cache extra-defs*))
++          stx/cod))]
++     [((~and x (~literal #%expression)) _)
++      #:when (type-inst-property #'x)
++      stx]
++     [((~literal #%expression) e)
++      #:when (type-ascription-property stx)
++      (with-syntax ([e+ (loop #'e)])
++        (syntax/loc stx (#%expression e+)))]
++     [_
++      #:when (type-ascription-property stx)
++      (raise-user-error 'defend-top "strange type-ascription ~a" (syntax->datum stx))]
++     [(x* ...)
++      (datum->syntax stx
++        (map loop (syntax-e #'(x* ...))))]
++     [_
++      stx])))
++
++(define-syntax-class lambda-identifier
++  (pattern (~literal #%plain-lambda))
++  (pattern (~literal lambda)))
++
++;; -----------------------------------------------------------------------------
++
++;; Higher-order functions that respect their function arguments.
++(define BLESSED-DOMAIN (immutable-free-id-set (map (lambda (sym) (format-id #'#f "~a" sym)) '(
++  build-vector
++))))
++
++(define BLESSED-CODOMAIN (immutable-free-id-set (map (lambda (sym) (format-id #'#f "~a" sym)) '(
++  ;; --- 4.1
++  boolean? not equal? eqv? eq? equal?/recur immutable? symbol=? boolean=?
++  false? nand nor implies xor
++  ;; --- 4.2.1
++  number? complex? real? rational? integer? exact-integer? exact-nonnegative-integer?
++  exact-positive-integer? inexact-real? fixnum? flonum? double-flonum? single-flonum?
++  zero? positive? negative? even? odd? exact? inexact? inexact->exact exact->inexact
++  real->single-flonum real->double-flonum
++  ;; --- 4.2.2
++  + - * / quotient remainder quotient/remainder
++  modulo add1 sub1 abs max min gcd lcm round floor ceiling truncate numerator
++  denominator rationalize = < <= > >= sqrt integer-sqrt integer-sqrt/remainder
++  expt exp log sin cos tan asin acos atan make-rectangular make-polar real-part
++  imag-part magnitude angle bitwise-ior bitwise-and bitwise-xor bitwise-not
++  bitwise-bit-set? bitwise-bit-field arithmetic-shift integer-length random
++  random-seed make-pseudo-random-generator pseudo-random-generator? current-pseudo-random-generator
++  pseudo-random-generator->vector vector->pseudo-random-generator! pseudo-random-generator-vector?
++  crypto-random-bytes random-sample number->string string->number real->decimal-string
++  integer-bytes->integer integer->integer-bytes floating-point-bytes->real
++  real->floating-point-bytes system-big-endian? degrees->radians radians->degrees
++  sqr sgn conjugate sinh cosh tanh exact-round exact-floor exact-ceiling exact-truncate
++  order-of-magnitude nan? infinite? positive-integer? negative-integer? nonpositive-integer?
++  nonnegative-integer? natural?
++  ;; --- 4.2.3
++  fl+ fl- fl* fl/ flabs fl= fl< fl> fl<= fl>= flmin flmax flround flfloor
++  flceiling fltruncate flsin flcos fltan flasin flacos flatan fllog flexp flsqrt
++  flexpt -->fl fl->exact-integer make-flrectangular flreal-part flimag-part
++  flrandom flvector? flvector make-flvector flvector-length flvector-ref
++  flvector-set! flvector-copy in-flvector shared-flvector make-shared-flvector
++  ;; --- 4.2.4
++  fx+ fx- fx* fxquotient fxremainder fxmodulo fxabs fxand fxior fxxor fxnot
++  fxlshift fxrshift fx- fx< fx> fx<= fx>= fxmin fxmax fx->fl fl->fx fxvector?
++  fxvector make-fxvector fxvector-length fxvector-ref fxvector-set! fxvector-copy
++  in-fxvector shared-fxvector make-shared-fxvector
++  ;; --- 4.2.5
++  extflonum? extflonum-available? extfl+ extfl- extfl* extfl/ extflabs extfl=
++  extfl< extfl> extfl<= extfl>= extflmin extflmax extflround extflfloor extflceiling
++  extfltruncate extflsin extflcos extfltan extflasin extflacos extflatan extfllog
++  extflexp extflsqrt extflexpr ->extfl extfl->exact-integer real->extfl extfl->exact
++  extfl->inexact extflvector? extflvector make-extflvector extflvector-length
++  extflvector-ref extflvector-set! extflvector-copy in-extflvector make-shared-extflvector
++  floating-point-bytes->extfl extfl->floating-point-bytes
++  ;; --- 4.3
++  string? make-string string string->immutable-string string-length string-ref
++  string-set! substring string-copy string-copy! string-fill! string-append
++  string->list list->string build-string string=? string<? string<=? string>?
++  string>=? string-ci=? string-ci<? string-ci<=? string-ci>? string-ci>=?
++  string-upcase string-downcase string-titlecase string-foldcase string-normalize-nfd
++  string-normalize-nfkd string-normalize-nfc string-normalize-nfkc string-locale=?
++  string-locale<? string-locale>? string-locale-ci=? string-locale-ci<? string-locale-ci>?
++  string-locale-upcase string-locale-downcase string-append* string-join string-normalize-spaces
++  string-replace string-split string-trim non-empty-string? string-contains?
++  string-prefix? string-suffix? ~a ~v ~s ~e ~r ~.a ~.v ~.s
++  ;; --- 4.4
++  bytes? make-bytes bytes bytes->immutable-bytes byte? bytes-length bytes-ref
++  bytes-set! subbytes bytes-copy bytes-copy! bytes-fill! bytes-append
++  bytes->list list->bytes make-shared-bytes shared-bytes bytes=? bytes<?
++  bytes>? bytes->string/utf-8 bytes->string/locale bytes->string/latin-1
++  string->bytes/utf-8 string->bytes/locale string->bytes/latin-1 string-utf-8-length
++  bytes-utf-8-length bytes-utf-8-ref bytes-utf-8-index bytes-open-converter
++  bytes-close-converter bytes-convert bytes-convert-end bytes-converter?
++  locale-string-encoding bytes-append* bytes-join
++  ;; --- 4.5
++  char? char->integer integer->char char-utf-8-length char=? char<? char<=?
++  char>? char>=? char-ci=? char-ci<? char-ci<=? char-ci>? char-ci>=? char-alphabetic?
++  char-lower-case? char-upper-case? char-title-case? char-numeric? char-symbolic?
++  char-punctuation? char-graphic? char-whitespace? char-iso-control? char-general-category
++  make-known-char-range-list char-upcase char-downcase char-titlecase char-foldcase
++  ;; --- 4.6
++  symbol? symbol-interned? symbol-unreadable? symbol->string string->symbol
++  string->uninterned-symbol string->unreadable-symbol gensym symbol<?
++  ;; --- 4.7
++  regexp? pregexp? byte-regexp? byte-pregexp? regexp pregexp byte-regexp
++  byte-pregexp regexp-quote regexp-max-lookbehind regexp-match regexp-match*
++  regexp-try-match regexp-match-positions regexp-match-positions* regexp-match?
++  regexp-match-exact? regexp-match-peek regexp-match-peek-positions
++  regexp-match-peek-immediate regexp-match-peek-positions-immediate
++  regexp-match-peek-positions* regexp-match/end regexp-match-positions/end
++  regexp-match-peek-positions/end regexp-match-peek-positions-immediate/end
++  regexp-split regexp-replace regexp-replace* regexp-replaces regexp-replace-quote
++  ;; --- 4.8
++  keyword? keyword->string string->keyword keyword<?
++  ;; --- 4.9
++  pair? null? cons list? list list* build-list length list-tail append reverse
++  map andmap ormap for-each filter remove remq remv remove* remq* remv* sort
++  member memv memq memf findf assoc assv assq assf cons? empty? rest make-list
++  list-update list-set index-of index-where indexes-of indexes-where take takef
++  drop-right takef-right list-prefix? take-common-prefix add-between append*
++  flatten check-duplicates remove-duplicates filter-map count range append-map
++  filter-not shuffle combinations in-combinations permutations in-permutations
++  group-by cartesian-product remf remf* make-reader-graph placeholder?
++  make-placeholder placeholder-set! hash-placeholder? make-hash-placeholder
++  make-hasheq-placeholder make-hasheqv-placeholder
++  ;; --- 4.10
++  mpair? mcons set-mcar! set-mcdr!
++  ;; --- 4.11
++  vector? make-vector vector vector-immutable vector-length vector-set!
++  vector->list list->vector vector->immutable-vector vector-fill! vector-copy!
++  build-vector vector-set*! vector-map vector-map! vector-append vector-take
++  vector-take-right vector-drop vector-drop-right vector-split-at
++  vector-split-at-right vector-copy vector-filter vector-filter-not
++  vector-count vector-member vector-memv vector-memq vector-sort vector-sort!
++  ;; --- 4.12
++  box? box box-immutable set-box! box-cas!
++  ;; --- 4.13
++  hash? hash-equal? hash-eqv? hash-eq? hash-weak? hash hasheq hasheqv make-hash
++  make-hasheqv make-hasheq make-weak-hash make-weak-hasheqv make-weak-hasheq
++  make-immutable-hash make-immutable-hasheqv make-immutable-hasheq
++  hash-set! hash-set*! hash-set hash-set* hash-has-key? hash-update! hash-update
++  hash-remove! hash-remove hash-clear! hash-clear hash-copy-clear hash-map
++  hash-keys hash-values hash->list hash-keys-subset? hash-for-each hash-count
++  hash-empty? hash-iterate-first hash-iterate-next hash-copy eq-hash-code
++  eqv-hash-code equal-hash-code equal-secondary-hash-code hash-union hash-union!
++  ;; --- 4.14.1.1
++  sequence? in-range in-naturals in-list in-mlist in-vector in-string in-bytes
++  in-port in-input-port-bytes in-input-port-chars in-lines in-bytes-lines
++  in-hash in-hash-keys in-hash-values in-hash-pairs
++  in-mutable-hash in-mutable-hash-keys in-mutable-hash-values in-mutable-hash-pairs
++  in-immutable-hash in-immutable-hash-keys in-immutable-hash-values in-immutable-hash-pairs
++  in-weak-hash in-weak-hash-keys in-weak-hash-values in-weak-hash-pairs
++  in-directory in-producer in-value in-indexed in-sequences in-cycle in-parallel
++  in-values-sequence in-values*-sequence stop-before stop-after make-do-sequence
++  ;; --- 4.14.1.2
++  sequence->stream sequence-generate sequence-generate*
++  ;; --- 4.14.1.3
++  sequence->list sequence-length sequence-ref sequence-tail sequence-append
++  sequence-map sequence-andmap sequence-ormap sequence-for-each sequence-fold
++  sequence-count sequence-filter sequence-add-between sequence/c
++  ;; --- 4.14.1.3.1
++  in-syntax in-slice
++  ;; --- 4.14.2
++  stream? stream-empty? stream-first stream-rest stream-cons stream stream*
++  in-stream stream->list stream-length stream-tail stream-append stream-map
++  stream-andmap stream-ormap stream-for-each stream-fold stream-count stream-filter
++  stream-add-between stream/c
++  ;; --- 4.14.3
++  generator? generator yield infinite-generator in-generator generator-state
++  sequence->generator sequence->repeated-generator
++  ;; --- 4.15
++  dict? dict-implements? dict-implements/c dict-mutable? dict-can-remove-keys?
++  dict-can-functional-set? dict-set! dict-set dict-remove! dict-remove dict-iterate-first
++  dict-iterate-next dict-iterate-key dict-iterate-value dict-has-key? dict-set*!
++  dict-set* dict-update! dict-update dict-map dict-for-each dict-empty?
++  dict-count dict-copy dict-clear dict-clear! dict-keys dict-values dict->list
++  in-dict in-dict-keys in-dict-values in-dict-pairs dict-key-contract dict-value-contract
++  dict-iter-contract define-custom-hash-types make-custom-hash-types make-custom-hash
++  make-weak-custom-hash make-immutable-custom-hash
++  ;; --- 4.16.1
++  set-equal? set-eqv? set-eq? set? set-mutable? set-weak? set seteqv seteq mutable-seteqv
++  mutable-seteq weak-set weak-seteqv weak-seteq list->set list->seteqv list->seteq
++  list->mutable-set list->mutable-seteqv list->mutable-seteq list->weak-set list->weak-seteqv
++  list->weak-seteq for/set for/seteq for/seteqv for*/set for*/seteq for*/seteqv
++  for/mutable-set for/mutable-seteq for/mutable-seteqv for*/mutable-set for*/mutable-seteq
++  for*/mutable-seteqv for/weak-set for/weak-seteq for/weak-seteqv for*/weak-set
++  for*/weak-seteq for*/weak-seteqv in-immutable-set in-mutable-set in-weak-set
++  generic-set? set-implements? set-implements/c set/c set-member? set-add set-add!
++  set-remove set-remove! set-empty? set-count set->stream set-copy set-copy-clear
++  set-clear set-clear! set-union set-union! set-intersect set-intersect! set-subtract
++  set-subtract! set-symmetric-difference set-symmetric-difference! set=? subset?
++  proper-subset? set->list set-map set-for-each in-set impersonate-hash-set impersonate-hash-set
++  chaperone-hash-set define-custom-set make-custom-set-types
++  ;; --- 4.17
++  procedure? apply compose compose1 procedure-rename procedure->method procedure-closure-contents-eq?
++  keyword-apply procedure-arity procedure-arity? procedure-arity-includes? procedure-reduce-arity
++  procedure-keywords procedure-result-arity make-keyword-procedure procedure-reduce-keyword-arity
++  procedure-struct-type? procedure-extract-target checked-procedure-check-and-extract
++  procedure-specialize primitive? primitive-closure? primitive-result-arity identity
++  const thunk thunk* negate conjoin disjoin curry curryr normalized-arity? normalize-arity
++  arity=? arity-includes?
++  ;; --- 4.18
++  void? void
++  ;; --- 4.19
++  ;; --- 5.2
++  make-struct-type make-struct-field-accessor make-struct-field-mutator make-struct-type-property
++  struct-type-property? struct-type-property-accessor-procedure?
++  ;; --- 5.5
++
++  ;; --- 10.1
++  values
++  ;; --- 10.2
++  raise error raise-user-error raise-argument-error raise-arguments-error
++  raise-result-error raise-range-error raise-type-error raise-mismatch-error
++  raise-arity-error raise-syntax-error unquoted-printing-string? unquoted-printing-string
++  unquoted-printing-string-value uncaught-exception-handler error-escape-handler
++  error-display-handler error-print-width error-print-context-length error-value->string-handler
++  error-print-source-location exn->string
++
++  ;; --- 13.5
++  write display print writeln displayln println fprintf printf eprintf format
++  print-pair-curly-braces print-mpair-curly-braces print-unreadable print-graph
++  print-struct print-box print-vector-length print-hash-table print-boolean-long-form
++  print-reader-abbreviations print-as-expression print-syntax-width current-write-relative-directory
++  port-write-handler port-display-handler port-print-handler global-port-print-handler
++
++  ;; --- 14.1
++  namespace? make-empty-namespace make-base-empty-namespace namespace-anchor?
++  namespace-anchor->empty-namespace namespace-anchor->namespace current-namespace
++  namespace-symbol->identifier namespace-base-phase namespace-module-identifier
++  namespace-module-identifier namespace-set-variable-value! namespace-undefine-variable!
++  namespace-mapped-symbols namespace-require namespace-require/copy namespace-require/constant
++  namespace-require/expansion-time namespace-attach-module namespace-attach-module-declaration
++  namespace-unprotect-module namespace-module-registry module->namespace
++  namespace-syntax-introduce module-provide-protected? variable-reference?
++  variable-reference-constant? variable-reference->empty-namespace variable-reference->namespace
++  variable-reference->resolved-module-path variable-reference->module-path-index
++  variable-reference->module-source variable-reference->phase variable-reference->module-base-phase
++  variable-reference->module-declaration-inspector
++
++
++  ;; --- 15.6
++  current-seconds current-inexact-milliseconds seconds->date date-second
++  date-minute date-hour date-day date-month date-year date-week-day date-year-day
++  date-dst? date-time-zone-offset date*-nanosecond date*-time-zone-name
++  current-milliseconds current-process-milliseconds current-gc-milliseconds
++  time-apply time
++  ;; --- 15.6.1
++  current-date date->string date-display-format date->seconds date*->seconds
++  find-seconds date->julian/scalinger julian/scalinger->string
++
++  ;; --- 17
++  unsafe-fx+ unsafe-fx- unsafe-fx* unsafe-fxquotient unsafe-fxremainder unsafe-fxmodulo
++  unsafe-fxabs unsafe-fxand unsafe-fxior unsafe-fxxor unsafe-fxnot unsafe-fxlshift
++  unsafe-fxrshift unsafe-fx= unsafe-fx< unsafe-fx> unsafe-fx<= unsafe-fx>=
++  unsafe-fxmin unsafe-fxmax unsafe-fl+ unsafe-fl- unsafe-fl* unsafe-fl/ unsafe-flabs
++  unsafe-fl= unsafe-fl< unsafe-fl> unsafe-fl<= unsafe-fl>= unsafe-flmin unsafe-flmax
++  unsafe-flround unsafe-flfloor unsafe-flceiling unsafe-fltruncate unsafe-flsin
++  unsafe-flcos unsafe-fltan unsafe-flasin unsafe-flacos unsafe-flatan unsafe-fllog
++  unsafe-flexp unsafe-flsqrt unsafe-flexpt unsafe-make-flrectangular unsafe-flreal-part
++  unsafe-flimag-part unsafe-fx->fl unsafe-fl->fx unsafe-flrandom unsafe-car
++  unsafe-cdr unsafe-mcar unsafe-mcdr unsafe-set-mcar! unsafe-set-mcdr! unsafe-cons-list
++  unsafe-list-ref unsafe-list-tail unsafe-unbox unsafe-set-box! unsafe-unbox*
++  unsafe-set-box*! unsafe-box*-cas! unsafe-vector-length unsafe-vector-set!
++  unsafe-vector*-length unsafe-vector*-set! unsafe-string-length unsafe-string-set!
++  unsafe-bytes-length unsafe-bytes-set! unsafe-fxvector-length unsafe-fxvector-set!
++  unsafe-flvector-length unsafe-flvector-set! unsafe-f64vector-set! unsafe-s16vector-set!
++  unsafe-u16-vector-set! unsafe-struct-set! unsafe-struct*-set! unsafe-extfl+
++  unsafe-extfl- unsafe-extfl* unsafe-extfl/ unsafe-extflabs unsafe-extfl= unsafe-extfl<
++  unsafe-extfl> unsafe-extfl<= unsafe-extfl>= unsafe-extflmin unsafe-extflmax
++  unsafe-extflround unsafe-extflfloor unsafe-extflceiling unsafe-extfltruncate
++  unsafe-extflsin unsafe-extflcos unsafe-extfltan unsafe-extflasin unsafe-extflacos
++  unsafe-extflatan unsafe-extfllog unsafe-extflexp unsafe-extflsqrt unsafe-extflexpt
++  unsafe-fx->extfl unsafe-extfl->fx unsafe-extflvector-length unsafe-extflvector-set!
++
++  ;; --- Typed Racket
++  index? exact-rational?
++))))
++
++;; -----------------------------------------------------------------------------
++
++;; is-application? : Syntax -> Boolean
++;; Returns #true if `stx` is a function application (an app that may need dynamic checking)
++(define (is-application? stx)
++  (syntax-parse stx
++   [((~literal #%plain-app) . _)
++    (has-type-annotation? stx)]
++   [_
++    #false]))
++
++;; split-application : Syntax -> (Values (Syntaxof List) Syntax (Syntaxof List))
++(define (split-application stx)
++  (syntax-parse stx
++   #:literals (#%plain-app)
++   #:datum-literals (apply)
++   [((~and a #%plain-app) (~and b apply) f . arg*)
++    (values #'(a b) #'f #'arg*)]
++   [((~and a #%plain-app) f . arg*)
++    (values #'(a) #'f #'arg*)]
++   [_
++    (raise-argument-error 'split-application "(Syntaxof App)" stx)]))
++
++(define (stx->arrow-type stx [num-args #f])
++  (define raw-type (tc-results->type (maybe-type-of stx)))
++  (let loop ([ty (and raw-type (normalize-type raw-type))])
++    (match ty
++     [(Fun: (list (? Arrow?)))
++      ty]
++     [(Param: in out)
++      (cond
++       [(not num-args)
++        (raise-arguments-error 'stx->arrow-type "cannot coerce parameter to arrow type, number of arguments is unknown" "type" ty "stx" stx)]
++       [(= 0 num-args)
++        (-> out)]
++       [(= 1 num-args)
++        (-> in -Void)]
++       [else
++        (raise-arguments-error 'stx->arrow-type "wrong number of arguments supplied to parameter" "type" ty "stx" stx "num-args" num-args)])]
++     [(Poly: _ b)
++      (loop b)]
++     [(Fun: arrs)
++      ;;bg; if case->, try combining the arrs to a union type
++      ;;    this is possible when each `arr` has the same arity
++      (define arr (combine-arrs arrs))
++      (if arr
++        (loop (make-Fun (list arr)))
++        (raise-arguments-error 'dynamic-typecheck "failed to parse arrow from case->"
++          "type" ty
++          "e" (syntax->datum stx)
++          "stx" stx
++          "cases" arrs))]
++     [_
++      (raise-arguments-error 'dynamic-typecheck "failed to parse arrow from type of syntax object"
++        "e" (syntax->datum stx)
++        "stx" stx
++        "type" ty)])))
++
++;; combine-arrs : (-> (Listof Arrow) (U #f Arrow))
++
++(module+ test
++  (check-equal?  ;;bg; not happy about ~a ....
++    (~a (combine-arrs (list
++        (make-Arrow (list -Symbol -True (make-Listof -Symbol) Univ) #f '() (-values (list -String)))
++        (make-Arrow (list -False -False (make-Listof -Symbol) Univ) #f '() (-values (list -String)))
++        (make-Arrow (list -Symbol Univ (make-Listof -Symbol) -True) #f '() (-values (list -String)))
++        (make-Arrow (list -Symbol Univ -False -False) #f '() (-values (list -String))))))
++    (~a (make-Arrow (list (Un -Symbol -False)
++                          (Un -True -False Univ)
++                          (Un (make-Listof -Symbol) -False)
++                          (Un Univ -True -False))
++                    #f '() (-values (list -String)))))
++)
++
++(define (combine-arrs arrs)
++  (match arrs
++   [(list (Arrow: t** #f '() rng*) ...)
++    #:when (same-length? t**)
++    (define m+ (combine-dom* t**))
++    (define rng+ (combine-rng* rng*))
++    (make-Arrow m+ #f '() rng+)]
++   [_
++    #f]))
++
++(define (same-length? x**)
++  (or (null? x**)
++      (null? (cdr x**))
++      (and (= (length (car x**)) (length (cadr x**)))
++           (same-length? (cdr x**)))))
++
++(define (combine-dom* t**)
++  (if (andmap null? t**)
++    '()
++    (cons (apply Un (map car t**)) (combine-dom* (map cdr t**)))))
++
++(define (combine-rng* rng*)
++  (define t** (map some-values->type* rng*))
++  (and (same-length? t**)
++       (let ([t* (combine-dom* t**)])
++         (make-Values t*))))
++
++(define (tc-results->type r)
++  (match r
++   [(tc-result1: t)
++    t]
++   [_
++    #f]))
++
++(define REST-KEY 'rest)
++
++;; type->domain-map : Type Syntax -> TypeMap
++;;   where TypeMap = (HashTable (U Fixnum 'rest Keyword) (U #f Type))
++;; Build a TypeMap from the domain of an arrow type.
++;; Use `stx` to decide whether to remove some types.
++(define (type->domain-map t stx)
++  (match t
++   [(or (Fun: (list (Arrow: mand rst kws _)))
++        (Arrow: mand rst kws _))
++    (define trusted?
++      (blessed-domain? stx))
++    (define mand-hash
++      ;; Map positional arguments
++      (for/fold ([acc (make-immutable-hash)])
++                ([d (in-list mand)]
++                 [i (in-naturals)])
++        (hash-set acc i (if trusted? #f d))))
++    (define rst-hash
++      (cond
++       [(Type? rst)
++        (hash-set mand-hash REST-KEY (if trusted? #f (make-Listof rst)))]
++       [(RestDots? rst)
++        (raise-arguments-error 'type->domain-map "type without rest-dots"
++          "type" t
++          "stx" stx)]
++       [else
++        mand-hash]))
++    (define kwd-hash
++      ;; Map keyword args
++      (for/fold ([acc rst-hash])
++                ([k (in-list kws)])
++        (match k
++         [(Keyword: kw ty _)
++          (hash-set acc kw (if trusted? #f kw))]
++         [_
++          (raise-arguments-error 'type->domain-map "arrow type (with good keywords)" "type" t "stx" stx)])))
++    kwd-hash]
++   [_
++    (raise-argument-error 'type->domain-map "arrow type" t)]))
++
++(define (type-map-ref map key)
++  (define (fail-thunk)
++    (raise-arguments-error 'type-map-ref "unbound key" "key" key "map" map))
++  (cond
++   [(fixnum? key)
++    (hash-ref map key (λ () (hash-ref map REST-KEY fail-thunk)))]
++   [(keyword? key)
++    (hash-ref map key fail-thunk)]
++   [(eq? REST-KEY key)
++    (hash-ref map key fail-thunk)]
++   [else
++    (raise-argument-error 'type-map-ref "(or/c fixnum? 'rest keyword?)" 1 map key)]))
++
++;; type->codomain-type : Type Syntax -> (U #f SomeValues)
++;; Get the codomain from an arrow type,
++;;  use `stx` to decide whether we can skip the codomain check.
++(define (type->codomain-type t stx)
++  (match t
++   [(Fun: (list (Arrow: _ _ _ cod)))
++    (if (blessed-codomain? stx)
++      #f
++      cod)]
++   [_
++    (raise-argument-error 'type->cod-type "arrow type" t)]))
++
++(define (blessed-domain? stx)
++  (and stx #t) ;; TRUST EVERYTHING, typed functions are fully defensive
++  #;(if (identifier? stx)
++    (or (free-id-set-member? BLESSED-DOMAIN stx)
++        (typed-racket-identifier? stx))
++    #f))
++
++(define (blessed-codomain? stx)
++  (if (identifier? stx)
++    (or (syntax-property stx 'constructor-for)
++        ;; too hard to find `struct-predicate-procedure?`s
++        (free-id-set-member? BLESSED-CODOMAIN stx)
++        (and (typed-racket-identifier? stx)
++             (not (struct-accessor? stx))
++             (not (from-require/typed? stx))))
++    (is-lambda? stx)))
++
++;; from-require/typed? : Identifier -> Boolean
++;; Typed Racket adds this property to all require/typed identifiers,
++;;  see `utils/require-contract.rkt`
++(define (from-require/typed? stx)
++  (syntax-property stx 'not-provide-all-defined))
++
++(define (typed-racket-identifier? stx)
++  (define ib (identifier-binding stx))
++  (and (pair? ib)
++       (or (identifier-binding-from-this-module? ib)
++           (identifier-binding-from-typed-racket-module? ib))))
++
++(define (identifier-binding-from-this-module? ib)
++  (match ib
++   [(list src-mpi _src-id nom-src-mpi nom-src-id 0 0 0)
++    (and (equal? src-mpi (module-path-index-join #f #f))
++         (equal? src-mpi nom-src-mpi))]
++   [_
++    #false]))
++
++(define (identifier-binding-from-typed-racket-module? ib)
++  (match ib
++   [(list src-mpi _src-id _nom-src-mpi _nom-src-id 0 0 0)
++    (typed-racket-mpi? src-mpi)]
++   [_
++    #false]))
++
++(define typed-racket-mpi?
++  (let ([cache (make-hash)])
++    (λ (mpi)
++      (hash-ref! cache mpi
++        (λ () ;; Typed Racket always installs a `#%type-decl` submodule
++          (let* ([mpi+ (module-path-index-join '(submod "." #%type-decl) mpi)])
++            (parameterize ([current-namespace (make-base-namespace)])
++              (with-handlers ([exn:fail:contract? (lambda (exn) #f)])
++                (and mpi+
++                     (dynamic-require mpi+ #f)
++                     #t)))))))))
++
++;; protect-domain : TypeMap (Syntaxof List) Hash Hash (Boxof Syntax) -> (Syntaxof List)
++;; Return a copy of `dom-stx` that has tag-safety checks.
++;;  (these checks might be chaperones!)
++(define (protect-domain dom-map dom-stx ctc-cache sc-cache extra-defs*)
++  (define dom+
++    (let loop ([dom* (syntax-e dom-stx)]
++               [position 0])
++      (cond
++       [(null? dom*)
++        '()]
++       [(keyword? (syntax-e (car dom*)))
++        (define k-stx (car dom*))
++        (define v-stx (cadr dom*))
++        (define t (type-map-ref dom-map (syntax-e k-stx)))
++        (define v+ (protect-arg t v-stx ctc-cache sc-cache extra-defs*))
++        (list* k-stx v+ (loop (cddr dom*) position))]
++       [else
++        (define t (type-map-ref dom-map position))
++        (define v+ (protect-arg t (car dom*) ctc-cache sc-cache extra-defs*))
++        (cons v+ (loop (cdr dom*) (+ position 1)))])))
++  (with-syntax ([dom+ dom+])
++    (syntax/loc dom-stx dom+)))
++
++;; protect-arg : (U #f Type) Syntax Hash Hash (Boxof Syntax) -> Syntax
++(define (protect-arg dom-type dom-stx ctc-cache sc-cache extra-defs*)
++  (cond
++   [(not dom-type)
++    dom-stx]
++   [(not (needs-domain-check? dom-type))
++    dom-stx]
++   [else
++     (raise-user-error 'protect-arg "not implmeented for untrusted domain type")]
++   #;[else
++    ;; TODO should put this in a function ... because `contract` is too expensive
++    (define (fail #:reason r)
++      (raise-user-error 'dynamic-typecheck "failed to convert arrow type ~a to chaperone because ~a" dom-type (syntax-e dom-stx)))
++    (match-define (list defs ctc-stx)
++      (type->contract dom-type fail
++        #:typed-side #t
++        #:kind 'impersonator
++        #:cache ctc-cache
++        #:sc-cache sc-cache
++        #:contract-depth 1))
++    (set-box! extra-defs* (append (reverse defs) (unbox extra-defs*)))
++    (with-syntax ([ctc ctc-stx]
++                  [dom dom-stx])
++      (syntax/loc dom-stx (contract ctc dom 'tagged-world 'dynamic-typecheck)))]))
++
++;; protect-codomain : (U #f SomeValues) (Syntaxof List) Hash Hash (Boxof Syntax) -> (Syntaxof List)
++(define (protect-codomain cod-type app-stx ctc-cache sc-cache extra-defs*)
++  (cond
++   [(not cod-type)
++    app-stx]
++   [else
++    (define t*
++      (let ([t* (some-values->type* cod-type)])
++        (if (null? t*)
++          (raise-argument-error 'protect-codomain "non-empty SomeValues" cod-type)
++          t*)))
++    (define ctc-stx* ;; (Listof (U #f Syntax))
++      (for/list ([t (in-list t*)])
++        (type->flat-contract t ctc-cache sc-cache extra-defs*)))
++    (define err-msg
++      (parameterize ([error-print-width 20])
++        (format "~e : ~a" (syntax->datum app-stx) cod-type)))
++    (if (not (ormap values ctc-stx*))
++      ;; Nothing to check
++      app-stx
++      ;; Assemble everything into a syntax object that:
++      ;; - performs the application
++      ;; - binds the result(s) to temporary variable(s)
++      ;; - checks the tag of each temporary
++      (with-syntax ([app app-stx]
++                    [err err-msg])
++        (define var-name 'dyn-cod)
++        (if (null? (cdr t*))
++          ;; -- application returns 1 result, just bind it and check it
++          (with-syntax ([(ctc) ctc-stx*]
++                        [v (generate-temporary var-name)])
++            (syntax/loc app-stx
++              (let ([v app])
++                (if ((begin-encourage-inline ctc) v)
++                  v
++                  (error 'dynamic-typecheck (format "~e : ~a" v 'err))))))
++          ;; - application returns +1 results:
++          ;;   - bind all,
++          ;;   - check the ones with matching contracts,
++          ;;   - return all
++          (with-syntax ([v* (for/list ([_t (in-list t*)])
++                               ;; should be OK to do this instead of `generate-temporaries`, right?
++                               (generate-temporary var-name))])
++            (quasisyntax/loc app-stx
++              (let-values ([v* app])
++                (if (and . #,(for/list ([ctc-stx (in-list ctc-stx*)]
++                                        [v (in-list (syntax-e #'v*))]
++                                        #:when ctc-stx)
++                               (quasisyntax/loc app-stx ((begin-encourage-inline #,ctc-stx) #,v))))
++                  (values . v*)
++                  (error 'dynamic-typecheck 'err))))))))]))
++
++;; protect-formals : TypeMap (Syntaxof List) Hash Hash (Boxof Syntax) -> (Syntaxof List)
++(define (protect-formals dom-map formals ctc-cache sc-cache extra-defs*)
++  (define xs
++    (let loop ([dom* formals] [position 0])
++      ;; TODO ... kinda similar to protect-domain
++      ;;  wow this is off the hook  ... sometimes called with (a b (c . d))
++      (cond
++       [(null? dom*)
++        '()]
++       [(not (pair? dom*))
++        (cond
++         [(identifier? dom*)
++          (define t (type-map-ref dom-map REST-KEY))
++          (list (protect-codomain t (datum->syntax formals dom*) ctc-cache sc-cache extra-defs*))]
++         [(syntax? dom*)
++          (loop (syntax-e dom*) position)]
++         [else
++          (raise-arguments-error 'protect-formals "strange domain element in formals"
++            "elem" dom*
++            "formals" formals)])]
++       [(keyword? (syntax-e (car dom*)))
++        (raise-arguments-error 'protect-formals "unexpected keyword in domain"
++          "elem" (car dom*)
++          "formals" formals)]
++       [else
++        (define var (formal->var (car dom*)))
++        (define t (type-map-ref dom-map position))
++        (cons (protect-codomain t var ctc-cache sc-cache extra-defs*)
++              (loop (cdr dom*) (+ position 1)))])))
++  (datum->syntax formals xs))
++
++(define (formal->var stx)
++  (syntax-parse stx
++   [_:id
++    stx]
++   [(x:id _)
++    (syntax/loc stx x)]))
++
++;; some-values->type* : (U Type SomeValues) -> (Listof Type)
++(define (some-values->type* sv)
++  (match sv
++   [(? Type?)
++    (list sv)]
++   [(Values: r*)
++    (map Result-t r*)]
++   [(AnyValues: _)
++    (raise-user-error 'dynamic-typecheck "cannot generate contract for AnyValues type '~a'" sv)]
++   [(ValuesDots: _ _ _)
++    (raise-user-error 'dynamic-typecheck "cannot generate contract for ValuesDots type '~a'" sv)]))
++
++(define (is-lambda? x)
++  (syntax-parse x
++   [((~or (~literal lambda) (~literal #%plain-lambda)) . _) #true]
++   [_ #false]))
++
++(define (has-type-annotation? x)
++  (match (maybe-type-of x)
++   [(tc-result1: _) #true]
++   [_ #false]))
++
++(define (needs-domain-check? t)
++  ;; TODO recursion is similar to `function-type?` in `type-contract.rkt`
++  (match t
++   [(Fun: arrs)
++    (ormap arr/non-empty-domain? arrs)]
++   [(Union: _ elems)
++    (ormap needs-domain-check? elems)]
++   [(Intersection: elems _)
++    (andmap needs-domain-check? elems)]
++   [(Poly: _ body)
++    (needs-domain-check? body)]
++   [(PolyDots: _ body)
++    (needs-domain-check? body)]
++   [_ #f]))
++
++(define (arr/non-empty-domain? arr)
++  (match arr
++   [(Arrow: '() #f '() _)
++    #false]
++   [(Arrow: _ _ _ _)
++    #true]
++   [_
++    (raise-argument-error 'arr/non-empty-domain "Arrow?" arr)]))
++
++(define (type->flat-contract t ctc-cache sc-cache extra-defs*)
++  (define (fail #:reason r)
++    (raise-user-error 'dynamic-typecheck "failed to convert type ~a to flat contract because ~a" t r))
++  (match-define (list defs ctc)
++    (type->contract t fail
++      #:typed-side #f
++      #:kind 'impersonator ;;bg; don't care, depth=0 should minimize it
++      #:cache ctc-cache
++      #:sc-cache sc-cache))
++  (set-box! extra-defs* (append (reverse defs) (unbox extra-defs*)))
++  (if (free-identifier=? ctc #'any/c) #f ctc))
++
++
+diff --git a/typed-racket-lib/typed-racket/private/type-contract.rkt b/typed-racket-lib/typed-racket/private/type-contract.rkt
+index 7160828..71d5ba2 100644
+--- a/typed-racket-lib/typed-racket/private/type-contract.rkt
++++ b/typed-racket-lib/typed-racket/private/type-contract.rkt
+@@ -16,7 +16,7 @@
+  racket/format
+  syntax/flatten-begin
+  (only-in (types abbrev) -Bottom -Boolean)
+- (static-contracts instantiate optimize structures combinators constraints)
++ (static-contracts instantiate optimize structures combinators constraints utils constructor-reduce)
+  (only-in (submod typed-racket/static-contracts/instantiate internals) compute-constraints)
+  ;; TODO make this from contract-req
+  (prefix-in c: racket/contract)
+@@ -189,9 +189,9 @@
+ ;;   This box is only used for contracts generated for `require/typed`
+ ;;   and `cast`, contracts for `provides go into the `#%contract-defs`
+ ;;   submodule, which always has the above `require`s.
+-(define include-extra-requires? (box #f))
++(define include-extra-requires? (box #t)) ;; TODO change to #false ?
+ 
+-(define (change-contract-fixups forms)
++(define (change-contract-fixups forms [ctc-cache (make-hash)] [sc-cache (make-hash)])
+   (define ctc-cache (make-hash))
+   (define sc-cache (make-hash))
+   (with-new-name-tables
+@@ -284,19 +284,21 @@
+                         #:kind [kind 'impersonator]
+                         #:cache [cache (make-hash)]
+                         #:sc-cache [sc-cache (make-hash)])
++  (define ctc-depth (if (locally-defensive?) 0 #false))
+   (let/ec escape
+     (define (fail #:reason [reason #f]) (escape (init-fail #:reason reason)))
+-    (instantiate
+-     (optimize
+-      (type->static-contract ty #:typed-side typed-side fail
+-                             #:cache sc-cache)
++     (instantiate/optimize
++      (static-contract->constructor/c #:contract-depth ctc-depth
++        (type->static-contract ty #:typed-side typed-side fail
++                               #:cache sc-cache
++                               #:contract-depth ctc-depth))
++      fail
++      kind
++      #:cache cache
+       #:trusted-positive typed-side
+-      #:trusted-negative (not typed-side))
+-     fail
+-     kind
+-     #:cache cache)))
++      #:trusted-negative (not typed-side))))
+ 
+-(define any-wrap/sc (chaperone/sc #'any-wrap/c))
++(define any-wrap/sc (chaperone/sc #'any-wrap/c #:tag #'any/c))
+ 
+ (define (no-duplicates l)
+   (= (length l) (length (remove-duplicates l))))
+@@ -335,7 +337,8 @@
+ 
+ (define (type->static-contract type init-fail
+                                #:typed-side [typed-side #t]
+-                               #:cache [sc-cache (make-hash)])
++                               #:cache [sc-cache (make-hash)]
++                               #:contract-depth [contract-depth #f])
+   (let/ec return
+     (define (fail #:reason reason) (return (init-fail #:reason reason)))
+     (let loop ([type type] [typed-side (if typed-side 'typed 'untyped)] [recursive-values (hash)])
+@@ -441,16 +444,18 @@
+        ;; This comes before Base-ctc to use the Value-style logic
+        ;; for the singleton base types (e.g. -Null, 1, etc)
+        [(Val-able: v)
+-        (if (and (c:flat-contract? v)
+-                 ;; numbers used as contracts compare with =, but TR
+-                 ;; requires an equal? check
+-                 (not (number? v))
+-                 ;; regexps don't match themselves when used as contracts
+-                 (not (regexp? v)))
+-            (flat/sc #`(quote #,v))
+-            (flat/sc #`(flat-named-contract '#,v (lambda (x) (equal? x '#,v))) v))]
++        (cond
++         [(eof-object? v)
++          (flat/sc #'eof-object?)]
++         [(void? v)
++          (flat/sc #'void?)]
++         [(or (symbol? v) (boolean? v) (keyword? v) (null? v))
++          (flat/sc #`(λ (x) (eq? '#,v x)))]
++         [else #;(or (number? v) (regexp? v) (string? v) (bytes? v) (char? v))
++          (flat/sc #`(λ (x) (equal? '#,v x)))]) ]
+        [(Base-name/contract: sym ctc)
+-        (flat/sc #`(flat-named-contract '#,sym (flat-contract-predicate #,ctc)) sym)]
++        (flat/sc ctc sym) ;; performance debugging
++        #;(flat/sc #`(flat-named-contract '#,sym (flat-contract-predicate #,ctc)) sym)]
+        [(Distinction: _ _ t) ; from define-new-subtype
+         (t->sc t)]
+        [(Refinement: par p?)
+@@ -534,7 +539,7 @@
+        [(Promise: t)
+         (promise/sc (t->sc t))]
+        [(Opaque: p?)
+-        (flat/sc #`(flat-named-contract (quote #,(syntax-e p?)) #,p?))]
++        (flat/sc p?)]
+        [(Continuation-Mark-Keyof: t)
+         (continuation-mark-key/sc (t->sc t))]
+        ;; TODO: this is not quite right for case->
+@@ -542,17 +547,22 @@
+         (prompt-tag/sc (map t->sc ts) (t->sc s))]
+        ;; TODO
+        [(F: v)
+-        (triple-lookup
+-         (hash-ref recursive-values v
+-                   (λ () (error 'type->static-contract
+-                                "Recursive value lookup failed. ~a ~a" recursive-values v)))
+-         typed-side)]
++        (if (equal? contract-depth 0) ;; bg do we really need this?
++          any/sc
++          (triple-lookup
++           (hash-ref recursive-values v
++                     (λ () (error 'type->static-contract
++                                  "Recursive value lookup failed. ~a ~a" recursive-values v)))
++           typed-side))]
+        [(VectorTop:) (only-untyped vector?/sc)]
+        [(BoxTop:) (only-untyped box?/sc)]
+        [(ChannelTop:) (only-untyped channel?/sc)]
+        [(Async-ChannelTop:) (only-untyped async-channel?/sc)]
+        [(MPairTop:) (only-untyped mpair?/sc)]
+        [(ThreadCellTop:) (only-untyped thread-cell?/sc)]
++       [(ThreadCell: _)
++        #:when (equal? 0 contract-depth)
++        thread-cell?/sc]
+        [(Prompt-TagTop:) (only-untyped prompt-tag?/sc)]
+        [(Continuation-Mark-KeyTop:) (only-untyped continuation-mark-key?/sc)]
+        [(ClassTop:) (only-untyped class?/sc)]
+@@ -705,7 +715,8 @@
+                                               nm (recursive-sc-use nm*)))))
+            (recursive-sc (list nm*) (list (struct/sc nm (ormap values mut?) fields))
+                          (recursive-sc-use nm*))]
+-          [else (flat/sc #`(flat-named-contract '#,(syntax-e pred?) (lambda (x) (#,pred? x))))])]
++          [else
++            (flat/sc pred? (syntax-e pred?)) ])]
+        [(StructType: s)
+         (if (from-untyped? typed-side)
+             (fail #:reason (~a "cannot import structure types from"
+@@ -967,11 +978,11 @@
+     #false]))
+ 
+ (module predicates racket/base
+-  (require racket/extflonum (only-in racket/contract/base >=/c <=/c))
++  (require racket/extflonum #;(only-in racket/contract/base >=/c <=/c))
+   (provide nonnegative? nonpositive?
+            extflonum? extflzero? extflnonnegative? extflnonpositive?)
+-  (define nonnegative? (>=/c 0))
+-  (define nonpositive? (<=/c 0))
++  (define nonnegative? (lambda (x) (and (real? x) (>= x 0))) #;(>=/c 0))
++  (define nonpositive? (lambda (x) (and (real? x) (<= x 0))) #;(<=/c 0))
+   (define extflzero? (lambda (x) (extfl= x 0.0t0)))
+   (define extflnonnegative? (lambda (x) (extfl>= x 0.0t0)))
+   (define extflnonpositive? (lambda (x) (extfl<= x 0.0t0))))
+@@ -988,7 +999,7 @@
+   (provide (all-defined-out))
+ 
+   (define-syntax-rule (numeric/sc name body)
+-    (flat/sc #'(flat-named-contract 'name body) 'name))
++    (flat/sc #'body 'name))
+ 
+   (define positive-byte/sc (numeric/sc Positive-Byte (and/c byte? positive?)))
+   (define byte/sc (numeric/sc Byte byte?))
+@@ -1031,10 +1042,10 @@
+   (define exact-number/sc (numeric/sc Exact-Number (and/c number? exact?)))
+   (define inexact-complex/sc
+     (numeric/sc Inexact-Complex
+-                 (and/c number?
+-                   (lambda (x)
+-                     (and (inexact-real? (imag-part x))
+-                          (inexact-real? (real-part x)))))))
++                 (lambda (x)
++                   (and (number? x)
++                        (inexact-real? (imag-part x))
++                        (inexact-real? (real-part x))))))
+   (define number/sc (numeric/sc Number number?))
+   
+   (define extflonum-zero/sc (numeric/sc ExtFlonum-Zero (and/c extflonum? extflzero?)))
+diff --git a/typed-racket-lib/typed-racket/private/with-types.rkt b/typed-racket-lib/typed-racket/private/with-types.rkt
+index b3613d7..7b9a378 100644
+--- a/typed-racket-lib/typed-racket/private/with-types.rkt
++++ b/typed-racket-lib/typed-racket/private/with-types.rkt
+@@ -49,10 +49,12 @@
+   (define-values (fv-ctc-ids fv-ctc-defs)
+     (type-stxs->ids+defs (syntax->list fvtys) 'untyped))
+   (define-values (ex-ctc-ids ex-ctc-defs)
+-    (type-stxs->ids+defs (syntax->list extys) 'typed))
++    (raise-user-error 'ex-ctc-ids "not implemented sorry") ;; bg
++    #;(type-stxs->ids+defs (syntax->list extys) 'typed))
+   (define-values (region-ctc-ids region-ctc-defs)
+     (if expr?
+-        (type-stxs->ids+defs (values-stx->type-stxs resty) 'typed)
++      (raise-user-error 'region-ctc-ids "unsupported sorry") ;; should 'typed be 'locally-defensive sometimes?
++        #;(type-stxs->ids+defs (values-stx->type-stxs resty) 'typed)
+         (values null null)))
+   (define region-tc-result
+     (and expr? (parse-tc-results resty)))
+diff --git a/typed-racket-lib/typed-racket/static-contracts/README b/typed-racket-lib/typed-racket/static-contracts/README
+index bf8d8d7..3ea3219 100644
+--- a/typed-racket-lib/typed-racket/static-contracts/README
++++ b/typed-racket-lib/typed-racket/static-contracts/README
+@@ -41,5 +41,6 @@ directly deals with the recursive casses.
+ 
+ sc->contract: Turns a static contract into syntax
+ sc->constraints: Turns a static contract into constraints about the contract kind
++sc->constructor/c: Similar to `sc->contract`, but returns syntax for a "constant-time" type test
+ 
+ 
+diff --git a/typed-racket-lib/typed-racket/static-contracts/combinators/any.rkt b/typed-racket-lib/typed-racket/static-contracts/combinators/any.rkt
+index 92457ce..a8333b7 100644
+--- a/typed-racket-lib/typed-racket/static-contracts/combinators/any.rkt
++++ b/typed-racket-lib/typed-racket/static-contracts/combinators/any.rkt
+@@ -30,6 +30,7 @@
+           [(define (sc-map v f) v)
+            (define (sc-traverse v f) (void))
+            (define (sc->contract v f) #'any/c)
++           (define (sc->constructor/c v f) v)
+            (define (sc->constraints v f) (simple-contract-restrict 'flat))
+            (define (sc-terminal-kind v) 'flat)]
+         #:methods gen:custom-write [(define write-proc any-write-proc)])
+diff --git a/typed-racket-lib/typed-racket/static-contracts/combinators/case-lambda.rkt b/typed-racket-lib/typed-racket/static-contracts/combinators/case-lambda.rkt
+index 2e3a5f0..2e034d7 100644
+--- a/typed-racket-lib/typed-racket/static-contracts/combinators/case-lambda.rkt
++++ b/typed-racket-lib/typed-racket/static-contracts/combinators/case-lambda.rkt
+@@ -6,6 +6,9 @@
+ (require "../../utils/utils.rkt"
+          "../structures.rkt"
+          "../constraints.rkt"
++         "any.rkt"
++         (only-in "structural.rkt" and/sc or/sc)
++         (only-in "derived.rkt" procedure?/sc procedure-arity-includes/sc)
+          racket/list racket/match
+          (contract-req)
+          (for-template racket/base racket/contract/base)
+@@ -33,6 +36,8 @@
+        (void))
+      (define (sc->contract v f)
+        #`(case-> #,@(map f (combinator-args v))))
++     (define (sc->constructor/c v f)
++       (f (apply or/sc (combinator-args v))))
+      (define (sc->constraints v f)
+        (merge-restricts* 'chaperone (map f (combinator-args v))))])
+ (struct arr-combinator combinator ()
+@@ -51,6 +56,10 @@
+                        [(rest-stx ...) (if rest #`(#:rest #,(f rest)) #'())]
+                        [range-stx (if range #`(values #,@(map f range)) #'any)])
+            #'(arg-stx ... rest-stx ... . -> . range-stx))]))
++     (define (sc->constructor/c v f)
++       (match-define (arr-combinator (arr-seq args _ _)) v)
++       ;;bg; contract ignores rest, could be more precise
++       (f (and/sc procedure?/sc (procedure-arity-includes/sc (length args) #f))))
+      (define (sc->constraints v f)
+        (merge-restricts* 'chaperone (map f (arr-seq->list (combinator-args v)))))])
+ 
+diff --git a/typed-racket-lib/typed-racket/static-contracts/combinators/control.rkt b/typed-racket-lib/typed-racket/static-contracts/combinators/control.rkt
+index b44dd44..973da52 100644
+--- a/typed-racket-lib/typed-racket/static-contracts/combinators/control.rkt
++++ b/typed-racket-lib/typed-racket/static-contracts/combinators/control.rkt
+@@ -5,6 +5,7 @@
+ 
+ (require "../../utils/utils.rkt"
+          "../structures.rkt" "../constraints.rkt"
++         (only-in "derived.rkt" prompt-tag?/sc)
+          racket/list racket/match
+          (contract-req)
+          (for-template racket/base racket/contract/base)
+@@ -32,6 +33,8 @@
+                             #`(#:call/cc (values #,@(map f call-cc)))
+                             empty)])
+            #'(prompt-tag/c vals-stx ... call-cc-stx ...))]))
++     (define (sc->constructor/c v f)
++       (f prompt-tag?/sc))
+      (define (sc->constraints v f)
+        (merge-restricts* 'chaperone (map f (pt-seq->list (combinator-args v)))))])
+ 
+diff --git a/typed-racket-lib/typed-racket/static-contracts/combinators/derived.rkt b/typed-racket-lib/typed-racket/static-contracts/combinators/derived.rkt
+index e9a117f..efd7997 100644
+--- a/typed-racket-lib/typed-racket/static-contracts/combinators/derived.rkt
++++ b/typed-racket-lib/typed-racket/static-contracts/combinators/derived.rkt
+@@ -4,7 +4,7 @@
+ ;; These are used during optimizations as simplifications.
+ ;; Ex: (listof/sc any/sc) => list?/sc
+ 
+-(require "simple.rkt" "structural.rkt"
++(require "simple.rkt" "any.rkt"
+          (for-template racket/base racket/list racket/set racket/promise
+                        racket/class racket/unit racket/async-channel))
+ (provide (all-defined-out))
+@@ -20,25 +20,80 @@
+ (define mpair?/sc (flat/sc #'mpair?))
+ 
+ (define set?/sc (flat/sc #'set?))
+-(define empty-set/sc (and/sc set?/sc (flat/sc #'set-empty?)))
+ 
+ (define vector?/sc (flat/sc #'vector?))
+ 
+ (define hash?/sc (flat/sc #'hash?))
+-(define mutable-hash?/sc (and/sc hash?/sc
+-                                 (flat/sc #'(λ (h) (not (immutable? h))))
+-                                 (flat/sc #'(λ (h) (not (hash-weak? h))))))
+-(define immutable-hash?/sc (and/sc hash?/sc (flat/sc #'immutable?)))
+-(define weak-hash?/sc (and/sc hash?/sc (flat/sc #'hash-weak?)))
+-(define empty-hash/sc (and/sc hash?/sc (flat/sc #'(λ (h) (zero? (hash-count h))))))
+ 
++(define sequence?/sc (flat/sc #'sequence?))
+ (define channel?/sc (flat/sc #'channel?))
+ (define async-channel?/sc (flat/sc #'async-channel?))
+ (define thread-cell?/sc (flat/sc #'thread-cell?))
+ (define prompt-tag?/sc (flat/sc #'continuation-prompt-tag?))
+ (define continuation-mark-key?/sc (flat/sc #'continuation-mark-key?))
++(define evt?/sc (flat/sc #'evt?))
+ 
+ (define class?/sc (flat/sc #'class?))
+ (define unit?/sc (flat/sc #'unit?))
+ 
+ (define struct-type?/sc (flat/sc #'struct-type?))
++
++(define procedure?/sc (flat/sc #'procedure?))
++(define parameter?/sc (flat/sc #'parameter?))
++
++(define (procedure-arity-includes/sc n kws-ok)
++  (flat/sc #`(λ (f) (procedure-arity-includes? f '#,n '#,kws-ok))))
++
++(define (procedure-mandatory-keywords/sc pre-kws)
++  (define kws (sort pre-kws keyword<?))
++  (if (null? kws)
++    any/sc
++    (flat/sc
++      #`(λ (f)
++          (let-values ([(mand-kws _) (procedure-keywords f)])
++            (equal? mand-kws '#,kws))))))
++
++(define (procedure-optional-keywords/sc pre-kws)
++  (define kws (sort pre-kws keyword<?))
++  (if (null? kws)
++    any/sc
++    (flat/sc
++      #`(λ (f)
++          (let-values ([(_ opt-kws) (procedure-keywords f)])
++            ;; Goal: "expected" \subseteq "actual"
++            (let loop ([expected-kws '#,kws]
++                       [actual-kws opt-kws])
++              (cond
++               [(null? expected-kws)
++                #true]
++               [(or (null? actual-kws) (keyword<? (car expected-kws) (car actual-kws)))
++                #false]
++               [(keyword<? (car actual-kws) (car expected-kws))
++                (loop expected-kws (cdr actual-kws))]
++               [else
++                (loop (cdr expected-kws) (cdr actual-kws))])))))))
++
++(define (make-procedure-arity-flat/sc num-mand mand-kws opt-kws)
++  (flat/sc
++    #`(λ (f)
++        (and (procedure? f)
++             (procedure-arity-includes? f '#,num-mand '#,(not (null? mand-kws)))
++             #,@(if (null? mand-kws)
++                  #'()
++                  #`((let-values (((f-mand-kws _) (procedure-keywords f)))
++                       (equal? '#,mand-kws f-mand-kws))))
++             #,@(if (null? opt-kws)
++                  #'()
++                  #`((let-values (((_ f-opt-kws) (procedure-keywords f)))
++                       (let loop ((expected-kws '#,(sort opt-kws keyword<?))
++                                  (actual-kws f-opt-kws))
++                         (cond
++                          ((null? expected-kws)
++                           #true)
++                          ((or (null? actual-kws) (keyword<? (car expected-kws) (car actual-kws)))
++                           #false)
++                          ((keyword<? (car actual-kws) (car expected-kws))
++                           (loop expected-kws (cdr actual-kws)))
++                          (else
++                           (loop (cdr expected-kws) (cdr actual-kws))))))))))))
++
+diff --git a/typed-racket-lib/typed-racket/static-contracts/combinators/function.rkt b/typed-racket-lib/typed-racket/static-contracts/combinators/function.rkt
+index 6535c1a..9fff953 100644
+--- a/typed-racket-lib/typed-racket/static-contracts/combinators/function.rkt
++++ b/typed-racket-lib/typed-racket/static-contracts/combinators/function.rkt
+@@ -4,7 +4,15 @@
+ ;; Supports the whole range of possible options that -> does.
+ 
+ (require "../../utils/utils.rkt"
+-         "../structures.rkt" "../constraints.rkt"
++         "../structures.rkt" "../constraints.rkt" "../utils.rkt"
++         (only-in "structural.rkt"
++           and/sc)
++         (only-in "derived.rkt"
++           procedure?/sc
++           procedure-arity-includes/sc
++           procedure-mandatory-keywords/sc
++           procedure-optional-keywords/sc
++           make-procedure-arity-flat/sc)
+          racket/list racket/match
+          (contract-req)
+          (for-template racket/base racket/contract/base "../../utils/simple-result-arrow.rkt")
+@@ -29,6 +37,7 @@
+                                   (define (hash2-proc v recur) (function-sc-hash2 v recur))]
+         #:methods gen:sc
+           [(define (sc->contract v f) (function-sc->contract v f))
++           (define (sc->constructor/c v f) (function-sc->tag-sc v f))
+            (define (sc-map v f) (function-sc-map v f))
+            (define (sc-traverse v f) (function-sc-map v f) (void))
+            (define (sc-terminal-kind v) (function-sc-terminal-kind v))
+@@ -82,6 +91,16 @@
+        #,@rest-ctc-stx
+        . ->* . #,range-ctc)]))
+ 
++(define (function-sc->tag-sc sc recur)
++  (match-define (function-combinator args indices mand-kws opt-kws _) sc)
++  (define-values (mand-scs _opt _mkw _okw _rst _rng)
++    (apply split-function-args args indices))
++  (recur
++    #;(and/sc procedure?/sc
++            (procedure-arity-includes/sc (length mand-scs) (not (null? mand-kws)))
++            (procedure-mandatory-keywords/sc mand-kws)
++            (procedure-optional-keywords/sc opt-kws))
++    (make-procedure-arity-flat/sc (length mand-scs) mand-kws opt-kws)))
+ 
+ (define (function/sc typed-side? mand-args opt-args mand-kw-args opt-kw-args rest range)
+   (define mand-args-end (length mand-args))
+diff --git a/typed-racket-lib/typed-racket/static-contracts/combinators/name.rkt b/typed-racket-lib/typed-racket/static-contracts/combinators/name.rkt
+index 7da0532..f0c724c 100644
+--- a/typed-racket-lib/typed-racket/static-contracts/combinators/name.rkt
++++ b/typed-racket-lib/typed-racket/static-contracts/combinators/name.rkt
+@@ -12,6 +12,7 @@
+ (require "../../utils/utils.rkt"
+          "../structures.rkt"
+          "../constraints.rkt"
++         "../utils.rkt"
+          "../../rep/type-rep.rkt" ; only for contract
+          (contract-req)
+          racket/match
+@@ -100,6 +101,12 @@
+      (void))
+    (define (sc->contract v f)
+      (name-combinator-gen-name v))
++   (define (sc->constructor/c v f)
++     ;;bg; flatten all auxilliary defs
++     (let ([tbl (name-defs-table)])
++       (for ([(k v*) (in-hash tbl)])
++         (hash-set! tbl k (map f v*))))
++     v)
+    (define (sc->constraints v f)
+      (variable-contract-restrict (name-combinator-gen-name v)))])
+ 
+diff --git a/typed-racket-lib/typed-racket/static-contracts/combinators/none.rkt b/typed-racket-lib/typed-racket/static-contracts/combinators/none.rkt
+index 6d67387..fca3a03 100644
+--- a/typed-racket-lib/typed-racket/static-contracts/combinators/none.rkt
++++ b/typed-racket-lib/typed-racket/static-contracts/combinators/none.rkt
+@@ -28,6 +28,7 @@
+           [(define (sc-map v f) v)
+            (define (sc-traverse v f) (void))
+            (define (sc->contract v f) #'none/c)
++           (define (sc->constructor/c v _f) v)
+            (define (sc->constraints v f) (simple-contract-restrict 'flat))]
+         #:methods gen:custom-write [(define write-proc none-write-proc)])
+ 
+diff --git a/typed-racket-lib/typed-racket/static-contracts/combinators/object.rkt b/typed-racket-lib/typed-racket/static-contracts/combinators/object.rkt
+index 4948450..6acff6d 100644
+--- a/typed-racket-lib/typed-racket/static-contracts/combinators/object.rkt
++++ b/typed-racket-lib/typed-racket/static-contracts/combinators/object.rkt
+@@ -30,6 +30,8 @@
+        (void))
+      (define (sc->contract v f)
+        (object/sc->contract v f))
++     (define (sc->constructor/c v f)
++       (raise-user-error 'sc->constructor/c "not implemented for object/sc ~a" v))
+      (define (sc->constraints v f)
+        (merge-restricts* 'impersonator (map f (member-seq->list (combinator-args v)))))])
+ 
+@@ -48,6 +50,8 @@
+           (void)]))
+      (define (sc->contract v f)
+        (class/sc->contract v f))
++     (define (sc->constructor/c v f)
++       (raise-user-error 'sc->constructor/c "not implemented for class/sc ~a" v))
+      (define (sc->constraints v f)
+        (merge-restricts* 'impersonator (map f (member-seq->list (combinator-args v)))))])
+ 
+@@ -66,6 +70,8 @@
+           (void)]))
+      (define (sc->contract v f)
+        (instance/sc->contract v f))
++     (define (sc->constructor/c v f)
++       (raise-user-error 'sc->constructor/c  "not implemented for instance/sc ~a" v))
+      (define (sc->constraints v f)
+        (match v
+          [(instanceof-combinator (list class))
+diff --git a/typed-racket-lib/typed-racket/static-contracts/combinators/parametric.rkt b/typed-racket-lib/typed-racket/static-contracts/combinators/parametric.rkt
+index bfc8c98..e1ad4ae 100644
+--- a/typed-racket-lib/typed-racket/static-contracts/combinators/parametric.rkt
++++ b/typed-racket-lib/typed-racket/static-contracts/combinators/parametric.rkt
+@@ -6,6 +6,7 @@
+   "../../utils/utils.rkt"
+   "../structures.rkt"
+   "../constraints.rkt"
++  "../utils.rkt"
+   "../terminal.rkt"
+   racket/match
+   (contract-req)
+@@ -47,6 +48,10 @@
+        (match v
+         [(parametric-combinator (list arg) vars)
+          #`(parametric->/c #,vars #,(f arg))]))
++     (define (sc->constructor/c v f)
++       (match-define (parametric-combinator (list arg) _) v)
++       ;;bg; assuming it has a constructor that corresponds to a value constructor
++       (f arg))
+      (define (sc->constraints v f)
+        (match v
+         [(parametric-combinator (list arg) vars)
+diff --git a/typed-racket-lib/typed-racket/static-contracts/combinators/proposition.rkt b/typed-racket-lib/typed-racket/static-contracts/combinators/proposition.rkt
+index 9473a9c..5f3a050 100644
+--- a/typed-racket-lib/typed-racket/static-contracts/combinators/proposition.rkt
++++ b/typed-racket-lib/typed-racket/static-contracts/combinators/proposition.rkt
+@@ -70,6 +70,8 @@
+       #`(flat-named-contract
+          #,name
+          (λ (#,(sc->c arg f)) #,(sc->c body f)))])
++   (define (sc->constructor/c v f)
++     (raise-user-error 'sc->constructor/c "not implemented ~a" v))
+    (define/match (sc->constraints v f)
+      [((flat-named-lambda/sc _ arg body) f)
+       (merge-restricts 'flat (f arg) (f body))])
+@@ -102,6 +104,8 @@
+    (define/match (sc->contract v f)
+      [((is-flat-type/sc obj type) f)
+       #`(#,(f type) #,(sc->c obj f))])
++   (define (sc->constructor/c v f)
++     (raise-user-error 'sc->constructor/c "not implemented ~a" v))
+    (define/match (sc->constraints v f)
+      [((is-flat-type/sc obj type) f)
+       (merge-restricts 'flat (f obj) (f type))])])
+@@ -125,6 +129,8 @@
+    (define/generic sc->c sc->contract)
+    (define/match (sc->contract v f)
+      [((not-flat-type/sc obj type) f) #`(not (#,(f type) #,(sc->c obj f)))])
++   (define (sc->constructor/c v f)
++     (raise-user-error 'sc->constructor/c "not implemented ~a" v))
+    (define/match (sc->constraints v f)
+      [((not-flat-type/sc obj type) f)
+       (merge-restricts 'flat (f obj) (f type))])])
+@@ -148,6 +154,8 @@
+    (define/generic sc->c sc->contract)
+    (define/match (sc->contract v f)
+      [((leq/sc lhs rhs) f) #`(<= #,(sc->c lhs f) #,(sc->c rhs f))])
++   (define (sc->constructor/c v f)
++     (raise-user-error 'sc->constructor/c "not implemented ~a" v))
+    (define/match (sc->constraints v f)
+      [((leq/sc lhs rhs) f)
+       (merge-restricts 'flat (f lhs) (f rhs))])])
+@@ -168,6 +176,8 @@
+      [((and-prop/sc args) f)
+       #`(and #,@(for/list ([arg (in-list args)])
+                   (sc->c arg f)))])
++   (define (sc->constructor/c v f)
++     (raise-user-error 'sc->constructor/c "not implemented ~a" v))
+    (define/match (sc->constraints v f)
+      [((and-prop/sc args) f)
+       (merge-restricts* 'flat (map f args))])])
+diff --git a/typed-racket-lib/typed-racket/static-contracts/combinators/simple.rkt b/typed-racket-lib/typed-racket/static-contracts/combinators/simple.rkt
+index 536d95d..d90c902 100644
+--- a/typed-racket-lib/typed-racket/static-contracts/combinators/simple.rkt
++++ b/typed-racket-lib/typed-racket/static-contracts/combinators/simple.rkt
+@@ -18,7 +18,7 @@
+  [impersonator/sc ((syntax?) ((or/c #f any/c)) . ->* . static-contract?)])
+ 
+ (define (simple-contract-write-proc v port mode)
+-  (match-define (simple-contract syntax kind name) v)
++  (match-define (simple-contract syntax kind name _) v)
+   (define-values (open close)
+     (if (equal? mode 0)
+         (values "(" ")")
+@@ -42,7 +42,7 @@
+              (equal?/recur (syntax-e s1) (syntax-e s2) stx-equal?)
+              (equal?/recur s1 s2 stx-equal?))]))
+ 
+-(struct simple-contract static-contract (syntax kind name)
++(struct simple-contract static-contract (syntax kind name maybe-constructor-syntax)
+         #:transparent
+         #:methods gen:equal+hash
+          [(define (equal-proc s1 s2 recur)
+@@ -66,13 +66,27 @@
+          [(define (sc-map v f) v)
+           (define (sc-traverse v f) (void))
+           (define (sc->contract v f) (simple-contract-syntax v))
++          (define (sc->constructor/c v f)
++            (case (simple-contract-kind v)
++             [(flat)
++              (let ([constr-stx (simple-contract-maybe-constructor-syntax v)])
++                (if constr-stx
++                  (simple-contract constr-stx 'flat (simple-contract-name v) #f)
++                  v))]
++             [(chaperone)
++              (let ([constr-stx (simple-contract-maybe-constructor-syntax v)])
++                (if constr-stx
++                  (simple-contract constr-stx 'flat (simple-contract-name v) #f)
++                  (raise-user-error 'sc->constructor/c "chaperone simple contract with no constr-stx ~a" v)))]
++             [(impersonator)
++              (raise-user-error 'sc->constructor/c "impersonator simple contract ~a" v)]))
+           (define (sc->constraints v f) (simple-contract-restrict (simple-contract-kind v)))
+           (define (sc-terminal-kind v) (simple-contract-kind v))]
+         #:methods gen:custom-write [(define write-proc simple-contract-write-proc)])
+ 
+-(define (flat/sc ctc [name #f])
+-  (simple-contract ctc 'flat name))
+-(define (chaperone/sc ctc [name #f])
+-  (simple-contract ctc 'chaperone name))
++(define (flat/sc ctc [name #f] #:tag [tag-stx #f])
++  (simple-contract ctc 'flat name tag-stx))
++(define (chaperone/sc ctc [name #f] #:tag [tag-stx #f])
++  (simple-contract ctc 'chaperone name tag-stx))
+ (define (impersonator/sc ctc [name #f])
+-  (simple-contract ctc 'impersonator name))
+\ No newline at end of file
++  (simple-contract ctc 'impersonator name #false))
+diff --git a/typed-racket-lib/typed-racket/static-contracts/combinators/struct.rkt b/typed-racket-lib/typed-racket/static-contracts/combinators/struct.rkt
+index 1015a83..9d7518a 100644
+--- a/typed-racket-lib/typed-racket/static-contracts/combinators/struct.rkt
++++ b/typed-racket-lib/typed-racket/static-contracts/combinators/struct.rkt
+@@ -4,7 +4,10 @@
+ 
+ (require "../../utils/utils.rkt"
+          "../structures.rkt" "../constraints.rkt"
++         (only-in "derived.rkt" struct-type?/sc)
++         (only-in "simple.rkt" flat/sc)
+          racket/match
++         (only-in racket/syntax format-id)
+          (contract-req)
+          (for-template racket/base racket/contract/base "../../utils/struct-type-c.rkt")
+          (for-syntax racket/base syntax/parse))
+@@ -39,6 +42,9 @@
+        (match v
+         [(struct-combinator args name _)
+          #`(struct/c #,name #,@(map f args))]))
++     (define (sc->constructor/c v _f)
++       (match-define (struct-combinator _ name _) v)
++       (flat/sc (format-id name "~a?" (syntax-e name))))
+      (define (sc->constraints v f)
+        (match v
+         [(struct-combinator args _ mut?)
+@@ -73,6 +79,8 @@
+        (match v
+          [(struct-type/sc args)
+           #`(struct-type/c #f)]))
++     (define (sc->constructor/c _v f)
++       (f struct-type?/sc))
+      (define (sc->constraints v f)
+        (match v
+          [(struct-type/sc args) (simple-contract-restrict 'chaperone)]))])
+diff --git a/typed-racket-lib/typed-racket/static-contracts/combinators/structural.rkt b/typed-racket-lib/typed-racket/static-contracts/combinators/structural.rkt
+index 4bc2ec1..a7c1d27 100644
+--- a/typed-racket-lib/typed-racket/static-contracts/combinators/structural.rkt
++++ b/typed-racket-lib/typed-racket/static-contracts/combinators/structural.rkt
+@@ -3,9 +3,20 @@
+ ;; Static contracts for structural contracts.
+ ;; Ex: list/sc, vectorof/sc
+ 
++(provide
++  ;; also provides all combinator-structs
++  empty-set/sc
++  mutable-hash?/sc
++  immutable-hash?/sc
++  weak-hash?/sc
++  empty-hash/sc)
++
+ (require "../../utils/utils.rkt"
+          "../structures.rkt"
+          "../constraints.rkt"
++         "derived.rkt"
++         "lengths.rkt"
++         "simple.rkt"
+          racket/match
+          (for-syntax racket/base racket/syntax syntax/stx syntax/parse)
+          racket/set
+@@ -109,7 +120,8 @@
+ 
+ (define-syntax (combinator-struct stx)
+   (syntax-parse stx
+-    [(_ sc:static-combinator-form c:expr kind:contract-category-keyword)
++    [(_ sc:static-combinator-form c:expr (~optional pre-constr-sc:expr #:defaults ((pre-constr-sc #'#f))) kind:contract-category-keyword)
++     #:with constr-sc (if (syntax-e #'pre-constr-sc) #'pre-constr-sc #'sc.name)
+      #'(begin
+          (struct sc.struct-name combinator ()
+            #:transparent
+@@ -120,6 +132,10 @@
+               (apply
+                (sc.combinator2 (lambda (args) #`(c #,@args)))
+                (map recur (combinator-args v))))
++            (define (sc->constructor/c v recur)
++              (apply constr-sc
++                     (for/list ([arg (in-list (combinator-args v))])
++                       (recur arg))))
+             (define (sc->constraints v recur)
+               (merge-restricts* 'kind.category-stx (sc.->restricts v recur)))]
+            #:methods gen:equal+hash
+@@ -152,22 +168,31 @@
+ (combinator-structs
+   ((or/sc . (#:covariant)) or/c #:flat)
+   ((and/sc . (#:covariant)) and/c #:flat)
+-  ((list/sc . (#:covariant)) list/c #:flat)
+-  ((listof/sc (#:covariant)) listof #:flat)
+-  ((cons/sc (#:covariant) (#:covariant)) cons/c #:flat)
+-  ((set/sc (#:covariant #:chaperone)) set/c #:flat)
+-  ((vector/sc . (#:invariant)) vector/c #:chaperone)
+-  ((vectorof/sc (#:invariant)) vectorof #:chaperone)
+-  ((promise/sc (#:covariant)) promise-not-name/c #:chaperone)
+-  ((syntax/sc (#:covariant #:flat)) syntax/c #:flat)
+-  ((hash/sc (#:invariant #:flat) (#:invariant)) hash/c #:chaperone)
+-  ((mutable-hash/sc (#:invariant #:flat) (#:invariant)) mutable-hash/c #:chaperone)
+-  ((immutable-hash/sc (#:covariant #:flat) (#:covariant)) immutable-hash/c #:flat)
+-  ((weak-hash/sc (#:invariant #:flat) (#:invariant)) weak-hash/c #:chaperone)
+-  ((box/sc (#:invariant)) box/c #:chaperone)
+-  ((parameter/sc (#:contravariant) (#:covariant)) parameter/c #:chaperone)
+-  ((sequence/sc . (#:covariant)) sequence/c #:impersonator)
+-  ((channel/sc . (#:invariant)) channel/c #:chaperone)
+-  ((continuation-mark-key/sc (#:invariant)) continuation-mark-key/c #:chaperone)
+-  ((evt/sc (#:covariant)) tr:evt/c #:chaperone)
+-  ((async-channel/sc (#:invariant)) async-channel/c #:chaperone))
++  ((list/sc . (#:covariant)) list/c (λ args (list-length/sc (length args))) #:flat)
++  ((listof/sc (#:covariant)) listof (λ (_) list?/sc) #:flat)
++  ((cons/sc (#:covariant) (#:covariant)) cons/c (λ (_x _y) cons?/sc) #:flat)
++  ((set/sc (#:covariant #:chaperone)) set/c (λ (_x) set?/sc) #:flat)
++  ((vector/sc . (#:invariant)) vector/c (λ args (vector-length/sc (length args))) #:chaperone)
++  ((vectorof/sc (#:invariant)) vectorof (λ (_x) vector?/sc) #:chaperone)
++  ((promise/sc (#:covariant)) promise-not-name/c #'(lambda (x) (and (promise? x) (not (promise/name? x))))  #:chaperone)
++  ((syntax/sc (#:covariant #:flat)) syntax/c (λ (_x) syntax?/sc) #:flat)
++  ((hash/sc (#:invariant #:flat) (#:invariant)) hash/c (λ (_x _y)hash?/sc) #:chaperone)
++  ((mutable-hash/sc (#:invariant #:flat) (#:invariant)) mutable-hash/c (λ (_x _y) mutable-hash?/sc) #:chaperone)
++  ((immutable-hash/sc (#:covariant #:flat) (#:covariant)) immutable-hash/c (λ (_x _y) immutable-hash?/sc) #:flat)
++  ((weak-hash/sc (#:invariant #:flat) (#:invariant)) weak-hash/c (λ (_x _y) weak-hash?/sc) #:chaperone)
++  ((box/sc (#:invariant)) box/c (λ (_x) box?/sc) #:chaperone)
++  ((parameter/sc (#:contravariant) (#:covariant)) parameter/c (λ (_x _y) parameter?/sc) #:chaperone)
++  ((sequence/sc . (#:covariant)) sequence/c (λ args sequence?/sc) #:impersonator)
++  ((channel/sc . (#:invariant)) channel/c (λ args channel?/sc) #:chaperone)
++  ((continuation-mark-key/sc (#:invariant)) continuation-mark-key/c (λ (_x) continuation-mark-key?/sc) #:chaperone)
++  ((evt/sc (#:covariant)) tr:evt/c (λ (_x) evt?/sc) #:chaperone)
++  ((async-channel/sc (#:invariant)) async-channel/c (λ (_x) async-channel?/sc) #:chaperone))
++
++(define empty-set/sc (and/sc set?/sc (flat/sc #'set-empty?)))
++
++(define mutable-hash?/sc (and/sc hash?/sc
++                                 (flat/sc #'(λ (h) (not (immutable? h))))
++                                 (flat/sc #'(λ (h) (not (hash-weak? h))))))
++(define immutable-hash?/sc (and/sc hash?/sc (flat/sc #'immutable?)))
++(define weak-hash?/sc (and/sc hash?/sc (flat/sc #'hash-weak?)))
++(define empty-hash/sc (and/sc hash?/sc (flat/sc #'(λ (h) (zero? (hash-count h))))))
+diff --git a/typed-racket-lib/typed-racket/static-contracts/combinators/symbolic-object.rkt b/typed-racket-lib/typed-racket/static-contracts/combinators/symbolic-object.rkt
+index d5d9d17..1b949bf 100644
+--- a/typed-racket-lib/typed-racket/static-contracts/combinators/symbolic-object.rkt
++++ b/typed-racket-lib/typed-racket/static-contracts/combinators/symbolic-object.rkt
+@@ -5,6 +5,7 @@
+ (require
+   "../../utils/utils.rkt"
+   "../structures.rkt"
++  "../utils.rkt"
+   "../constraints.rkt"
+   racket/match
+   racket/generic
+@@ -31,6 +32,8 @@
+   [(define (sc-map v f) v)
+    (define (sc-traverse v f) (void))
+    (define (sc->contract v f) (id/sc-syntax v))
++   (define (sc->constructor/c v f)
++     v)
+    (define (sc->constraints v f) (simple-contract-restrict 'flat))])
+ 
+ ;; a path element access into a symbolic object e.g. (car o)
+@@ -53,6 +56,8 @@
+    (define (sc-traverse v f) (f (acc-obj/sc-obj v) 'covariant))
+    (define/generic sc->c sc->contract)
+    (define (sc->contract v f) #`(#,(acc-obj/sc-acc-stx v) #,(sc->c (acc-obj/sc-obj v) f)))
++   (define (sc->constructor/c v f)
++     (raise-user-error 'sc->constructor/c "not implemented ~a" v))
+    (define (sc->constraints v f) (f (acc-obj/sc-obj v)))])
+ 
+ 
+diff --git a/typed-racket-lib/typed-racket/static-contracts/combinators/unit.rkt b/typed-racket-lib/typed-racket/static-contracts/combinators/unit.rkt
+index 766f666..f9cc949 100644
+--- a/typed-racket-lib/typed-racket/static-contracts/combinators/unit.rkt
++++ b/typed-racket-lib/typed-racket/static-contracts/combinators/unit.rkt
+@@ -27,6 +27,8 @@
+               (void)]))
+          (define (sc->contract v f)
+            (unit/sc->contract v f))
++         (define (sc->constructor/c v f)
++           (raise-user-error 'sc->constructor/c "not implemented for units ~a" v))
+          (define (sc->constraints v f)
+            (merge-restricts* 'chaperone (map f (unit-spec->list (combinator-args v)))))])
+ 
+diff --git a/typed-racket-lib/typed-racket/static-contracts/constructor-reduce.rkt b/typed-racket-lib/typed-racket/static-contracts/constructor-reduce.rkt
+new file mode 100644
+index 0000000..effd052
+--- /dev/null
++++ b/typed-racket-lib/typed-racket/static-contracts/constructor-reduce.rkt
+@@ -0,0 +1,54 @@
++#lang racket/base
++
++;; Reduce a static contract from "a contract for a type"
++;;  into "a contract for a type constructor"
++
++(provide
++  static-contract->constructor/c
++  ;; (-> static-contract? #:contract-depth (or/c #f natural?) static-contract?)
++)
++
++(require
++  (for-syntax racket/base)
++  "combinators.rkt"
++  "utils.rkt"
++  "structures.rkt"
++  racket/match)
++
++;; =============================================================================
++
++(define (static-contract->constructor/c sc #:contract-depth [contract-depth #f])
++  (cond
++   [(exact-nonnegative-integer? contract-depth)
++    (log-static-contract-info "begin (tag-reduce ~a) ~a" contract-depth sc)
++    (define sc+ ((sc-reduce contract-depth) sc 'covariant))
++    (log-static-contract-info "end (tag-reduce ~a) ~a" contract-depth sc+)
++    sc+]
++   [else
++    sc]))
++
++(define (recur sc) (sc->constructor/c sc recur))
++
++(define ((sc-reduce fuel) sc _variance)
++  (cond
++   [(zero? fuel)
++    (sc->constructor/c sc recur)]
++   [else
++    (define fuel--
++      (match sc
++       [(or (case->/sc: _ ...)
++            (arr/sc: _ _ _)
++            (parametric->/sc: _ _)
++            (sealing->/sc: _ _ _)
++            (? recursive-sc?))
++        fuel]
++       [_
++        (- fuel 1)]))
++    (when (= 1 fuel)
++      ;; if it's a name, need to flatten auxiliaries
++      (match sc
++       [(name/sc: _)
++        (sc->constructor/c sc recur)]
++       [_ (void)]))
++    (sc-map sc (sc-reduce fuel--))]))
++
+diff --git a/typed-racket-lib/typed-racket/static-contracts/instantiate.rkt b/typed-racket-lib/typed-racket/static-contracts/instantiate.rkt
+index 9f9297b..d8d73de 100644
+--- a/typed-racket-lib/typed-racket/static-contracts/instantiate.rkt
++++ b/typed-racket-lib/typed-racket/static-contracts/instantiate.rkt
+@@ -15,15 +15,21 @@
+   "combinators/case-lambda.rkt"
+   "combinators/parametric.rkt"
+   "kinds.rkt"
++  "optimize.rkt"
+   "parametric-check.rkt"
+   "structures.rkt"
+   "constraints.rkt"
+-  "equations.rkt")
++  "equations.rkt"
++  "utils.rkt")
+ 
+ (provide/cond-contract
++ [instantiate/optimize
++     (parametric->/c (a) ((static-contract? (-> #:reason (or/c #f string?) a))
++                          (contract-kind? #:cache hash? #:trusted-positive boolean? #:trusted-negative boolean?)
++                          . ->* . (or/c a (list/c (listof syntax?) syntax?))))]
+  [instantiate
+      (parametric->/c (a) ((static-contract? (-> #:reason (or/c #f string?) a))
+-                          (contract-kind? #:cache hash?)
++                          (contract-kind? #:cache hash? #:recursive-kinds (or/c hash? #f))
+                           . ->* . (or/c a (list/c (listof syntax?) syntax?))))]
+  [should-inline-contract? (-> syntax? boolean?)])
+ 
+@@ -33,13 +39,30 @@
+            compute-recursive-kinds
+            instantiate/inner))
+ 
++(define (instantiate/optimize sc fail [kind 'impersonator] #:cache [cache #f] #:trusted-positive [trusted-positive #f] #:trusted-negative [trusted-negative #f])
++  ;;bg;(log-static-contract-info "begin instantiate ~a" sc)
++  (define recursive-kinds
++    (with-handlers [(exn:fail:constraint-failure?
++                    (lambda (exn)
++                      ;; Even if the constraints for `sc` are unsolvable,
++                      ;;  the optimizer might be able to reduce parts of
++                      ;;  `sc` to give a contract with solvable constraints.
++                      ;; This currently happens for the `Any-Syntax` type;
++                      ;;  eventually that won't happen for `Any-Syntax`,
++                      ;;  and at that point maybe we can fail here. -- Ben G.
++                      #f))]
++      (compute-recursive-kinds
++        (contract-restrict-recursive-values (compute-constraints sc kind)))))
++  (define sc/opt (optimize sc #:trusted-positive trusted-positive #:trusted-negative trusted-negative #:recursive-kinds recursive-kinds))
++  (instantiate sc/opt fail kind #:cache cache #:recursive-kinds recursive-kinds))
++
+ ;; kind is the greatest kind of contract that is supported, if a greater kind would be produced the
+ ;; fail procedure is called.
+ ;;
+ ;; The cache is used to share contract definitions across multiple calls to
+ ;; type->contract in a given contract fixup pass. If it's #f then that means don't
+ ;; do any sharing (useful for testing).
+-(define (instantiate sc fail [kind 'impersonator] #:cache [cache #f])
++(define (instantiate sc fail [kind 'impersonator] #:cache [cache #f] #:recursive-kinds [recursive-kinds #f])
+   (if (parametric-check sc)
+       (fail #:reason "multiple parametric contracts are not supported")
+       (with-handlers [(exn:fail:constraint-failure?
+diff --git a/typed-racket-lib/typed-racket/static-contracts/optimize.rkt b/typed-racket-lib/typed-racket/static-contracts/optimize.rkt
+index d3618f6..cd51c29 100644
+--- a/typed-racket-lib/typed-racket/static-contracts/optimize.rkt
++++ b/typed-racket-lib/typed-racket/static-contracts/optimize.rkt
+@@ -17,7 +17,7 @@
+ 
+ 
+ (provide/cond-contract
+- [optimize ((static-contract?) (#:trusted-positive boolean? #:trusted-negative boolean?)
++ [optimize ((static-contract?) (#:trusted-positive boolean? #:trusted-negative boolean? #:recursive-kinds (or/c #f hash?))
+                                . ->* . static-contract?)])
+ 
+ ;; Reduce a static contract to a smaller simpler one that protects in the same way
+@@ -206,7 +206,7 @@
+ 
+ 
+ ;; If we trust a specific side then we drop all contracts protecting that side.
+-(define (optimize sc #:trusted-positive [trusted-positive #f] #:trusted-negative [trusted-negative #f])
++(define (optimize sc #:trusted-positive [trusted-positive #f] #:trusted-negative [trusted-negative #f] #:recursive-kinds [recursive-kinds #f])
+   ;; single-step: reduce and trusted-side-reduce if appropriate
+   (define (single-step sc side)
+     (define trusted
+diff --git a/typed-racket-lib/typed-racket/static-contracts/structures.rkt b/typed-racket-lib/typed-racket/static-contracts/structures.rkt
+index e78bd62..b1d44aa 100644
+--- a/typed-racket-lib/typed-racket/static-contracts/structures.rkt
++++ b/typed-racket-lib/typed-racket/static-contracts/structures.rkt
+@@ -5,7 +5,7 @@
+ (require "../utils/utils.rkt"
+          (contract-req)
+          racket/match racket/list racket/generic 
+-         "kinds.rkt" "constraints.rkt")
++         "kinds.rkt" "constraints.rkt" "utils.rkt")
+ 
+ (provide prop:combinator-name gen:sc)
+ 
+@@ -88,6 +88,10 @@
+   ;; Takes a static contract and returns the corresponding contract.
+   ;; The function argument should be used for sub parts of the static contract.
+   [sc->contract sc f]
++  ;; sc->constructor/c: static-contract? (static-contract? -> static-contract?) -> static-contract?
++  ;; Takes a static contract and returns a weaker static contact that implements a nearly-constant-time check (to see whether the value matches the type constructor)
++  ;; The function argument should be used for sub parts of the static contract.
++  [sc->constructor/c sc f]
+   ;; sc->constraints: static-contract? (static-contract? -> contract-restrict?) -> contract-restrict?
+   ;; Takes a static contract and computes the constraint set for a static contract.
+   ;; The function argument should be used for sub parts of the static contract.
+@@ -123,6 +127,9 @@
+                 (for-each (λ (v) (f v 'covariant)) values)
+                 (f body 'covariant)
+                 (void)]))
++           (define (sc->constructor/c v f)
++             (match-define (recursive-sc names values body) v)
++             (recursive-sc names (map f values) (f body)))
+            (define (sc->constraints v f)
+              (simple-contract-restrict 'impersonator))]
+         #:methods gen:custom-write [(define write-proc recursive-sc-write-proc)])
+@@ -135,6 +142,9 @@
+           [(define (sc-map v f) v)
+            (define (sc-traverse v f) (void))
+            (define (sc->contract v f) (recursive-sc-use-name v))
++           (define (sc->constructor/c v f)
++             (log-static-contract-warning "recursive-sc-use ~a" v)
++             v)
+            (define (sc->constraints v f) (variable-contract-restrict (recursive-sc-use-name v)))]
+         #:methods gen:custom-write [(define write-proc recursive-sc-use-write-proc)])
+ 
+@@ -158,6 +168,7 @@
+   (static-contract? (static-contract? variance/c . -> . static-contract?) . -> . static-contract?)]
+  [sc-traverse (static-contract? (static-contract? variance/c . -> . any/c) . -> . void?)]
+  [sc->contract (static-contract? (static-contract? . -> . syntax?) . -> . syntax?)]
++ [sc->constructor/c (static-contract? (static-contract? . -> . static-contract?) . -> . static-contract?)]
+  [sc->constraints
+   (static-contract? (static-contract? . -> . contract-restrict?) . -> . contract-restrict?)]
+  [sc-terminal-kind (static-contract? . -> . (or/c #f contract-kind?))]
+diff --git a/typed-racket-lib/typed-racket/static-contracts/terminal.rkt b/typed-racket-lib/typed-racket/static-contracts/terminal.rkt
+index ce224d5..182a219 100644
+--- a/typed-racket-lib/typed-racket/static-contracts/terminal.rkt
++++ b/typed-racket-lib/typed-racket/static-contracts/terminal.rkt
+@@ -41,5 +41,9 @@
+            (define (sc->contract v unused-f)
+              (match-define (name args ...) v)
+              body)
++           (define (sc->constructor/c v f)
++             (if (eq? '#:impersonator 'kind)
++               (raise-user-error 'sc->constructor/c "not implemented for non-flat terminal ~a" v)
++               v))
+            (define (sc->constraints v f) (simple-contract-restrict 'kind.sym))
+            (define (sc-terminal-kind v) 'kind.sym)])]))
+diff --git a/typed-racket-lib/typed-racket/static-contracts/utils.rkt b/typed-racket-lib/typed-racket/static-contracts/utils.rkt
+new file mode 100644
+index 0000000..f32a72d
+--- /dev/null
++++ b/typed-racket-lib/typed-racket/static-contracts/utils.rkt
+@@ -0,0 +1,5 @@
++#lang racket/base
++(provide
++  log-static-contract-info
++  log-static-contract-warning)
++(define-logger static-contract)
+diff --git a/typed-racket-lib/typed-racket/tc-setup.rkt b/typed-racket-lib/typed-racket/tc-setup.rkt
+index 0d09233..241e9e1 100644
+--- a/typed-racket-lib/typed-racket/tc-setup.rkt
++++ b/typed-racket-lib/typed-racket/tc-setup.rkt
+@@ -10,10 +10,12 @@
+          (for-syntax racket/base)
+          (for-template racket/base))
+ (lazy-require [typed-racket/optimizer/optimizer (optimize-top)])
++(lazy-require [typed-racket/defender/defender (defend-top)])
+ (lazy-require [typed-racket/typecheck/tc-toplevel (tc-module)])
+ (lazy-require [typed-racket/typecheck/toplevel-trampoline (tc-toplevel-start)])
+ 
+-(provide maybe-optimize init-current-type-names
++(provide maybe-optimize maybe-defend
++         init-current-type-names
+          tc-module/full
+          tc-toplevel/full)
+ 
+@@ -38,6 +40,18 @@
+           (do-time "Optimized")))
+       body))
+ 
++(define (maybe-defend body ctc-cache sc-cache)
++  (if (locally-defensive?)
++      (let ()
++        (do-time "Starting defender")
++        (define extra-def* (box '()))
++        (define body+
++          (for/list ([b (in-list (syntax-e body))])
++            (defend-top b ctc-cache sc-cache extra-def*)))
++        (do-time "Defended")
++        (append (reverse (unbox extra-def*)) body+))
++      body))
++
+ ;; -> Promise<Dict<Name, Type>>
+ ;; initialize the type names for printing
+ (define (init-current-type-names)
+diff --git a/typed-racket-lib/typed-racket/typecheck/tc-app-helper.rkt b/typed-racket-lib/typed-racket/typecheck/tc-app-helper.rkt
+index bc3c912..bdaee08 100644
+--- a/typed-racket-lib/typed-racket/typecheck/tc-app-helper.rkt
++++ b/typed-racket-lib/typed-racket/typecheck/tc-app-helper.rkt
+@@ -19,7 +19,7 @@
+      . ->* . full-tc-results/c)])
+ (define (tc/funapp1 f-stx args-stx ftype0 argtys expected #:check [check? #t])
+   ;; update tooltip-table with inferred function type
+-  (add-typeof-expr f-stx (ret (make-Fun (list ftype0))))
++  (set-typeof-expr f-stx (ret (make-Fun (list ftype0))))
+   (match* (ftype0 argtys)
+     ;; we check that all kw args are optional
+     [((Arrow: dom rest (and kws (list (Keyword: _ _ #f) ...)) rng)
+diff --git a/typed-racket-lib/typed-racket/typecheck/tc-app/tc-app-apply.rkt b/typed-racket-lib/typed-racket/typecheck/tc-app/tc-app-apply.rkt
+index bfd3ace..d77dc3e 100644
+--- a/typed-racket-lib/typed-racket/typecheck/tc-app/tc-app-apply.rkt
++++ b/typed-racket-lib/typed-racket/typecheck/tc-app/tc-app-apply.rkt
+@@ -5,7 +5,7 @@
+          "utils.rkt"
+          syntax/parse racket/match
+          (typecheck signatures)
+-         (types abbrev utils)
++         (types abbrev type-table utils)
+          (rep type-rep)
+ 
+          (for-label
+@@ -26,7 +26,9 @@
+     (match (single-value #'e)
+       [(tc-result1: (ListDots: dty dbound))
+        (ret null null null dty dbound)]
+-      [(tc-result1: (List: ts)) (ret ts)]
++      [(tc-result1: (List: ts))
++       (add-typeof-expr #'f (ret (->* ts (-values ts))))
++       (ret ts)]
+       [_ (tc/apply #'f #'(e))]))
+   (pattern ((~or apply k:apply) f . args)
+     (tc/apply #'f #'args)))
+diff --git a/typed-racket-lib/typed-racket/typecheck/tc-app/tc-app-hetero.rkt b/typed-racket-lib/typed-racket/typecheck/tc-app/tc-app-hetero.rkt
+index 5669740..d2525c2 100644
+--- a/typed-racket-lib/typed-racket/typecheck/tc-app/tc-app-hetero.rkt
++++ b/typed-racket-lib/typed-racket/typecheck/tc-app/tc-app-hetero.rkt
+@@ -49,28 +49,35 @@
+ 
+ 
+ ;; FIXME - Do something with paths in the case that a structure/vector is not mutable
+-(define (tc/hetero-ref i-e es-t vec-t name)
++(define (tc/hetero-ref i-e es-t vec-t name op)
+   (define i-val (tc/index i-e))
+   (define i-bound (length es-t))
+   (cond
+     [(valid-index? i-val i-bound)
+-     (ret (list-ref es-t i-val))]
++     (define return-t (list-ref es-t i-val))
++     (add-typeof-expr op (ret (-> vec-t -Fixnum return-t)))
++     (ret return-t)]
+     [(not i-val)
+-     (ret (apply Un es-t))]
++     (define return-t (apply Un es-t))
++     (add-typeof-expr op (ret (-> vec-t -Fixnum return-t)))
++     (ret return-t)]
+     [else
+      (index-error i-val i-bound i-e vec-t name)]))
+ 
+-(define (tc/hetero-set! i-e es-t val-e vec-t name)
++(define (tc/hetero-set! i-e es-t val-e vec-t name op)
+   (define i-val (tc/index i-e))
+   (define i-bound (length es-t))
+-  (cond 
++  (cond
+     [(valid-index? i-val i-bound)
+-     (tc-expr/check val-e (ret (list-ref es-t i-val)))
++     (define val-t (list-ref es-t i-val))
++     (tc-expr/check val-e (ret val-t))
++     (add-typeof-expr op (ret (-> vec-t -Fixnum val-t -Void)))
+      (ret -Void)]
+     [(not i-val)
+      (define val-t (single-value val-e))
+      (for ((es-type (in-list es-t)))
+        (check-below val-t (ret es-type)))
++     (add-typeof-expr op (ret (-> vec-t -Fixnum val-t -Void)))
+      (ret -Void)]
+     [else
+      (single-value val-e)
+@@ -78,47 +85,53 @@
+ 
+ (define-tc/app-syntax-class (tc/app-hetero expected)
+   #:literal-sets (hetero-literals)
+-  (pattern (~and form ((~or unsafe-struct-ref unsafe-struct*-ref) struct:expr index:expr))
++  (pattern (~and form ((~and op (~or unsafe-struct-ref unsafe-struct*-ref)) struct:expr index:expr))
+     (match (single-value #'struct)
+       [(tc-result1: (and struct-t (app resolve (Struct: _ _ (list (fld: flds _ _) ...) _ _ _))))
+-       (tc/hetero-ref #'index flds struct-t "struct")]
++       (tc/hetero-ref #'index flds struct-t "struct" #'op)]
+       [(tc-result1: (and struct-t (app resolve (Prefab: _ (list flds ...)))))
+-       (tc/hetero-ref #'index flds struct-t "prefab struct")]
++       (tc/hetero-ref #'index flds struct-t "prefab struct" #'op)]
+       [s-ty (tc/app-regular #'form expected)]))
+   ;; vector-ref on het vectors
+-  (pattern (~and form ((~or vector-ref unsafe-vector-ref unsafe-vector*-ref) vec:expr index:expr))
++  (pattern (~and form ((~and op (~or vector-ref unsafe-vector-ref unsafe-vector*-ref)) vec:expr index:expr))
+     (match (single-value #'vec)
+       [(tc-result1: (and vec-t (app resolve (Is-a: (HeterogeneousVector: es)))))
+-       (tc/hetero-ref #'index es vec-t "vector")]
++       (tc/hetero-ref #'index es vec-t "vector" #'op)]
+       [v-ty (tc/app-regular #'form expected)]))
+-  ;; unsafe struct-set! 
+-  (pattern (~and form ((~or unsafe-struct-set! unsafe-struct*-set!) s:expr index:expr val:expr))
++  ;; unsafe struct-set!
++  (pattern (~and form ((~and op (~or unsafe-struct-set! unsafe-struct*-set!)) s:expr index:expr val:expr))
+     (match (single-value #'s)
+       [(tc-result1: (and struct-t (app resolve (Struct: _ _ (list (fld: flds _ _) ...) _ _ _))))
+-       (tc/hetero-set! #'index flds #'val struct-t "struct")]
++       (tc/hetero-set! #'index flds #'val struct-t "struct" #'op)]
+       [s-ty (tc/app-regular #'form expected)]))
+   ;; vector-set! on het vectors
+-  (pattern (~and form ((~or vector-set! unsafe-vector-set! unsafe-vector*-set!) v:expr index:expr val:expr))
++  (pattern (~and form ((~and op (~or vector-set! unsafe-vector-set! unsafe-vector*-set!)) v:expr index:expr val:expr))
+     (match (single-value #'v)
+       [(tc-result1: (and vec-t (app resolve (Is-a: (HeterogeneousVector: es)))))
+-       (tc/hetero-set! #'index es #'val vec-t "vector")]
++       (tc/hetero-set! #'index es #'val vec-t "vector" #'op)]
+       [v-ty (tc/app-regular #'form expected)]))
+-  (pattern (~and form ((~or vector-immutable vector) args:expr ...))
++  (pattern (~and form ((~and op (~or vector-immutable vector)) args:expr ...))
+     (match expected
+       [(tc-result1: (app resolve (Is-a: (Vector: t))))
+-       (ret (make-HeterogeneousVector 
+-              (for/list ([e (in-syntax #'(args ...))])
+-                (tc-expr/check e (ret t))
+-                t)))]
++       (define arg-tys
++         (for/list ([e (in-syntax #'(args ...))])
++           (tc-expr/check e (ret t))
++           t))
++       (define ret-ty
++         (make-HeterogeneousVector arg-tys))
++       (add-typeof-expr #'op (ret (->* arg-tys ret-ty)))
++       (ret ret-ty)]
+       [(tc-result1: (app resolve (Is-a: (HeterogeneousVector: ts))))
+        (cond
+          [(= (length ts) (syntax-length #'(args ...)))
+-          (ret
+-            (make-HeterogeneousVector
+-              (for/list ([e (in-syntax #'(args ...))]
+-                         [t (in-list ts)])
+-                (tc-expr/check/t e (ret t))))
+-            -true-propset)]
++          (define arg-tys
++            (for/list ([e (in-syntax #'(args ...))]
++                       [t (in-list ts)])
++              (tc-expr/check/t e (ret t))))
++          (define ret-ty
++            (make-HeterogeneousVector arg-tys))
++          (add-typeof-expr #'op (ret (->* arg-tys ret-ty : -true-propset)))
++          (ret ret-ty -true-propset)]
+          [else
+           (tc-error/expr
+             "expected vector with ~a elements, but got ~a"
+@@ -136,7 +149,11 @@
+          [_ (continue)])]
+       ;; since vectors are mutable, if there is no expected type, we want to generalize the element type
+       [(or #f (tc-any-results: _) (tc-result1: _))
+-       (ret (make-HeterogeneousVector
+-              (for/list ((e (in-syntax #'(args ...))))
+-                (generalize (tc-expr/t e)))))]
++       (define arg-tys
++         (for/list ((e (in-syntax #'(args ...))))
++           (generalize (tc-expr/t e))))
++       (define ret-ty
++         (make-HeterogeneousVector arg-tys))
++       (add-typeof-expr #'op (ret (->* arg-tys ret-ty)))
++       (ret ret-ty)]
+       [_ (ret Err)])))
+diff --git a/typed-racket-lib/typed-racket/typecheck/tc-app/tc-app-lambda.rkt b/typed-racket-lib/typed-racket/typecheck/tc-app/tc-app-lambda.rkt
+index 68a45d2..f1f69fb 100644
+--- a/typed-racket-lib/typed-racket/typecheck/tc-app/tc-app-lambda.rkt
++++ b/typed-racket-lib/typed-racket/typecheck/tc-app/tc-app-lambda.rkt
+@@ -21,21 +21,37 @@
+   #:for-label
+   (null? pair? null))
+ 
++(define (bg-parse-return r)
++  ;;bg TODO this is bad ... not sure what to do though, should it be AnyValues ???
++  (match r
++    [(tc-result1: t) t]
++    [_ Univ]))
++
+ (define-tc/app-syntax-class (tc/app-lambda expected)
+   #:literal-sets (kernel-literals)
+   ;; let loop
+-  (pattern ((letrec-values ([(lp) (~and lam (#%plain-lambda (args ...) . body))]) lp*:id) . actuals)
++  (pattern ((~and loop (letrec-values ([(lp) (~and lam (#%plain-lambda (args ...) . body))]) lp*:id)) . actuals)
+     #:when expected
+     #:when (not (andmap type-annotation (syntax->list #'(lp args ...))))
+     #:when (free-identifier=? #'lp #'lp*)
+-    (let-loop-check #'lam #'lp #'actuals #'(args ...) #'body expected))
++    (let ([r (let-loop-check #'lam #'lp #'actuals #'(args ...) #'body expected)])
++      (define univ* (for/list ([_arg (in-list (syntax-e #'(args ...)))]) Univ))
++      (add-typeof-expr #'loop (ret (->* univ* Univ)))
++      r))
+   ;; inference for ((lambda
+   (pattern ((~and lam (#%plain-lambda (x ...) . body)) args ...)
+    #:fail-when (plambda-property #'lam) #f
+    #:fail-unless (= (syntax-length #'(x ...))
+                     (syntax-length #'(args ...))) #f
+    #:fail-when (andmap type-annotation (syntax->list #'(x ...))) #f
+-   (tc/let-values #'((x) ...) #'(args ...) #'body expected))
++   (let ([r (tc/let-values #'((x) ...) #'(args ...) #'body expected)])
++     (define arg-ts
++       (for/list ([arg (in-list (syntax-e #'(args ...)))])
++         (match (type-of arg)
++          [(tc-result1: t) t])))
++     (define return-type (bg-parse-return r))
++     (add-typeof-expr #'lam (ret (->* arg-ts return-type)))
++     r))
+   ;; inference for ((lambda with dotted rest
+   (pattern ((~and lam (#%plain-lambda (x ... . rst:id) . body)) args ...)
+    #:fail-when (plambda-property #'lam) #f
+diff --git a/typed-racket-lib/typed-racket/typecheck/tc-app/tc-app-list.rkt b/typed-racket-lib/typed-racket/typecheck/tc-app/tc-app-list.rkt
+index 8fc941e..7c350da 100644
+--- a/typed-racket-lib/typed-racket/typecheck/tc-app/tc-app-list.rkt
++++ b/typed-racket-lib/typed-racket/typecheck/tc-app/tc-app-list.rkt
+@@ -6,7 +6,7 @@
+          "utils.rkt"
+          syntax/parse syntax/stx racket/match racket/sequence
+          (typecheck signatures tc-funapp error-message)
+-         (types abbrev utils substitute)
++         (types abbrev type-table utils substitute)
+          (rep type-rep)
+          (env tvar-env)
+          (prefix-in i: (infer infer))
+@@ -79,7 +79,7 @@
+         [_ (tc/app-regular #'form expected)])))
+   ;; special case for `list'
+   (pattern
+-   (list . args)
++   ((~and op-name list) . args)
+    (let ([args-list (syntax->list #'args)])
+    (match expected
+      [(tc-result1: t)
+@@ -90,6 +90,7 @@
+             (for ([arg (in-list args-list)]
+                   [t (in-list ts)])
+               (tc-expr/check arg (ret t)))
++            (add-typeof-expr #'op-name (ret (->* ts t)))
+             (ret t)]
+            [else
+             (expected-but-got t (-Tuple (map tc-expr/t args-list)))
+@@ -108,29 +109,46 @@
+                                                         [v (in-list vs)])
+                                                (tc-expr/check/t? arg (ret (subst-all subst (make-F v))))))]
+                            #:when (andmap values argtys))
++                (add-typeof-expr #'op-name (ret (->* argtys (-Tuple argtys))))
+                 (ret (-Tuple argtys))))
+             (or result
+                 (begin (expected-but-got t (-Tuple (map tc-expr/t args-list)))
+                        (fix-results expected)))]
+-           [else (ret (-Tuple (map tc-expr/t args-list)))])])]
+-     [_ (ret (-Tuple (map tc-expr/t args-list)))])))
++           [else
++            (define argtys (map tc-expr/t args-list))
++            (add-typeof-expr #'op-name (ret (->* argtys (-Tuple argtys))))
++            (ret (-Tuple argtys))])])]
++     [_
++      (define argtys (map tc-expr/t args-list))
++      (add-typeof-expr #'op-name (ret (->* argtys (-Tuple argtys))))
++      (ret (-Tuple argtys))])))
+   ;; special case for `list*'
+-  (pattern (list* (~between args:expr 1 +inf.0) ...)
+-    (match-let* ([(list tys ... last) (stx-map tc-expr/t #'(args ...))])
+-      (ret (foldr -pair last tys))))
++  (pattern ((~and op-name list*) (~between args:expr 1 +inf.0) ...)
++    (match-let* ([(and arg-ts (list tys ... last)) (stx-map tc-expr/t #'(args ...))])
++      (define return-t (foldr -pair last tys))
++      (add-typeof-expr #'op-name (ret (->* arg-ts return-t)))
++      (ret return-t)))
+   ;; special case for `reverse' to propagate expected type info
+   (pattern ((~and fun (~or reverse k:reverse)) arg)
+     (match expected
+-      [(tc-result1: (Listof: _))
+-       (tc-expr/check #'arg expected)]
++      [(tc-result1: (and return-t (Listof: _)))
++       (begin0
++         (tc-expr/check #'arg expected)
++         (add-typeof-expr #'fun (ret (-> return-t return-t))))]
+       [(tc-result1: (List: ts))
+-       (tc-expr/check #'arg (ret (-Tuple (reverse ts))))
+-       (ret (-Tuple ts))]
++       (define arg-t (-Tuple (reverse ts)))
++       (define return-t (-Tuple ts))
++       (tc-expr/check #'arg (ret arg-t))
++       (add-typeof-expr #'fun (ret (-> arg-t return-t)))
++       (ret return-t)]
+       [_
+        (match (single-value #'arg)
+-         [(tc-result1: (List: ts))
+-          (ret (-Tuple (reverse ts)))]
++         [(tc-result1: (and arg-t (List: ts)))
++          (define return-t (-Tuple (reverse ts)))
++          (add-typeof-expr #'fun (ret (-> arg-t return-t)))
++          (ret return-t)]
+          [(tc-result1: (and r (Listof: t)))
++          (add-typeof-expr #'fun (ret (-> r r)))
+           (ret r)]
+          [arg-ty
+           (tc/funapp #'fun #'(arg) (tc-expr/t #'fun) (list arg-ty) expected)])])))
+diff --git a/typed-racket-lib/typed-racket/typecheck/tc-app/tc-app-special.rkt b/typed-racket-lib/typed-racket/typecheck/tc-app/tc-app-special.rkt
+index 9f83cca..3bd6836 100644
+--- a/typed-racket-lib/typed-racket/typecheck/tc-app/tc-app-special.rkt
++++ b/typed-racket-lib/typed-racket/typecheck/tc-app/tc-app-special.rkt
+@@ -24,8 +24,9 @@
+ (define-tc/app-syntax-class (tc/app-special expected)
+   #:literal-sets (kernel-literals special-literals)
+   ;; parameterize
+-  (pattern (extend-parameterization pmz (~seq params args) ...)
++  (pattern ((~and ep extend-parameterization) pmz (~seq params args) ...)
+     (begin
++      (register-ignored! #'ep)
+       (register-ignored! #'pmz)
+       (for ([param (in-syntax #'(params ...))]
+             [arg (in-syntax #'(args ...))])
+@@ -51,10 +52,12 @@
+                     (list (ret Univ) (single-value #'arg))
+                     expected)]))
+   ;; special-case for not - flip the props
+-  (pattern ((~or false? not) arg)
++  (pattern ((~and op-name (~or false? not)) arg)
+     (match (single-value #'arg)
+       [(tc-result1: t (PropSet: p+ p-) _)
+-       (ret -Boolean (make-PropSet p- p+))]))
++       (define new-prop (make-PropSet p- p+))
++       (add-typeof-expr #'op-name (ret (-> Univ -Boolean new-prop)))
++       (ret -Boolean new-prop)]))
+   ;; special case for (current-contract-region)'s default expansion
+   ;; just let it through without any typechecking, since module-name-fixup
+   ;; is a private function from syntax/location, so this must have been
+diff --git a/typed-racket-lib/typed-racket/typecheck/tc-app/tc-app-values.rkt b/typed-racket-lib/typed-racket/typecheck/tc-app/tc-app-values.rkt
+index 4601a8f..cc70b9d 100644
+--- a/typed-racket-lib/typed-racket/typecheck/tc-app/tc-app-values.rkt
++++ b/typed-racket-lib/typed-racket/typecheck/tc-app/tc-app-values.rkt
+@@ -5,7 +5,7 @@
+          "utils.rkt"
+          syntax/parse racket/match racket/sequence
+          (typecheck signatures tc-funapp)
+-         (types base-abbrev utils)
++         (types base-abbrev abbrev type-table utils)
+ 
+          (for-label racket/base))
+ 
+@@ -18,34 +18,50 @@
+ (define-tc/app-syntax-class (tc/app-values expected)
+   #:literal-sets (values-literals)
+   ;; call-with-values
+-  (pattern (call-with-values prod con)
++  (pattern ((~and op-name call-with-values) prod con)
+     (match (tc/funapp #'prod #'() (tc-expr/t #'prod) null #f)
+       [(tc-results: tcrs #f)
+-       (tc/funapp #'con #'(prod) (tc-expr/t #'con)
+-                  (for/list ([tcr (in-list tcrs)])
+-                    (-tc-results (list tcr) #f))
+-                  expected)]
++       (define r
++         (tc/funapp #'con #'(prod) (tc-expr/t #'con)
++                    (for/list ([tcr (in-list tcrs)])
++                      (-tc-results (list tcr) #f))
++                    expected))
++       (define producer-ts
++         (for/list ([tcr (in-list tcrs)])
++           (match tcr [(tc-result: t) t])))
++       (define return-t
++         (match r [(tc-result1: t) t] [_ Univ])) ;;bg TODO
++       (let ([gen-t (->* '() (-values producer-ts))]
++             [con-t (->* producer-ts return-t)])
++         (add-typeof-expr #'op-name (ret (-> gen-t con-t return-t))))
++       r]
+       [(tc-results: _ (? RestDots?))
+        (tc-error/expr "`call-with-values` with ... is not supported")]
+       [(tc-any-results: _)
+        (tc/app-regular this-syntax expected)]))
+   ;; special case for `values' with single argument
+   ;; we just ignore the values, except that it forces arg to return one value
+-  (pattern (values arg)
+-    (match expected
+-     [(or #f (tc-any-results: _)) (single-value #'arg)]
+-     [(tc-result1: tp)
+-      (single-value #'arg expected)]
+-      ;; Type check the argument, to find other errors
+-     [_ (single-value #'arg)]))
++  (pattern ((~and op-name values) arg)
++    (let ([tc-result
++           (match expected
++            [(or #f (tc-any-results: _))
++             (single-value #'arg)]
++            [(tc-result1: tp)
++             (single-value #'arg expected)]
++             ;; Type check the argument, to find other errors
++            [_ (single-value #'arg)])])
++      (define arg-type (match tc-result [(tc-result1: t) t]))
++      (add-typeof-expr #'op-name (ret (-> arg-type arg-type)))
++      tc-result))
+   ;; handle `values' specially
+-  (pattern (values . args)
++  (pattern ((~and op-name values) . args)
+     (match expected
+       [(or (tc-results: tcrs #f)
+            (bind tcrs '()))
+-       (-tc-results
+-        (for/list ([arg (in-syntax #'args)]
+-                   [tcr (in-list/rest tcrs #f)])
+-          (match (single-value arg (and tcr (-tc-results (list tcr) #f)))
+-            [(tc-results: (list res) #f) res]))
+-        #f)])))
++        (define arg-types
++          (for/list ([arg (in-syntax #'args)]
++                     [tcr (in-list/rest tcrs #f)])
++            (match (single-value arg (and tcr (-tc-results (list tcr) #f)))
++              [(tc-results: (list res) #f) res])))
++        (add-typeof-expr #'op-name (ret (->* arg-types (-values arg-types))))
++        (-tc-results arg-types #f)])))
+diff --git a/typed-racket-lib/typed-racket/typecheck/tc-apply.rkt b/typed-racket-lib/typed-racket/typecheck/tc-apply.rkt
+index 7b81aff..303e8a2 100644
+--- a/typed-racket-lib/typed-racket/typecheck/tc-apply.rkt
++++ b/typed-racket-lib/typed-racket/typecheck/tc-apply.rkt
+@@ -3,7 +3,7 @@
+ (require (rename-in "../utils/utils.rkt" [infer r:infer])
+          racket/match racket/list
+          (typecheck signatures tc-app-helper)
+-         (types utils abbrev substitute)
++         (types utils abbrev substitute type-table)
+          (utils tc-utils)
+          (rep type-rep core-rep values-rep)
+          (r:infer infer))
+@@ -62,27 +62,30 @@
+                    (ormap Keyword-required? kws)))
+      (or
+       (for/or ([arrow (in-list arrows)])
+-        (match arrow
+-          [(Arrow: domain rst _ rng)
+-           ;; Takes a possible substitution and comuptes
+-           ;; the substituted range type if it is not #f
+-           (define (finish substitution)
+-             (and substitution (do-ret (subst-all substitution rng))))
+-
+-           (finish
+-            (infer vars dotted-vars
+-                   (list (-Tuple* arg-tys full-tail-ty))
+-                   (list (-Tuple* domain
+-                                  (match rst
+-                                    ;; the actual work, when we have a * function
+-                                    [(? Type?) (make-Listof rst)]
+-                                    ;; ... function
+-                                    [(RestDots: dty dbound)
+-                                     (make-ListDots dty dbound)]
+-                                    ;; the function has no rest argument,
+-                                    ;; but provides all the necessary fixed arguments
+-                                    [_ -Null])))
+-                   rng))]))
++        (define r
++          (match arrow
++            [(Arrow: domain rst _ rng)
++             ;; Takes a possible substitution and comuptes
++             ;; the substituted range type if it is not #f
++             (define (finish substitution)
++               (and substitution (do-ret (subst-all substitution rng))))
++             (finish
++              (infer vars dotted-vars
++                     (list (-Tuple* arg-tys full-tail-ty))
++                     (list (-Tuple* domain
++                                    (match rst
++                                      ;; the actual work, when we have a * function
++                                      [(? Type?) (make-Listof rst)]
++                                      ;; ... function
++                                      [(RestDots: dty dbound)
++                                       (make-ListDots dty dbound)]
++                                      ;; the function has no rest argument,
++                                      ;; but provides all the necessary fixed arguments
++                                      [_ -Null])))
++                     rng))]))
++          (when r
++            (add-typeof-expr f (ret (make-Fun (list arrow)))))
++          r)
+        (failure))]
+     [(tc-result1: (AnyPoly: _ _ (Fun: '())))
+      (tc-error/expr "Function has no cases")]
+diff --git a/typed-racket-lib/typed-racket/typecheck/tc-funapp.rkt b/typed-racket-lib/typed-racket/typecheck/tc-funapp.rkt
+index 1e5f36c..ee5c79c 100644
+--- a/typed-racket-lib/typed-racket/typecheck/tc-funapp.rkt
++++ b/typed-racket-lib/typed-racket/typecheck/tc-funapp.rkt
+@@ -6,7 +6,7 @@
+          (env tvar-env)
+          (for-syntax syntax/parse racket/base)
+          (types utils subtype resolve abbrev
+-                substitute classes prop-ops)
++                substitute classes prop-ops type-table)
+          (typecheck tc-metafunctions tc-app-helper tc-subst)
+          (rep type-rep)
+          (r:infer infer))
+@@ -78,7 +78,9 @@
+           => (λ (a)
+                ;; then typecheck here -- we call the separate function so that we get
+                ;; the appropriate props/objects
+-               (tc/funapp1 f-stx args-stx a args-res expected #:check #f))]
++               (begin0
++                 (tc/funapp1 f-stx args-stx a args-res expected #:check #f)
++                 (set-typeof-expr f-stx (ret (make-Fun (list a))))))]
+          [else
+           ;; if nothing matched, error
+           (match arrows
+diff --git a/typed-racket-lib/typed-racket/types/type-table.rkt b/typed-racket-lib/typed-racket/types/type-table.rkt
+index 4e9c87a..89df753 100644
+--- a/typed-racket-lib/typed-racket/types/type-table.rkt
++++ b/typed-racket-lib/typed-racket/types/type-table.rkt
+@@ -17,6 +17,7 @@
+ 
+ (provide/cond-contract
+  [add-typeof-expr (syntax? tc-results/c . -> . any/c)]
++ [set-typeof-expr (syntax? tc-results/c . -> . any/c)] ;;bg
+  [type-of (syntax? . -> . tc-results/c)]
+  [reset-type-table (-> any/c)]
+  [type-table->tooltips
+@@ -71,6 +72,13 @@
+      (tooltip (list e) t)))
+   (hash-update! type-table e (λ (res) (merge-tc-results (list t res))) t))
+ 
++(provide maybe-type-of)
++(define (maybe-type-of e)
++  (hash-ref type-table e #false))
++
++(define (set-typeof-expr e t)
++  (hash-set! type-table e t))
++
+ (define (type-of e)
+   (hash-ref type-table e
+             (lambda () (int-err (format "no type for ~a at: ~a line ~a col ~a"
+diff --git a/typed-racket-lib/typed-racket/utils/utils.rkt b/typed-racket-lib/typed-racket/utils/utils.rkt
+index 79da766..867cdbc 100644
+--- a/typed-racket-lib/typed-racket/utils/utils.rkt
++++ b/typed-racket-lib/typed-racket/utils/utils.rkt
+@@ -15,6 +15,8 @@ at least theoretically.
+ (provide
+  ;; optimization
+  optimize?
++ ;; toggle locally-defensive embedding
++ locally-defensive?
+  ;; parameter to toggle linear integer reasoning
+  with-linear-integer-arithmetic?
+  ;; timing
+@@ -42,6 +44,7 @@ at least theoretically.
+  in-assoc)
+ 
+ (define optimize? (make-parameter #t))
++(define locally-defensive? (make-parameter #t))
+ (define with-linear-integer-arithmetic? (make-parameter #f))
+ (define-for-syntax enable-contracts? (and (getenv "PLT_TR_CONTRACTS") #t))
+ 
+@@ -471,4 +474,4 @@ at least theoretically.
+            #t
+            ;; (loop-arg ...)
+            (pos))]]
+-      [blah (raise-syntax-error 'in-assoc "invalid usage" #'blah)])))
+\ No newline at end of file
++      [blah (raise-syntax-error 'in-assoc "invalid usage" #'blah)])))
