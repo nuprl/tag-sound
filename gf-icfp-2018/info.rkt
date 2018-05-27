@@ -20,7 +20,7 @@
   "rackunit-lib"
   "scribble-doc"
 ))
-(define pkg-desc "PLDI 2018 submission")
-(define version "0.0")
+(define pkg-desc "ICFP 2018 submission")
+(define version "1.0")
 (define pkg-authors '(ben))
 
