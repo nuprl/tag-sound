@@ -37,7 +37,6 @@ Migratory typing always starts with a dynamically typed language, whereas gradua
 The name suggests that this inductive-checking, higher-order-wrapping technique
  is the obvious approach to the problem; indeed, earlier work on typed foreign-function
  interfaces@~cite[r-jfp-2008] and remote procedure calls@~cite[ok-popl-2003] used a similar approach.
-Recent work offers a semantic account of why the approach is natural@~cite[fb-flops-2006 nl-fscd-2018].
 
 
 @section{Erasure Embedding}

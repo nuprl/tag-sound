@@ -58,6 +58,9 @@ Indeed, a violation of the types in the source code may go completely unnoticed.
  boundary that is violated by this witness.}
 ]@;
 
+@; In light of the work by New and Licata, only the natural embedding
+@;  can achieve type soundness in the traditional sense@~cite[fb-flops-2006 nl-fscd-2018].
+
 In terms of performance, the picture is much more mixed than the literature
  would suggest. On mixed-typed programs, erasure adds zero overhead,
  locally-defensive checks lead to moderate overhead, and the natural
