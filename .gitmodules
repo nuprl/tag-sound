@@ -14,3 +14,7 @@
 	path = src/scribble
 	url = https://github.com/bennn/scribble
 	branch = icfp-locally-defensive
+[submodule "src/gtp-measure"]
+	path = src/gtp-measure
+	url = https://github.com/bennn/gtp-measure
+	branch = icfp-locally-defensive
