@@ -27,6 +27,7 @@
   tr-definition
   tr-lemma
   tr-counterexample
+  tr-assumption
   tr-convention
   tr-theorem
   tr-corollary
@@ -120,20 +121,14 @@
 
 (define (kind->long-name k)
   (case k
-   [(definition)
-    "Definition"]
-   [(lemma)
-    "Lemma"]
-   [(theorem)
-    "Theorem"]
-   [(corollary)
-    "Corollary"]
-   [(convention)
-    "Convention"]
-   [(counterexample)
-    "Counterexample"]
-   [(example)
-    "Example"]
+   [(assumption) "Assumption"]
+   [(convention) "Convention"]
+   [(corollary) "Corollary"]
+   [(counterexample) "Counterexample"]
+   [(definition) "Definition"]
+   [(example) "Example"]
+   [(lemma) "Lemma"]
+   [(theorem) "Theorem"]
    [else
     (symbol->string k)]))
 
@@ -191,6 +186,9 @@
 
 (define (tr-counterexample name-elem #:key [user-key missing-key] . content*)
   (tr-def name-elem 'counterexample #:key user-key content*))
+
+(define (tr-assumption name-elem #:key [key missing-key] . content*)
+  (tr-def name-elem 'assumption #:key key content*))
 
 (define (tr-convention name-elem #:key [key missing-key] . content*)
   (tr-def name-elem 'convention #:key key content*))

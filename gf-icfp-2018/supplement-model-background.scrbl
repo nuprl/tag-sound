@@ -20,7 +20,7 @@
 @;  If @${\Gamma \vdash e} then @${x,\Gamma \vdash e}
 @;}@|smallskip|
 
-@tr-lemma[@elem{@${\vdash} permutation}]{
+@tr-assumption[@elem{@${\vdash} permutation}]{
 @itemlist[
 @item{
   If @${x,x',\Gamma \vdash e} then @${x',x,\Gamma \vdash e}
