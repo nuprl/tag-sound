@@ -621,17 +621,6 @@ Intuitively, the reduction of any defended expression is well-defined and
 @;   then @${\wellKE v : K}
 @;}
 
-@; --- boundary-free soundness
-@;  @tr-theorem[#:key "E-pure-static" @elem{@${\langE} boundary-free soundness}]{
-@;    If @${\wellM e : \tau} and @${e} does not contain a sub-term of the form
-@;     @${(\edyn{\tau'}{e'})} then one of the following holds:
-@;    @itemlist[
-@;      @item{ @${e \rrEEstar v \mbox{ and } \wellM v : \tau} }
-@;      @item{ @${e \rrEEstar \boundaryerror} }
-@;      @item{ @${e} diverges}
-@;    ]
-@;  }
-
 
 @section[#:tag "sec:practical-semantics"]{From Models to Implementations}
 

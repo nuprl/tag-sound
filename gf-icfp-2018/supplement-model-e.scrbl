@@ -33,9 +33,9 @@
   If @${\wellM e : \tau}
    then @${\wellEE e} and either:
   @itemlist[
-    @item{ @${e \rrEEstar v} and @${\wellEE v} }
-    @item{ @${e \rrEEstar \tagerror} }
-    @item{ @${e \rrEEstar \boundaryerror} }
+    @item{ @${e \rrESstar v} and @${\wellEE v} }
+    @item{ @${e \rrESstar \tagerror} }
+    @item{ @${e \rrESstar \boundaryerror} }
     @item{ @${e} diverges }
   ]
 }@tr-proof{
@@ -52,14 +52,14 @@
 @tr-theorem[#:key "E-pure-static" @elem{@${\langE} static soundness}]{
   If @${\wellM e : \tau} and @${e} is purely static then either:
   @itemlist[
-    @item{ @${e \rrEEstar v \mbox{ and } \wellM v : \tau} }
-    @item{ @${e \rrEEstar \boundaryerror} }
+    @item{ @${e \rrESstar v \mbox{ and } \wellM v : \tau} }
+    @item{ @${e \rrESstar \boundaryerror} }
     @item{ @${e} diverges}
   ]
 }@tr-proof{
   By @tr-ref[#:key "E-pure-static-progress"]{progress}
   and @tr-ref[#:key "E-pure-static-preservation"]{preservation} lemmas for
-  @${\rrEEstar} and @${\wellM}.
+  @${\rrESstar} and @${\wellM}.
 }
 
 @tr-lemma[#:key "E-S-implies" @elem{typing implies well-formedness}]{
@@ -339,9 +339,9 @@
   If @${\wellEE e} then either:
   @itemlist[
     @item{ @${e} is a value }
-    @item{ @${e \ccEE e'} }
-    @item{ @${e \ccEE \tagerror} }
-    @item{ @${e \ccEE \boundaryerror} }
+    @item{ @${e \ccES e'} }
+    @item{ @${e \ccES \tagerror} }
+    @item{ @${e \ccES \boundaryerror} }
   ]
 }@tr-proof{
   By the @|E-uec| lemma, there are six possible cases.
@@ -353,22 +353,22 @@
   @tr-case[@${e = \ctxE{\vapp{v_0}{v_1}}} #:itemize? #f]{
     @tr-if[@${v_0 = \vlam{x}{e'}}]{
       @tr-step[
-        @${e \ccEE \ctxE{\vsubst{e'}{x}{v_1}}}
-        @${\vapp{v_0}{v_1} \rrEE \vsubst{e'}{x}{v_1}}]
+        @${e \ccES \ctxE{\vsubst{e'}{x}{v_1}}}
+        @${\vapp{v_0}{v_1} \rrES \vsubst{e'}{x}{v_1}}]
       @tr-qed[]
     }
     @tr-if[@${v_0 = \vlam{\tann{x}{\tau}}{e'}}]{
       @tr-step[
-        @${e \ccEE \ctxE{\vsubst{e'}{x}{v_1}}}
-        @${\vapp{v_0}{v_1} \rrEE \vsubst{e'}{x}{v_1}}]
+        @${e \ccES \ctxE{\vsubst{e'}{x}{v_1}}}
+        @${\vapp{v_0}{v_1} \rrES \vsubst{e'}{x}{v_1}}]
       @tr-qed[]
     }
     @tr-else[@${v_0 \eeq i
                 @tr-or[4]
                 v_0 \eeq \vpair{v}{v'}}]{
       @tr-step[
-        @${e \ccEE \tagerror}
-        @${\vapp{v_0}{v_1} \rrEE \tagerror}]
+        @${e \ccES \tagerror}
+        @${\vapp{v_0}{v_1} \rrES \tagerror}]
       @tr-qed[]
     }
   }
@@ -376,14 +376,14 @@
   @tr-case[@${e = \ctxE{\eunop{v}}}]{
     @tr-if[@${\delta(\vunop, v) = v'}]{
       @tr-step[
-        @${e \ccEE \ctxE{v'}}
-        @${(\eunop{v}) \rrEE v'}]
+        @${e \ccES \ctxE{v'}}
+        @${(\eunop{v}) \rrES v'}]
       @tr-qed[]
     }
     @tr-else[@${\delta(\vunop, v) \mbox{ is undefined}}]{
       @tr-step[
-        @${e \ccEE \tagerror}
-        @${(\eunop{v}) \rrEE \tagerror}]
+        @${e \ccES \tagerror}
+        @${(\eunop{v}) \rrES \tagerror}]
       @tr-qed[]
     }
   }
@@ -391,42 +391,42 @@
   @tr-case[@${e = \ctxE{\ebinop{v_0}{v_1}}}]{
     @tr-if[@${\delta(\vbinop, v_0, v_1) = v'}]{
       @tr-step[
-        @${e \ccEE \ctxE{v'}}
-        @${(\ebinop{v_0}{v_1}) \rrEE v'}]
+        @${e \ccES \ctxE{v'}}
+        @${(\ebinop{v_0}{v_1}) \rrES v'}]
       @tr-qed[]
     }
     @tr-if[@${\delta(\vbinop, v_0, v_1) = \boundaryerror}]{
       @tr-step[
-        @${e \ccEE \boundaryerror}
-        @${(\ebinop{v_0}{v_1}) \rrEE \boundaryerror}]
+        @${e \ccES \boundaryerror}
+        @${(\ebinop{v_0}{v_1}) \rrES \boundaryerror}]
       @tr-qed[]
     }
     @tr-else[@${\delta(\vbinop, v_0, v_1) \mbox{ is undefined}}]{
       @tr-step[
-        @${e \ccEE \tagerror}
-        @${(\ebinop{v_0}{v_1}) \rrEE \tagerror}]
+        @${e \ccES \tagerror}
+        @${(\ebinop{v_0}{v_1}) \rrES \tagerror}]
       @tr-qed[]
     }
   }
 
   @tr-case[@${e = \ctxE{\edyn{\tau}{v}}}]{
     @tr-step[
-      @${e \ccEE \ctxE{v}}
-      @${\edyn{\tau}{v} \rrEE v}]
+      @${e \ccES \ctxE{v}}
+      @${\edyn{\tau}{v} \rrES v}]
     @tr-qed[]
   }
 
   @tr-case[@${e = \ctxE{\esta{\tau}{v}}}]{
     @tr-step[
-      @${e \ccEE \ctxE{v}}
-      @${\esta{\tau}{v} \rrEE v}]
+      @${e \ccES \ctxE{v}}
+      @${\esta{\tau}{v} \rrES v}]
     @tr-qed[]
   }
 
 }
 
 @tr-lemma[#:key "E-preservation" @elem{@${\langE} preservation}]{
-  If @${\wellEE e} and @${e \ccEE e'} then @${\wellEE e'}.
+  If @${\wellEE e} and @${e \ccES e'} then @${\wellEE e'}.
 }@tr-proof{
   By @|E-uec| there are five cases.
 
@@ -434,7 +434,7 @@
     @tr-step{
       @${v_0 = \vlam{x}{e'} \mbox{ or } v_0 = \vlam{\tann{x}{\tau}}{e'}
          @tr-and[]
-         \ctxE{v_0~v_1} \ccEE \ctxE{\vsubst{e'}{x}{v_1}}}
+         \ctxE{v_0~v_1} \ccES \ctxE{\vsubst{e'}{x}{v_1}}}
     }
     @tr-step[
       @${\wellEE \vapp{v_0}{v_1}}
@@ -460,7 +460,7 @@
 
   @tr-case[@${e = \ctxE{\eunop{v}}}]{
     @tr-step[
-      @${\ctxE{\eunop{v}} \ccEE \ctxE{v'}
+      @${\ctxE{\eunop{v}} \ccES \ctxE{v'}
          @tr-and[]
          \delta(\vunop, v) = v'}]
     @tr-step[
@@ -480,7 +480,7 @@
 
   @tr-case[@${e = \ctxE{\ebinop{v_0}{v_1}}}]{
     @tr-step[
-      @${\ctxE{\ebinop{v_0}{v_1}} \ccEE \ctxE{v'}
+      @${\ctxE{\ebinop{v_0}{v_1}} \ccES \ctxE{v'}
          @tr-and[]
          \delta(\vbinop, v_0, v_1) = v'}]
     @tr-step[
@@ -500,7 +500,7 @@
 
   @tr-case[@${e = \ctxE{\edyn{\tau}{v}}}]{
     @tr-step[
-      @${\ctxE{\edyn{\tau}{v}} \ccEE v}]
+      @${\ctxE{\edyn{\tau}{v}} \ccES v}]
     @tr-step[
       @${\wellEE \edyn{\tau}{v}}
       @|E-hole-typing|]
@@ -514,7 +514,7 @@
 
   @tr-case[@${e = \ctxE{\esta{\tau}{v}}}]{
     @tr-step[
-      @${\ctxE{\esta{\tau}{v}} \ccEE v}]
+      @${\ctxE{\esta{\tau}{v}} \ccES v}]
     @tr-step[
       @${\wellEE \esta{\tau}{v}}
       @|E-hole-typing|]
@@ -531,8 +531,8 @@
   If @${\wellM e : \tau} and @${e} is purely static, then either:
   @itemlist[
     @item{ @${e} is a value }
-    @item{ @${e \ccEE e'} }
-    @item{ @${e \ccEE \boundaryerror} }
+    @item{ @${e \ccES e'} }
+    @item{ @${e \ccES \boundaryerror} }
   ]
 }@tr-proof{
   By the @|E-uec| lemma, there are six cases to consider:
@@ -544,8 +544,8 @@
   @tr-case[@${e = \ctxE{\vapp{v_0}{v_1}}} #:itemize? #f]{
     @tr-if[@${v_0 = \vlam{\tann{x}{\tau'}}{e'}}]{
       @tr-step[
-        @${e \ccEE \ctxE{\vsubst{e'}{x}{v_1}}}
-        @${\vapp{v_0}{v_1} \rrEE \vsubst{e'}{x}{v_1}}]
+        @${e \ccES \ctxE{\vsubst{e'}{x}{v_1}}}
+        @${\vapp{v_0}{v_1} \rrES \vsubst{e'}{x}{v_1}}]
       @tr-qed[]
     }
     @tr-else[@${v_0 = \vlam{x}{e'}
@@ -560,8 +560,8 @@
   @tr-case[@${e = \ctxE{\eunop{v}}}]{
     @tr-if[@${\delta(\vunop, v) = v'}]{
       @tr-step[
-        @${e \ccEE \ctxE{v'}}
-        @${(\eunop{v}) \rrEE v'}]
+        @${e \ccES \ctxE{v'}}
+        @${(\eunop{v}) \rrES v'}]
       @tr-qed[]
     }
     @tr-else[@${\delta(\vunop, v) \mbox{ is undefined}}]{
@@ -572,14 +572,14 @@
   @tr-case[@${e = \ctxE{\ebinop{v_0}{v_1}}}]{
     @tr-if[@${\delta(\vbinop, v_0, v_1) = v'}]{
       @tr-step[
-        @${e \ccEE \ctxE{v'}}
-        @${(\ebinop{v_0}{v_1}) \rrEE v'}]
+        @${e \ccES \ctxE{v'}}
+        @${(\ebinop{v_0}{v_1}) \rrES v'}]
       @tr-qed[]
     }
     @tr-if[@${\delta(\vbinop, v_0, v_1) = \boundaryerror}]{
       @tr-step[
-        @${e \ccEE \boundaryerror}
-        @${(\ebinop{v_0}{v_1}) \rrEE \boundaryerror}]
+        @${e \ccES \boundaryerror}
+        @${(\ebinop{v_0}{v_1}) \rrES \boundaryerror}]
       @tr-qed[]
     }
     @tr-else[@${\delta(\vbinop, v_0, v_1) \mbox{ is undefined}}]{
@@ -598,7 +598,7 @@
 }
 
 @tr-lemma[#:key "E-pure-static-preservation" @elem{@${\langE} pure static preservation}]{
-  If @${\wellM e : \tau} and @${e} is purely static and @${e \ccEE e'}
+  If @${\wellM e : \tau} and @${e} is purely static and @${e \ccES e'}
   then @${\wellM e' : \tau} and @${e'} is purely static.
 }@tr-proof{
   By the @|M-uec| lemma, there are four cases.
@@ -606,7 +606,7 @@
   @tr-case[@${e = \ctxE{\vapp{v_0}{v_1}}}]{
     @tr-if[@${v_0 = \vlam{\tann{x}{\tau_d}}{e'}}]{
       @tr-step[
-        @${\ctxE{v_0~v_1} \ccEE \ctxE{\vsubst{e'}{x}{v_1}}}]
+        @${\ctxE{v_0~v_1} \ccES \ctxE{\vsubst{e'}{x}{v_1}}}]
       @tr-step[
         @${\wellM \eapp{v_0}{v_1} : \tau_c}]
       @tr-step{
@@ -630,7 +630,7 @@
 
   @tr-case[@${e = \ctxE{\eunop{v}}}]{
     @tr-step[
-      @${\ctxE{\eunop{v}} \ccEE \ctxE{v'}
+      @${\ctxE{\eunop{v}} \ccES \ctxE{v'}
          @tr-and[]
          \delta(\vunop, v) = v'}]
     @tr-step[
@@ -644,7 +644,7 @@
 
   @tr-case[@${e = \ctxE{\ebinop{v_0}{v_1}}}]{
     @tr-step[
-      @${\ctxE{\ebinop{v_0}{v_1}} \ccEE \ctxE{v'}
+      @${\ctxE{\ebinop{v_0}{v_1}} \ccES \ctxE{v'}
          @tr-and[]
          \delta(\vbinop, v_0, v_1) = v'}]
     @tr-step[
