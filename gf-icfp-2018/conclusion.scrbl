@@ -24,9 +24,8 @@ The paper contributes two major results. First, it delivers a
  approach@~cite[mf-toplas-2007]. With this framework, we can finally work
  out a systematic comparison of the three current semantics of migratory
  typing @note{In addition to the comparison, it also suggests two alternative
- variants. While we have used these variants as stepping stones to derive the
- locally-defensive semantics systematically from the natural one, we do not
- expect them to have practical value@~cite[gf-tr-2018].}
+ variants that fall between the natural and locally-defensive semantics.
+ The appendix outlines these variants, and the supplement contains the technical details@~cite[gf-tr-2018].}
  @emph{and} capture the locally defensive semantics in such a way that it
  was easy to create the first alternative implementation. 
 
