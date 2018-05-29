@@ -9,6 +9,8 @@
       \\
       \tau & \BNFeq & \tnat \mid \tint \mid \tpair{\tau}{\tau} \mid \tarr{\tau}{\tau}
       \\
+      \Gamma & \BNFeq & \cdot \mid x,\Gamma \mid \tann{x}{\tau},\Gamma
+      \\
       \eerr & \BNFeq & \boundaryerror \mid \tagerror
       \\
       \vresult & \BNFeq & v \mid \eerr
@@ -173,7 +175,7 @@
   \end{array}$
 }
 
-\lblextra{$e \ccES A$}{}{
+\lblextra{$e \ccES e$}{}{
   $\begin{array}{l@{\hspace{0.5em}}c@{\hspace{0.5em}}l}
     \esd[e] & \ccES & \ctxE{e'}
     \\ \sidecond{if $e \rrES e'$}
@@ -199,7 +201,7 @@
   \end{array}$
 }
 
-\lblextra{$e \rrESstar A$}{ reflexive, transitive closure of $\ccES$}{}
-\lblextra{$e \rrEDstar A$}{ reflexive, transitive closure of $\ccED$}{}
+\lblextra{$e \rrESstar e$}{ reflexive, transitive closure of $\ccES$}{}
+\lblextra{$e \rrEDstar e$}{ reflexive, transitive closure of $\ccED$}{}
 
 \end{flushleft}

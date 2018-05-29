@@ -1,26 +1,32 @@
 \begin{flushleft}
 
-\lbl{Language $\langK$}{
-$\begin{array}{l c l}
-  e & \BNFeq & x \mid v \mid e~e \mid \vpair{e}{e} \mid \vunop~e \mid \vbinop~e~e \mid \edyn{\tau}{e} \mid
-\\ & & \esta{\tau}{e} \mid \edyn{\kany}{e} \mid \esta{\kany}{e} \mid
-\\ & & \echk{K}{e}
-\\
-  v & \BNFeq & i \mid \vpair{v}{v} \mid \vlam{x}{e} \mid \vlam{\tann{x}{\tau}}{e}
-\\
-  \tau & \BNFeq & \tnat \mid \tint \mid \tpair{\tau}{\tau} \mid \tau \tarrow \tau
-\\
-  K & \BNFeq & \knat \mid \kint \mid \kpair \mid \kfun \mid \kany
-\\
-  \Gamma & \BNFeq & \cdot \mid x,\Gamma \mid \tann{x}{\tau},\Gamma
-\\
-  A & \BNFeq & e \mid \boundaryerror \mid \tagerror
-\\
-  E & \BNFeq & \ehole \mid E~e \mid v~E \mid
-                  \vpair{E}{e} \mid \vpair{v}{E} \mid \vunop~E \mid
-\\ & &            \ebinop{E}{e} \mid \ebinop{v}{E} \mid \echk{K}{E}
-\end{array}$
-}
+  \lbl{Language $\langK$}{
+    $\begin{array}{l c l}
+      e & \BNFeq & x \mid v \mid e~e \mid \vpair{e}{e} \mid \vunop~e \mid \vbinop~e~e \mid
+      \\ & & \edyn{\tau}{e} \mid \esta{\tau}{e} \mid \echk{K}{e} \mid \edynfake{e} \mid \estafake{e}
+      \\
+      v & \BNFeq & i \mid \vpair{v}{v} \mid \vlam{x}{e} \mid \vlam{\tann{x}{\tau}}{e}
+      \\
+      \tau & \BNFeq & \tnat \mid \tint \mid \tpair{\tau}{\tau} \mid \tau \tarrow \tau
+      \\
+      K & \BNFeq & \knat \mid \kint \mid \kpair \mid \kfun \mid \kany
+      \\
+      \Gamma & \BNFeq & \cdot \mid x,\Gamma \mid \tann{x}{\tau},\Gamma
+      \\
+      \eerr & \BNFeq & \boundaryerror \mid \tagerror
+      \\
+      \vresult & \BNFeq & v \mid \eerr
+      \\
+      \ebase & \BNFeq & \ehole \mid \eapp{\ebase}{e} \mid \eapp{v}{\ebase} \mid
+                     \vpair{\ebase}{e} \mid \vpair{v}{\ebase} \mid
+      \\ & & \eunop{\ebase} \mid \ebinop{\ebase}{e} \mid \ebinop{v}{\ebase} \mid \echk{K}{E}
+      \\
+      \esd & \BNFeq & \ebase \mid \eapp{\esd}{e} \mid \eapp{v}{\esd} \mid
+                      \vpair{\esd}{e} \mid \vpair{v}{\esd} \mid \eunop{\esd} \mid
+      \\ & &          \ebinop{\esd}{e} \mid \ebinop{v}{\esd} \mid \edyn{\tau}{\esd} \mid \esta{\tau}{\esd} \mid
+      \\ & &          \echk{K}{E} \mid \edynfake{\esd} \mid \estafake{\esd}
+    \end{array}$
+  }
 
 %% -----------------------------------------------------------------------------
 %% --- static typing
@@ -30,34 +36,45 @@ $\begin{array}{l c l}
 %% -----------------------------------------------------------------------------
 %% --- tags, completion
 
-\lblmathpar{$K \subk K$}{
-  \inferrule*{
-    K \neq \kany
-  }{
-    K \subk \kany
+  \lblmathparextra{$K \subkeq K$}{}{
+    \inferrule*{
+    }{
+      K \subkeq \kany
+    }
+
+    \inferrule*{
+    }{
+      \knat \subkeq \kint
+    }
+
+    \inferrule*{
+    }{
+      K \subkeq K
+    }
+
+    \inferrule*{
+      K \subkeq K'
+      \\
+      K' \subkeq K''
+    }{
+      K \subkeq K''
+    }
   }
 
-  \inferrule*{
-  }{
-    \knat \subk \kint
+  \lbl{$\tagof{\tau} = K$}{
+    $\begin{array}{l c l}
+      \tagof{\tnat} & = & \knat
+      \\
+      \tagof{\tint} & = & \kint
+      \\
+      \tagof{\tpair{\tau_0}{\tau_1}} & = & \kpair
+      \\
+      \tagof{\tarr{\tau_d}{\tau_c}} & = & \kfun
+    \end{array}$
   }
-}
-
-\fbox{$K \subteq K$} reflexive closure of $\subk$
-
-\lbl{$\tagof{\tau} = K$}{
-$\begin{array}{l c l}
-  \tagof{\tnat} & = & \knat
-\\
-  \tagof{\tint} & = & \kint
-\\
-  \tagof{\tpair{\tau_0}{\tau_1}} & = & \kpair
-\\
-  \tagof{\tarr{\tau_d}{\tau_c}} & = & \kfun
-\end{array}$
-}
 
 %% -----------------------------------------------------------------------------
+
 \lblmathpar{$\Gamma \wellM e \carrow e$}{
   \inferrule*{
   }{
@@ -88,13 +105,13 @@ $\begin{array}{l c l}
     \\\\
     \Gamma \wellM e_1 \carrow e_1'
   }{
-    \Gamma \wellM e_0~e_1 \carrow e_0'~e_1'
+    \Gamma \wellM \eapp{e_0}{e_1} \carrow \eapp{e_0'}{e_1'}
   }
 
   \inferrule*{
     \Gamma \wellM e \carrow e'
   }{
-    \Gamma \wellM \vunop~e \carrow \vunop~e'
+    \Gamma \wellM \eunop{e} \carrow \eunop{e'}
   }
 
   \inferrule*{
@@ -103,6 +120,11 @@ $\begin{array}{l c l}
     \Gamma \wellM e_1 \carrow e_1'
   }{
     \Gamma \wellM \ebinop{e_0}{e_1} \carrow \ebinop{e_0'}{e_1'}
+  }
+
+  \inferrule*{
+  }{
+    \Gamma \wellM \eerr \carrow \eerr
   }
 
   \inferrule*{
@@ -126,7 +148,7 @@ $\begin{array}{l c l}
 
   \inferrule*{
     \Gamma \wellM e_0 : \tau_0 \carrow e_0'
-    \\\\
+    \\
     \Gamma \wellM e_1 : \tau_1 \carrow e_1'
   }{
     \Gamma \wellM \vpair{e_0}{e_1} : \tpair{\tau_0}{\tau_1} \carrow \vpair{e_0'}{e_1'}
@@ -145,17 +167,17 @@ $\begin{array}{l c l}
 
   \inferrule*{
     \Gamma \wellM e_0 : \tarr{\tau_d}{\tau_c} \carrow e_0'
-    \\\\
+    \\
     \Gamma \wellM e_1 : \tau_d \carrow e_1'
     \\
     \tagof{\tau_c} = K
   }{
-    \Gamma \wellM e_0~e_1 : \tau_c \carrow \echk{K}{(e_0'~e_1')}
+    \Gamma \wellM \eapp{e_0}{e_1} : \tau_c \carrow \echk{K}{(\eapp{e_0'}{e_1'})}
   }
 
   \inferrule*{
     \Gamma \wellM e : \tpair{\tau_0}{\tau_1} \carrow e'
-    \\\\
+    \\
     \tagof{\tau_0} = K
   }{
     \Gamma \wellM \efst{e} : \tau_0 \carrow \echk{K}{(\efst{e'})}
@@ -163,7 +185,7 @@ $\begin{array}{l c l}
 
   \inferrule*{
     \Gamma \wellM e : \tpair{\tau_0}{\tau_1} \carrow e'
-    \\\\
+    \\
     \tagof{\tau_1} = K
   }{
     \Gamma \wellM \esnd{e} : \tau_1 \carrow \echk{K}{(\esnd{e'})}
@@ -176,7 +198,20 @@ $\begin{array}{l c l}
     %\\\\
     %\Delta(\vbinop, \tau_0, \tau_1) = \tau
   }{
-    \Gamma \wellM \vbinop~e_0~e_1 : \tau \carrow \vbinop~e_0'~e_1'
+    \Gamma \wellM \ebinop{e_0}{e_1} : \tau \carrow \ebinop{e_0'}{e_1'}
+  }
+
+  \inferrule*{
+    \Gamma \wellM e : \tau' \carrow e'
+    \\\\
+    \tau' \subteq \tau
+  }{
+    \Gamma \wellM e : \tau \carrow e'
+  }
+
+  \inferrule*{
+  }{
+    \Gamma \wellM \eerr : \tau \carrow \eerr
   }
 
   \inferrule*{
@@ -229,13 +264,13 @@ $\begin{array}{l c l}
     \\
     \Gamma \wellKE e_1
   }{
-    \Gamma \wellKE e_0~e_1
+    \Gamma \wellKE \eapp{e_0}{e_1}
   }
 
   \inferrule*{
     \Gamma \wellKE e
   }{
-    \Gamma \wellKE \vunop~e
+    \Gamma \wellKE \eunop{e}
   }
 
   \inferrule*{
@@ -243,19 +278,24 @@ $\begin{array}{l c l}
     \\
     \Gamma \wellKE e_1
   }{
-    \Gamma \wellKE \vbinop~e_0~e_1
+    \Gamma \wellKE \ebinop{e_0}{e_1}
+  }
+
+  \inferrule*{
+  }{
+    \Gamma \wellKE \eerr
   }
 
   \inferrule*{
     \Gamma \wellKE e : \tagof{\tau}
   }{
-    \Gamma \wellKE \esta~\tau~e
+    \Gamma \wellKE \esta{\tau}{e}
   }
 
   \inferrule*{
     \Gamma \wellKE e : \kany
   }{
-    \Gamma \wellKE \esta~\kany~e
+    \Gamma \wellKE \estafake{e}
   }
 }
 
@@ -310,7 +350,7 @@ $\begin{array}{l c l}
     \\\\
     \Gamma \wellKE e_1 : \kany
   }{
-    \Gamma \wellKE e_0~e_1 : \kany
+    \Gamma \wellKE \eapp{e_0}{e_1} : \kany
   }
 
   \inferrule*{
@@ -336,7 +376,20 @@ $\begin{array}{l c l}
     \\\\
     \Delta(\vbinop, K_0, K_1) = K
   }{
-    \Gamma \wellKE \vbinop~e_0~e_1 : K
+    \Gamma \wellKE \ebinop{e_0}{e_1} : K
+  }
+
+  \inferrule*{
+    \Gamma \wellKE e : K'
+    \\
+    K' \subkeq K
+  }{
+    \Gamma \wellKE e : K
+  }
+
+  \inferrule*{
+  }{
+    \Gamma \wellKE \eerr : K
   }
 
   \inferrule*{
@@ -350,7 +403,7 @@ $\begin{array}{l c l}
   \inferrule*{
     \Gamma \wellKE e
   }{
-    \Gamma \wellKE \edyn{\kany}{e} : \kany
+    \Gamma \wellKE \edynfake{e} : \kany
   }
 
   \inferrule*{
@@ -358,113 +411,143 @@ $\begin{array}{l c l}
   }{
     \Gamma \wellKE \echk{K}{e} : K
   }
-
-  \inferrule*{
-    \Gamma \wellKE e : K'
-    \\
-    K' \subk K
-  }{
-    \Gamma \wellKE e : K
-  }
 }
 
-%% -----------------------------------------------------------------------------
-%% --- semantics
+% -----------------------------------------------------------------------------
+% --- semantics
 
 \input{fig:delta.tex}
 
-\lbl{$\mchk{K}{v} = A$}{
-$\begin{array}{l@{~~}c@{~~}l l}
-  \mchk{K}{v} & = & v & \mbox{if $\wellKE v : K$}
-\\
-  \mchk{K}{v} & = & \boundaryerror & \mbox{otherwise}
-\end{array}$
-}
-
-\lbl{$e \rrKD A$}{
-$\begin{array}{l@{~~}c@{~~}l}
-  (\vlam{\tann{x}{\tau}}{e})~v & \rrKD & \esta{\kany}{(\vsubst{e}{x}{v})}
-\\ \multicolumn{3}{l}{\mbox{\quad if $K = \tagof{\tau}$ and $v = \mchk{K}{v}$}}
-\\
-  (\vlam{\tann{x}{\tau}}{e})~v & \rrKD & \boundaryerror
-\\ \multicolumn{3}{l}{\mbox{\quad otherwise}}
-\\
-  \esta{\tau}{v} & \rrKD & v
-\\
-  \esta{\kany}{v} & \rrKD & v
-\\
-  (\vlam{x}{e})~v & \rrKD & \vsubst{e}{x}{v}
-\\
-  v_0~v_1 & \rrKD & \tagerror
-\\\multicolumn{3}{l}{\mbox{\quad if $v_0 \sim i$ or $v_0 \sim \vpair{v}{v'}$}}
-\\
-  \eunop{v} & \rrKD & A
-\\\multicolumn{3}{l}{\mbox{\quad if $A = \delta(\vunop, v)$}}
-\\
-  \eunop{v} & \rrKD & \tagerror
-\\\multicolumn{3}{l}{\mbox{\quad otherwise}}
-\\
-  \ebinop{v_0}{v_1} & \rrKD & A
-\\\multicolumn{3}{l}{\mbox{\quad if $A = \delta(\vbinop, v_0, v_1)$}}
-\\
-  \ebinop{v_0}{v_1} & \rrKD & \tagerror
-\\\multicolumn{3}{l}{\mbox{\quad otherwise}}
-\end{array}$
-}
-
-\lbl{$e \rrKS A$}{
-$\begin{array}{l@{~~}c@{~~}l}
-  (\vlam{x}{e})~v & \rrKS & \edyn{\kany}{(\vsubst{e}{x}{v})}
-\\
-  \edyn{\tau}{v} & \rrKS & \mchk{K}{v}
-\\ \multicolumn{3}{l}{\mbox{\quad where $K = \tagof{\tau}$}}
-\\
-  \edyn{\kany}{v} & \rrKS & v
-\\
-  \echk{K}{v} & \rrKS & \mchk{K}{v}
-\\
-  (\vlam{\tann{x}{\tau_d}}{e})~v & \rrKS & \vsubst{e}{x}{v}
-\\ \multicolumn{3}{l}{\mbox{\quad if $K = \tagof{\tau_d}$ and $v = \mchk{K}{v}$}}
-\\
-  (\vlam{\tann{x}{\tau_d}}{e})~v & \rrKS & \boundaryerror
-\\ \multicolumn{3}{l}{\mbox{\quad otherwise}}
-\\
-  \eunop{v} & \rrKS & A
-\\ \multicolumn{3}{l}{\mbox{\quad if $A = \delta(\vunop, v)$}}
-\\
-  \ebinop{v_0}{v_1} & \rrKS & \delta(\vbinop, v_0, v_1)
-\\ \multicolumn{3}{l}{\mbox{\quad if $A = \delta(\vbinop, v_0, v_1)$}}
-\end{array}$
-}
-
-\lbl{$e \ccKS A$}{
-  $\begin{array}{l@{~~}c@{~~}l@{~~}l}
-  \ctxE{\edyn{\tau}{e}} & \ccKS & \ctxE{\edyn{\tau}{e'}}
-    & \mbox{if $e \ccKD e'$}
-  \\
-  \ctxE{\edyn{\tau}{e}} & \ccKS & A
-    & \mbox{if $e \ccKD A$ and $A \not\in e$}
-  \\
-  \ctxE{e} & \ccKS & \ctxE{e'} & \mbox{if $e \rrKS e'$}
-  \\
-  \ctxE{e} & \ccKS & A         & \mbox{if $e \rrKS A$ and $A \not\in e$}
+\lblextra{$\vfromdynK : \specarrf{\tpair{\tau}{v}}{v}\vphantom{\vfromstaK}$}{}{
+  $\begin{array}{l@{~~}c@{~}l}
+    \efromdynK{\tau}{v} & = & \efromany{\tagof{\tau}}{v}
   \end{array}$
 }
 
-\lbl{$e \ccKD A$}{
-  $\begin{array}{l@{~~}c@{~~}l@{~~}l}
-  \ctxE{\esta{\tau}{e}} & \ccKD & \ctxE{\esta{\tau}{e'}}
-   & \mbox{if $e \ccKS e'$}
-  \\
-  \ctxE{\esta{\tau}{e}} & \ccKD & A
-   & \mbox{if $e \ccKS A$ and $A \not\in e$}
-  \\
-  \ctxE{e} & \ccKD & \ctxE{e'} & \mbox{if $e \rrKD e'$}
-  \\
-  \ctxE{e} & \ccKD & A         & \mbox{if $e \rrKD A$ and $A \not\in e$}
+\lblextra{$\vfromstaK : \specarrf{\tpair{\tau}{v}}{v}$}{}{
+  $\begin{array}{l@{~~}c@{~}l}
+    \efromstaK{\tau}{v} & = & v
   \end{array}$
 }
 
-\fbox{$e \rrKEstar A$} reflexive, transitive closure of $\ccKS$
+\lblextra{$\vfromany : \specarrf{\tpair{K}{v}}{v}$}{}{
+  $\begin{array}{l@{~~}c@{~}l}
+    \efromany{\kfun}{\vlam{x}{e}} & = & \vlam{x}{e}
+    \\
+    \efromany{\kfun}{\vlam{\tann{x}{\tau}}{e}} & = & \vlam{\tann{x}{\tau}}{e}
+    \\
+    \efromany{\kpair}{\vpair{v_0}{v_1}} & = & \vpair{v_0}{v_1}
+    \\
+    \efromany{\kint}{i} & = & i
+    \\
+    \efromany{\knat}{i} & = & i
+    \\ \sidecond{if $i \in \naturals$}
+    \\
+    \efromany{K}{v} & = & \boundaryerror
+    \\ \sidecond{otherwise}
+  \end{array}$
+}
+
+\lbl{$e \rrKS e$}{
+  $\begin{array}{l@{\hspace{0.5em}}c@{\hspace{0.5em}}l}
+    \eapp{(\vlam{\tann{x}{\tau}}{e})}{v} & \rrKS
+    & \boundaryerror
+    \\ \sidecond{if $\efromany{\tagof{\tau}}{v} = \boundaryerror$}
+    \\
+    \eapp{(\vlam{\tann{x}{\tau}}{e})}{v} & \rrKS
+    & \vsubst{e}{x}{\efromany{\tagof{\tau}}{v}}
+    \\
+    \eapp{(\vlam{x}{e})}{v} & \rrKS
+    & \edynfake{(\vsubst{e}{x}{v})}
+    \\
+    \echk{K}{v} & \rrKS
+    & \efromany{K}{v}
+    \\
+    \eunop{v} & \rrKS
+    & \delta(\vunop, v)
+    \\
+    \ebinop{v_0}{v_1} & \rrKS
+    & \delta(\vbinop, v_0, v_1)
+  \end{array}$
+}
+
+\lbl{$e \rrKD e$}{
+  $\begin{array}{l@{\hspace{0.5em}}c@{\hspace{0.5em}}l}
+    \eapp{v_0}{v_1} & \rrKD & \tagerror
+    \\ \sidecond{if $v_0 \in \integers$ or $v_0 = \vpair{v}{v'}$}
+    \\
+    \eapp{(\vlam{\tann{x}{\tau}}{e})}{v} & \rrKD
+    & \boundaryerror
+    \\ \sidecond{if $\efromany{\tagof{\tau}}{v} = \boundaryerror$}
+    \\
+    \eapp{(\vlam{\tann{x}{\tau}}{e})}{v} & \rrKD
+    & \estafake{(\vsubst{e}{x}{\efromany{\tagof{\tau}}{v}})}
+    \\
+    (\vlam{x}{e})~v & \rrKD & \vsubst{e}{x}{v}
+    \\
+    \eunop{v} & \rrKD
+    & \tagerror
+    \\ \sidecond{if $\delta(\vunop, v)$ is undefined}
+    \\
+    \eunop{v} & \rrKD
+    & \delta(\vunop, v)
+    \\
+    \ebinop{v_0}{v_1} & \rrKD
+    & \tagerror
+    \\ \sidecond{if $\delta(\vbinop, v_0, v_1)$ is undefined}
+    \\
+    \ebinop{v_0}{v_1} & \rrKD
+    & \delta(\vbinop, v_0, v_1)
+  \end{array}$
+}
+
+\lbl{$e \ccKS e$}{
+  $\begin{array}{l@{\hspace{0.5em}}c@{\hspace{0.5em}}l}
+    \ebase[e] & \ccKS & \ebase[e']
+    \\ \sidecond{if $e \rrKS e'$}
+    \\
+    \esd[\estafake{v}] & \ccKS & \esd[v]
+    \\
+    \esd[\edynfake{v}] & \ccKS & \esd[v]
+    \\
+    \esd[\esta{\tau}{v}] & \ccKS & \esd[\efromsta{\tau}{v}]
+    \\
+    \esd[\edyn{\tau}{v}] & \ccKS & \esd[\efromdyn{\tau}{v}]
+    \\
+    \esd[\esta{\tau}{\ebase[e]}] & \ccKS & \esd[\esta{\tau}{\ebase[e']}]
+    \\ \sidecond{if $e \rrKS e'$}
+    \\
+    \esd[\edyn{\tau}{\ebase[e]}] & \ccKS & \esd[\edyn{\tau}{\ebase[e']}]
+    \\ \sidecond{if $e \rrKD e'$}
+    \\
+    \esd[\eerr] & \ccKS & \eerr
+  \end{array}$
+}
+
+\lbl{$e \ccKD e$}{
+  $\begin{array}{l@{\hspace{0.5em}}c@{\hspace{0.5em}}l}
+    \ebase[e] & \ccKD & \ebase[e']
+    \\ \sidecond{if $e \rrKD e'$}
+    \\
+    \esd[\estafake{v}] & \ccKD & \esd[v]
+    \\
+    \esd[\edynfake{v}] & \ccKD & \esd[v]
+    \\
+    \esd[\esta{\tau}{v}] & \ccKD & \esd[\efromsta{\tau}{v}]
+    \\
+    \esd[\edyn{\tau}{v}] & \ccKD & \esd[\efromdyn{\tau}{v}]
+    \\
+    \esd[\esta{\tau}{\ebase[e]}] & \ccKD & \esd[\esta{\tau}{\ebase[e']}]
+    \\ \sidecond{if $e \rrKS e'$}
+    \\
+    \esd[\edyn{\tau}{\ebase[e]}] & \ccKD & \esd[\edyn{\tau}{\ebase[e']}]
+    \\ \sidecond{if $e \rrKD e'$}
+    \\
+    \esd[\eerr] & \ccKD & \eerr
+  \end{array}$
+}
+
+\lblextra{$e \rrKSstar e$}{ reflexive, transitive closure of $\ccKS$}{}
+\lblextra{$e \rrKDstar e$}{ reflexive, transitive closure of $\ccKD$}{}
 
 \end{flushleft}

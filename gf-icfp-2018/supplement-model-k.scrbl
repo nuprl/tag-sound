@@ -67,9 +67,9 @@
    @${\wellKE e^+ : K}
    and either:
 @itemlist[
-  @item{ @${e^+ \rrKEstar v} and @${\wellKE v : K} }
-  @item{ @${e^+ \rrKEstar \ctxE{\edyn{\tau'}{e'}} \mbox{ and } e' \ccKD \tagerror} }
-  @item{ @${e^+ \rrKEstar \boundaryerror} }
+  @item{ @${e^+ \rrKSstar v} and @${\wellKE v : K} }
+  @item{ @${e^+ \rrKSstar \ctxE{\edyn{\tau'}{e'}} \mbox{ and } e' \ccKD \tagerror} }
+  @item{ @${e^+ \rrKSstar \boundaryerror} }
   @item{ @${e^+} diverges }
 ]}@tr-proof{
   @itemlist[#:style 'ordered
@@ -88,14 +88,14 @@
 @tr-theorem[#:key "K-pure-static" @elem{@${\langK} static soundness}]{
   If @${\wellM e : \tau} and @${e} is purely static then either:
   @itemlist[
-    @item{ @${e \rrKEstar v \mbox{ and } \wellM v : \tau} }
-    @item{ @${e \rrKEstar \boundaryerror} }
+    @item{ @${e \rrKSstar v \mbox{ and } \wellM v : \tau} }
+    @item{ @${e \rrKSstar \boundaryerror} }
     @item{ @${e} diverges}
   ]
 }@tr-proof{
   By @tr-ref[#:key "K-pure-static-progress"]{progress}
   and @tr-ref[#:key "K-pure-static-preservation"]{preservation} lemmas for
-  @${\rrKEstar} and @${\wellM}.
+  @${\rrKSstar} and @${\wellM}.
 }
 
 @; -----------------------------------------------------------------------------

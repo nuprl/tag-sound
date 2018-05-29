@@ -1,6 +1,11 @@
 \lblmathparextra{$K \subkeq K$}{}{
   \inferrule*{
   }{
+    K \subkeq \kany
+  }
+
+  \inferrule*{
+  }{
     \knat \subkeq \kint
   }
 
@@ -10,9 +15,11 @@
   }
 
   \inferrule*{
-    K \neq \kany
+    K \subkeq K'
+    \\
+    K' \subkeq K''
   }{
-    K \subkeq \kany
+    K \subkeq K''
   }
 }
 
@@ -29,19 +36,6 @@
     \Gamma \wellKE x
   }
 
-%  \inferrule*{
-%  }{
-%    \Gamma \wellKE i
-%  }
-%
-%  \inferrule*{
-%    \Gamma \wellKE e_0
-%    \\
-%    \Gamma \wellKE e_1
-%  }{
-%    \Gamma \wellKE \vpair{e_0}{e_1}
-%  }
-%
   \inferrule*{
     x,\Gamma \wellKE e
   }{
@@ -54,28 +48,6 @@
     \Gamma \wellKE \vlam{\tann{x}{\tau}}{e}
   }
 
-%  \inferrule*{
-%    \Gamma \wellKE e_0
-%    \\
-%    \Gamma \wellKE e_1
-%  }{
-%    \Gamma \wellKE e_0~e_1
-%  }
-%
-%  \inferrule*{
-%    \Gamma \wellKE e
-%  }{
-%    \Gamma \wellKE \vunop~e
-%  }
-%
-%  \inferrule*{
-%    \Gamma \wellKE e_0
-%    \\
-%    \Gamma \wellKE e_1
-%  }{
-%    \Gamma \wellKE \vbinop~e_0~e_1
-%  }
-%
   \inferrule*{
     \Gamma \wellKE e : \tagof{\tau}
   }{
@@ -140,7 +112,7 @@
     \\
     \Gamma \wellKE e_1 : \kany
   }{
-    \Gamma \wellKE e_0~e_1 : \kany
+    \Gamma \wellKE \eapp{e_0}{e_1} : \kany
   }
 
   \inferrule*{
@@ -166,7 +138,7 @@
     \\\\
     \Delta(\vbinop, K_0, K_1) = K
   }{
-    \Gamma \wellKE \vbinop~e_0~e_1 : K
+    \Gamma \wellKE \ebinop{e_0}{e_1} : K
   }
 
   \inferrule*{

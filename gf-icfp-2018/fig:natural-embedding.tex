@@ -10,6 +10,8 @@
       \\
       \tau & \BNFeq & \tnat \mid \tint \mid \tpair{\tau}{\tau} \mid \tarr{\tau}{\tau}
       \\
+      \Gamma & \BNFeq & \cdot \mid x,\Gamma \mid \tann{x}{\tau},\Gamma
+      \\
       \eerr & \BNFeq & \boundaryerror \mid \tagerror
       \\
       \vresult & \BNFeq & v \mid \eerr
@@ -210,8 +212,8 @@
   \end{array}$
 }
 
-\lbl{$e \rrNS A$}{
-$\begin{array}{l@{~~}c@{~~}l}
+\lbl{$e \rrNS e$}{
+  $\begin{array}{l@{\hspace{0.5em}}c@{\hspace{0.5em}}l}
   \eapp{(\vmonfun{(\tarr{\tau_d}{\tau_c})}{v_f})}{v} & \rrNS
   & \edyn{\tau_c}{(\eapp{v_f}{(\esta{\tau_d}{v})})}
   \\
@@ -226,34 +228,34 @@ $\begin{array}{l@{~~}c@{~~}l}
 \end{array}$
 }
 
-\lbl{$e \rrND A$}{
-$\begin{array}{l@{~~}c@{~~}l}
-  \eapp{v_0}{v_1} & \rrND & \tagerror
-  \\ \sidecond{if $v_0 \in \integers$ or $v_0 = \vpair{v}{v'}$}
-  \\
-  \eapp{(\vmonfun{\tarr{\tau_d}{\tau_c}}{v_f})}{v} & \rrND
-  & \esta{\tau_c}{(\eapp{v_f}{(\edyn{\tau_d}{v})})}
-  \\
-  (\vlam{x}{e})~v & \rrND & \vsubst{e}{x}{v}
-  \\
-  \eunop{v} & \rrND
-  & \tagerror
-  \\ \sidecond{if $\delta(\vunop, v)$ is undefined}
-  \\
-  \eunop{v} & \rrND
-  & \delta(\vunop, v)
-  \\
-  \ebinop{v_0}{v_1} & \rrND
-  & \tagerror
-  \\ \sidecond{if $\delta(\vbinop, v_0, v_1)$ is undefined}
-  \\
-  \ebinop{v_0}{v_1} & \rrND
-  & \delta(\vbinop, v_0, v_1)
-\end{array}$
+\lbl{$e \rrND e$}{
+  $\begin{array}{l@{\hspace{0.5em}}c@{\hspace{0.5em}}l}
+    \eapp{v_0}{v_1} & \rrND & \tagerror
+    \\ \sidecond{if $v_0 \in \integers$ or $v_0 = \vpair{v}{v'}$}
+    \\
+    \eapp{(\vmonfun{\tarr{\tau_d}{\tau_c}}{v_f})}{v} & \rrND
+    & \esta{\tau_c}{(\eapp{v_f}{(\edyn{\tau_d}{v})})}
+    \\
+    \eapp{(\vlam{x}{e})}{v} & \rrND & \vsubst{e}{x}{v}
+    \\
+    \eunop{v} & \rrND
+    & \tagerror
+    \\ \sidecond{if $\delta(\vunop, v)$ is undefined}
+    \\
+    \eunop{v} & \rrND
+    & \delta(\vunop, v)
+    \\
+    \ebinop{v_0}{v_1} & \rrND
+    & \tagerror
+    \\ \sidecond{if $\delta(\vbinop, v_0, v_1)$ is undefined}
+    \\
+    \ebinop{v_0}{v_1} & \rrND
+    & \delta(\vbinop, v_0, v_1)
+  \end{array}$
 }
 
-\lbl{$e \ccNS A$}{
-  $\begin{array}{l@{~~}c@{~~}l@{~~}l}
+\lbl{$e \ccNS e$}{
+  $\begin{array}{l@{\hspace{0.5em}}c@{\hspace{0.5em}}l}
     \ebase[e] & \ccNS & \ebase[e']
     \\ \sidecond{if $e \rrNS e'$}
     \\
@@ -271,8 +273,8 @@ $\begin{array}{l@{~~}c@{~~}l}
   \end{array}$
 }
 
-\lbl{$e \ccND A$}{
-    $\begin{array}{l@{\hspace{0.5em}}c@{\hspace{0.5em}}l}
+\lbl{$e \ccND e$}{
+  $\begin{array}{l@{\hspace{0.5em}}c@{\hspace{0.5em}}l}
       \ebase[e] & \ccND & \ebase[e']
       \\ \sidecond{if $e \rrND e'$}
       \\

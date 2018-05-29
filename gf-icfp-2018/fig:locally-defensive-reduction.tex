@@ -38,7 +38,7 @@
     \\\\
     \tagof{\tau_c} = K
   }{
-    \Gamma \wellM e_0~e_1 : \tau_c \carrow \echk{K}{(e_0'~e_1')}
+    \Gamma \wellM \eapp{e_0}{e_1} : \tau_c \carrow \echk{K}{(\eapp{e_0'}{e_1'})}
   }
 
 
@@ -62,7 +62,7 @@
 \begin{TwoColumn}
   \lblextra{$\vfromdynK : \specarrf{\tpair{\tau}{v}}{v}\vphantom{\vfromstaK}$}{}{
     $\begin{array}{l@{~~}c@{~}l}
-      \efromdynK{\tau}{v} & = & \mchk{\tagof{\tau}}{v}
+      \efromdynK{\tau}{v} & = & \efromany{\tagof{\tau}}{v}
     \end{array}$
   }
 
@@ -108,18 +108,18 @@
   % this one "inherits", because it changes typed function application
   \lblextra{$e \rrKS e$}{ extends and overrides $\rrS$}{
     $\begin{array}{l@{\hspace{0.5em}}c@{\hspace{0.5em}}l}
-      (\vlam{\tann{x}{\tau}}{e})~v & \rrKS
+      \eapp{(\vlam{\tann{x}{\tau}}{e})}{v} & \rrKS
       & \boundaryerror
-      \\ \sidecond{if $\mchk{\tagof{\tau}}{v} = \boundaryerror$}
+      \\ \sidecond{if $\efromany{\tagof{\tau}}{v} = \boundaryerror$}
       \\
-      (\vlam{\tann{x}{\tau}}{e})~v & \rrKS
-      & \vsubst{e}{x}{\mchk{\tagof{\tau}}{v}}
+      \eapp{(\vlam{\tann{x}{\tau}}{e})}{v} & \rrKS
+      & \vsubst{e}{x}{\efromany{\tagof{\tau}}{v}}
       \\
-      (\vlam{x}{e})~v & \rrKS
+      \eapp{(\vlam{x}{e})}{v} & \rrKS
       & \edynfake{(\vsubst{e}{x}{v})}
       \\
       \echk{K}{v} & \rrKS
-      & \mchk{K}{v}
+      & \efromany{K}{v}
   %    \eunop{v} & \rrKS
   %    & e
   %    & \mbox{if $\delta(\vunop, v) = e$}
@@ -134,12 +134,12 @@
 
   \lblextra{$e \rrKD e$}{ extends $\rrD$}{
     $\begin{array}{l@{\hspace{0.5em}}c@{\hspace{0.5em}}l}
-      (\vlam{\tann{x}{\tau}}{e})~v & \rrKD
+      \eapp{(\vlam{\tann{x}{\tau}}{e})}{v} & \rrKD
       & \boundaryerror
-      \\ \sidecond{if $\mchk{\tagof{\tau}}{v} = \boundaryerror$}
+      \\ \sidecond{if $\efromany{\tagof{\tau}}{v} = \boundaryerror$}
       \\
-      (\vlam{\tann{x}{\tau}}{e})~v & \rrKD
-      & \estafake{(\vsubst{e}{x}{\mchk{\tagof{\tau}}{v}})}
+      \eapp{(\vlam{\tann{x}{\tau}}{e})}{v} & \rrKD
+      & \estafake{(\vsubst{e}{x}{\efromany{\tagof{\tau}}{v}})}
     \end{array}$
   }
 \end{TwoColumn}
