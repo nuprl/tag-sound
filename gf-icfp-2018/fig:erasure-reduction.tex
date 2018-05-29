@@ -6,14 +6,26 @@
 
 \begin{TwoColumn}
 
+  \lblextra{$\vfromdynE : \specarrf{\tpair{\tau}{v}}{e}\vphantom{\vfromstaE}$}{}{
+    $\begin{array}{l@{~~}c@{~}l}
+      \efromdynE{\tau}{v} & = & v
+    \end{array}$
+  }
+
+  \multicolsbreak
+
+  \lblextra{$\vfromstaE : \specarrp{\tpair{\tau}{v}}{e}$}{}{
+    $\begin{array}{l@{~~}c@{~}l}
+      \efromstaE{\tau}{v} & = & v
+    \end{array}$
+  }
+
+\end{TwoColumn}
+
+\begin{TwoColumn}
+
   \lblextra{$e \rrES e$}{ extends $\rrS$}{
     $\begin{array}{l@{\hspace{0.5em}}c@{\hspace{0.5em}}l}
-      \esta{\tau}{v} & \rrES
-      & v
-      \\
-      \edyn{\tau}{v} & \rrES
-      & v
-      \\
       (\vlam{x}{e})~v & \rrES
       & \vsubst{e}{x}{v}
       \\
@@ -35,12 +47,6 @@
 
   \lblextra{$e \rrED e$}{ extends $\rrD$}{
     $\begin{array}{l@{\hspace{0.5em}}c@{\hspace{0.5em}}l}
-      \esta{\tau}{v} & \rrED
-      & v
-      \\
-      \edyn{\tau}{v} & \rrED
-      & v
-      \\
       (\vlam{\tann{x}{\tau_d}}{e})~v & \rrED
       & \vsubst{e}{x}{v}
     \end{array}$
@@ -54,6 +60,10 @@
       \esd[e] & \ccES & \ctxE{e'}
       \\ \sidecond{if $e \rrES e'$}
       \\
+      \esd[\esta{\tau}{v}] & \ccED & \esd[\efromstaE{\tau}{v}]
+      \\
+      \esd[\edyn{\tau}{v}] & \ccED & \esd[\efromdynE{\tau}{v}]
+      \\
       \esd[\eerr] & \ccES & \eerr
     \end{array}$
   }
@@ -65,6 +75,10 @@
     $\begin{array}{l@{\hspace{0.5em}}c@{\hspace{0.5em}}l}
       \esd[e] & \ccED & \ctxE{e'}
       \\ \sidecond{if $e \rrED e'$}
+      \\
+      \esd[\esta{\tau}{v}] & \ccED & \esd[\efromstaE{\tau}{v}]
+      \\
+      \esd[\edyn{\tau}{v}] & \ccED & \esd[\efromdynE{\tau}{v}]
       \\
       \esd[\eerr] & \ccED & \eerr
     \end{array}$
