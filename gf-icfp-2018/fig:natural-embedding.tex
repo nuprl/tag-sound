@@ -78,7 +78,7 @@
 
   \inferrule*{
   }{
-    \Gamma \wellM \eerr
+    \Gamma \wellNE \eerr
   }
 
   \inferrule*{
@@ -162,7 +162,7 @@
 
   \inferrule*{
   }{
-    \Gamma \wellM \eerr : \tau
+    \Gamma \wellNE \eerr : \tau
   }
 
   \inferrule*{
@@ -180,7 +180,7 @@
 
 %% -----------------------------------------------------------------------------
 %% --- semantics
-\newpage
+
 \input{fig:delta.tex}
 
 \lblextra{$\vfromdynN : \specarrf{\tpair{\tau}{v}}{e}\vphantom{\vfromstaN}$}{}{

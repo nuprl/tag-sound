@@ -3,7 +3,7 @@
   \lbl{Language $\langK$}{
     $\begin{array}{l c l}
       e & \BNFeq & x \mid v \mid e~e \mid \vpair{e}{e} \mid \vunop~e \mid \vbinop~e~e \mid
-      \\ & & \edyn{\tau}{e} \mid \esta{\tau}{e} \mid \echk{K}{e} \mid \edynfake{e} \mid \estafake{e}
+      \\ & & \edyn{\tau}{e} \mid \esta{\tau}{e} \mid \eerr \mid \echk{K}{e} \mid \edynfake{e} \mid \estafake{e}
       \\
       v & \BNFeq & i \mid \vpair{v}{v} \mid \vlam{x}{e} \mid \vlam{\tann{x}{\tau}}{e}
       \\
@@ -450,6 +450,9 @@
 
 \lbl{$e \rrKS e$}{
   $\begin{array}{l@{\hspace{0.5em}}c@{\hspace{0.5em}}l}
+    \echk{K}{v} & \rrKS
+    & \efromany{K}{v}
+    \\
     \eapp{(\vlam{\tann{x}{\tau}}{e})}{v} & \rrKS
     & \boundaryerror
     \\ \sidecond{if $\efromany{\tagof{\tau}}{v} = \boundaryerror$}
@@ -459,9 +462,6 @@
     \\
     \eapp{(\vlam{x}{e})}{v} & \rrKS
     & \edynfake{(\vsubst{e}{x}{v})}
-    \\
-    \echk{K}{v} & \rrKS
-    & \efromany{K}{v}
     \\
     \eunop{v} & \rrKS
     & \delta(\vunop, v)

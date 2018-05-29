@@ -50,9 +50,9 @@
 @tr-theorem[#:key "F-soundness" @elem{@${\langF} type soundness}]{
   If @${\wellM e : \tau} then @${\wellFE e : \tau} and either:
   @itemlist[
-    @item{ @${e \rrFEstar v \mbox{ and } \wellFE v : \tau} }
-    @item{ @${e \rrFEstar \ctxE{\edyn{\tau'}{e'}} \mbox{ and } e' \ccFD \tagerror} }
-    @item{ @${e \rrFEstar \boundaryerror} }
+    @item{ @${e \rrFSstar v \mbox{ and } \wellFE v : \tau} }
+    @item{ @${e \rrFSstar \ctxE{\edyn{\tau'}{e'}} \mbox{ and } e' \ccFD \tagerror} }
+    @item{ @${e \rrFSstar \boundaryerror} }
     @item{ @${e} diverges}
   ]
 }@tr-proof{
@@ -70,8 +70,8 @@
 @tr-corollary[#:key "F-pure-static" @elem{@${\langF} static soundness}]{
   If @${\wellM e : \tau} and @${e} is purely static, then either:
   @itemlist[
-    @item{ @${e \rrFEstar v \mbox{ and } \wellFE v : \tau} }
-    @item{ @${e \rrFEstar \boundaryerror} }
+    @item{ @${e \rrFSstar v \mbox{ and } \wellFE v : \tau} }
+    @item{ @${e \rrFSstar \boundaryerror} }
     @item{ @${e} diverges}
   ]
 }@tr-proof{(sketch)

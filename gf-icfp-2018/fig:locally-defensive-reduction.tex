@@ -108,6 +108,8 @@
   % this one "inherits", because it changes typed function application
   \lblextra{$e \rrKS e$}{ extends and overrides $\rrS$}{
     $\begin{array}{l@{\hspace{0.5em}}c@{\hspace{0.5em}}l}
+      \echk{K}{v} & \rrKS
+      \\
       \eapp{(\vlam{\tann{x}{\tau}}{e})}{v} & \rrKS
       & \boundaryerror
       \\ \sidecond{if $\efromany{\tagof{\tau}}{v} = \boundaryerror$}
@@ -117,8 +119,6 @@
       \\
       \eapp{(\vlam{x}{e})}{v} & \rrKS
       & \edynfake{(\vsubst{e}{x}{v})}
-      \\
-      \echk{K}{v} & \rrKS
       & \efromany{K}{v}
   %    \eunop{v} & \rrKS
   %    & e
@@ -134,6 +134,7 @@
 
   \lblextra{$e \rrKD e$}{ extends $\rrD$}{
     $\begin{array}{l@{\hspace{0.5em}}c@{\hspace{0.5em}}l}
+      \\
       \eapp{(\vlam{\tann{x}{\tau}}{e})}{v} & \rrKD
       & \boundaryerror
       \\ \sidecond{if $\efromany{\tagof{\tau}}{v} = \boundaryerror$}

@@ -49,9 +49,9 @@
 @tr-theorem[#:key "C-soundness" @elem{@${\langC} type soundness}]{
   If @${\wellM e : \tau} then @${\wellCE e : \tau} and either:
   @itemlist[
-    @item{ @${e \rrCEstar v \mbox{ and } \wellCE v : \tau} }
-    @item{ @${e \rrCEstar \ctxE{\edyn{\tau'}{e'}} \mbox{ and } e' \ccCD \tagerror} }
-    @item{ @${e \rrCEstar \boundaryerror} }
+    @item{ @${e \rrCSstar v \mbox{ and } \wellCE v : \tau} }
+    @item{ @${e \rrCSstar \ctxE{\edyn{\tau'}{e'}} \mbox{ and } e' \ccCD \tagerror} }
+    @item{ @${e \rrCSstar \boundaryerror} }
     @item{ @${e} diverges}
   ]
 }@tr-proof{
@@ -69,8 +69,8 @@
 @tr-corollary[#:key "C-pure-static" @elem{@${\langC} static soundness}]{
   If @${\wellM e : \tau} and @${e} is purely static, then either:
   @itemlist[
-    @item{ @${e \rrCEstar v \mbox{ and } \wellCE v : \tau} }
-    @item{ @${e \rrCEstar \boundaryerror} }
+    @item{ @${e \rrCSstar v \mbox{ and } \wellCE v : \tau} }
+    @item{ @${e \rrCSstar \boundaryerror} }
     @item{ @${e} diverges}
   ]
 }@tr-proof{(sketch)

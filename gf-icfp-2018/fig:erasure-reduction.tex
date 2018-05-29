@@ -26,7 +26,7 @@
 
   \lblextra{$e \rrES e$}{ extends $\rrS$}{
     $\begin{array}{l@{\hspace{0.5em}}c@{\hspace{0.5em}}l}
-      (\vlam{x}{e})~v & \rrES
+      \eapp{(\vlam{x}{e})}{v} & \rrES
       & \vsubst{e}{x}{v}
       \\
       \eapp{v_0}{v_1} & \rrES
@@ -47,7 +47,7 @@
 
   \lblextra{$e \rrED e$}{ extends $\rrD$}{
     $\begin{array}{l@{\hspace{0.5em}}c@{\hspace{0.5em}}l}
-      (\vlam{\tann{x}{\tau_d}}{e})~v & \rrED
+      \eapp{(\vlam{\tann{x}{\tau_d}}{e})}{v} & \rrED
       & \vsubst{e}{x}{v}
     \end{array}$
   }
@@ -55,7 +55,7 @@
 \end{TwoColumn}
 
 \begin{TwoColumn}
-  \lblextra{$e \rrESstar A$}{ reflexive, transitive closure of $\ccES$}{
+  \lblextra{$e \rrESstar e$}{ reflexive, transitive closure of $\ccES$}{
     $\begin{array}{l@{\hspace{0.5em}}c@{\hspace{0.5em}}l}
       \esd[e] & \ccES & \ctxE{e'}
       \\ \sidecond{if $e \rrES e'$}
@@ -71,7 +71,7 @@
   \multicolsbreak
 
   \smallskip
-  \lblextra{$e \rrEDstar A$}{ reflexive, transitive closure of $\ccED$}{
+  \lblextra{$e \rrEDstar e$}{ reflexive, transitive closure of $\ccED$}{
     $\begin{array}{l@{\hspace{0.5em}}c@{\hspace{0.5em}}l}
       \esd[e] & \ccED & \ctxE{e'}
       \\ \sidecond{if $e \rrED e'$}

@@ -45,7 +45,7 @@
 \begin{TwoColumn}
   \lblextra{$e \rrCS e$}{ extends $\rrS$}{
     $\begin{array}{l@{\hspace{0.5em}}c@{\hspace{0.5em}}l}
-      (\vmonfun{(\tarr{\tau_d}{\tau_c})}{v_f})~v & \rrCS
+      \eapp{(\vmonfun{(\tarr{\tau_d}{\tau_c})}{v_f})}{v} & \rrCS
       & \edyn{\tau_c}{(\eapp{v_f}{e'})}
       \\ \sidecond{where $e' = \esta{\tau_d}{v}$}
       \\
@@ -61,8 +61,8 @@
 
   \lblextra{$e \rrCD e$}{ extends $\rrD$}{
     $\begin{array}{l@{\hspace{0.5em}}c@{\hspace{0.5em}}l}
-      (\vmonfun{(\tarr{\tau_d}{\tau_c})}{v_f})~v & \rrCD
-      & \esta{\tau_c}{(v_f~e')}
+      \eapp{(\vmonfun{(\tarr{\tau_d}{\tau_c})}{v_f})}{v} & \rrCD
+      & \esta{\tau_c}{(\eapp{v_f}{e'})}
       \\ \sidecond{where $e' = \edyn{\tau_d}{v}$}
       \\
       \efst{(\vmonpair{(\tpair{\tau_0}{\tau_1})}{v})} & \rrCD
