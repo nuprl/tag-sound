@@ -2,7 +2,9 @@ RACO=./src/racket/racket/bin/raco
 GTP_MEASURE_FLAGS=--output sample-data --warmup 1 -i 8 -c 10 --bin $(shell pwd)/src/racket/racket/bin/
 .PHONY: sample-data
 
-all: submodule-init racket-610 paper model
+all: install paper model
+
+install: submodule-init racket
 
 model:
 	cd gf-icfp-2018/model-design && ${RACO} make *.rkt && ${RACO} test *.rkt
@@ -10,8 +12,9 @@ model:
 paper:
 	cd gf-icfp-2018 && make all
 
-racket-610:
+racket:
 	cd src/racket && make
+	ls -s $(shell pwd)/src/racket/racket/bin/racket $(shell pwd)/racket
 
 submodule-init:
 	git submodule update --init src/gtp-measure/ src/racket/ src/require-typed-check/ src/scribble/ src/typed-racket/
