@@ -409,7 +409,7 @@ In other words, a disciplined programmer who avoids external libraries may be
  justified in assuming that evaluation preserves static types and never
  ends in a tag error.
 
-@tr-theorem[#:key "E-pure-static" @elem{@${\langE} boundary-free soundness}]{
+@tr-theorem[#:key "E-pure-static" @elem{boundary-free @${\langE}-soundness}]{
   If @${\wellM e : \tau} and @${e} does not contain a subexpression @${(\edyn{\tau'}{e'})}, then
    one of the following holds:
   @itemlist[

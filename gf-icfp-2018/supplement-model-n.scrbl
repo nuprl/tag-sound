@@ -108,7 +108,12 @@
   ]
 }
 
-@; TODO
+@; TODO compilation
+@;@tr-remark[#:key "N-compilation" @elem{@${\langN}-compilation}]{
+@;  The @${\rrNSstar} reduction relation is a subset of the @${\rrNDstar} relation.
+@;  In practice, uses of @${\rrNSstar} may be replaced with @${\rrNDstar}.
+@;}
+@;
 @;@tr-theorem[#:key "N-compilation" @elem{@${\langN}-compilation}]{
 @;  If @${\wellM e : \tau} and @${\rastar} is a reduction relation based on @${\rrND}
 @;   in which @${\vfromstaN} is defined as @${\vfromdynN}, then
@@ -135,6 +140,92 @@
 @;  Purely-static terms cannot step to a @${\tagerror} and are preserved by the
 @;   @${\ccNS} reduction relation.
 @;}
+
+@tr-lemma[#:key "N-fromdyn-soundness" @elem{@${\vfromdynN} soundness}]{
+  If @${\wellNE v} then @${\wellNE \efromdynN{\tau}{v}}.
+}@tr-proof{
+  @tr-case[@${\efromdynN{\tarr{\tau_d}{\tau_c}}{v} = \vmonfun{(\tarr{\tau_d}{\tau_c})}{v}}]{
+    @tr-step{
+      @${\wellNE \vmonfun{(\tarr{\tau_d}{\tau_c})}{v} : \tarr{\tau_d}{\tau_c}}
+      @${\wellNE v}
+    }
+    @tr-qed{}
+  }
+
+  @tr-case[@${v \valeq \vpair{v_0}{v_1}
+              @tr-and[4]
+              \efromdynN{\tpair{\tau_0}{\tau_1}}{v} = \vpair{\edyn{\tau_0}{v_0}}{\edyn{\tau_1}{v_1}}}]{
+    @tr-step{
+      @${\wellNE v_0 @tr-and[4] \wellNE v_1}
+      @|N-D-inversion|
+    }
+    @tr-step{
+      @${\wellNE \edyn{\tau_0}{v_0} : \tau_0
+         @tr-and[]
+         \wellNE \edyn{\tau_1}{v_1} : \tau_1}
+      (1)
+    }
+    @tr-qed{(2)}
+  }
+
+  @tr-case[@${v = i @tr-and[4] \efromdynN{\tnat}{v} = v}]{
+    @tr-qed{}
+  }
+
+  @tr-case[@${v \in \naturals @tr-and[4] \efromdynN{\tnat}{v} = v}]{
+    @tr-qed{}
+  }
+
+  @tr-case[@${\efromdynN{\tau}{v} = \boundaryerror}]{
+    @tr-qed{}
+  }
+}
+
+@tr-lemma[#:key "N-fromsta-soundness" @elem{@${\vfromstaN} soundness}]{
+  If @${\wellNE v : \tau} then @${\wellNE \efromstaN{\tau}{v}}.
+}@tr-proof{
+  @tr-case[@${\wellNE v : \tarr{\tau_d}{\tau_c}
+              @tr-and[4]
+              \efromstaN{\tarr{\tau_d}{\tau_c}}{v} = \vmonfun{(\tarr{\tau_d}{\tau_c})}{v}}]{
+    @tr-qed{}
+  }
+
+  @tr-case[@${\wellNE v : \tpair{\tau_0}{\tau_1}
+              @tr-and[4]
+              \efromstaN{\tpair{\tau_0}{\tau_1}}{v} = \vpair{\esta{\tau_0}{v_0}}{\esta{\tau_1}{v_1}}}]{
+    @tr-step{
+      @${v = \vpair{v_0}{v_1}}
+      @|N-S-canonical|
+    }
+    @tr-step{
+      @${\wellNE v_0 : \tau_0
+         @tr-and[]
+         \wellNE v_1 : \tau_1}
+      @|N-S-inversion| (1)
+    }
+    @tr-step{
+      @${\wellNE {\esta{\tau_0}{v_0}} : \tau_0}
+      @tr-IH (2)
+    }
+    @tr-step{
+      @${\wellNE {\esta{\tau_1}{v_1}} : \tau_1}
+      @tr-IH (2)
+    }
+    @tr-qed{}
+  }
+
+  @tr-case[@${\wellNE v : \tint
+              @tr-and[4]
+              \efromstaN{\tint}{v} = v}]{
+    @tr-qed{}
+  }
+
+  @tr-case[@${\wellNE v : \tnat
+              @tr-and[4]
+              \efromstaN{\tnat}{v} = v}]{
+    @tr-qed{}
+  }
+}
 
 @tr-lemma[#:key "N-S-implies" @elem{@${\langN} static subset}]{
   If @${\Gamma \wellM e : \tau} then @${\Gamma \wellNE e : \tau}.
@@ -660,9 +751,9 @@
   }
 
   @tr-case[@${e = \ebase[{\ebinop{v_0}{v_1}}]} #:itemize? #false]{
-    @tr-if[@${\delta(\vbinop, v_0, v_1) = A}]{
+    @tr-if[@${\delta(\vbinop, v_0, v_1) = e''}]{
       @tr-step{
-        @${\ebinop{v_0}{v_1} \rrND e'}}
+        @${\ebinop{v_0}{v_1} \rrND e''}}
       @tr-qed[]
     }
     @tr-else[@${\delta(\vbinop, v_0, v_1) \mbox{ is undefined}}]{
@@ -4814,88 +4905,3 @@
   ]
 }
 
-@tr-lemma[#:key "N-fromdyn-soundness" @elem{@${\vfromdynN} soundness}]{
-  If @${\wellNE v} then @${\wellNE \efromdynN{\tau}{v}}.
-}@tr-proof{
-  @tr-case[@${\efromdynN{\tarr{\tau_d}{\tau_c}}{v} = \vmonfun{(\tarr{\tau_d}{\tau_c})}{v}}]{
-    @tr-step{
-      @${\wellNE \vmonfun{(\tarr{\tau_d}{\tau_c})}{v} : \tarr{\tau_d}{\tau_c}}
-      @${\wellNE v}
-    }
-    @tr-qed{}
-  }
-
-  @tr-case[@${v \valeq \vpair{v_0}{v_1}
-              @tr-and[4]
-              \efromdynN{\tpair{\tau_0}{\tau_1}}{v} = \vpair{\edyn{\tau_0}{v_0}}{\edyn{\tau_1}{v_1}}}]{
-    @tr-step{
-      @${\wellNE v_0 @tr-and[4] \wellNE v_1}
-      @|N-D-inversion|
-    }
-    @tr-step{
-      @${\wellNE \edyn{\tau_0}{v_0} : \tau_0
-         @tr-and[]
-         \wellNE \edyn{\tau_1}{v_1} : \tau_1}
-      (1)
-    }
-    @tr-qed{(2)}
-  }
-
-  @tr-case[@${v = i @tr-and[4] \efromdynN{\tnat}{v} = v}]{
-    @tr-qed{}
-  }
-
-  @tr-case[@${v \in \naturals @tr-and[4] \efromdynN{\tnat}{v} = v}]{
-    @tr-qed{}
-  }
-
-  @tr-case[@${\efromdynN{\tau}{v} = \boundaryerror}]{
-    @tr-qed{}
-  }
-}
-
-@tr-lemma[#:key "N-fromsta-soundness" @elem{@${\vfromstaN} soundness}]{
-  If @${\wellNE v : \tau} then @${\wellNE \efromstaN{\tau}{v}}.
-}@tr-proof{
-  @tr-case[@${\wellNE v : \tarr{\tau_d}{\tau_c}
-              @tr-and[4]
-              \efromstaN{\tarr{\tau_d}{\tau_c}}{v} = \vmonfun{(\tarr{\tau_d}{\tau_c})}{v}}]{
-    @tr-qed{}
-  }
-
-  @tr-case[@${\wellNE v : \tpair{\tau_0}{\tau_1}
-              @tr-and[4]
-              \efromstaN{\tpair{\tau_0}{\tau_1}}{v} = \vpair{\esta{\tau_0}{v_0}}{\esta{\tau_1}{v_1}}}]{
-    @tr-step{
-      @${v = \vpair{v_0}{v_1}}
-      @|N-S-canonical|
-    }
-    @tr-step{
-      @${\wellNE v_0 : \tau_0
-         @tr-and[]
-         \wellNE v_1 : \tau_1}
-      @|N-S-inversion| (1)
-    }
-    @tr-step{
-      @${\wellNE {\esta{\tau_0}{v_0}} : \tau_0}
-      @tr-IH (2)
-    }
-    @tr-step{
-      @${\wellNE {\esta{\tau_1}{v_1}} : \tau_1}
-      @tr-IH (2)
-    }
-    @tr-qed{}
-  }
-
-  @tr-case[@${\wellNE v : \tint
-              @tr-and[4]
-              \efromstaN{\tint}{v} = v}]{
-    @tr-qed{}
-  }
-
-  @tr-case[@${\wellNE v : \tnat
-              @tr-and[4]
-              \efromstaN{\tnat}{v} = v}]{
-    @tr-qed{}
-  }
-}
