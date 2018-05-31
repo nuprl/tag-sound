@@ -109,6 +109,7 @@
   \lblextra{$e \rrKS e$}{ extends and overrides $\rrS$}{
     $\begin{array}{l@{\hspace{0.5em}}c@{\hspace{0.5em}}l}
       \echk{K}{v} & \rrKS
+      & \efromany{K}{v}
       \\
       \eapp{(\vlam{\tann{x}{\tau}}{e})}{v} & \rrKS
       & \boundaryerror
@@ -119,7 +120,6 @@
       \\
       \eapp{(\vlam{x}{e})}{v} & \rrKS
       & \edynfake{(\vsubst{e}{x}{v})}
-      & \efromany{K}{v}
   %    \eunop{v} & \rrKS
   %    & e
   %    & \mbox{if $\delta(\vunop, v) = e$}
