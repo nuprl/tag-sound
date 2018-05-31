@@ -576,6 +576,7 @@ Intuitively, the reduction of any defended expression is well-defined and
     @itemlist[
       @item{ @${e'' \rrKSstar v} and @${\wellKE v : \tagof{\tau}} }
       @item{ @${e'' \rrKSstar \ctxE{\edyn{\tau'}{\ebase[e']}}} and @${e' \rrKD \tagerror} }
+      @item{ @${e'' \rrKSstar \ctxE{\edynfake{\ebase[e']}}} and @${e' \rrKD \tagerror} }
       @item{ @${e'' \rrKSstar \boundaryerror} }
       @item{ @${e''} diverges }
     ]

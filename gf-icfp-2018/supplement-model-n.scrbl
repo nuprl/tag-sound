@@ -10,6 +10,10 @@
 @section{@${\langN} Properties}
 
 @(begin
+   (define N-S-soundness @tr-ref[#:key "N-S-soundness"]{static @${\langN}-soundness})
+   (define N-D-soundness @tr-ref[#:key "N-S-soundness"]{static @${\langN}-soundness})
+   (define N-compilation @tr-ref[#:key "N-compilation"]{@${\langN}-compilation})
+
    (define N-S-progress @tr-ref[#:key "N-S-progress"]{static progress})
    (define N-D-progress @tr-ref[#:key "N-D-progress"]{dynamic progress})
    (define N-S-preservation @tr-ref[#:key "N-S-preservation"]{static preservation})
@@ -52,9 +56,6 @@
    (define N-Delta-soundness @tr-ref[#:key "N-Delta-type-soundness"]{@${\Delta} type soundness})
    (define N-delta-preservation @tr-ref[#:key "N-delta-preservation"]{@${\delta} preservation})
 
-   (define N-D-soundness @tr-ref[#:key "N-D-soundness"]{@${\langN} dynamic soundness})
-   (define N-S-soundness @tr-ref[#:key "N-S-soundness"]{@${\langN} static soundness})
-
    (define N-fromdyn-soundness @tr-ref[#:key "N-fromdyn-soundness"]{@${\vfromdynN} soundness})
    (define N-fromsta-soundness @tr-ref[#:key "N-fromsta-soundness"]{@${\vfromstaN} soundness})
 
@@ -65,7 +66,6 @@
    (define N-SD-subst @tr-ref[#:key "N-SD-subst"]{static context dynamic value substitution})
 
    (define N-weakening @tr-ref[#:key "N-weakening"]{weakening})
-
 )
 
 @tr-theorem[#:key "N-S-soundness" @elem{static @${\langN}-soundness}]{
@@ -1459,13 +1459,6 @@
     }
   }
 
-  @tr-case[@${e = \eerr}]{
-    @tr-step{
-      @${\esd = \ehole}
-    }
-    @tr-qed[@${e = \esd[\eerr]}]
-  }
-
   @tr-case[@${e = \vpair{e_0}{e_1}} #:itemize? #false]{
     @tr-if[@${e_0 \not\in v}]{
       @tr-step{
@@ -1639,6 +1632,17 @@
     }
   }
 
+  @tr-case[@${e = \esta{\tau}{e_0}} #:itemize? #f]{
+    @tr-contradiction{ @${\wellNE e : \tau} }
+  }
+
+  @tr-case[@${e = \eerr}]{
+    @tr-step{
+      @${\esd = \ehole}
+    }
+    @tr-qed[@${e = \esd[\eerr]}]
+  }
+
 }
 
 @tr-lemma[#:key "N-boundary" @elem{@${\langN} inner boundary}]{
@@ -1676,7 +1680,7 @@
           @${\esd = \esd'[\edyn{\tau}{\ebase}]}
         ]
       }
-      @tr-if[@${\esd_0 = \esd_0'[\esta{\tau}{\ebase}]}]{
+      @tr-else[@${\esd_0 = \esd_0'[\esta{\tau}{\ebase}]}]{
         @tr-step{
           @${\esd' = \eapp{\esd_0'}{e_1}}
         }
@@ -1708,7 +1712,7 @@
           @${\esd = \esd'[\edyn{\tau}{\ebase}]}
         ]
       }
-      @tr-if[@${\esd_1 = \esd_1'[\esta{\tau}{\ebase}]}]{
+      @tr-else[@${\esd_1 = \esd_1'[\esta{\tau}{\ebase}]}]{
         @tr-step{
           @${\esd' = \eapp{v_0}{\esd_1'}}
         }
@@ -1740,7 +1744,7 @@
           @${\esd = \esd'[\edyn{\tau}{\ebase}]}
         ]
       }
-      @tr-if[@${\esd_0 = \esd_0'[\esta{\tau}{\ebase}]}]{
+      @tr-else[@${\esd_0 = \esd_0'[\esta{\tau}{\ebase}]}]{
         @tr-step{
           @${\esd' = \vpair{\esd_0'}{e_1}}
         }
@@ -1772,7 +1776,7 @@
           @${\esd = \esd'[\edyn{\tau}{\ebase}]}
         ]
       }
-      @tr-if[@${\esd_1 = \esd_1'[\esta{\tau}{\ebase}]}]{
+      @tr-else[@${\esd_1 = \esd_1'[\esta{\tau}{\ebase}]}]{
         @tr-step{
           @${\esd' = \vpair{v_0}{\esd_1'}}
         }
@@ -1804,7 +1808,7 @@
           @${\esd = \esd'[\edyn{\tau}{\ebase}]}
         ]
       }
-      @tr-if[@${\esd_0 = \esd_0'[\esta{\tau}{\ebase}]}]{
+      @tr-else[@${\esd_0 = \esd_0'[\esta{\tau}{\ebase}]}]{
         @tr-step{
           @${\esd' = \eunop{\esd_0'}}
         }
@@ -1836,7 +1840,7 @@
           @${\esd = \esd'[\edyn{\tau}{\ebase}]}
         ]
       }
-      @tr-if[@${\esd_0 = \esd_0'[\esta{\tau}{\ebase}]}]{
+      @tr-else[@${\esd_0 = \esd_0'[\esta{\tau}{\ebase}]}]{
         @tr-step{
           @${\esd' = \ebinop{\esd_0'}{e_1}}
         }
@@ -1868,7 +1872,7 @@
           @${\esd = \esd'[\edyn{\tau}{\ebase}]}
         ]
       }
-      @tr-if[@${\esd_1 = \esd_1'[\esta{\tau}{\ebase}]}]{
+      @tr-else[@${\esd_1 = \esd_1'[\esta{\tau}{\ebase}]}]{
         @tr-step{
           @${\esd' = \ebinop{v_0}{\esd_1'}}
         }
@@ -1900,7 +1904,7 @@
           @${\esd = \esd'[\edyn{\tau'}{\ebase}]}
         ]
       }
-      @tr-if[@${\esd_0 = \esd_0'[\esta{\tau'}{\ebase}]}]{
+      @tr-else[@${\esd_0 = \esd_0'[\esta{\tau'}{\ebase}]}]{
         @tr-step{
           @${\esd' = \edyn{\tau}{\esd_0'}}
         }
@@ -1932,7 +1936,7 @@
           @${\esd = \esd'[\edyn{\tau'}{\ebase}]}
         ]
       }
-      @tr-if[@${\esd_0 = \esd_0'[\esta{\tau'}{\ebase}]}]{
+      @tr-else[@${\esd_0 = \esd_0'[\esta{\tau'}{\ebase}]}]{
         @tr-step{
           @${\esd' = \esta{\tau}{\esd_0'}}
         }
@@ -2709,13 +2713,13 @@
 
   @tr-case[@${\esd = \edyn{\tau}{\esd_0}}]{
     @tr-contradiction{
-      @${\wellNE \ctxE{\edyn{\tau}{e}} : \tau'}
+      @${\wellNE \ctxE{\edyn{\tau}{e}}}
     }
   }
 
   @tr-case[@${\esd = \esta{\tau_0}{\esd_0}}]{
     @tr-step{
-      @${\ctxE{\esta{\tau_0}{e}} = \esta{\tau_0}{\esd_0[{\edyn{\tau}{e}}]}}
+      @${\ctxE{\edyn{\tau}{e}} = \esta{\tau_0}{\esd_0[{\edyn{\tau}{e}}]}}
     }
     @tr-step{
       @${\wellNE \esd_0[{\edyn{\tau}{e}}] : \tau_0}
@@ -2959,7 +2963,7 @@
 
   @tr-case[@${\esd = \esta{\tau_0}{\esd_0}}]{
     @tr-step{
-      @${\ctxE{\esta{\tau_0}{e}} = \esta{\tau_0}{\esd_0[{\esta{\tau}{e}}]}}
+      @${\ctxE{\esta{\tau}{e}} = \esta{\tau_0}{\esd_0[{\esta{\tau}{e}}]}}
     }
     @tr-step{
       @${\wellNE \esd_0[{\esta{\tau}{e}}] : \tau_0}
@@ -4171,10 +4175,6 @@
       @${\wellNE v_1}
       @|N-D-inversion|
     }
-    @tr-qed[]
-  }
-
-  @tr-case[@${\delta(\vunop, v) = \boundaryerror}]{
     @tr-qed[]
   }
 

@@ -628,7 +628,7 @@
     @item{ @${e \ccES \boundaryerror} }
   ]
 }@tr-proof{
-  By the @|E-uec| lemma, there are seven cases:
+  By the @|M-uec| lemma, there are five cases:
 
   @tr-case[@${e = v}]{
     @tr-qed[]
@@ -680,14 +680,6 @@
     }
   }
 
-  @tr-case[@${e = \ctxE{\edyn{\tau'}{v}}}]{
-    @tr-contradiction{@${e} is boundary-free}
-  }
-
-  @tr-case[@${e = \ctxE{\esta{\tau'}{v}}}]{
-    @tr-contradiction{@${e} is boundary-free}
-  }
-
   @tr-case[@${e = \ctxE{\eerr}}]{
     @tr-step{
       @${\ctxE{\eerr} \ccES \eerr}}
@@ -700,7 +692,7 @@
   If @${\wellM e : \tau} and @${e} is boundary-free and @${e \ccES e'}
   then @${\wellM e' : \tau} and @${e'} is boundary-free.
 }@tr-proof{
-  By the @|M-uec| lemma, there are six cases.
+  By the @|M-uec| lemma, there are five cases.
 
   @tr-case[@${e \mbox{ is a value}}]{
     @tr-contradiction{ @${e \ccES e'} }
@@ -761,10 +753,6 @@
       @|M-delta-preservation| (3)
     }
     @tr-qed{}
-  }
-
-  @tr-case[@${e = \ctxE{\edyn{\tau}{v}}}]{
-    @tr-contradiction{@${e} is boundary-free}
   }
 
   @tr-case[@${e = \ctxE{\eerr}}]{
@@ -1692,7 +1680,6 @@
     @item{ @${e = \ctxE{v_0~v_1}} }
     @item{ @${e = \ctxE{\eunop{v}}} }
     @item{ @${e = \ctxE{\ebinop{v_0}{v_1}}} }
-    @item{ @${e = \ctxE{\edyn{\tau}{e'}}} }
     @item{ @${e = \ctxE{\eerr}} }
   ]
 }@tr-proof{
@@ -1833,9 +1820,14 @@
   }
 
   @tr-case[@${e = \edyn{\tau}{e_0}}]{
-    @${\ED = \ehole}
-    @tr-qed{
-      @${e = \ctxE{\edyn{\tau}{e_0}}}
+    @tr-contradiction{
+      @${e} is boundary-free
+    }
+  }
+
+  @tr-case[@${e = \esta{\tau}{e_0}}]{
+    @tr-contradiction{
+      @${\wellM e : \tau}
     }
   }
 
@@ -2111,7 +2103,7 @@
   @tr-case[@${\delta(\vfst, \vpair{v_0}{v_1}) = v_0}]{
     @tr-step{
       @${\wellM v_0}
-      @|E-inversion|
+      @|M-S-inversion|
     }
     @tr-qed[]
   }
@@ -2119,7 +2111,7 @@
   @tr-case[@${\delta(\vsnd, \vpair{v_0}{v_1}) = v_1}]{
     @tr-step{
       @${\wellM v_1}
-      @|E-inversion|
+      @|M-S-inversion|
     }
     @tr-qed[]
   }
