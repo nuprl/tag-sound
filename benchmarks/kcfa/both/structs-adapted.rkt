@@ -8,7 +8,7 @@
   [#:struct Stx ([label : Label])]
   [#:struct (exp Stx) ()]
   [#:struct (Ref exp) ([var : Var])]
-  [#:struct (Lam exp) ([formals : (Listof Var)] [call : Exp])]
+  [#:struct (Lam exp) ([formals : (Listof Var)] [call : exp])]
   [#:struct (Call Stx) ([fun : Exp] [args : (Listof Exp)])]
 )
 
@@ -16,7 +16,7 @@
   (struct-out Stx)
   (struct-out exp)
   (struct-out Ref)
-  (struct-out Lam)
+  Lam Lam? Lam-formals (rename-out (-Lam-call Lam-call))
   (struct-out Call)
   Exp
   Label
@@ -29,3 +29,6 @@
 (define-type Label Symbol)
 (define-type Var Symbol)
 
+(: -Lam-call (-> Lam Exp))
+(define (-Lam-call l)
+  (cast (Lam-call l) Exp))
