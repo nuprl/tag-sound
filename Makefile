@@ -14,7 +14,9 @@ paper:
 
 racket:
 	cd src/racket && make
-	ls -s $(shell pwd)/src/racket/racket/bin/racket $(shell pwd)/racket
+	ln -s $(shell pwd)/src/racket/racket/bin/racket $(shell pwd)/racket
+	ln -s $(shell pwd)/src/racket/racket/bin/raco $(shell pwd)/raco
+	ln -s $(shell pwd)/src/racket/racket/bin/drracket $(shell pwd)/drracket
 
 submodule-init:
 	git submodule update --init src/gtp-measure/ src/racket/ src/require-typed-check/ src/scribble/ src/typed-racket/

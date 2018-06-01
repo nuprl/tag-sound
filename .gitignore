@@ -6,3 +6,5 @@ compiled/
 *.swp
 
 racket
+raco
+drracket
