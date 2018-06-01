@@ -18,3 +18,11 @@
 	path = src/gtp-measure
 	url = https://github.com/bennn/gtp-measure
 	branch = icfp-locally-defensive
+[submodule "src/gtp-util"]
+	path = src/gtp-util
+	url = https://github.com/bennn/gtp-util
+	branch = icfp-locally-defensive
+[submodule "src/gtp-plot"]
+	path = src/gtp-plot
+	url = https://github.com/bennn/gtp-plot
+	branch = icfp-locally-defensive
