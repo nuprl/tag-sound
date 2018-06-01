@@ -539,7 +539,6 @@ The following well-typed example applies an integer function to a pair, and thus
 
 @exact{\noindent}The remaining rules of @${\rrKS} give semantics to the application of an
  untyped function and to the @${\vchk} type-constructor checks.
-
 Finally, the @${\rrKSstar} and @${\rrKDstar} reduction relations define
  a multi-language semantics for the model.
 These relations are similar to those of the natural embedding, though they include
@@ -559,12 +558,9 @@ In particular,
  and the result of a @${\vchk} expression matches the
  given constructor.
 
-Soundness for the locally-defensive embedding is a statement about the @emph{completion}
- of a surface-language expression, not the surface language itself.
-Intuitively, the reduction of any defended expression is well-defined and
- furthermore reduction in any typed context cannot raise a tag error.
-
-@include-figure*["fig:locally-defensive-preservation.tex" "Property judgments for the locally-defensive embedding"]
+Soundness for the locally-defensive embedding states that the reduction of the
+ @emph{completion} of any surface-level expression is well-defined and furthermore
+ cannot raise a tag error in a typed context.
 
 @twocolumn[
   @tr-theorem[#:key "K-static-soundness" @elem{static @${\langK}-soundness}]{
@@ -575,7 +571,7 @@ Intuitively, the reduction of any defended expression is well-defined and
     and one of the following holds:
     @itemlist[
       @item{ @${e'' \rrKSstar v} and @${\wellKE v : \tagof{\tau}} }
-      @item{ @${e'' \rrKSstar \ctxE{\edyn{\tau'}{\ebase[e']}}} and @${e' \rrKD \tagerror} }
+      @item{ @${e''\!\rrKSstar\!\ctxE{\edyn{\tau'}{\ebase[e']}}} and @${e'\!\rrKD\!\!\tagerror} }
       @item{ @${e'' \rrKSstar \ctxE{\edynfake{\ebase[e']}}} and @${e' \rrKD \tagerror} }
       @item{ @${e'' \rrKSstar \boundaryerror} }
       @item{ @${e''} diverges }
@@ -624,6 +620,8 @@ Intuitively, the reduction of any defended expression is well-defined and
 
 
 @section[#:tag "sec:practical-semantics"]{From Models to Implementations}
+
+@include-figure*["fig:locally-defensive-preservation.tex" "Property judgments for the locally-defensive embedding"]
 
 @; AKA threats to the validity of the models
 

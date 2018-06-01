@@ -186,23 +186,23 @@ Conversely, there is no guarantee that untyped clients of a function @${g} abide
   }
 ]
 
-@figure["fig:db-app" @elem{Adding types between two untyped modules}
-        db-app-pict]
-
-@Figure-ref{fig:db-app} rephrases the above calculus-level example in terms
- of a practical application.
-The (incomplete) module at the top-left of the figure defines an untyped API
- to an external database.
-The (incomplete) module at the bottom-right is an untyped client of the API.
-Together, the two modules form one component of a larger application.
-Suppose the application has a bug.
-In the natural embedding, a programmer can insert the (complete) typed module
- in the middle of the figure to test whether the server and client match the
- type annotation.
-In the erasure embedding, the typed module is useless as types are erased
- before runtime.
-In the locally-defensive embedding, inserting the typed module merely guarantees
- that the identifier @racket[add-user] is bound to a function.
+@;@figure["fig:db-app" @elem{Adding types between two untyped modules}
+@;        db-app-pict]
+@;
+@;@Figure-ref{fig:db-app} rephrases the above calculus-level example in terms
+@; of a practical application.
+@;The (incomplete) module at the top-left of the figure defines an untyped API
+@; to an external database.
+@;The (incomplete) module at the bottom-right is an untyped client of the API.
+@;Together, the two modules form one component of a larger application.
+@;Suppose the application has a bug.
+@;In the natural embedding, a programmer can insert the (complete) typed module
+@; in the middle of the figure to test whether the server and client match the
+@; type annotation.
+@;In the erasure embedding, the typed module is useless as types are erased
+@; before runtime.
+@;In the locally-defensive embedding, inserting the typed module merely guarantees
+@; that the identifier @racket[add-user] is bound to a function.
 
 
 @section[#:tag "sub:err"]{For Error Messages}

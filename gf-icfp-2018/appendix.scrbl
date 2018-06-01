@@ -100,9 +100,12 @@ When the inner function (of type @${\tarr{\tnat}{\tint}}) returns, the monitor
 
 @; TODO say more
 
-Soundness for the forgetful embedding is superficially similar to that of the
- co-natural and natural embeddings.
-TODO
+Soundness for the forgetful embedding guarantees that reduction is well-defined
+ and ends with either a well-typed value, a tag error in dynamically-typed code,
+ or a boundary error.
+The manner in which it enforces soundness, however, has serious logical implications
+ for type-based reasoning.
+The next subsection discusses implications in depth.
 
 @twocolumn[
   @tr-theorem[#:key "F-static-soundness" @elem{static @${\langF}-soundness}]{
