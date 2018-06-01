@@ -4,3 +4,5 @@ compiled/
 \#*
 *.swo
 *.swp
+
+racket
