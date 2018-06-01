@@ -6,12 +6,12 @@
 )
 
 (require/typed/check "benv.rkt"
-  [#:struct Closure
-    ([lam : Lam]
-     [benv : BEnv])]
   [#:struct Binding
     ([var : Var]
      [time : Time])]
+  [#:struct Closure
+    ([lam : Lam]
+     [benv : BEnv])]
   (empty-benv BEnv)
   (benv-lookup (-> BEnv Var Addr))
   (benv-extend (-> BEnv Var Addr BEnv))

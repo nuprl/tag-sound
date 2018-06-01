@@ -8,7 +8,7 @@
   [#:struct Stx ([label : Label])]
   [#:struct (exp Stx) ()]
   [#:struct (Ref exp) ([var : Var])]
-  [#:struct (Lam exp) ([formals : (Listof Var)] [call : exp])]
+  [#:struct (Lam exp) ([formals : (Listof Var)] [call : Stx])]
   [#:struct (Call Stx) ([fun : Exp] [args : (Listof Exp)])]
 )
 
@@ -31,4 +31,10 @@
 
 (: -Lam-call (-> Lam Exp))
 (define (-Lam-call l)
-  (cast (Lam-call l) Exp))
+  (define v (Lam-call l))
+  (cond
+    [(Ref? v) v]
+    [(Lam? v) v]
+    [(Call? v) v]
+    [(exp? v) v]
+    [else (error 'lam-call)]))
