@@ -293,8 +293,8 @@
    [(path-string? x)
     (format "tr-~a.rktd" (filename->prefix x))]
    [(pair? x)
-    (define tr (car x))
-    (define tag (cadr x))
+    (define tr (path->string (file-name-from-path (car x))))
+    (define tag (path->string (file-name-from-path (cadr x))))
     (define tr-prefix (filename->prefix tr))
     (define tag-prefix (filename->prefix tag))
     (unless (string-prefix? tag-prefix "tag_")
