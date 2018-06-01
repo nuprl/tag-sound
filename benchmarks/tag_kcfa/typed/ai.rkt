@@ -46,7 +46,8 @@
      (define new-states
        (for/list ([proc : Value (in-set procs)])
          (match-define (Closure lam benv*) proc)
-         (match-define (Lam _ formals call*) lam)
+         (define-values [formals call*]
+          (values (Lam-formals lam) (Lam-call lam)))
          (define bindings (map (alloc time*) formals))
          (define benv** (benv-extend* benv* formals bindings))
          (define store* (store-update* store bindings params))
