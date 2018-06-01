@@ -28,7 +28,6 @@
   (only-in racket/file file->bytes))
 
 (require/typed/check "jfif.rkt"
-  (#:struct jfif ((frame : frame) (misc-segments : (Listof misc)) (mcu-array : (Array MCU))))
   (#:struct component
     ((id : Byte)
      (index : Natural)
@@ -46,6 +45,7 @@
   (#:struct misc
     ((marker : Natural)
      (bytes : Bytes)))
+  (#:struct jfif ((frame : frame) (misc-segments : (Listof misc)) (mcu-array : (Array MCU))))
   (#:struct params
     ((q-tables : QT*)
      (dc-tables : H*)
