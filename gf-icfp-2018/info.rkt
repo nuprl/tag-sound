@@ -5,6 +5,7 @@
   "base"
   "draw-lib"
   "gtp-plot"
+  "gtp-util"
   "math-lib"
   "mf-apply"
   "pict-lib"
