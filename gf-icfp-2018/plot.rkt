@@ -20,6 +20,10 @@
   NUM-ITERS
   X-MAX
 
+  OVERHEADS-HEIGHT
+  OVERHEADS-WIDTH
+  FONT-SIZE
+
   overhead-plot*
   exact-plot*
 
@@ -99,13 +103,14 @@
 (define RKT-RELEASE-MONTH "September 2017")
 (define NUM-SAMPLES 200)
 (define TAG-VERSION "v0.14")
-(define OVERHEADS-HEIGHT 640)
+(define OVERHEADS-HEIGHT (make-parameter 640))
 (define OVERHEADS-HSPACE 50)
 (define OVERHEADS-VSPACE 6)
-(define OVERHEADS-WIDTH 450)
+(define OVERHEADS-WIDTH (make-parameter 450))
 (define NUM-COLUMNS 2)
 (define X-MAX 10)
 (define CACHE-DIR "cache")
+(define FONT-SIZE (make-parameter 8))
 
 (define START-COLOR 3)
 (define TICK-FREQ 1)
@@ -207,14 +212,14 @@
                  [*OVERHEAD-SAMPLES* NUM-SAMPLES]
                  [*OVERHEAD-LINE-COLOR* START-COLOR]
                  [*OVERHEAD-MAX* X-MAX]
-                 [*GRID-X* OVERHEADS-WIDTH]
-                 [*GRID-Y* OVERHEADS-HEIGHT]
+                 [*GRID-X* (OVERHEADS-WIDTH)]
+                 [*GRID-Y* (OVERHEADS-HEIGHT)]
                  [*GRID-X-SKIP* OVERHEADS-HSPACE]
                  [*GRID-Y-SKIP* OVERHEADS-VSPACE]
                  [*GRID-NUM-COLUMNS* NUM-COLUMNS]
                  [*LEGEND?* #false]
                  [*LEGEND-VSPACE* 4]
-                 [*FONT-SIZE* 8]
+                 [*FONT-SIZE* (FONT-SIZE)]
                  [*BRUSH-COLOR-CONVERTER* (my-color-converter 'brush)]
                  [*PEN-COLOR-CONVERTER* (my-color-converter 'pen)]
                  [*with-cache-fasl?* #f]
@@ -582,7 +587,7 @@
       #:y-max (or (*bar-chart-max*) (round-ymax y-max))
       #:x-label #false
       #:y-label #false
-      #:width OVERHEADS-WIDTH
+      #:width (OVERHEADS-WIDTH)
       #:height (*bar-chart-height*))))
 
 (define (rnd+ n)
