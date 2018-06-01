@@ -24,7 +24,7 @@ racket:
 	ln -s $(shell pwd)/src/racket/racket/bin/drracket $(shell pwd)/drracket
 
 submodule-init:
-	git submodule update --init src/gtp-measure/ src/racket/ src/require-typed-check/ src/scribble/ src/typed-racket/
+	git submodule update --init src/gtp-util/ src/gtp-plot/ src/gtp-measure/ src/racket/ src/require-typed-check/ src/scribble/ src/typed-racket/
 
 sample-data:
 	PLTSTDERR="error info@gtp-measure" ${RACO} gtp-measure ${GTP_MEASURE_FLAGS} benchmarks/morsecode/ benchmarks/tag_morsecode/ benchmarks/tag_zombie/ benchmarks/zombie/
