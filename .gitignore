@@ -8,3 +8,5 @@ compiled/
 racket
 raco
 drracket
+
+artifact/.vagrant
