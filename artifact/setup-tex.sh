@@ -1,4 +1,3 @@
-sudo apt-get install -y --no-install-recommends \
-    texlive-latex-base texlive-latex-extra
+sudo apt-get -y -q --no-install-recommends install texlive-latex-base texlive-fonts-recommended texlive-fonts-extra texlive-latex-extra texlive-generic-recommended
 
 sudo apt-get install -y evince
