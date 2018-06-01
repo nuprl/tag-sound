@@ -105,7 +105,7 @@
   (define overhead-pict
     (parameterize ((*use-cache?* #false)
                    (FONT-SIZE 12)
-                   (OVERHEADS-HEIGHT (* 150 (exact-ceiling (/ (length (car N/LD-data)) 2)))))
+                   (OVERHEADS-HEIGHT (* 150 (exact-ceiling (/ (length N/LD-data) 2)))))
       (overhead-plot* N/LD-data)))
   (define N-data (map car N/LD-data))
   (define LD-data (map cadr N/LD-data))
