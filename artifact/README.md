@@ -1,29 +1,24 @@
-# Instructions for getting the VM up and running #
+artifact
+---
 
-1. Download and install [vagrant][].
+To build the VM:
 
-2. Download and install the 3110 virtual machine.
-        
-        git clone https://github.com/cs3110/vagrant-opam.git
-        cd vagrant-opam
-        vagrant up
+1. Install [vagrant](http://vagrantup.com)
+2. Run `vagrant up` (expected time: 1.5 hours)
 
-   **Note:** `vagrant up` will take a long time (about an hour) the first time.
 
-3. Log into your new virtual machine.
+To access the VM:
 
-        vagrant ssh
+- username: vagrant
+- password: vagrant
+- connect with port forwarding: `ssh -Y -p2222 vagrant@127.0.0.1`
 
-4. When you are done, log out by typing `control-D`.
 
-5. The virtual machine is still running.  You can suspend it by typing
+To stop the VM:
 
-        vagrant suspend
+- `vagrant suspend`
 
-   and then restart it later by typing
 
-        vagrant up
+To remove the VM:
 
-6. You can also control your VM through VirtualBox itself.
-
-[vagrant]: http://www.vagrantup.com/downloads.html
+- `vagrant destroy`
