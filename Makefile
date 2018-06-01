@@ -3,7 +3,9 @@ RACKET=./src/racket/racket/bin/racket
 GTP_MEASURE_FLAGS=--output sample-data --warmup 1 -i 8 -c 10 --bin $(shell pwd)/src/racket/racket/bin/
 .PHONY: sample-data
 
-all: install paper example model sample-data sample-pict
+kick-tires: install paper example model
+
+all: kick-tires sample-data sample-pict
 
 install: submodule-init racket
 
