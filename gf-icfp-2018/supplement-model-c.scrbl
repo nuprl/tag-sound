@@ -7,25 +7,45 @@
 @exact{\input{fig:conatural-embedding.tex}}
 
 @|clearpage|
-@section{@${\langC} Properties}
+@section{@${\langC} Theorems}
 
 @(begin
+   (define C-S-soundness @tr-ref[#:key "C-S-soundness"]{static @${\langC}-soundness})
+   (define C-D-soundness @tr-ref[#:key "C-S-soundness"]{static @${\langC}-soundness})
+
    (define C-S-progress @tr-ref[#:key "C-S-progress"]{static progress})
    (define C-D-progress @tr-ref[#:key "C-D-progress"]{dynamic progress})
    (define C-S-preservation @tr-ref[#:key "C-S-preservation"]{static preservation})
    (define C-D-preservation @tr-ref[#:key "C-D-preservation"]{dynamic preservation})
 
-   (define C-S-implies @tr-ref[#:key "C-S-implies"]{static implies})
-   (define C-D-implies @tr-ref[#:key "C-D-implies"]{dynamic implies})
+   (define C-S-implies @tr-ref[#:key "C-S-implies"]{static subset})
+   (define C-D-implies @tr-ref[#:key "C-D-implies"]{dynamic subset})
 
-   (define C-S-uec @tr-ref[#:key "C-S-uec"]{unique evaluation contexts})
-   (define C-D-uec @tr-ref[#:key "C-D-uec"]{unique evaluation contexts})
+   (define C-S-factor @tr-ref[#:key "C-S-factor"]{boundary factoring})
+   (define C-D-factor @tr-ref[#:key "C-D-factor"]{boundary factoring})
+
+   (define C-boundary @tr-ref[#:key "C-boundary"]{inner boundary})
+
+   (define C-S-uec @tr-ref[#:key "C-S-uec"]{unique static evaluation contexts})
+   (define C-D-uec @tr-ref[#:key "C-D-uec"]{unique dynamic evaluation contexts})
 
    (define C-S-hole-typing @tr-ref[#:key "C-S-hole-typing"]{static hole typing})
    (define C-D-hole-typing @tr-ref[#:key "C-D-hole-typing"]{dynamic hole typing})
 
-   (define C-S-hole-subst @tr-ref[#:key "C-S-hole-subst"]{static hole substitution})
-   (define C-D-hole-subst @tr-ref[#:key "C-D-hole-subst"]{dynamic hole substitution})
+   (define C-boundary-typing @tr-ref[#:key "C-boundary-typing"]{boundary hole typing})
+   (define C-DS-hole @tr-ref[#:key "C-DS-hole"]{static @${\vdyn} hole typing})
+   (define C-DD-hole @tr-ref[#:key "C-DD-hole"]{dynamic @${\vdyn} hole typing})
+   (define C-SS-hole @tr-ref[#:key "C-SS-hole"]{static @${\vsta} hole typing})
+   (define C-SD-hole @tr-ref[#:key "C-SD-hole"]{dynamic @${\vsta} hole typing})
+
+   (define C-hole-subst @tr-ref[#:key "C-hole-subst"]{hole substitution})
+   (define C-DS-hole-subst @tr-ref[#:key "C-DS-hole-subst"]{dynamic context static hole substitution})
+   (define C-DD-hole-subst @tr-ref[#:key "C-DD-hole-subst"]{dynamic context dynamic hole substitution})
+   (define C-SS-hole-subst @tr-ref[#:key "C-SS-hole-subst"]{static context static hole substitution})
+   (define C-SD-hole-subst @tr-ref[#:key "C-SD-hole-subst"]{static context dynamic hole substitution})
+
+   (define C-S-hole-subst @tr-ref[#:key "C-S-hole-subst"]{static boundary-free hole substitution})
+   (define C-D-hole-subst @tr-ref[#:key "C-D-hole-subst"]{dynamic boundary-free hole substitution})
 
    (define C-S-inversion @tr-ref[#:key "C-S-inversion"]{inversion})
    (define C-D-inversion @tr-ref[#:key "C-D-inversion"]{inversion})
@@ -35,19 +55,20 @@
    (define C-Delta-soundness @tr-ref[#:key "C-Delta-type-soundness"]{@${\Delta} type soundness})
    (define C-delta-preservation @tr-ref[#:key "C-delta-preservation"]{@${\delta} preservation})
 
-   (define C-SS-subst @tr-ref[#:key "C-SS-subst"]{substitution})
-   (define C-DS-subst @tr-ref[#:key "C-DS-subst"]{substitution})
-   (define C-SD-subst @tr-ref[#:key "C-SD-subst"]{substitution})
-   (define C-DD-subst @tr-ref[#:key "C-DD-subst"]{substitution})
+   (define C-fromdyn-soundness @tr-ref[#:key "C-fromdyn-soundness"]{@${\vfromdynC} soundness})
+   (define C-fromsta-soundness @tr-ref[#:key "C-fromsta-soundness"]{@${\vfromstaC} soundness})
 
-   (define C-finite-subtyping @tr-ref[#:key "C-finite-subtyping"]{finite subtyping})
-   (define C-finite-supertyping @tr-ref[#:key "C-finite-supertyping"]{finite supertyping})
+   (define C-subst @tr-ref[#:key "C-subst"]{substitution})
+   (define C-DS-subst @tr-ref[#:key "C-DS-subst"]{dynamic context static value substitution})
+   (define C-DD-subst @tr-ref[#:key "C-DD-subst"]{dynamic context dynamic value substitution})
+   (define C-SS-subst @tr-ref[#:key "C-SS-subst"]{static context static value substitution})
+   (define C-SD-subst @tr-ref[#:key "C-SD-subst"]{static context dynamic value substitution})
+
    (define C-weakening @tr-ref[#:key "C-weakening"]{weakening})
-
 )
 
 @tr-theorem[#:key "C-soundness" @elem{@${\langC} type soundness}]{
-  If @${\wellM e : \tau} then @${\wellCE e : \tau} and either:
+  If @${\wellM e : \tau} then @${\wellCE e : \tau} and one of the following holds:
   @itemlist[
     @item{ @${e \rrCSstar v \mbox{ and } \wellCE v : \tau} }
     @item{ @${e \rrCSstar \ctxE{\edyn{\tau'}{e'}} \mbox{ and } e' \ccCD \tagerror} }
@@ -67,7 +88,7 @@
 }
 
 @tr-corollary[#:key "C-pure-static" @elem{@${\langC} static soundness}]{
-  If @${\wellM e : \tau} and @${e} is purely static, then either:
+  If @${\wellM e : \tau} and @${e} is purely static, then one of the following holds:
   @itemlist[
     @item{ @${e \rrCSstar v \mbox{ and } \wellCE v : \tau} }
     @item{ @${e \rrCSstar \boundaryerror} }
@@ -78,7 +99,11 @@
    @${\ccCS} reduction relation.
 }
 
-@tr-lemma[#:key "C-S-implies" @elem{@${\langC} static implies}]{
+
+@|clearpage|
+@section{@${\langC} Lemmas}
+
+@tr-lemma[#:key "C-S-implies" @elem{@${\langC} static subset}]{
   If @${\Gamma \wellM e : \tau} then @${\Gamma \wellCE e : \tau}.
 }@tr-proof{
   By structural induction on @${\Gamma \wellM e : \tau}
@@ -217,6 +242,14 @@
 
   @tr-case[#:box? #true
            @${\inferrule*{
+              }{
+                \Gamma \wellM \eerr : \tau
+              }}]{
+    @tr-qed[]
+  }
+
+  @tr-case[#:box? #true
+           @${\inferrule*{
                 \Gamma \wellM e
               }{
                 \Gamma \wellM \edyn{\tau}{e} : \tau
@@ -231,7 +264,7 @@
   }
 }
 
-@tr-lemma[#:key "C-D-implies" @elem{@${\langC} dynamic implies}]{
+@tr-lemma[#:key "C-D-implies" @elem{@${\langC} dynamic subset}]{
   If @${\Gamma \wellM e} then @${\Gamma \wellCE e}.
 }@tr-proof{
   By structural induction on @${\Gamma \wellM e}.
@@ -345,6 +378,14 @@
 
   @tr-case[#:box? #true
            @${\inferrule*{
+              }{
+                \Gamma \wellM \eerr
+              }}]{
+    @tr-qed[]
+  }
+
+  @tr-case[#:box? #true
+           @${\inferrule*{
                 \Gamma \wellM e : \tau
               }{
                 \Gamma \wellM \esta{\tau}{e}
@@ -360,7 +401,7 @@
 }
 
 @tr-lemma[#:key "C-S-progress" @elem{@${\langC} static progress}]{
-  If @${\wellCE e : \tau} then either:
+  If @${\wellCE e : \tau} then one of the following holds:
   @itemlist[
     @item{ @${e} is a value }
     @item{ @${e \ccCS e'} }
@@ -531,7 +572,7 @@
 }
 
 @tr-lemma[#:key "C-D-progress" @elem{@${\langC} dynamic progress}]{
-  If @${\wellCE e} then either:
+  If @${\wellCE e} then one of the following holds:
   @itemlist[
     @item{ @${e} is a value }
     @item{ @${e \ccCD e'} }
@@ -1288,7 +1329,7 @@
 }
 
 @tr-lemma[#:key "C-S-uec" @elem{@${\langC} unique static evaluation contexts}]{
-  If @${\wellCE e : \tau} then either:
+  If @${\wellCE e : \tau} then one of the following holds:
   @itemlist[
     @item{ @${e} is a value}
     @item{ @${e = \ctxE{\vapp{v_0}{v_1}}} }
@@ -1475,7 +1516,7 @@
 }
 
 @tr-lemma[#:key "C-D-uec" @elem{@${\langC} unique dynamic evaluation contexts}]{
-  If @${\wellCE e} then either:
+  If @${\wellCE e} then one of the following holds:
   @itemlist[
     @item{ @${e} is a value }
     @item{ @${\ctxE{\vapp{v_0}{v_1}}} }
@@ -2349,7 +2390,7 @@
   ]
 }@tr-proof{
   @tr-qed{
-    by the definition of @${\Gamma \wellCE e : \tau} and by @|C-finite-subtyping|
+    by the definition of @${\Gamma \wellCE e : \tau}
   }
 }
 
@@ -2454,7 +2495,7 @@
   If @${\wellCE v_0 : \tau_0 \mbox{ and }
         \wellCE v_1 : \tau_1 \mbox{ and }
         \Delta(\vbinop, \tau_0, \tau_1) = \tau}
-  then either:
+  then one of the following holds:
   @itemize[
     @item{ @${\delta(\vbinop, v_0, v_1) = v \mbox{ and } \wellCE v : \tau}, or }
     @item{ @${\delta(\vbinop, v_0, v_1) = \boundaryerror } }
@@ -3258,84 +3299,6 @@
       @${\Gamma \wellCE \esta{\tau'}{\vsubst{e'}{x}{v}}}
       (3)}
     @tr-qed[]
-  }
-}
-
-@; -----------------------------------------------------------------------------
-@tr-lemma[#:key "C-finite-subtyping" @elem{@${\tau \subt \tau} finite}]{
-  All chains @${\tau_0 \subt \cdots \subt \tau_{n-1}} are finite.
-}@tr-proof{
-  By structural induction on @${\tau}, every type has a finite number of subtypes:
-
-  @tr-case[@${\tau = \tnat}]{
-    @tr-qed{
-      zero subtypes}
-  }
-
-  @tr-case[@${\tau = \tint}]{
-    @tr-qed{
-      one subtype, @${\tnat}}
-  }
-
-  @tr-case[@${\tau = \tpair{\tau_0}{\tau_1}}]{
-    @tr-step{
-      @elem{@${\tau_0} has @${N_0} subtypes}
-      @tr-IH}
-    @tr-step{
-      @elem{@${\tau_1} has @${N_1} subtypes}
-      @tr-IH}
-    @tr-qed{
-      @${N_0 + N_1} subtypes}
-  }
-
-  @tr-case[@${\tau = \tarr{\tau_d}{\tau_c}}]{
-    @tr-step{
-      @elem{@${\tau_d} has @${N_d} supertypes}
-      @|C-finite-supertyping|}
-    @tr-step{
-      @elem{@${\tau_c} has @${N_c} subtypes}
-      @tr-IH}
-    @tr-qed{
-      @${N_d + N_c} subtypes}
-  }
-}
-
-@; -----------------------------------------------------------------------------
-@tr-lemma[#:key "C-finite-supertyping" @elem{finite supertyping}]{
-  Every type @${\tau} has a finite number of supertypes.
-}@tr-proof{
-  By structural induction on @${\tau}.
-
-  @tr-case[@${\tau = \tnat}]{
-    @tr-qed{
-      one supertype, @${\tint}}
-  }
-
-  @tr-case[@${\tau = \tint}]{
-    @tr-qed{
-      zero supertypes}
-  }
-
-  @tr-case[@${\tau = \tpair{\tau_0}{\tau_1}}]{
-    @tr-step{
-      @elem{@${\tau_0} has @${N_0} supertypes}
-      @tr-IH}
-    @tr-step{
-      @elem{@${\tau_1} has @${N_1} supertypes}
-      @tr-IH}
-    @tr-qed{
-      @${N_0 + N_1} supertypes}
-  }
-
-  @tr-case[@${\tau = \tarr{\tau_d}{\tau_c}}]{
-    @tr-step{
-      @elem{@${\tau_d} has @${N_d} subtypes}
-      @|C-finite-subtyping|}
-    @tr-step{
-      @elem{@${\tau_c} has @${N_c} supertypes}
-      @tr-IH}
-    @tr-qed{
-      @${N_d + N_c} supertypes}
   }
 }
 

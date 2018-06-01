@@ -4,7 +4,7 @@
 @; TODO
 @; - from -->D and treating sta as dyn, get sound semantics for N K
 
-@appendix-title++{The Big Picture}
+@appendix-title++{Big Picture}
 
 The paragraphs in this section summarize the five embeddings with four slogans.
 Each slogan pertains to one aspect of the embedding:

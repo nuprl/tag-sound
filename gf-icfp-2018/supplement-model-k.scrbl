@@ -20,7 +20,7 @@
 
 @; -----------------------------------------------------------------------------
 @|clearpage|
-@section{@${\langK} Properties}
+@section{@${\langK} Theorems}
 
 @(begin
    (define K-S-soundness @tr-ref[#:key "K-S-soundness"]{static @${\langK}-soundness})
@@ -92,11 +92,11 @@
    (define K-weakening @tr-ref[#:key "K-weakening"]{weakening})
 
    (define M-uec @tr-ref[#:key "KM-uec"]{@${\langM} unique static evaluation contexts})
-   (define M-subst @tr-ref[#:key "M-subst"]{substitution})
-   (define M-delta-preservation @tr-ref[#:key "M-delta-preservation"]{@${\delta} preservation})
-   (define M-weakening @tr-ref[#:key "M-weakening"]{weakening})
-   (define M-S-canonical @tr-ref[#:key "M-S-canonical"]{static canonical forms})
-   (define M-S-inversion @tr-ref[#:key "M-S-inversion"]{static inversion forms})
+   (define M-subst @tr-ref[#:key "KM-subst"]{substitution})
+   (define M-delta-preservation @tr-ref[#:key "KM-delta-preservation"]{@${\delta} preservation})
+   (define M-weakening @tr-ref[#:key "KM-weakening"]{weakening})
+   (define M-S-canonical @tr-ref[#:key "KM-S-canonical"]{static canonical forms})
+   (define M-S-inversion @tr-ref[#:key "KM-S-inversion"]{static inversion forms})
 )
 
 @tr-theorem[#:key "K-S-soundness" @elem{static @${\langK}-soundness}]{
@@ -179,26 +179,37 @@
   and @${\wellM e : \tau \carrow e''}, then @${e \rrNSstar v} if and only if
   @${e'' \rrKSstar v}.
 }
-@tr-proof[]{
+@tr-proof{
+  @itemlist[#:style 'ordered
+  @item{
   @tr-step{
     @${\efromdynN{\tint}{v} = \efromdynK{\tint}{v}}
     by definition
-  }
+  }}
+  @item{
   @tr-step{
     @${\efromstaN{\tint}{v} = \efromstaK{\tint}{v}}
     by definition
-  }
+  }}
+  @item{
   @tr-step{
     @${\efromstaN{\tnat}{v} = \efromstaK{\tnat}{v}}
     by definition
-  }
+  }}
+  @item{
   @tr-step{
     @${\efromdynN{\tnat}{v} = \efromdynK{\tnat}{v}}
     by definition
-  }
+  }}
+  @item{
   @tr-qed{
-  }
+  }}
+  ]
 }
+
+
+@|clearpage|
+@section{@${\langK} Lemmas}
 
 @tr-lemma[#:key "K-fromdyn-soundness" @elem{@${\vfromdynK} soundness}]{
   If @${\wellKE v} then @${\wellKE \efromdynK{\tau}{v}}.
@@ -7117,7 +7128,7 @@
 
 }
 
-@tr-lemma[#:key "M-S-inversion" @elem{@${\wellM} static inversion}]{
+@tr-lemma[#:key "KM-S-inversion" @elem{@${\wellM} static inversion}]{
   @itemlist[
     @item{
       If @${\Gamma \wellM x : \tau}
@@ -7172,7 +7183,7 @@
   }
 }
 
-@tr-lemma[#:key "M-S-canonical" @elem{canonical forms}]{
+@tr-lemma[#:key "KM-S-canonical" @elem{canonical forms}]{
   @itemlist[
     @item{
       If @${\wellM v : \tpair{\tau_0}{\tau_1}}
@@ -7196,7 +7207,7 @@
   }
 }
 
-@tr-lemma[#:key "M-subst" @elem{substitution}]{
+@tr-lemma[#:key "KM-subst" @elem{substitution}]{
   If @${\tann{x}{\tau_x},\Gamma \wellM e : \tau},
   and @${e} is boundary-free
   and @${\wellM v : \tau_x}
@@ -7377,7 +7388,7 @@
 
 }
 
-@tr-lemma[#:key "M-delta-preservation" @elem{@${\delta} preservation}]{
+@tr-lemma[#:key "KM-delta-preservation" @elem{@${\delta} preservation}]{
   @itemlist[
     @item{
       If @${\wellM v} and @${\delta(\vunop, v) = v'} then @${\wellM e'}
@@ -7418,7 +7429,7 @@
   }
 }
 
-@tr-lemma[#:key "M-weakening" @elem{weakening}]{
+@tr-lemma[#:key "KM-weakening" @elem{weakening}]{
   @itemize[
     @item{
       If @${\Gamma \wellM e} then @${x,\Gamma \wellM e}

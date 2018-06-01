@@ -3,6 +3,13 @@
 
 @title{Benchmark Descriptions}
 
+For more details about the benchmarks, and links to additional object-oriented
+ benchmarks:
+
+ @nested[
+ @url{http://docs.racket-lang.org/gtp-benchmarks/index.html}
+ ]
+
 @bm-desc[
   "sieve"
   "Ben Greenman"

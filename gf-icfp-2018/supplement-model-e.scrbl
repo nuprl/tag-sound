@@ -7,7 +7,7 @@
 @exact{\input{fig:erasure-embedding.tex}}
 
 @|clearpage|
-@section{@${\langE} Properties}
+@section{@${\langE} Theorems}
 
 @(begin
    (define E-progress @tr-ref[#:key "E-progress"]{progress})
@@ -98,6 +98,10 @@
   The @${\rrESstar} and @${\rrEDstar} relations are identical.
   In practice, uses of @${\rrESstar} may be replaced with @${\rrEDstar}.
 }
+
+@; -----------------------------------------------------------------------------
+@|clearpage|
+@section{@${\langE} Lemmas}
 
 @tr-lemma[#:key "E-fromdyn-soundness" @elem{@${\vfromdynE} soundness}]{
   If @${\wellEE v} then @${\wellEE \efromdynE{\tau}{v}}.

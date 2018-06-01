@@ -2,26 +2,26 @@
 @require{techreport.rkt}
 @title{Implementing Tagged Racket}
 
-High-level architecture of Typed Racket:
+The high-level architecture of @|TR_N| is to:
 
-@itemlist[
+@itemlist[#:style 'ordered
 @item{
   type-check a module,
 }
 @item{
-  use type environment to generate contracts for exported functions,
+  use the type environment to generate contracts for exported functions,
 }
 @item{
-  optimize the module
+  optimize the contracts for the module,
 }
 @item{
-  output Racket bytecode
+  output Racket bytecode.
 }
 ]
 
 To implement @|TR_LD|, we modified step 2 and replaced step 3.
 
-@section{Generating Type-Tag Contracts}
+@section{Generating Type-Constructor Contracts}
 
 Typed Racket defines a function @hyperlink["https://github.com/racket/typed-racket/blob/master/typed-racket-lib/typed-racket/private/type-contract.rkt#L283"]{@racket[type->contract]} that
  (1) expects a type, (2) compiles the type to a data structure that describes a contract, (3) optimizes the representation of the data structure, and (4) compiles the data structure to Racket code that will generate an appropriate contract.
@@ -59,3 +59,11 @@ Second, the fold defends typed functions from dynamically-typed arguments
  by translating a function like @racket[(λ (x) e)] to @racket[(λ (x) (check x) e)].
 The structure of the check is based on the domain type of the function.
 
+
+@section{Diff vs. Racket v6.10.1}
+
+The repository for this paper contains the @|TR_LD| prototype and a diff
+ between the prototype and Typed Racket v6.10.1 (@|TR_N|).
+A URL for the diff is:
+
+@nested[@url{https://github.com/nuprl/tag-sound/blob/master/src/locally-defensive.patch}]

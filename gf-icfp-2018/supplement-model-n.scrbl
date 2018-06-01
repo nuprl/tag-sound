@@ -7,7 +7,7 @@
 @exact{\input{fig:natural-embedding.tex}}
 
 @|clearpage|
-@section{@${\langN} Properties}
+@section{@${\langN} Theorems}
 
 @(begin
    (define N-S-soundness @tr-ref[#:key "N-S-soundness"]{static @${\langN}-soundness})
@@ -140,6 +140,10 @@
 @;  Purely-static terms cannot step to a @${\tagerror} and are preserved by the
 @;   @${\ccNS} reduction relation.
 @;}
+
+
+@|clearpage|
+@section{@${\langN} Lemmas}
 
 @tr-lemma[#:key "N-fromdyn-soundness" @elem{@${\vfromdynN} soundness}]{
   If @${\wellNE v} then @${\wellNE \efromdynN{\tau}{v}}.

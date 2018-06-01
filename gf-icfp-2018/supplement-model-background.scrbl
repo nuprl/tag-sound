@@ -3,6 +3,8 @@
 @UID++[]
 @title[#:tag "appendix:preliminaries"]{Preliminaries}
 
+Common surface language and typing system, but (1) re-print typing judgment for every model and (2) abuse of notation, write the full surface + core e with each model (its really two languages, but simpler to write as one)
+
 
 @tr-definition[#:key "divergence" @elem{@${\rastar} divergence}]{
   An expression @${e} diverges for the reduction relation @${\rastar} if for
@@ -34,5 +36,5 @@
 @tr-definition[#:key "purely-static" @elem{@${\vdash} boundary-free}]{
   An expression @${e} is @emph{boundary free} if @${e} does not contain
   a subterm of the form @${(\edyn{\tau'}{e'})}, nor a subterm of the form
-  @${(\esta{e'}{\tau'})}.
+  @${(\esta{\tau'}{e'})}.
 }

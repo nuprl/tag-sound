@@ -7,7 +7,7 @@ This section contains full definitions of the languages
  and full proofs of our claims about each language.
 
 Aside from the common notions in @section-ref{appendix:preliminaries},
- the definition and proofs of each model are independent.
+ the definition and proofs of each model are independent and self-contained.
 
 @;@Figure-ref{fig:model-roadmap} presents an outline.
 
@@ -33,10 +33,10 @@ Aside from the common notions in @section-ref{appendix:preliminaries},
 @;@include-section{supplement-model-s.scrbl}
 @;@include-section{supplement-model-m.scrbl}
 
-@include-section{supplement-model-e.scrbl}
 @include-section{supplement-model-n.scrbl}
+@include-section{supplement-model-e.scrbl}
+@include-section{supplement-model-k.scrbl}
 @include-section{supplement-model-c.scrbl}
 @include-section{supplement-model-f.scrbl}
-@include-section{supplement-model-k.scrbl}
 
 @;@include-section{supplement-model-bridge.scrbl}

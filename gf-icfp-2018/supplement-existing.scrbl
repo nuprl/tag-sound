@@ -1,14 +1,33 @@
 #lang gf-icfp-2018
 @require{techreport.rkt}
 
-@; GradualTalk : no model in the papers, and claims to do natural embedding
+@;  @url{http://hacklang.org/}
+@;  (@url{https://flow.org/})
+@;  (@url{http://mypy-lang.org/})
+@;  (@url{https://www.pyret.org/})
+@; (@url{https://pyre-check.org/})
+@; (@url{https://goo.gl/p5rmSe})  https://opensource.google.com/projects/pytype https://github.com/google/pytype
 
 @appendix-title{Existing Systems}
 
-Technical illustrations of prior work on gradual and migratory typing.
+This section illustrates prior work on gradual typing using the semantic
+ framework of the paper.
+
+At present (2018-05-31) these illustrations have not been approved by the
+ authors of the systems.
+We plan to review these illustrations with the relevant authors before the ICFP
+ camera-ready.
 
 
 @; -----------------------------------------------------------------------------
+
+@; C# TODO
+@; values = i | object ...
+@; t = int | byte | object | dynamic | C(\sigma) 
+@;  ... techincally object/dynamic are C
+@; D udnefined
+@; S ... checks subtype? not sure ened to see paper
+@; and dynamic is not a subtype of anything
 
 @; -----------------------------------------------------------------------------
 @section[#:tag "existing-thorn"]{Thorn}
@@ -17,7 +36,7 @@ Technical illustrations of prior work on gradual and migratory typing.
 
 @Figure-ref{fig:existing-thorn} summarizes Thorn.
 
-The actual paper uses a heap.
+The actual model uses a heap.
 
 There are no untyped classes or objects.
 Every value has a class name.
@@ -25,9 +44,6 @@ Consequence: the @emph{this} variable ia always concretely typed in method calls
 
 Thorn lets values pass from static to dynamic at runtime.
 (Cannot explicitly cast from static to dynamic.)
-
-Thorn does not let values cross from dynamic to static without an explicit type
- cast.
 
 Thorn values are pointers to objects.
 A pointer may be wrapped in at most one cast.
@@ -108,6 +124,9 @@ Not allowed to change type of an object; an object imported from JavaScript
 
 @; -----------------------------------------------------------------------------
 @section[#:tag "existing-dart"]{Dart}
+
+URL: @url{https://www.dartlang.org/dart-2}
+
 
 @include-figure["fig:existing-dart.tex" @elem{Dart boundary functions for a restricted grammar of types. The @${\vfromdyn} function is undefined for all inputs.}]
 

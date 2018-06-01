@@ -7,27 +7,45 @@
 @exact{\input{fig:forgetful-embedding.tex}}
 
 @|clearpage|
-@section{@${\langF} Properties}
+@section{@${\langF} Theorems}
 
 @(begin
+   (define F-S-soundness @tr-ref[#:key "F-S-soundness"]{static @${\langF}-soundness})
+   (define F-D-soundness @tr-ref[#:key "F-S-soundness"]{static @${\langF}-soundness})
+
    (define F-S-progress @tr-ref[#:key "F-S-progress"]{static progress})
    (define F-D-progress @tr-ref[#:key "F-D-progress"]{dynamic progress})
    (define F-S-preservation @tr-ref[#:key "F-S-preservation"]{static preservation})
    (define F-D-preservation @tr-ref[#:key "F-D-preservation"]{dynamic preservation})
 
-   (define F-check @tr-ref[#:key "F-check"]{check soundness})
+   (define F-S-implies @tr-ref[#:key "F-S-implies"]{static subset})
+   (define F-D-implies @tr-ref[#:key "F-D-implies"]{dynamic subset})
 
-   (define F-S-implies @tr-ref[#:key "F-S-implies"]{static implies})
-   (define F-D-implies @tr-ref[#:key "F-D-implies"]{dynamic implies})
+   (define F-S-factor @tr-ref[#:key "F-S-factor"]{boundary factoring})
+   (define F-D-factor @tr-ref[#:key "F-D-factor"]{boundary factoring})
 
-   (define F-S-uec @tr-ref[#:key "F-S-uec"]{unique evaluation contexts})
-   (define F-D-uec @tr-ref[#:key "F-D-uec"]{unique evaluation contexts})
+   (define F-boundary @tr-ref[#:key "F-boundary"]{inner boundary})
+
+   (define F-S-uec @tr-ref[#:key "F-S-uec"]{unique static evaluation contexts})
+   (define F-D-uec @tr-ref[#:key "F-D-uec"]{unique dynamic evaluation contexts})
 
    (define F-S-hole-typing @tr-ref[#:key "F-S-hole-typing"]{static hole typing})
    (define F-D-hole-typing @tr-ref[#:key "F-D-hole-typing"]{dynamic hole typing})
 
-   (define F-S-hole-subst @tr-ref[#:key "F-S-hole-subst"]{static hole substitution})
-   (define F-D-hole-subst @tr-ref[#:key "F-D-hole-subst"]{dynamic hole substitution})
+   (define F-boundary-typing @tr-ref[#:key "F-boundary-typing"]{boundary hole typing})
+   (define F-DS-hole @tr-ref[#:key "F-DS-hole"]{static @${\vdyn} hole typing})
+   (define F-DD-hole @tr-ref[#:key "F-DD-hole"]{dynamic @${\vdyn} hole typing})
+   (define F-SS-hole @tr-ref[#:key "F-SS-hole"]{static @${\vsta} hole typing})
+   (define F-SD-hole @tr-ref[#:key "F-SD-hole"]{dynamic @${\vsta} hole typing})
+
+   (define F-hole-subst @tr-ref[#:key "F-hole-subst"]{hole substitution})
+   (define F-DS-hole-subst @tr-ref[#:key "F-DS-hole-subst"]{dynamic context static hole substitution})
+   (define F-DD-hole-subst @tr-ref[#:key "F-DD-hole-subst"]{dynamic context dynamic hole substitution})
+   (define F-SS-hole-subst @tr-ref[#:key "F-SS-hole-subst"]{static context static hole substitution})
+   (define F-SD-hole-subst @tr-ref[#:key "F-SD-hole-subst"]{static context dynamic hole substitution})
+
+   (define F-S-hole-subst @tr-ref[#:key "F-S-hole-subst"]{static boundary-free hole substitution})
+   (define F-D-hole-subst @tr-ref[#:key "F-D-hole-subst"]{dynamic boundary-free hole substitution})
 
    (define F-S-inversion @tr-ref[#:key "F-S-inversion"]{inversion})
    (define F-D-inversion @tr-ref[#:key "F-D-inversion"]{inversion})
@@ -37,18 +55,22 @@
    (define F-Delta-soundness @tr-ref[#:key "F-Delta-type-soundness"]{@${\Delta} type soundness})
    (define F-delta-preservation @tr-ref[#:key "F-delta-preservation"]{@${\delta} preservation})
 
-   (define F-SS-subst @tr-ref[#:key "F-SS-subst"]{substitution})
-   (define F-DS-subst @tr-ref[#:key "F-DS-subst"]{substitution})
-   (define F-SD-subst @tr-ref[#:key "F-SD-subst"]{substitution})
-   (define F-DD-subst @tr-ref[#:key "F-DD-subst"]{substitution})
+   (define F-fromdyn-soundness @tr-ref[#:key "F-fromdyn-soundness"]{@${\vfromdynF} soundness})
+   (define F-fromsta-soundness @tr-ref[#:key "F-fromsta-soundness"]{@${\vfromstaF} soundness})
 
-   (define F-finite-subtyping @tr-ref[#:key "F-finite-subtyping"]{finite subtyping})
-   (define F-finite-supertyping @tr-ref[#:key "F-finite-supertyping"]{finite supertyping})
+   (define F-subst @tr-ref[#:key "F-subst"]{substitution})
+   (define F-DS-subst @tr-ref[#:key "F-DS-subst"]{dynamic context static value substitution})
+   (define F-DD-subst @tr-ref[#:key "F-DD-subst"]{dynamic context dynamic value substitution})
+   (define F-SS-subst @tr-ref[#:key "F-SS-subst"]{static context static value substitution})
+   (define F-SD-subst @tr-ref[#:key "F-SD-subst"]{static context dynamic value substitution})
+
    (define F-weakening @tr-ref[#:key "F-weakening"]{weakening})
+
+   (define F-check @tr-ref[#:key "F-check"]{@${\vfromany} soundness})
 )
 
 @tr-theorem[#:key "F-soundness" @elem{@${\langF} type soundness}]{
-  If @${\wellM e : \tau} then @${\wellFE e : \tau} and either:
+  If @${\wellM e : \tau} then @${\wellFE e : \tau} and one of the following holds:
   @itemlist[
     @item{ @${e \rrFSstar v \mbox{ and } \wellFE v : \tau} }
     @item{ @${e \rrFSstar \ctxE{\edyn{\tau'}{e'}} \mbox{ and } e' \ccFD \tagerror} }
@@ -68,7 +90,7 @@
 }
 
 @tr-corollary[#:key "F-pure-static" @elem{@${\langF} static soundness}]{
-  If @${\wellM e : \tau} and @${e} is purely static, then either:
+  If @${\wellM e : \tau} and @${e} is purely static, then one of the following holds:
   @itemlist[
     @item{ @${e \rrFSstar v \mbox{ and } \wellFE v : \tau} }
     @item{ @${e \rrFSstar \boundaryerror} }
@@ -79,7 +101,10 @@
    @${\ccFS} reduction relation.
 }
 
-@tr-lemma[#:key "F-S-implies" @elem{@${\langF} static implies}]{
+@|clearpage|
+@section{@${\langF} Lemmas}
+
+@tr-lemma[#:key "F-S-implies" @elem{@${\langF} static subset}]{
   If @${\Gamma \wellM e : \tau} then @${\Gamma \wellFE e : \tau}.
 }@tr-proof{
   By structural induction on @${\Gamma \wellM e : \tau}
@@ -218,6 +243,14 @@
 
   @tr-case[#:box? #true
            @${\inferrule*{
+              }{
+                \Gamma \wellM \eerr : \tau
+              }}]{
+    @tr-qed[]
+  }
+
+  @tr-case[#:box? #true
+           @${\inferrule*{
                 \Gamma \wellM e
               }{
                 \Gamma \wellM \edyn{\tau}{e} : \tau
@@ -232,7 +265,7 @@
   }
 }
 
-@tr-lemma[#:key "F-D-implies" @elem{@${\langF} dynamic implies}]{
+@tr-lemma[#:key "F-D-implies" @elem{@${\langF} dynamic subset}]{
   If @${\Gamma \wellM e} then @${\Gamma \wellFE e}.
 }@tr-proof{
   By structural induction on @${\Gamma \wellM e}.
@@ -346,6 +379,14 @@
 
   @tr-case[#:box? #true
            @${\inferrule*{
+              }{
+                \Gamma \wellM \eerr
+              }}]{
+    @tr-qed[]
+  }
+
+  @tr-case[#:box? #true
+           @${\inferrule*{
                 \Gamma \wellM e : \tau
               }{
                 \Gamma \wellM \esta{\tau}{e}
@@ -361,7 +402,7 @@
 }
 
 @tr-lemma[#:key "F-S-progress" @elem{@${\langF} static progress}]{
-  If @${\wellFE e : \tau} then either:
+  If @${\wellFE e : \tau} then one of the following holds:
   @itemlist[
     @item{ @${e} is a value }
     @item{ @${e \ccFS e'} }
@@ -575,7 +616,7 @@
 }
 
 @tr-lemma[#:key "F-D-progress" @elem{@${\langF} dynamic progress}]{
-  If @${\wellFE e} then either:
+  If @${\wellFE e} then one of the following holds:
   @itemlist[
     @item{ @${e} is a value }
     @item{ @${e \ccFD e'} }
@@ -1439,7 +1480,7 @@
 }
 
 @tr-lemma[#:key "F-S-uec" @elem{@${\langF} unique static evaluation contexts}]{
-  If @${\wellFE e : \tau} then either:
+  If @${\wellFE e : \tau} then one of the following holds:
   @itemlist[
     @item{ @${e} is a value}
     @item{ @${e = \ctxE{\vapp{v_0}{v_1}}} }
@@ -1648,7 +1689,7 @@
 }
 
 @tr-lemma[#:key "F-D-uec" @elem{@${\langF} unique dynamic evaluation contexts}]{
-  If @${\wellFE e} then either:
+  If @${\wellFE e} then one of the following holds:
   @itemlist[
     @item{ @${e} is a value }
     @item{ @${\ctxE{\vapp{v_0}{v_1}}} }
@@ -2581,7 +2622,7 @@
   ]
 }@tr-proof{
   @tr-qed{
-    by the definition of @${\Gamma \wellFE e : \tau} and by @|F-finite-subtyping|
+    by the definition of @${\Gamma \wellFE e : \tau}
   }
 }
 
@@ -2705,7 +2746,7 @@
   If @${\wellFE v_0 : \tau_0 \mbox{ and }
         \wellFE v_1 : \tau_1 \mbox{ and }
         \Delta(\vbinop, \tau_0, \tau_1) = \tau}
-  then either:
+  then one of the following holds:
   @itemize[
     @item{ @${\delta(\vbinop, v_0, v_1) = v \mbox{ and } \wellFE v : \tau}, or }
     @item{ @${\delta(\vbinop, v_0, v_1) = \boundaryerror } }
@@ -3623,84 +3664,6 @@
       @${\Gamma \wellFE \esta{\tau'}{\vsubst{e'}{x}{v}}}
       (3)}
     @tr-qed[]
-  }
-}
-
-@; -----------------------------------------------------------------------------
-@tr-lemma[#:key "F-finite-subtyping" @elem{@${\tau \subt \tau} finite}]{
-  All chains @${\tau_0 \subt \cdots \subt \tau_{n-1}} are finite.
-}@tr-proof{
-  By structural induction on @${\tau}, every type has a finite number of subtypes:
-
-  @tr-case[@${\tau = \tnat}]{
-    @tr-qed{
-      zero subtypes}
-  }
-
-  @tr-case[@${\tau = \tint}]{
-    @tr-qed{
-      one subtype, @${\tnat}}
-  }
-
-  @tr-case[@${\tau = \tpair{\tau_0}{\tau_1}}]{
-    @tr-step{
-      @elem{@${\tau_0} has @${N_0} subtypes}
-      @tr-IH}
-    @tr-step{
-      @elem{@${\tau_1} has @${N_1} subtypes}
-      @tr-IH}
-    @tr-qed{
-      @${N_0 + N_1} subtypes}
-  }
-
-  @tr-case[@${\tau = \tarr{\tau_d}{\tau_c}}]{
-    @tr-step{
-      @elem{@${\tau_d} has @${N_d} supertypes}
-      @|F-finite-supertyping|}
-    @tr-step{
-      @elem{@${\tau_c} has @${N_c} subtypes}
-      @tr-IH}
-    @tr-qed{
-      @${N_d + N_c} subtypes}
-  }
-}
-
-@; -----------------------------------------------------------------------------
-@tr-lemma[#:key "F-finite-supertyping" @elem{finite supertyping}]{
-  Every type @${\tau} has a finite number of supertypes.
-}@tr-proof{
-  By structural induction on @${\tau}.
-
-  @tr-case[@${\tau = \tnat}]{
-    @tr-qed{
-      one supertype, @${\tint}}
-  }
-
-  @tr-case[@${\tau = \tint}]{
-    @tr-qed{
-      zero supertypes}
-  }
-
-  @tr-case[@${\tau = \tpair{\tau_0}{\tau_1}}]{
-    @tr-step{
-      @elem{@${\tau_0} has @${N_0} supertypes}
-      @tr-IH}
-    @tr-step{
-      @elem{@${\tau_1} has @${N_1} supertypes}
-      @tr-IH}
-    @tr-qed{
-      @${N_0 + N_1} supertypes}
-  }
-
-  @tr-case[@${\tau = \tarr{\tau_d}{\tau_c}}]{
-    @tr-step{
-      @elem{@${\tau_d} has @${N_d} subtypes}
-      @|F-finite-subtyping|}
-    @tr-step{
-      @elem{@${\tau_c} has @${N_c} supertypes}
-      @tr-IH}
-    @tr-qed{
-      @${N_d + N_c} supertypes}
   }
 }
 

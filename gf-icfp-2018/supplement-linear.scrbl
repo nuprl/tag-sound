@@ -11,14 +11,14 @@
 To reduce visual overlap, the points representing configurations with @${N}
  modules are evenly spaced along the @|x-axis| along the interval @${N\pm 0.4}.
 
-Three results stand out.
-First, the orange points for @|TR_LD| significantly out-perform the points
- for Typed Racket.
-Second, the performance of @|TR_LD| tends to increase linearly as the number
+The figures support three main conclusions.
+First, the orange points for @|TR_LD| are in general significantly lower
+ (i.e., show better performance) than the points for @|TR_N|.
+Second, the performance of @|TR_LD| tends to degrade linearly as the number
  of typed modules increases.
-This increase levels off a bit at the right-most end because the implementation
+This slowdown levels off at the right-most end because the implementation
  skips the codomain check on calls to statically-typed functions.
-Third, the performance of Typed Racket has an umbrella shape.
+Third, the performance of @|TR_N| has an umbrella shape.
 The worst performance is in the middle, but the fully-typed performance is
  better than @|TR_LD|.
 
