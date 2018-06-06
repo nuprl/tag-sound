@@ -713,9 +713,9 @@
 (define-type Bessel
   (List Nonnegative-Real Real))
 
-(: multiply (-> Bessel Bessel Bessel))
-(define (multiply n0 n1)
-  (map * n0 n1))
+(: add (-> Bessel Bessel Bessel))
+(define (add b0 b1)
+  (map + b0 b1))
 >>
 )
     (codeblock-pict/numbers #:title "student.rkt"
@@ -724,43 +724,56 @@
 
 (require "bessel.rkt")
 
-(define bad-num (list -2 2))
+(define d0 (list 4 0))
+(define d1 (list -2 1))
 
-(multiply bad-num bad-num)
+(add d0 d1)
 >>
 )))
 
 (define db-app-pict
-  (vl-append 20
-    (codeblock-pict/numbers #:title "server.rkt"
+  (ht-append 30
+    (codeblock-pict/numbers #:title "database.rkt"
 #<<>>
 #lang racket
 
-(provide init-database
-         add-user
-         lookup-user)
+(define (add db name)
+  (exec_query ....))
 
-;; ... implementation omitted
+(define (find db uid)
+  (exec_query ....))
+
 >>
 )
-    (codeblock-pict/numbers #:title "type-ann.rkt"
+    (codeblock-pict/numbers #:title "typed_db.rkt"
 #<<>>
 #lang typed/racket
 
-(require/typed/provide "server.rkt" [add-user (-> Symbol Boolean)])
+(define-type Username
+  Symbol)
+
+(require/typed/provide
+  "db.rkt"
+  [#:opaque DB
+   sql-connection?]
+  [add
+   (-> DB Username
+       Boolean)]
+  ....)
 >>
 )
-    (codeblock-pict/numbers #:title "client.rkt"
+    (codeblock-pict/numbers #:title "app.rkt"
 #<<>>
 #lang racket
 
-(require "type-ann.rkt")
+(require
+  "typed_db.rkt")
 
-;; ... omitted
-
-(add-user (get-current-username))
-
-;; ... omitted
+(define (serve r)
+  (cond
+    [(new_user? r)
+     ....]
+    ....))
 >>
 )))
 
