@@ -19,7 +19,7 @@ After moving from base types to trees over first-order types, we can explain
  developers to reason compositionally about type annotations, users of
  the locally defensive variant must always consider the whole program (@section-ref{sub:first-order}).
 This non-compositional behavior means that logical errors may go undetected in
- seemingly type-correct code (see @figure-ref{fig:silent-failure} for a source-code example).
+ seemingly type-correct code.
 Higher-order types are similarly afflicted by the non-compositional behavior of
  the locally-defensive embedding (@section-ref{sub:ho}).
 Lastly, the three approaches provide
@@ -46,32 +46,34 @@ Similarly, the erasure embedding throws a tag error if an expression adds a
  number to a pair.
 
 This claim is only true, however, if the static typing system is restricted
- to match the domain checks that dynamic typing happens to enforce.
+ to match the host language's notion of dynamic typing.
 Adding a @emph{logical} distinction between natural numbers and integers,
  as demonstrated in the type system of @figure-ref{fig:multi-preservation},
- can lead to silent failures at runtime.
-For example, if a negative number flows into a typed context expecting a
- natural number, the context may compute a well-typed result by dividing the
- ill-typed input by itself:
+ can lead to silent failures at runtime when a negative integer flows into
+ a context expecting a natural number.
+If the natural numbers represent votes, for example@~cite[tfffgksst-snapl-2017],
+ then the uncaught type error can change the outcome of an election.
 
-@dbend[
-  @warning{
-    \wellM (\equotient{(\edyn{\tnat}{{-2}})}{(\edyn{\tnat}{{-2}})}) : \tnat \rrESstar (\equotient{{-2}}{{-2}}) \rrESstar 1
-  }
-]
 
-@exact{\noindent}Other host languages may allow more extreme kinds of silent failures.
+@;@dbend[
+@;  @warning{
+@;    \wellM (\equotient{(\edyn{\tnat}{{-2}})}{(\edyn{\tnat}{{-2}})}) : \tnat \rrESstar (\equotient{{-2}}{{-2}}) \rrESstar 1
+@;  }
+@;]
+@;@exact{\noindent}
+
+Other host languages may allow more diverse kinds of silent failures.
 JavaScript, for example, supports adding a number to a string, array, or object.
-TypeScript programmers must keep this behavior in mind if they link their code
- to a JavaScript library.
+TypeScript programmers must keep this behavior in mind to protect their type-erased
+ code against JavaScript.@note{@url{https://lorefnon.tech/2018/03/25/typescript-and-validations-at-runtime-boundaries/}}
+
+@; https://twitter.com/jbandi/status/965005464638541825
 
 Both the natural embedding and the locally-defensive embedding are sound for
- base types, in the sense that if @${v} is a value of type @${\tnat},
- then @${v} is a natural number.
-More formally, their canonical forms lemmas coincide for base types.
-In the appendix, we show that these embeddings define equivalent reduction
- sequences for any expression in which all type boundaries are of base
- type@~cite[gf-tr-2018].
+ base types, e.g.,
+ if @${v} is a value of type @${\tnat}, then @${v} is a natural number.
+If the value originated in dynamically-typed code, both the natural and
+ locally-defensive embedding perform the same run-time validation.
 
 
 @section[#:tag "sub:first-order"]{For First-Order, Non-Base Types}
@@ -88,24 +90,24 @@ The natural embedding checks the contents of a pair; the locally-defensive
 
 @dbend[
   @safe{
-    \wellM \edyn{\tpair{\tnat}{\tnat}}{\vpair{-2}{-2}} : \tpair{\tnat}{\tnat} \rrNSstar \boundaryerror
+    \wellM \edyn{(\tpair{\tnat}{\tnat})}{\vpair{-2}{-2}} : \tpair{\tnat}{\tnat} \rrNSstar \boundaryerror
   }
   @warning{
-    \wellM \edyn{\tpair{\tnat}{\tnat}}{\vpair{-2}{-2}} : \tpair{\tnat}{\tnat} \rrKSstar \vpair{-2}{-2}
+    \wellM \edyn{(\tpair{\tnat}{\tnat})}{\vpair{-2}{-2}} : \tpair{\tnat}{\tnat} \rrKSstar \vpair{-2}{-2}
   }
 ]
 
 @exact{\noindent}Extracting a value from an ill-typed pair might detect the mismatch,
  depending on what type of value the context expects.
 For example, a typed expression can safely extract a negative integer from a
- pair of natural numbers if the expression is typed using the subtyping rule:
+ pair of natural numbers if the expression happens to expect an integer:
 
 @dbend[
   @safe{
-    \wellM \efst{(\edyn{\tpair{\tnat}{\tnat}}{\vpair{-2}{-2}})} : \tnat \rrKSstar \boundaryerror
+    \wellM \efst{(\edyn{(\tpair{\tnat}{\tnat})}{\vpair{-2}{-2}})} : \tnat \rrKSstar \boundaryerror
   }
   @warning{
-    \wellM \efst{(\edyn{\tpair{\tnat}{\tnat}}{\vpair{-2}{-2}})} : \tint \rrKSstar {-2}
+    \wellM \efst{(\edyn{(\tpair{\tnat}{\tnat})}{\vpair{-2}{-2}})} : \tint \rrKSstar {-2}
   }
 ]
 
@@ -114,7 +116,7 @@ For example, a typed expression can safely extract a negative integer from a
 
 @dbend[
   @warning{
-    \wellM \edyn{\tnat}{(\esum{1}{(\esnd{(\esta{(\tpair{\tnat}{\tnat})}{(\edyn{(\tpair{\tnat}{\tnat})}{\vpair{1}{-1}})})})})} : \tnat \rrKSstar 0
+    \wellM \efst{(\esta{(\tpair{\tnat}{\tnat})}{(\edyn{(\tpair{\tnat}{\tnat})}{\vpair{-2}{-2}})})} \rrKDstar 0
   }
 ]
 
@@ -122,87 +124,121 @@ For example, a typed expression can safely extract a negative integer from a
  that a value of type @${\tpair{\tau_0}{\tau_1}} contains components of type
  @${\tau_0} and type @${\tau_1} because type-constructor soundness is not compositional.
 
-@; TODO
-@; 1. this is high-cognitive-load
-@; 2. its not actually complex-multiply
-@; 3. it doesn't actually type-check (fixed-length list issue)
-Reynolds classic paper on types and abstraction begins with a similar example,
- based on a distinction between real numbers and non-negative reals@~cite[r-ip-1983]:
+@;Run-time checks in typed code provide a shallow form of defense, but limited by the context
+
+Reynolds classic paper on types and abstraction begins with a similar example 
+ based on a distinction between real numbers and non-negative reals@~cite[r-ip-1983].
+The story starts with two professors teaching two sections in complex variables:
 
  @nested[#:style 'inset @emph{
-   Professor Descartes announced that a complex number was an ordered pair of
-   reals ... Professor Bessel announced that a complex number was an ordered
-   pair of reals the first of which was nonnegative ...}
- ]@;
+   In one section, Professor Descartes announced that a complex number was an ordered pair of
+   reals ... In the other section, Professor Bessel announced that a complex
+   number was an ordered pair of reals the first of which was nonnegative ...
+ }]@;
 @;
 @Figure-ref{fig:silent-failure} adapts this example to a mixed-typed world.
-The typed module on left of the figure defines multiplication for
- ``Bessel-style'' complex numbers.
-The dynamically-typed module on the right invokes the multiplication
- function with two invalid arguments.
+The typed module on left defines addition for
+ ``Bessel-style'' complex numbers; the function adds the components of the given
+ numbers.
+The dynamically-typed module on the right invokes the addition function with
+ two numbers, one of which is not a Bessel number.
+
 Each of the three approaches to migratory typing behave differently on this program.
-The natural embedding rejects the application of @racket[b-multiply] at the
+The natural embedding rejects the application of @racket[add] at the
  boundary between the two modules.
-The erasure embedding does not detect the type error, and silently computes
- a well-typed result from the two invalid arguments.
-The locally-defensive embedding @emph{either} computes a well-typed result
- or raises a boundary error somewhere within the @racket[map] function --- it is
- impossible to predict the outcome without knowing the local type annotations
- within @racket[map].
+
+@dbend{
+  @safe{
+    \wellM \texttt{(add d0 d1)} \ccNS \boundaryerror
+  }
+}
+
+@exact{\noindent}The erasure embedding does not detect the type error, and silently computes
+ a well-typed, nonsensical result.
+
+@dbend{
+  @warning{
+    \wellM \texttt{(add d0 d1)} \rrESstar \texttt{(list 2 1)}
+  }
+}
+
+@exact{\noindent}The locally-defensive embedding @emph{either} computes a
+ nonsensical result or raises a boundary error somewhere within the @racket[map] function:
+
+@dbend{
+  @warning|{
+    \wellM \texttt{(add d0 d1)} \rrKSstar
+      \left\{\begin{array}{l}
+         \texttt{(list 2 1)}
+      \\ \boundaryerror
+      \end{array}\right.
+  }|
+}
+
+@exact{\noindent}it is impossible to predict the outcome without knowing the
+ local type annotations within @racket[map].
 
 
 @section[#:tag "sub:ho"]{For Higher-Order Types}
 
 One promising application of migratory typing is to layer a typed interface
  over an existing, dynamically-typed library of functions.
-As a corollary of type soundness, the natural embedding checks that the library
- and the clients match the interface.
 For the low effort of converting library documentation into a type specification,
  the library author is protected against latent bugs and the library's clients
  receive a machine-checked API.
 
-The locally-defensive and erasure embeddings do not support this use-case;
- the erasure embedding ignores the types, and the locally-defensive embedding
- checks only that the exported value is a function.
-Retrofitting a type onto a dynamically-typed function @${f} therefore does not
+@figure["fig:db-app" @elem{Adding types between two untyped modules}
+        db-app-pict]
+
+@Figure-ref{fig:db-app} demonstrates this use-case.
+The module on the left represents a library of (untyped) helper
+ functions to manage a SQL database.
+The module on the right represents a web application that relies on some aspects
+ of the database library.
+In the middle, the type annotations describe the interface between the database
+ layer and the application.
+
+With the natural embedding, a developer can trust that the annotations predict
+ program behavior.
+This is a direct consequence of type soundness.
+In contrast, the erasure embedding completely ignores types at runtime;
+ the middle module in @figure-ref{fig:db-app} is essentially one large comment.
+
+With locally-defensive embedding,
+ retrofitting a type onto a dynamically-typed function @${f} does not
  enforce that @${f} respects its arguments.
-Conversely, there is no guarantee that untyped clients of a function @${g} abide by its interface:
+At runtime, the only type-check is that @${f} is a function.
 
 @dbend[
   @warning{
     \begin{array}{l}
-      f = \edyn{\tarr{\tint}{\tint}}{(\vlam{x}{\efst{x}})}
+      f = \edyn{(\tarr{\tint}{\tint})}{(\vlam{x}{\efst{x}})}
       \\
       \wellM (\eapp{f}{2}) : \tint \rrKSstar \efst{2} \rrKSstar \tagerror
       \\[1ex]
     \end{array}
   }
+]
+
+@exact{\noindent}Conversely, there is no guarantee that untyped clients of a function @${g} abide by its interface:
+
+@dbend[
   @warning{
     \begin{array}{l}
       g = \edyn{(\tarr{\tpair{\tint}{\tint}}{\tint})}{(\vlam{x}{\esnd{x}})}
       \\
-      \wellM \eapp{(\esta{\tarr{\tint}{\tint}}{g})}{{2}} \rrKDstar \esnd{2} \rrKDstar \tagerror
+      \wellM \eapp{(\esta{(\tarr{\tint}{\tint})}{g})}{{2}} \rrKDstar \esnd{2} \rrKDstar \tagerror
     \end{array}
   }
 ]
 
-@;@figure["fig:db-app" @elem{Adding types between two untyped modules}
-@;        db-app-pict]
-@;
-@;@Figure-ref{fig:db-app} rephrases the above calculus-level example in terms
-@; of a practical application.
-@;The (incomplete) module at the top-left of the figure defines an untyped API
-@; to an external database.
-@;The (incomplete) module at the bottom-right is an untyped client of the API.
-@;Together, the two modules form one component of a larger application.
-@;Suppose the application has a bug.
-@;In the natural embedding, a programmer can insert the (complete) typed module
-@; in the middle of the figure to test whether the server and client match the
-@; type annotation.
-@;In the erasure embedding, the typed module is useless as types are erased
-@; before runtime.
-@;In the locally-defensive embedding, inserting the typed module merely guarantees
-@; that the identifier @racket[add-user] is bound to a function.
+@exact{\noindent}In terms of @figure-ref{fig:db-app},
+ the locally-defensive embedding checks that @racket[add] and @racket[find] are
+ function values, but nothing more.
+The @racket[->] constructor has meaning, but the inner types are treated as
+ comments.
+
+@; get more serious? show an example of things going badly?
 
 
 @section[#:tag "sub:err"]{For Error Messages}
@@ -217,7 +253,7 @@ The erasure embedding detects a runtime type mismatch as late as possible, namel
  just before invoking @${\delta} with an invalid argument.
 Outside of printing a stack trace, it cannot do much to infer the source of the
  bad value.
-When the source is off the stack, the erasure embedding is helpless:
+When the source is off the stack, the erasure embedding is impoverished:
 
 @dbend[
   @warning{
@@ -228,19 +264,19 @@ When the source is off the stack, the erasure embedding is helpless:
 The locally-defensive embedding can detect a runtime type mismatch in two ways:
  at a type boundary or at a @${\vchk} expression.
 In the latter case, the locally-defensive embedding is no better off than the
- erasure embedding:
+ erasure embedding for reporting the relevant value and type:
 
 @dbend[
   @warning{
-    \echk{\knat}{(\esnd{(\edyn{\tpair{\tnat}{\tnat}}{\vpair{{-2}}{{-2}}})})} \rrKSstar \echk{\knat}{{-2}} \rrKSstar \boundaryerror
+    \echk{\knat}{(\esnd{(\edyn{(\tpair{\tnat}{\tnat})}{\vpair{{-2}}{{-2}}})})} \rrKSstar \echk{\knat}{{-2}} \rrKSstar \boundaryerror
   }
 ]
 
 @noindent[]It is unclear how to trace the value that failed the check back to the type
  boundary where it originated.
-@citet[vss-popl-2017] have explored a strategy for improving these error
- messages, but the strategy adds significant performance overhead and reports a
- set of potentially-guilty boundaries rather than pinpointing the faulty one.
+@citet[vss-popl-2017] have explored one strategy for improving these error
+ messages, but the strategy may double the running time of a program and reports
+ a set of potentially-guilty boundaries rather than pinpointing the faulty one.
 
 By contrast, an implementation of the natural embedding can store debugging
  information in the monitor values it creates.
@@ -261,7 +297,7 @@ As the graphs in @section-ref{sec:evaluation} demonstrate for the benchmarks,
 The locally-defensive embedding incurs type-constructor checks at three places:
  type boundaries, applications of typed functions, and explicit @${\vchk} terms.
 While each check adds a small cost,@note{In the model, checks have @${O(1)} cost.
-  In the implementation, checks have basically-constant cost @${O(n)} where
+  In the implementation, checks have near-constant cost @${O(n)} where
   @${n} is the number of types in the widest union type
   @${(\tau_0 \cup \ldots \cup \tau_{n-1})} in the program.}
  these costs accumulate.
@@ -276,8 +312,9 @@ Third, monitored values suffer an indirection cost; for example,
 Each kind of cost may be arbitrarily large.
 The (time) cost of checking an algebraic type depends on the size of the
  given value.
-The (time, space) cost of allocation and indirection grows with the number
- of boundary-crossings (@section-ref{sec:related-work:performance} reviews potential solutions).
+The (time and space) cost of allocation grows with the number
+ of boundary-crossings, as does the (time) cost of indirection.
+@; (@section-ref{sec:related-work:performance} reviews potential solutions)
 In the following example, an untyped function crosses three boundaries and
  accumulates three monitors:
 
@@ -291,6 +328,8 @@ In the following example, an untyped function crosses three boundaries and
   }
 ]
 
+Furthermore, the indirection added by monitors may limit the effectiveness of
+ a JIT compiler.
 
 
 @section[#:tag "sub:perf-total"]{For the Performance of Fully-Typed Programs}
@@ -313,7 +352,7 @@ For example, a function that adds both elements of a pair value must check
   }
 ]
 
-@noindent[]As a general rule, adding types apparently adds a linear-time performance
+@noindent[]As a rule-of-thumb, adding types may add a linear-time performance
  degredation@~cite[gm-pepm-2018 gf-tr-2018].
 
 By contrast, the natural embedding pays to enforce soundness only if static
