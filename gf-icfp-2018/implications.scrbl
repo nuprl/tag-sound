@@ -140,16 +140,16 @@ The story starts with two professors teaching two sections in complex variables:
 The typed module on left defines addition for
  ``Bessel-style'' complex numbers; the function adds the components of the given
  numbers.
-The dynamically-typed module on the right invokes the addition function with
- two numbers, one of which is not a Bessel number.
+The dynamically-typed module on the right mistakenly calls the addition function
+ on two ``Descartes-style'' numbers.
 
 Each of the three approaches to migratory typing behave differently on this program.
-The natural embedding rejects the application of @racket[add] at the
+The natural embedding correctly rejects the application of @racket[b-add] at the
  boundary between the two modules.
 
 @dbend{
   @safe{
-    \wellM \texttt{(add d0 d1)} \ccNS \boundaryerror
+    \wellM \texttt{(b-add d0 d1)} \ccNS \boundaryerror
   }
 }
 
@@ -158,7 +158,7 @@ The natural embedding rejects the application of @racket[add] at the
 
 @dbend{
   @warning{
-    \wellM \texttt{(add d0 d1)} \rrESstar \texttt{(list 2 1)}
+    \wellM \texttt{(b-add d0 d1)} \rrESstar \texttt{(list 2 1)}
   }
 }
 
@@ -167,7 +167,7 @@ The natural embedding rejects the application of @racket[add] at the
 
 @dbend{
   @warning|{
-    \wellM \texttt{(add d0 d1)} \rrKSstar
+    \wellM \texttt{(b-add d0 d1)} \rrKSstar
       \left\{\begin{array}{l}
          \texttt{(list 2 1)}
       \\ \boundaryerror
@@ -185,29 +185,33 @@ One promising application of migratory typing is to layer a typed interface
  over an existing, dynamically-typed library of functions.
 For the low effort of converting library documentation into a type specification,
  the library author is protected against latent bugs and the library's clients
- receive a machine-checked API.
-
-@figure["fig:db-app" @elem{Adding types between two untyped modules}
-        db-app-pict]
+ benefit from a machine-checked API.
 
 @Figure-ref{fig:db-app} demonstrates this use-case.
-The module on the left represents a library of (untyped) helper
- functions to manage a SQL database.
-The module on the right represents a web application that relies on some aspects
- of the database library.
-In the middle, the type annotations describe the interface between the database
+The module on the left represents a dynamically-typed library that
+ manages a SQL database.
+The module on the right represents a dynamically-typed web application;
+ the application uses the database library to create and access user accounts.
+In the middle, the type annotations formalize the interface between the database
  layer and the application.
 
-With the natural embedding, a developer can trust that the annotations predict
- program behavior.
-This is a direct consequence of type soundness.
-In contrast, the erasure embedding completely ignores types at runtime;
- the middle module in @figure-ref{fig:db-app} is essentially one large comment.
+With the natural embedding, a developer can trust the type annotations.
+The database module may assume well-typed arguments and the application
+ is guaranteed well-typed results, despite the lack of static types within
+ either module.
+In contrast, the erasure embedding completely ignores types at runtime
+ and treats the middle module of @figure-ref{fig:db-app} as one large comment.
 
-With locally-defensive embedding,
+The locally-defensive embedding provides a limited compromise: for every
+ value that flows from untyped to typed, the semantics checks that the
+ value constructor matches the type constructor.
+Concretely, there is one run-time check that ensures @racket[create] is bound to
+ a function.
+This single check does little to verify the correctness of the dynamically-typed
+ code.
+In terms of the model,
  retrofitting a type onto a dynamically-typed function @${f} does not
  enforce that @${f} respects its arguments.
-At runtime, the only type-check is that @${f} is a function.
 
 @dbend[
   @warning{
@@ -232,13 +236,11 @@ At runtime, the only type-check is that @${f} is a function.
   }
 ]
 
-@exact{\noindent}In terms of @figure-ref{fig:db-app},
- the locally-defensive embedding checks that @racket[add] and @racket[find] are
- function values, but nothing more.
-The @racket[->] constructor has meaning, but the inner types are treated as
- comments.
+@exact{\noindent}Thus for all practical purposes, the benefits of writing a typed API in a
+ locally-defensive system are vanishingly small.
 
-@; get more serious? show an example of things going badly?
+@figure["fig:db-app" @elem{Adding types between two untyped modules}
+        db-app-pict]
 
 
 @section[#:tag "sub:err"]{For Error Messages}

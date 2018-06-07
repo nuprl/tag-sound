@@ -713,8 +713,8 @@
 (define-type Bessel
   (List Nonnegative-Real Real))
 
-(: add (-> Bessel Bessel Bessel))
-(define (add b0 b1)
+(: b-add (-> Bessel Bessel Bessel))
+(define (b-add b0 b1)
   (map + b0 b1))
 >>
 )
@@ -727,7 +727,7 @@
 (define d0 (list 4 0))
 (define d1 (list -2 1))
 
-(add d0 d1)
+(b-add d0 d1)
 >>
 )))
 
@@ -737,7 +737,7 @@
 #<<>>
 #lang racket
 
-(define (add db name)
+(define (create db name)
   (exec_query ....))
 
 (define (find db uid)
@@ -753,13 +753,12 @@
   Symbol)
 
 (require/typed/provide
-  "db.rkt"
+  "database.rkt"
   [#:opaque DB
-   sql-connection?]
-  [add
+   sql_connection?]
+  [create
    (-> DB Username
-       Boolean)]
-  ....)
+       Boolean)])
 >>
 )
     (codeblock-pict/numbers #:title "app.rkt"
