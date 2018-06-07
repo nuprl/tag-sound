@@ -13,60 +13,59 @@ To compare the performance of the three approaches,
  we use three distinct compilers for the Typed Racket syntax and typing system
  on @integer->word[NUM-TR] functional benchmark programs.
 The data suggests that the locally-defensive embedding is a large
- improvement over the natural embedding for mixed-typed programs but slightly
- worse for fully-typed programs.
-The erasure embedding offers the best performance, except for typed programs
- that happen to benefit from the Typed Racket optimizer@~cite[stff-padl-2012].
+ improvement over the natural embedding for mixed-typed programs.
+For fully-typed programs, however, the natural embedding offers the best
+ performance by way of the Typed Racket optimizer@~cite[stff-padl-2012].
 
 
 @; -----------------------------------------------------------------------------
 @section{Implementation Overview}
 
-Typed Racket@~cite[tf-popl-2008] is a migratory typing system for Racket and faithfully
- implements the natural embedding by compiling types to (higher-order) contracts@~cite[ff-icfp-2002].
-Its soundness guarantee is that of the natural embedding.
+Typed Racket@~cite[tf-popl-2008] is a migratory typing system for Racket that
+ implements the natural embedding.
 As a full-fledged implementation, Typed Racket handles many more types than the
  language of @figure-ref{fig:multi-syntax} and guarantees that every boundary
- error blames exactly one of the static
- boundaries between typed and untyped code@~cite[tfffgksst-snapl-2017].
+ error attributes the fault to exactly one syntactic
+ boundary between typed and untyped code@~cite[tfffgksst-snapl-2017].
 
 Removing the type annotations and casts
  from a Typed Racket program yields a valid Racket program.
 For any mixed-typed program, we can therefore compare the natural embedding
- to the erasure embedding by removing types, converting casts to Racket-level
- assertions, and measuring the underlying Racket program.
+ to the erasure embedding by removing types and measuring performance.
 
 To compare against the locally-defensive approach, we modified the Typed Racket
- compiler to rewrite typed code and to compile types to (flat) predicates
+ compiler to rewrite typed code and to compile types to predicates
  that check first-order properties of values.
 The soundness guarantee of this implementation is that evaluation preserves the
  first-order properties.
 Like the model, it makes no claim about the quality of boundary error messages.
 
-The three approaches outlined above define three ways to compile a well-typed
- Typed Racket program down to Racket.
-Let the names @|TR_N|, @|TR_E|, and @|TR_LD| refer to the
- ``natural'' compiler, the type-erasure compiler, and the locally-defensive compiler,
- respectively.
-The name ``Typed Racket'' henceforth refers to the syntax and typing system
- (in the sense of @figure-ref["fig:multi-syntax" "fig:multi-preservation"]),
- and Racket is the target language for all three compilers.
+The three approaches outlined above define three ways to compile a
+ Typed Racket program to Racket: the ``natural'' compiler @|TR_N|,
+ the erasure compiler @|TR_E|, and
+ the locally-defensive @|TR_LD|.
+In the rest of this paper, we reserve the name ``Typed Racket'' for the
+ the source language
+ (in the sense of @figure-ref["fig:multi-syntax" "fig:multi-preservation"])
+ of the three compilers.
+@; The core language of Racket is the target of all three compilers.
 
 
 @section[#:tag "sec:evaluation:method"]{Method}
 
-To evaluate the performance of these three implementations, we use the exhaustive method for module-level
+To evaluate performance,
+ we use the exhaustive method for module-level
  migratory typing@~cite[tfgnvf-popl-2016 gtnffvf-jfp-2017].
 Starting from one multi-module program, we migrate the whole program (ignoring
- any libraries beyond our control) to Typed Racket.
+ any libraries outside the control of the average user) to Typed Racket.
 From this fully-typed program, we generate all typed/untyped configurations
- by removing types from a subset of its modules.
-A program with @${N} modules thus leads to @${2^N} configurations,
- which represent all the variations of one program that a developer might
- construct through migratory typing.
+ by removing types from a subset of the modules.
+A program with @${N} modules thus leads to @${2^N} configurations that
+ represent all the ways a developer might apply migratory typing,
+ restricted to one set of type annotations.
 
 Since the promise of migratory typing is that a developer may choose to run any
- mixed-typed configuration, the main goal of such an evaluation is to classify all
+ mixed-typed configuration, the main goal of the evaluation is to classify all
  configurations by their overhead relative to the completely-untyped configuration.
 The key measure is the number of @deliverable{D} configurations.
 A configuration is @deliverable{D} if it runs no more than @${D}x slower than
@@ -90,7 +89,8 @@ Nine programs are the functional benchmarks from prior work on
 The tenth program is adapted from a JPEG library; the original author of this
  application noticed poor performance due to untyped code interacting with
  a Typed Racket array library.
-The appendix provides further details on the size, origin, and purpose of each benchmark.
+The appendix documents the size, origin, and purpose of each benchmark;
+ further details are available online.@note{@url{https://docs.racket-lang.org/gtp-benchmarks/index.html}}
 
 For each configuration of each benchmark @emph{except @bm{jpeg}},
  we collected data using both @|TR_N| and @|TR_LD|.
@@ -99,28 +99,6 @@ The data for each semantics is a sequence of @~a[NUM-ITERS] running times,
  then an additional @~a[NUM-ITERS] times to collect data.
 The data for @|TR_E| on these benchmarks is one sequence of running times
  as all typed/untyped configurations erase to the same Racket program.
-
-The @bm{jpeg} benchmark depends on a typed library.
-To measure its @|TR_N| performance, we compile the library using @|TR_N|,
- measure the performance of all typed/untyped configurations, and report
- their overhead relative to the untyped configuration (which interacts with
- the compiled, typed library).
-To measure its @|TR_LD| performance, we compile the library using @|TR_LD|
- and report the performance of all configurations relative to the untyped
- configuration using the @|TR_LD| library.
-This protocol accurately reports the overhead in two parallel implementations
- of the Typed Racket surface language, but it does not yield a true symmetric
- comparison (see @section-ref{sec:evaluation:threats}).@note{We noticed this
- breach too late. For a published version of this submission, we intend to
- re-do the evaluation of this benchmark in an apples-to-apples manner.}
-
-All measurements were collected sequentially using Racket v@|RKT-VERSION| on an
- unloaded Linux machine with two physical AMD Opteron 6376 processors (a NUMA architecture) and
- 128GB RAM.
-The CPU cores on each processor ran at 2.30 GHz using the ``performance'' CPU governor.
-
-
-@section{Evaluation I: Mixed-Typed Programs}
 
 @figure*["fig:locally-defensive-performance"
          @elem{@|TR_N| (blue @|tr-color-sample|) and @|TR_LD| (orange @|tag-color-sample|), each relative to erasure (@|TR_E|).
@@ -153,6 +131,28 @@ The CPU cores on each processor ran at 2.30 GHz using the ``performance'' CPU go
            (render-speedup-barchart TBL))]
 
 
+The @bm{jpeg} benchmark depends on a typed library.
+To measure its @|TR_N| performance, we compile the library using @|TR_N|,
+ measure the performance of all typed/untyped configurations, and report
+ their overhead relative to the untyped configuration (which interacts with
+ the compiled, typed library).
+To measure its @|TR_LD| performance, we compile the library using @|TR_LD|
+ and report the performance of all configurations relative to the untyped
+ configuration using the @|TR_LD| library.
+This protocol accurately reports the overhead in two parallel implementations
+ of the Typed Racket surface language, but it does not yield a true symmetric
+ comparison (see @section-ref{sec:evaluation:threats}).@note{We noticed this
+ breach too late. For a published version of this submission, we intend to
+ re-do the evaluation of this benchmark in an apples-to-apples manner.}
+
+All measurements were collected sequentially using Racket v@|RKT-VERSION| on an
+ unloaded Linux machine with two physical AMD Opteron 6376 processors (a NUMA architecture) and
+ 128GB RAM.
+The CPU cores on each processor ran at 2.30 GHz using the ``performance'' CPU governor.
+
+
+@section{Evaluation I: Mixed-Typed Programs}
+
 @Figure-ref{fig:locally-defensive-performance} plots
  the overhead of @|TR_N| relative to erasure (@|tr-color-text| color)
  and the overhead of @|TR_LD| relative to erasure (@|tag-color-text| color)
@@ -166,14 +166,14 @@ The lines for @|TR_LD| are frequently higher than the lines for @|TR_N|; see
  the plots for @bm{sieve}, @bm{fsm}, @bm{suffixtree}, @bm{kcfa},
  @bm{snake}, @bm{tetris}, and @bm{synth}.
 The difference is most dramatic for @bm{synth}.
-The @bm{morsecode} and @bm{zombie} benchmarks, however, show no difference
+The @bm{morsecode} and @bm{zombie} benchmarks, however, show no improvement
  in the @${1}x to @${@~a[X-MAX]}x range.
 
 Since seven of the @integer->word[NUM-TR] benchmarks have at least one @|TR_N|
  configuration that falls ``off the charts'' with an overhead above @~a[X-MAX]x,
  @figure-ref{fig:max-overhead} tabulates the worst-case overhead in each benchmark.
-This table demonstrates that for pathological examples the natural embedding
- may slow down a working program by over two orders of magnitude.
+According to the table, the natural embedding may
+ may slow a working program by three orders of magnitude.
 By contrast, the worst-case performance of the locally-defensive embedding
  is always within two orders of magnitude.
 
@@ -190,6 +190,8 @@ The orange bars present analogous data for @|TR_LD|
 On fully-typed programs, @|TR_N| may run faster than the erasure approach.
 This speed-up is due to type-driven optimizations@~cite[stff-padl-2012] and, in the case
  of @bm{jpeg}, the removal of a boundary between the user program and a typed library.
+The @bm{zombie} benchmark is an anomaly; it runs slower than erasure due to
+ a simple type-cast within a hot loop.
 By contrast, @|TR_LD| is the slowest on every benchmark.
 
 
@@ -214,29 +216,29 @@ Improving these error messages with information about the source of the
 Second, the prototype avoids using contract combinators to implement
  type-constructor checks because our initial experiments suggested a high
  overhead for doing so.
-Instead of using a contract combinator to encode a test for, e.g., positive
- real numbers, the prototype uses a function.
 
 @; === things that make prototype too slow
 On the other hand, the performance of a full implementation could improve over
  the prototype in two ways.
 First, @|TR_LD| does not take advantage of the @|TR_N| optimizer
- to remove checks for tag errors;
- integrating the optimizer may offset some cost of the defensive checks.
-Second, like Reticulated, the completion judgment for the prototype
+ to remove checks for tag errors.
+Integrating the safe parts of the optimizer may offset some cost of the defensive checks.
+Second, the completion judgment for the prototype
  may introduce redundant checks.
+For example, consecutive reads from a list suffer the same (redundant) check
+ on the extracted element.
 
 @; === things that make prototype non-representative
 Three other threats are worth noting.
-First, @|TR_LD| does not support Racket's object-oriented features@~cite[tfdfftf-ecoop-2015];
- we do not expect that scaling it up would affect the functional benchmarks.
+First, @|TR_LD| does not support Racket's object-oriented features@~cite[tfdfftf-ecoop-2015].
+We expect that scaling it up would not affect the functional benchmarks.
 @; ... though we expect OO to improve even more
 Second, our benchmarks are relatively small; the largest is @bm{jpeg} with
  approximately 1,500 lines of code.
 @; ; though in our experience and the experience
 @; of Typed Racket users, our results are likely to reflect the reality of large-scale
 @; programs.
-@; TODO auto-compute (this is a big effort, the paper repo doesn't know where the benchmarks live)
+@; TODO auto-compute
 Third, the evaluation considers one fully-typed version of each benchmark,
  but ascribing different types to the same program can affect its performance.
 For example, the constructor check for an integer may be less expensive than the
