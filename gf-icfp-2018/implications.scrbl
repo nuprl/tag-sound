@@ -141,7 +141,8 @@ The typed module on left defines addition for
  ``Bessel-style'' complex numbers; the function adds the components of the given
  numbers.
 The dynamically-typed module on the right mistakenly calls the addition function
- on two ``Descartes-style'' numbers.
+ on two ``Descartes-style'' numbers, one of which does not match the type for
+ Bessel numbers.
 
 Each of the three approaches to migratory typing behave differently on this program.
 The natural embedding correctly rejects the application of @racket[b-add] at the
