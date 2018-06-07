@@ -26,7 +26,7 @@ In the more precise sense@~cite[svcb-snapl-2015], a gradual typing
  or (b) remove a run-time boundary error.
 Ultimately, gradual typing and migratory typing have different goals.
 Migratory typing always starts with a dynamically typed language, whereas gradual
- typing may begin with a statically-typed language and add a dynamic type@~cite[cs-popl-2016 gct-popl-2016 lt-popl-2017].
+ typing may begin with a static type system and add a dynamic type@~cite[cs-popl-2016 gct-popl-2016 lt-popl-2017].
 
 
 @section{Natural Embedding}
@@ -60,8 +60,9 @@ The trend among industry languages is to integrate static and dynamic code throu
 
 The locally-defensive embedding is directly inspired by the transient semantics
  for Reticulated Python@~cite[vksb-dls-2014 vss-popl-2017], a migratory/gradual typing
- system for Python that includes a dynamic type (@${\star}) and type compatibility
- relation.
+ system for Python that includes a dynamic type.
+@; (@${\star}) and type compatibility
+@; relation.
 The transient approach begins with a surface language expression and elaborates
  into a typed intermediate language.
 In other words, the main judgment has the form @${\Gamma \vdash e \carrow e' : \tau}
