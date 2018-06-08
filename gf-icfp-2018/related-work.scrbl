@@ -22,8 +22,8 @@ In the more precise sense@~cite[svcb-snapl-2015], a gradual typing
  system includes: (1) a dynamic type that may be implicitly cast to
  any other type; (2) a relation between types that are equal up to occurrences
  of the dynamic type; and (3) a proof that replacing any
- static type with the dynamic type can only (a) remove a static type error
- or (b) remove a run-time boundary error.
+ static type with the dynamic type can only (3a) remove a static type error
+ or (3b) remove a run-time boundary error.
 Ultimately, gradual typing and migratory typing have different goals.
 Migratory typing always starts with a dynamically typed language, whereas gradual
  typing may begin with a static type system and add a dynamic type@~cite[cs-popl-2016 gct-popl-2016 lt-popl-2017].
@@ -48,9 +48,10 @@ Both MACLISP@~cite[m-maclisp-1974] and Common Lisp@~cite[s-lisp-1990]
 Strongtalk is the earliest optional type checker@~cite[bg-oopsla-1993].
 Today, there are many optional type checkers for dynamically-typed languages
  (see @figure-ref{fig:existing-systems}) and at least two pluggable type checkers
- for Java@~cite[ddems-icse-2011 pacpe-issta-2008].
-The trend among industry languages is to integrate static and dynamic code through
- type erasure, however Dart is currently switching from erasure@note{Dart 1.x, @url{https://v1-dartlang-org.firebaseapp.com/}, accessed 2018-05-10.}
+ that add new static analyses to Java@~cite[ddems-icse-2011 pacpe-issta-2008].
+The trend among industrial efforts to combine static and dynamic typing is to
+ implement type erasure,
+ however Dart is currently switching from an erasure approach@note{Dart 1.x, @url{https://v1-dartlang-org.firebaseapp.com/}, accessed 2018-05-10.}
  to a semantics that enforces types.@note{Dart 2.0, @url{https://www.dartlang.org/guides/language/sound-dart}, accessed 2018-05-10.}
 @;Dart users have the option to disable the inserted checks, thereby trading soundness
 @; for performance.
@@ -59,25 +60,24 @@ The trend among industry languages is to integrate static and dynamic code throu
 @section[#:tag "sec:related-work:locally-defensive"]{Locally-Defensive Embedding}
 
 The locally-defensive embedding is directly inspired by the transient semantics
- for Reticulated Python@~cite[vksb-dls-2014 vss-popl-2017], a migratory/gradual typing
- system for Python that includes a dynamic type.
-@; (@${\star}) and type compatibility
-@; relation.
+ for Reticulated Python@~cite[vksb-dls-2014 vss-popl-2017], a migratory (and
+ gradual@~cite[svcb-snapl-2015]) typing system for Python.
 The transient approach begins with a surface language expression and elaborates
  into a typed intermediate language.
 In other words, the main judgment has the form @${\Gamma \vdash e \carrow e' : \tau}
  where both @${e'} and @${\tau} are outputs.
 At first we tried adapting the Reticulated elaboration to Typed Racket, but struggled
- with the lack of a precise specification for the @${\carrow} judgment in
+ with the lack of a specification for the @${\carrow} judgment in
  terms of the surface language.
-In particular, the inclusion of a dynamic type lets Reticulated adopt a more
- flexible notion of boundary --- a true model of transient may insert run-time
- checks for different reasons than our multi-language model (@section-ref{sec:locally-defensive-embedding}).
+In particular, Reticulated has a dynamic type (@${\star}) and this leads to a more
+ flexible notion of type boundary.
+A true model of transient may insert run-time checks for different reasons than
+ our multi-language model (@section-ref{sec:locally-defensive-embedding}).
 
 @citet[h-scp-1994] introduces the name @emph{completion} to decribe an untyped
  expression annotated with explicit type constructor checks.
 The completion judgment in @section-ref{sec:locally-defensive-embedding}
- is a type-directed coercion insertion judgment@~cite[b-types-1995 shb-icfp-2009].
+ is more precisely a type-directed coercion insertion judgment@~cite[b-types-1995 shb-icfp-2009].
 
 The name ``locally-defensive'' is an attempt to separate specification from
  implementation, and to tease apart three design choices
@@ -108,9 +108,9 @@ In practice there are two major challenges to type reconstruction:
 
 @section[#:tag "sec:related-work:performance"]{Performance of Mixed-Typed Programs}
 
-Researchers quickly noticed the (space-)inefficiency of the natural embedding
+Researchers quickly noticed the (space) inefficiency of the natural embedding
  and proposed theoretical solutions both for gradual typing@~cite[htf-hosc-2010 sw-popl-2010 sgt-esop-2009],
- and for the more general context of higher-order contracts@~cite[g-popl-2015 g-tfp-2016].
+ and more generally for higher-order contracts@~cite[g-popl-2015 g-tfp-2016].
 Recent work has explored the practical performance of migratory typing systems.
 @citet[aft-dls-2013] report the performance of mixed-typed Gradualtalk programs.
 @citet[tfgnvf-popl-2016] introduce a systematic method for performance evaluation and
@@ -125,20 +125,25 @@ Recent work has explored the practical performance of migratory typing systems.
 
 @section{Type Soundness}
 
-@; Most papers with a type soundness theorem dress it up like Milners.
-
-Three related works led us towards the idea of a spectrum of type soundness.
-Like types are optional first-order types;
- a programmer can mark any such type as ``concrete'' or ``like'' to enable
- or disable run-time enforcement, respectively.
-Existing like type system come with a weak soundness result@~cite[wnlov-popl-2010 rzv-ecoop-2015],
- stating that reduction preserves typability.
-Confined gradual typing@~cite[afgt-oopsla-2014] gives the programmer control
- over the implicit coercions that a gradual typing system would normally insert.
-The progressive types@~cite[pqk-onward-2012] vision paper describes a type system in which
- programmers can decide whether certain errors are caught statically or dynamically.
-This offers a choice between (1) statically proving that an expression is universally correct,
- and (2) relying on run-time checks for the specific traces that occur in practice.
+Soundness is an important property of any typing system, as it relates
+ ahead-of-time claims to observable run-time behaviors.
+Soundness for migratory typing systems is furthermore an incredibly
+ subtle property, as this paper demonstrates.
+At least four prior works address aspects of the subtlety of soundness for
+ a mixed-typed language.
+The early work on Typed Racket@~cite[tf-dls-2006] is the first to recognize
+ that soundness for a pair of languages requires a more general theorem than
+ soundness for a single language.
+Like type systems let the programmer choose whether a type annotation is
+ enforced or erased@~cite[wnlov-popl-2010 rzv-ecoop-2015]; informally, the
+ programmer can opt-in to weaker run-time guarantees.
+Confined gradual typing@~cite[afgt-oopsla-2014] offers a choice between
+ a static type error and a dynamic check in the natural approach.
+Lastly, the progressive types@~cite[pqk-onward-2012] vision
+ paper describes a type system with a tunable set of run-time errors;
+ removing one kind of error from the set makes the static type system more
+ conservative.
+@; this paper = preservation types ???
 
 
 @section{Comparing Gradual Typing Systems}
@@ -157,7 +162,7 @@ KafKa, which is implemented in .NET and provably type-sound.  The
 comparison rests on four translations from the surface syntax to KafKa,
 each of which formulates a different semantics of gradual typing.  Finally,
 the paper applies the four semantics to examples, showing that the
-resulting behaviors are distinct. 
+resulting behaviors are distinct.
 
 By contrast, this paper assigns three different semantics to a surface
 language and proves soundness theorems that demonstrate how the three semantics
