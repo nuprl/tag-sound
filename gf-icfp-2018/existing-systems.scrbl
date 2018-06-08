@@ -13,50 +13,35 @@
 @(define TS "TypeScript")
 @(define JS "JavaScript")
 
+The semantic framework developed in @section-ref{sec:design} suggests that a
+ useful method to compare mixed-typed languages is to compare their notions
+ of soundness and of type boundaries.
+Any language that combines static and dynamic typing fits,
+ whether or not the static type system is designed to accomodate the idioms of
+ an existing dynamically-typed language.
+For details, see the technical appendix@~cite[gf-tr-2018].
 
-Many existing languages support a combination of static and dynamic typing.
-@Figure-ref{fig:existing-systems} illustrates the design space.
-Some languages are @emph{migratory typing} systems that add static typing to a
- dynamically-typed language and support interactions between the host language and its typed twin.
-Others are typed languages with a modicum of dynamic typing;
- @; TODO extrememA ... its really most-like-migratory
- in the extreme, such languages permit the definition of @emph{untyped values}
- and add @emph{implicit casts} to mediate between static and dynamic components.
-Naturally, the design choices of these languages affect their @emph{soundness} guarantee.
+@Figure-ref{fig:existing-systems} illustrates by comparing the soundness
+ guarantees of existing mixed-typed languages.
+The three boxes in the figure are labeled with the three embeddings outlined
+ in @section-ref{sec:design}; the languages directly below each box promise
+ a similar notion of soundness.
+Four languages---Gradualtalk, Nom, TPD, and Typed Racket---offer a generalized
+ notion of type soundness for mixed-typed programs.
+Eleven languages take the erasure approach, and do not use type annotations
+ to constrain the behavior of a program.
+Reticulated and our prototype are the only languages that provide type-constructor
+ soundness.
 
-Among the existing migratory typing systems, @integer->word[num-natural] languages
- (grouped in the first row) implement the natural embedding and promise
- a strong form of type soundness.
-@Integer->word[num-erasure] languages use types only for static analysis,
- and thus implement the erasure embedding.
-Reticulated is a migratory typing system for Python that enforces soundness
- at the level of type constructors.
-
-The other languages in @figure-ref{fig:existing-systems} support diverse combinations
- of static and dynamic typing.@note{The appendix contains informal technical
- illustrations of the other languages, in the style of our semantic framework (@section-ref{sec:design}).}
-Pyret is a new language with optional type annotations.
-Each annotation is enforced by a type-constructor check at run-time, thus a
- fully-annotated Pyret program is likely sound at the level of type constructors.
-Nom is a gradually-typed@~cite[svcb-snapl-2015] language in which every object
- has an intrinsic type, but may be bound to dynamically-typed variables.
-Nom supports a strong form of type soundness.
-Safe @|TS| is a type-sound variant of @|TS| that does not support sound
- interaction with @|JS|.
-C# (version 4.0) includes a dynamic type; once a value is bound to a dynamically-typed
- variable, the C# compiler recompiles the expressions in scope.
-Dart is a new language (incompatible with Dart 1.x) with a dynamic type similar to the C# type.
-In Dart, a dynamically-typed variable may receive any kind of method call
- but cannot be sent directly to a statically-typed context.
-StrongScript is an extension of TypeScript in which a variable may have either
- a static type, the dynamic type, or a @emph{like} type that constrains the
- local use of the variable.
-StrongScript is a migratory typing system for JavaScript, but its practical
- utility is limited because a JavaScript context cannot invoke a typed function
- without explicitly casting its arguments to match the types.
-In other words, the act of adding types to one module may necessitate the
- addition of types to another module.
-Thorn is a direct predecessor to Dart 2.0 and StrongScript.
+In between the boxes for the embeddings, dashed lines connect two of the three
+ pairs of embeddings.
+The line between natural and erasure is labeled with the names of systems
+ that offer a choice between full type soundness and type erasure.
+The line between erasure and locally-defensive describes the soundness of Pyret,
+ in which type annotations are optional but every annotation is enforced by
+ a type-constructor check.
+There is no line between natural and locally-defensive because there are no
+ existing systems that bridge the gap.
 
 @figure["fig:existing-systems" "Existing mixed-typed systems." @exact{
 \begin{tikzpicture}

@@ -2187,7 +2187,7 @@
 
 (define gf-tr-2018
   (make-bib
-    #:author "Anonymous Author(s)" #;(authors "Ben Greenman" "Matthias Felleisen")
+    #:author (authors "Ben Greenman" "Matthias Felleisen")
     #:title "The Spectrum of Soundness and Performance, Technical Appendix"
     #:location (techrpt-location #:institution "Anonymous University" #;"Northeastern University" #:number "?")
     #:date 2018))
