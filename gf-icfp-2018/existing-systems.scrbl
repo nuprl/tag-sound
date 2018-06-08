@@ -58,57 +58,47 @@ In other words, the act of adding types to one module may necessitate the
  addition of types to another module.
 Thorn is a direct predecessor to Dart 2.0 and StrongScript.
 
-@figure["fig:existing-systems" "Existing mixed-typed systems."
-  @tabular[
-    #:sep (hspace 1)
-    #:style 'block
-    #:row-properties '(left left left bottom-border left left left bottom-border bottom-border bottom-border bottom-border)
-    #:column-properties '(left center center center left)
-    (list
-      (list @bold{System}
-            @bold{Migratory}
-            @bold{Untyped}
-            @bold{Implicit}
-            @bold{Soundness})
-      (list ""
-            @bold{Typing?}
-            @bold{Values?}
-            @bold{Casts?}
-            "")
-      (list @elem{Gradualtalk@~cite[acftd-scp-2013], TPD@~cite[wmwz-ecoop-2017],}
-            "" "" "" "")
-      (list @elem{Typed Racket@~cite[tf-popl-2008]}
-            "X" "X" "X" "preserves types")
+@figure["fig:existing-systems" "Existing mixed-typed systems." @exact{
+\begin{tikzpicture}
+  \def\embeddingskip{4cm}
+  \node (N)
+    [draw,align=center]
+    {\textbf{Natural Embedding}};
+  \node (Nsub)
+    [align=center,below of=N,yshift=1ex]
+    {Gradualtalk@~cite[acftd-scp-2013], Nom@~cite[mt-oopsla-2017],\\
+     TPD@~cite[wmwz-ecoop-2017], Typed Racket@~cite[tf-popl-2008]};
 
-      (list @elem{ActionScript@~cite[rch-popl-2012], mypy, Flow,}
-            "" "" "" "")
-      (list @elem{Hack, Pyre, Pytype, rtc@~cite[rtsf-sac-2013],}
-            "" "" "" "")
-      (list @elem{Strongtalk@~cite[bg-oopsla-1993], TypeScript@~cite[bat-ecoop-2014],}
-            "" "" "" "")
-      (list @elem{Typed Clojure@~cite[bdt-esop-2016], Typed Lua@~cite[mmi-dls-2015]}
-            "X" "X" "X" "erasure")
+  \node (NE)
+    [align=center,below of=N,xshift=\embeddingskip]
+    {StrongScript@~cite[rzv-ecoop-2015], \\
+     Thorn@~cite[wnlov-popl-2010]};
 
-      (list @elem{Reticulated@~cite[vss-popl-2017]}
-            "X" "X" "X" "preserves constructors")
+  \node (E)
+    [draw,align=center,below of=NE,xshift=\embeddingskip]
+    {\textbf{Erasure Embedding}};
+  \node (Esub)
+    [align=center,below of=E,yshift=-2ex]
+    {ActionScript@~cite[rch-popl-2012], mypy, \\
+     Flow, Hack, Pyre, Pytype, rtc@~cite[rtsf-sac-2013], \\
+     Strongtalk@~cite[bg-oopsla-1993], TypeScript@~cite[bat-ecoop-2014], \\
+     Typed Clojure@~cite[bdt-esop-2016], Typed Lua@~cite[mmi-dls-2015]};
 
-      (list @elem{Pyret}
-            "X" "X" "X" "checks constructors")
+  \node (ELD)
+    [align=center,below of=E,xshift=-\embeddingskip]
+    {Pyret};
 
-      (list @elem{Nom@~cite[mt-oopsla-2017], Safe TypeScript@~cite[rsfbv-popl-2015]}
-            "-" "-" "X" "preserves types")
+  \node (LD)
+    [draw,align=center,below of=ELD,xshift=-\embeddingskip]
+    {\textbf{Locally-Defensive Embedding}};
+  \node (LDsub)
+    [align=center,below of=LD,yshift=2ex]
+    {Reticulated@~cite[vss-popl-2017], {@|TR_LD|}};
 
-      (list @elem{C#@~cite[bmt-ecoop-2010]}
-            "X" "-" "-" "preserves types")
-
-      (list @elem{Dart 2.0}
-            "-" "-" "-" "sound heap")
-
-      (list @elem{StrongScript@~cite[rzv-ecoop-2015]}
-            "X"  "X"  "-"  "preserves typability")
-
-      (list @elem{Thorn@~cite[wnlov-popl-2010]}
-            "-"  "-"  "-"  "preserves typability"))
-  ]
-]
+  \draw[-,dashed] (N) -- (NE);
+  \draw[-,dashed] (NE) -- (E);
+  \draw[-,dashed] (LD) -- (ELD);
+  \draw[-,dashed] (ELD) -- (E);
+\end{tikzpicture}
+}]
 

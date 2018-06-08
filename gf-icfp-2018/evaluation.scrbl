@@ -44,7 +44,7 @@ The three approaches outlined above define three ways to compile a
  Typed Racket program to Racket: the ``natural'' compiler @|TR_N|,
  the erasure compiler @|TR_E|, and
  the locally-defensive @|TR_LD|.
-In the rest of this paper, we reserve the name ``Typed Racket'' for the
+In the rest of this section, we reserve the name ``Typed Racket'' for the
  the source language
  (in the sense of @figure-ref["fig:multi-syntax" "fig:multi-preservation"])
  of the three compilers.
