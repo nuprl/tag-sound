@@ -4,55 +4,60 @@
 @; TODO
 @; Shen ??
 
-@(define YES "X") @; @exact{\checkmark} not using checkmark, because don't want to suggest "no check = bad"
-@(define NO "-")
-
-@(define num-systems 22)
-@(define num-natural 3)
+@(define num-systems 21)
+@(define num-natural 4)
 @(define num-erasure 11)
 @(define TS "TypeScript")
 @(define JS "JavaScript")
 
-The semantic framework developed in @section-ref{sec:design} suggests that a
- useful method to compare mixed-typed languages is to compare their notions
- of soundness and of type boundaries.
-Any language that combines static and dynamic typing fits,
- whether or not the static type system is designed to accomodate the idioms of
- an existing dynamically-typed language.
-For details, see the technical appendix@~cite[gf-tr-2018].
 
-@Figure-ref{fig:existing-systems} illustrates by comparing the soundness
- guarantees of existing mixed-typed languages.
-The three boxes in the figure are labeled with the three embeddings outlined
- in @section-ref{sec:design}; the languages directly below each box promise
- a similar notion of soundness.
-Four languages---Gradualtalk, Nom, TPD, and Typed Racket---offer a generalized
- notion of type soundness for mixed-typed programs.
-Eleven languages take the erasure approach, and do not use type annotations
- to constrain the behavior of a program.
-Reticulated and our prototype are the only languages that provide type-constructor
- soundness.
+@Figure-ref{fig:existing-systems} classifies existing migratory and mixed-typed
+ systems in terms of the three approaches described in @section-ref{sec:design}.
+Systems listed under the box labeled @emph{natural embedding} enforce full
+ types at runtime and provide a strong notion of soundness.
+Three of these systems---Gradualtalk, TPD, and Typed Racket---add types
+ to an existing language.
+By contrast, Dart 2@note{Dart 1.x is an erasure system that can optionally
+ enforce types. Dart 2 is not a migratory typing system for Dart 1.x.}
+ and Nom are new languages that support distinct
+ combinations of static and dynamic typing.
+The @emph{erasure embedding} systems come with an optional static type checker
+ but do not use types to determine program behavior.
+Lastly, Reticulated and our @|TR_LD| prototype are the only @emph{locally-defensive}
+ systems.
+Both instrument typed code with run-time checks to enforce soundness at the
+ level of type constructors.
 
-In between the boxes for the embeddings, dashed lines connect two of the three
- pairs of embeddings.
-The line between natural and erasure is labeled with the names of systems
- that offer a choice between full type soundness and type erasure.
-The line between erasure and locally-defensive describes the soundness of Pyret,
- in which type annotations are optional but every annotation is enforced by
- a type-constructor check.
-There is no line between natural and locally-defensive because there are no
- existing systems that bridge the gap.
+The dashed lines in @figure-ref{fig:existing-systems} represent systems that
+ explore a compromise between two approaches.
+StrongScript and Thorn offer two kinds of types: concrete types and like types.
+Both types are checked statically, but only concrete types are enforced at
+ run-time.
+In other words, a program that uses only like types has erasure behavior.
+@; in other words, if a program contains only like types then its
+@; behavior corresponds to type-erasure.
+Pyret falls between the locally-defensive and erasure approaches.
+If a program contains type annotations, then Pyret enforces each annotation
+ with a run-time type constructor check; a programmer can opt-in to type-constructor
+ soundness through disciplined use of type annotations.
 
-@figure["fig:existing-systems" "Existing mixed-typed systems." @exact{
+There is no line between the natural and locally-defensive boxes because there
+ are no existing systems in that part of the design space.
+This gap, and indeed all blank space in @figure-ref{fig:existing-systems},
+ is an opportunity for future work.
+
+@(define MT @${^{\dagger}\!})
+@figure["fig:existing-systems" @elem{Design space of migratory (@${\dagger}) and mixed-typed systems.} @exact{
 \begin{tikzpicture}
   \def\embeddingskip{4cm}
   \node (N)
     [draw,align=center]
     {\textbf{Natural Embedding}};
   \node (Nsub)
-    [align=center,below of=N,yshift=1ex]
-    {Gradualtalk@~cite[acftd-scp-2013], Nom@~cite[mt-oopsla-2017],\\
-     TPD@~cite[wmwz-ecoop-2017], Typed Racket@~cite[tf-popl-2008]};
+    [align=center,below of=N,yshift=-0.5ex]
+    {Dart 2, Gradualtalk@|MT|@~cite[acftd-scp-2013], \\
+     Nom@~cite[mt-oopsla-2017], TPD@|MT|@~cite[wmwz-ecoop-2017], \\
+     Typed Racket@|MT|@~cite[tf-popl-2008]};
 
   \node (NE)
     [align=center,below of=N,xshift=\embeddingskip]
@@ -64,21 +69,21 @@ There is no line between natural and locally-defensive because there are no
     {\textbf{Erasure Embedding}};
   \node (Esub)
     [align=center,below of=E,yshift=-2ex]
-    {ActionScript@~cite[rch-popl-2012], mypy, \\
-     Flow, Hack, Pyre, Pytype, rtc@~cite[rtsf-sac-2013], \\
-     Strongtalk@~cite[bg-oopsla-1993], TypeScript@~cite[bat-ecoop-2014], \\
-     Typed Clojure@~cite[bdt-esop-2016], Typed Lua@~cite[mmi-dls-2015]};
+    {ActionScript@|MT|@~cite[rch-popl-2012], mypy@|MT|, \\
+     Flow@|MT|, Hack@|MT|, Pyre@|MT|, Pytype@|MT|, rtc@|MT|@~cite[rtsf-sac-2013], \\
+     Strongtalk@|MT|@~cite[bg-oopsla-1993], TypeScript@|MT|@~cite[bat-ecoop-2014], \\
+     Typed Clojure@|MT|@~cite[bdt-esop-2016], Typed Lua@|MT|@~cite[mmi-dls-2015]};
 
   \node (ELD)
     [align=center,below of=E,xshift=-\embeddingskip]
-    {Pyret};
+    {Pyret@|MT|};
 
   \node (LD)
     [draw,align=center,below of=ELD,xshift=-\embeddingskip]
     {\textbf{Locally-Defensive Embedding}};
   \node (LDsub)
     [align=center,below of=LD,yshift=2ex]
-    {Reticulated@~cite[vss-popl-2017], {@|TR_LD|}};
+    {Reticulated@|MT|@~cite[vss-popl-2017], {@|TR_LD|@|MT| (@section-ref{sec:evaluation})}};
 
   \draw[-,dashed] (N) -- (NE);
   \draw[-,dashed] (NE) -- (E);
