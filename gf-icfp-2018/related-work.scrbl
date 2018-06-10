@@ -27,22 +27,30 @@ In the precise technical sense@~cite[svcb-snapl-2015], a gradual typing
  of the dynamic type; and (3) a proof that replacing any
  static type with the dynamic type can only (3a) remove a static type error
  or (3b) remove a run-time boundary error.
+@; gradual guarantee proofs in : @~cite[lt-popl-2017 isi-icfp-2017 mt-oopsla-2017].
 
 Ultimately, gradual typing and migratory typing have different goals.
 Migratory typing always starts with a dynamically typed language, whereas gradual
  typing may begin with a static type system and add a dynamic type@~cite[cs-popl-2016 gct-popl-2016 lt-popl-2017].
 
 
-@;@section{Concrete}
-@;
-@;Another way to combine static and dynamic typing is the
-@; @emph{concrete} approach, in which every value has an intrinsic static type
-@; and all run-time type checks are JVM-style@~cite[lybb-tr-2011] subtype tests.
-@;At a high level, the idea is to trade expressiveness for simplicity and performance.
-@;Thorn 
-@;StrongScript
-@;Dart
-@;Nom
+@section{Concrete Types}
+
+Thorn is a statically-typed language that allows dynamically-typed methods@~cite[bfnorsvw-oopsla-2009 wnlov-popl-2010].
+In particular:
+ every value in Thorn is an instance of a class;
+ every value has a (concrete) type, i.e., the name of its class; and
+ a method may be defined for a dynamically-typed argument, in which case
+ the method uses a run-time subtype check before interacting with its argument.
+This approach sacrifices expressiveness in favor of straightforward run-time checks.
+@citet[rzv-ecoop-2015] apply the concrete approach to TypeScript and allow
+ limited interaction with structurally-typed JavaScript objects;
+ method calls are permitted, but typed and JavaScript objects
+ cannot extend one another.@note{@citet[tsdtf-oopsla-2012] introduce
+ @emph{opaque class contracts} to support mixed-typed class hierarchies.}
+@citet[mt-oopsla-2017] develop a theory of concrete, gradual@~cite[svcb-snapl-2015]
+ typing and present an efficient implementation.
+Dynamic typing in Dart 2 is based on the concrete approach.@note{@url{https://www.dartlang.org/guides/language/sound-dart}, accessed 2018-05-10}
 
 
 @section{Natural Embedding}
@@ -63,12 +71,6 @@ The name suggests that this inductive-checking, higher-order-wrapping technique
 @; NOT ERASURE, types affect behavior!
 @; MACLISP@~cite[m-maclisp-1974] and Common Lisp@~cite[s-lisp-1990]
 @;  accept optional type hints to guide compilation.
-
-@; Strongtalk
-@; Pluggable types
-@; industry languages
-@; Java pluggable
-@; simple predictable useful high-impact
 
 The erasure approach is better known as optional typing, and the idea
  dates back to Strongtalk@~cite[bg-oopsla-1993].
@@ -93,7 +95,7 @@ In other words, the main judgment has the form @${\Gamma \vdash e \carrow e' : \
 At first we tried adapting the Reticulated elaboration to Typed Racket, but struggled
  with the lack of a specification for the @${\carrow} judgment in
  terms of the surface language.
-In particular, Reticulated has a dynamic type (@${\star}) and this leads to a more
+In particular, Reticulated has a dynamic type (@${\star}) and thus a more
  flexible notion of type boundary.
 A true model of transient may insert run-time checks for different reasons than
  the twin-language model of @section-ref{sec:locally-defensive-embedding}.
@@ -113,7 +115,7 @@ The second is to check a data structure or higher-order value against its
 The third is to rewrite typed code instead of monitoring dynamically-typed values.
 
 
-@section{Reconstruction Embedding}
+@section{Type Reconstruction}
 
 Whereas the erasure embedding converts typed code to untyped code,
  in principle a @emph{reconstruction embedding} could convert all untyped code
