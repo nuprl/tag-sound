@@ -92,7 +92,7 @@ Subtyping adds a logical distinction to the type system that is not automaticall
 @; -----------------------------------------------------------------------------
 @section[#:tag "sec:common-semantics"]{Common Semantic Notions}
 
-Our semantic models use the Matthews-Findler multi-language approach@~cite[mf-toplas-2007].
+Our semantic models use the Matthews--Findler multi-language approach@~cite[mf-toplas-2007].
 Specifically, each semantics consists of two reduction relations: one for statically-typed
  expressions and one for dynamically-typed ones.
 The two reduction relations (@${\rrSstar} and @${\rrDstar}) must satisfy three conditions:

@@ -6,6 +6,7 @@
 @; - infer types, help with conversion
 @; - RTTI for TR, the models have (mon T v) but reality is (mon K,K v)
 @; - semantic type soundness theorems, better classification
+@; - measure the cost of blame / error messages
 
 @; -----------------------------------------------------------------------------
 
@@ -20,7 +21,7 @@
 The paper contributes two major results. First, it delivers a
  theoretical framework for investigating different ways of combining twin
  pairs of dynamically-typed and statically-typed languages. The framework
- generalizes the Matthews-Findler multi-language
+ generalizes the Matthews--Findler multi-language
  approach@~cite[mf-toplas-2007]. With this framework, we can finally work
  out a systematic comparison of the three current semantics of migratory
  typing @note{In addition to the comparison, it also suggests two alternative
