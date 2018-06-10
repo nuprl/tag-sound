@@ -12,7 +12,7 @@
 
 
 @Figure-ref{fig:existing-systems} classifies existing migratory and mixed-typed
- systems in terms of the three approaches described in @section-ref{sec:design}.@note{The
+ systems in terms of the three approaches.@note{The
   semantic framework of @section-ref{sec:design} is also useful for comparing
   existing systems; see the supplement to this paper@~cite[gf-tr-2018].}
 Systems listed under the box labeled @emph{natural embedding} enforce full

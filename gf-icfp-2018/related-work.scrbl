@@ -7,13 +7,13 @@
 @; -----------------------------------------------------------------------------
 
 The idea of equipping a dynamically typed language with static type information
- goes back at least to MACLISP@~cite[m-maclisp-1974].
+ goes back at least to the compiler hints in MACLISP@~cite[m-maclisp-1974].
 Early work focused on type reconstruction for dynamically-typed
  programs@~cite[s-popl-1981 wc-toplas-1997 agd-ecoop-2005].
 Over the past decade, researchers turned to the problem of creating a
  multi-language system@~cite[gff-oopsla-2005]
  that provides a type soundness guarantee@~cite[st-sfp-2006 tf-dls-2006 mf-toplas-2007 gktff-sfp-2006].
-Recent work addresses stronger guarantees, such as parametricity@~cite[ajsw-icfp-2017 isi-icfp-2017].
+Recent work addresses stronger guarantees such as parametricity@~cite[ajsw-icfp-2017 isi-icfp-2017].
 
 
 @section{Gradual Typing}
@@ -92,7 +92,7 @@ The transient approach begins with a surface language expression and elaborates
  into a typed intermediate language.
 In other words, the main judgment has the form @${\Gamma \vdash e \carrow e' : \tau}
  where both @${e'} and @${\tau} are outputs.
-At first we tried adapting the Reticulated elaboration to Typed Racket, but struggled
+At first we tried adapting this elaboration to Typed Racket, but struggled
  with the lack of a specification for the @${\carrow} judgment in
  terms of the surface language.
 In particular, Reticulated has a dynamic type (@${\star}) and thus a more
@@ -121,12 +121,13 @@ Whereas the erasure embedding converts typed code to untyped code,
  in principle a @emph{reconstruction embedding} could convert all untyped code
  to typed code.
 Researchers have worked on variants of this problem for decades.
-Soft typing systems combined Hindley-Milner inference with flexible kinds of types@~cite[awl-popl-1994 wc-toplas-1997].
+Soft typing combines Hindley-Milner inference with a non-standard
+ grammar of types@~cite[awl-popl-1994 wc-toplas-1997].
 Set-based flow analysis infers a type based on values, primitive operations,
  and control-flow@~cite[h-lfp-1994 ffkwf-pldi-1996 mff-popl-2006 pmw-dls-2009
  hms-dls-2016 rch-popl-2012].
-@citet[hr-fpca-1995] infer types from the completion of an untyped term;
- that is, from a term with all implicit constructor-checks made explicit.
+Still another method is to infer types from the completion of an untyped term;
+ that is, from a term with all implicit constructor-checks made explicit@~cite[hr-fpca-1995].
 In practice there are two major challenges to type reconstruction:
  quickly inferring precise types@~cite[mfsw-hosc-2005]
  and debugging type errors that involve the (potentially large) inferred types@~cite[tfffgksst-snapl-2017].
@@ -138,6 +139,7 @@ In practice there are two major challenges to type reconstruction:
  the natural embedding.
 Other theoretical solutions exist, both for gradual typing@~cite[htf-hosc-2010 sw-popl-2010 sgt-esop-2009],
  and more generally for higher-order contracts@~cite[g-popl-2015 g-tfp-2016].
+
 Recent work evaluates the performance of practical migratory typing systems.
 @citet[aft-dls-2013] report the performance of mixed-typed Gradualtalk programs.
 @citet[tfgnvf-popl-2016] introduce a systematic method for performance evaluation and
