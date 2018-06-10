@@ -23,7 +23,7 @@ It then defines three embeddings, states their soundness theorems (@Sections-ref
  and concludes with a discussion on scaling the models to a practical implementation (@section-ref{sec:practical-semantics}).
 Each embedding builds upon a common semantic framework (@section-ref{sec:common-semantics})
  to keep the technical presentation focused on their differences.
-Unabridged definitions are in the appendix@~cite[gf-tr-2018].
+Unabridged definitions are in the supplement@~cite[gf-tr-2018].
 
 
 @; -----------------------------------------------------------------------------
@@ -44,8 +44,8 @@ The surface language presented in @figure-ref{fig:multi-syntax} is therefore
 Types in this language represent integers, pairs, functions, and natural numbers.
 Of these, the first three types serve as example base, algebraic, and higher types.
 The last type, @${\tnat}, is a subset of the type of integers; it is included
- to illustrate the set-based reasoning that dynamically-typed languages
- support via (true) union types.
+ to illustrate the set-based reasoning that appears in dynamically-typed program
+ and in general requires union types to support@~cite[tf-popl-2008 tf-icfp-2010].
 
 An expression in the surface language may be dynamically typed (@${\exprdyn})
  or statically typed (@${\exprsta}).
@@ -113,7 +113,8 @@ The two reduction relations (@${\rrSstar} and @${\rrDstar}) must satisfy three c
 @item{
   @emph{soundness for the pair of languages} --- for all expressions,
    evaluation preserves some property that is implied by the surface notion of typing,
-   but it is neither the same nor necessarily a straightforward generalization.
+   but it is neither the same nor necessarily a straightforward generalization
+   of single-language soundness.
 }
 ]
 To streamline the definitions of the three multi-language semantics that follow,
@@ -171,12 +172,11 @@ A dynamically-typed expression may attempt to apply an integer to some other val
 @; ... maybe less structure, because erasure doesn't really match
 
 The three models in the following sections build upon @figure-ref{fig:multi-reduction}.
-Two of them
- define functions @${\vfromdyn} and @${\vfromsta} for transporting a value across a boundary term,
- extend the @${\rrS} and @${\rrD} notions of reduction,
- and lift the notions of reduction to reduction relations @${\rrSstar} and
- @${\rrDstar} for (multi-language) evaluation contexts;
- the third model is simpler.
+Each: defines a pair of @emph{boundary functions} @${\vfromdyn} and @${\vfromsta}
+ for transporting a value across a boundary term,
+ extends the @${\rrS} and @${\rrD} notions of reduction,
+ and lifts the notions of reduction to reduction relations @${\rrSstar} and
+ @${\rrDstar} for (multi-language) evaluation contexts.
 Lastly, the models define a (two-part) syntactic property that is
  implied by a typing property in @figure-ref{fig:multi-preservation},
  and comes with a proof that the property is sound with respect to the
@@ -633,7 +633,7 @@ While the models use @emph{two} reductions, one for the typed and one for the un
  (dynamically-typed) host language.
 In terms of the models, this means @${\rrD} is the only notion of reduction,
  and statically-typed expressions are rewritten so that @${\rrDstar} applies.
-The technical appendix demonstrates how to bridge this gap systematically@~cite[gf-tr-2018].
+The supplement demonstrates how to bridge this gap systematically@~cite[gf-tr-2018].
 
 @;To resolve this challenge, it suffices to build a reduction relation based on @${\rrD}
 @; and conservatively guard @${\vsta} boundaries with the @${\vfromdyn} boundary

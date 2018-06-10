@@ -35,19 +35,15 @@
     \Gamma \wellM e_0 : \tarr{\tau_d}{\tau_c} \carrow e_0'
     \\
     \Gamma \wellM e_1 : \tau_d \carrow e_1'
-    \\\\
-    \tagof{\tau_c} = K
   }{
-    \Gamma \wellM \eapp{e_0}{e_1} : \tau_c \carrow \echk{K}{(\eapp{e_0'}{e_1'})}
+    \Gamma \wellM \eapp{e_0}{e_1} : \tau_c \carrow \echk{\tagof{\tau_c}}{(\eapp{e_0'}{e_1'})}
   }
 
 
   \inferrule*{
     \Gamma \wellM e : \tpair{\tau_0}{\tau_1} \carrow e'
-    \\\\
-    \tagof{\tau_0} = K
   }{
-    \Gamma \wellM \efst{e} : \tau_0 \carrow \echk{K}{(\efst{e'})}
+    \Gamma \wellM \efst{e} : \tau_0 \carrow \echk{\tagof{\tau_0}}{(\efst{e'})}
   }
 %
 %  \inferrule*{
