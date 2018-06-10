@@ -2188,8 +2188,8 @@
 (define gf-tr-2018
   (make-bib
     #:author (authors "Ben Greenman" "Matthias Felleisen")
-    #:title "The Spectrum of Soundness and Performance, Technical Appendix"
-    #:location (techrpt-location #:institution "Anonymous University" #;"Northeastern University" #:number "?")
+    #:title "A Spectrum of Type Soundness and Performance, Technical Appendix"
+    #:location (techrpt-location #:institution "Northeastern University" #:number "???")
     #:date 2018))
 
 (define agd-ecoop-2005
@@ -2345,4 +2345,11 @@
     #:title "The Grace Programming Language Draft Specification Version 0.7.0"
     #:location "http://gracelang.org/documents/grace-spec-0.7.0.pdf accessed 2018-05-25"
     #:date 2016))
+
+(define lybb-tr-2011
+  (make-bib
+    #:author (authors "Tim Lindholm" "Frank Yellin" "Gilad Bracha" "Alex Buckley")
+    #:title "The Java® Virtual Machine Specification"
+    #:location (techrpt-location #:institution "JSR-000924" #:number "7")
+    #:date 2011))
 
