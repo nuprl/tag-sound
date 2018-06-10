@@ -3,7 +3,7 @@
 @; "Writing is nature's way of letting you know how sloppy your thinking is" -Dick Guindon
 @; :)))
 
-@title{A Spectrum of Soundness and Performance}
+@title{A Spectrum of Type Soundness and Performance}
 
 @(define NEU
    @affiliation[
