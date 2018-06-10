@@ -12,7 +12,9 @@
 
 
 @Figure-ref{fig:existing-systems} classifies existing migratory and mixed-typed
- systems in terms of the three approaches described in @section-ref{sec:design}.
+ systems in terms of the three approaches described in @section-ref{sec:design}.@note{The
+  semantic framework of @section-ref{sec:design} is also useful for comparing
+  existing systems; see the supplement to this paper@~cite[gf-tr-2018].}
 Systems listed under the box labeled @emph{natural embedding} enforce full
  types at runtime and provide a strong notion of soundness.
 Three of these systems---Gradualtalk, TPD, and Typed Racket---add types
@@ -45,6 +47,7 @@ There is no line between the natural and locally-defensive boxes because no
  existing systems explore that part of the design space.
 This gap, and indeed all the blank space in @figure-ref{fig:existing-systems},
  presents an opportunity for future work.
+
 
 @(define MT @${^{\dagger}\!})
 @figure["fig:existing-systems" @elem{Design space of migratory (@${\dagger}) and mixed-typed systems.} @exact{
