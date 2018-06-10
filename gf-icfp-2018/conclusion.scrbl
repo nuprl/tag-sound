@@ -23,8 +23,7 @@ The paper contributes two major results. First, it delivers a
  pairs of dynamically-typed and statically-typed languages. The framework
  generalizes the Matthews--Findler multi-language
  approach@~cite[mf-toplas-2007]. With this framework, we can finally work
- out a systematic comparison of the three current semantics of migratory
- typing @note{In addition to the comparison, it also suggests two alternative
+ out a systematic comparison of prior work@note{In addition to the comparison, it also suggests two alternative
  variants that fall between the natural and locally-defensive semantics.
  The appendix outlines these variants, and the supplement contains the technical details@~cite[gf-tr-2018].}
  @emph{and} capture the locally defensive semantics in such a way that it
@@ -42,18 +41,18 @@ In practice, each approach has different implications for how a developer can
 reason about the code, especially when diagnosing the cause of a run-time error:
 @itemlist[
 @item{
- Running a @TR_E program gives a developer no clue as to what in the source code triggers an error; i.e., the type
+ Running a @TR_E (erasure) program gives a developer no clue as to what in the source code triggers an error; i.e., the type
   information in the code does @emph{not} reduce the search space.
 Indeed, a violation of the types in the source code may go completely unnoticed.
 }
 @item{
- Running a @TR_LD program is guaranteed to reveal a
-  violation of types @emph{if it affects the execution}.
- The delayed checking schema is likely to obscure the source of the error,
- however. 
+ Running a @TR_LD (locally-defensive) program is guaranteed to reveal a
+  violation of types @emph{if it affects the execution of typed code}.
+ The delayed checking schema is unlikely to pinpoint the source of the error,
+ however.
 }
 @item{
- Running a @TR_N program uncovers a violation
+ Running a @TR_N (natural) program uncovers a violation
  of type annotations as soon as there is a witness and pinpoints the exact
  boundary that is violated by this witness.}
 ]@;
@@ -74,10 +73,10 @@ One strategy is to design a more sophisticated completion function and
  evaluation property than the one extracted from the literature; the pair in @section-ref{sec:locally-defensive-embedding} is
  simple and includes some obviously redundant checks.
 Occurrence typing@~cite[tf-icfp-2010] seems well-suited for this task.
-A second strategy is to design a JIT compiler that can recognize and avoid
- redundant constructor checks; the compiler by @citet[rat-oopsla-2017] might
- be a promising context in which to experiment.
-Alternatively, combining the locally-defensive approach with the Pycket@~cite[bauman-et-al-icfp-2015 bbst-oopsla-2017] compiler for Racket
+A second strategy is to design a JIT compiler that can dynamically minimize
+ the cost of run-time constructor checks; the HiggsCheck compiler@~cite[rat-oopsla-2017]
+ might be a promising context in which to experiment.
+Alternatively, combining the locally-defensive approach with the Pycket@~cite[bauman-et-al-icfp-2015 bbst-oopsla-2017] JIT compiler for Racket
  may yield an implementation with good performance in all configurations.
 A third strategy is to combine multiple semantics within a program, using
  the natural embedding for fully-typed components and an embedding with weaker
