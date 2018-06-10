@@ -17,20 +17,20 @@ Systems listed under the box labeled @emph{natural embedding} enforce full
  types at runtime and provide a strong notion of soundness.
 Three of these systems---Gradualtalk, TPD, and Typed Racket---add types
  to an existing language.
-By contrast, Dart 2@note{Dart 1.x is an erasure system that can optionally
- enforce types. Dart 2 is not a migratory typing system for Dart 1.x.}
- and Nom are new languages that support distinct
- combinations of static and dynamic typing.
-The @emph{erasure embedding} systems come with an optional static type checker
+By contrast, Dart 2 and Nom are new languages that support distinct
+ combinations of static and dynamic typing.@note{Dart 1.x is an erasure system
+ that can optionally enforce types. Dart 2 is not a migratory typing system for
+ Dart 1.x.}
+The @emph{erasure embedding} systems provide an optional static type checker
  but do not use types to determine program behavior.
-Lastly, Reticulated and our @|TR_LD| prototype are the only @emph{locally-defensive}
+Reticulated and our @|TR_LD| prototype are the only @emph{locally-defensive}
  systems.
 Both instrument typed code with run-time checks to enforce soundness at the
  level of type constructors.
 
 The dashed lines in @figure-ref{fig:existing-systems} represent systems that
- explore a compromise between two approaches.
-StrongScript and Thorn offer two kinds of types: concrete types and like types.
+ offer a compromise between two approaches.
+StrongScript and Thorn include two kinds of types: concrete types and like types.
 Both types are checked statically, but only concrete types are enforced at
  run-time.
 In other words, a program that uses only like types has erasure behavior.
@@ -41,10 +41,10 @@ If a program contains type annotations, then Pyret enforces each annotation
  with a run-time type constructor check; a programmer can opt-in to type-constructor
  soundness through disciplined use of type annotations.
 
-There is no line between the natural and locally-defensive boxes because there
- are no existing systems in that part of the design space.
-This gap, and indeed all blank space in @figure-ref{fig:existing-systems},
- is an opportunity for future work.
+There is no line between the natural and locally-defensive boxes because no
+ existing systems explore that part of the design space.
+This gap, and indeed all the blank space in @figure-ref{fig:existing-systems},
+ presents an opportunity for future work.
 
 @(define MT @${^{\dagger}\!})
 @figure["fig:existing-systems" @elem{Design space of migratory (@${\dagger}) and mixed-typed systems.} @exact{
