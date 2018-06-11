@@ -36,6 +36,9 @@
       \efromstaC{\tpair{\tau_0}{\tau_1}}{v} & = & \vmonpair{(\tpair{\tau_0}{\tau_1})}{v}
       \\
       \\
+      \\
+      \\
+      \\
       \efromstaC{\tau}{v} & = & v
       \\ \sidecond{otherwise}
     \end{array}$
@@ -77,46 +80,50 @@
 \end{TwoColumn}
 
 \begin{TwoColumn}
-  \lblextra{$e \rrCSstar e$}{ reflexive, transitive closure of $\ccCS$}{
-    $\begin{array}{l@{\hspace{0.5em}}c@{\hspace{0.5em}}l}
-      \ebase[e] & \ccCS & \ebase[e']
-      \\ \sidecond{if $e \rrCS e'$}
-      \\
-      \esd[\esta{\tau}{v}] & \ccCS & \esd[\efromstaC{\tau}{v}]
-      \\
-      \esd[\edyn{\tau}{v}] & \ccCS & \esd[\efromdynC{\tau}{v}]
-      \\
-      \esd[\esta{\tau}{\ebase[e]}] & \ccCS & \esd[\esta{\tau}{\ebase[e']}]
-      \\ \sidecond{if $e \rrCS e'$}
-      \\
-      \esd[\edyn{\tau}{\ebase[e]}] & \ccCS & \esd[\edyn{\tau}{\ebase[e']}]
-      \\ \sidecond{if $e \rrCD e'$}
-      \\
-      \esd[\eerr] & \ccCS & \eerr
-    \end{array}$
-  }
+  \lblextra{$e \rrCSstar e$}{ similar to $\rrNSstar$}{}
+
+  %\lblextra{$e \rrCSstar e$}{ reflexive, transitive closure of $\ccCS$}{
+  %  $\begin{array}{l@{\hspace{0.5em}}c@{\hspace{0.5em}}l}
+  %    \ebase[e] & \ccCS & \ebase[e']
+  %    \\ \sidecond{if $e \rrCS e'$}
+  %    \\
+  %    \esd[\esta{\tau}{v}] & \ccCS & \esd[\efromstaC{\tau}{v}]
+  %    \\
+  %    \esd[\edyn{\tau}{v}] & \ccCS & \esd[\efromdynC{\tau}{v}]
+  %    \\
+  %    \esd[\esta{\tau}{\ebase[e]}] & \ccCS & \esd[\esta{\tau}{\ebase[e']}]
+  %    \\ \sidecond{if $e \rrCS e'$}
+  %    \\
+  %    \esd[\edyn{\tau}{\ebase[e]}] & \ccCS & \esd[\edyn{\tau}{\ebase[e']}]
+  %    \\ \sidecond{if $e \rrCD e'$}
+  %    \\
+  %    \esd[\eerr] & \ccCS & \eerr
+  %  \end{array}$
+  %}
 
   \multicolsbreak
 
   \smallskip
-  \lblextra{$e \rrCDstar e$}{ reflexive, transitive closure of $\ccCD$}{
-    $\begin{array}{l@{\hspace{0.5em}}c@{\hspace{0.5em}}l}
-      \ebase[e] & \ccCD & \ebase[e']
-      \\ \sidecond{if $e \rrCD e'$}
-      \\
-      \esd[\esta{\tau}{v}] & \ccCD & \esd[\efromstaC{\tau}{v}]
-      \\
-      \esd[\edyn{\tau}{v}] & \ccCD & \esd[\efromdynC{\tau}{v}]
-      \\
-      \esd[\esta{\tau}{\ebase[e]}] & \ccCD & \esd[\esta{\tau}{\ebase[e']}]
-      \\ \sidecond{if $e \rrCS e'$}
-      \\
-      \esd[\edyn{\tau}{\ebase[e]}] & \ccCD & \esd[\edyn{\tau}{\ebase[e']}]
-      \\ \sidecond{if $e \rrCD e'$}
-      \\
-      \esd[\eerr] & \ccCD & \eerr
-    \end{array}$
-  }
+  \lblextra{$e \rrCDstar e$}{ similar to $\rrNDstar$}{}
+
+  %\lblextra{$e \rrCDstar e$}{ reflexive, transitive closure of $\ccCD$}{
+  %  $\begin{array}{l@{\hspace{0.5em}}c@{\hspace{0.5em}}l}
+  %    \ebase[e] & \ccCD & \ebase[e']
+  %    \\ \sidecond{if $e \rrCD e'$}
+  %    \\
+  %    \esd[\esta{\tau}{v}] & \ccCD & \esd[\efromstaC{\tau}{v}]
+  %    \\
+  %    \esd[\edyn{\tau}{v}] & \ccCD & \esd[\efromdynC{\tau}{v}]
+  %    \\
+  %    \esd[\esta{\tau}{\ebase[e]}] & \ccCD & \esd[\esta{\tau}{\ebase[e']}]
+  %    \\ \sidecond{if $e \rrCS e'$}
+  %    \\
+  %    \esd[\edyn{\tau}{\ebase[e]}] & \ccCD & \esd[\edyn{\tau}{\ebase[e']}]
+  %    \\ \sidecond{if $e \rrCD e'$}
+  %    \\
+  %    \esd[\eerr] & \ccCD & \eerr
+  %  \end{array}$
+  %}
 
 
 \end{TwoColumn}

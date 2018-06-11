@@ -5,20 +5,19 @@
 @|pre-clearpage|
 @title[#:tag "sec:appendix"]{Appendix}
 
-The performance costs of the natural embedding suggest two alternative approaches
- to migratory typing.
+The performance costs of the natural embedding suggest two alternative approaches.
 One approach is to address the cost of @emph{checking} values at a boundary
  by delaying the inspection of structured values.
 A second is to address the cost of @emph{indirection} by limiting the number of
  monitors a value can accumulate.
-This appendix formulates two theories of these approaches, dubbed the
+This appendix formulates two theories of these approaches,
  @emph{co-natural} (@section-ref{sec:conatural-embedding})
- and @emph{forgetful} (@section-ref{sec:forgetful-embedding}) embeddings,
+ and @emph{forgetful} (@section-ref{sec:forgetful-embedding}),
  and compares their logical implications (@section-ref{sec:appendix:implications}).
 
-The co-natural embedding is inspired by work on higher-order contracts@~cite[ff-icfp-2002];
- this embedding carries the idea of delayed first-order checks to an extreme.
-The forgetful embedding is inspired by the eponymous approach to space-efficient
+The co-natural approach is inspired by work on higher-order contracts@~cite[ff-icfp-2002]
+ and carries the idea of delayed first-order checks to an extreme.
+The forgetful approach is inspired by the eponymous approach to space-efficient
  contracts@~cite[g-popl-2015].
 
 @; Technically, the forgetful embedding in @section-ref{sec:forgetful-embedding}
@@ -27,7 +26,7 @@ The forgetful embedding is inspired by the eponymous approach to space-efficient
 
 
 @; -----------------------------------------------------------------------------
-@section[#:tag "sec:conatural-embedding"]{The Co-Natural Embedding}
+@section[#:tag "sec:conatural-embedding"]{Co-Natural Embedding}
 @include-figure*["fig:conatural-reduction.tex" "Co-Natural Embedding"]
 @include-figure*["fig:conatural-preservation.tex" "Property judgments for the co-natural embedding"]
 
@@ -36,8 +35,7 @@ The co-natural embedding (@figure-ref{fig:conatural-reduction}) extends the
 When a dynamically-typed value flows into a typed context, the @${\vfromdynC}
  boundary function checks that the value matches the expected type constructor
  and, unless the value is of base type, wraps the value in a monitor.
-Similarly, the @${\vfromstaC} boundary function protects function and
- pair values with a monitor.
+Similarly, the @${\vfromstaC} boundary function wraps function and pair.
 The reduction rules in @figure-ref{fig:conatural-reduction} ensure that
  a monitor behaves the same as the encapsulated value in application and
  projection forms.
@@ -45,8 +43,9 @@ The reduction rules in @figure-ref{fig:conatural-reduction} ensure that
 Soundness for the co-natural embedding states that reduction preserves the
  property outlined in @figure-ref{fig:conatural-preservation}.
 For a statically-typed expression, the implication is that if reduction
- ends in a value then the value is well-typed and either a monitor or an
- evaluation syntax (@figure-ref{fig:multi-reduction}) value.
+ ends in a value then the value is well-typed and either a monitor or a
+ well-typed value.
+Proofs are in the supplement@~cite[gf-tr-2018].
 
 @twocolumn[
   @tr-theorem[#:key "C-static-soundness" @elem{static @${\langC}-soundness}]{
@@ -70,41 +69,34 @@ For a statically-typed expression, the implication is that if reduction
       @item{ @${e \rrCDstar \boundaryerror} }
       @item{ @${e} diverges}
     ] }@;
-]@tr-proof[#:sketch? #true]{
-  By progress and preservation lemmas, see the appendix@~cite[gf-tr-2018].
-}
+]
+
 
 @; -----------------------------------------------------------------------------
-@section[#:tag "sec:forgetful-embedding"]{The Forgetful Embedding}
+@section[#:tag "sec:forgetful-embedding"]{Forgetful Embedding}
 @include-figure*["fig:forgetful-reduction.tex" "Forgetful Embedding"]
 @include-figure*["fig:forgetful-preservation.tex" "Property judgments for the forgetful embedding"]
 
 The forgetful embedding defined in @figure-ref{fig:forgetful-reduction} prevents a
  value from accumulating more than one monitor.
-If a monitored value reaches the @${\vfromdynF} or @${\vfromstaF} boundary
+If a monitored value reaches one of the @${\vfromdynF} or @${\vfromstaF} boundary
  functions, the function replaces the existing monitor.
+
 Consequently, a monitored function in a statically-typed context may be
  either a dynamically-typed function or statically-typed function.
-In the latter case, there is no guarantee that the statically-typed function
- matches the type of its monitor --- if a monitored, typed function is applied
- in a typed context, the context must check the return type.
-The @${\echk{\tau}{e}} expression form implements these delayed codomain checks
- with the help of the @${\vfromany} boundary-crossing function.
-
+In the latter case, there is no guarantee that the statically-typed function matches
+ the type of its monitor; therefore, the context must check the return type.
+The @${\echk{\tau}{e}} expression form represents these delayed codomain checks
+ and the @${\vfromany} boundary-crossing function implements the checking.
 The application of a monitored, statically-typed function in a dynamically-typed
- context also requires a run-time check.
-For example, the value @${\vmonfun{(\tarr{\tnat}{\tnat})}{(\vlam{\tann{x}{\tnat}}{-2})}}
- may be applied to a dynamically-typed argument.
-When the inner function (of type @${\tarr{\tnat}{\tint}}) returns, the monitor
- demands a check that the returned value is a natural number.
-
-@; TODO say more
+ context similarly requires a codomain check.
 
 Soundness for the forgetful embedding guarantees that reduction is well-defined
  and ends with either a well-typed value, a tag error in dynamically-typed code,
  or a boundary error.
-The manner in which it enforces soundness, however, has serious logical implications
- for type-based reasoning.
+Proofs are in the supplement@~cite[gf-tr-2018].
+The manner in which the forgetful approach enforces soundness, however,
+ has serious logical implications for type-based reasoning.
 The next subsection discusses implications in depth.
 
 @twocolumn[
@@ -129,53 +121,56 @@ The next subsection discusses implications in depth.
       @item{ @${e \rrFDstar \boundaryerror} }
       @item{ @${e} diverges}
     ] }@;
-]@tr-proof[#:sketch? #true]{
-  By progress and preservation lemmas, see the appendix@~cite[gf-tr-2018].
-}
-
+]
 
 @section[#:tag "sec:appendix:implications"]{Implications of Co-Natural and Forgetful}
 
-Co-natural and forgetful fall between the natural and locally-defensive.
-
-Co-natural delays runtime type errors.
-This allows latent bugs.
+The co-natural approach delays run-time checks until part of the relevant value
+ is accessed.
+Thus a type error can go undiscovered if it does not affect the particular execution.
 
 @dbend[
   @safe{
-    \wellM \efst{(\edyn{\tpair{\tnat}{\tnat}}{\vpair{2}{-2}})} : \tpair{\tnat}{\tnat} \rrNSstar \boundaryerror
+    \wellM \efst{(\edyn{(\tpair{\tnat}{\tnat})}{\vpair{2}{-2}})} : \tpair{\tnat}{\tnat} \rrNSstar \boundaryerror
   }
   @warning{
-    \wellM \efst{(\edyn{\tpair{\tnat}{\tnat}}{\vpair{2}{-2}})} : \tpair{\tnat}{\tnat} \rrCSstar 2
+    \wellM \efst{(\edyn{(\tpair{\tnat}{\tnat})}{\vpair{2}{-2}})} : \tpair{\tnat}{\tnat} \rrCSstar 2
   }
 ]
 
-To illustrate the difference between the co-natural and forgetful embeddings,
- consider a structured value (pair, function) that crosses two boundary terms.
-The co-natural approach enforces both boundaries; the forgetful approach
- enforces only the second.
+@exact{\noindent}Unlike the locally-defensive approach, however, co-natural
+ can find such errors in untyped contexts as well as typed contexts.
+
+@dbend[
+  @safe{
+    \wellM \esnd{\esta{(\tpair{\tnat}{\tnat})}{(\edyn{(\tpair{\tnat}{\tnat})}{\vpair{2}{-2}})}} \rrCDstar \boundaryerror
+  }
+  @warning{
+    \wellM \esnd{\esta{(\tpair{\tnat}{\tnat})}{(\edyn{(\tpair{\tnat}{\tnat})}{\vpair{2}{-2}})}} \rrKDstar -2
+  }
+]
+
+Co-natural and forgetful differ in their approach to pairs (or functions)
+ that cross multiple boundary terms.
+The co-natural approach enforces all boundaries, but the forgetful approach
+ enforces only the most recent.
 In the following example, a dynamically-typed pair flows in and out of
  statically typed code.
-The first type annotation does not match the pair,
- and the co-natural embedding detects this when the pair is dereferenced.
-The second annotation is weaker, and does match.
-Since the forgetful approach drops the first annotation, it fails to detect
- the type mismatch:
+The first type annotation does not match the value and the forgetful approach
+ fails to detect the mismatch.
 
 @dbend[
   @safe{
-    \wellM \esnd{(\esta{\tpair{\tint}{\tint}}{(\edyn{\tpair{\tnat}{\tnat}}{\vpair{2}{-2}})}} \rrCDstar \boundaryerror
+    \wellM \esnd{(\esta{(\tpair{\tint}{\tint})}{(\edyn{(\tpair{\tnat}{\tnat})}{\vpair{2}{-2}})}} \rrCDstar \boundaryerror
   }
   @warning{
-    \wellM \esnd{(\esta{\tpair{\tint}{\tint}}{(\edyn{\tpair{\tnat}{\tnat}}{\vpair{2}{-2}})}} \rrFDstar -2
+    \wellM \esnd{(\esta{(\tpair{\tint}{\tint})}{(\edyn{(\tpair{\tnat}{\tnat})}{\vpair{2}{-2}})}} \rrFDstar -2
   }
 ]
 
-Note, the example above illustrates a boundary error reported in a dynamically typed
- expression.
-This distinguishes the forgetful and co-natural embeddings from the locally-defensive
- approach, as locally-defensive (effectively) never raises a boundary error in
- a dynamically-typed context.
+@exact{\noindent}This example also serves to illustrate a difference between
+ forgetful and locally-defensive;
+ the forgetful approach can detect a type mismatch in dynamically-typed code.
 
 Also unlike the locally-defensive embedding, the runtime checks in the forgetful
  embedding come from boundary terms.
@@ -184,10 +179,10 @@ It is possible to hide a type mismatch using subtyping in the locally-defensive
 
 @dbend[
   @safe{
-    \wellM \esnd{(\edyn{\tpair{\tnat}{\tnat}}{\vpair{2}{-2}})} : \tpair{\tnat}{\tnat} \rrFSstar \boundaryerror
+    \wellM \esnd{(\edyn{(\tpair{\tnat}{\tnat})}{\vpair{2}{-2}})} : \tpair{\tnat}{\tnat} \rrFSstar \boundaryerror
   }
   @warning{
-    \wellM \esnd{(\edyn{\tpair{\tnat}{\tnat}}{\vpair{2}{-2}})} : \tpair{\tnat}{\tnat} \rrKSstar -2
+    \wellM \esnd{(\edyn{(\tpair{\tnat}{\tnat})}{\vpair{2}{-2}})} : \tpair{\tnat}{\tnat} \rrKSstar -2
   }
 ]
 
