@@ -92,7 +92,7 @@ The tenth program is adapted from a JPEG library; the original author of this
 The appendix documents the size, origin, and purpose of each benchmark;
  further details are available online.@note{@url{https://docs.racket-lang.org/gtp-benchmarks/index.html}}
 
-For each configuration of each benchmark @emph{except @bm{jpeg}},
+For each configuration of each benchmark,
  we collected data using both @|TR_N| and @|TR_LD|.
 The data for each semantics is a sequence of @~a[NUM-ITERS] running times,
  which we obtained by running the program once to account for JIT warmup and
@@ -129,21 +129,6 @@ The data for @|TR_E| on these benchmarks is one sequence of running times
               Taller bars are better.}
         @(let ((TBL (make-typed-table TR-DATA* TAG-DATA*)))
            (render-speedup-barchart TBL))]
-
-
-The @bm{jpeg} benchmark depends on a typed library.
-To measure its @|TR_N| performance, we compile the library using @|TR_N|,
- measure the performance of all typed/untyped configurations, and report
- their overhead relative to the untyped configuration (which interacts with
- the compiled, typed library).
-To measure its @|TR_LD| performance, we compile the library using @|TR_LD|
- and report the performance of all configurations relative to the untyped
- configuration using the @|TR_LD| library.
-This protocol accurately reports the overhead in two parallel implementations
- of the Typed Racket surface language, but it does not yield a true symmetric
- comparison (see @section-ref{sec:evaluation:threats}).@note{We noticed this
- breach too late. For a published version of this submission, we intend to
- re-do the evaluation of this benchmark in an apples-to-apples manner.}
 
 All measurements were collected sequentially using Racket v@|RKT-VERSION| on an
  unloaded Linux machine with two physical AMD Opteron 6376 processors (a NUMA architecture) and
@@ -243,9 +228,3 @@ Third, the evaluation considers one fully-typed version of each benchmark,
  but ascribing different types to the same program can affect its performance.
 For example, the constructor check for an integer may be less expensive than the
  check for a natural number.
-Fourth, the choice to measure two versions of @bm{jpeg} is somewhat unrealistic;
- a developer is more likely to avoid a typed library than to recompile it under
- a different semantics.
-@; TODO in order for typed/tagged jpeg to share ....
-@; - LD needs to accept TR type definitions
-@; - or LD needs require/typed for polymorphic structs (definitely possible)
