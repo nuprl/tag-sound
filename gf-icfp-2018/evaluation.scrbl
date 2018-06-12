@@ -14,8 +14,8 @@ To compare the performance of the three approaches,
  on @integer->word[NUM-TR] functional benchmark programs.
 The data suggests that the locally-defensive embedding is a large
  improvement over the natural embedding for mixed-typed programs.
-For fully-typed programs, however, the natural embedding offers the best
- performance by way of the Typed Racket optimizer@~cite[stff-padl-2012].
+For fully-typed programs (and configurations with many typed modules@~cite[gf-tr-2018]),
+ however, the natural embedding offers the best performance thanks to the Typed Racket optimizer@~cite[stff-padl-2012].
 
 
 @; -----------------------------------------------------------------------------
@@ -35,10 +35,10 @@ For any mixed-typed program, we can therefore compare the natural embedding
 
 To compare against the locally-defensive approach, we modified the Typed Racket
  compiler to rewrite typed code and to compile types to predicates
- that check first-order properties of values.
+ that check first-order properties of values (see supplement for details@~cite[gf-tr-2018]).
 The soundness guarantee of this implementation is that evaluation preserves the
  first-order properties.
-Like the model, it makes no claim about the quality of boundary error messages.
+Like the model, this implementation makes no claim about the quality of boundary error messages.
 
 The three approaches outlined above define three ways to compile a
  Typed Racket program to Racket: the ``natural'' compiler @|TR_N|,
@@ -56,12 +56,12 @@ In the rest of this section, we reserve the name ``Typed Racket'' for the
 To evaluate performance,
  we use the exhaustive method for module-level
  migratory typing@~cite[tfgnvf-popl-2016 gtnffvf-jfp-2017].
-Starting from one multi-module program, we migrate the whole program (ignoring
- any libraries outside the control of the average user) to Typed Racket.
+Starting from one multi-module program, we migrate the whole program --- ignoring
+ any libraries outside the control of the average user --- to Typed Racket.
 From this fully-typed program, we generate all typed/untyped configurations
  by removing types from a subset of the modules.
 A program with @${N} modules thus leads to @${2^N} configurations that
- represent all the ways a developer might apply migratory typing,
+ represent all the ways a developer might apply migratory typing to the program,
  restricted to one set of type annotations.
 
 Since the promise of migratory typing is that a developer may choose to run any
@@ -74,34 +74,22 @@ If an implementation of migratory typing adds little overhead to mixed-typed
  programs, then a large percentage of its configurations will be @deliverable{D}
  for a low value of @${D}.
 
-For this paper, we present the percent of @deliverable{D} configurations
- for @${D} between 1x and @~a[X-MAX]x.
-The supplementary material contains the uninterpreted data.
-
 
 @section[#:tag "sec:evaluation:protocol"]{Protocol}
 
-The evaluation measured the performance of the natural semantics (@|TR_N|),
- erasure semantics (@|TR_E|), and locally-defensive semantics (@|TR_LD|)
+The evaluation measured the performance of the natural (@|TR_N|),
+ erasure (@|TR_E|), and locally-defensive (@|TR_LD|) approaches
  on @integer->word[NUM-TR] Typed Racket programs.
 Nine programs are the functional benchmarks from prior work on
  Typed Racket@~cite[tfgnvf-popl-2016 gtnffvf-jfp-2017].
 The tenth program is adapted from a JPEG library; the original author of this
  application noticed poor performance due to untyped code interacting with
  a Typed Racket array library.
-The appendix documents the size, origin, and purpose of each benchmark;
+The supplement documents the size, origin, and purpose of each benchmark@~cite[gf-tr-2018];
  further details are available online.@note{@url{https://docs.racket-lang.org/gtp-benchmarks/index.html}}
 
-For each configuration of each benchmark,
- we collected data using both @|TR_N| and @|TR_LD|.
-The data for each semantics is a sequence of @~a[NUM-ITERS] running times,
- which we obtained by running the program once to account for JIT warmup and
- then an additional @~a[NUM-ITERS] times to collect data.
-The data for @|TR_E| on these benchmarks is one sequence of running times
- as all typed/untyped configurations erase to the same Racket program.
-
 @figure*["fig:locally-defensive-performance"
-         @elem{@|TR_N| (blue @|tr-color-sample|) and @|TR_LD| (orange @|tag-color-sample|), each relative to erasure (@|TR_E|).
+         @elem{@|TR_N| (@|tr-color-text| @|tr-color-sample|) and @|TR_LD| (@|tag-color-text| @|tag-color-sample|), each relative to erasure (@|TR_E|).
                The @|x-axis| is log-scaled. The unlabeled vertical ticks appear at:
                @${1.2}x, @${1.4}x, @${1.6}x, @${1.8}x, @${4}x, @${6}x, and @${8}x overhead.
                A larger area under the curve is better.}
@@ -113,7 +101,7 @@ The data for @|TR_E| on these benchmarks is one sequence of running times
 @(define TITLE* (list TR_N TR_LD))
 
 @figure["fig:max-overhead"
-        @elem{Worst-case overhead for the natural embedding (@|TR_N|) and the locally-defensive embedding (@|TR_LD|) relative to erasure.}
+        @elem{Worst-case overhead for natural (@|TR_N|) and locally-defensive (@|TR_LD|), each relative to erasure.}
         @render-max-table[MT TITLE*]]
 
 @;@figure["fig:typed-baseline-ratios"
@@ -130,6 +118,13 @@ The data for @|TR_E| on these benchmarks is one sequence of running times
         @(let ((TBL (make-typed-table TR-DATA* TAG-DATA*)))
            (render-speedup-barchart TBL))]
 
+For each configuration of each benchmark, and for both @|TR_N| and @|TR_LD|,
+ we collected a sequence of @~a[NUM-ITERS] running times
+ by running the program once to account for JIT warmup and
+ then an additional @~a[NUM-ITERS] times for the record.
+The data for @|TR_E| on the benchmarks is one sequence of running times
+ because all configurations erase to the same program.
+
 All measurements were collected sequentially using Racket v@|RKT-VERSION| on an
  unloaded Linux machine with two physical AMD Opteron 6376 processors (a NUMA architecture) and
  128GB RAM.
@@ -139,27 +134,28 @@ The CPU cores on each processor ran at 2.30 GHz using the ``performance'' CPU go
 @section{Evaluation I: Mixed-Typed Programs}
 
 @Figure-ref{fig:locally-defensive-performance} plots
- the overhead of @|TR_N| relative to erasure (@|tr-color-text| color)
- and the overhead of @|TR_LD| relative to erasure (@|tag-color-text| color)
+ the overhead of @|TR_N| relative to erasure (@|tr-color-text| @|tr-color-sample|)
+ and the overhead of @|TR_LD| relative to erasure (@|tag-color-text| @|tag-color-sample|)
  for the @integer->word[NUM-TR] functional programs.
 The lines on each plot give the percent of @deliverable{D} configurations
  for values of @${D} between @${1} to @${@~a[X-MAX]}.
-In other words, a point @${(X, Y)} on the line for @|TR_N| says that @${Y}% of all @|TR_N| configurations
- run at most @${X} times slower than the same program with all types erased.
+In other words, a point @${(X, Y)} on a line for @|TR_N| says that @${Y}% of all @|TR_N| configurations
+ in this program run at most @${X} times slower than the same program with all types erased.
 
-The lines for @|TR_LD| are frequently higher than the lines for @|TR_N|; see
- the plots for @bm{sieve}, @bm{fsm}, @bm{suffixtree}, @bm{kcfa},
- @bm{snake}, @bm{tetris}, and @bm{synth}.
+The lines for @|TR_LD| are frequently higher than the lines for @|TR_N|.
 The difference is most dramatic for @bm{synth}.
-The @bm{morsecode} and @bm{zombie} benchmarks, however, show no improvement
- in the @${1}x to @${@~a[X-MAX]}x range.
+The @bm{morsecode} benchmark, however, shows no improvement; the cost of
+ checking constructors throughout typed code always out-weighs the cost of fully
+ enforcing types.
 
 Since seven of the @integer->word[NUM-TR] benchmarks have at least one @|TR_N|
  configuration that falls ``off the charts'' with an overhead above @~a[X-MAX]x,
  @figure-ref{fig:max-overhead} tabulates the worst-case overhead in each benchmark.
 According to the table, the natural embedding may
  may slow a working program by three orders of magnitude.
-By contrast, the worst-case performance of the locally-defensive embedding
+The largest slowdowns, in @bm{fsm} and @bm{zombie}, occur because higher-order
+ values repeatedly cross type boundaries and accumulate monitors.
+By contrast, the worst-case performance of @|TR_LD|
  is always within two orders of magnitude.
 
 
@@ -167,16 +163,17 @@ By contrast, the worst-case performance of the locally-defensive embedding
 
 The table in @figure-ref{fig:typed-speedup} compares the performance
  of fully-typed programs.
-The blue bars plot the overhead of @|TR_N| relative to the erasure embedding
+The @|tr-color-text| bars plot the overhead of @|TR_N| relative to the erasure embedding
  on each benchmark.
-The orange bars present analogous data for @|TR_LD|
+The @|tag-color-text| bars plot analogous data for @|TR_LD|
  relative to the erasure embedding.
 
-On fully-typed programs, @|TR_N| may run faster than the erasure approach.
+On fully-typed programs, @|TR_N| may out-perform the erasure approach.
 This speed-up is due to type-driven optimizations@~cite[stff-padl-2012] and, in the case
  of @bm{jpeg}, the removal of a boundary between the user program and a typed library.
-The @bm{zombie} benchmark is an anomaly; it runs slower than erasure due to
- a simple type-cast within a hot loop.
+The @bm{zombie} benchmark is an anomaly; it runs slower because its typed code
+ performs a type-cast in the main loop, whereas its untyped code performs
+ an in-lined check.
 By contrast, @|TR_LD| is the slowest on every benchmark.
 
 
