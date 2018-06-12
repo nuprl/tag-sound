@@ -102,7 +102,7 @@
 (define RKT-VERSION "6.10.1")
 (define RKT-RELEASE-MONTH "September 2017")
 (define NUM-SAMPLES 200)
-(define TAG-VERSION "v0.14")
+(define TAG-VERSION "v0.15")
 (define OVERHEADS-HEIGHT (make-parameter 640))
 (define OVERHEADS-HSPACE 50)
 (define OVERHEADS-VSPACE 6)
