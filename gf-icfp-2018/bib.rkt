@@ -2353,3 +2353,9 @@
     #:location (techrpt-location #:institution "JSR-000924" #:number "7")
     #:date 2011))
 
+(define m-jcss-1978
+  (make-bib
+    #:author "Robin Milner"
+    #:title "A Theory of Type Polymorphism in Programming"
+    #:location (journal-location jcss #:pages '(348 375) #:number 3 #:volume 17)
+    #:date 1978))

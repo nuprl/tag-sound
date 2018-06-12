@@ -194,7 +194,7 @@ Lastly, the models define a (two-part) syntactic property that is
 @; "levels of abstraction" is a quote from J. Reynolds
 
 The natural embedding is based on the idea that types should enforce levels
- of abstraction@~cite[r-ip-1983]].
+ of abstraction@~cite[r-ip-1983].
 In a conventional typed language, this kind of enforcement happens statically;
  types define levels of abstraction and the type checker ensures compliance.
 Migratory typing can provide a similar guarantee if the type specifications for untyped
@@ -433,7 +433,7 @@ In other words, a disciplined programmer who avoids external libraries may be
 The locally-defensive approach is the result of two assumptions: one philosophical,
  one pragmatic.
 The philosophical assumption is that the purpose of types is to prevent evaluation
- from ``going wrong'' in the sense of applying a typed elimination form to a value
+ from ``going wrong''@~cite[m-jcss-1978] in the sense of applying a typed elimination form to a value
  outside its domain.
 For example, the elimination forms in the surface
  language are function application and primitive application.
