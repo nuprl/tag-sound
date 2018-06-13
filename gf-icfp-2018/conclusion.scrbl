@@ -15,7 +15,7 @@
 @; in a statically-typed language.
 @;Coinductive types have a different meaning, but semantically equivalent.
 @;In the erasure embedding, types are meaningless.
-@;In the locally-defensive embedding, types mean assertions --- having
+@;In the locally-defensive embedding, types mean assertions---having
 @; lots of types probably avoids catastrophic failure, but adds overhead.
 
 The paper contributes two major results. First, it delivers a

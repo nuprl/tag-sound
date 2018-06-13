@@ -56,8 +56,8 @@ In the rest of this section, we reserve the name ``Typed Racket'' for the
 To evaluate performance,
  we use the exhaustive method for module-level
  migratory typing@~cite[tfgnvf-popl-2016 gtnffvf-jfp-2017].
-Starting from one multi-module program, we migrate the whole program --- ignoring
- any libraries outside the control of the average user --- to Typed Racket.
+Starting from one multi-module program, we migrate the whole program---ignoring
+ any libraries outside the control of the average user---to Typed Racket.
 From this fully-typed program, we generate all typed/untyped configurations
  by removing types from a subset of the modules.
 A program with @${N} modules thus leads to @${2^N} configurations that
