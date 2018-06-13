@@ -15,6 +15,7 @@
  systems in terms of the three approaches.@note{The
   semantic framework of @section-ref{sec:design} is also useful for comparing
   existing systems; see the supplement to this paper@~cite[gf-tr-2018].}
+@; TODO edit the note
 Systems listed under the box labeled @emph{natural embedding} enforce full
  types at run-time and provide a strong notion of soundness.
 Three of these systems---Gradualtalk, TPD, and Typed Racket---add types
@@ -38,6 +39,7 @@ Both types are checked statically, but only concrete types are enforced at
 In other words, a program that uses only like types has erasure behavior.
 @; in other words, if a program contains only like types then its
 @; behavior corresponds to type-erasure.
+
 Pyret falls between the locally-defensive and erasure approaches.
 If a program contains type annotations, then Pyret enforces each annotation
  with a run-time type constructor check; a programmer can opt-in to type-constructor
@@ -45,7 +47,7 @@ If a program contains type annotations, then Pyret enforces each annotation
 
 There is no line between the natural and locally-defensive boxes because no
  existing systems explore that part of the design space.
-This gap, and indeed all the blank space in @figure-ref{fig:existing-systems},
+This gap, and indeed all the white space in @figure-ref{fig:existing-systems},
  presents an opportunity for future work.
 
 

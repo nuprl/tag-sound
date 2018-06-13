@@ -20,7 +20,7 @@ Recent work addresses stronger guarantees such as parametricity@~cite[ajsw-icfp-
 
 Migratory typing is closely related to gradual typing@~cite[st-sfp-2006 svcb-snapl-2015].
 In the broad sense, the term gradual typing@~cite[st-sfp-2006] has come to describe
- any type system that allows dynamically-typed code.
+ any type system that allows some amount of dynamic typing.
 In the precise technical sense@~cite[svcb-snapl-2015], a gradual typing
  system includes: (1) a dynamic type that may be implicitly cast to
  any other type; (2) a relation between types that are equal up to occurrences
@@ -48,7 +48,7 @@ This approach sacrifices expressiveness in favor of straightforward run-time che
  method calls are permitted, but typed and JavaScript objects
  cannot extend one another.@note{@citet[tsdtf-oopsla-2012] introduce
  @emph{opaque class contracts} to support mixed-typed class hierarchies.}
-@citet[mt-oopsla-2017] develop a theory of concrete, gradual@~cite[svcb-snapl-2015]
+@citet[mt-oopsla-2017] develop a theory of concrete and gradual@~cite[svcb-snapl-2015]
  typing and present an efficient implementation.
 Dynamic typing in Dart 2 is based on the concrete approach.@note{@url{https://www.dartlang.org/guides/language/sound-dart}, accessed 2018-05-10}
 
@@ -56,14 +56,14 @@ Dynamic typing in Dart 2 is based on the concrete approach.@note{@url{https://ww
 @section{Natural Embedding}
 
 @citet[mf-toplas-2007] introduce the name @emph{natural embedding} to describe
- a type-directed strategy for converting between (higher-order) Scheme values
+ a type-directed strategy for converting between Scheme
  and ML values.
 The name suggests that this inductive-checking, higher-order-wrapping technique
  is the obvious approach to the problem; indeed, earlier work on typed foreign-function
  interfaces@~cite[r-jfp-2008] and remote procedure calls@~cite[ok-popl-2003] used a similar approach.
 @citet[nl-fscd-2018] provide a semantic justification; in brief, if an embedding
  allows untyped functions and is not equivalent to the natural wrapping strategy,
- then it cannot satisfy full type soundness.
+ then it cannot satisfy type soundness.
 
 
 @section{Erasure Embedding}
@@ -73,7 +73,7 @@ The name suggests that this inductive-checking, higher-order-wrapping technique
 @;  accept optional type hints to guide compilation.
 
 The erasure approach is better known as optional typing, and the idea
- dates back to Strongtalk@~cite[bg-oopsla-1993].
+ dates back to Common Lisp@~cite[s-lisp-1990] and Strongtalk@~cite[bg-oopsla-1993].
 Many languages now have optional type checkers.
 @Figure-ref{fig:existing-systems} lists some examples;
  the pluggable type checkers for Java@~cite[ddems-icse-2011 pacpe-issta-2008]
@@ -86,8 +86,8 @@ Many languages now have optional type checkers.
 @section[#:tag "sec:related-work:locally-defensive"]{Locally-Defensive Embedding}
 
 The locally-defensive embedding is directly inspired by the transient semantics
- for Reticulated Python@~cite[vksb-dls-2014 vss-popl-2017], a migratory (and
- gradual@~cite[svcb-snapl-2015]) typing system for Python.
+ for Reticulated Python@~cite[vksb-dls-2014 vss-popl-2017], a migratory and
+ gradual@~cite[svcb-snapl-2015] typing system for Python.
 The transient approach begins with a surface language expression and elaborates
  into a typed intermediate language.
 In other words, the main judgment has the form @${\Gamma \vdash e \carrow e' : \tau}
@@ -108,7 +108,7 @@ The completion judgment in @section-ref{sec:locally-defensive-embedding}
 The name ``locally-defensive'' is an attempt to separate specification from
  implementation, and to tease apart three design choices
  apparent in Reticulated@~cite[vksb-dls-2014] regarding boundary terms.
-The first key idea is to check only first-order properties at a boundary.
+The first idea is to check only first-order properties at a boundary.
 The second is to check a data structure or higher-order value against its
  dynamically-most-recent type and no previous types, thereby implementing
  @emph{forgetful} space-efficiency@~cite[g-popl-2015].
@@ -117,8 +117,8 @@ The third is to rewrite typed code instead of monitoring dynamically-typed value
 
 @section{Type Reconstruction}
 
-Whereas the erasure embedding converts typed code to untyped code,
- in principle a @emph{reconstruction embedding} could convert all untyped code
+While the erasure embedding converts typed code to untyped code,
+ a @emph{reconstruction embedding} could convert all untyped code
  to typed code.
 Researchers have worked on variants of this problem for decades.
 Soft typing combines Hindley-Milner inference with a non-standard
@@ -137,7 +137,7 @@ In practice there are two major challenges to type reconstruction:
 
 @citet[htf-hosc-2010] propose a first solution to the (space) inefficiency of
  the natural embedding.
-Other theoretical solutions exist, both for gradual typing@~cite[htf-hosc-2010 sw-popl-2010 sgt-esop-2009],
+Other theoretical solutions address the issue for gradual typing@~cite[htf-hosc-2010 sw-popl-2010 sgt-esop-2009],
  and more generally for higher-order contracts@~cite[g-popl-2015].@note{@url{https://arxiv.org/abs/1604.02474}}
 
 Recent work evaluates the performance of practical migratory typing systems.
@@ -147,7 +147,7 @@ Recent work evaluates the performance of practical migratory typing systems.
 @citet[bbst-oopsla-2017] demonstrate that a tracing JIT compiler can significantly
  reduce the overhead in Typed Racket.
 @citet[mt-oopsla-2017] report excellent performance data for a
- @emph{concrete}@~cite[clzv-ecoop-2018] gradual typing system.
+ @emph{concrete}@~cite[clzv-ecoop-2018] gradual typing system on their benchmarks.
 @citet[rat-oopsla-2017] suggest integrating run-time type checks with
  the shape tests of an optimizing virtual machine.
 
@@ -163,8 +163,8 @@ At least four prior works address aspects of the subtlety of soundness for
 The early work on Typed Racket@~cite[tf-dls-2006] explains why
  soundness for a pair of languages requires a more general theorem than
  soundness for a single language.
-Like type systems@~cite[wnlov-popl-2010 rzv-ecoop-2015]
- let the programmer decide between enforced and erased types.
+A @tt{like} type system@~cite[wnlov-popl-2010 rzv-ecoop-2015]
+ allows the programmer to decide between enforced and erased types.
 Confined gradual typing@~cite[afgt-oopsla-2014] offers a choice between
  a static type error and a run-time check in the natural approach.
 Lastly, the progressive types@~cite[pqk-onward-2012] vision
@@ -175,9 +175,7 @@ Removing one kind of error from the set makes the static type system more
 
 @section{Comparing Gradual Typing Systems}
 
-@citet[stw-pldi-2015] is the first work to rigorously compare gradual typing
- systems.
-The paper defines three calculi for gradual typing and relates them with
+@citet[stw-pldi-2015] define three calculi for gradual typing and relate them with
  fully-abstract@~cite[p-tcs-1977] translations.
 The three calculi provide identical soundness guarantees.
 @;Recent work by @citet[kas-arxiv-2018] suggests that some calculi may lead to an
