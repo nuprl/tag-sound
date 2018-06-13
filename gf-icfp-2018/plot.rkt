@@ -738,19 +738,14 @@
 #lang racket
 
 (define (create db name)
-  (exec_query ....))
+  ... exec_query ...)
 
-(define (find db uid)
-  (exec_query ....))
-
+;; more operations omitted
 >>
 )
     (codeblock-pict/numbers #:title "typed_db.rkt"
 #<<>>
 #lang typed/racket
-
-(define-type Username
-  Symbol)
 
 (require/typed/provide
   "database.rkt"
@@ -759,6 +754,9 @@
   [create
    (-> DB Username
        Boolean)])
+
+(define-type Username
+  Symbol)
 >>
 )
     (codeblock-pict/numbers #:title "app.rkt"
@@ -771,7 +769,7 @@
 (define (serve r)
   (cond
     [(new_user? r)
-     ....]
+     ... create ...]
     ....))
 >>
 )))
