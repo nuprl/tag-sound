@@ -12,10 +12,9 @@
 
 
 @Figure-ref{fig:existing-systems} classifies existing migratory and mixed-typed
- systems in terms of the three approaches.@note{The
-  semantic framework of @section-ref{sec:design} is also useful for comparing
-  existing systems; see the supplement to this paper@~cite[gf-tr-2018].}
-@; TODO edit the note
+ systems in terms of the three approaches.@note{The interested reader may
+  wish to consult the technical report, in which we instantiate
+  the framework of @section-ref{sec:design} for several existing systems@~cite[gf-tr-2018].}
 Systems listed under the box labeled @emph{natural embedding} enforce full
  types at run-time and provide a strong notion of soundness.
 Three of these systems---Gradualtalk, TPD, and Typed Racket---add types
@@ -47,12 +46,11 @@ If a program contains type annotations, then Pyret enforces each annotation
 
 There is no line between the natural and locally-defensive boxes because no
  existing systems explore that part of the design space.
-This gap, and indeed all the white space in @figure-ref{fig:existing-systems},
- presents an opportunity for future work.
+This gap presents an opportunity for future work.
 
 
 @(define MT @${^{\dagger}\!})
-@figure["fig:existing-systems" @elem{Design space of migratory (@${\dagger}) and mixed-typed systems.} @exact{
+@figure["fig:existing-systems" @elem{Design space of migratory and mixed-typed systems.} @exact{
 \begin{tikzpicture}
   \def\embeddingskip{4cm}
   \node (N)
@@ -89,6 +87,10 @@ This gap, and indeed all the white space in @figure-ref{fig:existing-systems},
   \node (LDsub)
     [align=center,below of=LD,yshift=2ex]
     {Reticulated@|MT|@~cite[vss-popl-2017], {@|TR_LD|@|MT| (@section-ref{sec:evaluation})}};
+
+  \node (legend)
+    [align=right,right of=E,yshift=-18ex]
+    {($\dagger$ : migratory typing system)};
 
   \draw[-,dashed] (N) -- (NE);
   \draw[-,dashed] (NE) -- (E);
