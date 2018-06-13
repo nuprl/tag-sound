@@ -95,7 +95,9 @@ In other words, the main judgment has the form @${\Gamma \vdash e \carrow e' : \
 At first we tried adapting this elaboration to Typed Racket, but struggled
  with the lack of a specification for the @${\carrow} judgment in
  terms of the surface language.
-In particular, Reticulated has a dynamic type (@${\star}) and thus a more
+In particular, Reticulated has a dynamic type
+ @; (@${\star})
+ and thus a more
  flexible notion of type boundary.
 A true model of transient may insert run-time checks for different reasons than
  the twin-language model of @section-ref{sec:locally-defensive-embedding}.
@@ -128,9 +130,9 @@ Set-based flow analysis infers a type based on values, primitive operations,
  hms-dls-2016 rch-popl-2012].
 Still another method is to infer types from the completion of an untyped term;
  that is, from a term with all implicit constructor-checks made explicit@~cite[hr-fpca-1995].
-In practice there are two major challenges to type reconstruction:
- quickly inferring precise types@~cite[mfsw-hosc-2005]
- and debugging type errors that involve the (potentially large) inferred types@~cite[tfffgksst-snapl-2017].
+In practice there are two major challenges for type reconstruction:
+ the known algorithms are not suitable for large programs@~cite[mfsw-hosc-2005]
+ and their inference is syntactically brittle@~cite[tfffgksst-snapl-2017].
 
 
 @section[#:tag "sec:related-work:performance"]{Performance of Mixed-Typed Programs}
