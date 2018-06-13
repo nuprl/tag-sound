@@ -18,16 +18,14 @@
 @;In the locally-defensive embedding, types mean assertions---having
 @; lots of types probably avoids catastrophic failure, but adds overhead.
 
-The paper contributes two major results. First, it delivers a
+This paper contributes two major results. First, it delivers a
  theoretical framework for investigating different ways of combining twin
  pairs of dynamically-typed and statically-typed languages. The framework
  generalizes the Matthews--Findler multi-language
  approach@~cite[mf-toplas-2007]. With this framework, we can finally work
- out a systematic comparison of prior work@note{In addition to the comparison, it also suggests two alternative
- variants that fall between the natural and locally-defensive semantics.
- The appendix outlines these variants, and the supplement contains the technical details@~cite[gf-tr-2018].}
+ out a systematic comparison of prior work
  @emph{and} capture the locally defensive semantics in such a way that it
- was easy to create the first alternative implementation. 
+ is easy to create the first alternative implementation. 
 
 Second, this paper is the first to present an apples-to-apples performance
  evaluation of three implementations of these primary semantics of
@@ -54,7 +52,7 @@ Indeed, a violation of the types in the source code may go completely unnoticed.
 @item{
  Running a @TR_N (natural) program uncovers a violation
  of type annotations as soon as there is a witness and pinpoints the exact
- boundary that is violated by this witness.}
+ type boundary that is violated by this witness.}
 ]@;
 
 @; In light of the work by New and Licata, only the natural embedding
@@ -62,14 +60,15 @@ Indeed, a violation of the types in the source code may go completely unnoticed.
 
 In terms of performance, the picture is much more mixed than the literature
  would suggest. On mixed-typed programs, erasure adds zero overhead,
- locally-defensive checks lead to moderate overhead, and the natural
+ locally-defensive checks add overhead on a pay-as-you-annotate basis,
+ and the natural
  approach may render a working program unusably slow.  For fully-typed
- programs the natural embedding often dominates erasure and is
+ programs, the natural embedding often dominates erasure and is
  significantly faster than the locally-defensive semantics. Equipped with
  this comparison platform, we intend to explore additional ways of making
  some form of sound migratory typing sufficiently practical.
 
-One strategy is to design a more sophisticated completion function and
+One strategy is to improve the locally-defensive model with a more sophisticated completion function and
  evaluation property than the one extracted from the literature; the pair in @section-ref{sec:locally-defensive-embedding} is
  simple and includes some obviously redundant checks.
 Occurrence typing@~cite[tf-icfp-2010] seems well-suited for this task.
@@ -80,7 +79,7 @@ Alternatively, combining the locally-defensive approach with the Pycket@~cite[ba
  may yield an implementation with good performance in all configurations.
 A third strategy is to combine multiple semantics within a program, using
  the natural embedding for fully-typed components and an embedding with weaker
- guarantees for other components.
+ guarantees for other parts of the program.
 
 @acks{
   @; redex-check
@@ -88,6 +87,6 @@ A third strategy is to combine multiple semantics within a program, using
   @; early feedback at PI meeting
   @; pldi reviewers for skimming the paper and letting us know it wasn't shiny and new enough
   @; Artem P. for comments
-  Felleisen would like to acknowledge insightful conversations with Ron Garcia and Eric Tanter about the meaning of types in a locally-defensive setting.
+  Felleisen acknowledges insightful conversations with Ron Garcia and Eric Tanter about the meaning of types in Reticulated Python.
 }
 
