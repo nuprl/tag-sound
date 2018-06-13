@@ -7,15 +7,16 @@ twin-pair of languages: (1) their semantics within a single framework and
 (2) their performance characteristics relative to a single base language and
 the same suite of benchmark programs.
 Equipped with this objective
-information, we can now explain the logical and performance consequences of
+information, we can now explain the logical implications and the performance consequences of
 choosing one of these three approaches. 
 
 For the logical consequences, we proceed in a type-directed manner.
 At the level of base types, there is no difference between the natural
  embedding and the locally-defensive one, but the erasure
- embedding may yield totally distinct (wrong) answers (@section-ref{sub:base}).
+ embedding may give a different result due to a logical error (@section-ref{sub:base}).
 After moving from base types to trees over first-order types, we can explain
- the truly essential difference; while the natural embedding allows
+ the truly essential difference between the natural and locally-defensive semantics:
+ while the natural embedding allows
  developers to reason compositionally about type annotations, users of
  the locally defensive variant must always consider the whole program (@section-ref{sub:first-order}).
 This non-compositional behavior means that logical errors may go undetected in
@@ -29,11 +30,14 @@ Lastly, the three approaches provide
 For consequences with respect to performance, our work somewhat confirms
 the conjectures of the literature that lowering the standards of
 safety pays off---but only to some degree.
-While the locally-defensive embedding is significantly more efficient when it comes to mixed-typed
-programs (@section-ref{sub:perf-mixed}), we must remind readers that
-fully typed programs run safely and faster with the natural embedding
-because the optimizer can take full advantage of the types without paying any
-cost to proactively defend typed code (@section-ref{sub:perf-total}).
+While the locally-defensive embedding adds less overhead than natural to a large portion of the mixed-typed
+programs (@section-ref{sub:perf-mixed}),
+readers must keep two caveats in mind.
+First, the locally-defensive approach imposes a run-time checking overhead
+ that is directly proportional to the number of types in the program.
+Second, the natural embedding may exploit the full soundness of type annotations.
+As a result, programs with many type annotations tend to run faster under
+ the natural semantics than the locally-defensive one (@section-ref{sub:perf-total}).
 
 
 @section[#:tag "sub:base"]{For Base Types}
@@ -46,13 +50,13 @@ Similarly, the erasure embedding throws a tag error if an expression adds a
  number to a pair.
 
 This claim is only true, however, if the static typing system is restricted
- to match the host language's notion of dynamic typing.
+ to exactly match the host language's notion of dynamic typing.
 Adding a @emph{logical} distinction between natural numbers and integers,
  as demonstrated in the type system of @figure-ref{fig:multi-preservation},
  can lead to silent failures at run-time when a negative integer flows into
  a context expecting a natural number.
 If the natural numbers represent votes, for example@~cite[tfffgksst-snapl-2017],
- then the uncaught type error can change the outcome of an election.
+ then the lack of run-time checking can change the outcome of an election.
 
 
 @;@dbend[
@@ -65,15 +69,14 @@ If the natural numbers represent votes, for example@~cite[tfffgksst-snapl-2017],
 Other host languages may allow more diverse kinds of silent failures.
 JavaScript, for example, supports adding a number to a string, array, or object.
 TypeScript programmers must keep this behavior in mind to protect their type-erased
- code against JavaScript.@note{@url{https://lorefnon.tech/2018/03/25/typescript-and-validations-at-runtime-boundaries/}}
+ code against JavaScript.@note{@tt{io.ts} adds some protection to TypeScript: @url{https://lorefnon.tech/2018/03/25/typescript-and-validations-at-runtime-boundaries}}
 
 @; https://twitter.com/jbandi/status/965005464638541825
 
 Both the natural embedding and the locally-defensive embedding are sound for
  base types, e.g.,
  if @${v} is a value of type @${\tnat}, then @${v} is a natural number.
-If the value originated in dynamically-typed code, both the natural and
- locally-defensive embedding perform the same run-time validation.
+Informally, the two approaches performs the same check at a boundary of base type.
 
 
 @section[#:tag "sub:first-order"]{For First-Order, Non-Base Types}
@@ -82,11 +85,11 @@ If the value originated in dynamically-typed code, both the natural and
         @reynolds-pict]
 
 The practical difference between the natural and locally-defensive embeddings
- becomes clear in a mixed-typed program that deals with pair values.
+ becomes clear in a mixed-typed program that deals with pairs.
 The natural embedding checks the contents of a pair; the locally-defensive
  embedding only checks the constructor:@note{In this and similar examples,
-  we write @${\wellM e : \tau \rrKSstar e'} as shorthand for
-  @${\wellM e : \tau \carrow e'' \wedge e'' \rrKSstar e'}.}
+  we write @${\wellM e : \tau \rrKSstar e'} to abbreviate:
+  @${\wellM e : \tau \carrow e'' \mbox{ for some $e''$ and } e'' \rrKSstar e'}.}
 
 @dbend[
   @safe{
@@ -97,7 +100,7 @@ The natural embedding checks the contents of a pair; the locally-defensive
   }
 ]
 
-@exact{\noindent}Extracting a value from an ill-typed pair might detect the mismatch,
+@exact{\noindent}Extracting a value from an ill-typed pair might not detect the mismatch,
  depending on what type of value the context expects.
 For example, a typed expression can safely extract a negative integer from a
  pair of natural numbers if the expression happens to expect an integer:
@@ -111,12 +114,12 @@ For example, a typed expression can safely extract a negative integer from a
   }
 ]
 
-@exact{\noindent}Similarly, a dynamically-typed expression may extract anything
+@exact{\noindent}Similarly, a dynamically-typed expression can extract anything
  from a type-annotated pair:
 
 @dbend[
   @warning{
-    \wellM \efst{(\esta{(\tpair{\tnat}{\tnat})}{(\edyn{(\tpair{\tnat}{\tnat})}{\vpair{-2}{-2}})})} \rrKDstar 0
+    \wellM \efst{(\esta{(\tpair{\tnat}{\tnat})}{(\edyn{(\tpair{\tnat}{\tnat})}{\vpair{-2}{-2}})})} \rrKDstar -2
   }
 ]
 
@@ -132,8 +135,8 @@ The story starts with two professors teaching two sections in complex variables:
 
  @nested[#:style 'inset @emph{
    In one section, Professor Descartes announced that a complex number was an ordered pair of
-   reals ... In the other section, Professor Bessel announced that a complex
-   number was an ordered pair of reals the first of which was nonnegative ...
+   reals [...] In the other section, Professor Bessel announced that a complex
+   number was an ordered pair of reals the first of which was nonnegative [...]
  }]@;
 @;
 @Figure-ref{fig:silent-failure} adapts this example to a mixed-typed world.
@@ -144,9 +147,9 @@ The dynamically-typed module on the right mistakenly calls the addition function
  on two ``Descartes-style'' numbers, one of which does not match the type for
  Bessel numbers.
 
-Each of the three approaches to migratory typing behave differently on this program.
+Indeed, each of the three approaches to migratory typing behave differently on this program.
 The natural embedding correctly rejects the application of @racket[b-add] at the
- boundary between the two modules.
+ boundary between the two modules:
 
 @dbend{
   @safe{
@@ -155,7 +158,7 @@ The natural embedding correctly rejects the application of @racket[b-add] at the
 }
 
 @exact{\noindent}The erasure embedding does not detect the type error, and silently computes
- a well-typed, nonsensical result.
+ a well-typed, nonsensical result:
 
 @dbend{
   @warning{
@@ -169,9 +172,9 @@ The natural embedding correctly rejects the application of @racket[b-add] at the
 @dbend{
   @warning|{
     \wellM \texttt{(b-add d0 d1)} \rrKSstar
-      \left\{\begin{array}{l}
-         \texttt{(list 2 1)}
-      \\ \boundaryerror
+      \left\{\begin{array}{l l}
+         \texttt{(list 2 1)} & \mbox{ if \texttt{map} does not check the Bessel type}
+      \\ \boundaryerror & \mbox{if \texttt{map} does check the type}
       \end{array}\right.
   }|
 }
@@ -201,6 +204,7 @@ With the natural embedding, a developer can trust the type annotations.
 The database module may assume well-typed arguments and the application
  is guaranteed well-typed results, despite the lack of static types within
  either module.
+
 In contrast, the erasure embedding completely ignores types at run-time
  and treats the middle module of @figure-ref{fig:db-app} as one large comment.
 
@@ -213,7 +217,7 @@ This single check does little to verify the correctness of the dynamically-typed
  code.
 In terms of the model,
  retrofitting a type onto a dynamically-typed function @${f} does not
- enforce that @${f} respects its arguments.
+ enforce that @${f} respects its arguments:
 
 @dbend[
   @warning{
@@ -254,7 +258,7 @@ This temporal difference has implications for the quality of error messages
 @; A top-quality error message accurately blames one boundary for the fault.
 
 The erasure embedding detects a run-time type mismatch as late as possible, namely,
- just before invoking @${\delta} with an invalid argument.
+ just before an invalid operation.
 Outside of printing a stack trace, it cannot do much to infer the source of the
  bad value.
 When the source is off the stack, the erasure embedding is impoverished:
@@ -267,8 +271,8 @@ When the source is off the stack, the erasure embedding is impoverished:
 
 The locally-defensive embedding can detect a run-time type mismatch in two ways:
  at a type boundary or at a @${\vchk} expression.
-In the latter case, the locally-defensive embedding is no better off than the
- erasure embedding for reporting the relevant value and type:
+In the latter case, locally-defensive is no better off than
+ erasure for reporting the relevant value and type:
 
 @dbend[
   @warning{
@@ -276,9 +280,7 @@ In the latter case, the locally-defensive embedding is no better off than the
   }
 ]
 
-@noindent[]It is unclear how to trace the value that failed the check back to the type
- boundary where it originated.
-@citet[vss-popl-2017] have explored one strategy for improving these error
+@noindent[]@citet[vss-popl-2017] propose a strategy for improving the locally-defensive error
  messages, but the strategy may double the running time of a program and reports
  a set of potentially-guilty boundaries rather than pinpointing the faulty one.
 
@@ -307,12 +309,13 @@ While each check adds a small cost,@note{In the model, checks have @${O(1)} cost
  these costs accumulate.
 Furthermore, the added code and branches may affect JIT compilation.
 
-The natural embedding incurs three significantly larger kinds of costs.
+The natural embedding incurs three significant kinds of costs.
 First, there is the cost of checking a value at a boundary.
 Second, there is an allocation cost when a higher-order value crosses a boundary.
 Third, monitored values suffer an indirection cost; for example,
  a monitor guarding a dynamically-typed function must check every result computed
  by the function.
+
 Each kind of cost may be arbitrarily large.
 The (time) cost of checking an algebraic type depends on the size of the
  given value.
@@ -320,7 +323,7 @@ The (time and space) cost of allocation grows with the number
  of boundary-crossings, as does the (time) cost of indirection.
 @; (@section-ref{sec:related-work:performance} reviews potential solutions)
 In the following example, an untyped function crosses three boundaries and
- accumulates three monitors:
+ consequently accumulates three monitors:
 
 @dbend[
   @warning{
@@ -332,7 +335,7 @@ In the following example, an untyped function crosses three boundaries and
   }
 ]
 
-Furthermore, the indirection added by monitors may limit the effectiveness of
+@no-indent[]Furthermore, the indirection added by monitors may limit the effectiveness of
  a JIT compiler.
 
 
@@ -341,8 +344,7 @@ Furthermore, the indirection added by monitors may limit the effectiveness of
 If a program has few dynamically-typed components, then the locally-defensive
  embedding is likely to perform the worst of the three embeddings.
 This poor performance comes about because all typed expressions unconditionally
- check each function application and pair projection; after all, a dynamically-typed
- program may later invoke a compiled, typed function.
+ check their inputs.
 For example, a function that adds both elements of a pair value must check
  that its input has integer-valued components.
 
@@ -356,14 +358,14 @@ For example, a function that adds both elements of a pair value must check
   }
 ]
 
-@noindent[]As a rule-of-thumb, adding types may add a linear-time performance
+@noindent[]As a rule-of-thumb, adding types seems to add a linear-time performance
  degredation@~cite[gm-pepm-2018 gf-tr-2018].
 
 By contrast, the natural embedding pays to enforce soundness only if static
  and dynamic components interact.
-If there are few interactions, the program will spend little time enforcing soundness.
+If there are few interactions, the program spends little time enforcing soundness.
 Furthermore, a compiler may leverage the soundness of the natural embedding
- to produce code that is more efficient than the erasure embedding.
+ to produce efficient code.
 In many dynamically typed language, primitives check the
  type-tag of their arguments and dispatch to a low-level procedure.
 Sound static types can eliminate the need to dispatch@~cite[stff-padl-2012],
