@@ -9,13 +9,21 @@
     \\
     \vresult & \BNFeq & v \mid \eerr
     \\
-    \ebase & \BNFeq & \ehole \mid \eapp{\ebase}{e} \mid \eapp{v}{\ebase} \mid
-                   \vpair{\ebase}{e} \mid \vpair{v}{\ebase} \mid
-      \eunop{\ebase} \mid \ebinop{\ebase}{e} \mid \ebinop{v}{\ebase}
+    \ebase & \BNFeq & \ehole \mid
+      \eapp{\ebase\!\!}{e} \mid
+      \eapp{v}{\ebase}\! \mid
+      \vpair{\ebase\!}{e} \mid
+      \vpair{v}{\ebase} \mid
+      \eunop{\ebase\!} \mid \ebinop{\ebase\!\!}{e} \mid \ebinop{v}{\ebase\!\!}
     \\
-    \esd & \BNFeq & \ebase \mid \eapp{\esd}{e} \mid \eapp{v}{\esd} \mid
-                    \vpair{\esd}{e} \mid \vpair{v}{\esd} \mid \eunop{\esd} \mid
-                    \ebinop{\esd}{e} \mid \ebinop{v}{\esd} \mid \edyn{\tau}{\esd} \mid \esta{\tau}{\esd}
+    \esd & \BNFeq & \ebase\! \mid
+      \eapp{\esd~}{e}\hspace{0.3em} \mid
+      \eapp{v}{\esd}\hspace{0.2em} \mid
+      \vpair{\esd}{e}\hspace{0.25em} \mid
+      \vpair{v}{\esd}\hspace{0.4em} \mid
+      \eunop{\esd}~ \mid
+      \ebinop{\esd\,}{e}\hspace{0.25em} \mid
+      \ebinop{v}{\esd}~ \mid \edyn{\tau}{\esd} \mid \esta{\tau}{\esd}
   \end{array}$
 }
 

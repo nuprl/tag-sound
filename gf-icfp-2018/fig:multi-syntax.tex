@@ -1,14 +1,19 @@
 \lbl{Surface Syntax}{
   $\begin{array}{l@{\hspace{0.5em}}c@{\hspace{0.5em}}l}
-    \exprdyn & \BNFeq & x \mid \vlam{x}{\exprdyn}
-         \mid i \mid \vpair{\exprdyn}{\exprdyn} \mid \eapp{\exprdyn}{\exprdyn} \mid
+    \exprdyn & \BNFeq & x \mid
+         \vlam{x}{\exprdyn}\hphantom{:::\tau} \mid
+         i \mid \vpair{\exprdyn}{\exprdyn} \mid \eapp{\exprdyn}{\exprdyn} \mid
          \eunop{\exprdyn} \mid \ebinop{\exprdyn}{\exprdyn} \mid
          \esta{\tau}{\exprsta}
     \\
-    \exprsta & \BNFeq & x \mid \vlam{\tann{x}{\tau}}{\exprsta} \mid
-                            i \mid \vpair{\exprsta}{\exprsta} \mid \eapp{\exprsta}{\exprsta} \mid
-                            \eunop{\exprsta} \mid \ebinop{\exprsta}{\exprsta} \mid
-                            \edyn{\tau}{\exprdyn}
+    \exprsta & \BNFeq & x \mid
+         \vlam{\tann{x}{\tau}}{\exprsta} \mid
+         i \mid
+         \vpair{\exprsta}{\exprsta}\hspace{0.35em} \mid
+         \eapp{\exprsta}{\exprsta}\hspace{0.25em} \mid
+         \eunop{\exprsta}\hspace{0.15em} \mid
+         \ebinop{\exprsta}{\exprsta}\hspace{0.3em}  \mid
+         \edyn{\tau}{\exprdyn}
     \\
     \tau & \BNFeq & \tint \mid \tnat \mid \tpair{\tau}{\tau} \mid \tau \tarrow \tau
     \\

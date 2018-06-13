@@ -984,7 +984,7 @@
    #:location (proceedings-location (string-append IEEE Workshop "Perceptual Organization in Computer Vision") #:pages #false)
    #:date 2006))
 
-(define type-soundness
+(define wf-ic-1994
   (make-bib
    #:author (authors "Andrew K. Wright" "Matthias Felleisen")
    #:title "A Syntactic Approach to Type Soundness"

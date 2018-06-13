@@ -11,7 +11,7 @@
       \\
       \esd & \BNFeq & \ldots \mid \echk{K}{\esd} \mid \edynfake{\esd} \mid \estafake{\esd}
       \\
-      K & \BNFeq & \knat \mid \kint \mid \kpair \mid \kfun \mid \kany
+      K & \BNFeq & \kint \mid \knat \mid \kpair \mid \kfun \mid \kany
     \end{array}$
   }
 
@@ -19,9 +19,9 @@
 
   \lbl{$\tagof{\cdot} : \specarrf{\tau}{K}$}{
     $\begin{array}{l c l}
-      \tagof{\tnat} & = & \knat
-      \\
       \tagof{\tint} & = & \kint
+      \\
+      \tagof{\tnat} & = & \knat
       \\
       \tagof{\tpair{\tau_0}{\tau_1}} & = & \kpair
       \\
@@ -113,6 +113,7 @@
       \\
       \eapp{(\vlam{\tann{x}{\tau}}{e})}{v} & \rrKS
       & \vsubst{e}{x}{\efromany{\tagof{\tau}}{v}}
+      \\ \sidecond{if $\efromany{\tagof{\tau}}{v} \not\in \eerr$}
       \\
       \eapp{(\vlam{x}{e})}{v} & \rrKS
       & \edynfake{(\vsubst{e}{x}{v})}
@@ -137,6 +138,7 @@
       \\
       \eapp{(\vlam{\tann{x}{\tau}}{e})}{v} & \rrKD
       & \estafake{(\vsubst{e}{x}{\efromany{\tagof{\tau}}{v}})}
+      \\ \sidecond{if $\efromany{\tagof{\tau}}{v} \not\in \eerr$}
     \end{array}$
   }
 \end{TwoColumn}

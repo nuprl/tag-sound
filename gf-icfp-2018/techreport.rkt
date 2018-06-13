@@ -29,6 +29,7 @@
   tr-counterexample
   tr-assumption
   tr-convention
+  tr-proposition
   tr-theorem
   tr-corollary
   tr-remark
@@ -113,6 +114,7 @@
    [(definition) "defn."]
    [(lemma) "lemma"]
    [(remark) "remark"]
+   [(proposition) "proposition"]
    [(theorem) "theorem"]
    [else
     (symbol->string k)]))
@@ -127,6 +129,7 @@
    [(example) "Example"]
    [(lemma) "Lemma"]
    [(remark) "Remark"]
+   [(proposition) "Proposition"]
    [(theorem) "Theorem"]
    [else
     (symbol->string k)]))
@@ -191,6 +194,9 @@
 
 (define (tr-convention name-elem #:key [key missing-key] . content*)
   (tr-def name-elem 'convention #:key key content*))
+
+(define (tr-proposition name-elem #:key [key missing-key] . content*)
+  (tr-def name-elem 'proposition #:key key content*))
 
 (define (tr-theorem name-elem #:key [key missing-key] . content*)
   (tr-def name-elem 'theorem #:key key content*))
