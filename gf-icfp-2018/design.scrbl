@@ -113,7 +113,7 @@ Both reduction relations must satisfy three conditions:
 The syntactic components of this figure are expressions @${e},
  values @${v}, irreducible results @${\vresult},
  and two kinds of evaluation context.
-A boundary-free context @${\ebase} does not contain @${\vdyn} or @${\vsta} boundary terms whereas a multi-language
+A boundary-free context @${\ebase} does not contain @${\vdyn} or @${\vsta} boundary terms but a multi-language
  context @${\esd} may.
 
 The semantic components in @figure-ref{fig:multi-reduction} are the

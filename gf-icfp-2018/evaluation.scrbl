@@ -29,8 +29,8 @@ As a full-fledged implementation, Typed Racket handles many more types than the
  so that develoeprs can easily migrate a module even if the type system cannot
  cope with the programming idioms.
 Its run-time system guarantees that every boundary
- error attributes the fault to exactly one syntactic
- boundary between typed and untyped code@~cite[tfffgksst-snapl-2017].
+ error attributes the fault to exactly one syntactic type
+ boundary@~cite[tfffgksst-snapl-2017].
 
 Removing the type annotations and casts
  from a Typed Racket program yields a valid Racket program.
@@ -81,7 +81,7 @@ The evaluation measures the performance of the natural (@|TR_N|),
  on @integer->word[NUM-TR] Typed Racket programs.
 Nine programs are the functional benchmarks from prior work on
  Typed Racket@~cite[tfgnvf-popl-2016 gtnffvf-jfp-2017].
-The tenth program is adapted from a JPEG library.@note{@url{https://docs.racket-lang.org/gtp-benchmarks}}
+The tenth is adapted from a JPEG library.@note{@url{https://docs.racket-lang.org/gtp-benchmarks}}
 
 @figure*["fig:locally-defensive-performance"
          @elem{@|TR_N| (@|tr-color-text| @|tr-color-sample|) and @|TR_LD| (@|tag-color-text| @|tag-color-sample|), each relative to erasure (@|TR_E|).
@@ -161,10 +161,6 @@ The @bm{zombie} benchmark exhibits anomalous performance characteristics.
 The typed version of the code performs a type cast in the inner loop.
 The untyped version replaces this cast with a untyped code that performs the
  same check.
-
-The @bm{zombie} benchmark is an anomaly; it runs slower because its typed code
- performs a type-cast in the main loop, whereas its untyped code performs
- an in-lined check.
 By contrast, @|TR_LD| is the slowest on every benchmark.
 
 @figure["fig:typed-speedup"
