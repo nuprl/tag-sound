@@ -732,15 +732,15 @@
 )))
 
 (define db-app-pict
-  (ht-append 30
+  (ht-append 20
     (codeblock-pict/numbers #:title "database.rkt"
 #<<>>
 #lang racket
 
 (define (create db name)
-  ... exec_query ...)
+  (exec_query ...))
 
-;; more operations omitted
+;; ...
 >>
 )
     (codeblock-pict/numbers #:title "typed_db.rkt"
@@ -767,10 +767,11 @@
   "typed_db.rkt")
 
 (define (serve r)
-  (cond
-    [(new_user? r)
-     ... create ...]
-    ....))
+  (if (new_user? r)
+    (create ...)
+    ...))
+
+;; ...
 >>
 )))
 

@@ -335,7 +335,7 @@ In the following example, an untyped function crosses three boundaries and
   }
 ]
 
-@no-indent[]Furthermore, the indirection added by monitors may limit the effectiveness of
+@noindent[]Furthermore, the indirection added by monitors may limit the effectiveness of
  a JIT compiler.
 
 
