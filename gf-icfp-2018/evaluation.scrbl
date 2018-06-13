@@ -128,11 +128,11 @@ The lines on each plot give the percent of @deliverable{D} configurations
 In other words, a point @${(X, Y)} on a line for @|TR_N| says that @${Y}% of all @|TR_N| configurations
  in this program run at most @${X} times slower than the same program with all types erased.
 
-The lines for @|TR_LD| are frequently higher than the lines for @|TR_N|.
-The difference is most dramatic for @bm{synth}.
-The @bm{morsecode} benchmark, however, shows no improvement; the cost of
- checking constructors throughout typed code always out-weighs the cost of fully
- enforcing types.
+@;The lines for @|TR_LD| are frequently higher than the lines for @|TR_N|.
+@;The difference is most dramatic for @bm{synth}.
+@;The @bm{morsecode} benchmark, however, shows no improvement; the cost of
+@; checking constructors throughout typed code always out-weighs the cost of fully
+@; enforcing types.
 
 Since seven of the @integer->word[NUM-TR] benchmarks have at least one @|TR_N|
  configuration that falls ``off the charts'' with an overhead above @~a[X-MAX]x,
@@ -154,14 +154,16 @@ The @|tr-color-text| bars plot the overhead of @|TR_N| relative to the erasure e
 The @|tag-color-text| bars plot analogous data for @|TR_LD|
  relative to the erasure embedding.
 
-On fully-typed programs, @|TR_N| may out-perform the erasure approach.
-This speed-up is due to type-driven optimizations@~cite[stff-padl-2012] and, in the case
- of @bm{jpeg}, the removal of a boundary between the user program and a typed library.
-The @bm{zombie} benchmark exhibits anomalous performance characteristics.
-The typed version of the code performs a type cast in the inner loop.
-The untyped version replaces this cast with a untyped code that performs the
- same check.
-By contrast, @|TR_LD| is the slowest on every benchmark.
+The @bm{jpeg} and @bm{zombie} benchmarks demonstrate exceptional performance.
+In @bm{jpeg}, the speedup of @|TR_N| over erasure is high because
+ the user program depends on a typed library; the library protects itself
+ against @|TR_E| code.
+In @bm{zombie}, typed code is slower than erasure.
+The typed version of @bm{zombie} performs a type cast in the inner loop.
+The untyped version replaces this cast with a rudimentary predicate checks.
+This simple change noticeably affects the performance of some @bm{zombie} configurations,
+ however the real performance issue with @bm{zombie} is the overhead of
+ repeatedly-wrapping monitors for higher-order functions (demonstrated in @figure-ref{fig:max-overhead}).
 
 @figure["fig:typed-speedup"
         @elem{Speedup of fully-typed
