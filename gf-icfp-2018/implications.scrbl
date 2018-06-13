@@ -49,7 +49,7 @@ This claim is only true, however, if the static typing system is restricted
  to match the host language's notion of dynamic typing.
 Adding a @emph{logical} distinction between natural numbers and integers,
  as demonstrated in the type system of @figure-ref{fig:multi-preservation},
- can lead to silent failures at runtime when a negative integer flows into
+ can lead to silent failures at run-time when a negative integer flows into
  a context expecting a natural number.
 If the natural numbers represent votes, for example@~cite[tfffgksst-snapl-2017],
  then the uncaught type error can change the outcome of an election.
@@ -187,6 +187,7 @@ One promising application of migratory typing is to layer a typed interface
 For the low effort of converting library documentation into a type specification,
  the library author is protected against latent bugs and the library's clients
  benefit from a machine-checked API.
+@; See @~cite[wmwz-ecoop-2017] for motivation.
 
 @Figure-ref{fig:db-app} demonstrates this use-case.
 The module on the left represents a dynamically-typed library that
@@ -200,7 +201,7 @@ With the natural embedding, a developer can trust the type annotations.
 The database module may assume well-typed arguments and the application
  is guaranteed well-typed results, despite the lack of static types within
  either module.
-In contrast, the erasure embedding completely ignores types at runtime
+In contrast, the erasure embedding completely ignores types at run-time
  and treats the middle module of @figure-ref{fig:db-app} as one large comment.
 
 The locally-defensive embedding provides a limited compromise: for every
@@ -252,7 +253,7 @@ This temporal difference has implications for the quality of error messages
  that each embedding can produce.
 @; A top-quality error message accurately blames one boundary for the fault.
 
-The erasure embedding detects a runtime type mismatch as late as possible, namely,
+The erasure embedding detects a run-time type mismatch as late as possible, namely,
  just before invoking @${\delta} with an invalid argument.
 Outside of printing a stack trace, it cannot do much to infer the source of the
  bad value.
@@ -264,7 +265,7 @@ When the source is off the stack, the erasure embedding is impoverished:
   }
 ]
 
-The locally-defensive embedding can detect a runtime type mismatch in two ways:
+The locally-defensive embedding can detect a run-time type mismatch in two ways:
  at a type boundary or at a @${\vchk} expression.
 In the latter case, the locally-defensive embedding is no better off than the
  erasure embedding for reporting the relevant value and type:

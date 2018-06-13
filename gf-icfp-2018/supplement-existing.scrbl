@@ -42,7 +42,7 @@ There are no untyped classes or objects.
 Every value has a class name.
 Consequence: the @emph{this} variable ia always concretely typed in method calls.
 
-Thorn lets values pass from static to dynamic at runtime.
+Thorn lets values pass from static to dynamic at run-time.
 (Cannot explicitly cast from static to dynamic.)
 
 Thorn values are pointers to objects.
@@ -142,7 +142,7 @@ Dart also uses a heap.
 Dynamic is not a subtype of any type other than itself.
 
 Every value comes with a type.
-The type never goes away and is checked at runtime.
+The type never goes away and is checked at run-time.
 
 @tr-lemma[#:key "dart-canonical" @elem{Dart canonical forms}]{
   @itemlist[

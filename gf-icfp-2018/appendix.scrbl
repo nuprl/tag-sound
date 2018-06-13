@@ -172,7 +172,7 @@ The first type annotation does not match the value and the forgetful approach
  forgetful and locally-defensive;
  the forgetful approach can detect a type mismatch in dynamically-typed code.
 
-Also unlike the locally-defensive embedding, the runtime checks in the forgetful
+Also unlike the locally-defensive embedding, the run-time checks in the forgetful
  embedding come from boundary terms.
 It is possible to hide a type mismatch using subtyping in the locally-defensive
  embedding, but not in the forgetful embedding.

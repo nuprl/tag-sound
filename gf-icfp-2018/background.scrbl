@@ -40,7 +40,7 @@
 @;statically-typed language @${\langS}, and (2) a typed foreign function
 @;interface (FFI) between the languages.  The language @${\langS} is basically
 @;like the host language with syntax for explicit type annotations.  The
-@;foreign function interface (FFI) is typically part of a runtime system that
+@;foreign function interface (FFI) is typically part of a run-time system that
 @;monitors interactions between statically-typed and dynamically-typed
 @;values. The FFI @emph{introduces} the boundary (and therefore run-time)
 @;checks that ensure type soundness.

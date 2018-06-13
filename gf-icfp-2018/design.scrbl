@@ -198,7 +198,7 @@ The natural embedding is based on the idea that types should enforce levels
 In a conventional typed language, this kind of enforcement happens statically;
  types define levels of abstraction and the type checker ensures compliance.
 Migratory typing can provide a similar guarantee if the type specifications for untyped
- values are checked at runtime.
+ values are checked at run-time.
 
 The natural embedding uses a type-directed strategy to @mytech{transport} a value across
  a boundary between typed and untyped code.

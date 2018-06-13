@@ -16,7 +16,7 @@
   semantic framework of @section-ref{sec:design} is also useful for comparing
   existing systems; see the supplement to this paper@~cite[gf-tr-2018].}
 Systems listed under the box labeled @emph{natural embedding} enforce full
- types at runtime and provide a strong notion of soundness.
+ types at run-time and provide a strong notion of soundness.
 Three of these systems---Gradualtalk, TPD, and Typed Racket---add types
  to an existing language.
 By contrast, Dart 2 and Nom are new languages that support distinct
