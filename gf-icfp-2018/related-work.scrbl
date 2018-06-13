@@ -108,7 +108,7 @@ The completion judgment in @section-ref{sec:locally-defensive-embedding}
 The name ``locally-defensive'' is an attempt to separate specification from
  implementation, and to tease apart three design choices
  apparent in Reticulated@~cite[vksb-dls-2014] regarding boundary terms.
-The first idea is to check only first-order properties at a boundary.
+The first idea is to enforce only type constructors at a boundary.
 The second is to check a data structure or higher-order value against its
  dynamically-most-recent type and no previous types, thereby implementing
  @emph{forgetful} space-efficiency@~cite[g-popl-2015].

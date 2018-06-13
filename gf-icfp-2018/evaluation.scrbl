@@ -39,7 +39,7 @@ We use this transformation to compare the natural embedding
 
 To compare with the locally-defensive approach, we modified the Typed Racket
  compiler to rewrite typed code and compile types to predicates
- that check first-order properties of values (see supplement for details@~cite[gf-tr-2018]).
+ that enforce type constructors (see supplement for details@~cite[gf-tr-2018]).
 Like the model, this implementation makes no claim about the quality of boundary error messages.
 
 The three approaches outlined above define three ways to compile a

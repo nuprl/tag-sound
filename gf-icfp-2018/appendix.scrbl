@@ -16,7 +16,7 @@ This appendix formulates two theories of these approaches,
  and compares their logical implications (@section-ref{sec:appendix:implications}).
 
 The co-natural approach is inspired by work on higher-order contracts@~cite[ff-icfp-2002]
- and carries the idea of delayed first-order checks to an extreme.
+ and carries the idea of delayed checks to an extreme.
 The forgetful approach is inspired by the eponymous approach to space-efficient
  contracts@~cite[g-popl-2015].
 

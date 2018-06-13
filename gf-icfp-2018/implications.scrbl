@@ -14,7 +14,7 @@ For the logical consequences, we proceed in a type-directed manner.
 At the level of base types, there is no difference between the natural
  embedding and the locally-defensive one, but the erasure
  embedding may give a different result due to a logical error (@section-ref{sub:base}).
-After moving from base types to trees over first-order types, we can explain
+After moving from base types to trees of types, we can explain
  the truly essential difference between the natural and locally-defensive semantics:
  while the natural embedding allows
  developers to reason compositionally about type annotations, users of
