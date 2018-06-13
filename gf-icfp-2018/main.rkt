@@ -52,6 +52,7 @@
   inline-pict
 
   dbend
+  neutral
   warning
   safe
 
@@ -421,7 +422,11 @@
   (case lvl
     [(0) "\\LARGE\\checkmark"]
     [(1) "\\LARGE\\danger"]
+    [(2) ""]
     [else "\\LARGE\\noway"]))
+
+(define (neutral . elem*)
+  (cons 2 elem*))
 
 (define (warning . elem*)
   (cons 1 elem*))
