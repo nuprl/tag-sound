@@ -18,8 +18,7 @@ Regardless of why they make this choice, they eventually discover that they
  While all such systems @emph{check} the type
  annotations@~cite[m-maclisp-1974 bg-oopsla-1993 mw-icfp-1997 fafh-sac-2009 bmt-ecoop-2010
  wnlov-popl-2010 chj-oopsla-2012 rtsf-sac-2013 bat-ecoop-2014 mmi-dyla-2014
- rsfbv-popl-2015 rzv-ecoop-2015 bdt-esop-2016 vss-popl-2017 cvgrl-arxiv-2017 
- tfffgksst-snapl-2017],
+ rsfbv-popl-2015 rzv-ecoop-2015 bdt-esop-2016 vss-popl-2017 tfffgksst-snapl-2017],
  it remains unclear what types @emph{should mean} in mixed-typed programs.
 
 Over the years, three approaches have emerged for integrating a
@@ -35,8 +34,8 @@ Over the years, three approaches have emerged for integrating a
  cost@~cite[tfgnvf-popl-2016 gtnffvf-jfp-2017].
 @;
  A second approach is to @emph{erase the types} and rely on the soundness
- of the underlying dynamically typed language@~cite[b-ordl-2004
- bat-ecoop-2014]. While this lack of any dynamic enforcement is free of any
+ of the underlying dynamically typed language@~cite[bat-ecoop-2014].@note{@url{http://bracha.org/pluggableTypesPosition.pdf}}
+ While this lack of any dynamic enforcement is free of any
  overhead, it takes a ``garbage in, garbage out'' approach to runtime
  interactions between the statically typed and dynamically typed parts of a
  mixed-typed program.
@@ -56,7 +55,7 @@ a proper comparison:
  Publications on implementations of migratory typing often prove a
  ``type soundness'' (or ``type safety'') theorem without formally discussing
  how soundness for the pair of languages differs
- from soundness for a single language@~cite[vss-popl-2017 rsfbv-popl-2015 cvgrl-arxiv-2017].
+ from soundness for a single language@~cite[vss-popl-2017 rsfbv-popl-2015].@note{@url{https://arxiv.org/abs/1708.08021}}
 
  To answer this question precisely, this paper explains the three
  approaches in a systematic manner within one semantic framework. For the

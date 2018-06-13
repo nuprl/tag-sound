@@ -146,7 +146,7 @@
   scribble/core
   scribble/example
   scribble-abbrevs
-  (except-in scriblib/autobib authors)
+  (except-in scriblib/autobib authors proceedings-location)
   scriblib/figure
   setup/main-collects
   (except-in scribble/doclang

@@ -12,7 +12,7 @@ Early work focused on type reconstruction for dynamically-typed
  programs@~cite[s-popl-1981 wc-toplas-1997 agd-ecoop-2005].
 Over the past decade, researchers turned to the problem of creating a
  multi-language system@~cite[gff-oopsla-2005]
- that provides a type soundness guarantee@~cite[st-sfp-2006 tf-dls-2006 mf-toplas-2007 gktff-sfp-2006].
+ that provides a type soundness guarantee@~cite[st-sfp-2006 tf-dls-2006 mf-toplas-2007 kf-toplas-2010].
 Recent work addresses stronger guarantees such as parametricity@~cite[ajsw-icfp-2017 isi-icfp-2017].
 
 
@@ -76,7 +76,7 @@ The erasure approach is better known as optional typing, and the idea
  dates back to Strongtalk@~cite[bg-oopsla-1993].
 Many languages now have optional type checkers.
 @Figure-ref{fig:existing-systems} lists some examples;
- the pluggable type checkers@~cite[b-ordl-2004] for Java@~cite[ddems-icse-2011 pacpe-issta-2008]
+ the pluggable type checkers for Java@~cite[ddems-icse-2011 pacpe-issta-2008]
  apply the same principles to a statically-typed host language.
 
 @; @note{Dart 1.x, @url{https://v1-dartlang-org.firebaseapp.com/}, accessed 2018-05-10.}
@@ -138,7 +138,7 @@ In practice there are two major challenges to type reconstruction:
 @citet[htf-hosc-2010] propose a first solution to the (space) inefficiency of
  the natural embedding.
 Other theoretical solutions exist, both for gradual typing@~cite[htf-hosc-2010 sw-popl-2010 sgt-esop-2009],
- and more generally for higher-order contracts@~cite[g-popl-2015 g-tfp-2016].
+ and more generally for higher-order contracts@~cite[g-popl-2015].@note{@url{https://arxiv.org/abs/1604.02474}}
 
 Recent work evaluates the performance of practical migratory typing systems.
 @citet[aft-dls-2013] report the performance of mixed-typed Gradualtalk programs.
