@@ -32,14 +32,14 @@ The type checker for the extended language must be able to validate mixed-typed
  values across the boundaries between typed and untyped contexts.
 
 In a full language, all kinds of values may cross a type boundary at run-time.
-Possibilities include values of base type (numberes, strings, booleans),
+Possibilities include values of base type (numbers, strings, booleans),
  values of algebraic type (pairs, lists, output ports),
  and values of higher type (functions, mutable references, vectors).
-As representative examples, the surface languages in @figure-ref{fig:multi-syntax}
+As representative examples, the surface language in @figure-ref{fig:multi-syntax}
  includes integers, pairs, and functions, and three corresponding types.
-The fourth type, @${\tnat}, is a subset of the type of integers; it is included
- to illustrate the set-based reasoning that appears in dynamically-typed program
- and in general requires union types to support@~cite[tf-popl-2008 tf-icfp-2010].
+The fourth type, @${\tnat}, is a subset of the type of integers.
+Set-based reasoning is common in dynamically-typed programs and requires
+ dedicated support from the static typing system@~cite[tf-icfp-2010 tfffgksst-snapl-2017].
 
 An expression in the surface language may be dynamically typed (@${\exprdyn})
  or statically typed (@${\exprsta}).
@@ -130,9 +130,9 @@ The semantic components in @figure-ref{fig:multi-reduction} are the
  primitive operation is applied to inappropriate values.  Mathematically
  speaking, the @${\delta} function is undefined for the values. The name
  alludes to the idea that (virtual or abstract) machines represent one form of
- value differently from others, e.g., pointers to functions have a different
- tag than integers.  Thus, the machine is able to report the addition of a
- function to an integer as a tag error.}
+ value differently from others, e.g., pointers to functions have different
+ tag bits than integers.  Thus, the machine is able to report the addition of a
+ function to an integer as a tag mismatch.}
 
 @item{By contrast, a @italic{boundary error} is the result of applying a
  partial primitive operation, such as division, to well-typed but exceptional
@@ -143,11 +143,11 @@ The semantic components in @figure-ref{fig:multi-reduction} are the
  run-time library, which implements these primitive operations directly as
  hardware instructions, represents an untyped part of the program and that
  both the statically typed and dynamically typed parts send values across a
- boundary into this component. The terminology ``boundary error''
+ boundary into this component. The name ``boundary error''
  anticipates the generalization of the concept to programs that mix typed
- and untyped code; there a boundary error arises, for example, when an
- untyped subexpression evaluates to a negative integer and its typed context expects
- a natural number.}
+ and untyped code; in a mixed-typed program a boundary error arises, for example,
+ when an untyped subexpression evaluates to a negative integer and its typed
+ context expects a natural number.}
 ]
 @exact{\noindent}The functions @${\Delta} and @${\delta} must satisfy a
  typability condition@~cite[wf-ic-1994]:
@@ -168,8 +168,8 @@ It relates the left-hand side to the right-hand side on an unconditional basis,
  which expresses the reliance on the type system to prevent stuck terms up
  front.
 The notion of reduction @${\rrD} defines a semantics for dynamically-typed expressions.
-A dynamically-typed expression may attempt to apply an integer to some other value or
- send invalid arguments to a primitive operation.
+A dynamic expression may attempt to apply an integer or
+ send inappropriate arguments to a primitive operation.
 Hence, @${\rrD} explicitly checks for
  malformed expressions and signals a tag error @${(\tagerror)}.
 These checks make the untyped language safe.
@@ -213,8 +213,8 @@ For the specific case of an untyped function @${f} and the type @${(\tarr{\tnat}
  the natural embedding transports a wrapped version of @${f} across the boundary.
 The wrapper checks that every result computed by @${f} is of type @${\tnat}
  and otherwise halts the program with a witness that @${f} does not match the type.
-There is no need to check the argument because the application takes place in
- a typed region.
+@; There is no need to check the argument because the application takes place in
+@;  a typed region.
 
 @subsection[#:tag "sec:natural:model"]{Model}
 
@@ -274,6 +274,7 @@ The soundness theorems for the natural embedding state three results about
  cannot raise a tag error, and (3) reduction preserves the properties from
  @figure-ref{fig:natural-preservation}.
 
+@exact{\vspace{-2ex}}
 @twocolumn[
   @tr-theorem[#:key "N-static-soundness" @elem{static @${\langN}-soundness}]{
     If @${\wellM e : \tau} then @${\wellNE e : \tau} and one
@@ -296,11 +297,14 @@ The soundness theorems for the natural embedding state three results about
       @item{ @${e \rrNDstar \boundaryerror} }
       @item{ @${e} diverges}
     ] }@;
-]@tr-proof[#:sketch? #true]{
-  First, @${\wellM e : \tau} implies @${\wellNE e : \tau} because the latter
+]
+@exact{\vspace{-9ex}}
+@tr-proof[#:sketch? #true]{
+  First, @${\wellM e : \tau} implies @${\wellNE e : \tau}
+   (similarly for the dynamic property)
+   because the latter
    judgment generalizes the former.
-  A similar lemma holds for the dynamic typing judgment.
-  The other statements in the two theorems follow from progress and
+  The rest follows from progress and
    preservation lemmas@~cite[gf-tr-2018].
 }
 
@@ -316,25 +320,17 @@ To illustrate, let @${v} be the identity function @${(\vlam{x}{x})}.
 In this case @${\wellM v} holds but @${\efromdynN{(\tarr{\tint}{\tint})}{v}}
  returns a monitor, which is not part of the surface language but rather an
  extension to support mixed-typed programs.
-A language with mutable data structures would require a similar extension
- to monitor read and write operations@~cite[stff-oopsla-2012].
-
-@; could add conditionals and encode ... but that strategy fails for vectors
-
-@;@tr-lemma[#:key "N-S-canonical" @elem{@${\langN} canonical forms (excerpt)}]{
-@;  If @${\wellNE v : \tarr{\tau_d}{\tau_c}} then either @${v \eeq \vlam{\tann{x}{\tau}}{e}} or @${v \eeq \vmonfun{(\tarr{\tau_d}{\tau_c})}{v'}}
-@;}
+A language with mutable data would require a similar extension
+ to monitor reads and writes@~cite[stff-oopsla-2012].
 
 
 @; -----------------------------------------------------------------------------
 @section[#:tag "sec:erasure-embedding"]{Erasure Embedding}
-@include-figure["fig:erasure-reduction.tex" "Erasure Embedding"]
-@include-figure["fig:erasure-preservation.tex" "Common property judgment for the erasure embedding"]
 
 @; types should not affect semantics.
 @; "syntactic discipline" is a quote from J. Reynolds
 
-An erasure embedding, also known as optional typing, is based on a view of
+The erasure approach, also known as optional typing, is based on a view of
  types as an optional syntactic artifact.
 Type annotations are just a structured form of comment; their presence (or absence)
  should not affect the behavior of a program.
@@ -423,6 +419,9 @@ In other words, a disciplined programmer who avoids external libraries may be
 @tr-proof[#:sketch? #true]{
   By progress and preservation lemmas@~cite[gf-tr-2018].
 }
+
+@include-figure["fig:erasure-reduction.tex" "Erasure Embedding"]
+@include-figure["fig:erasure-preservation.tex" "Common property judgment for the erasure embedding"]
 
 
 @; -----------------------------------------------------------------------------
@@ -555,12 +554,11 @@ In particular,
  and the result of a @${\vchk} expression matches the
  given constructor.
 
-Soundness for the locally-defensive embedding states that the reduction of the
+Soundness for the locally-defensive embedding states that the evaluation of the
  @emph{completion} of any surface-level expression preserves the constructor
  of its static type.
 The theorems furthermore state that only the @${\rrKD} notion of reduction
- can produce a tag error, thus limiting such errors to dynamically-typed contexts.
-@; TODO
+ can yield a tag error, therefore such errors can only occur in dynamically-typed code.
 
 @twocolumn[
   @tr-theorem[#:key "K-static-soundness" @elem{static @${\langK}-soundness}]{
@@ -628,12 +626,11 @@ The theorems furthermore state that only the @${\rrKD} notion of reduction
 @; TODO
 @; - type-constructor checks suffice to prevent stuck-ness
 
-While the models use @emph{two} reductions, one for the typed and one for the untyped
+While the models use two reductions, one for the typed and one for the untyped
  fragments of code, any practical migratory typing system compiles typed expressions to the
- (dynamically-typed) host language.
+ host language.
 In terms of the models, this means @${\rrD} is the only notion of reduction,
  and statically-typed expressions are rewritten so that @${\rrDstar} applies.
-The supplement demonstrates how to bridge this gap systematically@~cite[gf-tr-2018].
 
 @;To resolve this challenge, it suffices to build a reduction relation based on @${\rrD}
 @; and conservatively guard @${\vsta} boundaries with the @${\vfromdyn} boundary
@@ -646,7 +643,8 @@ As written, the @${\rrKD} notion of reduction implies a non-standard protocol
  (1) check that @${v_0} is a function;
  (2) check whether @${v_0} was defined in typed code;
  (3) if so, then check @${v_1} against the static type of @${v_0}.
-The conservative work-around is to extend the completion judgment to add a constructor-check
+If the host language does not support this protocol, a conservative
+ work-around is to extend the completion judgment to add a constructor-check
  to every typed function.
 Using pseudo-syntax @${e_0;\,e_1} to represent sequencing, a suitable completion rule is:
 @exact|{
@@ -665,7 +663,7 @@ Lastly, the models do not mention union types, universal types,
  dynamically-typed code.
 To extend the natural embedding with support for these types, the language
  must add new kinds of monitors to enforce type soundness for their
- elimination forms (or lack thereof).
+ elimination forms.
 The literature on Typed Racket presents one strategy for handling such types@~cite[stff-oopsla-2012 tfdfftf-ecoop-2015].
 To extend the locally-defensive embedding, the language must add unions @${K \cup K}
  to its grammar of type constructor and must extend the @${\tagof{\cdot}} function.
