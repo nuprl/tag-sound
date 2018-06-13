@@ -82,11 +82,14 @@ A third strategy is to combine multiple semantics within a program, using
  guarantees for other parts of the program.
 
 @acks{
+  This paper is supported by @hyperlink["https://www.nsf.gov/awardsearch/showAward?AWD_ID=1518844"]{NSF grant CCF-1518844}.
   @; redex-check
   @; NSF funding
   @; early feedback at PI meeting
   @; pldi reviewers for skimming the paper and letting us know it wasn't shiny and new enough
-  @; Artem P. for comments
+  @;
+  @; Mike V.
+  We thank Erik Ernst, Benjamin S. Lerner, Bryan LaChance, Fabian Muehlboeck, Max S. New, Artem Pelenitsyn, Ross Tate, and Jan Vitek.
   Felleisen acknowledges insightful conversations with Ron Garcia and Eric Tanter about the meaning of types in Reticulated Python.
 }
 
