@@ -55,17 +55,15 @@ This gap presents an opportunity for future work.
   \def\embeddingskip{4cm}
   \node (N)
     [draw,align=center]
-    {\textbf{Natural Embedding}};
+    {\textbf{Higher-Order Embedding}};
   \node (Nsub)
-    [align=center,below of=N,yshift=-0.5ex]
-    {Dart 2, Gradualtalk@|MT|@~cite[acftd-scp-2013], \\
-     Nom@~cite[mt-oopsla-2017], TPD@|MT|@~cite[wmwz-ecoop-2017], \\
-     Typed Racket@|MT|@~cite[tf-popl-2008]};
+    [align=center,below of=N,yshift=1ex]
+    {Gradualtalk@|MT|@~cite[acftd-scp-2013], \\
+     TPD@|MT|@~cite[wmwz-ecoop-2017], Typed Racket@|MT|@~cite[tf-popl-2008]};
 
   \node (NE)
     [align=center,below of=N,xshift=\embeddingskip]
-    {StrongScript@~cite[rzv-ecoop-2015], \\
-     Thorn@~cite[wnlov-popl-2010]};
+    {StrongScript@~cite[rzv-ecoop-2015]};
 
   \node (E)
     [draw,align=center,below of=NE,xshift=\embeddingskip]
@@ -79,17 +77,19 @@ This gap presents an opportunity for future work.
 
   \node (ELD)
     [align=center,below of=E,xshift=-\embeddingskip]
-    {Pyret@|MT|};
+    {Pyret@|MT|, \\
+     Thorn@~cite[wnlov-popl-2010]};
 
   \node (LD)
     [draw,align=center,below of=ELD,xshift=-\embeddingskip]
-    {\textbf{Locally-Defensive Embedding}};
+    {\textbf{First-Order Embedding}};
   \node (LDsub)
-    [align=center,below of=LD,yshift=2ex]
-    {Reticulated@|MT|@~cite[vss-popl-2017], {@|TR_LD|@|MT| (@section-ref{sec:evaluation})}};
+    [align=center,below of=LD,yshift=1ex]
+    {Dart 2, Nom@~cite[mt-oopsla-2017], \\
+     Reticulated@|MT|@~cite[vss-popl-2017], @|TR_LD|@|MT| (@section-ref{sec:evaluation})};
 
   \node (legend)
-    [align=right,right of=E,yshift=-18ex]
+    [align=right,right of=E,yshift=-20ex]
     {($\dagger$ : migratory typing system)};
 
   \draw[-,dashed] (N) -- (NE);
