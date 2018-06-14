@@ -37,9 +37,9 @@ Possibilities include values of base type (numbers, strings, booleans),
  and values of higher type (functions, mutable references, vectors).
 As representative examples, the surface language in @figure-ref{fig:multi-syntax}
  includes integers, pairs, and functions, and three corresponding types.
-The fourth type, @${\tnat}, is a subset of the type of integers.
-Set-based reasoning is common in dynamically-typed programs and requires
- dedicated support from the static typing system@~cite[tf-icfp-2010 tfffgksst-snapl-2017].
+The fourth type, @${\tnat}, is a subset of the type of integers, included because
+ set-based reasoning is common in untyped programs and requires
+ support from the static typing system@~cite[tf-icfp-2010 tfffgksst-snapl-2017].
 
 An expression in the surface language may be dynamically typed (@${\exprdyn})
  or statically typed (@${\exprsta}).
