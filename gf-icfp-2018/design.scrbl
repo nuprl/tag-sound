@@ -33,7 +33,7 @@ The type checker for the extended language must be able to validate mixed-typed
 
 In a full language, all kinds of values may cross a type boundary at run-time.
 Possibilities include values of base type (numbers, strings, booleans),
- values of algebraic type (pairs, lists, output ports),
+ values of algebraic type (pairs, lists, immutable sets),
  and values of higher type (functions, mutable references, vectors).
 As representative examples, the surface language in @figure-ref{fig:multi-syntax}
  includes integers, pairs, and functions, and three corresponding types.
