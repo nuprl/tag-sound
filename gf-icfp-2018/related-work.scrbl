@@ -56,7 +56,7 @@ Dynamic typing in Dart 2 is based on the concrete approach.@note{@url{https://ww
 @section{@|HOlong| Embedding}
 
 @citet[mf-toplas-2007] introduce the name @emph{natural embedding} to describe
- a type-directed strategy for converting between Scheme
+ a type-directed strategy for converting between (higher-order) Scheme
  and ML values.
 The name suggests that this inductive-checking, higher-order-wrapping technique
  is the obvious approach to the problem; indeed, earlier work on typed foreign-function

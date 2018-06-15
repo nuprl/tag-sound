@@ -36,8 +36,7 @@ Both types are checked statically, but only concrete types are enforced at
  run-time.
 In other words, a program that uses only like types has @|eolong| behavior.
 These similar systems are on different lines because only StrongScript supports
- higher-order types; the type system of Thorn is limited to class names
- and a dynamic type.
+ higher-order types.
 
 Pyret falls between the @|folong| and @|eolong| approaches.
 If a program contains type annotations, then Pyret enforces each annotation

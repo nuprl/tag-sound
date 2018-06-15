@@ -207,7 +207,7 @@ The database module may assume well-typed arguments and the application
 
 In contrast, the @|eolong| embedding completely ignores types at run-time
  and treats the middle module of @figure-ref{fig:db-app} as one large comment.
-The types are just for documentation, and perhaps IDE tools.
+The types are just for documentation and the IDE.
 
 The @|folong| embedding provides a limited compromise: for every
  value that flows from untyped to typed, the semantics checks that the

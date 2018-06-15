@@ -184,8 +184,6 @@ Lastly, the models define a two-part syntactic property that is
 
 @; -----------------------------------------------------------------------------
 @section[#:tag "sec:natural-embedding"]{@|HOlong| Embedding}
-@include-figure*["fig:natural-reduction.tex" @elem{@|HOlong| Embedding}]
-@include-figure*["fig:natural-preservation.tex" @elem{Property judgments for the @|holong| embedding}]
 
 The @|holong| embedding is based on the idea that types enforce levels
  of abstraction@~cite[r-ip-1983].
@@ -194,24 +192,22 @@ In a conventional typed language, the type checker ensures that the whole
 A migratory typing system can provide a similar guarantee if the semantics
  dynamically enforces a type specification on every untyped value that enters
  a typed context.
-Higher-order types require @|holong| dynamic enforcement.@note{The
- higher-order strategy presented in this section is based on the @emph{natural}
- embedding of @citet[mf-toplas-2009] and corresponds to the higher-order
- strategy implemented in Typed Racket. The appendix describes two alternative
- higher-order strategies that do not have practical implementations.}
+Higher-order types require @|holong| dynamic enforcement.
+
+@include-figure*["fig:natural-reduction.tex" @elem{@|HOlong| Embedding}]
 
 The @|holong| embedding uses a type-directed strategy to @mytech{transport}
  a value across a type boundary.
 If an untyped value meets a boundary that expects
- a value of a base type, such as @${\tint} or @${\tnat},
- then it suffices to check the shape of the value.
+ a value of a base type, such as @${\tint},
+ then the strategy is to check the shape of the value.
 If the boundary expects a value of an algebraic type, such as a pair,
  then the strategy is to check the value and recursively transport its components.
 Lastly, if the boundary expects a value of a higher type, such as
  @${(\tarr{\tnat}{\tnat})}, then the strategy is to check the constructor and
  monitor the future interactions between the value and the context.
 For the specific case of an untyped function @${f} and the type @${(\tarr{\tnat}{\tnat})},
- the @|holong| embedding transports a wrapped version of @${f} across the boundary.
+ the @|holong| embedding wraps @${f} in a proxy.
 The wrapper checks that every result computed by @${f} is of type @${\tnat}
  and otherwise halts the program with a witness that @${f} does not match the type.
 @; There is no need to check the argument because the application takes place in
@@ -258,6 +254,7 @@ For other cases, the relations are identical.
 
 
 @subsection[#:tag "sec:natural:soundness"]{Soundness}
+@include-figure*["fig:natural-preservation.tex" @elem{Property judgments for the @|holong| embedding}]
 
 @Figure-ref{fig:natural-preservation} presents two properties for the @|holong|
  embedding evaluation syntax: one for dynamically-typed expressions and one
@@ -299,7 +296,7 @@ The soundness theorems for the @|holong| embedding state three results about
       @item{ @${e} diverges}
     ] }@;
 ]
-@exact{\vspace{-9ex}}
+@exact{\vspace{-8ex}}
 @tr-proof[#:sketch? #true]{
   First, @${\wellM e : \tau} implies @${\wellNE e : \tau}
    (similarly for the dynamic property)
@@ -324,9 +321,10 @@ In this case @${\wellM v} holds but @${\efromdynN{(\tarr{\tint}{\tint})}{v}}
 A language with mutable data would require a similar extension
  to monitor reads and writes@~cite[stff-oopsla-2012].
 
-
 @; -----------------------------------------------------------------------------
 @section[#:tag "sec:erasure-embedding"]{@|EOlong| Embedding}
+@include-figure["fig:erasure-reduction.tex" @elem{@|EOlong| Embedding}]
+@include-figure["fig:erasure-preservation.tex" @elem{Common property judgment for the @|eolong| embedding}]
 
 @; types should not affect semantics.
 @; "syntactic discipline" is a quote from J. Reynolds
@@ -339,14 +337,14 @@ A secondary purpose is to enable static type checking and IDE tools.
 Whether the types are sound is incidental.
  @; , since type soundness never holds for the entirety of a practical language.
 
-The justification for this point of view is that the semantics of the host
+The justification for the @|eolong| point of view is that the host
  language can safely execute both typed and untyped code.
-In particular, any value may cross any type boundary without further checking.
+Thus any value may cross any type boundary without further checking.
 
 
 @subsection[#:tag "sec:erasure:model"]{Model}
 
-@Figure-ref{fig:erasure-reduction} presents a semantics for the @|eolong| embedding.
+@Figure-ref{fig:erasure-reduction} presents a semantics for @|eolong|.
 The two boundary functions, @${\vfromdynE} and @${\vfromstaE}, let values freely cross type boundaries.
 The two notions of reduction must therefore accomodate values from the opposite grammar.
 The static notion of reduction @${\rrES} allows
@@ -367,6 +365,7 @@ This judgment ignores the type annotations; for any expression @${e}, the
 Soundness for the @|eolong| embedding states that reduction is well-defined
  for statically-typed and dynamically-typed expressions.
 
+@exact{\vspace{-2ex}}
 @twocolumn[
   @tr-theorem[#:key "E-static-soundness" @elem{static @${\langE}-soundness}]{
     If @${\wellM e : \tau} then @${\wellEE e} and one
@@ -390,7 +389,7 @@ Soundness for the @|eolong| embedding states that reduction is well-defined
       @item{ @${e} diverges}
     ] }
 ]
-
+@exact{\vspace{-9ex}}
 @tr-proof[#:sketch? #true]{
   A well-typed term is closed, therefore @${\wellM e : \tau} implies that @${\wellEE e} holds.
   The rest follows from progress and preservation lemmas@~cite[gf-tr-2018].
@@ -415,12 +414,10 @@ In other words, a disciplined programmer who avoids external libraries may be
     @item{ @${e} diverges}
   ]
 }
+@exact{\vspace{0ex}}
 @tr-proof[#:sketch? #true]{
   By progress and preservation lemmas@~cite[gf-tr-2018].
 }
-
-@include-figure["fig:erasure-reduction.tex" @elem{@|EOlong| Embedding}]
-@include-figure["fig:erasure-preservation.tex" @elem{Common property judgment for the @|eolong| embedding}]
 
 
 @; -----------------------------------------------------------------------------
@@ -590,6 +587,7 @@ The theorems furthermore state that only the @${\rrKD} notion of reduction
     ]
   }
 ]
+@exact{\vspace{-8ex}}
 @tr-proof[#:sketch? #true]{
   By progress and preservation lemmas@~cite[gf-tr-2018].
 }

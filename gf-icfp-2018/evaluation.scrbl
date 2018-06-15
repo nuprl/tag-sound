@@ -74,15 +74,6 @@ If an implementation of migratory typing adds little overhead to mixed-typed
  for a low value of @${D}.
 
 
-@section[#:tag "sec:evaluation:protocol"]{Protocol}
-
-The evaluation measures the performance of the @|holong| (@|TR_N|),
- @|eolong| (@|TR_E|), and @|folong| (@|TR_LD|) approaches
- on @integer->word[NUM-TR] Typed Racket programs.
-Nine programs are the functional benchmarks from prior work on
- Typed Racket@~cite[tfgnvf-popl-2016 gtnffvf-jfp-2017].
-The tenth is adapted from a JPEG library.@note{@url{https://docs.racket-lang.org/gtp-benchmarks}}
-
 @figure*["fig:overheads"
          @elem{@|TR_N| (@|tr-color-text| @|tr-color-sample|) and @|TR_LD| (@|tag-color-text| @|tag-color-sample|), each relative to @|eolong| (@|TR_E|).
                The @|x-axis| is log-scaled. The unlabeled vertical ticks appear at:
@@ -103,6 +94,15 @@ The tenth is adapted from a JPEG library.@note{@url{https://docs.racket-lang.org
 @;        @elem{Typed/untyped ratios for @|TR_N| and @|TR_LD|}
 @;        @(let ((RT (make-ratios-table TR-DATA* TAG-DATA*)))
 @;           (render-ratios-table RT TITLE*))]
+
+@section[#:tag "sec:evaluation:protocol"]{Protocol}
+
+The evaluation measures the performance of the @|holong| (@|TR_N|),
+ @|eolong| (@|TR_E|), and @|folong| (@|TR_LD|) approaches
+ on @integer->word[NUM-TR] Typed Racket programs.
+Nine programs are the functional benchmarks from prior work on
+ Typed Racket@~cite[tfgnvf-popl-2016 gtnffvf-jfp-2017].
+The tenth is adapted from a JPEG library.@note{@url{https://docs.racket-lang.org/gtp-benchmarks}}
 
 For each configuration of each benchmark, and for both @|TR_N| and @|TR_LD|,
  we collected a sequence of @integer->word[NUM-ITERS] running times
@@ -147,6 +147,17 @@ By contrast, the worst-case performance of @|TR_LD|
 
 @section{Evaluation II: Fully-Typed Programs}
 
+@figure["fig:typed-speedup"
+        @elem{Speedup of fully-typed
+              @|TR_N| (@|tr-color-sample|)
+              and @|TR_LD| (@|tag-color-sample|),
+              relative to @|TR_E| (the 1x line).
+              Taller bars are better.}
+        @(parameterize ([*bar-chart-height* 100]
+                        [*bar-chart-max* 3.5])
+           (let ((TBL (make-typed-table TR-DATA* TAG-DATA*)))
+             (render-speedup-barchart TBL)))]
+
 The table in @figure-ref{fig:typed-speedup} compares the performance
  of fully-typed programs.
 The @|tr-color-text| bars plot the overhead of @|TR_N| relative to the @|eolong| embedding
@@ -161,21 +172,8 @@ In @bm{jpeg}, the speedup of @|TR_N| over @|eolong| is high because
 In @bm{zombie}, typed code is slower than @|eolong|.
 The typed version of @bm{zombie} performs a type cast in the inner loop.
 The untyped version replaces this cast with a rudimentary predicate check.
-This simple change noticeably affects the performance of the fully-typed configuration.
-The real performance issue with @bm{zombie}, however, is that a type boundary
- between two of its modules leads to repeatedly-wrapping function monitors
- and the high overhead shown in @figure-ref{fig:max-overhead}.
-
-@figure["fig:typed-speedup"
-        @elem{Speedup of fully-typed
-              @|TR_N| (@|tr-color-sample|)
-              and @|TR_LD| (@|tag-color-sample|),
-              relative to @|TR_E| (the 1x line).
-              Taller bars are better.}
-        @(parameterize ([*bar-chart-height* 120]
-                        [*bar-chart-max* 3.5])
-           (let ((TBL (make-typed-table TR-DATA* TAG-DATA*)))
-             (render-speedup-barchart TBL)))]
+This simple change noticeably affects the performance of the fully-typed configuration
+ (the overhead of monitors, however, dominates the mixed-typed configurations).
 
 
 @section[#:tag "sec:evaluation:threats"]{Threats to Validity}
@@ -220,5 +218,5 @@ Second, our benchmarks are relatively small; the largest is @bm{jpeg} with
 @; TODO auto-compute
 Third, the evaluation considers only one fully-typed version of each benchmark.
 Ascribing different types to the same program can affect its performance;
- for example, the constructor check for an integer may be less expensive than the
+ for example, the check for an integer may run faster than the
  check for a natural number.
