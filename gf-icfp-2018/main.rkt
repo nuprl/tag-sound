@@ -130,6 +130,13 @@
   parag
 
   noindent
+
+  HOlong
+  EOlong
+  FOlong
+  holong
+  eolong
+  folong
 )
 
 (require
@@ -452,6 +459,14 @@
 (define (sections-ref s)
   (X-ref "sections" s))
 
-(define TR_N  @exact{$\mathsf{TR}\mhyphen\mathsf{N}$})
+(define TR_N  @exact{$\mathsf{TR}\mhyphen\mathsf{H}$})
 (define TR_E  @exact{$\mathsf{TR}\mhyphen\mathsf{E}$})
-(define TR_LD @exact{$\mathsf{TR}\mhyphen\mathsf{LD}$})
+(define TR_LD @exact{$\mathsf{TR}\mhyphen\mathsf{F}$})
+
+(define HOlong @exact{\HOlong})
+(define EOlong @exact{\EOlong})
+(define FOlong @exact{\FOlong})
+
+(define holong @exact{\holong})
+(define eolong @exact{\eolong})
+(define folong @exact{\folong})

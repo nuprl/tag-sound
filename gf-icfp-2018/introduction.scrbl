@@ -27,7 +27,8 @@ Over the years, three approaches have emerged for interpreting types in a
 @;
  The first approach is to @emph{enforce types eagerly} at the boundaries
  between statically and dynamically typed code, which leads to a generalized
- form of traditional type soundness@~cite[st-sfp-2006 tf-dls-2006].  Eager enforcement prevents dynamically typed code
+ form of traditional type soundness@~cite[st-sfp-2006 tf-dls-2006].
+ Eager enforcement of higher-order types prevents dynamically typed code
  from sending (type) invalid arguments to a typed function or returning
  invalid results into a typed context via callbacks. But, it may impose a significant run-time
  cost@~cite[tfgnvf-popl-2016 gtnffvf-jfp-2017].
@@ -39,9 +40,9 @@ Over the years, three approaches have emerged for interpreting types in a
  interactions between the statically typed and dynamically typed parts of a
  mixed-typed program.
 @; 
- Finally, a third approach is to compromise between those two
- extremes and to @emph{check type constructors} as late as
- possible according to the type annotations@~cite[vss-popl-2017].
+ Finally, a third approach is to compromise between those two extremes and to
+ @emph{check type constructors} in a way that protects typed code against
+ first-order errors@~cite[vss-popl-2017].
 
 The existence of three approaches raises two scientific question concerning
 a proper comparison:
@@ -63,8 +64,6 @@ a proper comparison:
  for developers.}
 
 @item{@emph{How do the three approaches compare with respect to performance}? 
-
- @; TODO find citations other than Vitousek that make fully-typed/untyped claims
 
  Although the purpose of migratory typing is to accomodate the creation of
  mixed-typed languages, the researchers in this area have only recently studied the performance

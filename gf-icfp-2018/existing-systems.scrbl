@@ -15,36 +15,33 @@
  systems in terms of the three approaches.@note{The interested reader may
   wish to consult the technical report, in which we instantiate
   the framework of @section-ref{sec:design} for several existing systems@~cite[gf-tr-2018].}
-Systems listed under the box labeled @emph{natural embedding} enforce full
- types at run-time and provide a strong notion of soundness.
-Three of these systems---Gradualtalk, TPD, and Typed Racket---add types
- to an existing language.
-By contrast, Dart 2 and Nom are new languages that support distinct
- combinations of static and dynamic typing.@note{Dart 1.x is an erasure system
- that can optionally enforce types. Dart 2 is not a migratory typing system for
- Dart 1.x.}
-The @emph{erasure embedding} systems provide an optional static type checker
+Systems listed under the box labeled @emph{@|holong| embedding} enforce
+ higher-order types at run-time.
+Systems under the @emph{@|eolong| embedding} label provide an optional static type checker
  but do not use types to determine program behavior.
-Reticulated and our @|TR_LD| prototype are the only @emph{locally-defensive}
- systems.
-Both instrument typed code with run-time checks to enforce soundness at the
- level of type constructors.
+Systems under the @emph{@|folong| embedding} label enforce type boundaries
+ with some form of first-order checks.
+In Dart 2 and Nom, every structured value is associated with run-time type
+ information (e.g., the value is an object and is associated with a class name);
+ the first-order checks inspect this type information.
+Reticulated and our @|TR_LD| prototype perform first-order checks similar
+ to those outlined in @section-ref{sec:locally-defensive-embedding}, and
+ furthermore rewrite statically-typed code to protect against higher-order
+ values.
 
 The dashed lines in @figure-ref{fig:existing-systems} represent systems that
  offer a compromise between two approaches.
 StrongScript and Thorn include two kinds of types: concrete types and like types.
 Both types are checked statically, but only concrete types are enforced at
  run-time.
-In other words, a program that uses only like types has erasure behavior.
-@; in other words, if a program contains only like types then its
-@; behavior corresponds to type-erasure.
+In other words, a program that uses only like types has @|eolong| behavior.
 
-Pyret falls between the locally-defensive and erasure approaches.
+Pyret falls between the @|folong| and @|eolong| approaches.
 If a program contains type annotations, then Pyret enforces each annotation
  with a run-time type constructor check; a programmer can opt-in to type-constructor
  soundness through disciplined use of type annotations.
 
-There is no line between the natural and locally-defensive boxes because no
+There is no line between the @|holong| and @|folong| boxes because no
  existing systems explore that part of the design space.
 This gap presents an opportunity for future work.
 
@@ -71,8 +68,8 @@ This gap presents an opportunity for future work.
   \node (Esub)
     [align=center,below of=E,yshift=-2ex]
     {ActionScript@|MT|@~cite[rch-popl-2012], mypy@|MT|, \\
-     Flow@|MT|, Hack@|MT|, Pyre@|MT|, Pytype@|MT|, rtc@|MT|@~cite[rtsf-sac-2013], \\
-     Strongtalk@|MT|@~cite[bg-oopsla-1993], TypeScript@|MT|@~cite[bat-ecoop-2014], \\
+     Flow@|MT|, Hack@|MT|, Pyre@|MT|, Pytype@|MT|, \\
+     rtc@|MT|@~cite[rtsf-sac-2013], Strongtalk@|MT|@~cite[bg-oopsla-1993], TypeScript@|MT|@~cite[bat-ecoop-2014], \\
      Typed Clojure@|MT|@~cite[bdt-esop-2016], Typed Lua@|MT|@~cite[mmi-dls-2015]};
 
   \node (ELD)

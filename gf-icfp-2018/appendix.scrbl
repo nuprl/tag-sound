@@ -14,6 +14,10 @@ Co-natural enforces all non-base types with monitors@~cite[fgr-ifl-2007 dtw-pepm
 Forgetful limits each value to at most one monitor@~cite[g-popl-2015].
 Full definitions and proofs are in@~cite[gf-tr-2018].
 
+@; In principle these are higher-order embeddings.
+@; (Sec 2 is a natural embedding.)
+@; but we do not consider that the primary characteristic.
+
 
 @; -----------------------------------------------------------------------------
 @section[#:tag "sec:conatural-embedding"]{Co-Natural Embedding}
@@ -120,7 +124,7 @@ Thus a type error can go undiscovered if it does not affect the particular execu
   }
 ]
 
-@exact{\noindent}Unlike the locally-defensive approach, however, co-natural
+@exact{\noindent}Unlike the @|folong| approach, however, co-natural
  can find such errors in untyped contexts as well as typed contexts, thus
  preventing the miscalculation demonstrated in @section-ref{sec:implications}:
 
@@ -150,12 +154,12 @@ The first type annotation does not match the value and the forgetful approach
 ]
 
 @exact{\noindent}This example also serves to illustrate a difference between
- forgetful and locally-defensive;
+ forgetful and @|folong|;
  the forgetful approach can detect a type mismatch in dynamically-typed code.
 
-Also unlike the locally-defensive embedding, the run-time checks in the forgetful
+Also unlike the @|folong| embedding, the run-time checks in the forgetful
  embedding come from boundary terms.
-It is possible to hide a type mismatch using subtyping in the locally-defensive
+It is possible to hide a type mismatch using subtyping in the @|folong|
  embedding, but not in the forgetful embedding:
 
 @dbend[

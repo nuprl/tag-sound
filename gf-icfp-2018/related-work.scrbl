@@ -53,7 +53,7 @@ This approach sacrifices expressiveness in favor of straightforward run-time che
 Dynamic typing in Dart 2 is based on the concrete approach.@note{@url{https://www.dartlang.org/guides/language/sound-dart}, accessed 2018-05-10}
 
 
-@section{Natural Embedding}
+@section{@|HOlong| Embedding}
 
 @citet[mf-toplas-2007] introduce the name @emph{natural embedding} to describe
  a type-directed strategy for converting between Scheme
@@ -66,13 +66,13 @@ The name suggests that this inductive-checking, higher-order-wrapping technique
  then it cannot satisfy type soundness.
 
 
-@section{Erasure Embedding}
+@section{@|EOlong| Embedding}
 
 @; NOT ERASURE, types affect behavior!
 @; MACLISP@~cite[m-maclisp-1974] and Common Lisp@~cite[s-lisp-1990]
 @;  accept optional type hints to guide compilation.
 
-The erasure approach is better known as optional typing, and the idea
+The @|eolong| approach is better known as optional typing, and the idea
  dates back to Common Lisp@~cite[s-lisp-1990] and Strongtalk@~cite[bg-oopsla-1993].
 Many languages now have optional type checkers.
 @Figure-ref{fig:existing-systems} lists some examples;
@@ -83,9 +83,9 @@ Many languages now have optional type checkers.
 @; @note{Dart 2.0, @url{https://www.dartlang.org/guides/language/sound-dart}, accessed 2018-05-10.}
 
 
-@section[#:tag "sec:related-work:locally-defensive"]{Locally-Defensive Embedding}
+@section[#:tag "sec:related-work:locally-defensive"]{@|FOlong| Embedding}
 
-The locally-defensive embedding is directly inspired by the transient semantics
+The @|folong| embedding is directly inspired by the transient semantics
  for Reticulated Python@~cite[vksb-dls-2014 vss-popl-2017], a migratory and
  gradual@~cite[svcb-snapl-2015] typing system for Python.
 The transient approach begins with a surface language expression and elaborates
@@ -119,7 +119,7 @@ The third is to rewrite typed code instead of monitoring dynamically-typed value
 
 @section{Type Reconstruction}
 
-While the erasure embedding converts typed code to untyped code,
+While the @|eolong| embedding converts typed code to untyped code,
  a @emph{reconstruction embedding} could convert all untyped code
  to typed code.
 Researchers have worked on variants of this problem for decades.
@@ -138,7 +138,7 @@ In practice there are two major challenges for type reconstruction:
 @section[#:tag "sec:related-work:performance"]{Performance of Mixed-Typed Programs}
 
 @citet[htf-hosc-2010] propose a first solution to the (space) inefficiency of
- the natural embedding.
+ the @|holong| embedding.
 Other theoretical solutions address the issue for gradual typing@~cite[htf-hosc-2010 sw-popl-2010 sgt-esop-2009],
  and more generally for higher-order contracts@~cite[g-popl-2015].@note{@url{https://arxiv.org/abs/1604.02474}}
 
@@ -168,7 +168,7 @@ The early work on Typed Racket@~cite[tf-dls-2006] explains why
 A @tt{like} type system@~cite[wnlov-popl-2010 rzv-ecoop-2015]
  allows the programmer to decide between enforced and erased types.
 Confined gradual typing@~cite[afgt-oopsla-2014] offers a choice between
- a static type error and a run-time check in the natural approach.
+ a static type error and a run-time check in the @|holong| approach.
 Lastly, the progressive types@~cite[pqk-onward-2012] vision
  paper describes a type system with a tunable set of run-time errors.@note{By contrast, this paper makes an argument for ``preservation-ive types''.}
 Removing one kind of error from the set makes the static type system more

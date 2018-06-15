@@ -12,10 +12,10 @@
 To compare the performance of the three approaches to migratory typing,
  we use three distinct compilers for the Typed Racket syntax and typing system
  on @integer->word[NUM-TR] functional benchmark programs.
-The data suggests that the locally-defensive embedding is mostly an
- improvement over the natural embedding for mixed-typed programs.
+The data suggests that the @|folong| embedding is mostly an
+ improvement over the @|holong| embedding for mixed-typed programs.
 For fully-typed programs (and configurations with many typed modules@~cite[gf-tr-2018]),
- however, the natural embedding offers the best performance of all three
+ however, the @|holong| embedding offers the best performance of all three
  thanks to the Typed Racket optimizer@~cite[stff-padl-2012].
 
 
@@ -23,7 +23,7 @@ For fully-typed programs (and configurations with many typed modules@~cite[gf-tr
 @section{Implementation Overview}
 
 Typed Racket@~cite[tf-popl-2008] is a migratory typing system for Racket that
- implements the natural embedding.
+ implements the @|holong| embedding.
 As a full-fledged implementation, Typed Racket handles many more types than the
  language of @figure-ref{fig:multi-syntax} and supports (higher-order) casts
  so that develoeprs can easily migrate a module even if the type system cannot
@@ -34,18 +34,18 @@ Its run-time system guarantees that every boundary
 
 Removing the type annotations and casts
  from a Typed Racket program yields a valid Racket program.
-We use this transformation to compare the natural embedding
- to the erasure embedding.
+We use this transformation to compare the @|holong| embedding
+ to the @|eolong| embedding.
 
-To compare with the locally-defensive approach, we modified the Typed Racket
+To compare with the @|folong| approach, we modified the Typed Racket
  compiler to rewrite typed code and compile types to predicates
  that enforce type constructors (see supplement for details@~cite[gf-tr-2018]).
 Like the model, this implementation makes no claim about the quality of boundary error messages.
 
 The three approaches outlined above define three ways to compile a
- Typed Racket program to Racket: natural @|TR_N|,
- erasure @|TR_E|, and
- locally-defensive @|TR_LD|.
+ Typed Racket program to Racket: @|holong| @|TR_N|,
+ @|eolong| @|TR_E|, and
+ @|folong| @|TR_LD|.
 In the rest of this section, we reserve the name ``Typed Racket'' for the
  the source language.
 
@@ -76,15 +76,15 @@ If an implementation of migratory typing adds little overhead to mixed-typed
 
 @section[#:tag "sec:evaluation:protocol"]{Protocol}
 
-The evaluation measures the performance of the natural (@|TR_N|),
- erasure (@|TR_E|), and locally-defensive (@|TR_LD|) approaches
+The evaluation measures the performance of the @|holong| (@|TR_N|),
+ @|eolong| (@|TR_E|), and @|folong| (@|TR_LD|) approaches
  on @integer->word[NUM-TR] Typed Racket programs.
 Nine programs are the functional benchmarks from prior work on
  Typed Racket@~cite[tfgnvf-popl-2016 gtnffvf-jfp-2017].
 The tenth is adapted from a JPEG library.@note{@url{https://docs.racket-lang.org/gtp-benchmarks}}
 
-@figure*["fig:locally-defensive-performance"
-         @elem{@|TR_N| (@|tr-color-text| @|tr-color-sample|) and @|TR_LD| (@|tag-color-text| @|tag-color-sample|), each relative to erasure (@|TR_E|).
+@figure*["fig:overheads"
+         @elem{@|TR_N| (@|tr-color-text| @|tr-color-sample|) and @|TR_LD| (@|tag-color-text| @|tag-color-sample|), each relative to @|eolong| (@|TR_E|).
                The @|x-axis| is log-scaled. The unlabeled vertical ticks appear at:
                @${1.2}x, @${1.4}x, @${1.6}x, @${1.8}x, @${4}x, @${6}x, and @${8}x overhead.
                A larger area under the curve is better.}
@@ -96,7 +96,7 @@ The tenth is adapted from a JPEG library.@note{@url{https://docs.racket-lang.org
 @(define TITLE* (list TR_N TR_LD))
 
 @figure["fig:max-overhead"
-        @elem{Worst-case overhead for natural (@|TR_N|) and locally-defensive (@|TR_LD|), each relative to erasure.}
+        @elem{Worst-case overhead for @|holong| (@|TR_N|) and @|folong| (@|TR_LD|), each relative to @|eolong|.}
         @render-max-table[MT TITLE*]]
 
 @;@figure["fig:typed-baseline-ratios"
@@ -119,9 +119,9 @@ The CPU cores on each processor ran at 2.30 GHz using the ``performance'' CPU go
 
 @section{Evaluation I: Mixed-Typed Programs}
 
-@Figure-ref{fig:locally-defensive-performance} plots
- the overhead of @|TR_N| relative to erasure (@|tr-color-text| @|tr-color-sample|)
- and the overhead of @|TR_LD| relative to erasure (@|tag-color-text| @|tag-color-sample|)
+@Figure-ref{fig:overheads} plots
+ the overhead of @|TR_N| relative to @|eolong| (@|tr-color-text| @|tr-color-sample|)
+ and the overhead of @|TR_LD| relative to @|eolong| (@|tag-color-text| @|tag-color-sample|)
  for the @integer->word[NUM-TR] functional programs.
 The lines on each plot give the percent of @deliverable{D} configurations
  for values of @${D} between @${1} to @${@~a[X-MAX]}.
@@ -137,7 +137,7 @@ In other words, a point @${(X, Y)} on a line for @|TR_N| says that @${Y}% of all
 Since seven of the @integer->word[NUM-TR] benchmarks have at least one @|TR_N|
  configuration that falls ``off the charts'' with an overhead above @~a[X-MAX]x,
  @figure-ref{fig:max-overhead} tabulates the worst-case overhead in each benchmark.
-According to the table, the natural embedding
+According to the table, the @|holong| embedding
  may slow a working program by three orders of magnitude.
 The largest slowdowns, in @bm{fsm} and @bm{zombie}, occur because higher-order
  values repeatedly cross type boundaries and accumulate monitors.
@@ -149,16 +149,16 @@ By contrast, the worst-case performance of @|TR_LD|
 
 The table in @figure-ref{fig:typed-speedup} compares the performance
  of fully-typed programs.
-The @|tr-color-text| bars plot the overhead of @|TR_N| relative to the erasure embedding
+The @|tr-color-text| bars plot the overhead of @|TR_N| relative to the @|eolong| embedding
  on each benchmark.
 The @|tag-color-text| bars plot analogous data for @|TR_LD|
- relative to the erasure embedding.
+ relative to the @|eolong| embedding.
 
 The @bm{jpeg} and @bm{zombie} benchmarks demonstrate exceptional performance.
-In @bm{jpeg}, the speedup of @|TR_N| over erasure is high because
+In @bm{jpeg}, the speedup of @|TR_N| over @|eolong| is high because
  the user program depends on a typed library; the library protects itself
  against @|TR_E| code.
-In @bm{zombie}, typed code is slower than erasure.
+In @bm{zombie}, typed code is slower than @|eolong|.
 The typed version of @bm{zombie} performs a type cast in the inner loop.
 The untyped version replaces this cast with a rudimentary predicate checks.
 This simple change noticeably affects the performance of some @bm{zombie} configurations,
@@ -218,4 +218,4 @@ Second, our benchmarks are relatively small; the largest is @bm{jpeg} with
 Third, the evaluation considers one fully-typed version of each benchmark,
  but ascribing different types to the same program can affect its performance.
 For example, the constructor check for an integer may be less expensive than the
- check for a natural number.
+ check for a @|holong| number.

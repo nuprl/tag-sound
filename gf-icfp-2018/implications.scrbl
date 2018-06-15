@@ -11,18 +11,18 @@ information, we can now explain the logical implications and the performance con
 choosing one of these three approaches. 
 
 For the logical consequences, we proceed in a type-directed manner.
-At the level of base types, there is no difference between the natural
- embedding and the locally-defensive one, but the erasure
+At the level of base types, there is no difference between the @|holong|
+ embedding and the @|folong| one, but the @|eolong|
  embedding may give a different result due to a logical error (@section-ref{sub:base}).
 After moving from base types to trees of types, we can explain
- the truly essential difference between the natural and locally-defensive semantics:
- while the natural embedding allows
+ the truly essential difference between the @|holong| and @|folong| semantics:
+ while the @|holong| embedding allows
  developers to reason compositionally about type annotations, users of
- the locally defensive variant must always consider the whole program (@section-ref{sub:first-order}).
+ the @|folong| variant must always consider the whole program (@section-ref{sub:first-order}).
 This non-compositional behavior means that logical errors may go undetected in
  seemingly type-correct code.
 Higher-order types are similarly afflicted by the non-compositional behavior of
- the locally-defensive embedding (@section-ref{sub:ho}).
+ the @|folong| embedding (@section-ref{sub:ho}).
 Lastly, the three approaches provide
  radically different support when it comes to boundary errors and debugging
  them (@section-ref{sub:err}).
@@ -30,32 +30,32 @@ Lastly, the three approaches provide
 For consequences with respect to performance, our work somewhat confirms
 the conjectures of the literature that lowering the standards of
 safety pays off---but only to some degree.
-While the locally-defensive embedding adds less overhead than natural to a large portion of the mixed-typed
+While the @|folong| embedding adds less overhead than @|holong| to a large portion of the mixed-typed
 programs (@section-ref{sub:perf-mixed}),
 readers must keep two caveats in mind.
-First, the locally-defensive approach imposes a run-time checking overhead
+First, the @|folong| approach imposes a run-time checking overhead
  that is directly proportional to the number of types in the program.
-Second, the natural embedding may exploit the full soundness of type annotations.
+Second, the @|holong| embedding may exploit the full soundness of type annotations.
 As a result, programs with many type annotations tend to run faster under
- the natural semantics than the locally-defensive one (@section-ref{sub:perf-total}).
+ the @|holong| semantics than the @|folong| one (@section-ref{sub:perf-total}).
 
 
 @section[#:tag "sub:base"]{For Base Types}
 
 For a program that computes a value of base type, it can be tempting to think
- that dynamic typing (via erasure) provides all the soundness that matters in practice.
+ that dynamic typing (via @|eolong|) provides all the soundness that matters in practice.
 After all, Ruby and Python throw a @tt{TypeError} if a program attempts to
  add an integer to a string.
-Similarly, the erasure embedding throws a tag error if an expression adds a
+Similarly, the @|eolong| embedding throws a tag error if an expression adds a
  number to a pair.
 
 This claim is only true, however, if the static typing system is restricted
  to exactly match the host language's notion of dynamic typing.
-Adding a @emph{logical} distinction between natural numbers and integers,
+Adding a @emph{logical} distinction between @|holong| numbers and integers,
  as demonstrated in the type system of @figure-ref{fig:multi-preservation},
  can lead to silent failures at run-time when a negative integer flows into
- a context expecting a natural number.
-If the natural numbers represent votes, for example@~cite[tfffgksst-snapl-2017],
+ a context expecting a @|holong| number.
+If the @|holong| numbers represent votes, for example@~cite[tfffgksst-snapl-2017],
  then the lack of run-time checking can change the outcome of an election.
 
 
@@ -73,9 +73,9 @@ TypeScript programmers must keep this behavior in mind to protect their type-era
 
 @; https://twitter.com/jbandi/status/965005464638541825
 
-Both the natural embedding and the locally-defensive embedding are sound for
+Both the @|holong| embedding and the @|folong| embedding are sound for
  base types, e.g.,
- if @${v} is a value of type @${\tnat}, then @${v} is a natural number.
+ if @${v} is a value of type @${\tnat}, then @${v} is a @|holong| number.
 Informally, the two approaches performs the same check at a boundary of base type.
 
 
@@ -84,9 +84,9 @@ Informally, the two approaches performs the same check at a boundary of base typ
 @figure["fig:silent-failure" @elem{Logical error using polar-form complex numbers}
         @reynolds-pict]
 
-The practical difference between the natural and locally-defensive embeddings
+The practical difference between the @|holong| and @|folong| embeddings
  becomes clear in a mixed-typed program that deals with pairs.
-The natural embedding checks the contents of a pair; the locally-defensive
+The @|holong| embedding checks the contents of a pair; the @|folong|
  embedding only checks the constructor:@note{In this and similar examples,
   we write @${\wellM e : \tau \rrKSstar e'} to abbreviate:
   @${\wellM e : \tau \carrow e'' \mbox{ for some $e''$ and } e'' \rrKSstar e'}.}
@@ -103,7 +103,7 @@ The natural embedding checks the contents of a pair; the locally-defensive
 @exact{\noindent}Extracting a value from an ill-typed pair might not detect the mismatch,
  depending on what type of value the context expects.
 For example, a typed expression can safely extract a negative integer from a
- pair of natural numbers if the expression happens to expect an integer:
+ pair of @|holong| numbers if the expression happens to expect an integer:
 
 @dbend[
   @safe{
@@ -148,7 +148,7 @@ The dynamically-typed module on the right mistakenly calls the addition function
  Bessel numbers.
 
 Indeed, each of the three approaches to migratory typing behave differently on this program.
-The natural embedding correctly rejects the application of @racket[b-add] at the
+The @|holong| embedding correctly rejects the application of @racket[b-add] at the
  boundary between the two modules:
 
 @dbend{
@@ -157,7 +157,7 @@ The natural embedding correctly rejects the application of @racket[b-add] at the
   }
 }
 
-@exact{\noindent}The erasure embedding does not detect the type error, and silently computes
+@exact{\noindent}The @|eolong| embedding does not detect the type error, and silently computes
  a well-typed, nonsensical result:
 
 @dbend{
@@ -166,7 +166,7 @@ The natural embedding correctly rejects the application of @racket[b-add] at the
   }
 }
 
-@exact{\noindent}The locally-defensive embedding @emph{either} computes a
+@exact{\noindent}The @|folong| embedding @emph{either} computes a
  nonsensical result or raises a boundary error somewhere within the @racket[map] function:
 
 @dbend{
@@ -200,15 +200,15 @@ The module on the right represents a dynamically-typed web application;
 In the middle, the type annotations formalize the interface between the database
  layer and the application.
 
-With the natural embedding, a developer can trust the type annotations.
+With the @|holong| embedding, a developer can trust the type annotations.
 The database module may assume well-typed arguments and the application
  is guaranteed well-typed results, despite the lack of static types within
  either module.
 
-In contrast, the erasure embedding completely ignores types at run-time
+In contrast, the @|eolong| embedding completely ignores types at run-time
  and treats the middle module of @figure-ref{fig:db-app} as one large comment.
 
-The locally-defensive embedding provides a limited compromise: for every
+The @|folong| embedding provides a limited compromise: for every
  value that flows from untyped to typed, the semantics checks that the
  value constructor matches the type constructor.
 Concretely, there is one run-time check that ensures @racket[create] is bound to
@@ -243,7 +243,7 @@ In terms of the model,
 ]
 
 @exact{\noindent}Thus for all practical purposes, the benefits of writing a typed API in a
- locally-defensive system are vanishingly small.
+ @|folong| system are vanishingly small.
 
 @figure["fig:db-app" @elem{Adding types between two untyped modules}
         db-app-pict]
@@ -251,17 +251,17 @@ In terms of the model,
 
 @section[#:tag "sub:err"]{For Error Messages}
 
-The examples above have shown that the natural embedding detects errors
- earlier than the locally-defensive and erasure embeddings.
+The examples above have shown that the @|holong| embedding detects errors
+ earlier than the @|folong| and @|eolong| embeddings.
 This temporal difference has implications for the quality of error messages
  that each embedding can produce.
 @; A top-quality error message accurately blames one boundary for the fault.
 
-The erasure embedding detects a run-time type mismatch as late as possible, namely,
+The @|eolong| embedding detects a run-time type mismatch as late as possible, namely,
  just before an invalid operation.
 Outside of printing a stack trace, it cannot do much to infer the source of the
  bad value.
-When the source is off the stack, the erasure embedding is impoverished:
+When the source is off the stack, the @|eolong| embedding is impoverished:
 
 @dbend[
   @warning{
@@ -269,10 +269,10 @@ When the source is off the stack, the erasure embedding is impoverished:
   }
 ]
 
-The locally-defensive embedding can detect a run-time type mismatch in two ways:
+The @|folong| embedding can detect a run-time type mismatch in two ways:
  at a type boundary or at a @${\vchk} expression.
-In the latter case, locally-defensive is no better off than
- erasure for reporting the relevant value and type:
+In the latter case, @|folong| is no better off than
+ @|eolong| for reporting the relevant value and type:
 
 @dbend[
   @warning{
@@ -280,11 +280,11 @@ In the latter case, locally-defensive is no better off than
   }
 ]
 
-@noindent[]@citet[vss-popl-2017] propose a strategy for improving the locally-defensive error
+@noindent[]@citet[vss-popl-2017] propose a strategy for improving the @|folong| error
  messages, but the strategy may double the running time of a program and reports
  a set of potentially-guilty boundaries rather than pinpointing the faulty one.
 
-By contrast, an implementation of the natural embedding can store debugging
+By contrast, an implementation of the @|holong| embedding can store debugging
  information in the monitor values it creates.
 When such a monitor detects a type mismatch, the monitor can report the boundary term
  that originated the error even when the boundary is off the stack@~cite[tfffgksst-snapl-2017].
@@ -297,10 +297,10 @@ This information tells the developer exactly where to begin debugging:
 
 Enforcing soundness in a mixed-typed program adds performance overhead.
 As the graphs in @section-ref{sec:evaluation} demonstrate for the benchmarks,
- this cost can be high (10x) in the locally-defensive embedding, and enormous
- (1000x) in the natural embedding.
+ this cost can be high (10x) in the @|folong| embedding, and enormous
+ (1000x) in the @|holong| embedding.
 
-The locally-defensive embedding incurs type-constructor checks at three places:
+The @|folong| embedding incurs type-constructor checks at three places:
  type boundaries, applications of typed functions, and explicit @${\vchk} terms.
 While each check adds a small cost,@note{In the model, checks have @${O(1)} cost.
   In the implementation, checks have near-constant cost @${O(n)} where
@@ -309,7 +309,7 @@ While each check adds a small cost,@note{In the model, checks have @${O(1)} cost
  these costs accumulate.
 Furthermore, the added code and branches may affect JIT compilation.
 
-The natural embedding incurs three significant kinds of costs.
+The @|holong| embedding incurs three significant kinds of costs.
 First, there is the cost of checking a value at a boundary.
 Second, there is an allocation cost when a higher-order value crosses a boundary.
 Third, monitored values suffer an indirection cost; for example,
@@ -341,7 +341,7 @@ In the following example, an untyped function crosses three boundaries and
 
 @section[#:tag "sub:perf-total"]{For the Performance of Fully-Typed Programs}
 
-If a program has few dynamically-typed components, then the locally-defensive
+If a program has few dynamically-typed components, then the @|folong|
  embedding is likely to perform the worst of the three embeddings.
 This poor performance comes about because all typed expressions unconditionally
  check their inputs.
@@ -361,14 +361,14 @@ For example, a function that adds both elements of a pair value must check
 @noindent[]As a rule-of-thumb, adding types seems to add a linear-time performance
  degredation@~cite[gm-pepm-2018 gf-tr-2018].
 
-By contrast, the natural embedding pays to enforce soundness only if static
+By contrast, the @|holong| embedding pays to enforce soundness only if static
  and dynamic components interact.
 If there are few interactions, the program spends little time enforcing soundness.
-Furthermore, a compiler may leverage the soundness of the natural embedding
+Furthermore, a compiler may leverage the soundness of the @|holong| embedding
  to produce efficient code.
 In many dynamically typed language, primitives check the
  type-tag of their arguments and dispatch to a low-level procedure.
 Sound static types can eliminate the need to dispatch@~cite[stff-padl-2012],
- and thus the natural embedding's performance can exceed that of the erasure embedding (as shown in @figure-ref{fig:typed-speedup}).
+ and thus the @|holong| embedding's performance can exceed that of the @|eolong| embedding (as shown in @figure-ref{fig:typed-speedup}).
 
 

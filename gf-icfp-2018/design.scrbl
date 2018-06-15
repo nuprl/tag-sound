@@ -3,21 +3,22 @@
 @(void (UID++) (UID++))
 @title[#:tag "sec:design"]{Logic and Metatheory}
 
-@; thesis: these models reflect the 3 modes from life
-
 @; -----------------------------------------------------------------------------
 
 The three approaches to migratory typing can be understood as three
- multi-language embedding semantics in the style of @citet[mf-toplas-2007]
-Eagerly enforcing types corresponds to a @emph{natural} embedding.
-Ignoring types corresponds to an @emph{erasure} embedding.
-The transient approach of @citet[vss-popl-2017] is
- a @emph{locally-defensive} embedding.
+ multi-language embeddings in the style of @citet[mf-toplas-2007].
+Each approach uses a different strategy to enforce static types at the
+ boundaries between typed and untyped code.
+Eagerly enforcing types corresponds to a @emph[holong] embedding.
+Ignoring types corresponds to an @emph[eolong] embedding.
+Enforcing type constructors  to a @emph[folong] embedding.
 
-This section begins with the introduction of the surface syntax and typing system (@section-ref{sec:common-syntax}).
-It then defines three embeddings, states their soundness theorems (@Sections-ref{sec:natural-embedding}, @secref{sec:erasure-embedding}, and @secref{sec:locally-defensive-embedding}),
+This section begins with the introduction of the surface syntax and typing
+ system (@section-ref{sec:common-syntax}).
+It then defines three embeddings (derived from practical implementations),
+ states their soundness theorems (@Sections-ref{sec:natural-embedding}, @secref{sec:erasure-embedding}, and @secref{sec:locally-defensive-embedding}),
  and concludes with a discussion on scaling the models to a practical implementation (@section-ref{sec:practical-semantics}).
-Each embedding builds upon a common semantic framework (@section-ref{sec:common-semantics})
+Each model builds upon a common semantic framework (@section-ref{sec:common-semantics})
  to keep the technical presentation focused on their differences.
 Unabridged definitions are in the supplement@~cite[gf-tr-2018].
 
@@ -37,9 +38,8 @@ Possibilities include values of base type (numbers, strings, booleans),
  and values of higher type (functions, mutable references, vectors).
 As representative examples, the surface language in @figure-ref{fig:multi-syntax}
  includes integers, pairs, and functions, and three corresponding types.
-The fourth type, @${\tnat}, is a subset of the type of integers, included because
- set-based reasoning is common in untyped programs and requires
- support from the static typing system@~cite[tf-icfp-2010 tfffgksst-snapl-2017].
+The fourth type, @${\tnat}, is a subset of the type of integers, and is included
+ because set-based reasoning is common in dynamically-typed programs@~cite[awl-popl-1994 tf-icfp-2010 tfffgksst-snapl-2017].
 
 An expression in the surface language may be dynamically typed (@${\exprdyn})
  or statically typed (@${\exprsta}).
@@ -55,9 +55,6 @@ The last components in @figure-ref{fig:multi-syntax} specify the names of
  primitive operations (@${\vunop} and @${\vbinop}).
 The primitives represent low-level procedures that operate on bitstrings rather than
  abstract syntax.
-
-@;{For example, invoking the @${\vsum} procedure with arguments that are
- not integers is undefined behavior.}
 
 @include-figure["fig:multi-syntax.tex" @elem{Twin languages syntax}]
 @include-figure["fig:multi-preservation.tex" @elem{Twin languages static typing judgments}]
@@ -79,7 +76,7 @@ Two auxiliary components of the type system are the function @${\Delta},
  which assigns a type to the primitives, and a subtyping
  judgment based on the subset relation between natural numbers and integers.
 Subtyping adds a logical distinction to the type system that is not automatically
- enforced by the untyped host language; as mentioned, programmers imagine many more.
+ enforced by the host language or the primitives; as mentioned, programmers invent many more.
 
 
 @; -----------------------------------------------------------------------------
@@ -87,7 +84,7 @@ Subtyping adds a logical distinction to the type system that is not automaticall
 
 Each semantics consists of two reduction relations: one for statically-typed
  expressions (@${\rrSstar}) and one for dynamically-typed ones (@${\rrDstar}).
-Both reduction relations must satisfy three conditions:
+Both reduction relations must satisfy three guidelines:
 @; the following criteria:
 @itemlist[
 @item{
@@ -119,11 +116,10 @@ A boundary-free context @${\ebase} does not contain @${\vdyn} or @${\vsta} bound
 The semantic components in @figure-ref{fig:multi-reduction} are the
  @${\delta} function and the @${\rrS} and @${\rrD} notions of reduction@~cite[b-lambda-1981].
  The @${\delta} function
- is a computable, partial mathematical specification for the procedures in @${\vunop}
- and @${\vbinop}.
- The partial nature of @${\delta} represents certain forms
- of errors that the use of primitive operations may trigger. Specifically,
- primitive operations give rise to two kinds of errors: 
+ is a computable, partial mathematical specification for the primitives.
+The partial nature of @${\delta} represents certain forms
+ of errors that the use of primitive operations may trigger.
+Specifically, primitive operations give rise to two kinds of errors: 
 @itemlist[
 
 @item{The semantic models reduce a program to a @italic{tag error} when a
@@ -145,7 +141,7 @@ The semantic components in @figure-ref{fig:multi-reduction} are the
  both the statically typed and dynamically typed parts send values across a
  boundary into this component. The name ``boundary error''
  anticipates the generalization of the concept to programs that mix typed
- and untyped code; in a mixed-typed program a boundary error arises, for example,
+ and untyped code. In a mixed-typed program, a boundary error may arise
  when an untyped subexpression evaluates to a negative integer and its typed
  context expects a natural number.}
 ]
@@ -187,19 +183,25 @@ Lastly, the models define a two-part syntactic property that is
 
 
 @; -----------------------------------------------------------------------------
-@section[#:tag "sec:natural-embedding"]{Natural Embedding}
-@include-figure*["fig:natural-reduction.tex" "Natural Embedding"]
-@include-figure*["fig:natural-preservation.tex" "Property judgments for the natural embedding"]
+@section[#:tag "sec:natural-embedding"]{@|HOlong| Embedding}
+@include-figure*["fig:natural-reduction.tex" @elem{@|HOlong| Embedding}]
+@include-figure*["fig:natural-preservation.tex" @elem{Property judgments for the @|holong| embedding}]
 
-The natural embedding is based on the idea that types should enforce levels
+The @|holong| embedding is based on the idea that types enforce levels
  of abstraction@~cite[r-ip-1983].
-In a conventional typed language, the static type checker ensures that all code
- respects the abstractions.
-Migratory typing can provide a similar guarantee if the semantics fully enforces
- a type specification on every untyped value that enters a typed context.
+In a conventional typed language, the type checker ensures that the whole
+ program respects the abstractions.
+A migratory typing system can provide a similar guarantee if the semantics
+ dynamically enforces a type specification on every untyped value that enters
+ a typed context.
+Higher-order types require @|holong| dynamic enforcement.@note{The
+ higher-order strategy presented in this section is based on the @emph{natural}
+ embedding of @citet[mf-toplas-2009] and corresponds to the higher-order
+ strategy implemented in Typed Racket. The appendix describes two alternative
+ higher-order strategies that do not have practical implementations.}
 
-The natural embedding uses a type-directed strategy to @mytech{transport} a value across
- a type boundary.
+The @|holong| embedding uses a type-directed strategy to @mytech{transport}
+ a value across a type boundary.
 If the value is untyped and entering a context that expects
  a value of a base type, such as @${\tint} or @${\tnat},
  then it suffices to check the value's constructor.
@@ -210,7 +212,7 @@ Lastly, if the context expects a value of a higher type, such as
  @${(\tarr{\tnat}{\tnat})}, then the strategy is to check the constructor and
  monitor the future interactions between the value and the context.
 For the specific case of an untyped function @${f} and the type @${(\tarr{\tnat}{\tnat})},
- the natural embedding transports a wrapped version of @${f} across the boundary.
+ the @|holong| embedding transports a wrapped version of @${f} across the boundary.
 The wrapper checks that every result computed by @${f} is of type @${\tnat}
  and otherwise halts the program with a witness that @${f} does not match the type.
 @; There is no need to check the argument because the application takes place in
@@ -218,7 +220,7 @@ The wrapper checks that every result computed by @${f} is of type @${\tnat}
 
 @subsection[#:tag "sec:natural:model"]{Model}
 
-@Figure-ref{fig:natural-reduction} presents a model of the natural embedding.
+@Figure-ref{fig:natural-reduction} presents a model of the @|holong| embedding.
 The centerpiece of the model is the pair of @mytech{boundary functions}:
  @${\vfromdynN} and @${\vfromstaN}.
 The @${\vfromdynN} function imports a dynamically-typed value into a statically-typed
@@ -258,7 +260,7 @@ For other cases, the relations are identical.
 
 @subsection[#:tag "sec:natural:soundness"]{Soundness}
 
-@Figure-ref{fig:natural-preservation} presents two properties for the natural
+@Figure-ref{fig:natural-preservation} presents two properties for the @|holong|
  embedding evaluation syntax: one for dynamically-typed expressions and one
  for statically-typed expressions.
 Each property extends the corresponding judgment from @figure-ref{fig:multi-preservation}
@@ -268,7 +270,7 @@ The property for dynamic expressions (in the left column) states that a
 The static property states that any untyped value may be wrapped in a monitor,
  and that the monitor is assumed to follow its type annotation.
 
-The soundness theorems for the natural embedding state three results about
+The soundness theorems for the @|holong| embedding state three results about
  surface-language expressions:
  (1) reduction is fully defined, (2) reduction in a statically-typed context
  cannot raise a tag error, and (3) reduction preserves the properties from
@@ -325,12 +327,12 @@ A language with mutable data would require a similar extension
 
 
 @; -----------------------------------------------------------------------------
-@section[#:tag "sec:erasure-embedding"]{Erasure Embedding}
+@section[#:tag "sec:erasure-embedding"]{@|EOlong| Embedding}
 
 @; types should not affect semantics.
 @; "syntactic discipline" is a quote from J. Reynolds
 
-The erasure approach, also known as optional typing, is based on a view of
+The @|eolong| approach, also known as optional typing, is based on a view of
  types as an optional syntactic artifact.
 Type annotations are just a structured form of comment; their presence (or absence)
  should not affect the behavior of a program.
@@ -346,7 +348,7 @@ In particular, any value may cross any type boundary without further checking.
 
 @subsection[#:tag "sec:erasure:model"]{Model}
 
-@Figure-ref{fig:erasure-reduction} presents a semantics for the erasure embedding.
+@Figure-ref{fig:erasure-reduction} presents a semantics for the @|eolong| embedding.
 The two boundary functions, @${\vfromdynE} and @${\vfromstaE}, let values freely cross type boundaries.
 The two notions of reduction must therefore accomodate values from the opposite grammar.
 The static notion of reduction @${\rrES} allows
@@ -365,7 +367,7 @@ The reduction relations @${\rrESstar} and @${\rrEDstar} are based on the
 This judgment ignores the type annotations; for any expression @${e}, the
  judgment @${\wellEE e} holds if @${e} is closed.
 
-Soundness for the erasure embedding states that reduction is well-defined
+Soundness for the @|eolong| embedding states that reduction is well-defined
  for statically-typed and dynamically-typed expressions.
 
 @twocolumn[
@@ -397,7 +399,7 @@ Soundness for the erasure embedding states that reduction is well-defined
   The rest follows from progress and preservation lemmas@~cite[gf-tr-2018].
 }
 
-The erasure embedding is clearly unsound with respect to types for mixed-typed
+The @|eolong| embedding is clearly unsound with respect to types for mixed-typed
  expressions.
 A simple example is the expression @${(\edyn{\tint}{\vpair{2}{2}})}, which has the static
  type @${\tint} but reduces to a pair.
@@ -420,17 +422,17 @@ In other words, a disciplined programmer who avoids external libraries may be
   By progress and preservation lemmas@~cite[gf-tr-2018].
 }
 
-@include-figure["fig:erasure-reduction.tex" "Erasure Embedding"]
-@include-figure["fig:erasure-preservation.tex" "Common property judgment for the erasure embedding"]
+@include-figure["fig:erasure-reduction.tex" @elem{@|EOlong| Embedding}]
+@include-figure["fig:erasure-preservation.tex" @elem{Common property judgment for the @|eolong| embedding}]
 
 
 @; -----------------------------------------------------------------------------
-@section[#:tag "sec:locally-defensive-embedding"]{Locally-Defensive Embedding}
-@include-figure*["fig:locally-defensive-reduction.tex" "Locally-Defensive Embedding"]
+@section[#:tag "sec:locally-defensive-embedding"]{@|FOlong| Embedding}
+@include-figure*["fig:locally-defensive-reduction.tex" @elem{@|FOlong| Embedding}]
 
 @; types should prevent logical stuck-ness
 
-The locally-defensive approach is the result of two assumptions: one philosophical,
+The @|folong| approach is the result of two assumptions: one philosophical,
  one pragmatic.
 The philosophical assumption is that the purpose of types is to prevent evaluation
  from ``going wrong''@~cite[m-jcss-1978] in the sense of applying a typed elimination form to a value
@@ -440,7 +442,7 @@ In particular, the elimination forms in our surface
 A  function application @${(\eapp{v_0}{v_1})} expects @${v_0} to be a function;
  primitive application expects arguments for which @${\delta}
  is defined.
-The goal of the locally-defensive semantics is to ensure that such basic assumptions
+The goal of the @|folong| semantics is to ensure that such basic assumptions
  are always satisfied in typed contexts.
 @; ... what about Nat? ... generalized form of tag error
 
@@ -451,7 +453,7 @@ Such monitors must preserve all the observations that dynamically-typed code
 @; TODO treatJS ? also cite chaperones, TS*, Retic
 Second, monitoring adds a significant run-time cost.
 
-Based on these assumptions, the locally-defensive semantics employs a type-directed
+Based on these assumptions, the @|folong| semantics employs a type-directed
  rewriting pass on typed code to defend against untyped inputs.
 The defense takes the form of type-constructor checks; for example,
  if a typed context expects a value of type @${(\tarr{\tnat}{\tnat})} then a
@@ -475,7 +477,7 @@ If the notions of reduction rely only on the top-level shape of a value,
 @subsection[#:tag "sec:locally-defensive:model"]{Model}
 
 @Figure-ref{fig:locally-defensive-reduction} presents a model of the
- locally-defensive approach.
+ @|folong| approach.
 The model represents a type-constructor check as a @${\vchk} expression;
  informally, the semantics of @${(\echk{K}{e})} is to reduce @${e} to a value
  and affirm that it matches the @${K} constructor.
@@ -483,7 +485,7 @@ Type constructors @${K} include one constructor @${\tagof{\tau}} for each
  type @${\tau}, and the @${\kany} constructor, which
  does not correspond to a static type but is a technical device.
 
-The purpose of @${\kany} is to reflect the weak invariants of the locally-defensive
+The purpose of @${\kany} is to reflect the weak invariants of the @|folong|
  semantics.
 In contrast to types @${\tau}, type constructors say nothing about the
  contents of a structured value.
@@ -545,7 +547,7 @@ These relations are similar to those of the natural embedding, though they inclu
 @subsection[#:tag "sec:locally-defensive:soundness"]{Soundness}
 
 @Figure-ref{fig:locally-defensive-preservation} presents two judgments that express
- the invariants of the locally-defensive reductions.
+ the invariants of the @|folong| reductions.
 The first judgment, @${\Gamma \wellKE e}, applies to untyped expressions.
 The second judgment is a constructor-typing system that formalizes the intuitions stated above.
 In particular,
@@ -554,7 +556,7 @@ In particular,
  and the result of a @${\vchk} expression matches the
  given constructor.
 
-Soundness for the locally-defensive embedding states that the evaluation of the
+Soundness for the @|folong| embedding states that the evaluation of the
  @emph{completion} of any surface-level expression preserves the constructor
  of its static type.
 The theorems furthermore state that only the @${\rrKD} notion of reduction
@@ -619,7 +621,7 @@ The theorems furthermore state that only the @${\rrKD} notion of reduction
 
 @section[#:tag "sec:practical-semantics"]{From Models to Implementations}
 
-@include-figure*["fig:locally-defensive-preservation.tex" "Property judgments for the locally-defensive embedding"]
+@include-figure*["fig:locally-defensive-preservation.tex" @elem{Property judgments for the @|folong| embedding}]
 
 @; AKA threats to the validity of the models
 
@@ -637,7 +639,7 @@ In terms of the models, this means @${\rrD} is the only notion of reduction,
 @; function.
 
 A secondary semantic issue concerns the rules for the application of a typed
- function in the locally-defensive embedding.
+ function in the @|folong| embedding.
 As written, the @${\rrKD} notion of reduction implies a non-standard protocol
  for function application @${(\eapp{v_0}{v_1})}, namely:
  (1) check that @${v_0} is a function;
@@ -665,7 +667,7 @@ To extend the natural embedding with support for these types, the language
  must add new kinds of monitors to enforce type soundness for their
  elimination forms.
 The literature on Typed Racket presents one strategy for handling such types@~cite[stff-oopsla-2012 tfdfftf-ecoop-2015].
-To extend the locally-defensive embedding, the language must add unions @${K \cup K}
+To extend the @|folong| embedding, the language must add unions @${K \cup K}
  to its grammar of type constructor and must extend the @${\tagof{\cdot}} function.
 For a union type, let @${\tagof{\tau_0 \cup \tau_1}} be @${\tagof{\tau_0} \cup \tagof{\tau_1}},
  i.e., the tags of its members.
