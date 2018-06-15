@@ -26,7 +26,7 @@ Typed Racket@~cite[tf-popl-2008] is a migratory typing system for Racket that
  implements the @|holong| embedding.
 As a full-fledged implementation, Typed Racket handles many more types than the
  language of @figure-ref{fig:multi-syntax} and supports (higher-order) casts
- so that develoeprs can easily migrate a module even if the type system cannot
+ so that developers can easily migrate a module even if the type system cannot
  cope with the programming idioms.
 Its run-time system guarantees that every boundary
  error attributes the fault to exactly one syntactic type
@@ -35,11 +35,11 @@ Its run-time system guarantees that every boundary
 Removing the type annotations and casts
  from a Typed Racket program yields a valid Racket program.
 We use this transformation to compare the @|holong| embedding
- to the @|eolong| embedding.
+ to @|eolong|.
 
 To compare with the @|folong| approach, we modified the Typed Racket
  compiler to rewrite typed code and compile types to predicates
- that enforce type constructors (see supplement for details@~cite[gf-tr-2018]).
+ that enforce type constructors@~cite[gf-tr-2018].
 Like the model, this implementation makes no claim about the quality of boundary error messages.
 
 The three approaches outlined above define three ways to compile a
@@ -160,10 +160,11 @@ In @bm{jpeg}, the speedup of @|TR_N| over @|eolong| is high because
  against @|TR_E| code.
 In @bm{zombie}, typed code is slower than @|eolong|.
 The typed version of @bm{zombie} performs a type cast in the inner loop.
-The untyped version replaces this cast with a rudimentary predicate checks.
-This simple change noticeably affects the performance of some @bm{zombie} configurations,
- however the real performance issue with @bm{zombie} is the overhead of
- repeatedly-wrapping monitors for higher-order functions (demonstrated in @figure-ref{fig:max-overhead}).
+The untyped version replaces this cast with a rudimentary predicate check.
+This simple change noticeably affects the performance of the fully-typed configuration.
+The real performance issue with @bm{zombie}, however, is that a type boundary
+ between two of its modules leads to repeatedly-wrapping function monitors
+ and the high overhead shown in @figure-ref{fig:max-overhead}.
 
 @figure["fig:typed-speedup"
         @elem{Speedup of fully-typed
@@ -171,8 +172,10 @@ This simple change noticeably affects the performance of some @bm{zombie} config
               and @|TR_LD| (@|tag-color-sample|),
               relative to @|TR_E| (the 1x line).
               Taller bars are better.}
-        @(let ((TBL (make-typed-table TR-DATA* TAG-DATA*)))
-           (render-speedup-barchart TBL))]
+        @(parameterize ([*bar-chart-height* 120]
+                        [*bar-chart-max* 3.5])
+           (let ((TBL (make-typed-table TR-DATA* TAG-DATA*)))
+             (render-speedup-barchart TBL)))]
 
 
 @section[#:tag "sec:evaluation:threats"]{Threats to Validity}
@@ -198,10 +201,10 @@ On the other hand, the performance of a full implementation could improve over
  the prototype in two ways.
 First, @|TR_LD| does not take advantage of the @|TR_N| optimizer
  to remove checks for tag errors.
-Integrating the safe parts of the optimizer may offset some cost of the defensive checks.
+Integrating the safe parts of the optimizer may offset some cost of the constructor checks.
 Second, the completion judgment for the prototype
  may introduce redundant checks.
-For example, consecutive reads from a list suffer the same (redundant) check
+For example, consecutive reads from a list suffer the same check
  on the extracted element.
 
 @; === things that make prototype non-representative
@@ -215,7 +218,7 @@ Second, our benchmarks are relatively small; the largest is @bm{jpeg} with
 @; of Typed Racket users, our results are likely to reflect the reality of large-scale
 @; programs.
 @; TODO auto-compute
-Third, the evaluation considers one fully-typed version of each benchmark,
- but ascribing different types to the same program can affect its performance.
-For example, the constructor check for an integer may be less expensive than the
- check for a @|holong| number.
+Third, the evaluation considers only one fully-typed version of each benchmark.
+Ascribing different types to the same program can affect its performance;
+ for example, the constructor check for an integer may be less expensive than the
+ check for a natural number.

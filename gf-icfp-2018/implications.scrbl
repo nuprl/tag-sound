@@ -3,7 +3,7 @@
 
 @Sections-ref{sec:design} and @secref{sec:evaluation} present the two critical aspects of the three
 approaches to combining statically typed and dynamically typed code via a
-twin-pair of languages: (1) their semantics within a single framework and
+twin pair of languages: (1) their semantics within a single framework and
 (2) their performance characteristics relative to a single base language and
 the same suite of benchmark programs.
 Equipped with this objective
@@ -14,7 +14,7 @@ For the logical consequences, we proceed in a type-directed manner.
 At the level of base types, there is no difference between the @|holong|
  embedding and the @|folong| one, but the @|eolong|
  embedding may give a different result due to a logical error (@section-ref{sub:base}).
-After moving from base types to trees of types, we can explain
+After moving from base types to trees of base types, we can explain
  the truly essential difference between the @|holong| and @|folong| semantics:
  while the @|holong| embedding allows
  developers to reason compositionally about type annotations, users of
@@ -33,7 +33,7 @@ safety pays off---but only to some degree.
 While the @|folong| embedding adds less overhead than @|holong| to a large portion of the mixed-typed
 programs (@section-ref{sub:perf-mixed}),
 readers must keep two caveats in mind.
-First, the @|folong| approach imposes a run-time checking overhead
+For one, the @|folong| approach imposes a run-time checking overhead
  that is directly proportional to the number of types in the program.
 Second, the @|holong| embedding may exploit the full soundness of type annotations.
 As a result, programs with many type annotations tend to run faster under
@@ -51,11 +51,11 @@ Similarly, the @|eolong| embedding throws a tag error if an expression adds a
 
 This claim is only true, however, if the static typing system is restricted
  to exactly match the host language's notion of dynamic typing.
-Adding a @emph{logical} distinction between @|holong| numbers and integers,
+Adding a @emph{logical} distinction between natural numbers and integers,
  as demonstrated in the type system of @figure-ref{fig:multi-preservation},
  can lead to silent failures at run-time when a negative integer flows into
- a context expecting a @|holong| number.
-If the @|holong| numbers represent votes, for example@~cite[tfffgksst-snapl-2017],
+ a context expecting a natural number.
+If the numbers represent votes, for example@~cite[tfffgksst-snapl-2017],
  then the lack of run-time checking can change the outcome of an election.
 
 
@@ -75,7 +75,7 @@ TypeScript programmers must keep this behavior in mind to protect their type-era
 
 Both the @|holong| embedding and the @|folong| embedding are sound for
  base types, e.g.,
- if @${v} is a value of type @${\tnat}, then @${v} is a @|holong| number.
+ if @${v} is a value of type @${\tnat}, then @${v} is a natural number.
 Informally, the two approaches performs the same check at a boundary of base type.
 
 
@@ -103,7 +103,7 @@ The @|holong| embedding checks the contents of a pair; the @|folong|
 @exact{\noindent}Extracting a value from an ill-typed pair might not detect the mismatch,
  depending on what type of value the context expects.
 For example, a typed expression can safely extract a negative integer from a
- pair of @|holong| numbers if the expression happens to expect an integer:
+ pair of natural numbers if the expression happens to expect an integer:
 
 @dbend[
   @safe{
@@ -148,12 +148,12 @@ The dynamically-typed module on the right mistakenly calls the addition function
  Bessel numbers.
 
 Indeed, each of the three approaches to migratory typing behave differently on this program.
-The @|holong| embedding correctly rejects the application of @racket[b-add] at the
+The @|holong| embedding correctly rejects the application of @tt{add_B} at the
  boundary between the two modules:
 
 @dbend{
   @safe{
-    \wellM \texttt{(b-add d0 d1)} \ccNS \boundaryerror
+    \wellM \texttt{(add\_B d0 d1)} \ccNS \boundaryerror
   }
 }
 
@@ -162,25 +162,25 @@ The @|holong| embedding correctly rejects the application of @racket[b-add] at t
 
 @dbend{
   @warning{
-    \wellM \texttt{(b-add d0 d1)} \rrESstar \texttt{(list 2 1)}
+    \wellM \texttt{(add\_B d0 d1)} \rrESstar \texttt{(list 2 1)}
   }
 }
 
 @exact{\noindent}The @|folong| embedding @emph{either} computes a
- nonsensical result or raises a boundary error somewhere within the @racket[map] function:
+ nonsensical result or raises a boundary error somewhere within the @tt{map} function:
 
 @dbend{
   @warning|{
-    \wellM \texttt{(b-add d0 d1)} \rrKSstar
+    \wellM \texttt{(add\_B d0 d1)} \rrKSstar
       \left\{\begin{array}{l l}
-         \texttt{(list 2 1)} & \mbox{ if \texttt{map} does not check the Bessel type}
+         \texttt{(list 2 1)} & \mbox{if \texttt{map} does not check the Bessel type}
       \\ \boundaryerror & \mbox{if \texttt{map} does check the type}
       \end{array}\right.
   }|
 }
 
 @exact{\noindent}it is impossible to predict the outcome without knowing the
- local type annotations within @racket[map].
+ local type annotations within @tt{map}.
 
 
 @section[#:tag "sub:ho"]{For Higher-Order Types}
@@ -207,12 +207,14 @@ The database module may assume well-typed arguments and the application
 
 In contrast, the @|eolong| embedding completely ignores types at run-time
  and treats the middle module of @figure-ref{fig:db-app} as one large comment.
+The types are just for documentation, and perhaps IDE tools.
 
 The @|folong| embedding provides a limited compromise: for every
  value that flows from untyped to typed, the semantics checks that the
  value constructor matches the type constructor.
 Concretely, there is one run-time check that ensures @racket[create] is bound to
  a function.
+
 This single check does little to verify the correctness of the dynamically-typed
  code.
 In terms of the model,
@@ -251,7 +253,7 @@ In terms of the model,
 
 @section[#:tag "sub:err"]{For Error Messages}
 
-The examples above have shown that the @|holong| embedding detects errors
+The examples above show that the @|holong| embedding detects errors
  earlier than the @|folong| and @|eolong| embeddings.
 This temporal difference has implications for the quality of error messages
  that each embedding can produce.
@@ -296,8 +298,8 @@ This information tells the developer exactly where to begin debugging:
 @section[#:tag "sub:perf-mixed"]{For the Performance of Mixed-Typed Programs}
 
 Enforcing soundness in a mixed-typed program adds performance overhead.
-As the graphs in @section-ref{sec:evaluation} demonstrate for the benchmarks,
- this cost can be high (10x) in the @|folong| embedding, and enormous
+As the graphs in @section-ref{sec:evaluation} demonstrate,
+ this cost can be high (10x) in the @|folong| embedding and enormous
  (1000x) in the @|holong| embedding.
 
 The @|folong| embedding incurs type-constructor checks at three places:

@@ -459,9 +459,9 @@
 (define (sections-ref s)
   (X-ref "sections" s))
 
-(define TR_N  @exact{$\mathsf{TR}\mhyphen\mathsf{H}$})
-(define TR_E  @exact{$\mathsf{TR}\mhyphen\mathsf{E}$})
-(define TR_LD @exact{$\mathsf{TR}\mhyphen\mathsf{F}$})
+(define TR_N  @exact{$\mathsf{TR}\mhyphen\mathsf{\hoshort}$})
+(define TR_E  @exact{$\mathsf{TR}\mhyphen\mathsf{\eoshort}$})
+(define TR_LD @exact{$\mathsf{TR}\mhyphen\mathsf{\foshort}$})
 
 (define HOlong @exact{\HOlong})
 (define EOlong @exact{\EOlong})

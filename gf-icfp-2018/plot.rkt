@@ -24,6 +24,9 @@
   OVERHEADS-WIDTH
   FONT-SIZE
 
+  *bar-chart-max*
+  *bar-chart-height*
+
   overhead-plot*
   exact-plot*
 
@@ -713,8 +716,8 @@
 (define-type Bessel
   (List Nonnegative-Real Real))
 
-(: b-add (-> Bessel Bessel Bessel))
-(define (b-add b0 b1)
+(: add_B (-> Bessel Bessel Bessel))
+(define (add_B b0 b1)
   (map + b0 b1))
 >>
 )
@@ -727,7 +730,7 @@
 (define d0 (list 4 0))
 (define d1 (list -2 1))
 
-(b-add d0 d1)
+(add_B d0 d1)
 >>
 )))
 

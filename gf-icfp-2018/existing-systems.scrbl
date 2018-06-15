@@ -20,12 +20,12 @@ Systems listed under the box labeled @emph{@|holong| embedding} enforce
 Systems under the @emph{@|eolong| embedding} label provide an optional static type checker
  but do not use types to determine program behavior.
 Systems under the @emph{@|folong| embedding} label enforce type boundaries
- with some form of first-order checks.
+ with some form of first-order checks --- the details vary between systems.
 In Dart 2 and Nom, every structured value is associated with run-time type
  information (e.g., the value is an object and is associated with a class name);
  the first-order checks inspect this type information.
 Reticulated and our @|TR_LD| prototype perform first-order checks similar
- to those outlined in @section-ref{sec:locally-defensive-embedding}, and
+ to those outlined in @section-ref{sec:locally-defensive-embedding} and
  furthermore rewrite statically-typed code to protect against higher-order
  values.
 
@@ -35,10 +35,14 @@ StrongScript and Thorn include two kinds of types: concrete types and like types
 Both types are checked statically, but only concrete types are enforced at
  run-time.
 In other words, a program that uses only like types has @|eolong| behavior.
+These similar systems are on different lines because only StrongScript supports
+ higher-order types; the type system of Thorn is limited to class names
+ and a dynamic type.
 
 Pyret falls between the @|folong| and @|eolong| approaches.
 If a program contains type annotations, then Pyret enforces each annotation
- with a run-time type constructor check; a programmer can opt-in to type-constructor
+ with a run-time type constructor check.
+A programmer can therefore opt-in to type-constructor
  soundness through disciplined use of type annotations.
 
 There is no line between the @|holong| and @|folong| boxes because no

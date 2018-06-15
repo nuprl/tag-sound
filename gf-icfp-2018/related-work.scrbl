@@ -85,11 +85,12 @@ Many languages now have optional type checkers.
 
 @section[#:tag "sec:related-work:locally-defensive"]{@|FOlong| Embedding}
 
-The @|folong| embedding is directly inspired by the transient semantics
+The @|folong| embedding presented in @section-ref{sec:locally-defensive-embedding}
+ is directly inspired by the transient semantics
  for Reticulated Python@~cite[vksb-dls-2014 vss-popl-2017], a migratory and
  gradual@~cite[svcb-snapl-2015] typing system for Python.
 The transient approach begins with a surface language expression and elaborates
- into a typed intermediate language.
+ into a typed intermediate language with explicit type-constructor checks.
 In other words, the main judgment has the form @${\Gamma \vdash e \carrow e' : \tau}
  where both @${e'} and @${\tau} are outputs.
 At first we tried adapting this elaboration to Typed Racket, but struggled
@@ -97,24 +98,23 @@ At first we tried adapting this elaboration to Typed Racket, but struggled
  terms of the surface language.
 In particular, Reticulated has a dynamic type
  @; (@${\star})
- and thus a more
- flexible notion of type boundary.
+ and thus a more flexible notion of type boundary.
 A true model of transient may insert run-time checks for different reasons than
- the twin-language model of @section-ref{sec:locally-defensive-embedding}.
+ the twin-language model above.
 
 @citet[h-scp-1994] introduces the name @emph{completion} to decribe an untyped
  expression annotated with explicit type constructor checks.
 The completion judgment in @section-ref{sec:locally-defensive-embedding}
  is more precisely a type-directed coercion insertion judgment@~cite[b-types-1995 shb-icfp-2009].
 
-The name ``locally-defensive'' is an attempt to separate specification from
- implementation, and to tease apart three design choices
- apparent in Reticulated@~cite[vksb-dls-2014] regarding boundary terms.
-The first idea is to enforce only type constructors at a boundary.
-The second is to check a data structure or higher-order value against its
- dynamically-most-recent type and no previous types, thereby implementing
- @emph{forgetful} space-efficiency@~cite[g-popl-2015].
-The third is to rewrite typed code instead of monitoring dynamically-typed values.
+@; The name ``locally-defensive'' is an attempt to separate specification from
+@;  implementation, and to tease apart three design choices
+@;  apparent in Reticulated@~cite[vksb-dls-2014] regarding boundary terms.
+@; The first idea is to enforce only type constructors at a boundary.
+@; The second is to check a data structure or higher-order value against its
+@;  dynamically-most-recent type and no previous types, thereby implementing
+@;  @emph{forgetful} space-efficiency@~cite[g-popl-2015].
+@; The third is to rewrite typed code instead of monitoring dynamically-typed values.
 
 
 @section{Type Reconstruction}

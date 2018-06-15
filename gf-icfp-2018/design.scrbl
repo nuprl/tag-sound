@@ -11,12 +11,12 @@ Each approach uses a different strategy to enforce static types at the
  boundaries between typed and untyped code.
 Eagerly enforcing types corresponds to a @emph[holong] embedding.
 Ignoring types corresponds to an @emph[eolong] embedding.
-Enforcing type constructors  to a @emph[folong] embedding.
+Enforcing type constructors corresponds to a @emph[folong] embedding.
 
 This section begins with the introduction of the surface syntax and typing
  system (@section-ref{sec:common-syntax}).
-It then defines three embeddings (derived from practical implementations),
- states their soundness theorems (@Sections-ref{sec:natural-embedding}, @secref{sec:erasure-embedding}, and @secref{sec:locally-defensive-embedding}),
+It then defines three embeddings,
+ states their soundness theorems (@sections-ref{sec:natural-embedding}, @secref{sec:erasure-embedding}, and @secref{sec:locally-defensive-embedding}),
  and concludes with a discussion on scaling the models to a practical implementation (@section-ref{sec:practical-semantics}).
 Each model builds upon a common semantic framework (@section-ref{sec:common-semantics})
  to keep the technical presentation focused on their differences.
@@ -34,8 +34,8 @@ The type checker for the extended language must be able to validate mixed-typed
 
 In a full language, all kinds of values may cross a type boundary at run-time.
 Possibilities include values of base type (numbers, strings, booleans),
- values of algebraic type (pairs, lists, immutable sets),
- and values of higher type (functions, mutable references, vectors).
+ values of algebraic type (pairs, finite lists, immutable sets),
+ and values of higher type (functions, mutable references, infinite lists).
 As representative examples, the surface language in @figure-ref{fig:multi-syntax}
  includes integers, pairs, and functions, and three corresponding types.
 The fourth type, @${\tnat}, is a subset of the type of integers, and is included
@@ -70,7 +70,7 @@ The second judgment, @${\Gamma \wellM \exprsta : \tau}, is a mostly-conventional
 The unconventional part of both judgments are the rules for boundary terms,
  which invoke the opposite judgment on their subexpressions.
 For example, @${\Gamma \wellM \esta{\tau}{\exprsta}} holds only if the enclosed expression
- matches the @${\tau} type.
+ is well-typed.
 
 Two auxiliary components of the type system are the function @${\Delta},
  which assigns a type to the primitives, and a subtyping
@@ -84,7 +84,7 @@ Subtyping adds a logical distinction to the type system that is not automaticall
 
 Each semantics consists of two reduction relations: one for statically-typed
  expressions (@${\rrSstar}) and one for dynamically-typed ones (@${\rrDstar}).
-Both reduction relations must satisfy three guidelines:
+Both reduction relations must satisfy three criteria:
 @; the following criteria:
 @itemlist[
 @item{
@@ -202,13 +202,12 @@ Higher-order types require @|holong| dynamic enforcement.@note{The
 
 The @|holong| embedding uses a type-directed strategy to @mytech{transport}
  a value across a type boundary.
-If the value is untyped and entering a context that expects
+If an untyped value meets a boundary that expects
  a value of a base type, such as @${\tint} or @${\tnat},
- then it suffices to check the value's constructor.
-If the context expects a value of an algebraic type, such as a pair,
- then the strategy is to the check the constructor and recursively transport
- the components of the value.
-Lastly, if the context expects a value of a higher type, such as
+ then it suffices to check the shape of the value.
+If the boundary expects a value of an algebraic type, such as a pair,
+ then the strategy is to check the value and recursively transport its components.
+Lastly, if the boundary expects a value of a higher type, such as
  @${(\tarr{\tnat}{\tnat})}, then the strategy is to check the constructor and
  monitor the future interactions between the value and the context.
 For the specific case of an untyped function @${f} and the type @${(\tarr{\tnat}{\tnat})},
@@ -233,7 +232,7 @@ It transports an integer as-is, transports a pair recursively,
  and wraps a function in a monitor to protect the typed function against untyped arguments.
 
 The extended notions of reduction in @figure-ref{fig:natural-reduction} define the complete semantics of monitor application.
-In a statically-typed context, applying a monitor means applying a
+In a statically-typed context, applying a monitor entails applying a
  dynamically-typed function to a typed argument.
 Thus the semantics unfolds the monitor into two boundary terms:
  a @${\vdyn} boundary in which to apply the dynamically-typed function
@@ -332,8 +331,7 @@ A language with mutable data would require a similar extension
 @; types should not affect semantics.
 @; "syntactic discipline" is a quote from J. Reynolds
 
-The @|eolong| approach, also known as optional typing, is based on a view of
- types as an optional syntactic artifact.
+The @|eolong| approach is based on a view of types as an optional syntactic artifact.
 Type annotations are just a structured form of comment; their presence (or absence)
  should not affect the behavior of a program.
 The main purpose of types is to help developers read a codebase.
@@ -342,7 +340,7 @@ Whether the types are sound is incidental.
  @; , since type soundness never holds for the entirety of a practical language.
 
 The justification for this point of view is that the semantics of the host
- language is safe, and therefore suitable to use for statically-typed code.
+ language can safely execute both typed and untyped code.
 In particular, any value may cross any type boundary without further checking.
 
 
@@ -354,10 +352,10 @@ The two notions of reduction must therefore accomodate values from the opposite 
 The static notion of reduction @${\rrES} allows
  the application of dynamically-typed functions and checks for invalid uses
  of the primitives.
-The dynamic notion of reduction @${\rrED} adds a rule to accomodate statically-typed
- functions.
+The dynamic notion of reduction @${\rrED} allows the application of
+ statically-typed functions.
 The reduction relations @${\rrESstar} and @${\rrEDstar} are based on the
- compatible closure of the corresponding notion of reduction.
+ compatible closure of the matching notion of reduction.
 
 
 @subsection[#:tag "sec:erasure:soundness"]{Soundness}
@@ -366,7 +364,6 @@ The reduction relations @${\rrESstar} and @${\rrEDstar} are based on the
  dynamically-typed expression to accomodate type-annotated expressions.
 This judgment ignores the type annotations; for any expression @${e}, the
  judgment @${\wellEE e} holds if @${e} is closed.
-
 Soundness for the @|eolong| embedding states that reduction is well-defined
  for statically-typed and dynamically-typed expressions.
 
@@ -442,7 +439,7 @@ In particular, the elimination forms in our surface
 A  function application @${(\eapp{v_0}{v_1})} expects @${v_0} to be a function;
  primitive application expects arguments for which @${\delta}
  is defined.
-The goal of the @|folong| semantics is to ensure that such basic assumptions
+The goal of the @|folong| embedding is to ensure that such basic assumptions
  are always satisfied in typed contexts.
 @; ... what about Nat? ... generalized form of tag error
 
@@ -453,15 +450,15 @@ Such monitors must preserve all the observations that dynamically-typed code
 @; TODO treatJS ? also cite chaperones, TS*, Retic
 Second, monitoring adds a significant run-time cost.
 
-Based on these assumptions, the @|folong| semantics employs a type-directed
- rewriting pass on typed code to defend against untyped inputs.
+Based on these assumptions, the @|folong| semantics of this section employs a
+ type-directed rewriting pass on typed code to defend against untyped inputs.
 The defense takes the form of type-constructor checks; for example,
  if a typed context expects a value of type @${(\tarr{\tnat}{\tnat})} then a
  run-time check asserts that the context receives a function.
 If this function is applied @emph{in the same context}, then a second run-time
  check confirms that the result is a natural number.
 If the same function is applied @emph{in a different typed context} that expects a
- result of type @${(\tpair{\tint}{\tint})}, then a run-time check confirms that
+ result of type @${(\tpair{\tint}{\tint})}, then a different run-time check confirms that
  the result is a pair.
 
 Constructor checks run without creating monitors,
@@ -482,12 +479,12 @@ The model represents a type-constructor check as a @${\vchk} expression;
  informally, the semantics of @${(\echk{K}{e})} is to reduce @${e} to a value
  and affirm that it matches the @${K} constructor.
 Type constructors @${K} include one constructor @${\tagof{\tau}} for each
- type @${\tau}, and the @${\kany} constructor, which
- does not correspond to a static type but is a technical device.
+ type @${\tau}, and the technical @${\kany} constructor, which
+ does not correspond to a static type.
 
 The purpose of @${\kany} is to reflect the weak invariants of the @|folong|
  semantics.
-In contrast to types @${\tau}, type constructors say nothing about the
+In contrast to full types, type constructors say nothing about the
  contents of a structured value.
 The first and second components of a generic @${\kpair} value can have any shape,
  and the result of applying a function of constructor @${\kfun} can be any
@@ -500,12 +497,12 @@ The first and second components of a generic @${\kpair} value can have any shape
 Put another way, the @${\kany} constructor is necessary because information about
  type constructors is not compositional.
 
-In the context of the model, the above-mentioned rewriting pass corresponds
+In the model, the above-mentioned rewriting pass corresponds
  to the judgment @${\Gamma \vdash e : \tau \carrow e'}, which states that @${e'}
  is the @emph{completion}@~cite[h-scp-1994] of the surface language expression.
 The rewritten expression @${e'} includes @${\vchk} forms around three kinds of typed
  expressions: function application, @${\vfst} projection, and @${\vsnd} projection.
-For any other expression, the result is constructed by structural recursion (see the supplement@~cite[gf-tr-2018]).
+For any other expression, the result is constructed by structural recursion.
 
 The semantics ensures that every expression of type
  @${\tau} reduces to a value that matches the @${\tagof{\tau}} constructor.
@@ -513,17 +510,12 @@ The boundary function @${\vfromdynK} checks that an untyped value
  entering typed code matches the constructor of the expected type;
  its implementation defers to the
  @${\vfromany} boundary-crossing function.
-The boundary function @${\vfromstaK} lets any kind of typed
+The boundary function @${\vfromstaK} lets any typed
  value---including a typed fuction---cross into an untyped context.
 
 The notions of reduction consequently treat the type annotation @${\tau_d} on
  the formal parameter of a typed function @${(\vlam{\tann{x}{\tau_d}}{e})}
- as an assertion that its actual parameter matches the @${\tagof{\tau_d}} constructor.@note{Design alternatives:
-  extend the syntax of the evaluation language to express domain checks@~cite[vss-popl-2017],
-  or encode domain checks into the completion of a typed function in the spirit of
-    @${(\vlam{\tann{x}{\tau_d}}{e}) \carrow
-       (\vlam{\tann{x}{\tau_d}}{(\eapp{(\eapp{(\vlam{y}{\vlam{z}{z}})}{(\echk{\tagof{\tau_d}}{x})})}{e})})}
-  }
+ as an assertion that its actual parameter matches the @${\tagof{\tau_d}} constructor.
 Thus the @${\rrKD} notion of reduction protects typed functions from untyped arguments.
 Similarly, the static @${\rrKS} notion of reduction protects typed functions
  against @emph{typed} arguments; the following example demonstrates the need
@@ -536,21 +528,27 @@ Similarly, the static @${\rrKS} notion of reduction protects typed functions
   }
 ]
 
-@exact{\noindent}The remaining rules of @${\rrKS} give semantics to the application of an
+@exact{\noindent}@bold{Note:} one alternative way to protect the body of a typed
+ function is to extend the core language with syntax for domain checks@~cite[vss-popl-2017].
+A second alternative is to encode domain checks into the completion of a typed
+ function, in the spirit of
+    @${(\vlam{\tann{x}{\tau_d}}{e}) \carrow
+       (\vlam{\tann{x}{\tau_d}}{(\eapp{(\eapp{(\vlam{y}{\vlam{z}{z}})}{(\echk{\tagof{\tau_d}}{x})})}{e})})}.
+For the model, we picked the approach that we found to be the clearest.@exact{\hfill\textbf{End note.}}
+
+The remaining rules of @${\rrKS} give semantics to the application of an
  untyped function and to the @${\vchk} type-constructor checks.
 Finally, the @${\rrKSstar} and @${\rrKDstar} reduction relations define
  a multi-language semantics for the model.
-These relations are similar to those of the natural embedding, though they include
- no-op transitions to let values cross unannotated boundary terms.
 
 
 @subsection[#:tag "sec:locally-defensive:soundness"]{Soundness}
 
 @Figure-ref{fig:locally-defensive-preservation} presents two judgments that express
- the invariants of the @|folong| reductions.
+ the invariants of the @|folong| semantics.
 The first judgment, @${\Gamma \wellKE e}, applies to untyped expressions.
-The second judgment is a constructor-typing system that formalizes the intuitions stated above.
-In particular,
+The second judgment is a constructor-typing system that formalizes the intuitions stated above;
+ in particular,
  the value of a typed variable is guaranteed to match its type constructor,
  the @${\vfst} projection can produce any kind of value,
  and the result of a @${\vchk} expression matches the
@@ -560,7 +558,7 @@ Soundness for the @|folong| embedding states that the evaluation of the
  @emph{completion} of any surface-level expression preserves the constructor
  of its static type.
 The theorems furthermore state that only the @${\rrKD} notion of reduction
- can yield a tag error, therefore such errors can only occur in dynamically-typed code.
+ can yield a tag error, therefore such errors can only occur in dynamically-typed contexts.
 
 @twocolumn[
   @tr-theorem[#:key "K-static-soundness" @elem{static @${\langK}-soundness}]{
@@ -593,7 +591,7 @@ The theorems furthermore state that only the @${\rrKD} notion of reduction
   }
 ]
 @tr-proof[#:sketch? #true]{
-  By progress and preservation arguments for the @${\wellKE} property@~cite[gf-tr-2018].
+  By progress and preservation lemmas@~cite[gf-tr-2018].
 }
 
 @; --- completion lemmas
@@ -663,14 +661,14 @@ Both Reticulated and our implementation of this semantics use a variant of this 
 Lastly, the models do not mention union types, universal types,
  and recursive types---all of which are common tools for reasoning about
  dynamically-typed code.
-To extend the natural embedding with support for these types, the language
+To extend the @|holong| embedding with support for these types, the language
  must add new kinds of monitors to enforce type soundness for their
  elimination forms.
 The literature on Typed Racket presents one strategy for handling such types@~cite[stff-oopsla-2012 tfdfftf-ecoop-2015].
 To extend the @|folong| embedding, the language must add unions @${K \cup K}
  to its grammar of type constructor and must extend the @${\tagof{\cdot}} function.
 For a union type, let @${\tagof{\tau_0 \cup \tau_1}} be @${\tagof{\tau_0} \cup \tagof{\tau_1}},
- i.e., the tags of its members.
+ i.e., the union of the constructors of its members.
 For a universal type @${\tall{\alpha}{\tau}} let the constructor be @${\tagof{\tau}},
  and for a type variable let @${\tagof{\alpha}} be @${\kany} because there are
  no elimination forms for a universally-quantified type variable.@note{This
