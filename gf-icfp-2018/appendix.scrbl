@@ -5,11 +5,11 @@
 @|pre-clearpage|
 @title[#:tag "sec:appendix"]{Appendix}
 
-This appendix formulates two alternative approaches,
+This appendix presents two alternative higher-order approaches,
  called
  @emph{co-natural}
  and @emph{forgetful},
- and compares their logical implications.
+ and their logical implications.
 Co-natural enforces all non-base types with monitors@~cite[fgr-ifl-2007 dtw-pepm-2012].
 Forgetful limits each value to at most one monitor@~cite[g-popl-2015].
 Full definitions and proofs are in@~cite[gf-tr-2018].
@@ -26,7 +26,7 @@ Full definitions and proofs are in@~cite[gf-tr-2018].
 Its evaluation syntax extends the surface syntax with monitors for functions and pairs.
 The @${\vfromdynC} boundary function checks that an untyped value matches the expected
  type constructor and wraps all function and pair values in a monitor.
-Similarly, @${\vfromstaC} wraps functions and pairs.
+Likewise, @${\vfromstaC} wraps functions and pairs.
 The reduction rules in @figure-ref{fig:conatural-reduction} specify the behavior
  of monitored values.
 Soundness for the co-natural embedding states that reduction preserves the
@@ -74,7 +74,7 @@ Consequently, a statically-typed function that crosses two type boundaries
 
 @dbend[
   @neutral{
-    \wellM \edyn{(\tarr{\tnat}{\tnat})}{(\esta{(\tarr{\tint}{\tint})}{(\vlam{\tann{x}{\tint}}{{-2}})})} \rrCSstar \vmonfun{(\tarr{\tnat}{\tnat})}{(\vlam{\tann{x}{\tint}}{{-2}})}
+    \wellM \edyn{(\tarr{\tnat}{\tnat})}{(\esta{(\tarr{\tint}{\tint})}{(\vlam{\tann{x}{\tint}}{{-2}})})} \rrFSstar \vmonfun{(\tarr{\tnat}{\tnat})}{(\vlam{\tann{x}{\tint}}{{-2}})}
   }
 ]
 
@@ -154,7 +154,7 @@ The first type annotation does not match the value and the forgetful approach
 ]
 
 @exact{\noindent}This example also serves to illustrate a difference between
- forgetful and @|folong|;
+ forgetful and @|folong|; namely,
  the forgetful approach can detect a type mismatch in dynamically-typed code.
 
 Also unlike the @|folong| embedding, the run-time checks in the forgetful

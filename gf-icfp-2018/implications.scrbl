@@ -30,12 +30,12 @@ Lastly, the three approaches provide
 For consequences with respect to performance, our work somewhat confirms
 the conjectures of the literature that lowering the standards of
 safety pays off---but only to some degree.
-While the @|folong| embedding adds less overhead than @|holong| to a large portion of the mixed-typed
+While the @|folong| embedding adds less overhead than the @|holong| embedding to a large portion of the mixed-typed
 programs (@section-ref{sub:perf-mixed}),
 readers must keep two caveats in mind.
 For one, the @|folong| approach imposes a run-time checking overhead
  that is directly proportional to the number of types in the program.
-Second, the @|holong| embedding may exploit the full soundness of type annotations.
+Second, the @|holong| approach may exploit the full soundness of type annotations.
 As a result, programs with many type annotations tend to run faster under
  the @|holong| semantics than the @|folong| one (@section-ref{sub:perf-total}).
 
@@ -102,8 +102,8 @@ The @|holong| embedding checks the contents of a pair; the @|folong|
 
 @exact{\noindent}Extracting a value from an ill-typed pair might not detect the mismatch,
  depending on what type of value the context expects.
-For example, a typed expression can safely extract a negative integer from a
- pair of natural numbers if the expression happens to expect an integer:
+For example, a typed context can safely extract a negative integer from a
+ pair of natural numbers if the context happens to expect an integer:
 
 @dbend[
   @safe{
@@ -142,7 +142,7 @@ The story starts with two professors teaching two sections in complex variables:
 @Figure-ref{fig:silent-failure} adapts this example to a mixed-typed world.
 The typed module on left defines addition for
  ``Bessel-style'' complex numbers; the function adds the components of the given
- numbers.
+ pairs.
 The dynamically-typed module on the right mistakenly calls the addition function
  on two ``Descartes-style'' numbers, one of which does not match the type for
  Bessel numbers.
@@ -218,15 +218,16 @@ Concretely, there is one run-time check that ensures @racket[create] is bound to
 This single check does little to verify the correctness of the dynamically-typed
  code.
 In terms of the model,
- retrofitting a type onto a dynamically-typed function @${f} does not
+ retrofitting a ``@|folong|'' type onto a dynamically-typed function @${f} does not
  enforce that @${f} respects its arguments:
 
 @dbend[
   @warning{
     \begin{array}{l}
-      f = \edyn{(\tarr{\tint}{\tint})}{(\vlam{x}{\efst{x}})}
+      f = (\vlam{x}{\efst{x}})
       \\
-      \wellM (\eapp{f}{2}) : \tint \rrKSstar \efst{2} \rrKSstar \tagerror
+      \wellM \edyn{(\tarr{\tint}{\tint})}{f} : \tint \rrKSstar
+      \eapp{f}{2} \rrKSstar \efst{2} \rrKSstar \tagerror
       \\[1ex]
     \end{array}
   }
@@ -273,7 +274,7 @@ When the source is off the stack, the @|eolong| embedding is impoverished:
 
 The @|folong| embedding can detect a run-time type mismatch in two ways:
  at a type boundary or at a @${\vchk} expression.
-In the latter case, @|folong| is no better off than
+In the latter case, the @|folong| approach is no better off than
  @|eolong| for reporting the relevant value and type:
 
 @dbend[
@@ -284,10 +285,11 @@ In the latter case, @|folong| is no better off than
 
 @noindent[]@citet[vss-popl-2017] propose a strategy for improving the @|folong| error
  messages, but the strategy may double the running time of a program and reports
- a set of potentially-guilty boundaries rather than pinpointing the faulty one.
+ a set of potentially-guilty boundaries rather than pinpointing the faulty one
+ (it does, however, satisfy the blame theorem).
 
-By contrast, an implementation of the @|holong| embedding can store debugging
- information in the monitor values it creates.
+By contrast, an implementation of the @|holong| approach can store debugging
+ information in monitor values.
 When such a monitor detects a type mismatch, the monitor can report the boundary term
  that originated the error even when the boundary is off the stack@~cite[tfffgksst-snapl-2017].
 This information tells the developer exactly where to begin debugging:

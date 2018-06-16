@@ -21,9 +21,12 @@ Systems under the @emph{@|eolong| embedding} label provide an optional static ty
  but do not use types to determine program behavior.
 Systems under the @emph{@|folong| embedding} label enforce type boundaries
  with some form of first-order checks --- the details vary between systems.
-In Dart 2 and Nom, every structured value is associated with run-time type
+In Dart 2 and Nom,
+ every structured value is associated with run-time type
  information (e.g., the value is an object and is associated with a class name);
- the first-order checks inspect this type information.
+ the boundary checks perform a subtype test using this type information.
+SafeTS is similar, however, the type information is structural rather than
+ nominal and may gain new fields (but not methods) by crossing a boundary.
 Reticulated and our @|TR_LD| prototype perform first-order checks similar
  to those outlined in @section-ref{sec:locally-defensive-embedding} and
  furthermore rewrite statically-typed code to protect against higher-order
@@ -69,11 +72,12 @@ This gap presents an opportunity for future work.
     [draw,align=center,below of=NE,xshift=\embeddingskip]
     {\textbf{Erasure Embedding}};
   \node (Esub)
-    [align=center,below of=E,yshift=-2ex]
+    [align=center,below of=E,yshift=-3ex]
     {ActionScript@|MT|@~cite[rch-popl-2012], mypy@|MT|, \\
      Flow@|MT|, Hack@|MT|, Pyre@|MT|, Pytype@|MT|, \\
-     rtc@|MT|@~cite[rtsf-sac-2013], Strongtalk@|MT|@~cite[bg-oopsla-1993], TypeScript@|MT|@~cite[bat-ecoop-2014], \\
-     Typed Clojure@|MT|@~cite[bdt-esop-2016], Typed Lua@|MT|@~cite[mmi-dls-2015]};
+     rtc@|MT|@~cite[rtsf-sac-2013], Strongtalk@|MT|@~cite[bg-oopsla-1993], \\
+     TypeScript@|MT|@~cite[bat-ecoop-2014], Typed Clojure@|MT|@~cite[bdt-esop-2016], \\
+     Typed Lua@|MT|@~cite[mmi-dls-2015]};
 
   \node (ELD)
     [align=center,below of=E,xshift=-\embeddingskip]
@@ -85,8 +89,8 @@ This gap presents an opportunity for future work.
     {\textbf{First-Order Embedding}};
   \node (LDsub)
     [align=center,below of=LD,yshift=1ex]
-    {Dart 2, Nom@~cite[mt-oopsla-2017], \\
-     Reticulated@|MT|@~cite[vss-popl-2017], @|TR_LD|@|MT| (@section-ref{sec:evaluation})};
+    {Dart 2, Nom@~cite[mt-oopsla-2017], Reticulated@|MT|@~cite[vss-popl-2017], \\
+     SafeTS@~cite[rsfbv-popl-2015], @|TR_LD|@|MT| (@section-ref{sec:evaluation})};
 
   \node (legend)
     [align=right,right of=E,yshift=-20ex]

@@ -22,9 +22,13 @@ This paper contributes two major results. First, it delivers a
  theoretical framework for investigating different ways of combining twin
  pairs of dynamically-typed and statically-typed languages. The framework
  generalizes the Matthews--Findler multi-language
- approach@~cite[mf-toplas-2007]. With this framework, we can finally work
+ approach@~cite[mf-toplas-2007] and the theorems in @section-ref{sec:design}
+ clearly show how soundness for a pair of languages requires a more careful
+ treatment than soundness for a single language.
+With the framework, we can finally work
  out a systematic comparison of prior work
- @emph{and} capture the @|folong| semantics in such a way that it
+ @emph{and} capture the @|folong| semantics of Reticulated@~cite[vss-popl-2017]
+ in such a way that it
  is easy to create the first alternative implementation. 
 
 Second, this paper is the first to present an apples-to-apples performance
@@ -58,8 +62,8 @@ Indeed, a violation of the types in the source code may go completely unnoticed.
 @; In light of the work by New and Licata, only the @|holong| embedding
 @;  can achieve type soundness in the traditional sense@~cite[fb-flops-2006 nl-fscd-2018].
 
-In terms of performance, the picture is much more mixed than the literature
- would suggest. On mixed-typed programs, @|eolong| adds zero overhead,
+In terms of performance, the picture is more nuanced than the literature
+ would suggest. On mixed-typed programs: @|eolong| adds zero overhead,
  @|folong| checks add overhead on a pay-as-you-annotate basis,
  and the @|holong|
  approach may render a working program unusably slow.  For fully-typed
@@ -84,12 +88,10 @@ A third strategy is to combine multiple semantics within a program, using
 @acks{
   This paper is supported by @hyperlink["https://www.nsf.gov/awardsearch/showAward?AWD_ID=1518844"]{NSF grant CCF-1518844}.
   @; redex-check
-  @; NSF funding
   @; early feedback at PI meeting
   @; pldi reviewers for skimming the paper and letting us know it wasn't shiny and new enough
   @;
-  @; Mike V.
-  We thank Erik Ernst, Benjamin S. Lerner, Bryan LaChance, Fabian Muehlboeck, Max S. New, Artem Pelenitsyn, Ross Tate, and Jan Vitek.
+  We thank Erik Ernst, Bryan LaChance, Benjamin S. Lerner, Fabian Muehlboeck, Max S. New, Artem Pelenitsyn, Ross Tate, and Jan Vitek.
   Felleisen acknowledges insightful conversations with Ron Garcia and Eric Tanter about the meaning of types in Reticulated Python.
 }
 

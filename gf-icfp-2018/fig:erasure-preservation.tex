@@ -7,17 +7,20 @@
     \GammaD \wellEE \vlam{x}{e}
   }
 
+
   \inferrule*{
     \tann{x}{\tau},\Gamma \wellEE e
   }{
     \Gamma \wellEE \vlam{\tann{x}{\tau}}{e}
   }
 
+
   \inferrule*{
     \Gamma \wellEE e
   }{
     \Gamma \wellEE \edyn{\tau}{e}
   }
+
 
   \inferrule*{
     \Gamma \wellEE e

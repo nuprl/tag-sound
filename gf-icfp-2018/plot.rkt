@@ -538,7 +538,8 @@
       (map cons (cons "" titles)
                 (cons (map render-table-name (car rt))
                       (for/list ([r (in-list (cdr rt))])
-                        (map rnd r)))))))
+                        (for/list ([x (in-list r)])
+                          (string-append (rnd x) "x"))))))))
 
 ;; render-speedup-barchart : (-> (list/c (listof symbol?) (listof (listof (cons/c natural? natural?))) (listof (listof (cons/c natural? natural?)))) pict?)
 (define (render-speedup-barchart tbl)

@@ -47,7 +47,7 @@ The three approaches outlined above define three ways to compile a
  @|eolong| @|TR_E|, and
  @|folong| @|TR_LD|.
 In the rest of this section, we reserve the name ``Typed Racket'' for the
- the source language.
+ source language.
 
 
 @section[#:tag "sec:evaluation:method"]{Method}
@@ -152,7 +152,7 @@ By contrast, the worst-case performance of @|TR_LD|
               @|TR_N| (@|tr-color-sample|)
               and @|TR_LD| (@|tag-color-sample|),
               relative to @|TR_E| (the 1x line).
-              Taller bars are better.}
+              Taller bars are better than shorter bars.}
         @(parameterize ([*bar-chart-height* 100]
                         [*bar-chart-max* 3.5])
            (let ((TBL (make-typed-table TR-DATA* TAG-DATA*)))

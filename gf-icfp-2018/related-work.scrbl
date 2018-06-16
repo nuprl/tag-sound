@@ -61,7 +61,7 @@ Dynamic typing in Dart 2 is based on the concrete approach.@note{@url{https://ww
 The name suggests that this inductive-checking, higher-order-wrapping technique
  is the obvious approach to the problem; indeed, earlier work on typed foreign-function
  interfaces@~cite[r-jfp-2008] and remote procedure calls@~cite[ok-popl-2003] used a similar approach.
-@citet[nl-fscd-2018] provide a semantic justification; in brief, if an embedding
+@citet[nl-fscd-2018] provide a semantic justification for the name; in brief, if an embedding
  allows untyped functions and is not equivalent to the natural wrapping strategy,
  then it cannot satisfy type soundness.
 
@@ -119,7 +119,7 @@ The completion judgment in @section-ref{sec:locally-defensive-embedding}
 
 @section{Type Reconstruction}
 
-While the @|eolong| embedding converts typed code to untyped code,
+While the @|eolong| approach converts typed code to untyped code,
  a @emph{reconstruction embedding} could convert all untyped code
  to typed code.
 Researchers have worked on variants of this problem for decades.
@@ -149,15 +149,15 @@ Recent work evaluates the performance of practical migratory typing systems.
 @citet[bbst-oopsla-2017] demonstrate that a tracing JIT compiler can significantly
  reduce the overhead in Typed Racket.
 @citet[mt-oopsla-2017] report excellent performance data for a
- @emph{concrete}@~cite[clzv-ecoop-2018] gradual typing system on their benchmarks.
+ concrete and gradual typing system on their benchmarks.
 @citet[rat-oopsla-2017] suggest integrating run-time type checks with
  the shape tests of an optimizing virtual machine.
 
 
 @section{Type Soundness}
 
-Soundness is an important property of any type system, as it relates
- ahead-of-time claims to run-time outcomes.
+Soundness is an important property of any type system, as it relates the
+ ahead-of-time claims of the types to run-time outcomes.
 Soundness for migratory typing systems is furthermore an incredibly
  subtle property, as this paper demonstrates.
 At least four prior works address aspects of the subtlety of soundness for
@@ -173,6 +173,9 @@ Lastly, the progressive types@~cite[pqk-onward-2012] vision
  paper describes a type system with a tunable set of run-time errors.@note{By contrast, this paper makes an argument for ``preservation-ive types''.}
 Removing one kind of error from the set makes the static type system more
  conservative.
+
+
+@section{Blame}
 
 
 @section{Comparing Gradual Typing Systems}
