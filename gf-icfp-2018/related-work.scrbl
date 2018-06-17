@@ -73,7 +73,7 @@ The name suggests that this inductive-checking, higher-order-wrapping technique
 @;  accept optional type hints to guide compilation.
 
 The @|eolong| approach is better known as optional typing, and the idea
- dates back to Common Lisp@~cite[s-lisp-1990] and Strongtalk@~cite[bg-oopsla-1993].
+ dates back to Strongtalk@~cite[bg-oopsla-1993].
 Many languages now have optional type checkers.
 @Figure-ref{fig:existing-systems} lists some examples;
  the pluggable type checkers for Java@~cite[ddems-icse-2011 pacpe-issta-2008]
