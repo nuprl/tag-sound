@@ -205,7 +205,8 @@ Many other works prove similar blame theorems@~cite[svctg-esop-2015 svcb-snapl-2
 @section{Comparing Gradual Typing Systems}
 
 @citet[stw-pldi-2015] define three calculi for gradual typing and relate them with
- fully-abstract@~cite[p-tcs-1977] translations.
+ fully-abstract translations.
+@; @~cite[p-tcs-1977] (matthias says "no", why?)
 The three calculi provide identical soundness guarantees.
 @;Recent work by @citet[kas-arxiv-2018] suggests that some calculi may lead to an
 @; efficient implementation.
