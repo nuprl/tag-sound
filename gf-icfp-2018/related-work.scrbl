@@ -160,6 +160,7 @@ Soundness is an important property of any type system, as it relates the
  ahead-of-time claims of the types to run-time outcomes.
 Soundness for migratory typing systems is furthermore an incredibly
  subtle property, as this paper demonstrates.
+
 At least four prior works address aspects of the subtlety of soundness for
  a mixed-typed language.
 The early work on Typed Racket@~cite[tf-dls-2006] explains why
@@ -176,6 +177,29 @@ Removing one kind of error from the set makes the static type system more
 
 
 @section{Blame}
+
+Correct blame is an important consolation prize;
+ a migratory typing system cannot guarantee the absence of certain
+ run-time errors the way a statically-typed language can, but correct blame
+ makes such errors easier to debug by attributing the fault to a surface-level
+ type boundary.
+Given a boundary, either the type annotation or the untyped value is the source of the error.@note{For the
+ higher-order embedding, one could formulate a blame property by:
+ labelling the two sides of each boundary term, adding the labels to every
+ monitor, and naming a label in every boundary error (but not tag error!).
+ The proof, we conjecture, would follow from a complete monitoring
+ lemma@~cite[dtf-esop-2012].}
+
+Typed Racket informally guarantees blame correctness@~cite[tfffgksst-snapl-2017].
+@citet[mt-oopsla-2017] formally prove an @emph{immediate accountability} property
+ that implies blame correctness, albeit for a language that limits the expressiveness
+ of untyped code.
+
+The original soundness criteria for Typed Racket includes a loosely related property;
+ namely, a run-time type error cannot blame a typed module@~cite[tf-dls-2006].
+@citet[wf-esop-2009] adapt this property to a type system with a dynamic type
+ by stating that certain type-casts in their evaluation language cannot fail.
+Many other works prove similar blame theorems@~cite[svctg-esop-2015 svcb-snapl-2015 afsw-popl-2011 isi-icfp-2017  vss-popl-2017].
 
 
 @section{Comparing Gradual Typing Systems}

@@ -475,7 +475,7 @@
    #:location (proceedings-location popl #:pages '(303 315))
    #:date 2015))
 
-(define vcgts-esop-2015
+(define svctg-esop-2015
   (make-bib
    #:title "Monotonic References for Efficient Gradual Typing"
    #:location (proceedings-location esop #:pages '(432 456))
