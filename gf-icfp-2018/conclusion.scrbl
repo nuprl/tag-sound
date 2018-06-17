@@ -22,7 +22,7 @@ This paper contributes two major results. First, it delivers a
  theoretical framework for investigating different ways of combining twin
  pairs of dynamically-typed and statically-typed languages. The framework
  generalizes the Matthews--Findler multi-language
- approach@~cite[mf-toplas-2007] and the theorems in @section-ref{sec:design}
+ approach@~cite[mf-toplas-2009] and the theorems in @section-ref{sec:design}
  clearly show how soundness for a pair of languages requires a more careful
  treatment than soundness for a single language.
 With the framework, we can finally work

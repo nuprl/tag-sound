@@ -12,7 +12,7 @@ Early work focused on type reconstruction for dynamically-typed
  programs@~cite[s-popl-1981 wc-toplas-1997 agd-ecoop-2005].
 Over the past decade, researchers turned to the problem of creating a
  multi-language system@~cite[gff-oopsla-2005]
- that provides a type soundness guarantee@~cite[st-sfp-2006 tf-dls-2006 mf-toplas-2007 kf-toplas-2010].
+ that provides a type soundness guarantee@~cite[st-sfp-2006 tf-dls-2006 mf-toplas-2009 kf-toplas-2010].
 Recent work addresses stronger guarantees such as parametricity@~cite[ajsw-icfp-2017 isi-icfp-2017].
 
 
@@ -55,7 +55,7 @@ Dynamic typing in Dart 2 is based on the concrete approach.@note{@url{https://ww
 
 @section{@|HOlong| Embedding}
 
-@citet[mf-toplas-2007] introduce the name @emph{natural embedding} to describe
+@citet[mf-toplas-2009] introduce the name @emph{natural embedding} to describe
  a type-directed strategy for converting between (higher-order) Scheme
  and ML values.
 The name suggests that this inductive-checking, higher-order-wrapping technique

@@ -140,16 +140,6 @@
    #:location (proceedings-location dls #:pages '(964 974))
    #:date 2006))
 
-(define mf-toplas-2007
-  (make-bib
-   #:title "Operational Semantics for Multi-Language Programs"
-   #:author (authors "Jacob Matthews" "Robert Bruce Findler")
-   #:date 2009
-   #:location (journal-location toplas
-                                #:volume 31
-                                #:number 3
-                                #:pages '(1 44))))
-
 (define gktff-sfp-2006
   (make-bib
    #:title "Sage: Hybrid Checking for Flexible Specifications"
@@ -307,8 +297,7 @@
 (define wnlov-popl-2010
   (make-bib
    #:title "Integrating Typed and Untyped Code in a Scripting Language"
-   #:author (authors "Tobias Wrigstad" "Francesco Zappa Nardelli"
-                     "Sylvain Lebresne" "Johan Östlund" "Jan Vitek")
+   #:author (authors "Tobias Wrigstad" "Francesco Zappa Nardelli" "Sylvain Lebresne" "Johan Östlund" "Jan Vitek")
    #:location (proceedings-location popl #:pages '(377 388))
    #:date 2010))
 
@@ -492,7 +481,7 @@
                      "Earl Dean" "Robert Bruce Findler"
                      "Matthew Flatt" "Sam Tobin-Hochstadt"
                      "Matthias Felleisen")
-   #:title "Towards practical gradual typing"
+   #:title "Towards Practical Gradual Typing"
    #:location (proceedings-location ecoop #:pages '(4 27))
    #:date 2015))
 
@@ -1570,6 +1559,7 @@
 ; Pluggable types
 
 ;(define b-ordl-2004
+;  ;http://bracha.org/pluggableTypesPosition.pdf
 ;  (make-bib
 ;   #:author "Gilad Bracha"
 ;   #:title "Pluggable Type Systems"
@@ -1644,7 +1634,7 @@
 (define ddems-icse-2011
   (make-bib
    #:title "Building and Using Pluggable Type Checkers"
-   #:author (authors "W. Dietl" "S. Dietzel" "M. D. Ernst" "K. Muslu" "T. W. Schiller")
+   #:author (authors "Werner Dietl" "Stephanie Dietzel" "Michael D. Ernst" "Kıvanç Muşlu" "Todd W. Schiller")
    #:location (proceedings-location icse #:pages '(681 690))
    #:date 2011))
 

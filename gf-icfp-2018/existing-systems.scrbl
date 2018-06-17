@@ -58,7 +58,7 @@ This gap presents an opportunity for future work.
   \def\embeddingskip{4cm}
   \node (N)
     [draw,align=center]
-    {\textbf{Higher-Order Embedding}};
+    {\textbf{@|HOlong| Embedding}};
   \node (Nsub)
     [align=center,below of=N,yshift=1ex]
     {Gradualtalk@|MT|@~cite[acftd-scp-2013], \\
@@ -70,7 +70,7 @@ This gap presents an opportunity for future work.
 
   \node (E)
     [draw,align=center,below of=NE,xshift=\embeddingskip]
-    {\textbf{Erasure Embedding}};
+    {\textbf{@|EOlong| Embedding}};
   \node (Esub)
     [align=center,below of=E,yshift=-3ex]
     {ActionScript@|MT|@~cite[rch-popl-2012], mypy@|MT|, \\
@@ -86,7 +86,7 @@ This gap presents an opportunity for future work.
 
   \node (LD)
     [draw,align=center,below of=ELD,xshift=-\embeddingskip]
-    {\textbf{First-Order Embedding}};
+    {\textbf{@|FOlong| Embedding}};
   \node (LDsub)
     [align=center,below of=LD,yshift=1ex]
     {Dart 2, Nom@~cite[mt-oopsla-2017], Reticulated@|MT|@~cite[vss-popl-2017], \\

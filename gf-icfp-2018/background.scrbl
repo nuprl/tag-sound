@@ -34,7 +34,7 @@
 @;and deserves more attention than it has received initially. 
 @;
 @;Our novel take on this ``boundary problem'' is to understand it as a
-@;multi-language problem in the spirit of Matthews and Findler@~cite[mf-toplas-2007].
+@;multi-language problem in the spirit of Matthews and Findler@~cite[mf-toplas-2009].
 @;From this perspective, a migratory type system
 @;for a dynamically-typed host language @${\langD} adds two key pieces: (1) a
 @;statically-typed language @${\langS}, and (2) a typed foreign function

@@ -6,7 +6,7 @@
 @; -----------------------------------------------------------------------------
 
 The three approaches to migratory typing can be understood as three
- multi-language embeddings in the style of @citet[mf-toplas-2007].
+ multi-language embeddings in the style of @citet[mf-toplas-2009].
 Each approach uses a different strategy to enforce static types at the
  boundaries between typed and untyped code.
 Eagerly enforcing types corresponds to a @emph[holong] embedding.
