@@ -156,10 +156,10 @@ Recent work evaluates the performance of practical migratory typing systems.
 
 @section{Type Soundness}
 
-Soundness is an important property of any type system, as it relates the
- ahead-of-time claims of the types to run-time outcomes.
-Soundness for migratory typing systems is furthermore an incredibly
- subtle property, as this paper demonstrates.
+@;Soundness is an important property of any type system, as it relates the
+@; ahead-of-time claims of the types to run-time outcomes.
+@;Soundness for migratory typing systems is furthermore an incredibly
+@; subtle property, as this paper demonstrates.
 
 At least four prior works address aspects of the subtlety of soundness for
  a mixed-typed language.
