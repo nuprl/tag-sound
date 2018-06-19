@@ -161,8 +161,7 @@ Recent work evaluates the performance of practical migratory typing systems.
 @;Soundness for migratory typing systems is furthermore an incredibly
 @; subtle property, as this paper demonstrates.
 
-At least four prior works address aspects of the subtlety of soundness for
- a mixed-typed language.
+At least four prior works address aspects of mixed-typed soundness.
 The early work on Typed Racket@~cite[tf-dls-2006] explains why
  soundness for a pair of languages requires a more general theorem than
  soundness for a single language.
