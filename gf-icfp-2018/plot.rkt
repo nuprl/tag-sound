@@ -116,6 +116,8 @@
 (define FONT-SIZE (make-parameter 8))
 (define TR-BRUSH-STYLE 'solid)
 (define LD-BRUSH-STYLE 'fdiagonal-hatch)
+(define TR-POINT-SYMBOL 'fullcircle)
+(define LD-POINT-SYMBOL 'circle)
 
 (define START-COLOR 3)
 (define TICK-FREQ 1)
@@ -277,8 +279,9 @@
                  [*BRUSH-COLOR-CONVERTER* (my-color-converter 'brush)]
                  [*PEN-COLOR-CONVERTER* (my-color-converter 'pen)]
                  [*MULTI-INTERVAL-STYLE* (list TR-BRUSH-STYLE LD-BRUSH-STYLE)]
+                 [*MULTI-POINT-SYMBOL* (list TR-POINT-SYMBOL LD-POINT-SYMBOL)]
                  [*with-cache-fasl?* #f]
-                 [*use-cache?* #true]
+                 ;[*use-cache?* #false]
                  [*current-cache-directory* (build-path CWD CACHE-DIR)])
     (define (make-overhead-plot/cache x)
       (define filename (data->cache-tag x extra-tag))
