@@ -23,6 +23,7 @@
   OVERHEADS-HEIGHT
   OVERHEADS-WIDTH
   FONT-SIZE
+  NUM-COLUMNS
 
   *bar-chart-max*
   *bar-chart-height*
@@ -110,7 +111,7 @@
 (define OVERHEADS-HSPACE 50)
 (define OVERHEADS-VSPACE 6)
 (define OVERHEADS-WIDTH (make-parameter 450))
-(define NUM-COLUMNS 2)
+(define NUM-COLUMNS (make-parameter 2))
 (define X-MAX 10)
 (define CACHE-DIR "cache")
 (define FONT-SIZE (make-parameter 8))
@@ -272,7 +273,7 @@
                  [*GRID-Y* (OVERHEADS-HEIGHT)]
                  [*GRID-X-SKIP* OVERHEADS-HSPACE]
                  [*GRID-Y-SKIP* OVERHEADS-VSPACE]
-                 [*GRID-NUM-COLUMNS* NUM-COLUMNS]
+                 [*GRID-NUM-COLUMNS* (NUM-COLUMNS)]
                  [*LEGEND?* #false]
                  [*LEGEND-VSPACE* 4]
                  [*FONT-SIZE* (FONT-SIZE)]
