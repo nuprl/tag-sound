@@ -74,8 +74,8 @@
     hspace)
   (only-in racket/string
     string-prefix?)
-  (only-in racket/draw
-    make-color)
+  racket/draw
+  (only-in racket/class new send)
   (only-in plot/no-gui
     hrule
     plot-pict
@@ -114,6 +114,8 @@
 (define X-MAX 10)
 (define CACHE-DIR "cache")
 (define FONT-SIZE (make-parameter 8))
+(define TR-BRUSH-STYLE 'solid)
+(define LD-BRUSH-STYLE 'fdiagonal-hatch)
 
 (define START-COLOR 3)
 (define TICK-FREQ 1)
@@ -127,7 +129,7 @@
 (define ((my-color-converter kind) i)
   (case kind
    [(brush)
-    (->brush-color (if (= i START-COLOR) "CornflowerBlue" i))]
+    (->brush-color (if (= i START-COLOR) "CornflowerBlue" "darkorange"))]
    [(pen)
     (->pen-color i)]
    [else
@@ -136,13 +138,62 @@
 (define BM-NAME* '(
   fsm jpeg kcfa morsecode sieve snake suffixtree synth tetris zombie))
 
+(define (->brush-style i)
+  (if (= i START-COLOR)
+    TR-BRUSH-STYLE
+    LD-BRUSH-STYLE))
+
+(define (draw-shape/border w h draw-fun
+                           color [border-color #f] [border-width #f]
+                           [brush-style 'solid])
+  (dc (λ (dc dx dy)
+        (define old-brush (send dc get-brush))
+        (define old-pen   (send dc get-pen))
+        (send dc set-brush
+              (send the-brush-list find-or-create-brush
+                    (cond
+                          [color        color]
+                          [else         (send old-pen get-color)])
+                    brush-style))
+            (when (or border-color border-width)
+              ;; otherwise, leave pen as is
+              (send dc set-pen (send the-pen-list
+                                     find-or-create-pen
+                                     (or border-color
+                                         (send old-pen get-color))
+                                     (or border-width
+                                         (send old-pen get-width))
+                                     (send old-pen get-style))))
+        (draw-fun dc dx dy)
+        (send dc set-brush old-brush)
+        (send dc set-pen   old-pen))
+      w h))
+
+(define (filled-rounded-rectangle w h [corner-radius -0.25]
+                                  #:brush-style [bs 'solid]
+                                  #:color        [color #f]
+                                  #:border-color [border-color #f]
+                                  #:border-width [border-width #f])
+  (define dc-path (new dc-path%))
+  (send dc-path rounded-rectangle 0 0 w h corner-radius)
+  (let-values ([(x y w h) (send dc-path get-bounding-box)])
+    (draw-shape/border w h
+                       (lambda (dc dx dy)
+                         (send dc draw-path dc-path (- dx x) (- dy y)))
+                       color border-color border-width bs)))
+
 (define color-sample
   (let ([->pen (my-color-converter 'pen)]
         [->brush (my-color-converter 'brush)])
     (lambda (i)
       (define border-color (apply make-color (->pen i)))
       (define fill-color (apply make-color (->brush i)))
-      (filled-rounded-rectangle 8 8 #:color fill-color #:border-color border-color #:border-width 1))))
+      (define fill-style (->brush-style i))
+      (filled-rounded-rectangle 8 8
+                                #:brush-style fill-style
+                                #:color fill-color
+                                #:border-color border-color
+                                #:border-width 1))))
 
 (define (color-text i)
   (case i
@@ -225,7 +276,9 @@
                  [*FONT-SIZE* (FONT-SIZE)]
                  [*BRUSH-COLOR-CONVERTER* (my-color-converter 'brush)]
                  [*PEN-COLOR-CONVERTER* (my-color-converter 'pen)]
+                 [*MULTI-INTERVAL-STYLE* (list TR-BRUSH-STYLE LD-BRUSH-STYLE)]
                  [*with-cache-fasl?* #f]
+                 [*use-cache?* #true]
                  [*current-cache-directory* (build-path CWD CACHE-DIR)])
     (define (make-overhead-plot/cache x)
       (define filename (data->cache-tag x extra-tag))
@@ -240,7 +293,7 @@
   (make-plot* data->plot x*))
 
 (define (exact-plot* x*)
-  (parameterize ([*OVERHEAD-FREEZE-BODY* #true]
+  (parameterize ([*OVERHEAD-FREEZE-BODY* #false]
                  [*POINT-COLOR* START-COLOR])
     (make-plot* data->exact-plot x* "exact")))
 
@@ -573,7 +626,7 @@
             (make-tick-hrule (/ i TICK-FREQ))))
         (for/list ([c*r (in-list (list cadr caddr))]
                    [color (in-naturals START-COLOR)]
-                   [style (in-list (list 'solid 'fdiagonal-hatch))]
+                   [style (in-list (list TR-BRUSH-STYLE LD-BRUSH-STYLE))]
                    [x-min (in-naturals 0)])
           (render-labeled-reals
             (for/list ([lbl (in-list (car rt))]
