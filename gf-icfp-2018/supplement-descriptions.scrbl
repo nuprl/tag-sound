@@ -3,13 +3,6 @@
 
 @title{Benchmark Descriptions}
 
-For more details about the benchmarks, and links to additional object-oriented
- benchmarks:
-
- @nested[
- @url{http://docs.racket-lang.org/gtp-benchmarks/index.html}
- ]
-
 @bm-desc[
   "sieve"
   "Ben Greenman"
@@ -73,6 +66,16 @@ For more details about the benchmarks, and links to additional object-oriented
   Converts a description of notes and drum beats to @tt{WAV} format.
 }
 
+@exact{\bigskip}
+
+For additional details about the benchmarks, their source code,
+ and links to more (object-oriented) benchmarks, see:
+
+ @nested[
+ @url{http://docs.racket-lang.org/gtp-benchmarks/index.html}
+ ]
+
+@; TODO auto-compute the table
 @figure["fig:benchmark-static" "Benchmark Size"
   @exact|{
 \setlength{\tabcolsep}{0.2em}\begin{tabular}{lrrr}
