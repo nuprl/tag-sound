@@ -3,11 +3,8 @@
 @UID++[]
 @title[#:tag "appendix:preliminaries"]{Preliminaries}
 
-Common surface language and typing system, but (1) re-print typing judgment for every model and (2) abuse of notation, write the full surface + core e with each model (its really two languages, but simpler to write as one)
-
-
 @tr-definition[#:key "divergence" @elem{@${\rastar} divergence}]{
-  An expression @${e} diverges for the reduction relation @${\rastar} if for
+  Given a reduction relation @${\rastar}, an expression @${e} diverges if for
    all @${e'} such that @${e\!\rastar\!e'} there exists an @${e''} such that
    @${e'\!\rrarrow\!e''}.
 }@|smallskip|
@@ -23,6 +20,7 @@ Common surface language and typing system, but (1) re-print typing judgment for 
 @;}@|smallskip|
 
 @tr-assumption[@elem{@${\vdash} permutation}]{
+For all typing judgments and properties @${\vdash}:
 @itemlist[
 @item{
   If @${x,x',\Gamma \vdash e} then @${x',x,\Gamma \vdash e}
@@ -38,3 +36,13 @@ Common surface language and typing system, but (1) re-print typing judgment for 
   a subterm of the form @${(\edyn{\tau'}{e'})}, nor a subterm of the form
   @${(\esta{\tau'}{e'})}.
 }
+
+@exact{\bigskip}
+
+@exact{\noindent}@emph{Notes:}
+@itemlist[
+@item{
+  The upcoming models use a common surface syntax and typing system, but to
+  keep each model self-contained we reprint this system in each definition.
+}
+]
