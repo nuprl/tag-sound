@@ -1,6 +1,6 @@
 #lang gf-icfp-2018
 @require{techreport.rkt}
-@title{Implementing Tagged Racket}
+@appendix-title{Implementing Tagged Racket}
 
 The high-level architecture of @|TR_N| is to:
 
@@ -9,7 +9,7 @@ The high-level architecture of @|TR_N| is to:
   type-check a module,
 }
 @item{
-  use the type environment to generate contracts for exported functions,
+  use the type environment to generate contracts, @; for exported functions,
 }
 @item{
   optimize the contracts for the module,
@@ -19,43 +19,49 @@ The high-level architecture of @|TR_N| is to:
 }
 ]
 
-To implement @|TR_LD|, we modified step 2 and replaced step 3.
+For @|TR_LD|, we modified step 2 and replaced step 3.
 
 @section{Generating Type-Constructor Contracts}
 
 Typed Racket defines a function @hyperlink["https://github.com/racket/typed-racket/blob/master/typed-racket-lib/typed-racket/private/type-contract.rkt#L283"]{@racket[type->contract]} that
- (1) expects a type, (2) compiles the type to a data structure that describes a contract, (3) optimizes the representation of the data structure, and (4) compiles the data structure to Racket code that will generate an appropriate contract.
-This ``data structure that describes a contract'' is called a @hyperlink["https://github.com/racket/typed-racket/tree/master/typed-racket-lib/typed-racket/static-contracts"]{static contract}.
+ (1) expects a type,
+ (2) compiles the type to a so-called @hyperlink["https://github.com/racket/typed-racket/tree/master/typed-racket-lib/typed-racket/static-contracts"]{@emph{static contract}},
+ (3) optimizes the representation of the static contract, and
+ (4) compiles the static contract to Racket code that will generate an appropriate contract.
 
-We modified the @racket[type->contract] function to generate type-tag contracts
- by adding a new method to the static contracts API and a new function for static contracts.
-The method converts a static contract to a Racket contract that checks it's type tag.
-For example, the contract for a list type generates the tag check @racket[list?].
-The function expects a static contract and a natural-number amount of fuel.
-If the fuel is zero, it returns a tag version of the contract.
-Otherwise, it recurs into the static contract and decrements the fuel if the contract
- is for a guarded type (e.g., an intersection type is unguarded).
-Note: the initial fuel is always zero for the code we evaluate in this paper.
+We modified the @racket[type->contract] function to generate type-constructor checks 
+ by adding a new method to the internal API for static contracts.
+For example, the method converts the contract for a list of elements into
+ a contract that checks the @racket[list?] predicate.
 
 
 @section{Defending Typed Code}
 
-We replaced the Typed Racket optimizer with a similarly-structured function that inserts type-tag checks.
-The function is a fold over the syntax of a type-annotated program.
-The fold performs two kinds of rewrites.
+The @|TR_LD| prototype replaces the Typed Racket optimizer with a completion
+ function that adds type-constructor checks to typed code.
+The function implements a fold over the syntax of a type-annotated program,
+ and performs two kinds of rewrites.
 
-First, the fold rewrites almost every function application @racket[(f x)] to @racket[(check K (f x))], where @racket[K] is the static type of the application.
-The exceptions, which do not get a check, are:
+First, the completion rewrites @emph{most} applications @racket[(f x)] to @racket[(check K (f x))], where @racket[K] is the static type of the application.
+If @racket[f] is an identifier, however, there are two exceptional cases:
 @itemlist[
 @item{
-  built-in functions that we trust to return a well-tagged value (e.g. @racket[map]),
+  @racket[f] may be a built-in function that is certain to return a value
+   of the correct type constructor
+   (e.g., @racket[map] always returns a list); and
 }
 @item{
-  functions defined in statically-typed code (exception: accessor functions for user-defined @hyperlink["http://docs.racket-lang.org/reference/define-struct.html#%28form._%28%28lib._racket%2Fprivate%2Fbase..rkt%29._struct%29%29"]{structs}),
+  @racket[f] may be statically typed, in which case soundness guarantees that
+   @racket[f] returns a value that matches its static type constructor.
+  (there is one exception: accessor functions for user-defined
+   @hyperlink["http://docs.racket-lang.org/reference/define-struct.html#%28form._%28%28lib._racket%2Fprivate%2Fbase..rkt%29._struct%29%29"]{structs}
+   are unsafe like any other accessor, e.g., @racket[car]),
 }
 ]
+@exact{\noindent}For these exceptional cases, the completion does not insert
+ a type-constructor check.
 
-Second, the fold defends typed functions from dynamically-typed arguments
+Second, the completion defends typed functions from dynamically-typed arguments
  by translating a function like @racket[(λ (x) e)] to @racket[(λ (x) (check x) e)].
 The structure of the check is based on the domain type of the function.
 
@@ -63,7 +69,6 @@ The structure of the check is based on the domain type of the function.
 @section{Diff vs. Racket v6.10.1}
 
 The repository for this paper contains the @|TR_LD| prototype and a diff
- between the prototype and Typed Racket v6.10.1 (@|TR_N|).
-A URL for the diff is:
+ between the prototype and Typed Racket v6.10.1.
 
-@nested[@url{https://github.com/nuprl/tag-sound/blob/master/src/locally-defensive.patch}]
+See: @url{https://github.com/nuprl/tag-sound?path=src/locally-defensive.patch}
