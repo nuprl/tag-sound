@@ -34,7 +34,7 @@ Over the years, three approaches have emerged for interpreting types in a
  cost@~cite[tfgnvf-popl-2016 gtnffvf-jfp-2017].
 @;
  A second approach is to @emph{erase the types} and rely on the soundness
- of the underlying dynamically typed language@~cite[bat-ecoop-2014].@note{@url{http://bracha.org/pluggableTypesPosition.pdf}}
+ of the underlying dynamically typed language@~cite[bat-ecoop-2014].@note{Bracha's @emph{pluggable types} paper (@hyperlink["http://bracha.org/pluggableTypesPosition.pdf"]{@tt{bracha.org/pluggableTypesPosition.pdf}}) provides additional motivation.}
  While this lack of any dynamic enforcement is free of run-time
  overhead, it takes a ``garbage in, garbage out'' approach toward
  interactions between the statically typed and dynamically typed parts of a
@@ -53,7 +53,7 @@ a proper comparison:
  Publications on implementations of migratory typing often prove a
  ``type soundness'' (or ``type safety'') theorem without formally discussing
  how soundness for the pair of languages differs
- from soundness for a single language@~cite[vss-popl-2017 rsfbv-popl-2015].@note{@url{https://arxiv.org/abs/1708.08021}}
+ from soundness for a single language@~cite[vss-popl-2017 rsfbv-popl-2015].@note{See also: this unpublished manuscript with a single-language soundness theorem @hyperlink["https://arxiv.org/abs/1708.08021/"]{@tt{arxiv.org/abs/1708.08021/}}}
 
  To answer this question precisely, this paper explains the three
  approaches in a systematic manner within one semantic framework. For the
