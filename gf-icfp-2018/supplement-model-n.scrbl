@@ -120,12 +120,9 @@
 }
 
 @tr-corollary[#:key "N-compilation" @elem{@${\langN} compilation}]{
-  If:
-  @itemlist[
-  @item{
-    @${\wellM e : \tau},
-  }
-  @item{
+  If @${\wellM e : \tau}
+
+  and
     @${\vfromdynN'} extends @${\vfromdynN} with a rule to monitor a typed function:
 
     @$|{
@@ -133,8 +130,8 @@
         \vfromdynN'(\tarr{\tau_d}{\tau_c}, \vlam{\tann{x}{\tau}}{e}) & = & \vmonfun{(\tarr{\tau_d}{\tau_c})}{(\vlam{\tann{x}{\tau}}{e})}
       \end{array}
     }|
-  }
-  @item{
+
+  and
     @${\rrND'} extends @${\rrND} with a rule to apply a typed function:
 
     @$|{
@@ -143,8 +140,8 @@
         & \vsubst{e}{x}{v}
       \end{array}
     }|
-  }
-  @item{
+
+  and
     @${e \ccND' e} is defined as:
 
       @$|{
@@ -159,11 +156,10 @@
         \esd[\eerr] & \ccND' & \eerr
        \end{array}
       }|
-  }
-  @item{
-    and @${{\rrNDstar}'} is the reflexive transitive closure of @${\ccND'}
-  }
-  ]
+
+  and
+    @${{\rrNDstar}'} is the reflexive transitive closure of @${\ccND'}
+
   @linebreak[]
   then one of the following holds:
   @itemlist[

@@ -204,54 +204,49 @@
 }
 
 @tr-corollary[#:key "K-compilation" @elem{@${\langK} compilation}]{
-  If:
-  @itemlist[
-  @item{
-    @${\wellM e : \tau}
-  }
-  @item{
-    @${\wellM e : \tau \carrow e''}
-  }
-  @item{
-    @${\wellKE e'' : \tagof{\tau}}
-  }
-  @item{
+  If @${\wellM e : \tau}
+
+  and @${\wellM e : \tau \carrow e''}
+
+  and @${\wellKE e'' : \tagof{\tau}}
+
+  and
     @${\rrKD'} is similar to @${\rrKD} but without the no-op boundaries:
 
     @$|{
       \begin{array}{l@{\hspace{0.5em}}c@{\hspace{0.5em}}l}
-        \echk{K}{v} & \rrKS
+        \echk{K}{v} & \rrKD'
         & \efromany{K}{v}
         \\
-        \eapp{v_0}{v_1} & \rrKD & \tagerror
+        \eapp{v_0}{v_1} & \rrKD' & \tagerror
         \\ \sidecond{if $v_0 \in \integers$ or $v_0 = \vpair{v}{v'}$}
         \\
-        \eapp{(\vlam{\tann{x}{\tau}}{e})}{v} & \rrKD
+        \eapp{(\vlam{\tann{x}{\tau}}{e})}{v} & \rrKD'
         & \boundaryerror
         \\ \sidecond{if $\efromany{\tagof{\tau}}{v} = \boundaryerror$}
         \\
-        \eapp{(\vlam{\tann{x}{\tau}}{e})}{v} & \rrKD
+        \eapp{(\vlam{\tann{x}{\tau}}{e})}{v} & \rrKD'
         & \vsubst{e}{x}{\efromany{\tagof{\tau}}{v}}
         \\
-        (\vlam{x}{e})~v & \rrKD & \vsubst{e}{x}{v}
+        (\vlam{x}{e})~v & \rrKD' & \vsubst{e}{x}{v}
         \\
-        \eunop{v} & \rrKD
+        \eunop{v} & \rrKD'
         & \tagerror
         \\ \sidecond{if $\delta(\vunop, v)$ is undefined}
         \\
-        \eunop{v} & \rrKD
+        \eunop{v} & \rrKD'
         & \delta(\vunop, v)
         \\
-        \ebinop{v_0}{v_1} & \rrKD
+        \ebinop{v_0}{v_1} & \rrKD'
         & \tagerror
         \\ \sidecond{if $\delta(\vbinop, v_0, v_1)$ is undefined}
         \\
-        \ebinop{v_0}{v_1} & \rrKD
+        \ebinop{v_0}{v_1} & \rrKD'
         & \delta(\vbinop, v_0, v_1)
       \end{array}
     }|
-  }
-  @item{
+
+  and
     @${e \ccKD' e} is defined as:
 
       @$|{
@@ -266,11 +261,9 @@
         \esd[\eerr] & \ccKD' & \eerr
        \end{array}
       }|
-  }
-  @item{
-    and @${{\rrKDstar}'} is the reflexive transitive closure of @${\ccKD'}
-  }
-  ]
+
+  and @${{\rrKDstar}'} is the reflexive transitive closure of @${\ccKD'}
+
   @linebreak[]
   then one of the following holds:
   @itemlist[
@@ -279,8 +272,9 @@
     @item{ @${e'' {\rrKDstar}'~\boundaryerror} }
     @item{ @${e} diverges}
   ]
-}@tr-proof{
-  By @|K-S-soundness| and the fact that @${\rrKS} is a subset of @${\rrKD'}.
+}@tr-proof[#:sketch? #true]{
+  By @|K-S-soundness| and the fact that @${\rrKS} is a subset of @${\rrKD'}
+   (modulo the no-op boundaries).
 }
 
 

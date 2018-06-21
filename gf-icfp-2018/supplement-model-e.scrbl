@@ -85,6 +85,7 @@
   The @${\rrESstar} and @${\rrEDstar} relations are identical.
   In practice, uses of @${\rrESstar} may be replaced with @${\rrEDstar}.
 }
+@linebreak[]
 
 @tr-theorem[#:key "E-bf-soundness" @elem{boundary-free @${\langE}-soundness}]{
   If @${\wellM e : \tau} and @${e} is boundary-free then one of the following holds:
