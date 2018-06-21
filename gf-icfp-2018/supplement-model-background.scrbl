@@ -45,4 +45,18 @@ For all typing judgments and properties @${\vdash}:
   The upcoming models use a common surface syntax and typing system, but to
   keep each model self-contained we reprint this system in each definition.
 }
+@item{
+  The proofs are written in a structured style, typically as a list of basic
+   steps where each step is justified by an assumption, a lemma, or a previous
+   step.
+  Lemma names are @emph{italicized} and hyperlinked to the actual lemma.
+}
+@;@item{
+@;  retrospect: spent too long maintaining these proofs ...
+@;   (1) ideas (2) redex models (3) tr implementation
+@;   (4) on paper, illustrative model (5) proofs to validate on-paper model
+@;  doing the proofs uncovered a few bugs
+@;   <https://github.com/nuprl/tag-sound/issues/8#issuecomment-349027146>
+@;  but these proofs are probably too much detail for the purpose
+@;}
 ]
