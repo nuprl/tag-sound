@@ -10,6 +10,8 @@
 @section{@|EOlong| Theorems}
 
 @(begin
+   (define E-S-soundness @tr-ref[#:key "E-S-soundness"]{static @${\langE} soundness})
+
    (define E-progress @tr-ref[#:key "E-progress"]{progress})
    (define E-preservation @tr-ref[#:key "E-preservation"]{preservation})
 
@@ -65,18 +67,19 @@
   If @${\wellM e}
    then @${\wellEE e} and one of the following holds:
   @itemlist[
-    @item{ @${e \rrESstar v} and @${\wellEE v} }
-    @item{ @${e \rrESstar \tagerror} }
-    @item{ @${e \rrESstar \boundaryerror} }
+    @item{ @${e \rrEDstar v} and @${\wellEE v} }
+    @item{ @${e \rrEDstar \tagerror} }
+    @item{ @${e \rrEDstar \boundaryerror} }
     @item{ @${e} diverges }
   ]
 }@tr-proof{
   @itemlist[#:style 'ordered
     @item{@tr-step{
-      @${\wellEE e}
-      @|E-D-implies|}}
+      @${\rrEDstar = \rrESstar}
+      definition
+    }}
     @item{@tr-qed{
-      by @|E-progress| and @|E-preservation|
+      by @|E-S-soundness|
     }}
   ]
 }
@@ -413,6 +416,7 @@
   If @${\wellEE e} then one of the following holds:
   @itemlist[
     @item{ @${e} is a value }
+    @item{ @${e \in \eerr} }
     @item{ @${e \ccES e'} }
     @item{ @${e \ccES \tagerror} }
     @item{ @${e \ccES \boundaryerror} }
@@ -487,15 +491,13 @@
     @tr-step{
       @${e \ccES \ctxE{\efromdynE{\tau}{v}}}
     }
-    @tr-qed{
-      by @|E-fromdyn-soundness|
-    }
+    @tr-qed{}
   }
 
   @tr-case[@${e = \ctxE{\esta{\tau}{v}}}]{
     @tr-step{
       @${e \ccES \ctxE{\efromstaE{\tau}{v}}}}
-    @tr-qed{ by @|E-fromsta-soundness| }
+    @tr-qed{}
   }
 
   @tr-case[@${e \ctxE{\eerr}}]{
@@ -629,6 +631,7 @@
   If @${\wellM e : \tau} and @${e} is boundary-free, then one of the following holds:
   @itemlist[
     @item{ @${e} is a value }
+    @item{ @${e \in \eerr} }
     @item{ @${e \ccES e'} }
     @item{ @${e \ccES \boundaryerror} }
   ]
