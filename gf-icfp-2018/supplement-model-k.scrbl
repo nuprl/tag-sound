@@ -1,12 +1,13 @@
 #lang gf-icfp-2018
 @require{techreport.rkt}
 
-@appendix-title++{Locally-Defensive Embedding}
+@appendix-title++{@|FOlong| Embedding}
 
 @; -----------------------------------------------------------------------------
-@section{@${\langK} Definitions}
+@section{@|FOlong| Definitions}
 @exact{\input{fig:locally-defensive-embedding.tex}}
 
+@exact{\newpage}
 @tr-definition[#:key "K-boundary-free" @elem{@${\langK} boundary-free}]{
   An expression @${e} is @emph{boundary free} if @${e} does not contain
   a subterm of the form:
@@ -20,7 +21,7 @@
 
 @; -----------------------------------------------------------------------------
 @|clearpage|
-@section{@${\langK} Theorems}
+@section{@|FOlong| Theorems}
 
 @(begin
    (define K-S-soundness @tr-ref[#:key "K-S-soundness"]{static @${\langK}-soundness})
@@ -148,11 +149,6 @@
   ]
 }
 
-@;@tr-remark[#:key "K-compilation" @elem{@${\langK} compilation}]{
-@;  @; need chk in the core language, ->D
-@;}@tr-proof{
-@;}
-
 @tr-theorem[#:key "K-bf-soundness" @elem{boundary-free @${\langK}-soundness}]{
   If @${\wellM e : \tau}
   and @${e} is boundary-free
@@ -207,9 +203,89 @@
   ]
 }
 
+@tr-corollary[#:key "K-compilation" @elem{@${\langK} compilation}]{
+  If:
+  @itemlist[
+  @item{
+    @${\wellM e : \tau}
+  }
+  @item{
+    @${\wellM e : \tau \carrow e''}
+  }
+  @item{
+    @${\wellKE e'' : \tagof{\tau}}
+  }
+  @item{
+    @${\rrKD'} is similar to @${\rrKD} but without the no-op boundaries:
+
+    @$|{
+      \begin{array}{l@{\hspace{0.5em}}c@{\hspace{0.5em}}l}
+        \echk{K}{v} & \rrKS
+        & \efromany{K}{v}
+        \\
+        \eapp{v_0}{v_1} & \rrKD & \tagerror
+        \\ \sidecond{if $v_0 \in \integers$ or $v_0 = \vpair{v}{v'}$}
+        \\
+        \eapp{(\vlam{\tann{x}{\tau}}{e})}{v} & \rrKD
+        & \boundaryerror
+        \\ \sidecond{if $\efromany{\tagof{\tau}}{v} = \boundaryerror$}
+        \\
+        \eapp{(\vlam{\tann{x}{\tau}}{e})}{v} & \rrKD
+        & \vsubst{e}{x}{\efromany{\tagof{\tau}}{v}}
+        \\
+        (\vlam{x}{e})~v & \rrKD & \vsubst{e}{x}{v}
+        \\
+        \eunop{v} & \rrKD
+        & \tagerror
+        \\ \sidecond{if $\delta(\vunop, v)$ is undefined}
+        \\
+        \eunop{v} & \rrKD
+        & \delta(\vunop, v)
+        \\
+        \ebinop{v_0}{v_1} & \rrKD
+        & \tagerror
+        \\ \sidecond{if $\delta(\vbinop, v_0, v_1)$ is undefined}
+        \\
+        \ebinop{v_0}{v_1} & \rrKD
+        & \delta(\vbinop, v_0, v_1)
+      \end{array}
+    }|
+  }
+  @item{
+    @${e \ccKD' e} is defined as:
+
+      @$|{
+      \begin{array}{l@{\hspace{0.5em}}c@{\hspace{0.5em}}l}
+        \esd[e] & \ccKD' & \ctxE{e'}
+        \\ \sidecond{if $e \rrKD' e'$}
+        \\
+        \esd[\esta{\tau}{v}] & \ccKD' & \esd[\efromdynK{\tau}{v}]
+        \\
+        \esd[\edyn{\tau}{v}] & \ccKD' & \esd[\efromdynK{\tau}{v}]
+        \\
+        \esd[\eerr] & \ccKD' & \eerr
+       \end{array}
+      }|
+  }
+  @item{
+    and @${{\rrKDstar}'} is the reflexive transitive closure of @${\ccKD'}
+  }
+  ]
+  @linebreak[]
+  then one of the following holds:
+  @itemlist[
+    @item{ @${e'' {\rrKDstar}'~v \mbox{ and } \wellKE v : \tagof{\tau}} }
+    @item{ @${e'' {\rrKDstar}'~\tagerror} }
+    @item{ @${e'' {\rrKDstar}'~\boundaryerror} }
+    @item{ @${e} diverges}
+  ]
+}@tr-proof{
+  By @|K-S-soundness| and the fact that @${\rrKS} is a subset of @${\rrKD'}.
+}
+
 
 @|clearpage|
-@section{@${\langK} Lemmas}
+@section{@|FOlong| Lemmas}
 
 @tr-lemma[#:key "K-fromdyn-soundness" @elem{@${\vfromdynK} soundness}]{
   If @${\wellKE v} then @${\wellKE \efromdynK{\tau}{v}}.

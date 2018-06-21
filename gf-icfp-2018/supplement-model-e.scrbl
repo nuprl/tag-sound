@@ -1,13 +1,13 @@
 #lang gf-icfp-2018
 @require{techreport.rkt}
 
-@appendix-title++{Erasure Embedding}
+@appendix-title++{@|EOlong| Embedding}
 
-@section{@${\langE} Definitions}
+@section{@|EOlong| Definitions}
 @exact{\input{fig:erasure-embedding.tex}}
 
 @|clearpage|
-@section{@${\langE} Theorems}
+@section{@|EOlong| Theorems}
 
 @(begin
    (define E-progress @tr-ref[#:key "E-progress"]{progress})
@@ -81,6 +81,11 @@
   ]
 }
 
+@tr-remark[#:key "E-compilation" @elem{@${\langE}-compilation}]{
+  The @${\rrESstar} and @${\rrEDstar} relations are identical.
+  In practice, uses of @${\rrESstar} may be replaced with @${\rrEDstar}.
+}
+
 @tr-theorem[#:key "E-bf-soundness" @elem{boundary-free @${\langE}-soundness}]{
   If @${\wellM e : \tau} and @${e} is boundary-free then one of the following holds:
   @itemlist[
@@ -94,14 +99,9 @@
   }
 }
 
-@tr-remark[#:key "E-compilation" @elem{@${\langE}-compilation}]{
-  The @${\rrESstar} and @${\rrEDstar} relations are identical.
-  In practice, uses of @${\rrESstar} may be replaced with @${\rrEDstar}.
-}
-
 @; -----------------------------------------------------------------------------
 @|clearpage|
-@section{@${\langE} Lemmas}
+@section{@|EOlong| Lemmas}
 
 @tr-lemma[#:key "E-fromdyn-soundness" @elem{@${\vfromdynE} soundness}]{
   If @${\wellEE v} then @${\wellEE \efromdynE{\tau}{v}}.

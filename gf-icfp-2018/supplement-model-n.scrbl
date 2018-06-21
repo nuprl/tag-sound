@@ -1,13 +1,13 @@
 #lang gf-icfp-2018
 @require{techreport.rkt}
 
-@appendix-title++{Natural Embedding}
+@appendix-title++{@|HOlong| Embedding}
 
-@section{@${\langN} Definitions}
+@section{@|HOlong| Definitions}
 @exact{\input{fig:natural-embedding.tex}}
 
 @|clearpage|
-@section{@${\langN} Theorems}
+@section{@|HOlong| Theorems}
 
 @(begin
    (define N-S-soundness @tr-ref[#:key "N-S-soundness"]{static @${\langN}-soundness})
@@ -108,42 +108,78 @@
   ]
 }
 
-@; TODO compilation
-@;@tr-remark[#:key "N-compilation" @elem{@${\langN}-compilation}]{
-@;  The @${\rrNSstar} reduction relation is a subset of the @${\rrNDstar} relation.
-@;  In practice, uses of @${\rrNSstar} may be replaced with @${\rrNDstar}.
-@;}
-@;
-@;@tr-theorem[#:key "N-compilation" @elem{@${\langN}-compilation}]{
-@;  If @${\wellM e : \tau} and @${\rastar} is a reduction relation based on @${\rrND}
-@;   in which @${\vfromstaN} is defined as @${\vfromdynN}, then
-@;  @${\wellNE e : \tau} and one of the following holds:
-@;  @itemlist[
-@;    @item{ @${e \rastar v \mbox{ and } \wellNE v : \tau} }
-@;    @item{ @${e \rastar \tagerror} }
-@;    @item{ @${e \rastar \boundaryerror} }
-@;    @item{ @${e} diverges}
-@;  ]
-@;}@tr-proof[#:sketch? #true]{
-@;  Progress and preservation holds because @${\rrNS} is a subset of @${\rrND}
-@;   and @${\vfromdynN} performs a subset of the checks that @${\vfromstaN} does.
-@;}
+@tr-corollary[#:key "N-pure-static" @elem{@${\langN} static soundness}]{
+  If @${\wellM e : \tau} and @${e} is boundary-free, then one of the following holds:
+  @itemlist[
+    @item{ @${e \rrNEstar v \mbox{ and } \wellNE v : \tau} }
+    @item{ @${e \rrNEstar \boundaryerror} }
+    @item{ @${e} diverges}
+  ]
+}@tr-proof{
+  Consequence of the proof for @|N-S-soundness|
+}
 
-@;@tr-corollary[#:key "N-pure-static" @elem{@${\langN} static soundness}]{
-@;  If @${\wellM e : \tau} and @${e} is purely static, then one of the following holds:
-@;  @itemlist[
-@;    @item{ @${e \rrNEstar v \mbox{ and } \wellNE v : \tau} }
-@;    @item{ @${e \rrNEstar \boundaryerror} }
-@;    @item{ @${e} diverges}
-@;  ]
-@;}@tr-proof{(sketch)
-@;  Purely-static terms cannot step to a @${\tagerror} and are preserved by the
-@;   @${\ccNS} reduction relation.
-@;}
+@tr-corollary[#:key "N-compilation" @elem{@${\langN} compilation}]{
+  If:
+  @itemlist[
+  @item{
+    @${\wellM e : \tau},
+  }
+  @item{
+    @${\vfromdynN'} extends @${\vfromdynN} with a rule to monitor a typed function:
+
+    @$|{
+      \begin{array}{l@{~~}c@{~}l}
+        \vfromdynN'(\tarr{\tau_d}{\tau_c}, \vlam{\tann{x}{\tau}}{e}) & = & \vmonfun{(\tarr{\tau_d}{\tau_c})}{(\vlam{\tann{x}{\tau}}{e})}
+      \end{array}
+    }|
+  }
+  @item{
+    @${\rrND'} extends @${\rrND} with a rule to apply a typed function:
+
+    @$|{
+      \begin{array}{l@{\hspace{0.5em}}c@{\hspace{0.5em}}l}
+        \eapp{(\vlam{\tann{x}{\tau}}{e})}{v} & \rrND'
+        & \vsubst{e}{x}{v}
+      \end{array}
+    }|
+  }
+  @item{
+    @${e \ccND' e} is defined as:
+
+      @$|{
+      \begin{array}{l@{\hspace{0.5em}}c@{\hspace{0.5em}}l}
+        \esd[e] & \ccND' & \ctxE{e'}
+        \\ \sidecond{if $e \rrND' e'$}
+        \\
+        \esd[\esta{\tau}{v}] & \ccND' & \esd[\vfromdynN'(\tau, v)]
+        \\
+        \esd[\edyn{\tau}{v}] & \ccND' & \esd[\vfromdynN'(\tau, v)]
+        \\
+        \esd[\eerr] & \ccND' & \eerr
+       \end{array}
+      }|
+  }
+  @item{
+    and @${{\rrNDstar}'} is the reflexive transitive closure of @${\ccND'}
+  }
+  ]
+  @linebreak[]
+  then one of the following holds:
+  @itemlist[
+    @item{ @${e {\rrNDstar}'~v \mbox{ and } \wellNE v : \tau} }
+    @item{ @${e {\rrNDstar}'~\tagerror} }
+    @item{ @${e {\rrNDstar}'~\boundaryerror} }
+    @item{ @${e} diverges}
+  ]
+}@tr-proof{
+  By @|N-S-soundness| and the fact that @${\vfromstaN} and @${\rrNS} are subsets
+   of @${\vfromdynN'} and @${\rrND'}, respectively.
+}
 
 
 @|clearpage|
-@section{@${\langN} Lemmas}
+@section{@|HOlong| Lemmas}
 
 @tr-lemma[#:key "N-fromdyn-soundness" @elem{@${\vfromdynN} soundness}]{
   If @${\wellNE v} then @${\wellNE \efromdynN{\tau}{v}}.
