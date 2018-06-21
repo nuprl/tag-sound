@@ -178,7 +178,7 @@
 @section{@|HOlong| Lemmas}
 
 @tr-lemma[#:key "N-fromdyn-soundness" @elem{@${\vfromdynN} soundness}]{
-  If @${\wellNE v} then @${\wellNE \efromdynN{\tau}{v}}.
+  If @${\wellNE v} then @${\wellNE \efromdynN{\tau}{v} : \tau}
 }@tr-proof{
   @tr-case[@${\efromdynN{\tarr{\tau_d}{\tau_c}}{v} = \vmonfun{(\tarr{\tau_d}{\tau_c})}{v}}]{
     @tr-step{
@@ -192,7 +192,7 @@
               @tr-and[4]
               \efromdynN{\tpair{\tau_0}{\tau_1}}{v} = \vpair{\edyn{\tau_0}{v_0}}{\edyn{\tau_1}{v_1}}}]{
     @tr-step{
-      @${\wellNE v_0 @tr-and[4] \wellNE v_1}
+      @${\wellNE v_0 @tr-and[] \wellNE v_1}
       @|N-D-inversion|
     }
     @tr-step{
@@ -204,7 +204,7 @@
     @tr-qed{(2)}
   }
 
-  @tr-case[@${v = i @tr-and[4] \efromdynN{\tnat}{v} = v}]{
+  @tr-case[@${v = i @tr-and[4] \efromdynN{\tint}{v} = v}]{
     @tr-qed{}
   }
 
@@ -218,7 +218,7 @@
 }
 
 @tr-lemma[#:key "N-fromsta-soundness" @elem{@${\vfromstaN} soundness}]{
-  If @${\wellNE v : \tau} then @${\wellNE \efromstaN{\tau}{v}}.
+  If @${\wellNE v : \tau} then @${\wellNE \efromstaN{\tau}{v}}
 }@tr-proof{
   @tr-case[@${\wellNE v : \tarr{\tau_d}{\tau_c}
               @tr-and[4]
@@ -397,8 +397,7 @@
       @${\Gamma \wellNE e : \tau'}
       @tr-IH}
     @tr-step{
-      @${\Gamma \wellNE e : \tau}
-      (1)}
+      @${\Gamma \wellNE e : \tau}}
     @tr-qed[]
   }
 
@@ -566,6 +565,7 @@
   If @${\wellNE e : \tau} then one of the following holds:
   @itemlist[
     @item{ @${e} is a value }
+    @item{ @${e \in \eerr} }
     @item{ @${e \ccNS e'} }
     @item{ @${e \ccNS \boundaryerror} }
     @item{ @${e \eeq \esd[{\edyn{\tau'}{\ebase[e']}}] \mbox{ and } e' \rrND \tagerror} }
@@ -600,8 +600,8 @@
       }
       @tr-else[@${v_0 \eeq \vmonfun{(\tarr{\tau_d'}{\tau_c'})}{v_f}}]{
         @tr-step{
-          @${e \ccNS \ebase[{\edyn{\tau_c'}{(\eapp{v_f}{\esta{\tau_d'}{v_1}})}}]}
-          @${\eapp{v_0}{v_1} \rrNS \edyn{\tau_c'}{(\eapp{v_f}{\esta{\tau_d'}{v_1}})}}}
+          @${e \ccNS \ebase[{\edyn{\tau_c'}{(\eapp{v_f}{(\esta{\tau_d'}{v_1})})}}]}
+          @${\eapp{v_0}{v_1} \rrNS \edyn{\tau_c'}{(\eapp{v_f}{(\esta{\tau_d'}{v_1})})}}}
         @tr-qed[]
       }
     ]
@@ -661,6 +661,8 @@
     @tr-step{
       @${e' \mbox{ is a value}
          @tr-or[]
+         e' \in \eerr
+         @tr-or[]
          e' \ccND e''
          @tr-or[]
          e' \ccND \boundaryerror
@@ -673,6 +675,11 @@
       @tr-if[@${e' \mbox{ is a value}}]{
         @tr-qed{
           @${e \ccNS \ctxE{\efromdynN{\tau'}{e'}}}
+        }
+      }
+      @tr-if[@${e' \in \eerr}]{
+        @tr-qed{
+          @${e \ccNS e'}
         }
       }
       @tr-if[@${e' \ccND e''}]{
@@ -699,6 +706,8 @@
     @tr-step{
       @${e' \mbox{ is a value}
          @tr-or[]
+         e' \in \eerr
+         @tr-or[]
          e' \ccNS e''
          @tr-or[]
          e' \ccNS \boundaryerror
@@ -712,6 +721,11 @@
           @${e \ccNS \ctxE{\efromstaN{\tau'}{e'}}}
         }
       }
+      @tr-if[@${e' \in \eerr}]{
+        @tr-qed{
+          @${e \ccNS e'}
+        }
+      }
       @tr-if[@${e' \ccNS e''}]{
         @tr-qed{
           @${e \ccNS \ctxE{\esta{\tau'}{e''}}}
@@ -722,7 +736,7 @@
           @${e \ccNS \ctxE{\esta{\tau'}{\boundaryerror}}}
         }
       }
-      @tr-else[@${e' \eeq \esd''[{\edyn{\tau''}{\ebase''[e'']}}] \mbox{ and } e'' \rrND \tagerror}]{
+      @tr-else[@${e'\!\eeq\!\esd''[{\edyn{\tau''}{\ebase''[e'']}}] \mbox{ and } e'' \rrND\!\tagerror}]{
         @tr-contradiction{@${e'} is boundary-free}
       }
     ]
@@ -802,7 +816,9 @@
 
   @tr-case[@elem{@${e = \esd[{\edyn{\tau'}{e'}}]} and @${e'} is boundary-free}]{
     @tr-step{
-      @${e \mbox{ is a value}
+      @${e' \mbox{ is a value}
+         @tr-or[]
+         e' \in \eerr
          @tr-or[]
          e' \ccND e''
          @tr-or[]
@@ -812,9 +828,14 @@
       @|N-D-progress|
     }
     @list[
-      @tr-if[@${e \mbox{ is a value}}]{
+      @tr-if[@${e' \mbox{ is a value}}]{
         @tr-qed{
           @${e \ccND \ctxE{\efromdynN{\tau'}{e'}}}
+        }
+      }
+      @tr-if[@${e' \in \eerr}]{
+        @tr-qed{
+          @${e \ccND e'}
         }
       }
       @tr-if[@${e' \ccND e''}]{
@@ -841,6 +862,8 @@
     @tr-step{
       @${e' \mbox{ is a value}
          @tr-or[]
+         e' \in \eerr
+         @tr-or[]
          e' \ccNS e''
          @tr-or[]
          e' \ccNS \boundaryerror
@@ -854,6 +877,11 @@
           @${e \ccNS \ctxE{\efromstaN{\tau'}{e'}}}
         }
       }
+      @tr-if[@${e' \in \eerr}]{
+        @tr-qed{
+          @${e \ccNS e'}
+        }
+      }
       @tr-if[@${e' \ccNS e''}]{
         @tr-qed{
           @${e \ccNS \ctxE{\esta{\tau'}{e''}}}
@@ -864,7 +892,7 @@
           @${e \ccNS \ctxE{\esta{\tau'}{\boundaryerror}}}
         }
       }
-      @tr-else[@${e' \eeq \esd''[{\edyn{\tau''}{\ebase''[e'']}}] \mbox{ and } e'' \rrND \tagerror}]{
+      @tr-else[@${e'\!\eeq\!\esd''[{\edyn{\tau''}{\ebase''[e'']}}] \mbox{ and } e'' \rrND\!\tagerror}]{
         @tr-contradiction{@${e'} is boundary-free}
       }
     ]
@@ -919,7 +947,7 @@
       @tr-qed{
         by @|N-hole-subst| (7)}
     }
-    @tr-else[@${v_0 \eeq \vmonfun{\tarr{\tau_d}{\tau_c}}{v_f}
+    @tr-else[@${v_0 \eeq \vmonfun{(\tarr{\tau_d}{\tau_c})}{v_f}
               @tr-and[4]
               e \ccNS \ebase[{\edyn{\tau_c}{(\eapp{v_f}{(\esta{\tau_d}{v_1})})}}]}]{
       @tr-step{
@@ -1106,7 +1134,7 @@
         by @|N-hole-subst| (4)
       }
     }
-    @tr-else[@${e' \ccND e''}]{
+    @tr-else[@${e' \ccNS e''}]{
       @tr-step{
         @${e \ccNS \ctxE{\esta{\tau'}{e''}}}
       }
@@ -1137,7 +1165,7 @@
       @${e \ccNS \eerr}
     }
     @tr-qed{
-      @${\wellNE \eerr : \tau}
+      by @${\wellNE \eerr : \tau}
     }
   }
 
@@ -1327,7 +1355,7 @@
         by @|N-hole-subst| (5)
       }
     }
-    @tr-else[@${e' \ccND e''}]{
+    @tr-else[@${e' \ccNS e''}]{
       @tr-step{
         @${e \ccND \ctxE{\esta{\tau'}{e''}}}
       }
@@ -2496,19 +2524,19 @@
 @tr-lemma[#:key "N-boundary-typing" @elem{@${\langN} boundary hole typing}]{
   @itemlist[
   @item{
-    If @${\wellNE \ctxE{\edyn{\tau}{e}}} then the derivation contains a
-    sub-term @${\wellNE \edyn{\tau}{e} : \tau}
-  }
-  @item{
     If @${\wellNE \ctxE{\edyn{\tau}{e}} : \tau'} then the derivation contains a
     sub-term @${\wellNE \edyn{\tau}{e} : \tau}
   }
   @item{
-    If @${\wellNE \ctxE{\esta{\tau}{e}}} then the derivation contains a
-    sub-term @${\wellNE \esta{\tau}{e}}
+    If @${\wellNE \ctxE{\edyn{\tau}{e}}} then the derivation contains a
+    sub-term @${\wellNE \edyn{\tau}{e} : \tau}
   }
   @item{
     If @${\wellNE \ctxE{\esta{\tau}{e}} : \tau'} then the derivation contains a
+    sub-term @${\wellNE \esta{\tau}{e}}
+  }
+  @item{
+    If @${\wellNE \ctxE{\esta{\tau}{e}}} then the derivation contains a
     sub-term @${\wellNE \esta{\tau}{e}}
   }
   ]
@@ -3444,20 +3472,20 @@
 @tr-lemma[#:key "N-hole-subst" @elem{@${\langN} hole substitution}]{
   @itemlist[
   @item{
-    If @${\wellNE \ctxE{e} : \tau} and the derivation contains a sub-term
-     @${\wellNE e : \tau'} and @${\wellNE e' : \tau'} then @${\wellNE \ctxE{e'} : \tau}.
-  }
-  @item{
-    If @${\wellNE \ctxE{e} : \tau} and the derivation contains a sub-term
-     @${\wellNE e} and @${\wellNE e'} then @${\wellNE \ctxE{e'} : \tau}.
-  }
-  @item{
     If @${\wellNE \ctxE{e}} and the derivation contains a sub-term
      @${\wellNE e : \tau'} and @${\wellNE e' : \tau'} then @${\wellNE \ctxE{e'}}.
   }
   @item{
     If @${\wellNE \ctxE{e}} and the derivation contains a sub-term
      @${\wellNE e} and @${\wellNE e'} then @${\wellNE \ctxE{e'}}.
+  }
+  @item{
+    If @${\wellNE \ctxE{e} : \tau} and the derivation contains a sub-term
+     @${\wellNE e : \tau'} and @${\wellNE e' : \tau'} then @${\wellNE \ctxE{e'} : \tau}.
+  }
+  @item{
+    If @${\wellNE \ctxE{e} : \tau} and the derivation contains a sub-term
+     @${\wellNE e} and @${\wellNE e'} then @${\wellNE \ctxE{e'} : \tau}.
   }
   ]
 }@tr-proof{
@@ -4300,9 +4328,9 @@
     @tr-contradiction{@${\tann{x}{\tau_x},\Gamma \wellNE e}}
   }
 
-  @tr-case[@${e = \vmonfun{\tarr{\tau_d}{\tau_c}}{v'}}]{
+  @tr-case[@${e = \vmonfun{(\tarr{\tau_d}{\tau_c})}{v'}}]{
     @tr-step{
-      @${\vsubst{e}{x}{v} = \vmonfun{\tarr{\tau_d}{\tau_c}}{\vsubst{v'}{x}{v}}} }
+      @${\vsubst{e}{x}{v} = \vmonfun{(\tarr{\tau_d}{\tau_c})}{\vsubst{v'}{x}{v}}} }
     @tr-step{
       @${\tann{x}{\tau_x},\Gamma \wellNE v' : \tarr{\tau_d}{\tau_c}}
       @|N-D-inversion|}
@@ -4310,7 +4338,7 @@
       @${\Gamma \wellNE \vsubst{v'}{x}{v} : \tarr{\tau_d}{\tau_c}}
       @|N-SS-subst| (2)}
     @tr-step{
-      @${\Gamma \wellNE \vmonfun{\tarr{\tau_d}{\tau_c}}{\vsubst{v'}{x}{v}}}
+      @${\Gamma \wellNE \vmonfun{(\tarr{\tau_d}{\tau_c})}{\vsubst{v'}{x}{v}}}
       (3)}
     @tr-qed[]
   }
@@ -4465,9 +4493,9 @@
     @tr-contradiction{@${x,\Gamma \wellNE e}}
   }
 
-  @tr-case[@${e = \vmonfun{\tarr{\tau_d}{\tau_c}}{v'}}]{
+  @tr-case[@${e = \vmonfun{(\tarr{\tau_d}{\tau_c})}{v'}}]{
     @tr-step{
-      @${\vsubst{e}{x}{v} = \vmonfun{\tarr{\tau_d}{\tau_c}}{\vsubst{v'}{x}{v}}} }
+      @${\vsubst{e}{x}{v} = \vmonfun{(\tarr{\tau_d}{\tau_c})}{\vsubst{v'}{x}{v}}} }
     @tr-step{
       @${x,\Gamma \wellNE v' : \tarr{\tau_d}{\tau_c}}
       @|N-D-inversion|}
@@ -4475,7 +4503,7 @@
       @${\Gamma \wellNE \vsubst{v'}{x}{v} : \tarr{\tau_d}{\tau_c}}
       @|N-SD-subst| (2)}
     @tr-step{
-      @${\Gamma \wellNE \vmonfun{\tarr{\tau_d}{\tau_c}}{\vsubst{v'}{x}{v}}}
+      @${\Gamma \wellNE \vmonfun{(\tarr{\tau_d}{\tau_c})}{\vsubst{v'}{x}{v}}}
       (3)}
     @tr-qed[]
   }
@@ -4637,9 +4665,9 @@
     @tr-qed[]
   }
 
-  @tr-case[@${e = \vmonfun{\tarr{\tau_d}{\tau_c}}{v'}}]{
+  @tr-case[@${e = \vmonfun{(\tarr{\tau_d}{\tau_c})}{v'}}]{
     @tr-step{
-      @${\vsubst{e}{x}{v} = \vmonfun{\tarr{\tau_d}{\tau_c}}{\vsubst{v'}{x}{v}}} }
+      @${\vsubst{e}{x}{v} = \vmonfun{(\tarr{\tau_d}{\tau_c})}{\vsubst{v'}{x}{v}}} }
     @tr-step{
       @${\tann{x}{\tau_x},\Gamma \wellNE v'}
       @|N-S-inversion|}
@@ -4647,7 +4675,7 @@
       @${\Gamma \wellNE \vsubst{v'}{x}{v}}
       @|N-DS-subst| (2)}
     @tr-step{
-      @${\Gamma \wellNE \vmonfun{\tarr{\tau_d}{\tau_c}}{\vsubst{v'}{x}{v}} : \tau}
+      @${\Gamma \wellNE \vmonfun{(\tarr{\tau_d}{\tau_c})}{\vsubst{v'}{x}{v}} : \tau}
       (3)}
     @tr-qed[]
   }
@@ -4797,9 +4825,9 @@
     @tr-qed[]
   }
 
-  @tr-case[@${e = \vmonfun{\tarr{\tau_d}{\tau_c}}{v'}}]{
+  @tr-case[@${e = \vmonfun{(\tarr{\tau_d}{\tau_c})}{v'}}]{
     @tr-step{
-      @${\vsubst{e}{x}{v} = \vmonfun{\tarr{\tau_d}{\tau_c}}{\vsubst{v'}{x}{v}}} }
+      @${\vsubst{e}{x}{v} = \vmonfun{(\tarr{\tau_d}{\tau_c})}{\vsubst{v'}{x}{v}}} }
     @tr-step{
       @${x,\Gamma \wellNE v'}
       @|N-S-inversion|}
@@ -4807,7 +4835,7 @@
       @${\Gamma \wellNE \vsubst{v'}{x}{v}}
       @|N-DD-subst| (2)}
     @tr-step{
-      @${\Gamma \wellNE \vmonfun{\tarr{\tau_d}{\tau_c}}{\vsubst{v'}{x}{v}} : \tau}
+      @${\Gamma \wellNE \vmonfun{(\tarr{\tau_d}{\tau_c})}{\vsubst{v'}{x}{v}} : \tau}
       (3)}
     @tr-qed[]
   }
