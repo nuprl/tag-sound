@@ -69,7 +69,8 @@ If the numbers represent votes, for example@~cite[tfffgksst-snapl-2017],
 Other host languages may allow more diverse kinds of silent failures.
 JavaScript, for example, supports adding a number to a string, array, or object.
 TypeScript programmers must keep this behavior in mind to protect their type-erased
- code against JavaScript.@note{@tt{io.ts} adds some protection to TypeScript: @url{https://lorefnon.tech/2018/03/25/typescript-and-validations-at-runtime-boundaries}}
+ code against JavaScript.@note{The @tt{io.ts} library adds run-time validation to TypeScript:@linebreak[]
+  @exact{\indent}@hyperlink["https://lorefnon.tech/2018/03/25/typescript-and-validations-at-runtime-boundaries"]{@tt{lorefnon.tech/2018/03/25/typescript-and-validations-at-runtime-boundaries}}}
 
 @; https://twitter.com/jbandi/status/965005464638541825
 

@@ -102,7 +102,7 @@ The evaluation measures the performance of the @|holong| (@|TR_N|),
  on @integer->word[NUM-TR] Typed Racket programs.
 Nine programs are the functional benchmarks from prior work on
  Typed Racket@~cite[tfgnvf-popl-2016 gtnffvf-jfp-2017].
-The tenth is adapted from a JPEG library.@note{@url{https://docs.racket-lang.org/gtp-benchmarks}}
+The tenth is adapted from a JPEG library.@note{@hyperlink["https://docs.racket-lang.org/gtp-benchmarks"]{@tt{docs.racket-lang.org/gtp-benchmarks}}}
 
 For each configuration of each benchmark, and for both @|TR_N| and @|TR_LD|,
  we collected a sequence of @integer->word[NUM-ITERS] running times

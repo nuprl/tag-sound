@@ -50,7 +50,7 @@ This approach sacrifices expressiveness in favor of straightforward run-time che
  @emph{opaque class contracts} to support mixed-typed class hierarchies.}
 @citet[mt-oopsla-2017] develop a theory of concrete and gradual@~cite[svcb-snapl-2015]
  typing and present an efficient implementation.
-Dynamic typing in Dart 2 is based on the concrete approach.@note{@url{https://www.dartlang.org/guides/language/sound-dart}, accessed 2018-05-10}
+Dynamic typing in Dart 2 is based on the concrete approach.@note{@hyperlink["https://www.dartlang.org/guides/language/sound-dart"]{@tt{dartlang.org/guides/language/sound-dart}}, accessed 2018-05-10}
 
 
 @section{@|HOlong| Embedding}
@@ -80,7 +80,6 @@ Many languages now have optional type checkers.
  apply the same principles to a statically-typed host language.
 
 @; @note{Dart 1.x, @url{https://v1-dartlang-org.firebaseapp.com/}, accessed 2018-05-10.}
-@; @note{Dart 2.0, @url{https://www.dartlang.org/guides/language/sound-dart}, accessed 2018-05-10.}
 
 
 @section[#:tag "sec:related-work:locally-defensive"]{@|FOlong| Embedding}
@@ -140,7 +139,8 @@ In practice there are two major challenges for type reconstruction:
 @citet[htf-hosc-2010] propose a first solution to the (space) inefficiency of
  the @|holong| embedding.
 Other theoretical solutions address the issue for gradual typing@~cite[htf-hosc-2010 sw-popl-2010 sgt-esop-2009],
- and more generally for higher-order contracts@~cite[g-popl-2015].@note{@url{https://arxiv.org/abs/1604.02474}}
+ and more generally for higher-order contracts@~cite[g-popl-2015].
+ @;@note{@url{https://arxiv.org/abs/1604.02474}}
 
 Recent work evaluates the performance of practical migratory typing systems.
 @citet[aft-dls-2013] report the performance of mixed-typed Gradualtalk programs.
