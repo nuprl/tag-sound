@@ -265,8 +265,7 @@
 
 (define (make-plot* make-f x* [extra-tag #f])
   (define base-cache-keys (list *GRID-X* *GRID-Y* *GRID-NUM-COLUMNS* *OVERHEAD-MAX*))
-  (parameterize ([*OVERHEAD-SHOW-RATIO* #f]
-                 [*OVERHEAD-SAMPLES* NUM-SAMPLES]
+  (parameterize ([*OVERHEAD-SAMPLES* NUM-SAMPLES]
                  [*OVERHEAD-LINE-COLOR* START-COLOR]
                  [*OVERHEAD-MAX* X-MAX]
                  [*GRID-X* (OVERHEADS-WIDTH)]
@@ -294,7 +293,8 @@
     (grid-plot make-overhead-plot/cache x*)))
 
 (define (overhead-plot* x*)
-  (make-plot* data->plot x*))
+  (parameterize ([*OVERHEAD-SHOW-RATIO* #false])
+    (make-plot* data->plot x*)))
 
 (define (exact-plot* x*)
   (parameterize ([*OVERHEAD-FREEZE-BODY* #false]
