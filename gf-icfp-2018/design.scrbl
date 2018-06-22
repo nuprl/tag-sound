@@ -275,9 +275,9 @@ The soundness theorems for the @|holong| embedding state three results about
 @exact{\vspace{-2ex}}
 @twocolumn[
   @tr-theorem[#:key "N-static-soundness" @elem{static @${\langN}-soundness}]{
-    If @${\wellM e : \tau} then @${\wellNE e : \tau} and one
+    If @${e \in \exprsta} and @${\wellM e : \tau}
     @linebreak[]
-    of the following holds:
+    then @${\wellNE e : \tau} and one of the following holds:
     @itemlist[
       @item{ @${e \rrNSstar v \mbox{ and } \wellNE v : \tau} }
       @item{ @${e \rrNSstar \ctxE{\edyn{\tau'}{\ebase[e']}}} and @${e' \rrND \tagerror} }
@@ -286,9 +286,9 @@ The soundness theorems for the @|holong| embedding state three results about
     ] }
 
   @tr-theorem[#:key "N-dynamic-soundness" @elem{dynamic @${\langN}-soundness}]{
-    If @${\wellM e} then @${\wellNE e} and one
+    If @${e \in \exprdyn} and @${\wellM e}
     @linebreak[]
-    of the following holds:
+    then @${\wellNE e} and one of the following holds:
     @itemlist[
       @item{ @${e \rrNDstar v \mbox{ and } \wellNE v} }
       @item{ @${e \rrNDstar \ctxE{e'}} and @${e' \rrND \tagerror} }
@@ -368,9 +368,9 @@ Soundness for the @|eolong| embedding states that reduction is well-defined
 @exact{\vspace{-2ex}}
 @twocolumn[
   @tr-theorem[#:key "E-static-soundness" @elem{static @${\langE}-soundness}]{
-    If @${\wellM e : \tau} then @${\wellEE e} and one
+    If @${e \in \exprsta} and @${\wellM e : \tau}
     @linebreak[]
-    of the following holds:
+    then @${\wellEE e} and one of the following holds:
     @itemlist[
       @item{ @${e \rrESstar v \mbox{ and } \wellEE v} }
       @item{ @${e \rrESstar \tagerror} }
@@ -379,9 +379,9 @@ Soundness for the @|eolong| embedding states that reduction is well-defined
     ] }
 
   @tr-theorem[#:key "E-dynamic-soundness" @elem{dynamic @${\langE}-soundness}]{
-    If @${\wellM e} then @${\wellEE e} and one
+    If @${e \in \exprdyn} and @${\wellM e}
     @linebreak[]
-    of the following holds:
+    then @${\wellEE e} and one of the following holds:
     @itemlist[
       @item{ @${e \rrEDstar v \mbox{ and } \wellEE v} }
       @item{ @${e \rrEDstar \tagerror} }
@@ -559,9 +559,9 @@ The theorems furthermore state that only the @${\rrKD} notion of reduction
 
 @twocolumn[
   @tr-theorem[#:key "K-static-soundness" @elem{static @${\langK}-soundness}]{
-    If @${\wellM e : \tau} then
-    @${\wellM e : \tau \carrow e''}
-    and @${\wellKE e'' : \tagof{\tau}}
+    If @${e \in \exprsta} and @${\wellM e : \tau}
+    @linebreak[]
+    then @${\wellM e : \tau \carrow e''} and @${\wellKE e'' : \tagof{\tau}}
     @linebreak[]
     and one of the following holds:
     @itemlist[
@@ -574,9 +574,9 @@ The theorems furthermore state that only the @${\rrKD} notion of reduction
   }
 
   @tr-theorem[#:key "K-dynamic-soundness" @elem{dynamic @${\langK}-soundness}]{
-    If @${\wellM e} then
-    @${\wellM e \carrow e''}
-    and @${\wellKE e''}
+    If @${e \in \exprdyn} and @${\wellM e}
+    @linebreak[]
+    then @${\wellM e \carrow e''} and @${\wellKE e''}
     @linebreak[]
     and one of the following holds:
     @itemlist[
