@@ -751,6 +751,7 @@
   If @${\wellNE e} then one of the following holds:
   @itemlist[
     @item{ @${e} is a value }
+    @item{ @${e \in \eerr} }
     @item{ @${e \ccND e'} }
     @item{ @${e \ccND \boundaryerror} }
     @item{ @${e \eeq \ctxE{e'}} and @${e' \rrND \tagerror} }
