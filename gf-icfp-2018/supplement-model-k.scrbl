@@ -79,7 +79,7 @@
    (define K-fromsta-soundness @tr-ref[#:key "K-fromsta-soundness"]{@${\vfromstaK} soundness})
 
    (define K-check @tr-ref[#:key "K-check"]{check soundness})
-   (define K-subt-preservation @tr-ref[#:key "K-subt-preservation"]{subtyping reflection})
+   (define K-subt-preservation @tr-ref[#:key "K-subt-preservation"]{subtyping preservation})
 
    (define K-S-value-inversion @tr-ref[#:key "K-S-value-inversion"]{static value inversion})
    (define K-D-value-inversion @tr-ref[#:key "K-D-value-inversion"]{dynamic value inversion})
@@ -184,17 +184,17 @@
   }}
   @item{
   @tr-step{
+    @${\efromdynN{\tnat}{v} = \efromdynK{\tnat}{v}}
+    by definition
+  }}
+  @item{
+  @tr-step{
     @${\efromstaN{\tint}{v} = \efromstaK{\tint}{v}}
     by definition
   }}
   @item{
   @tr-step{
     @${\efromstaN{\tnat}{v} = \efromstaK{\tnat}{v}}
-    by definition
-  }}
-  @item{
-  @tr-step{
-    @${\efromdynN{\tnat}{v} = \efromdynK{\tnat}{v}}
     by definition
   }}
   @item{
@@ -211,7 +211,7 @@
   and @${\wellKE e'' : \tagof{\tau}}
 
   and
-    @${\rrKD'} is similar to @${\rrKD} but without the no-op boundaries:
+    @${\rrKD'} is similar to @${\rrKD} but without the no-op boundaries, as follows:
 
     @$|{
       \begin{array}{l@{\hspace{0.5em}}c@{\hspace{0.5em}}l}
@@ -274,7 +274,7 @@
   ]
 }@tr-proof[#:sketch? #true]{
   By @|K-S-soundness| and the fact that @${\rrKS} is a subset of @${\rrKD'}
-   (modulo the no-op boundaries).
+   (modulo the @${\edynfake{e}} and @${\estafake{e}} boundaries).
 }
 
 
@@ -282,21 +282,31 @@
 @section{@|FOlong| Lemmas}
 
 @tr-lemma[#:key "K-fromdyn-soundness" @elem{@${\vfromdynK} soundness}]{
-  If @${\wellKE v} then @${\wellKE \efromdynK{\tau}{v}}.
+  If @${\wellKE v} then @${\wellKE \efromdynK{\tau}{v} : \tagof{\tau}}.
 }@tr-proof{
-  @tr-step{
-    @${\efromdynK{\tau}{v} = \efromany{\tagof{tau}}{v}}
+  @itemlist[
+  @item{
+    @tr-step{
+      @${\efromdynK{\tau}{v} = \efromany{\tagof{\tau}}{v}}
+    }}
+  @item{
+    @tr-qed{ by @|K-check| }
   }
-  @tr-qed{ @|K-check| }
+  ]
 }
 
 @tr-lemma[#:key "K-fromsta-soundness" @elem{@${\vfromstaK} soundness}]{
   If @${\wellKE v : \tau} then @${\wellKE \efromstaK{\tau}{v}}.
 }@tr-proof{
-  @tr-step{
-    @${\efromstaK{\tau}{v} = \efromany{\tagof{tau}}{v}}
+  @itemlist[
+  @item{
+    @tr-step{
+      @${\efromstaK{\tau}{v} = \efromany{\tagof{\tau}}{v}}
+    }}
+  @item{
+    @tr-qed{ @|K-check| }
   }
-  @tr-qed{ @|K-check| }
+  ]
 }
 
 @; -----------------------------------------------------------------------------
@@ -680,7 +690,7 @@
       @${\Gamma \wellKE \vlam{x}{e'}}
       (1)
     }
-    @tr-case{
+    @tr-qed{
       by (2, 3)
     }
   }
@@ -869,6 +879,7 @@
   If @${\wellKE e : K} then one of the following holds:
   @itemlist[
     @item{ @${e} is a value }
+    @item{ @${e \in \eerr} }
     @item{ @${e \ccKS e'} }
     @item{ @${e \ccKS \boundaryerror} }
     @item{ @${e \eeq \ctxE{\edyn{\tau'}{\ebase[e']}} \mbox{ and } e' \ccKD \tagerror} }
@@ -964,6 +975,8 @@
     @tr-step{
       @${e' \mbox{ is a value}
          @tr-or[]
+         e' \in \eerr
+         @tr-or[]
          e' \ccKD e''
          @tr-or[]
          e' \ccKD \boundaryerror
@@ -976,6 +989,11 @@
       @tr-if[@${e' \mbox{ is a value}}]{
         @tr-qed{
           @${e \ccKS \ctxE{v}}
+        }
+      }
+      @tr-if[@${e' \in \eerr}]{
+        @tr-qed{
+          @${e \ccKS e'}
         }
       }
       @tr-if[@${e' \ccKD e''}]{
@@ -1002,6 +1020,8 @@
     @tr-step{
       @${e' \mbox{ is a value}
          @tr-or[]
+         e' \in \eerr
+         @tr-or[]
          e' \ccKS e''
          @tr-or[]
          e' \ccKS \boundaryerror
@@ -1016,6 +1036,11 @@
       @tr-if[@${e' \mbox{ is a value}}]{
         @tr-qed{
           @${e \ccKS \ctxE{e'}}
+        }
+      }
+      @tr-if[@${e' \in \eerr}]{
+        @tr-qed{
+          @${e \ccKS e'}
         }
       }
       @tr-if[@${e' \ccKS e''}]{
@@ -1037,9 +1062,11 @@
     ]
   }
 
-  @tr-case[@elem{@${e \eeq \ctxE{\edyn{\tau}{e'}}} where @${e'} is boundary-free} #:itemize? #false]{
+  @tr-case[@elem{@${e \eeq \ctxE{\edyn{\tau}{e'}}} where @${e'} is boundary-free}]{
     @tr-step{
       @${e' \mbox{ is a value}
+         @tr-or[]
+         e' \in \eerr
          @tr-or[]
          e' \ccKD e''
          @tr-or[]
@@ -1053,6 +1080,11 @@
       @tr-if[@${e' \mbox{ is a value}}]{
         @tr-qed{
           @${e \ccKS \ctxE{\efromdynK{\tau'}{e'}}}
+        }
+      }
+      @tr-if[@${e' \in \eerr}]{
+        @tr-qed{
+          @${e \ccKS e'}
         }
       }
       @tr-if[@${e' \ccKD e''}]{
@@ -1075,9 +1107,11 @@
     ]
   }
 
-  @tr-case[@elem{@${e \eeq \ctxE{\esta{\tau}{e'}}} where @${e'} is boundary-free} #:itemize? #false]{
+  @tr-case[@elem{@${e \eeq \ctxE{\esta{\tau}{e'}}} where @${e'} is boundary-free}]{
     @tr-step{
       @${e' \mbox{ is a value}
+         @tr-or[]
+         e' \in \eerr
          @tr-or[]
          e' \ccKS e''
          @tr-or[]
@@ -1093,6 +1127,11 @@
       @tr-if[@${e' \mbox{ is a value}}]{
         @tr-qed{
           @${e \ccKS \ctxE{\efromstaK{\tau'}{e'}}}
+        }
+      }
+      @tr-if[@${e' \in \eerr}]{
+        @tr-qed{
+          @${e \ccKS e'}
         }
       }
       @tr-if[@${e' \ccKS e''}]{
@@ -1120,8 +1159,16 @@
 }
 
 @; -----------------------------------------------------------------------------
+
 @tr-lemma[#:key "K-D-progress" @elem{@${\langK} dynamic progress}]{
-  If @${\wellKE e} then either @${e} is a value or @${e \ccKD A}.
+  If @${\wellKE e : K} then one of the following holds:
+  @itemlist[
+    @item{ @${e} is a value }
+    @item{ @${e \in \eerr} }
+    @item{ @${e \ccKD e'} }
+    @item{ @${e \ccKD \boundaryerror} }
+    @item{ @${e \eeq \ctxE{e'} \mbox{ and } e' \ccKD \tagerror} }
+  ]
 }@tr-proof{
   By the @|K-D-factor| lemma, there are nine cases.
 
@@ -1191,16 +1238,15 @@
     }
   }
 
-  @tr-case[@${e = \ebase[{\echk{K}{v_0}}]} #:itemize? #f]{
-    @tr-step{
-      @${e \ccKD \ebase[\efromany{K}{v_0}]}
-    }
-    @tr-qed{ }
+  @tr-case[@${e = \ebase[{\echk{K}{v_0}}]}]{
+    @tr-contradiction{ @${\wellKE e} }
   }
 
-  @tr-case[@elem{@${e \eeq \ctxE{\edynfake{v}}} where @${e'} is boundary-free} #:itemize? #f]{
+  @tr-case[@elem{@${e \eeq \ctxE{\edynfake{v}}} where @${e'} is boundary-free}]{
     @tr-step{
       @${e' \mbox{ is a value}
+         @tr-or[]
+         e' \in \eerr
          @tr-or[]
          e' \ccKD e''
          @tr-or[]
@@ -1214,6 +1260,11 @@
       @tr-if[@${e' \mbox{ is a value}}]{
         @tr-qed{
           @${e \ccKS \ctxE{v}}
+        }
+      }
+      @tr-if[@${e' \in \eerr}]{
+        @tr-qed{
+          @${e \ccKS e'}
         }
       }
       @tr-if[@${e' \ccKD e''}]{
@@ -1236,15 +1287,17 @@
     ]
   }
 
-  @tr-case[@elem{@${e \eeq \ctxE{\estafake{e'}}} where @${e'} is boundary-free} #:itemize? #f]{
+  @tr-case[@elem{@${e \eeq \ctxE{\estafake{e'}}} where @${e'} is boundary-free}]{
     @tr-step{
       @${e' \mbox{ is a value}
+         @tr-or[]
+         e' \in \eerr
          @tr-or[]
          e' \ccKS e''
          @tr-or[]
          e' \ccKS \boundaryerror
          @tr-or[]
-         e' \eeq \esd''[{\edyn{\tau''}{\ebase''[e'']}}] \mbox{ and } e'' \rrKD \tagerror}
+         e' \eeq \esd''[{\edyn{\tau''}{\ebase''[e'']}}] \mbox{ and } e'' \rrKD \tagerror
          @tr-or[]
          e' \eeq \esd''[{\edynfake{\ebase''[e'']}}] \mbox{ and } e'' \rrKD \tagerror}
       @|K-S-progress|
@@ -1253,6 +1306,11 @@
       @tr-if[@${e' \mbox{ is a value}}]{
         @tr-qed{
           @${e \ccKS \ctxE{e'}}
+        }
+      }
+      @tr-if[@${e' \in \eerr}]{
+        @tr-qed{
+          @${e \ccKS e'}
         }
       }
       @tr-if[@${e' \ccKS e''}]{
@@ -1274,9 +1332,11 @@
     ]
   }
 
-  @tr-case[@elem{@${e \eeq \ctxE{\edyn{\tau}{e'}}} where @${e'} is boundary-free} #:itemize? #f]{
+  @tr-case[@elem{@${e \eeq \ctxE{\edyn{\tau}{e'}}} where @${e'} is boundary-free}]{
     @tr-step{
-      @${e \mbox{ is a value}
+      @${e' \mbox{ is a value}
+         @tr-or[]
+         e' \in \eerr
          @tr-or[]
          e' \ccKD e''
          @tr-or[]
@@ -1286,9 +1346,14 @@
       @|K-D-progress|
     }
     @list[
-      @tr-if[@${e \mbox{ is a value}}]{
+      @tr-if[@${e' \mbox{ is a value}}]{
         @tr-qed{
           @${e \ccKD \ctxE{\efromdynK{\tau'}{e'}}}
+        }
+      }
+      @tr-if[@${e' \in \eerr}]{
+        @tr-qed{
+          @${e \ccKD e'}
         }
       }
       @tr-if[@${e' \ccKD e''}]{
@@ -1311,9 +1376,11 @@
     ]
   }
 
-  @tr-case[@elem{@${e \eeq \ctxE{\esta{\tau}{e'}}} where @${e'} is boundary-free} #:itemize? #f]{
+  @tr-case[@elem{@${e \eeq \ctxE{\esta{\tau}{e'}}} where @${e'} is boundary-free}]{
     @tr-step{
       @${e' \mbox{ is a value}
+         @tr-or[]
+         e' \in \eerr
          @tr-or[]
          e' \ccKS e''
          @tr-or[]
@@ -1329,6 +1396,11 @@
       @tr-if[@${e' \mbox{ is a value}}]{
         @tr-qed{
           @${e \ccKS \ctxE{\efromstaK{\tau'}{e'}}}
+        }
+      }
+      @tr-if[@${e' \in \eerr}]{
+        @tr-qed{
+          @${e \ccKS e'}
         }
       }
       @tr-if[@${e' \ccKS e''}]{
@@ -1368,7 +1440,7 @@
     @tr-contradiction{ @${e \ccKS e'} }
   }
 
-  @tr-case[@${e = \ebase[{v_0~v_1}]}]{
+  @tr-case[@${e = \ebase[{v_0~v_1}]} #:itemize? #false]{
     @tr-if[@${v_0 \eeq \vlam{x}{e'}
               @tr-and[2]
               e \ccKS \ebase[{\edynfake{\vsubst{e'}{x}{v_1}}}]}]{
@@ -1398,6 +1470,22 @@
       }
       @tr-qed{
         by @|K-hole-subst|
+      }
+    }
+    @tr-if[@${v_0 = \vlam{\tann{x}{\tau}}{e'}
+              @tr-and[4]
+              \efromany{\tagof{\tau}}{v_1} = \boundaryerror
+              @tr-and[4]
+              e \ccKD \ebase[\boundaryerror]}]{
+      @tr-step{
+        @${\wellKE \eapp{v_0}{v_1} : \kany}
+        @|K-S-hole-typing|
+      }
+      @tr-step{
+        @${\wellKE \boundaryerror : \kany}
+      }
+      @tr-qed{
+        by @|K-hole-subst| (2)
       }
     }
     @tr-else[@${v_0 = \vlam{\tann{x}{\tau}}{e'}
@@ -1577,7 +1665,7 @@
         by @|K-hole-subst| (4)
       }
     }
-    @tr-else[@${e' \ccKD e''}]{
+    @tr-else[@${e' \ccKS e''}]{
       @tr-step{
         @${e \ccKS \ctxE{\estafake{e''}}}
       }
@@ -1671,7 +1759,7 @@
         by @|K-hole-subst| (4)
       }
     }
-    @tr-else[@${e' \ccKD e''}]{
+    @tr-else[@${e' \ccKS e''}]{
       @tr-step{
         @${e \ccKS \ctxE{\esta{\tau'}{e''}}}
       }
@@ -1743,6 +1831,22 @@
         by @|K-hole-subst|
       }
     }
+    @tr-if[@${v_0 = \vlam{\tann{x}{\tau}}{e'}
+                @tr-and[4]
+                \efromany{\tagof{\tau}}{v_1} = \boundaryerror
+                @tr-and[4]
+                e \ccKD \ebase[\boundaryerror]}]{
+      @tr-step{
+        @${\wellKE \eapp{v_0}{v_1}}
+        @|K-D-hole-typing|
+      }
+      @tr-step{
+        @${\wellKE \boundaryerror}
+      }
+      @tr-qed{
+        by @|K-hole-subst| (2)
+      }
+    }
     @tr-else[@${v_0 = \vlam{\tann{x}{\tau}}{e'}
                 @tr-and[4]
                 e \ccKD \ebase[{\estafake{(\vsubst{e'}{x}{\efromany{\tagof{\tau}}{v_1}})}}]}]{
@@ -1768,7 +1872,7 @@
         @|K-subst| (3, 4)
       }
       @tr-step{
-        @${\wellKE \esta{\kany}{(\vsubst{e}{x}{\efromany{\tagof{\tau}}{v_1}})}}
+        @${\wellKE \estafake{(\vsubst{e}{x}{\efromany{\tagof{\tau}}{v_1}})}}
         (5)
       }
       @tr-qed{
@@ -1891,7 +1995,7 @@
         by @|K-hole-subst| (5)
       }
     }
-    @tr-else[@${e' \ccKD e''}]{
+    @tr-else[@${e' \ccKS e''}]{
       @tr-step{
         @${e \ccKD \ctxE{\estafake{e''}}}
       }
@@ -1987,7 +2091,7 @@
         by @|K-hole-subst| (5)
       }
     }
-    @tr-else[@${e' \ccKD e''}]{
+    @tr-else[@${e' \ccKS e''}]{
       @tr-step{
         @${e \ccKD \ctxE{\esta{\tau'}{e''}}}
       }
@@ -2123,7 +2227,7 @@
         @elem{@${e'} and @${v_1} are boundary-free}}
       @tr-qed[]
     }
-    @tr-else[]{
+    @tr-else[""]{
       @tr-contradiction{@${\wellM e : \tau}}
     }
   }
@@ -2170,7 +2274,7 @@
 }
 
 @; -----------------------------------------------------------------------------
-@tr-lemma[#:key "K-check" @elem{@${\efromany{\cdot}{\cdot}} soundness}]{
+@tr-lemma[#:key "K-check" @elem{@${\vfromany} soundness}]{
   For all @${K} and @${v}, @${\wellKE \efromany{K}{v} : K}.
 }@tr-proof{
   @tr-case[@${\wellKE v : K}]{
@@ -2505,7 +2609,7 @@
     }
   }
 
-  @tr-case[@${e = \edynfake{e_0}}]{
+  @tr-case[@${e = \edynfake{e_0}} #:itemize? #false]{
     @tr-if[@${e_0 \not\in v}]{
       @tr-step{
         @${\wellKE e_0}
@@ -2536,7 +2640,7 @@
     @tr-contradiction{@${\wellKE e : K}}
   }
 
-  @tr-case[@${e = \edyn{\tau}{e_0}}]{
+  @tr-case[@${e = \edyn{\tau}{e_0}} #:itemize? #false]{
     @tr-if[@${e_0 \not\in v}]{
       @tr-step{
         @${\wellKE e_0}
@@ -2753,9 +2857,13 @@
     @tr-step{
       @${\esd_1 = \ebase
          @tr-or[]
-         \esd_1 = \esd_1'[\edyn{\tau}{\ebase}]
+         \esd_0 = \esd_0'[\edynfake{\ebase}]
          @tr-or[]
-         \esd_1 = \esd_1'[\esta{\tau}{\ebase}]}
+         \esd_0 = \esd_0'[\estafake{\ebase}]
+         @tr-or[]
+         \esd_0 = \esd_0'[\edyn{\tau}{\ebase}]
+         @tr-or[]
+         \esd_0 = \esd_0'[\esta{\tau}{\ebase}]
       @tr-IH
     }
     @list[
@@ -3502,7 +3610,7 @@
     }
   }
 
-  @tr-case[@${e = \eunop{e_0}}]{
+  @tr-case[@${e = \eunop{e_0}} #:itemize? #false]{
     @tr-if[@${e_0 \not\in v}]{
       @tr-step{
         @${e_0 = \ED_0[e_0']}
@@ -3566,7 +3674,7 @@
     @tr-contradiction{ @${\wellKE e} }
   }
 
-  @tr-case[@${e = \estafake{e_0}}]{
+  @tr-case[@${e = \estafake{e_0}} #:itemize? #false]{
     @tr-if[@${e_0 \not\in v}]{
       @tr-step{
         @${\wellKE e_0}
@@ -3593,7 +3701,7 @@
     }
   }
 
-  @tr-case[@${e = \edyn{\kany}{e_0}} #:itemize? #f]{
+  @tr-case[@${e = \edynfake{e_0}} #:itemize? #f]{
     @tr-contradiction{ @${\wellKE e} }
   }
 
@@ -4153,7 +4261,7 @@
 
   @tr-case[@${\esd = \edynfake{\esd_0}}]{
     @tr-contradiction{
-      @${\wellKE \ctxE{\edyn{\tau}{e}} : \tau'}
+      @${\wellKE \ctxE{\edyn{\tau}{e}}}
     }
   }
 
@@ -4190,15 +4298,8 @@
   }
 
   @tr-case[@${\esd = \echk{K_0}{\esd_0}}]{
-    @tr-step{
-      @${\esd[{\edyn{\tau}{e}}] = \echk{K_0}{\esd_0[{\edyn{\tau}{e}}]}}
-    }
-    @tr-step{
-      @${\wellKE \esd_0[{\edyn{\tau}{e}}]}
-      @|K-D-inversion|
-    }
-    @tr-qed{
-      by @tr-IH (2)
+    @tr-contradiction{
+      @${\wellKE \ctxE{\edyn{\tau}{e}}}
     }
   }
 
@@ -4463,7 +4564,7 @@
 
   @tr-case[@${\esd = \edynfake{\esd_0}}]{
     @tr-contradiction{
-      @${\wellKE \ctxE{\esta{\tau}{e}} : \tau'}
+      @${\wellKE \ctxE{\esta{\tau}{e}}}
     }
   }
 
@@ -4482,7 +4583,7 @@
 
   @tr-case[@${\esd = \edyn{\tau}{\esd_0}}]{
     @tr-contradiction{
-      @${\wellKE \ctxE{\esta{\tau}{e}} : K'}
+      @${\wellKE \ctxE{\esta{\tau}{e}}}
     }
   }
 
@@ -4500,15 +4601,8 @@
   }
 
   @tr-case[@${\esd = \echk{K_0}{\esd_0}}]{
-    @tr-step{
-      @${\esd[{\esta{\tau}{e}}] = \echk{K_0}{\esd_0[{\esta{\tau}{e}}]}}
-    }
-    @tr-step{
-      @${\wellKE \esd_0[{\esta{\tau}{e}}] : \kany}
-      @|K-S-inversion|
-    }
-    @tr-qed{
-      by @tr-IH (2)
+    @tr-contradiction{
+      @${\wellKE \ctxE{\esta{\tau}{e}}}
     }
   }
 }
@@ -5692,7 +5786,7 @@
        @${\wellKE e : \tagof{\tau}}
     }
     @item{
-      If @${\wellKE \esta{\kany}{e}} then
+      If @${\wellKE \estafake{e}} then
        @${\wellKE e : \kany}
     }
   ]
@@ -5809,7 +5903,7 @@
       }
       @tr-else[@${i_1 \neq 0}]{
         @tr-step{
-          @${\delta(\vquotient, i_0, i_1) = \floorof{i_0 / i_1}} \in i }
+          @${\delta(\vquotient, i_0, i_1) = \floorof{i_0 / i_1} \in i }}
         @tr-qed{}
       }
     ]
@@ -6242,7 +6336,7 @@
 
   @tr-case[@${e = \edyn{\tau'}{e'}
                 @tr-or[4]
-                e = \edyn{\kany}{e'}
+                e = \edynfake{e'}
                 @tr-or[4]
                 e = \echk{K'}{e'}
                }]{
@@ -6270,9 +6364,9 @@
     @tr-qed[]
   }
 
-  @tr-case[@${e = \esta{\kany}{e'}}]{
+  @tr-case[@${e = \estafake{e'}}]{
     @tr-step{
-      @${\vsubst{e}{x}{v} = \esta{\kany}{\vsubst{e'}{x}{v}}}
+      @${\vsubst{e}{x}{v} = \estafake{\vsubst{e'}{x}{v}}}
     }
     @tr-step{
       @${\tann{x}{\tau},\Gamma \wellKE e' : \kany}
@@ -6283,7 +6377,7 @@
       @|K-SS-subst| (2)
     }
     @tr-step{
-      @${\Gamma \wellKE \esta{\kany}{(\vsubst{e'}{x}{v})}}
+      @${\Gamma \wellKE \estafake{(\vsubst{e'}{x}{v})}}
       (3)
     }
     @tr-qed[]
@@ -6461,7 +6555,7 @@
 
   @tr-case[@${e = \edyn{\tau'}{e'}
                 @tr-or[4]
-                e = \edyn{\kany}{e'}
+                e = \edynfake{e'}
                 @tr-or[4]
                 e = \echk{K'}{e'}
                }]{
@@ -6489,9 +6583,9 @@
     @tr-qed[]
   }
 
-  @tr-case[@${e = \esta{\kany}{e'}}]{
+  @tr-case[@${e = \estafake{e'}}]{
     @tr-step{
-      @${\vsubst{e}{x}{v} = \esta{\kany}{\vsubst{e'}{x}{v}}}
+      @${\vsubst{e}{x}{v} = \estafake{\vsubst{e'}{x}{v}}}
     }
     @tr-step{
       @${x,\Gamma \wellKE e' : \kany}
@@ -6502,7 +6596,7 @@
       @|K-SD-subst| (2)
     }
     @tr-step{
-      @${\Gamma \wellKE \esta{\kany}{(\vsubst{e'}{x}{v})}}
+      @${\Gamma \wellKE \estafake{(\vsubst{e'}{x}{v})}}
       (3)
     }
     @tr-qed[]
@@ -6705,9 +6799,9 @@
     }
   }
 
-  @tr-case[@${e = \edyn{\kany}{e'}}]{
+  @tr-case[@${e = \edynfake{e'}}]{
     @tr-step{
-      @${\vsubst{e}{x}{v} = \edyn{\kany}{\vsubst{e'}{x}{v}}}
+      @${\vsubst{e}{x}{v} = \edynfake{\vsubst{e'}{x}{v}}}
     }
     @tr-step{
       @${\tann{x}{\tau},\Gamma \wellKE e'}
@@ -6718,7 +6812,7 @@
       @K-DS-subst (2)
     }
     @tr-step{
-      @${\Gamma \wellKE \edyn{\kany}{(\vsubst{e'}{x}{v})} : K}
+      @${\Gamma \wellKE \edynfake{(\vsubst{e'}{x}{v})} : K}
       (3)
     }
     @tr-qed{
@@ -6747,7 +6841,7 @@
 
   @tr-case[@${e = \esta{\tau'}{e'}
               @tr-or[4]
-              e = \esta{\kany}{e'}}]{
+              e = \estafake{e'}}]{
     @tr-contradiction{
       @${\Gamma \wellKE e : K}
     }
@@ -6954,9 +7048,9 @@
     @tr-qed[]
   }
 
-  @tr-case[@${e = \edyn{\kany}{e'}}]{
+  @tr-case[@${e = \edynfake{e'}}]{
     @tr-step{
-      @${\vsubst{e}{x}{v} = \edyn{\kany}{\vsubst{e'}{x}{v}}}
+      @${\vsubst{e}{x}{v} = \edynfake{\vsubst{e'}{x}{v}}}
     }
     @tr-step{
       @${x,\Gamma \wellKE e'}
@@ -6967,7 +7061,7 @@
       @|K-DD-subst| (2)
     }
     @tr-step{
-      @${\Gamma \wellKE \edyn{\kany}{(\vsubst{e'}{x}{v})} : K}
+      @${\Gamma \wellKE \edynfake{(\vsubst{e'}{x}{v})} : K}
       (3)
     }
     @tr-qed[]
@@ -6994,7 +7088,7 @@
 
   @tr-case[@${e = \esta{\tau'}{e'}
                 @tr-or[4]
-                e = \esta{\kany}{e'}}]{
+                e = \estafake{e'}}]{
     @tr-contradiction{@${\Gamma \wellKE e : K}}
   }
 
@@ -7115,7 +7209,7 @@
     }
   }
 
-  @tr-case[@${e = \eunop{e_0}}]{
+  @tr-case[@${e = \eunop{e_0}} #:itemize? #false]{
     @tr-if[@${e_0 \not\in v}]{
       @tr-step{
         @${e_0 = \ebase_0[e_0']}
@@ -7191,7 +7285,7 @@
 
   @tr-case[@${e = \eerr}]{
     @tr-step{
-      \ebase = \ehole
+      @${\ebase = \ehole}
     }
     @tr-qed{}
   }

@@ -726,7 +726,7 @@
         @elem{@${e'} and @${v_1} are boundary-free}}
       @tr-qed[]
     }
-    @tr-else[]{
+    @tr-else[""]{
       @tr-contradiction{@${\wellM e : \tau}}
     }
   }
@@ -881,7 +881,7 @@
     }
   }
 
-  @tr-case[@${e = \eunop{e_0}}]{
+  @tr-case[@${e = \eunop{e_0}} #:itemize? #false]{
     @tr-if[@${e_0 \not\in v}]{
       @tr-step{
         @${\wellEE e_0}
