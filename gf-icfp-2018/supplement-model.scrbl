@@ -29,10 +29,6 @@ Aside from the common notions in @section-ref{appendix:preliminaries},
 
 @; -----------------------------------------------------------------------------
 
-@;@include-section{supplement-model-d.scrbl}
-@;@include-section{supplement-model-s.scrbl}
-@;@include-section{supplement-model-m.scrbl}
-
 @include-section{supplement-model-n.scrbl}
 @include-section{supplement-model-e.scrbl}
 @include-section{supplement-model-k.scrbl}

@@ -3022,7 +3022,7 @@
 
   @tr-case[@${\esd = \edyn{\tau}{\esd_0}}]{
     @tr-contradiction{
-      @${\wellNE \ctxE{\esta{\tau}{e}} : \tau'}
+      @${\wellNE \ctxE{\esta{\tau}{e}}}
     }
   }
 

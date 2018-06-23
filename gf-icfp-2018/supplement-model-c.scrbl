@@ -33,19 +33,8 @@
    (define C-D-hole-typing @tr-ref[#:key "C-D-hole-typing"]{dynamic hole typing})
 
    (define C-boundary-typing @tr-ref[#:key "C-boundary-typing"]{boundary hole typing})
-   (define C-DS-hole @tr-ref[#:key "C-DS-hole"]{static @${\vdyn} hole typing})
-   (define C-DD-hole @tr-ref[#:key "C-DD-hole"]{dynamic @${\vdyn} hole typing})
-   (define C-SS-hole @tr-ref[#:key "C-SS-hole"]{static @${\vsta} hole typing})
-   (define C-SD-hole @tr-ref[#:key "C-SD-hole"]{dynamic @${\vsta} hole typing})
 
    (define C-hole-subst @tr-ref[#:key "C-hole-subst"]{hole substitution})
-   (define C-DS-hole-subst @tr-ref[#:key "C-DS-hole-subst"]{dynamic context static hole substitution})
-   (define C-DD-hole-subst @tr-ref[#:key "C-DD-hole-subst"]{dynamic context dynamic hole substitution})
-   (define C-SS-hole-subst @tr-ref[#:key "C-SS-hole-subst"]{static context static hole substitution})
-   (define C-SD-hole-subst @tr-ref[#:key "C-SD-hole-subst"]{static context dynamic hole substitution})
-
-   (define C-S-hole-subst @tr-ref[#:key "C-S-hole-subst"]{static boundary-free hole substitution})
-   (define C-D-hole-subst @tr-ref[#:key "C-D-hole-subst"]{dynamic boundary-free hole substitution})
 
    (define C-S-inversion @tr-ref[#:key "C-S-inversion"]{inversion})
    (define C-D-inversion @tr-ref[#:key "C-D-inversion"]{inversion})
@@ -59,10 +48,6 @@
    (define C-fromsta-soundness @tr-ref[#:key "C-fromsta-soundness"]{@${\vfromstaC} soundness})
 
    (define C-subst @tr-ref[#:key "C-subst"]{substitution})
-   (define C-DS-subst @tr-ref[#:key "C-DS-subst"]{dynamic context static value substitution})
-   (define C-DD-subst @tr-ref[#:key "C-DD-subst"]{dynamic context dynamic value substitution})
-   (define C-SS-subst @tr-ref[#:key "C-SS-subst"]{static context static value substitution})
-   (define C-SD-subst @tr-ref[#:key "C-SD-subst"]{static context dynamic value substitution})
 
    (define C-weakening @tr-ref[#:key "C-weakening"]{weakening})
 )
