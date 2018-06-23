@@ -72,6 +72,8 @@ TypeScript programmers must keep this behavior in mind to protect their type-era
  code against JavaScript.@note{The @tt{io.ts} library adds run-time validation to TypeScript:@linebreak[]
   @exact{\indent}@hyperlink["https://lorefnon.tech/2018/03/25/typescript-and-validations-at-runtime-boundaries"]{@tt{lorefnon.tech/2018/03/25/typescript-and-validations-at-runtime-boundaries}}}
 
+@; pydantic for python : https://pydantic-docs.helpmanual.io/
+@; also, PEP for variable annotations : https://www.python.org/dev/peps/pep-0526/
 @; https://twitter.com/jbandi/status/965005464638541825
 
 Both the @|holong| embedding and the @|folong| embedding are sound for
