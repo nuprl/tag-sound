@@ -1041,7 +1041,7 @@
 
   @tr-case[@${e = \ebase[{\ebinop{v_0}{v_1}}]}]{
     @tr-step{
-      @${e \ccNS \ctxE{\delta(\vbinop, v_0, v_1)}}
+      @${e \ccNS \ebase[{\delta(\vbinop, v_0, v_1)}]}
       @${e \ccNS e'}
     }
     @tr-step{

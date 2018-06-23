@@ -2863,7 +2863,7 @@
          @tr-or[]
          \esd_0 = \esd_0'[\edyn{\tau}{\ebase}]
          @tr-or[]
-         \esd_0 = \esd_0'[\esta{\tau}{\ebase}]
+         \esd_0 = \esd_0'[\esta{\tau}{\ebase}]}
       @tr-IH
     }
     @list[
