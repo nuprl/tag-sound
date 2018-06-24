@@ -75,6 +75,8 @@ TypeScript programmers must keep this behavior in mind to protect their type-era
 @; pydantic for python : https://pydantic-docs.helpmanual.io/
 @; also, PEP for variable annotations : https://www.python.org/dev/peps/pep-0526/
 @; https://twitter.com/jbandi/status/965005464638541825
+@; more python : https://github.com/Instagram/MonkeyType
+@; many of the python links are from : https://www.bernat.tech/the-state-of-type-hints-in-python/
 
 Both the @|holong| embedding and the @|folong| embedding are sound for
  base types, e.g.,
