@@ -58,6 +58,7 @@ Indeed, a violation of the types in the source code may go completely unnoticed.
  of type annotations as soon as there is a witness and pinpoints the exact
  type boundary that is violated by this witness.}
 ]@;
+@exact{\noindent}One open question is what developers actually think of these approaches.
 
 @; In light of the work by New and Licata, only the @|holong| embedding
 @;  can achieve type soundness in the traditional sense@~cite[fb-flops-2006 nl-fscd-2018].
