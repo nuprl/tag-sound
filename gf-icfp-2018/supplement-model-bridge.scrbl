@@ -4,7 +4,7 @@
 @; TODO
 @; - from -->D and treating sta as dyn, get sound semantics for N K
 
-@appendix-title++{Big Picture}
+@appendix-title++{Embeddings Summary}
 
 The paragraphs in this section summarize the five embeddings with four slogans.
 Each slogan pertains to one aspect of the embedding:
@@ -23,9 +23,9 @@ Each slogan pertains to one aspect of the embedding:
 }
 ]
 
-These embeddings are ordered on a speculative scale from "most guarantees, worst performance" to "least guarantees, best performance".
+These embeddings are ordered on a speculative scale from "most guarantees" to "least guarantees".
 
-@parag{Natural embedding}
+@parag{\HOlong\ embedding}
 @itemlist[#:style 'ordered
 @item{
   recursively check read-only values;
@@ -50,7 +50,7 @@ These embeddings are ordered on a speculative scale from "most guarantees, worst
   monitor all data structures and functions;
 }
 @item{
-  detect boundary errors as late as possible; *
+  detect boundary errors as late as possible;
 }
 @item{
   types globally constrain behavior
@@ -69,11 +69,11 @@ These embeddings are ordered on a speculative scale from "most guarantees, worst
   detect boundary errors as late as possible;
 }
 @item{
-  types locally constrain behavior.
+  types (of values) locally constrain behavior.
 }
 ]
 
-@parag{Locally-Defensive embedding}
+@parag{\FOlong\ embedding}
 @itemlist[#:style 'ordered
 @item{
   tag-check all values;
@@ -85,11 +85,11 @@ These embeddings are ordered on a speculative scale from "most guarantees, worst
   detect boundary errors as late as possible;
 }
 @item{
-  types locally constrain behavior.
+  types (of contexts) locally constrain behavior.
 }
 ]
 
-@parag{Erasure embedding}
+@parag{\EOlong\ embedding}
 @itemlist[#:style 'ordered
 @item{
   never check values;
