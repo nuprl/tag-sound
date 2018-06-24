@@ -3713,7 +3713,7 @@
       }
       @tr-step{
         @${e_0 = \ED_0[e_0']}
-        @|K-D-uec| (1)
+        @|K-S-uec| (1)
       }
       @tr-step{
         @${\ED = \esta{\tau}{\ED_0}}

@@ -118,9 +118,11 @@
     @tr-qed{}
   }
 
-  @tr-case[@${v \valeq \vpair{v_0}{v_1}
-              @tr-and[4]
-              \efromdynC{\tpair{\tau_0}{\tau_1}}{v} = \vmonpair{(\tpair{\tau_0}{\tau_1})}{v}}]{
+  @tr-case[@${\efromdynC{\tpair{\tau_0}{\tau_1}}{v} = \vmonpair{(\tpair{\tau_0}{\tau_1})}{v}}]{
+    @tr-step{
+      @${\wellCE \vmonpair{(\tpair{\tau_0}{\tau_1})}{v} : \tpair{\tau_0}{\tau_1}}
+      @${\wellCE v}
+    }
     @tr-qed{}
   }
 
@@ -165,301 +167,18 @@
   }
 }
 
-@tr-lemma[#:key "C-S-implies" @elem{@${\langC} static subset}]{
+@tr-corollary[#:key "C-S-implies" @elem{@${\langC} static subset}]{
   If @${\Gamma \wellM e : \tau} then @${\Gamma \wellCE e : \tau}.
 }@tr-proof{
-  By structural induction on the derivation of @${\Gamma \wellM e : \tau}
-
-  @tr-case[#:box? #true
-           @${\inferrule*{
-                \tann{x}{\tau} \in \Gamma
-              }{
-                \Gamma \wellM x : \tau
-              }}]{
-    @tr-step[
-      @${\Gamma \wellCE x : \tau}
-      @${\tann{x}{\tau} \in \Gamma}]
-    @tr-qed[]
-  }
-
-  @tr-case[#:box? #true
-           @${\inferrule*{
-                \tann{x}{\tau_d},\Gamma \wellM e : \tau_c
-              }{
-                \Gamma \wellM \vlam{\tann{x}{\tau_d}}{e} : \tarr{\tau_d}{\tau_c}
-              }}]{
-    @tr-step[
-      @${\tann{x}{\tau_d},\Gamma \wellCE e : \tau_c}
-      @tr-IH]
-    @tr-step{
-      @${\Gamma \wellCE \vlam{\tann{x}{\tau_d}}{e} : \tarr{\tau_d}{\tau_c}} }
-    @tr-qed[]
-  }
-
-  @tr-case[#:box? #true
-           @${\inferrule*{
-                i \in \naturals
-              }{
-                \Gamma \wellM i : \tnat
-              }}]{
-    @tr-qed[]
-  }
-
-  @tr-case[#:box? #true
-           @${\inferrule*{
-              }{
-                \Gamma \wellM i : \tint
-              }}]{
-    @tr-qed[]
-  }
-
-  @tr-case[#:box? #true
-           @${\inferrule*{
-                \Gamma \wellM e_0 : \tau_0
-                \\
-                \Gamma \wellM e_1 : \tau_1
-              }{
-                \Gamma \wellM \vpair{e_0}{e_1} : \tpair{\tau_0}{\tau_1}
-              }}]{
-    @tr-step[
-      @${\Gamma \wellCE e_0 : \tau_0
-         @tr-and[]
-         \Gamma \wellCE e_1 : \tau_1}
-      @tr-IH]
-    @tr-step{
-      @${\Gamma \wellCE \vpair{e_0}{e_1} : \tpair{\tau_0}{\tau_1}} }
-    @tr-qed[]
-  }
-
-  @tr-case[#:box? #true
-           @${\inferrule*{
-                \Gamma \wellM e_0 : \tarr{\tau_d}{\tau_c}
-                \\
-                \Gamma \wellM e_1 : \tau_d
-              }{
-                \Gamma \wellM e_0~e_1 : \tau_c
-              }}]{
-    @tr-step[
-      @${\Gamma \wellCE e_0 : \tarr{\tau_d}{\tau_c}
-         @tr-and[]
-         \Gamma \wellCE e_1 : \tau_d}
-      @tr-IH]
-    @tr-step{
-      @${\Gamma \wellCE \vapp{e_0}{e_1} : \tau_c} }
-    @tr-qed[]
-  }
-
-  @tr-case[#:box? #true
-           @${\inferrule*{
-                \Gamma \wellM e_0 : \tau_0
-                \\
-                \Delta(\vunop, \tau_0) = \tau
-              }{
-                \Gamma \wellM \vunop~e_0 : \tau
-              }}]{
-    @tr-step[
-      @${\Gamma \wellCE e_0 : \tau_0}
-      @tr-IH]
-    @tr-step{
-      @${\Gamma \wellCE \eunop{e_0} : \tau} }
-    @tr-qed[]
-  }
-
-  @tr-case[#:box? #true
-           @${\inferrule*{
-                \Gamma \wellM e_0 : \tau_0
-                \\
-                \Gamma \wellM e_1 : \tau_1
-                \\
-                \Delta(\vbinop, \tau_0, \tau_1) = \tau
-              }{
-                \Gamma \wellM \vbinop~e_0~e_1 : \tau
-              }}]{
-    @tr-step[
-      @${\Gamma \wellCE e_0 : \tau_0
-         @tr-and[]
-         \Gamma \wellCE e_1 : \tau_1}
-      @tr-IH]
-    @tr-step{
-      @${\Gamma \wellCE \ebinop{e_0}{e_1} : \tau} }
-    @tr-qed[]
-  }
-
-  @tr-case[#:box? #true
-           @${\inferrule*{
-                \Gamma \wellM e : \tau'
-                \\
-                \tau' \subt \tau
-              }{
-                \Gamma \wellM e : \tau
-              }}]{
-    @tr-step[
-      @${\Gamma \wellCE e : \tau'}
-      @tr-IH]
-    @tr-step{
-      @${\Gamma \wellCE e : \tau}
-      (1)}
-    @tr-qed[]
-  }
-
-  @tr-case[#:box? #true
-           @${\inferrule*{
-              }{
-                \Gamma \wellM \eerr : \tau
-              }}]{
-    @tr-qed[]
-  }
-
-  @tr-case[#:box? #true
-           @${\inferrule*{
-                \Gamma \wellM e
-              }{
-                \Gamma \wellM \edyn{\tau}{e} : \tau
-              }}]{
-    @tr-step[
-      @${\Gamma \wellCE e}
-      @|C-D-implies|]
-    @tr-step{
-      @${\Gamma \wellCE \edyn{\tau}{e} : \tau}
-      (1)}
-    @tr-qed[]
-  }
+  Consequence of the proof for the @|holong| @tr-ref[#:key "N-S-implies"]{static subset} lemma; both
+   @${\wellCE} and @${\wellNE} have the same typing rules for surface-language
+   expressions.
 }
 
-@tr-lemma[#:key "C-D-implies" @elem{@${\langC} dynamic subset}]{
+@tr-corollary[#:key "C-D-implies" @elem{@${\langC} dynamic subset}]{
   If @${\Gamma \wellM e} then @${\Gamma \wellCE e}.
 }@tr-proof{
-  By structural induction on the derivation of @${\Gamma \wellM e}.
-
-  @tr-case[#:box? #true
-           @${\inferrule*{
-                x \in \Gamma
-              }{
-                \Gamma \wellM x
-              }}]{
-    @tr-step[
-      @${\Gamma \wellCE x}
-      @${x \in \Gamma}]
-    @tr-qed[]
-  }
-
-  @tr-case[#:box? #true
-           @${\inferrule*{
-                x,\Gamma \wellM e
-              }{
-                \Gamma \wellM \vlam{x}{e}
-              }}]{
-    @tr-step[
-      @${x,\Gamma \wellCE e}
-      @tr-IH]
-    @tr-step{
-      @${\Gamma \wellCE \vlam{x}{e}}
-      (1)}
-    @tr-qed[]
-  }
-
-  @tr-case[#:box? #true
-           @${\inferrule*{
-              }{
-                \Gamma \wellM i
-              }}]{
-    @tr-qed[]
-  }
-
-  @tr-case[#:box? #true
-           @${\inferrule*{
-                \Gamma \wellM e_0
-                \\
-                \Gamma \wellM e_1
-              }{
-                \Gamma \wellM \vpair{e_0}{e_1}
-              }}]{
-    @tr-step{
-      @${\Gamma \wellCE e_0
-         @tr-and[]
-         \Gamma \wellCE e_1}
-      @tr-IH}
-    @tr-step{
-      @${\Gamma \wellCE \vpair{e_0}{e_1}}
-      (1)}
-    @tr-qed[]
-  }
-
-  @tr-case[#:box? #true
-           @${\inferrule*{
-                \Gamma \wellM e_0
-                \\
-                \Gamma \wellM e_1
-              }{
-                \Gamma \wellM e_0~e_1
-              }}]{
-    @tr-step{
-      @${\Gamma \wellCE e_0
-         @tr-and[]
-         \Gamma \wellCE e_1}
-      @tr-IH}
-    @tr-step{
-      @${\Gamma \wellCE \vapp{e_0}{e_1}}
-      (1)}
-    @tr-qed[]
-  }
-
-  @tr-case[#:box? #true
-           @${\inferrule*{
-                \Gamma \wellM e
-              }{
-                \Gamma \wellM \eunop{e}
-              }}]{
-    @tr-step{
-      @${\Gamma \wellCE e}
-      @tr-IH}
-    @tr-step{
-      @${\Gamma \wellCE \eunop{e}}
-      (1)}
-    @tr-qed[]
-  }
-
-  @tr-case[#:box? #true
-           @${\inferrule*{
-                \Gamma \wellM e_0
-                \\
-                \Gamma \wellM e_1
-              }{
-                \Gamma \wellM \ebinop{e_0}{e_1}
-              }}]{
-    @tr-step{
-      @${\Gamma \wellCE e_0
-         @tr-and[]
-         \Gamma \wellCE e_1}
-      @tr-IH}
-    @tr-step{
-      @${\Gamma \wellCE \ebinop{e_0}{e_1}}
-      (1)}
-    @tr-qed[]
-  }
-
-  @tr-case[#:box? #true
-           @${\inferrule*{
-              }{
-                \Gamma \wellM \eerr
-              }}]{
-    @tr-qed[]
-  }
-
-  @tr-case[#:box? #true
-           @${\inferrule*{
-                \Gamma \wellM e : \tau
-              }{
-                \Gamma \wellM \esta{\tau}{e}
-              }}]{
-    @tr-step{
-      @${\Gamma \wellCE e : \tau}
-      @|C-S-implies|}
-    @tr-step{
-      @${\Gamma \wellCE \esta{\tau}{e}}
-      (1)}
-    @tr-qed[]
-  }
+  Consequence of the proof for the @|holong| @tr-ref[#:key "N-D-implies"]{dynamic subset} lemma.
 }
 
 @tr-lemma[#:key "C-S-progress" @elem{@${\langC} static progress}]{
@@ -522,7 +241,7 @@
       @|C-S-canonical|}
     @list[
       @tr-if[@${v = \vpair{v_0}{v_1}
-                @tr-and[]
+                @tr-and[2]
                 \vunop = \vfst}]{
         @tr-step{
           @${\delta(\vunop, \vpair{v_0}{v_1}) = v_0}
@@ -534,7 +253,7 @@
         @tr-qed[]
       }
       @tr-if[@${v = \vpair{v_0}{v_1}
-                @tr-and[]
+                @tr-and[2]
                 \vunop = \vsnd}]{
         @tr-step{
           @${\delta(\vunop, \vpair{v_0}{v_1}) = v_1}
@@ -546,15 +265,15 @@
         @tr-qed[]
       }
       @tr-if[@${v = \vmonpair{(\tpair{\tau_0}{\tau_1})}{v'}
-                @tr-and[]
+                @tr-and[2]
                 \vunop = \vfst}]{
         @tr-step{
           @${e \ccCS \ebase[{\edyn{\tau_0}{(\eunop{v'})}}]}
           definition}
         @tr-qed[]
       }
-      @tr-else[@${v = \vmonpair{(\tpair{\tau_0}{\tau_1})}{v'}}]{
-                @tr-and[]
+      @tr-else[@${v = \vmonpair{(\tpair{\tau_0}{\tau_1})}{v'}
+                @tr-and[4]
                 \vunop = \vsnd}]{
         @tr-step{
           @${e \ccCS \ebase[{\edyn{\tau_1}{(\eunop{v'})}}]}
@@ -717,16 +436,16 @@
   }
 
   @tr-case[@${e = \ebase[{\eunop{v}}]} #:itemize? #false]{
-    @tr-if[@${v \eeq \vmonpair{\tpair{\tau_0}{\tau_1}}{v'}
-              @tr-and[]
+    @tr-if[@${v \eeq \vmonpair{(\tpair{\tau_0}{\tau_1})}{v'}
+              @tr-and[2]
               \vunop = \vfst}]{
       @tr-step{
         @${e \ccCD \ebase[{\esta{\tau_0}{\eunop{v'}}}]}
         @${\eunop{v} \rrCD \esta{\tau_0}{\eunop{v'}}}}
       @tr-qed[]
     }
-    @tr-if[@${v \eeq \vmonpair{\tpair{\tau_0}{\tau_1}}{v'}
-              @tr-and[]
+    @tr-if[@${v \eeq \vmonpair{(\tpair{\tau_0}{\tau_1})}{v'}
+              @tr-and[2]
               \vunop = \vsnd}]{
       @tr-step{
         @${e \ccCD \ebase[{\esta{\tau_1}{\eunop{v'}}}]}
@@ -926,10 +645,10 @@
         @${\wellCE \eapp{v_f}{(\esta{\tau_d}{v_1})}}
         (3, 7)}
       @tr-step{
-        @${\wellCE \edyn{\tau_c}{\eapp{v_f}{(\esta{\tau_d}{v_1})}} : \tau_c}
+        @${\wellCE \edyn{\tau_c}{(\eapp{v_f}{(\esta{\tau_d}{v_1})})} : \tau_c}
         (8)}
       @tr-step{
-        @${\wellCE \edyn{\tau_c}{\eapp{v_f}{(\esta{\tau_d}{v_1})}} : \tau'}
+        @${\wellCE \edyn{\tau_c}{(\eapp{v_f}{(\esta{\tau_d}{v_1})})} : \tau'}
         (2, 5, 9)}
       @tr-qed{
         by @|C-hole-subst| (10)}
@@ -1232,7 +951,7 @@
         @${\wellCE \eapp{v_f}{(\edyn{\tau_d}{v_1})} : \tau_c}
         (3, 4)}
       @tr-step{
-        @${\wellCE \esta{\tau_c}{\eapp{v_f}{(\edyn{\tau_d}{v_1})}}}
+        @${\wellCE \esta{\tau_c}{(\eapp{v_f}{(\edyn{\tau_d}{v_1})})}}
         (5)}
       @tr-qed{
         by @|C-hole-subst|}
@@ -1460,6 +1179,7 @@
 }@tr-proof{
   By the @tr-ref[#:key "N-S-factor"]{boundary factoring} lemma for the
    @|holong| embedding.
+  (The only difference is the meaning of @emph{e is a value}.)
 }
 
 @tr-lemma[#:key "C-D-factor" @elem{@${\langC} dynamic boundary factoring}]{
@@ -1728,7 +1448,7 @@
        then @${\wellCE v'}
     }
   ]
-}@tr-proof{
+}@tr-proof[#:sketch? #true]{
   Similar to the proof for the @|holong| @tr-ref[#:key "N-delta-preservation"]{@${\delta} preservation} lemma.
 }
 
@@ -1773,18 +1493,6 @@
     }
   ]
 }@tr-proof{
-  @itemize[
-    @item{
-      @tr-step{
-        @${e \mbox{ is closed under } \Gamma}
-        @${\Gamma \wellCE e
-           @tr-or[]
-           \Gamma \wellCE e : \tau}
-      }
-      @tr-qed{
-        @${x} is unused in the derivation
-      }
-    }
-  ]
+  @tr-qed{because @${e} is closed under @${\Gamma}}
 }
 

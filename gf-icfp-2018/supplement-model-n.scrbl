@@ -2295,10 +2295,10 @@
       }
       @tr-step{
         @${e_0 = \ED_0[e_0']}
-        @|N-D-uec| (1)
+        @|N-S-uec| (1)
       }
       @tr-step{
-        @${\ED = \edyn{\tau}{\ED_0}}
+        @${\ED = \esta{\tau}{\ED_0}}
       }
       @tr-qed{
         @${e = \ED[e_0']}
@@ -2309,7 +2309,7 @@
         @${\ED = \ehole}
       }
       @tr-qed{
-        @${e = \ED[\edyn{\tau}{e_0}]}
+        @${e = \ED[\esta{\tau}{e_0}]}
       }
     }
   }
@@ -4962,7 +4962,8 @@
         @${\Gamma \wellNE e
            @tr-or[]
            \Gamma \wellNE e : \tau}
-      }
+      }}
+    @item{
       @tr-qed{
         @${x} is unused in the derivation
       }
