@@ -27,6 +27,14 @@ In the precise technical sense@~cite[svcb-snapl-2015], a gradual typing
  of the dynamic type; and (3) a proof that replacing any
  static type with the dynamic type can only (3a) remove a static type error
  or (3b) remove a run-time boundary error.
+@; in the other direction (SVCB SNAPL 2015)
+@;   "One of the primary use cases for gradual typing is to enable the evolution
+@;   of programs from untyped to typed. Thus, one might be disappointed that the
+@;   gradual guarantee is not as strong when moving in that direction. However,
+@;   the gradual guarantee has more to say about this direction: a program remains
+@;   well-typed so long as only correct type annotations are added. We take
+@;   _correct_ to mean that the annotation agrees with the corresponding
+@;   annotation in some fully annotated and well-typed version of the program."
 @; gradual guarantee proofs in : @~cite[lt-popl-2017 isi-icfp-2017 mt-oopsla-2017].
 
 Ultimately, gradual typing and migratory typing have different goals.
