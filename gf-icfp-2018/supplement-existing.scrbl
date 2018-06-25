@@ -290,22 +290,33 @@ This translation could be modeled with a completion function (@${\carrow}),
 @|clearpage|
 @section[#:tag "existing-safets"]{SafeTS}
 
-@include-figure["fig:existing-safets.tex" @elem{SafeTS. The @${\vfromdyn} function is undefined for all inputs.}]
+SafeTS is a core model of Safe TypeScript, which is a sound type system for
+ JavaScript (as opposed to TypeScript).
 
-SafeTS is a formal core of Safe TypeScript.
+@Figure-ref{fig:existing-safets} demonstrates SafeTS on three types:
+ a type for numbers (@${\safetstnum}),
+ a type for an object with two fields (@${\safetstpair{\tau}{\tau}}),
+ and a type for an object with one method (@${\safetstfun{\tau}{\tau}}).
+The latter types are intended to represent tuples and anonymous functions.
 
-Every object is statically type-checked and comes with a type.
-(The embedding of compiled SafeTS to a formal semantics of JavaScript is beyond
- the scope of this work.)
+Every value in a SafeTS program has an intrinsic type;
+ there is no notion of a value that is defined in dynamically-typed code and
+ imported to statically typed code.
+A typed value may, however, be used in a context that expects values with a
+ different type by means of a type cast.
+The different type may contain new fields, but otherwise must be a supertype
+ of the value's intrinsic type.
 
-A cast may add fields.
+The @${\vfromsta} boundary function illustrates the run-time checks that
+ SafeTS performs for our number, pair, and function types.
+For type @${\safetstnum}, SafeTS checks that the value is a number.
+For a pair type, SafeTS checks that the value is a pair of compatible type and
+ recursively transports the components.
+For a function type, SafeTS checks that the value is a function of compatible
+ type.
 
-A cast may not add methods; a cast fails if the source objects methods are not
- all subtypes of the target objects methods.
-
-The model keeps types in an external tag heap.
-The types we use here for illustration do not require the heap.
-
+The @${\vfromdyn} function is undefined because the SafeTS model does not
+ define interactions with a model of JavaScript.
 
 @tr-lemma[#:key "safets-canonical" @elem{SafeTS canonical forms}]{
   @itemlist[
@@ -323,6 +334,17 @@ The types we use here for illustration do not require the heap.
     }
   ]
 }
+
+@exact{\medskip}
+
+@emph{Remark:} if a SafeTS cast adds new fields to a value, the fields are recorded
+ in an external ``tag heap'' of run-time type information.
+@Figure-ref{fig:existing-safets} does not model the tag heap because it is
+ not relevant to the types in the figure.
+
+@exact{\vspace{4cm}}
+
+@include-figure["fig:existing-safets.tex" @elem{SafeTS. The @${\vfromdyn} function is undefined for all inputs.}]
 
 
 @; -----------------------------------------------------------------------------
