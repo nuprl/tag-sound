@@ -71,4 +71,4 @@ The structure of the check is based on the domain type of the function.
 The repository for this paper contains the @|TR_LD| prototype and a diff
  between the prototype and Typed Racket v6.10.1.
 
-See: @url{https://github.com/nuprl/tag-sound?path=src/locally-defensive.patch}
+@exact{\noindent}@hyperlink["https://github.com/nuprl/tag-sound?path=src/locally-defensive.patch"]{github.com/nuprl/tag-sound?path=src/locally-defensive.patch}

@@ -72,7 +72,7 @@ For additional details about the benchmarks, their source code,
  and links to more (object-oriented) benchmarks, see:
 
  @nested[
- @url{http://docs.racket-lang.org/gtp-benchmarks/index.html}
+ @hyperlink["http://docs.racket-lang.org/gtp-benchmarks/index.html"]{docs.racket-lang.org/gtp-benchmarks/index.html}
  ]
 
 @; TODO auto-compute the table
