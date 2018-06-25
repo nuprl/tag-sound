@@ -25,7 +25,7 @@ Each slogan pertains to one aspect of the embedding:
 
 These embeddings are ordered on a speculative scale from "most guarantees" to "least guarantees".
 
-@parag{\HOlong\ embedding}
+@parag{@|HOlong| embedding}
 @itemlist[#:style 'ordered
 @item{
   recursively check read-only values;
@@ -73,7 +73,7 @@ These embeddings are ordered on a speculative scale from "most guarantees" to "l
 }
 ]
 
-@parag{\FOlong\ embedding}
+@parag{@|FOlong| embedding}
 @itemlist[#:style 'ordered
 @item{
   tag-check all values;
@@ -89,7 +89,7 @@ These embeddings are ordered on a speculative scale from "most guarantees" to "l
 }
 ]
 
-@parag{\EOlong\ embedding}
+@parag{@|EOlong| embedding}
 @itemlist[#:style 'ordered
 @item{
   never check values;
