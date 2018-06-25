@@ -1,12 +1,14 @@
 \lblextra{Pyret}{ (sketch)}{
   $\begin{array}{l@{\hspace{0.5em}}c@{\hspace{0.5em}}l}
-    e & \BNFeq & \echk{K}{e}
-    \\
     \tau & \BNFeq & \tint \mid \tnat \mid \tpair{\tau}{\tau} \mid \tarr{\tau}{\tau}
     \\
     K & \BNFeq & \kint \mid \knat \mid \kpair \mid \kfun
     \\
     v & \BNFeq & i \mid \vpair{v}{v} \mid \vlam{x}{e} \mid \vlam{\tann{\tann{x}{\tau}}{\tau}}{e}
+    \\
+    i & \in & \integers
+    \\
+    e & \BNFeq & \ldots \mid \echk{K}{e}
   \end{array}$
 }
 

@@ -13,10 +13,10 @@
 This section illustrates prior work on gradual typing using the semantic
  framework of the paper.
 
-At present (2018-05-31) these illustrations have not been approved by the
- authors of the systems.
-We plan to review these illustrations with the relevant authors before the ICFP
- camera-ready.
+@; At present (2018-05-31) these illustrations have not been approved by the
+@;  authors of the systems.
+@; We plan to review these illustrations with the relevant authors before the ICFP
+@;  camera-ready.
 
 
 @; -----------------------------------------------------------------------------
@@ -45,6 +45,8 @@ Consequence: the @emph{this} variable ia always concretely typed in method calls
 Thorn lets values pass from static to dynamic at run-time.
 (Cannot explicitly cast from static to dynamic.)
 
+As Siek etal point out, its not gradual.
+
 Thorn values are pointers to objects.
 A pointer may be wrapped in at most one cast.
 
@@ -64,6 +66,7 @@ A pointer may be wrapped in at most one cast.
 
 
 @; -----------------------------------------------------------------------------
+@|clearpage|
 @(define strongscript @${\strongscript})
 @section[#:tag "existing-strongscript"]{StrongScript}
 
@@ -123,6 +126,7 @@ Not allowed to change type of an object; an object imported from JavaScript
 
 
 @; -----------------------------------------------------------------------------
+@|clearpage|
 @section[#:tag "existing-dart"]{Dart}
 
 URL: @url{https://www.dartlang.org/dart-2}
@@ -159,6 +163,7 @@ In particular, a Dart value of type @${\darttdyn} has the form @${\dartval{b}{\t
 
 
 @; -----------------------------------------------------------------------------
+@|clearpage|
 @section[#:tag "existing-pyret"]{Pyret}
 
 @include-figure["fig:existing-pyret.tex" @elem{Pyret boundary functions and semantics for a restricted grammar of types.}]
@@ -193,6 +198,7 @@ In particular, a Dart value of type @${\darttdyn} has the form @${\dartval{b}{\t
 
 
 @; -----------------------------------------------------------------------------
+@|clearpage|
 @section[#:tag "existing-safets"]{SafeTS}
 
 @include-figure["fig:existing-safets.tex" @elem{SafeTS. The @${\vfromdyn} function is undefined for all inputs.}]
@@ -231,6 +237,7 @@ The types we use here for illustration do not require the heap.
 
 
 @; -----------------------------------------------------------------------------
+@|clearpage|
 @section[#:tag "existing-nom"]{Nom}
 
 @include-figure["fig:existing-nom.tex" @elem{Nom. The @${\vfromdyn} function is undefined for all inputs.}]

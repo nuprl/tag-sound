@@ -22,7 +22,8 @@
     \\ \sidecond{where $v' \valeq \ssfun{\tann{x}{\tau_d}}{(\sscast{\tau_c}{(\eapp{v}{(\sscast{\tau_x}{x})})})}{\tau_c}$}
     \\
     \efromsta{C}{v} & = & v
-    \\ \sidecond{if $v \valeq \ssobj{\tann{s}{v} \ldots m \ldots}{\tau}$}
+    \\ \sidecond{if $v \valeq \ssobj{\tann{s}{v} \ldots m \ldots}{C'}$}
+    \\ \sidecond{and $C' \subteq C$}
     \\
     \efromsta{\sstdyn}{v} & = & v
     \\ \sidecond{if $v \valeq \ssobj{\tann{s}{v}\ldots m \ldots}{\sstdyn}$}
