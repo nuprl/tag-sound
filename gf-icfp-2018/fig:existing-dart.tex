@@ -8,36 +8,36 @@
   \end{array}$
 }
 
-\lblmathpar{$\tau \subteq \tau$}{
-  \inferrule{
-  }{
-    \tau \subteq \tau
-  }
-
-  \inferrule{
-  }{
-    \tau \subteq \darttdyn
-  }
-
-  \inferrule{
-  }{
-    \darttint \subteq \darttnum
-  }
-
-  \inferrule{
-    \tau \subteq \tau'
-  }{
-    \darttlist{\tau} \subteq \darttlist{\tau'}
-  }
-
-  \inferrule{
-    \tau_d' \subteq \tau_d
-    \\
-    \tau_c \subteq \tau_c'
-  }{
-    \tarr{\tau_d}{\tau_c} \subteq \tarr{\tau_d'}{\tau_c'}
-  }
-}
+% \lblmathpar{$\tau \subteq \tau$}{
+%   \inferrule{
+%   }{
+%     \tau \subteq \tau
+%   }
+% 
+%   \inferrule{
+%   }{
+%     \tau \subteq \darttdyn
+%   }
+% 
+%   \inferrule{
+%   }{
+%     \darttint \subteq \darttnum
+%   }
+% 
+%   \inferrule{
+%     \tau \subteq \tau'
+%   }{
+%     \darttlist{\tau} \subteq \darttlist{\tau'}
+%   }
+% 
+%   \inferrule{
+%     \tau_d' \subteq \tau_d
+%     \\
+%     \tau_c \subteq \tau_c'
+%   }{
+%     \tarr{\tau_d}{\tau_c} \subteq \tarr{\tau_d'}{\tau_c'}
+%   }
+% }
 
 \lblextra{$\vfromdyn : \specarrf{\tpair{\tau}{v}}{e}\vphantom{\vfromsta}$}{ (undefined, all values have a static type)}{
   $\begin{array}{l@{~~}c@{~}l}

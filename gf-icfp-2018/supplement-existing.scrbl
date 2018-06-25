@@ -172,40 +172,39 @@ Instead, a JavaScript object is modeled as an object with type @${\sstdyn},
 @; -----------------------------------------------------------------------------
 @|clearpage|
 @section[#:tag "existing-dart"]{Dart 2}
+@; Dart VM version: 2.0.0-edge.ca7a70ff41cf561419d69a753d546e92b8d29a68 (Thu May 10 20:48:15 2018 +0000) on "linux_x64"
 
 Dart 2 is a language under development at Google with some support for
  dynamic typing.
-For details, see: @hyperlink["https://www.dartlang.org/dart-2"]{dartlang.org/dart-2}
+For details: @hyperlink["https://www.dartlang.org/dart-2"]{dartlang.org/dart-2}
 
-@Figure-ref{}
+@Figure-ref{fig:existing-dart} summarizes the key aspects of dynamic typing
+ in Dart for a few types.
+The types represent integers (@${\darttint}),
+ integers and decimal numbers (@${\darttnum}),
+ lists (@${\darttlist{\tau}}),
+ functions (@${\tarr{\tau}{\tau}}),
+ and a dynamic type (@${\darttdyn}).
+The base values @${b} match these types.
 
+Dart programs do not directly interact with base values.
+Instead, base values are stored on a typed heap.
+The values @${v} in @figure-ref{fig:existing-dart} model this indirection
+ by associating a base value with a compatible type.
 
-For an official description, see the Dart website:
+Just like in Thorn, a typed value may be used in a context that expects a
+ less precise type.
+Also like Thorn, a value of type @${\darttdyn} is an object that the type
+ checker assumes can recieve any method call.
+The run-time system checks that such method calls are actually safe for the
+ given value.
 
-@nested[#:style 'inset ]
+The @${\vfromsta} boundary function checks a value against a type annotation
+ by checking the value's associated type.
+The @${\vfromdyn} function is undefined for all inputs because it is not possible
+ to define (or interact with) an untyped value.
 
-
-
-@; Dart VM version: 2.0.0-edge.ca7a70ff41cf561419d69a753d546e92b8d29a68 (Thu May 10 20:48:15 2018 +0000) on "linux_x64"
-
-
-The function syntax is an abuse of notation; to write the type @${\tarr{\darttint}{\darttint}}
- one must define a new type:
-
-@verbatim{
-  typedef int Ifun(int _); // Ifun ~ int -> int
-}
-
-Dart also uses a heap.
-
-Dynamic is not a subtype of any type other than itself.
-
-Every value comes with a type.
-The type never goes away and is checked at run-time.
-
-In particular, a Dart value of type @${\darttdyn} has the form @${\dartval{b}{\tau}}
- where @${\tau} is any type.
-
+@; Dynamic is not a subtype of any type other than itself.
 @; need to emphasize the weirdness, that dynamic doesn't coerce to integer
 
 @tr-lemma[#:key "dart-canonical" @elem{Dart canonical forms}]{
@@ -216,6 +215,20 @@ In particular, a Dart value of type @${\darttdyn} has the form @${\dartval{b}{\t
   ]
 }
 
+@emph{Remark:} a Dart function type must be declared explicitly.
+For example, to use the type @${\tarr{\darttint}{\darttint}} one must first
+ define an alias:
+
+@nested[#:style 'inset
+@verbatim{
+  typedef int IntFun(int _);
+}]
+
+@exact{\noindent}Then the name @tt{IntFun} may appear in other type annotations,
+ e.g., in a method signature.
+
+@exact{\vspace{8cm}}
+
 @include-figure["fig:existing-dart.tex" @elem{Dart boundary functions for a restricted grammar of types. The @${\vfromdyn} function is undefined for all inputs.}]
 
 
@@ -223,7 +236,7 @@ In particular, a Dart value of type @${\darttdyn} has the form @${\dartval{b}{\t
 @|clearpage|
 @section[#:tag "existing-pyret"]{Pyret}
 
-@include-figure["fig:existing-pyret.tex" @elem{Pyret boundary functions and semantics for a restricted grammar of types.}]
+Pyret (@figure-ref{fig:existing-pyret})
 
 @tr-lemma[#:key "pyret-canonical" @elem{Pyret assert-canonical forms}]{
   If @${v} is a value with the static type @${\tau} then @${v} may be any kind of value;
@@ -252,6 +265,8 @@ In particular, a Dart value of type @${\darttdyn} has the form @${\dartval{b}{\t
     }
   ]
 }
+
+@include-figure["fig:existing-pyret.tex" @elem{Pyret boundary functions and semantics for a restricted grammar of types.}]
 
 
 @; -----------------------------------------------------------------------------
