@@ -12,6 +12,14 @@
 
 This section illustrates prior work on gradual typing using the semantic
  framework of the paper.
+The goal is to
+  demonstrate that the framework is able to express the main ideas of existing
+   systems,
+  and to outline a formal comparison between the existing systems.
+
+The subsections also give canonical forms lemmas for each system.
+This is because at the time of writing the first author thought the lemmas
+ gave a quick sample of the systems' logical implications.
 
 @; At present (2018-05-31) these illustrations have not been approved by the
 @;  authors of the systems.
@@ -32,23 +40,39 @@ This section illustrates prior work on gradual typing using the semantic
 @; -----------------------------------------------------------------------------
 @section[#:tag "existing-thorn"]{Thorn}
 
-@include-figure["fig:existing-thorn.tex" @elem{Thorn types, values, and boundary functions. The @${\vfromdyn} function is undefined for all inputs.}]
-
 @Figure-ref{fig:existing-thorn} summarizes Thorn.
+Thorn is a nominally-typed object-oriented language.
+The idea is that a program may: declare typed classes,
+ use the classes to create typed objects,
+ and manipulate the objects in gradually-typed methods.
+If a method expects a dynamically-typed object,
+ the type checker lets the method perform any operation on the object
+ and the run-time system dynamically checks whether the operations are
+ actually valid.
 
-The actual model uses a heap.
+The types @${\tau} include @emph{concrete} class names @${C},
+ @emph{like} class names (@${\thornlike{C}}),
+ and a dynamic type (@${\thorndyn}).
+The values are possibly-wrapped pointers to instances of classes;
+ a value is either a direct pointer @${p},
+ a dynamically-typed @emph{view} to a pointer @${\thorncast{\thorndyn}{p}},
+ or a like-typed view to a pointer @${\thorncast{\thornlike{C}}{p}}.
+Informally, a view is a method-local pointer to an object.
 
-There are no untyped classes or objects.
-Every value has a class name.
-Consequence: the @emph{this} variable ia always concretely typed in method calls.
+One main invariant of Thorn is that every value comes with a type.
+In the figure, every value is an instance of a class and has the class name
+ as its type.
+Because of this invariant, Thorn can efficiently check whether a value is
+ compatible with some other type annotation at runtime.
+The @${\vfromsta} function demonstrates this compatibility check.
 
-Thorn lets values pass from static to dynamic at run-time.
-(Cannot explicitly cast from static to dynamic.)
-
-As Siek etal point out, its not gradual.
-
-Thorn values are pointers to objects.
-A pointer may be wrapped in at most one cast.
+The @${\vfromdyn} function is undefined for all inputs because there is
+ no such thing as a dynamically-typed value.
+Put another way, the Thorn surface language is a single statically-typed
+ language as opposed to a pair of languages.
+(The statically-typed language includes a dynamic to make it easy to experiment
+ with statically-typed values, but nevertheless all values are statically typed
+ to ensure safety and efficiency.)
 
 @tr-lemma[#:key "thorn-canonical" @elem{Thorn canonical forms}]{
   @itemlist[
@@ -63,6 +87,8 @@ A pointer may be wrapped in at most one cast.
     }
   ]
 }
+
+@include-figure["fig:existing-thorn.tex" @elem{Thorn types, values, and boundary functions. The @${\vfromdyn} function is undefined for all inputs.}]
 
 
 @; -----------------------------------------------------------------------------
