@@ -40,8 +40,7 @@ This is because at the time of writing the first author thought the lemmas
 @; -----------------------------------------------------------------------------
 @section[#:tag "existing-thorn"]{Thorn}
 
-@Figure-ref{fig:existing-thorn} summarizes Thorn.
-Thorn is a nominally-typed object-oriented language.
+Thorn (@figure-ref{fig:existing-thorn}) is a nominally-typed object-oriented language.
 The idea is that a program may: declare typed classes,
  use the classes to create typed objects,
  and manipulate the objects in gradually-typed methods.
@@ -96,18 +95,35 @@ Put another way, the Thorn surface language is a single statically-typed
 @(define strongscript @${\strongscript})
 @section[#:tag "existing-strongscript"]{StrongScript}
 
-@include-figure["fig:existing-strongscript.tex" @elem{@|strongscript| boundary functions. The @${\vfromdyn} function is undefined for all inputs.}]
+StrongScript (@figure-ref{fig:existing-strongscript}) adapts the ideas from
+ Thorn to a type system for JavaScript.
+The types @${\tau} include concrete class names (@${\sstconcrete{C}}),
+ like class names (@${C}),
+ a dynamic type (@${\sstdyn}),
+ and function types (@${\tarr{\tau}{\tau}}).
+The values are objects and functions.
 
-Classes cannot have fields of function type or of undefined type.
+Every object and function comes with an intrinsic type.
+For an object imported from JavaScript, this type is @${\sstdyn}.
+(For a function imported from JavaScript, this type is presumably
+ @${\tarr{\sstdyn}{\sstdyn}}.)
+A typed object cannot inherit from a JavaScript object, and vice-versa.
 
-The dynamic type (@${\sstdyn}) is not a subtype or supertype of any other type.
+The @${\vfromsta} function checks the intrinsic type of a value against
+ a type annotation.
+The idea is, if the check succeeds then a context may assume that the type
+ annotation accurately describes the value.
 
-Not allowed to override methods.
+The @${\vfromdyn} function is undefined for all inputs because the StrongScript
+ paper does not directly model interactions with JavaScript.
+Instead, a JavaScript object is modeled as an object with type @${\sstdyn},
+ as mentioned above.
 
-Not allowed to delete members of a class if those members are part of its type.
-
-Not allowed to change type of an object; an object imported from JavaScript
- always has type @${\sstdyn}.
+@; Classes cannot have fields of function type or of undefined type.
+@; The dynamic type (@${\sstdyn}) is not a subtype or supertype of any other type.
+@; Not allowed to override methods.
+@; Not allowed to delete members of a class if those members are part of its type.
+@; Not allowed to change type of an object; an object imported from JavaScript always has type @${\sstdyn}.
 
 @tr-lemma[#:key "strongscript-canonical" @elem{@|strongscript| canonical forms}]{
   @itemlist[
@@ -150,15 +166,28 @@ Not allowed to change type of an object; an object imported from JavaScript
   ]
 }
 
+@include-figure["fig:existing-strongscript.tex" @elem{@|strongscript| boundary functions. The @${\vfromdyn} function is undefined for all inputs.}]
+
 
 @; -----------------------------------------------------------------------------
 @|clearpage|
-@section[#:tag "existing-dart"]{Dart}
+@section[#:tag "existing-dart"]{Dart 2}
 
-URL: @url{https://www.dartlang.org/dart-2}
+Dart 2 is a language under development at Google with some support for
+ dynamic typing.
+For details, see: @hyperlink["https://www.dartlang.org/dart-2"]{dartlang.org/dart-2}
+
+@Figure-ref{}
 
 
-@include-figure["fig:existing-dart.tex" @elem{Dart boundary functions for a restricted grammar of types. The @${\vfromdyn} function is undefined for all inputs.}]
+For an official description, see the Dart website:
+
+@nested[#:style 'inset ]
+
+
+
+@; Dart VM version: 2.0.0-edge.ca7a70ff41cf561419d69a753d546e92b8d29a68 (Thu May 10 20:48:15 2018 +0000) on "linux_x64"
+
 
 The function syntax is an abuse of notation; to write the type @${\tarr{\darttint}{\darttint}}
  one must define a new type:
@@ -174,6 +203,11 @@ Dynamic is not a subtype of any type other than itself.
 Every value comes with a type.
 The type never goes away and is checked at run-time.
 
+In particular, a Dart value of type @${\darttdyn} has the form @${\dartval{b}{\tau}}
+ where @${\tau} is any type.
+
+@; need to emphasize the weirdness, that dynamic doesn't coerce to integer
+
 @tr-lemma[#:key "dart-canonical" @elem{Dart canonical forms}]{
   @itemlist[
     @item{
@@ -182,10 +216,7 @@ The type never goes away and is checked at run-time.
   ]
 }
 
-In particular, a Dart value of type @${\darttdyn} has the form @${\dartval{b}{\tau}}
- where @${\tau} is any type.
-
-@; need to emphasize the weirdness, that dynamic doesn't coerce to integer
+@include-figure["fig:existing-dart.tex" @elem{Dart boundary functions for a restricted grammar of types. The @${\vfromdyn} function is undefined for all inputs.}]
 
 
 @; -----------------------------------------------------------------------------
