@@ -57,10 +57,11 @@
     \\
     \eapp{(\vlam{\tann{\tann{x}{\tau_d}}{\tau_c}}{e})}{v} & \rrS
     & \echk{\tagof{\tau_c}}{(\vsubst{e}{x}{\efromany{\tagof{\tau_d}}{v}})}
+    \\ \sidecond{if $\efromany{\tagof{\tau_d}}{v} \neq \boundaryerror$}
     \\
-    \efst{\vpair{v_0}{v_1}} & \rrS
-    & v_0
-    \\
+    %\efst{\vpair{v_0}{v_1}} & \rrS
+    %& v_0
+    %\\
     \echk{K}{v} & \rrS
     & \efromany{K}{v}
   \end{array}$
@@ -77,10 +78,11 @@
     \\
     \eapp{(\vlam{\tann{\tann{x}{\tau_d}}{\tau_c}}{e})}{v} & \rrD
     & \echk{\tagof{\tau_c}}{(\vsubst{e}{x}{\efromany{\tagof{\tau_d}}{v}})}
+    \\ \sidecond{if $\efromany{\tagof{\tau_d}}{v} \neq \boundaryerror$}
     \\
-    \efst{\vpair{v_0}{v_1}} & \rrD
-    & v_0
-    \\
+    %\efst{\vpair{v_0}{v_1}} & \rrD
+    %& v_0
+    %\\
     \echk{K}{v} & \rrD
     & \efromany{K}{v}
   \end{array}$

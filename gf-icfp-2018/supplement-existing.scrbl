@@ -174,9 +174,9 @@ Instead, a JavaScript object is modeled as an object with type @${\sstdyn},
 @section[#:tag "existing-dart"]{Dart 2}
 @; Dart VM version: 2.0.0-edge.ca7a70ff41cf561419d69a753d546e92b8d29a68 (Thu May 10 20:48:15 2018 +0000) on "linux_x64"
 
-Dart 2 is a language under development at Google with some support for
+Dart 2 is a new language with some support for
  dynamic typing.
-For details: @hyperlink["https://www.dartlang.org/dart-2"]{dartlang.org/dart-2}
+For details, see: @hyperlink["https://www.dartlang.org/dart-2"]{dartlang.org/dart-2}
 
 @Figure-ref{fig:existing-dart} summarizes the key aspects of dynamic typing
  in Dart for a few types.
@@ -236,8 +236,25 @@ For example, to use the type @${\tarr{\darttint}{\darttint}} one must first
 @|clearpage|
 @section[#:tag "existing-pyret"]{Pyret}
 
-Pyret (@figure-ref{fig:existing-pyret})
+Pyret is a dynamically-typed language with optional type annotations and
+ an optional static type checker.
+For details, see: @hyperlink["https://www.pyret.org"]{pyret.org}.
 
+A type annotation in a Pyret program acts as a type-constructor
+ check at run-time.
+@Figure-ref{fig:existing-pyret} illustrates this aspect of Pyret in the
+ @${\rrS} and @${\rrD} notions of reduction.
+Both check the argument and result of a typed function against
+ the function's type.
+The @${\vfromany} boundary function performs the check by matching
+ a type constructor @${K} against a value.
+
+One aspect of Pyret that is missing from @figure-ref{fig:existing-pyret} is
+ the translation that maps type annotations in the source code to run-time
+ constructor checks.
+This translation could be modeled with a completion function (@${\carrow}),
+ similar to the model of the first-order embedding in the paper.
+ 
 @tr-lemma[#:key "pyret-canonical" @elem{Pyret assert-canonical forms}]{
   If @${v} is a value with the static type @${\tau} then @${v} may be any kind of value;
    however, if @${v} is assigned to a variable @${x} with the programmer-assigned
