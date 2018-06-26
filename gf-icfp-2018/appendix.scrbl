@@ -5,18 +5,17 @@
 @|pre-clearpage|
 @title[#:tag "sec:appendix"]{Appendix}
 
-This appendix presents two alternative higher-order approaches,
+@exact{\noindent}This appendix presents two alternative higher-order approaches,
  called
  @emph{co-natural}
  and @emph{forgetful},
  and their logical implications.
 Co-natural enforces all non-base types with monitors@~cite[fgr-ifl-2007 dtw-pepm-2012].
 Forgetful limits each value to at most one monitor@~cite[g-popl-2015].
-Full definitions and proofs are in@~cite[gf-tr-2018].
+Full definitions and proofs are in the supplement@~cite[gf-tr-2018].
 
-@; In principle these are higher-order embeddings.
-@; (Sec 2 is a natural embedding.)
-@; but we do not consider that the primary characteristic.
+One might also explore an approach that monitors base values and further delays
+ errors@~cite[dtw-pepm-2012].
 
 
 @; -----------------------------------------------------------------------------
@@ -111,7 +110,7 @@ Soundness for the forgetful embedding states that reduction preserves the
 
 @section[#:tag "sec:appendix:implications"]{Implications of Co-Natural and Forgetful}
 
-The co-natural approach delays run-time checks until part of the relevant value
+The co-natural approach delays run-time checks until the relevant part of a value
  is accessed.
 Thus a type error can go undiscovered if it does not affect the particular execution:
 
@@ -137,6 +136,14 @@ Thus a type error can go undiscovered if it does not affect the particular execu
   }
 ]
 
+@exact{\noindent}The forgetful approach can also detect errors in untyped contexts:
+
+@dbend[
+  @safe{
+    \wellM \esnd{(\esta{(\tpair{\tnat}{\tnat})}{(\edyn{(\tpair{\tnat}{\tnat})}{\vpair{2}{-2}})})} \rrFDstar \boundaryerror
+  }
+]
+
 Co-natural and forgetful differ in their approach to pairs (or functions)
  that cross multiple boundary terms.
 In the following example, an untyped pair flows in and out of
@@ -153,14 +160,12 @@ The first type annotation does not match the value and the forgetful approach
   }
 ]
 
-@exact{\noindent}This example also serves to illustrate a difference between
- forgetful and @|folong|; namely,
- the forgetful approach can detect a type mismatch in dynamically-typed code.
+@;@exact{\noindent}This example also serves to illustrate a difference between
+@; forgetful and @|folong|; namely,
+@; the forgetful approach can detect a type mismatch in dynamically-typed code.
 
-Also unlike the @|folong| embedding, the run-time checks in the forgetful
- embedding come from boundary terms.
-It is possible to hide a type mismatch using subtyping in the @|folong|
- embedding, but not in the forgetful embedding:
+Unlike the @|folong| embedding, the run-time checks in the forgetful
+ embedding come from boundary terms, not from the client context:
 
 @dbend[
   @safe{

@@ -1,5 +1,6 @@
 #lang gf-icfp-2018
 @title[#:tag "sec:conclusion"]{Finding Balance}
+@; alt: Bringing Balance to the Power
 
 @; Future work:
 @; - static/dynamic analysis to attribute run-time cost to boundaries
@@ -64,7 +65,7 @@ Indeed, a violation of the types in the source code may go completely unnoticed.
 @;  can achieve type soundness in the traditional sense@~cite[fb-flops-2006 nl-fscd-2018].
 
 In terms of performance, the picture is more nuanced than the literature
- would suggest. On mixed-typed programs: @|eolong| adds zero overhead,
+ suggests. On a mixed-typed program: @|eolong| adds no overhead,
  @|folong| checks add overhead on a pay-as-you-annotate basis,
  and the @|holong|
  approach may render a working program unusably slow.  For fully-typed
@@ -73,26 +74,24 @@ In terms of performance, the picture is more nuanced than the literature
  this comparison platform, we intend to explore additional ways of making
  some form of sound migratory typing sufficiently practical.
 
-One strategy is to improve the @|folong| model with a more sophisticated completion function and
- evaluation property than the one extracted from the literature; the pair in @section-ref{sec:locally-defensive-embedding} is
- simple and includes some obviously redundant checks.
+One strategy is to improve the completion function of the @|folong| model and
+ evaluation property than the one extracted from the literature;
+ the one in @section-ref{sec:locally-defensive-embedding} is correct, but simplistic.
 Occurrence typing@~cite[tf-icfp-2010] seems well-suited for this task.
 A second strategy is to design a JIT compiler that can dynamically minimize
  the cost of run-time constructor checks; the HiggsCheck compiler@~cite[rat-oopsla-2017]
  might be a promising context in which to experiment.
 Alternatively, combining the @|folong| approach with the Pycket@~cite[bauman-et-al-icfp-2015 bbst-oopsla-2017] JIT compiler for Racket
  may yield an implementation with good performance in all configurations.
-A third strategy is to combine multiple semantics within a program, using
- the @|holong| embedding for fully-typed components and an embedding with weaker
- guarantees for other parts of the program.
+A third strategy is to combine multiple semantics.
 
 @acks{
-  This paper is supported by @hyperlink["https://www.nsf.gov/awardsearch/showAward?AWD_ID=1518844"]{NSF grant CCF-1518844}.
+  The research reported here is supported in part by @hyperlink["https://www.nsf.gov/awardsearch/showAward?AWD_ID=1518844"]{NSF grant CCF-1518844}.
   @; redex-check
   @; early feedback at PI meeting
   @; pldi reviewers for skimming the paper and letting us know it wasn't shiny and new enough
   @;
-  We thank Erik Ernst, Bryan LaChance, Benjamin S. Lerner, Fabian Muehlboeck, Max S. New, Artem Pelenitsyn, Ross Tate, and Jan Vitek.
   Felleisen acknowledges insightful conversations with Ron Garcia and Eric Tanter about the meaning of types in Reticulated Python.
+  We thank Erik Ernst, Bryan LaChance, Benjamin S. Lerner, Fabian Muehlboeck, Max S. New, Artem Pelenitsyn, Ross Tate, Jan Vitek, and the anonymous ICFP reviewers.
 }
 

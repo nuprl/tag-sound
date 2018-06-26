@@ -130,7 +130,7 @@
   (make-bib
    #:title "Gradual Typing for Functional Languages"
    #:author (authors "Jeremy G. Siek" "Walid Taha")
-   #:location (techrpt-location #:institution "University of Chicago" #:number "TR-2006-06")
+   #:location @elem{@italic{Scheme and Functional Programming}. University of Chicago, TR-2006-06}
    #:date 2006))
 
 (define tf-dls-2006
@@ -816,6 +816,19 @@
    #:title "D Programming Language"
    #:url "http://www.digitalmars.com/d/"))
 
+(define lm-fpca-1991
+  (make-bib
+    #:title "Dynamics in ML"
+    #:author (authors "Xavier Leroy" "Michael Mauny")
+    #:location (proceedings-location fpca #:pages '(406 426))
+    #:date 1991))
+
+(define t-popl-1990
+  (make-bib
+    #:title "Quasi-static Typing"
+    #:author "Satish Thatte"
+    #:location (proceedings-location popl #:pages '(367 381))
+    #:date 1990))
 
 (define acpp-toplas-1991
   (make-bib

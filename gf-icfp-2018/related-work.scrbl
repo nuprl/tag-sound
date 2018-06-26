@@ -37,9 +37,10 @@ In the precise technical sense@~cite[svcb-snapl-2015], a gradual typing
 @;   annotation in some fully annotated and well-typed version of the program."
 @; gradual guarantee proofs in : @~cite[lt-popl-2017 isi-icfp-2017 mt-oopsla-2017].
 
-Ultimately, gradual typing and migratory typing have different goals.
+Gradual typing and migratory typing have different goals.
 Migratory typing always starts with a dynamically typed language, whereas gradual
- typing may begin with a static type system and add a dynamic type@~cite[cs-popl-2016 gct-popl-2016 lt-popl-2017].
+ typing may begin with a static type system and add a dynamic type@~cite[cs-popl-2016 gct-popl-2016 lt-popl-2017],
+ an idea that also goes back decades@~cite[lm-fpca-1991 acpp-toplas-1991 t-popl-1990].
 
 
 @section{Concrete Types}
@@ -81,7 +82,7 @@ The name suggests that this inductive-checking, higher-order-wrapping technique
 @;  accept optional type hints to guide compilation.
 
 The @|eolong| approach is better known as optional typing, and the idea
- dates back to Strongtalk@~cite[bg-oopsla-1993].
+ dates back to Common Lisp@~cite[s-lisp-1990] and Strongtalk@~cite[bg-oopsla-1993].
 Many languages now have optional type checkers.
 @Figure-ref{fig:existing-systems} lists some examples;
  the pluggable type checkers for Java@~cite[ddems-icse-2011 pacpe-issta-2008]
@@ -94,11 +95,10 @@ Many languages now have optional type checkers.
 
 The @|folong| embedding presented in @section-ref{sec:locally-defensive-embedding}
  is directly inspired by the transient semantics
- for Reticulated Python@~cite[vksb-dls-2014 vss-popl-2017], a migratory and
- gradual@~cite[svcb-snapl-2015] typing system for Python.
+ for Reticulated Python@~cite[vksb-dls-2014 vss-popl-2017].
 The transient approach begins with a surface language expression and elaborates
  into a typed intermediate language with explicit type-constructor checks.
-In other words, the main judgment has the form @${\Gamma \vdash e \carrow e' : \tau}
+The main judgment has the form @${\Gamma \vdash e \carrow e' : \tau}
  where both @${e'} and @${\tau} are outputs.
 At first we tried adapting this elaboration to Typed Racket, but struggled
  with the lack of a specification for the @${\carrow} judgment in
@@ -111,8 +111,7 @@ A true model of transient may insert run-time checks for different reasons than
 
 @citet[h-scp-1994] introduces the name @emph{completion} to decribe an untyped
  expression annotated with explicit type constructor checks.
-The completion judgment in @section-ref{sec:locally-defensive-embedding}
- is more precisely a type-directed coercion insertion judgment@~cite[b-types-1995 shb-icfp-2009].
+Our completion judgment is more precisely a type-directed coercion insertion@~cite[b-types-1995 shb-icfp-2009].
 
 @; The name ``locally-defensive'' is an attempt to separate specification from
 @;  implementation, and to tease apart three design choices
@@ -177,25 +176,24 @@ A @tt{like} type system@~cite[wnlov-popl-2010 rzv-ecoop-2015]
  allows the programmer to decide between enforced and erased types.
 Confined gradual typing@~cite[afgt-oopsla-2014] offers a choice between
  a static type error and a run-time check in the @|holong| approach.
-Lastly, the progressive types@~cite[pqk-onward-2012] vision
- paper describes a type system with a tunable set of run-time errors.@note{By contrast, this paper makes an argument for ``preservation-ive types''.}
-Removing one kind of error from the set makes the static type system more
- conservative.
+Lastly, progressive types@~cite[pqk-onward-2012]
+ describes a type system with a tunable set of run-time errors.@note{By contrast, this paper makes an argument for ``preservation-ive types''.}
 
 
 @section{Blame}
 
-Correct blame is an important consolation prize;
- a migratory typing system cannot guarantee the absence of certain
- run-time errors the way a statically-typed language can, but correct blame
- makes such errors easier to debug by attributing the fault to a surface-level
- type boundary.
-Given a boundary, either the type annotation or the untyped value is the source of the error.@note{For the
- higher-order embedding, one could formulate a blame property by:
- labelling the two sides of each boundary term, adding the labels to every
- monitor, and naming a label in every boundary error (but not tag error!).
- The proof, we conjecture, would follow from a complete monitoring
- lemma@~cite[dtf-esop-2012].}
+Correct blame is an important consolation prize because a
+ migratory typing system cannot guarantee the absence of certain
+ run-time errors the way a statically-typed language can.
+Correct blame makes such errors easier to debug, though, by attributing the
+ fault to one specific surface-level type boundary.
+
+@; Given a boundary, either the type annotation or the untyped value is the source of the error.@note{For the
+@;  higher-order embedding, one could formulate a blame property by:
+@;  labelling the two sides of each boundary term, adding the labels to every
+@;  monitor, and naming a label in every boundary error (but not tag error!).
+@;  The proof, we conjecture, would follow from a complete monitoring
+@;  lemma@~cite[dtf-esop-2012].}
 
 Typed Racket informally guarantees blame correctness@~cite[tfffgksst-snapl-2017].
 @citet[mt-oopsla-2017] formally prove an @emph{immediate accountability} property
@@ -221,16 +219,17 @@ The three calculi provide identical soundness guarantees.
 @(define kafka "KafKa")
 
 @citet[clzv-ecoop-2018] study the relationship of four different designs of
-object-oriented gradual typing. The paper presents a core language, dubbed
+object-oriented gradual typing without inheritance.
+The paper presents a core language, dubbed
 @|kafka|, which is implemented in .NET and provably type-sound.  The
 comparison rests on four translations from the surface syntax to @|kafka|,
 each of which formulates a different semantics of gradual typing.  Finally,
-the paper applies the four semantics to examples, showing that the
-resulting behaviors are distinct.
+the paper compares the four approaches with examples, showing how the
+resulting behaviors differ.
 
-By contrast, this paper assigns three different semantics to one surface
-language and proves soundness theorems that demonstrate how the three semantics
-differ with respect to the kind of properties that the type system correctly predicts.
-Furthermore, this paper presents the results of comparing the performance
-of the three semantics, implemented for the same language and
-exhaustively evaluated on the same benchmark suite.
+@; By contrast, this paper assigns three different semantics to one surface
+@; language and proves soundness theorems that demonstrate how the three semantics
+@; differ with respect to the kind of properties that the type system correctly predicts.
+@; Furthermore, this paper presents the results of comparing the performance
+@; of the three semantics, implemented for the same language and
+@; exhaustively evaluated on the same benchmark suite.

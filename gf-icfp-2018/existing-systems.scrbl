@@ -29,11 +29,11 @@ SafeTS is similar, however, the type information is structural rather than
  nominal and may gain new fields (but not methods) by crossing a boundary.
 Reticulated and our @|TR_LD| prototype perform first-order checks similar
  to those outlined in @section-ref{sec:locally-defensive-embedding} and
- furthermore rewrite statically-typed code to protect against higher-order
+ furthermore rewrite statically-typed code to protect against untyped
  values.
 
-The dashed lines in @figure-ref{fig:existing-systems} represent systems that
- offer a compromise between two approaches.
+Several systems are located on dashed lines in @figure-ref{fig:existing-systems}
+ because they compromise between two approaches.
 StrongScript and Thorn include two kinds of types: concrete types and like types.
 Both types are checked statically, but only concrete types are enforced at
  run-time.
@@ -46,10 +46,6 @@ If a program contains type annotations, then Pyret enforces each annotation
  with a run-time type constructor check.
 A programmer can therefore opt-in to type-constructor
  soundness through disciplined use of type annotations.
-
-There is no line between the @|holong| and @|folong| boxes because no
- existing systems explore that part of the design space.
-This gap presents an opportunity for future work.
 
 
 @(define MT @${^{\dagger}\!})

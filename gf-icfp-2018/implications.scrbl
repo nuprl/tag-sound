@@ -4,7 +4,7 @@
 @Sections-ref{sec:design} and @secref{sec:evaluation} present the two critical aspects of the three
 approaches to combining statically typed and dynamically typed code via a
 twin pair of languages: (1) their semantics within a single framework and
-(2) their performance characteristics relative to a single base language and
+(2) their performance characteristics relative to a single base language on
 the same suite of benchmark programs.
 Equipped with this objective
 information, we can now explain the logical implications and the performance consequences of
@@ -46,7 +46,7 @@ For a program that computes a value of base type, it can be tempting to think
  that dynamic typing (via @|eolong|) provides all the soundness that matters in practice.
 After all, Ruby and Python throw a @tt{TypeError} if a program attempts to
  add an integer to a string.
-Similarly, the @|eolong| embedding throws a tag error if an expression adds a
+Similarly, the @|eolong| embedding throws a @${\tagerror} if an expression adds a
  number to a pair.
 
 This claim is only true, however, if the static typing system is restricted
@@ -81,7 +81,7 @@ TypeScript programmers must keep this behavior in mind to protect their type-era
 Both the @|holong| embedding and the @|folong| embedding are sound for
  base types, e.g.,
  if @${v} is a value of type @${\tnat}, then @${v} is a natural number.
-Informally, the two approaches performs the same check at a boundary of base type.
+Informally, the two approaches perform the same check at a boundary of base type.
 
 
 @section[#:tag "sub:first-order"]{For First-Order, Non-Base Types}
@@ -115,7 +115,7 @@ For example, a typed context can safely extract a negative integer from a
     \wellM \efst{(\edyn{(\tpair{\tnat}{\tnat})}{\vpair{-2}{-2}})} : \tnat \rrKSstar \boundaryerror
   }
   @warning{
-    \wellM \efst{(\edyn{(\tpair{\tnat}{\tnat})}{\vpair{-2}{-2}})} : \tint \rrKSstar {-2}
+    \wellM \efst{(\edyn{(\tpair{\tnat}{\tnat})}{\vpair{-2}{-2}})} : \arraycell{\tint}{\tnat} \rrKSstar {-2}
   }
 ]
 
@@ -152,22 +152,21 @@ The dynamically-typed module on the right mistakenly calls the addition function
  on two ``Descartes-style'' numbers, one of which does not match the type for
  Bessel numbers.
 
-Indeed, each of the three approaches to migratory typing behave differently on this program.
-The @|holong| embedding correctly rejects the application of @tt{add_B} at the
- boundary between the two modules:
+Indeed, each of the three approaches to migratory typing behaves differently on this program.
+The @|holong| embedding correctly rejects the application of @tt{add-B} at the
+ boundary:
 
 @dbend{
   @safe{
-    \wellM \texttt{(add\_B d0 d1)} \ccNS \boundaryerror
+    \wellM \texttt{(add-B d0 d1)} \ccNS \boundaryerror
   }
 }
 
-@exact{\noindent}The @|eolong| embedding does not detect the type error, and silently computes
- a well-typed, nonsensical result:
+@exact{\noindent}The @|eolong| embedding silently computes a well-typed, nonsensical result:
 
 @dbend{
   @warning{
-    \wellM \texttt{(add\_B d0 d1)} \rrESstar \texttt{(list 2 1)}
+    \wellM \texttt{(add-B d0 d1)} \rrESstar \texttt{(list 2 1)}
   }
 }
 
@@ -176,7 +175,7 @@ The @|holong| embedding correctly rejects the application of @tt{add_B} at the
 
 @dbend{
   @warning|{
-    \wellM \texttt{(add\_B d0 d1)} \rrKSstar
+    \wellM \texttt{(add-B d0 d1)} \rrKSstar
       \left\{\begin{array}{l l}
          \texttt{(list 2 1)} & \mbox{if \texttt{map} does not check the Bessel type}
       \\ \boundaryerror & \mbox{if \texttt{map} does check the type}
@@ -184,7 +183,7 @@ The @|holong| embedding correctly rejects the application of @tt{add_B} at the
   }|
 }
 
-@exact{\noindent}it is impossible to predict the outcome without knowing the
+@exact{\noindent}It is impossible to predict the outcome without knowing the
  local type annotations within @tt{map}.
 
 
@@ -193,8 +192,7 @@ The @|holong| embedding correctly rejects the application of @tt{add_B} at the
 One promising application of migratory typing is to layer a typed interface
  over an existing, dynamically-typed library of functions.
 For the low effort of converting library documentation into a type specification,
- the library author is protected against latent bugs and the library's clients
- benefit from a machine-checked API.
+ the library's author and clients benefit from a machine-checked API.
 @; See @~cite[wmwz-ecoop-2017] for motivation.
 
 @Figure-ref{fig:db-app} demonstrates this use-case.
@@ -215,7 +213,7 @@ In contrast, the @|eolong| embedding completely ignores types at run-time
 The types are just for documentation and the IDE.
 
 The @|folong| embedding provides a limited compromise: for every
- value that flows from untyped to typed, the semantics checks that the
+ value that flows from untyped to typed, the implementation checks that the
  value constructor matches the type constructor.
 Concretely, there is one run-time check that ensures @racket[create] is bound to
  a function.
@@ -231,7 +229,7 @@ In terms of the model,
     \begin{array}{l}
       f = (\vlam{x}{\efst{x}})
       \\
-      \wellM \edyn{(\tarr{\tint}{\tint})}{f} : \tint \rrKSstar
+      \wellM \eapp{(\edyn{(\tarr{\tint}{\tint})}{f})}{2} : \tint \rrKSstar
       \eapp{f}{2} \rrKSstar \efst{2} \rrKSstar \tagerror
       \\[1ex]
     \end{array}
@@ -259,17 +257,17 @@ In terms of the model,
 
 @section[#:tag "sub:err"]{For Error Messages}
 
-The examples above show that the @|holong| embedding detects errors
- earlier than the @|folong| and @|eolong| embeddings.
-This temporal difference has implications for the quality of error messages
- that each embedding can produce.
+@;The examples above show that the @|holong| embedding detects errors
+@; earlier than the @|folong| and @|eolong| embeddings.
+@;This temporal difference has implications for the quality of error messages
+@; that each embedding can produce.
 @; A top-quality error message accurately blames one boundary for the fault.
 
 The @|eolong| embedding detects a run-time type mismatch as late as possible, namely,
  just before an invalid operation.
 Outside of printing a stack trace, it cannot do much to infer the source of the
  bad value.
-When the source is off the stack, the @|eolong| embedding is impoverished:
+When the source is off the stack, this information is irrelevant:
 
 @dbend[
   @warning{
@@ -279,8 +277,8 @@ When the source is off the stack, the @|eolong| embedding is impoverished:
 
 The @|folong| embedding can detect a run-time type mismatch in two ways:
  at a type boundary or at a @${\vchk} expression.
-In the latter case, the @|folong| approach is no better off than
- @|eolong| for reporting the relevant value and type:
+In the latter case, the @|folong| approach is no better off than the
+ @|eolong| approach for reporting the relevant value and type:
 
 @dbend[
   @warning{
@@ -290,8 +288,9 @@ In the latter case, the @|folong| approach is no better off than
 
 @noindent[]@citet[vss-popl-2017] propose a strategy for improving the @|folong| error
  messages, but the strategy may double the running time of a program and reports
- a set of potentially-guilty boundaries rather than pinpointing the faulty one
- (it does, however, satisfy the blame theorem).
+ a set of potentially-guilty boundaries rather than pinpointing the faulty one.
+
+@; (it does, however, satisfy the blame theorem and the gradual guarantee). oh implicature
 
 By contrast, an implementation of the @|holong| approach can store debugging
  information in monitor values.
@@ -299,7 +298,7 @@ When such a monitor detects a type mismatch, the monitor can report the boundary
  that originated the error even when the boundary is off the stack@~cite[tfffgksst-snapl-2017].
 This information tells the developer exactly where to begin debugging:
  either the type annotation is wrong or the
- dynamically-typed code has a latent bug.
+ dynamically-typed code does not match the type.
 
 
 @section[#:tag "sub:perf-mixed"]{For the Performance of Mixed-Typed Programs}
@@ -316,7 +315,7 @@ While each check adds a small cost,@note{In the model, checks have @${O(1)} cost
   @${n} is the number of types in the widest union type
   @${(\tau_0 \cup \ldots \cup \tau_{n-1})} in the program.}
  these costs accumulate.
-Furthermore, the added code and branches may affect JIT compilation.
+The added code and branches may affect JIT compilation.
 
 The @|holong| embedding incurs three significant kinds of costs.
 First, there is the cost of checking a value at a boundary.
@@ -344,7 +343,7 @@ In the following example, an untyped function crosses three boundaries and
   }
 ]
 
-@noindent[]Furthermore, the indirection added by monitors may limit the effectiveness of
+@noindent[]Finally, the indirection added by monitors may limit the effectiveness of
  a JIT compiler.
 
 
@@ -367,7 +366,7 @@ For example, a function that adds both elements of a pair value must check
   }
 ]
 
-@noindent[]As a rule-of-thumb, adding types seems to add a linear-time performance
+@noindent[]As a rule-of-thumb, adding types imposes (at least) a linear-time performance
  degredation@~cite[gm-pepm-2018 gf-tr-2018].
 
 By contrast, the @|holong| embedding pays to enforce soundness only if static
