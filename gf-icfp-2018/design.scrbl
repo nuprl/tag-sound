@@ -665,7 +665,7 @@ For a union type, let @${\tagof{\tau_0 \cup \tau_1}} be @${\tagof{\tau_0} \cup \
 For a universal type @${\tall{\alpha}{\tau}} let the constructor be @${\tagof{\tau}},
  and for a type variable let @${\tagof{\alpha}} be @${\kany} because there are
  no elimination forms for a universally-quantified type variable.@note{This
-  treatment of universal types does not enforce parametricity.}
+  treatment of universal types fails to enforce parametricity.}
 For a recursive type @${\trec{\alpha}{\tau}}, let the constructor be
  @${\tagof{\vsubst{\tau}{\alpha}{\trec{\alpha}{\tau}}}}; this definition is
  well-founded if all occurrences of the type variable @${\alpha} occur within some type

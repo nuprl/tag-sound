@@ -1,4 +1,5 @@
 #lang gf-icfp-2018
+@require[(only-in "techreport.rkt" tr-ref)]
 @title[#:tag "sec:evaluation"]{Performance}
 
 @; thesis: soundness matters for performance
@@ -9,14 +10,19 @@
 
 @; -----------------------------------------------------------------------------
 
-To compare the performance of the three approaches to migratory typing,
- we use three distinct compilers for the Typed Racket syntax and typing system
+@(define N-S-soundness @tech[#:key "n-static-soundness"]{Theorem 2.1})
+
+A performance comparison of the three approaches to migratory typing must use
+ three distinct compilers for the same syntax and typing system.
+Using the semantic models as guidance, we added a @|folong| compiler to
+ Typed Racket and measured the three approaches on
  on @integer->word[NUM-TR] functional benchmark programs.
 The data suggests that the @|folong| embedding is mostly an
  improvement over the @|holong| embedding for mixed-typed programs.
 For fully-typed programs (and configurations with many typed modules@~cite[gf-tr-2018]),
- however, the @|holong| embedding offers the best performance of all three
- thanks to the Typed Racket optimizer@~cite[stff-padl-2012].
+ however, the @|holong| embedding offers the best performance of all three,
+ thanks to the type guarantees of @|N-S-soundness|
+ and the Typed Racket optimizer@~cite[stff-padl-2012].
 
 
 @; -----------------------------------------------------------------------------
@@ -52,8 +58,7 @@ In the rest of this section, we reserve the name ``Typed Racket'' for the
 
 @section[#:tag "sec:evaluation:method"]{Method}
 
-To evaluate performance,
- we use the exhaustive method for module-level
+The performance evaluation uses the exhaustive method for module-level
  migratory typing@~cite[tfgnvf-popl-2016 gtnffvf-jfp-2017].
 Starting from a multi-module program, we migrate the whole program---ignoring
  any libraries outside the control of the normal user---to Typed Racket.
@@ -97,7 +102,7 @@ If an implementation of migratory typing adds little overhead to mixed-typed
 
 @section[#:tag "sec:evaluation:protocol"]{Protocol}
 
-The evaluation measures the performance of the @|holong| (@|TR_N|),
+The evaluation reports the performance of the @|holong| (@|TR_N|),
  @|eolong| (@|TR_E|), and @|folong| (@|TR_LD|) approaches
  on @integer->word[NUM-TR] Typed Racket programs.
 Nine programs are the functional benchmarks from prior work on
@@ -141,7 +146,7 @@ According to the table, the @|holong| embedding
  may slow a working program by three orders of magnitude.
 The largest slowdowns, in @bm{fsm} and @bm{zombie}, occur because higher-order
  values repeatedly cross type boundaries and accumulate monitors.
-By contrast, the worst-case performance of @|TR_LD|
+The worst-case performance of @|TR_LD|
  is always within two orders of magnitude.
 
 
@@ -159,7 +164,7 @@ By contrast, the worst-case performance of @|TR_LD|
              (render-speedup-barchart TBL)))]
 
 The table in @figure-ref{fig:typed-speedup} compares the performance
- of fully-typed programs.
+ of fully-typed programs (relative to libraries).
 The @|tr-color-text| bars plot the overhead of @|TR_N| relative to the @|eolong| embedding
  on each benchmark.
 The @|tag-color-text| bars plot analogous data for @|TR_LD|
