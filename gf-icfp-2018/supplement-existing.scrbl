@@ -13,9 +13,13 @@
 This section illustrates prior work on gradual typing using the semantic
  framework of the paper.
 The goal is to
-  demonstrate that the framework is able to express the main ideas of existing
-   systems,
-  and to outline a formal comparison between the existing systems.
+  demonstrate that the framework is able to express the @emph{type boundaries}
+  and @emph{boundary checks} of existing systems,
+  and to outline a formal comparison.
+
+This section does not attempt to summarize the novelties and subtleties of
+ each system.
+The interested reader must seek out the primary sources.
 
 The subsections also give canonical forms lemmas for each system.
 This is because at the time of writing the first author thought the lemmas
@@ -351,11 +355,17 @@ The @${\vfromdyn} function is undefined because the SafeTS model does not
 @|clearpage|
 @section[#:tag "existing-nom"]{Nom}
 
-@include-figure["fig:existing-nom.tex" @elem{Nom. The @${\vfromdyn} function is undefined for all inputs.}]
-
 Nom is a nominal object oriented language.
-Subset of pre-generics Java.
-Proven to satisfy the gradual guarantee.
+Types include a top type (@${\nomtany}),
+ class names (@${C}),
+ and a dynamic type (@${\nomtdyn}).
+Values are instances of classes.
+Each value has an intrinsic type; namely, the name of its class.
+
+The @${\vfromsta} function checks that the intrinsic type of a value
+ is compatible with a given type annotation.
+The @${\vfromdyn} function is undefined for all inputs because there way to
+ define or import an untyped value.
 
 @tr-lemma[#:key "nom-canonical" @elem{Nom canonical forms}]{
   @itemlist[
@@ -364,4 +374,8 @@ Proven to satisfy the gradual guarantee.
     }
   ]
 }
+
+@exact{\vspace{20cm}}
+
+@include-figure["fig:existing-nom.tex" @elem{Nom. The @${\vfromdyn} function is undefined for all inputs.}]
 
