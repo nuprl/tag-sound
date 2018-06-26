@@ -116,7 +116,7 @@
       \\
       \eapp{(\vlam{\tann{x}{\tau}}{e})}{v} & \rrKS
       & \vsubst{e}{x}{\efromany{\tagof{\tau}}{v}}
-      \\ \sidecond{if $\efromany{\tagof{\tau}}{v} \not\in \eerr$}
+      \\ \sidecond{if $\efromany{\tagof{\tau}}{v} \neq \boundaryerror$}
       \\
       \eapp{(\vlam{x}{e})}{v} & \rrKS
       & \edynfake{(\vsubst{e}{x}{v})}
@@ -141,7 +141,7 @@
       \\
       \eapp{(\vlam{\tann{x}{\tau}}{e})}{v} & \rrKD
       & \estafake{(\vsubst{e}{x}{\efromany{\tagof{\tau}}{v}})}
-      \\ \sidecond{if $\efromany{\tagof{\tau}}{v} \not\in \eerr$}
+      \\ \sidecond{if $\efromany{\tagof{\tau}}{v} \neq \boundaryerror$}
     \end{array}$
   }
 \end{TwoColumn}
