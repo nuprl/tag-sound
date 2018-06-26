@@ -1,18 +1,22 @@
 \lbl{Surface Syntax}{
   $\begin{array}{l@{\hspace{0.5em}}c@{\hspace{0.5em}}l}
     \exprdyn & \BNFeq & x \mid
-         \vlam{x}{\exprdyn}\hphantom{:::\tau} \mid
-         i \mid \vpair{\exprdyn}{\exprdyn} \mid \eapp{\exprdyn}{\exprdyn} \mid
-         \eunop{\exprdyn} \mid \ebinop{\exprdyn}{\exprdyn} \mid
+         \arraycell{\vlam{x}{\exprdyn}}{\vlam{\tann{x}{\tau}}{\exprsta}}
+         \mid
+         i \mid
+         \vpair{\exprdyn}{\exprdyn} \mid
+         \eapp{\exprdyn}{\exprdyn} \mid
+         \eunop{\exprdyn} \mid
+         \ebinop{\exprdyn}{\exprdyn} \mid
          \esta{\tau}{\exprsta}
     \\
     \exprsta & \BNFeq & x \mid
          \vlam{\tann{x}{\tau}}{\exprsta} \mid
          i \mid
-         \vpair{\exprsta}{\exprsta}\hspace{0.31em} \mid
-         \eapp{\exprsta}{\exprsta}\hspace{0.29em} \mid
-         \eunop{\exprsta}\hspace{0.15em} \mid
-         \ebinop{\exprsta}{\exprsta}\hspace{0.3em}  \mid
+         \arraycell{\vpair{\exprsta}{\exprsta}}{\vpair{\exprdyn}{\exprdyn}} \mid
+         \arraycell{\eapp{\exprsta}{\exprsta}}{\eapp{\exprdyn}{\exprdyn}} \mid
+         \arraycell{\eunop{\exprsta}}{\eunop{\exprdyn}} \mid
+         \arraycell{\ebinop{\exprsta}{\exprsta}}{\ebinop{\exprdyn}{\exprdyn}} \mid
          \edyn{\tau}{\exprdyn}
     \\
     \tau & \BNFeq & \tint \mid \tnat \mid \tpair{\tau}{\tau} \mid \tau \tarrow \tau

@@ -403,3 +403,8 @@ showstringspaces=false            %
 
 \newcommand{\nomtany}{\top}
 \newcommand{\nomtdyn}{\texttt{\textbf{dynamic}}}
+
+\newcommand{\arraycell}[2]{\makebox[\widthof{$#2$}][l]{$#1$}}
+% \arraycell{A}{B} -- render `A` in a box wide enough to fit `B`
+% both A and B rendered in math mode
+% useful for aligning cells in an array

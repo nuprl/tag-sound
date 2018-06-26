@@ -14,16 +14,20 @@
       \eapp{v}{\ebase}\! \mid
       \vpair{\ebase\!}{e} \mid
       \vpair{v}{\ebase} \mid
-      \eunop{\ebase\!} \mid \ebinop{\ebase\!\!}{e} \mid \ebinop{v}{\ebase\!\!}
+      \eunop{\ebase\!} \mid
+      \ebinop{\ebase\!\!}{e} \mid
+      \ebinop{v}{\ebase\!\!}
     \\
     \esd & \BNFeq & \ebase\! \mid
-      \eapp{\esd~}{e}\hspace{0.3em} \mid
-      \eapp{v}{\esd}\hspace{0.2em} \mid
-      \vpair{\esd}{e}\hspace{0.25em} \mid
-      \vpair{v}{\esd}\hspace{0.4em} \mid
-      \eunop{\esd}~ \mid
-      \ebinop{\esd\,}{e}\hspace{0.25em} \mid
-      \ebinop{v}{\esd}~ \mid \edyn{\tau}{\esd} \mid \esta{\tau}{\esd}
+      \arraycell{\eapp{\esd~}{e}}{\eapp{\ebase\!\!}{e}} \mid
+      \arraycell{\eapp{v}{\esd}}{\eapp{v}{\ebase}\!} \mid
+      \arraycell{\vpair{\esd}{e}}{\vpair{\ebase\!}{e}} \mid
+      \arraycell{\vpair{v}{\esd}}{\vpair{v}{\ebase}} \mid
+      \arraycell{\eunop{\esd}}{\eunop{\ebase\!}} \mid
+      \arraycell{\ebinop{\esd\,}{e}}{\ebinop{\ebase\!\!}{e}} \mid
+      \arraycell{\ebinop{v}{\esd}}{\ebinop{v}{\ebase\!\!}} \mid
+      \edyn{\tau}{\esd} \mid
+      \esta{\tau}{\esd}
   \end{array}$
 }
 
