@@ -67,6 +67,9 @@
 
   TR_N TR_E TR_LD
 
+  supplement-long-name
+  supplement-short-name
+
   ;; ---------------------------------------------------------------------------
   ;; --- old stuff
   (all-from-out
@@ -470,3 +473,6 @@
 (define holong @exact{\holong})
 (define eolong @exact{\eolong})
 (define folong @exact{\folong})
+
+(define supplement-long-name "supplementary material")
+(define supplement-short-name "supplement")

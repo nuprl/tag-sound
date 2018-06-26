@@ -1,60 +1,57 @@
 #lang gf-icfp-2018
 @require[(only-in "techreport.rkt" tr-theorem tr-proposition tr-lemma tr-definition tr-proof tr-and UID++)]
 @(void (UID++) (UID++))
-@title[#:tag "sec:design"]{Logic and Metatheory}
+@title[#:tag "sec:design"]{Syntax, Types, and Semantics}
 
 @; -----------------------------------------------------------------------------
 
 The three approaches to migratory typing can be understood as three
  multi-language embeddings in the style of @citet[mf-toplas-2009].
 Each approach uses a different strategy to enforce static types at the
- boundaries between typed and untyped code.
-Eagerly enforcing types corresponds to a @emph[holong] embedding.
-Ignoring types corresponds to an @emph[eolong] embedding.
-Enforcing type constructors corresponds to a @emph[folong] embedding.
+ boundaries between typed and untyped code:
+eagerly enforcing types corresponds to a @emph[holong] embedding;
+ignoring types corresponds to an @emph[eolong] embedding; and
+enforcing type constructors corresponds to a @emph[folong] embedding.
 
-This section begins with the introduction of the surface syntax and typing
+This section first introduces the surface syntax and typing
  system (@section-ref{sec:common-syntax}).
 It then defines three models,
  states their soundness theorems (@sections-ref{sec:natural-embedding}, @secref{sec:erasure-embedding}, and @secref{sec:locally-defensive-embedding}),
  and concludes with a discussion on scaling the models to a practical implementation (@section-ref{sec:practical-semantics}).
 Each model builds upon a common semantic framework (@section-ref{sec:common-semantics})
  to keep the technical presentation focused on their differences.
-Unabridged definitions are in the supplement@~cite[gf-tr-2018].
+For unabridged definitions, we refer the reader to the @|supplement-long-name|@~cite[gf-tr-2018].
 
 
 @; -----------------------------------------------------------------------------
 @section[#:tag "sec:common-syntax"]{Common Syntactic Notions}
 
 A migratory typing system extends a dynamically-typed @mytech{host language}
- with an optional syntax for type annotations.
+ with syntax for type annotations.
 The type checker for the extended language must be able to validate mixed-typed
  programs, and the semantics must define a type-directed protocol for transporting
- values across the boundaries between typed and untyped contexts.
+ values across the boundaries between typed and untyped regions of code.
 
-In a full language, all kinds of values may cross a type boundary at run-time.
-Possibilities include values of base type (numbers, strings, booleans),
+In a full-fledged language, all kinds of values may cross a type boundary at run-time:
+ values of base type (numbers, strings, booleans),
  values of algebraic type (pairs, finite lists, immutable sets),
  and values of higher type (functions, mutable references, infinite lists).
 As representative examples, the surface language in @figure-ref{fig:multi-syntax}
  includes integers, pairs, and functions, and three corresponding types.
-The fourth type, @${\tnat}, is a subset of the type of integers, and is included
+The fourth type, @${\tnat}, is a subset of the type of integers and is included
  because set-based reasoning is common in dynamically-typed programs@~cite[awl-popl-1994 tf-icfp-2010 tfffgksst-snapl-2017].
 
 An expression in the surface language may be dynamically typed (@${\exprdyn})
  or statically typed (@${\exprsta}).
-The main difference between the two grammars is that a statically-typed
- function must provide a type annotation for its formal parameter.
-The second, minor difference is that each grammar includes a
+Each grammar includes a
  @emph{boundary term} for embedding an expression of the other grammar.
 The expression @${(\edyn{\tau}{\exprdyn})} embeds a dynamically-typed subexpression in a
  statically-typed context, and the expression @${(\esta{\tau}{\exprsta})} embeds a
  statically-typed subexpression in a dynamically-typed context.
 
-The last components in @figure-ref{fig:multi-syntax} specify the names of
- primitive operations (@${\vunop} and @${\vbinop}).
-The primitives represent low-level procedures that operate on bitstrings rather than
- abstract syntax.
+The last two equations in @figure-ref{fig:multi-syntax} specify the names of
+ primitive operations (@${\vunop}, @${\vbinop}).
+The primitives represent low-level procedures that manipulate bitstrings rather than abstract syntax.
 
 @include-figure["fig:multi-syntax.tex" @elem{Twin languages syntax}]
 @include-figure["fig:multi-preservation.tex" @elem{Twin languages static typing judgments}]

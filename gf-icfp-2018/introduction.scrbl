@@ -57,18 +57,16 @@ a proper comparison:
  from soundness for a single language@~cite[vss-popl-2017 rsfbv-popl-2015].
  @; @note{See also: this unpublished manuscript with a single-language soundness theorem @hyperlink["https://arxiv.org/abs/1708.08021/"]{@tt{arxiv.org/abs/1708.08021/}}}
 
- To answer this question precisely, this paper explains the three
+ To answer this question, this paper explains the three
  approaches in a systematic manner within one semantic framework. For the
  same source syntax and type system, it formulates the three approaches as three
- different semantics and articulates three theorems that
- precisely state which properties are preserved. It also demonstrates with
- source-language examples how these theorems differ and the consequences
- for developers.}
+ different semantics and states three precise soundness theorems.
+ It also illustrates the consequences of each theorem for developers.
+}
 
 @item{@emph{How do the three approaches compare with respect to performance}? 
 
- Although the purpose of migratory typing is to accomodate the creation of
- mixed-typed languages, researchers in this area have only recently studied the performance
+Researchers in this area have only recently studied the performance
  of implementations systematically@~cite[tfgnvf-popl-2016 gtnffvf-jfp-2017 mt-oopsla-2017 bbst-oopsla-2017].
 Previous attempts to compare approaches make claims about
  @emph{different programming languages} using (mostly) unrelated
