@@ -43,6 +43,7 @@
   max-table->typed
   render-speedup-barchart
 
+  list-pict
   db-app-pict
   reynolds-pict)
 
@@ -835,6 +836,28 @@
 ;; ...
 >>
 )))
+
+(define list-pict
+  (ht-append 60
+    (codeblock-pict/numbers #:title "stats.rkt"
+#<<>>
+#lang typed/racket
+
+(: moment (-> (Listof Float) Float))
+(define (moment inlist)
+  ....)
+>>
+)
+    (codeblock-pict/numbers #:title "client.rkt"
+#<<>>
+#lang racket
+
+(define lst (list "NaN"))
+
+(moment lst)
+>>
+)))
+
 
 ;; =============================================================================
 

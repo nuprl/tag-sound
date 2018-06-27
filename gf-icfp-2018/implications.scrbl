@@ -257,48 +257,70 @@ In terms of the model,
 
 @section[#:tag "sub:err"]{For Error Messages}
 
-@;The examples above show that the @|holong| embedding detects errors
-@; earlier than the @|folong| and @|eolong| embeddings.
-@;This temporal difference has implications for the quality of error messages
-@; that each embedding can produce.
-@; A top-quality error message accurately blames one boundary for the fault.
+@figure["fig:list-error" @elem{Type-mismatch between a library function and client, adapted from @citet[vksb-dls-2014].}
+        list-pict]
 
-The @|eolong| embedding detects a run-time type mismatch as late as possible, namely,
- just before an invalid operation.
-Outside of printing a stack trace, it cannot do much to infer the source of the
- bad value.
-When the source is off the stack, this information is irrelevant:
+Errors matter.
+Indeed @citet[vksb-dls-2014] claim that improved error messages are ``one of
+ the primary benefits'' of adding types to a dynamically-typed language.
+To illustrate, they describe a program similar to @figure-ref{fig:list-error}
+ in which an untyped module sends a list of strings to a typed function that
+ expects a list of numbers:
+
+ @nested[#:style 'inset @emph{
+   if the library authors make use of gradual typing [...] then the error can
+   be localized and caught before the call to @tt{moment} [...] the runtime
+   error points to the call to @tt{moment}
+ }]
+
+@noindent[]This claim assumes that the gradual typing system enforces types.
+The @|holong| embedding is one such approach; it catches the error before the
+ call to @tt{moment}:
 
 @dbend[
-  @warning{
-    \esum{1}{(\edyn{\tint}{\vpair{2}{2}})} \rrESstar \esum{1}{\vpair{2}{2}} \rrESstar \tagerror
+  @safe{
+    \wellM \texttt{(moment lst)} \rrNDstar \texttt{(moment ($\vfromdynN$(Listof(Float), lst))} \rrNDstar \boundaryerror
   }
 ]
 
-The @|folong| embedding can detect a run-time type mismatch in two ways:
- at a type boundary or at a @${\vchk} expression.
-In the latter case, the @|folong| approach is no better off than the
- @|eolong| approach for reporting the relevant value and type:
+The @|eolong| embedding performs the call to @tt{moment} just like a dynamically-typed language:
+@; An error might occur with moment, maybe later, maybe no error at all
 
 @dbend[
   @warning{
-    \echk{\knat}{(\esnd{(\edyn{(\tpair{\tnat}{\tnat})}{\vpair{{-2}}{{-2}}})})} \rrKSstar \echk{\knat}{{-2}} \rrKSstar \boundaryerror
+    \wellM \texttt{(moment lst)} \rrEDstar \texttt{....}
   }
 ]
 
-@noindent[]@citet[vss-popl-2017] propose a strategy for improving the @|folong| error
- messages, but the strategy may double the running time of a program and reports
- a set of potentially-guilty boundaries rather than pinpointing the faulty one.
+The @|folong| embedding confirms that @tt{lst} is a list, and then proceeds
+ with the call.
+If the body of @tt{moment} extracts a float from the list, then the
+ @|folong| approach reports a type mismatch.
+If not, then a runtime error may occur inside a function that @tt{moment}
+ calls, leaving the client unsure whether the error is their own fault or due
+ to a bug in the library:
 
-@; (it does, however, satisfy the blame theorem and the gradual guarantee). oh implicature
+@dbend[
+  @warning|{
+    \wellM \texttt{(moment lst)} \rrKDstar
+      \left\{\begin{array}{l l}
+         \boundaryerror & \mbox{if \texttt{moment} extracts a float}
+      \\ \tagerror & \mbox{if \texttt{moment} calls an untyped helper function}
+      \end{array}\right.
+  }|
+]
 
-By contrast, an implementation of the @|holong| approach can store debugging
- information in monitor values.
-When such a monitor detects a type mismatch, the monitor can report the boundary term
- that originated the error even when the boundary is off the stack@~cite[tfffgksst-snapl-2017].
-This information tells the developer exactly where to begin debugging:
- either the type annotation is wrong or the
- dynamically-typed code does not match the type.
+@noindent[]@citet[vss-popl-2017] propose a strategy that points the @|folong|
+ error message to the call to @tt{moment}, but the strategy may double the
+ running time of a program and reports a set of potentially-guilty boundaries
+ rather than pinpointing the faulty one.
+
+By contrast, the @|holong| embedding can identify the first violation of the
+ types --- even for higher-order interactions --- by storing debugging information
+ in monitor values@~cite[tfffgksst-snapl-2017].
+Equipped with the relevant boundary term, the developer knows exactly where to
+ begin debugging: either the type annotation is wrong or the dynamically-typed
+ code does not match the type.
 
 
 @section[#:tag "sub:perf-mixed"]{For the Performance of Mixed-Typed Programs}
