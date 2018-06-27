@@ -391,14 +391,15 @@ For example, a function that adds both elements of a pair value must check
 @noindent[]As a rule-of-thumb, adding types imposes (at least) a linear-time performance
  degredation@~cite[gm-pepm-2018 gf-tr-2018].
 
-By contrast, the @|holong| embedding pays to enforce soundness only if static
+The @|holong| embedding pays to enforce soundness only if static
  and dynamic components interact.
 If there are few interactions, the program spends little time enforcing soundness.
-Furthermore, a compiler may leverage the soundness of the @|holong| embedding
- to produce efficient code.
-In many dynamically typed language, primitives check the
- type-tag of their arguments and dispatch to a low-level procedure.
-Sound static types can eliminate the need to dispatch@~cite[stff-padl-2012 stf-oopsla-2012],
- and thus the @|holong| embedding's performance can exceed that of the @|eolong| embedding (as shown in @figure-ref{fig:typed-speedup}).
 
+Furthermore, the soundness of the @|holong| embedding means that a compiler can
+ apply classic, type-directed optimizations.
+Thus the @|holong| embedding's performance can exceed that of the @|eolong| embedding, as shown in @figure-ref{fig:typed-speedup}.
+Typed Racket (@|TR_N|) in particular applies optimizations to unbox primitive values,
+ select low-level primitive operations,
+ provide fast access to data structures,
+ and eliminate unused branches@~cite[stff-padl-2012 stf-oopsla-2012].
 
