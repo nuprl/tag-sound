@@ -221,16 +221,18 @@ Concretely, there is one run-time check that ensures @racket[create] is bound to
 This single check does little to verify the correctness of the dynamically-typed
  code.
 In terms of the model,
- retrofitting a ``@|folong|'' type onto a dynamically-typed function @${f} does not
+ retrofitting a ``@|folong|'' type onto a higher-order function @${f} does not
  enforce that @${f} respects its arguments:
 
 @dbend[
   @warning{
     \begin{array}{l}
-      f = (\vlam{x}{\efst{x}})
+      f = (\vlam{x}{\eapp{x}{\vpair{1}{1}}})
       \\
-      \wellM \eapp{(\edyn{(\tarr{\tint}{\tint})}{f})}{2} : \tint \rrKSstar
-      \eapp{f}{2} \rrKSstar \efst{2} \rrKSstar \tagerror
+      h = \edyn{(\tarr{\tnat}{\tnat})}{(\vlam{y}{\esum{y}{y}})}
+      \\
+      \wellM \eapp{(\edyn{(\tarr{(\tarr{\tnat}{\tnat})}{\tnat})}{f})}{h} : \tnat \rrKSstar
+      \eapp{f}{h} \rrKSstar \eapp{h}{\vpair{1}{1}} \rrKSstar \tagerror
       \\[1ex]
     \end{array}
   }
