@@ -22,7 +22,7 @@ The data suggests that the @|folong| embedding is mostly an
 For fully-typed programs (and configurations with many typed modules@~cite[gf-tr-2018]),
  however, the @|holong| embedding offers the best performance of all three,
  thanks to the type guarantees of @|N-S-soundness|
- and the Typed Racket optimizer@~cite[stff-padl-2012].
+ and the Typed Racket optimizer@~cite[stff-padl-2012 stf-oopsla-2012].
 
 
 @; -----------------------------------------------------------------------------

@@ -398,7 +398,7 @@ Furthermore, a compiler may leverage the soundness of the @|holong| embedding
  to produce efficient code.
 In many dynamically typed language, primitives check the
  type-tag of their arguments and dispatch to a low-level procedure.
-Sound static types can eliminate the need to dispatch@~cite[stff-padl-2012],
+Sound static types can eliminate the need to dispatch@~cite[stff-padl-2012 stf-oopsla-2012],
  and thus the @|holong| embedding's performance can exceed that of the @|eolong| embedding (as shown in @figure-ref{fig:typed-speedup}).
 
 

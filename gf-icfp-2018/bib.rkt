@@ -1541,7 +1541,7 @@
    #:location (proceedings-location cc #:pages '(49 68))
    #:date 2015))
 
-(define stf-optimization-coaching
+(define stf-oopsla-2012
   (make-bib
     #:author (authors "Vincent St-Amour" "Sam Tobin-Hochstadt" "Matthias Felleisen")
     #:title "Optimization coaching"
