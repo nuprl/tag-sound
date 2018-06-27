@@ -189,6 +189,9 @@ The @|holong| embedding correctly rejects the application of @tt{add-B} at the
 
 @section[#:tag "sub:ho"]{For Higher-Order Types}
 
+@figure["fig:db-app" @elem{Adding types between two untyped modules}
+        db-app-pict]
+
 One promising application of migratory typing is to layer a typed interface
  over an existing, dynamically-typed library of functions.
 For the low effort of converting library documentation into a type specification,
@@ -252,9 +255,6 @@ In terms of the model,
 
 @exact{\noindent}Thus for all practical purposes, the benefits of writing a typed API in a
  @|folong| system are vanishingly small.
-
-@figure["fig:db-app" @elem{Adding types between two untyped modules}
-        db-app-pict]
 
 
 @section[#:tag "sub:err"]{For Error Messages}

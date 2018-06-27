@@ -458,8 +458,8 @@ Constructor checks run without creating monitors,
  work in near-constant time,@note{The constructor check for a union type or
  structural object type require time linear in the size of the type.}
  and ensure that every value in a typed context has the correct top-level shape.
-Since the notions of reduction rely only on the top-level shape of a value to avoid stuck states,
- well-typed programs cannot ``go wrong''.
+Since the notions of reduction rely on @emph{only} the shape of a value to
+ avoid stuck states, well-typed programs cannot ``go wrong''.
 @; or rather, "do not apply a typed elimination form to a value outside its domain" ?
 
 
