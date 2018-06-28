@@ -29,12 +29,9 @@
 The literature on gradual typing presents three fundamentally
 different ways of thinking about the integrity of programs that combine 
 statically typed and dynamically typed code.
-This paper systematically compares the theory of these approaches,
-their logical implications for the developer,
-and their performance.
-@; This paper presents a uniform semantic framework that explains all three
-@; approaches, illustrates how they affect a developer's code/work, and systematically
-@; compares their performance in a single implementation platform.
+This paper presents a uniform semantic framework that explains all three approaches,
+ illustrates how each approach affects a developer's work, and
+ reports a systematic performance comparison based on a single implementation platform.
 }
 
 @include-section{introduction.scrbl}

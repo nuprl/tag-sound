@@ -87,11 +87,7 @@ A third strategy is to combine multiple semantics.
 
 @acks{
   The research reported here is supported in part by @hyperlink["https://www.nsf.gov/awardsearch/showAward?AWD_ID=1518844"]{NSF grant CCF-1518844}.
-  @; redex-check
-  @; early feedback at PI meeting
-  @; pldi reviewers for skimming the paper and letting us know it wasn't shiny and new enough
-  @;
-  Felleisen acknowledges insightful conversations with Ron Garcia and Eric Tanter about the meaning of types in Reticulated Python.
-  We thank Erik Ernst, Bryan LaChance, Benjamin S. Lerner, Fabian Muehlboeck, Max S. New, Artem Pelenitsyn, Ross Tate, Jan Vitek, and the anonymous ICFP reviewers.
+  We acknowledge Erik Ernst, Ron Garcia, Benjamin S. Lerner, Fabian Muehlboeck, Max S. New, Eric Tanter, and Ross Tate for insightful conversations,
+   and thank Artem Pelenitsyn, Jan Vitek, and the anonymous ICFP reviewers for feedback on earlier drafts.
 }
 

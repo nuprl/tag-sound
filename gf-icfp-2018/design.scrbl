@@ -51,7 +51,7 @@ The expression @${(\edyn{\tau}{\exprdyn})} embeds a dynamically-typed subexpress
 
 The last two equations in @figure-ref{fig:multi-syntax} specify the names of
  primitive operations (@${\vunop}, @${\vbinop}).
-The primitives represent low-level procedures that manipulate bitstrings rather than abstract syntax.
+The primitives represent low-level procedures that manipulate bitstrings.
 
 @include-figure["fig:multi-syntax.tex" @elem{Twin languages syntax}]
 @include-figure["fig:multi-preservation.tex" @elem{Twin languages static typing judgments}]
@@ -141,7 +141,7 @@ Specifically, primitive operations give rise to two kinds of errors:
  anticipates the generalization of the concept to programs that mix typed
  and untyped code. }
 ]
-@exact{\noindent}The functions @${\Delta} and @${\delta} satisfy a
+@exact{\noindent}The functions @${\Delta} and @${\delta} satisfy the
  typability condition@~cite[wf-ic-1994]:
 
 @tr-proposition[#:key "delta-typability" @elem{@${\delta} typability}]{
@@ -390,8 +390,7 @@ Soundness for the @|eolong| embedding states that reduction is well-defined
   The rest follows from progress and preservation lemmas@~cite[gf-tr-2018].
 }
 
-The @|eolong| embedding is clearly unsound with respect to types for mixed-typed
- expressions.
+The @|eolong| embedding clearly ignores the types in a mixed-typed expression.
 A simple example is the expression @${(\edyn{\tint}{\vpair{2}{2}})}, which has the static
  type @${\tint} but reduces to a pair.
 The embedding is sound, however, for well-typed expressions that do not
@@ -669,5 +668,5 @@ For a universal type @${\tall{\alpha}{\tau}} let the constructor be @${\tagof{\t
 For a recursive type @${\trec{\alpha}{\tau}}, let the constructor be
  @${\tagof{\vsubst{\tau}{\alpha}{\trec{\alpha}{\tau}}}}; this definition is
  well-founded if all occurrences of the type variable @${\alpha} occur within some type
- @${\tau'} such that @${\tagof{\tau'}} has a non-recursive definition.
+ @${\tau'} such that the constructor of @${\tau'} is defined without recursion.
 

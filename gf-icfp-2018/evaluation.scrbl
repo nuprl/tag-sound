@@ -16,7 +16,7 @@ A performance comparison of the three approaches to migratory typing must use
  three distinct compilers for the same syntax and typing system.
 Using the semantic models as guidance, we added a @|folong| compiler to
  Typed Racket and measured the three approaches on
- on @integer->word[NUM-TR] functional benchmark programs.
+ on @integer->word[NUM-TR] functional (with references) benchmark programs.
 The data suggests that the @|folong| embedding is mostly an
  improvement over the @|holong| embedding for mixed-typed programs.
 For fully-typed programs (and configurations with many typed modules@~cite[gf-tr-2018]),
@@ -38,7 +38,7 @@ Its run-time system guarantees that every boundary
  error attributes the fault to exactly one syntactic type
  boundary@~cite[tfffgksst-snapl-2017].
 
-Removing the type annotations and casts
+Removing the type annotations @emph{and casts}
  from a Typed Racket program yields a valid Racket program.
 We use this transformation to compare the @|holong| embedding
  to @|eolong|.
@@ -170,7 +170,7 @@ The @|tr-color-text| bars plot the overhead of @|TR_N| relative to the @|eolong|
 The @|tag-color-text| bars plot analogous data for @|TR_LD|
  relative to the @|eolong| embedding.
 
-The @bm{jpeg} and @bm{zombie} benchmarks demonstrate exceptional performance.
+The @bm{jpeg} and @bm{zombie} benchmarks are outliers.
 In @bm{jpeg}, the speedup of @|TR_N| over @|eolong| is high because
  the user program depends on a typed library; the library protects itself
  against @|TR_E| code.
