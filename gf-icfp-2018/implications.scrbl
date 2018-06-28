@@ -135,8 +135,8 @@ For example, a typed context can safely extract a negative integer from a
 @;Run-time checks in typed code provide a shallow form of defense, but limited by the context
 
 Reynolds classic paper on types and abstraction begins with a similar example 
- based on a distinction between real numbers and non-negative reals@~cite[r-ip-1983].
-The story starts with two professors teaching two sections in complex variables:
+ based on a distinction between real numbers and non-negative reals@~cite[r-ip-1983]:
+@; The story starts with two professors teaching two sections in complex variables:
 
  @nested[#:style 'inset @emph{
    In one section, Professor Descartes announced that a complex number was an ordered pair of
