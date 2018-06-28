@@ -842,19 +842,24 @@
     (codeblock-pict/numbers #:title "stats.rkt"
 #<<>>
 #lang typed/racket
+(require math)
 
-(: moment (-> (Listof Float) Float))
-(define (moment inlist)
-  ....)
+(: moment (-> (Listof Float) Integer Float))
+(define (moment xs m)
+  (define u (mean xs))
+  (define n (length xs))
+  (* (/ 1 n)
+     (sum (map (λ (x) (expt (- x u) m)) xs))))
 >>
 )
     (codeblock-pict/numbers #:title "client.rkt"
 #<<>>
 #lang racket
 
-(define lst (list "NaN"))
+(define lst
+  (list "A" "B"))
 
-(moment lst)
+(moment lst 2)
 >>
 )))
 

@@ -13,14 +13,14 @@ choosing one of these three approaches.
 For the logical consequences, we proceed in a type-directed manner.
 At the level of base types, there is no difference between the @|holong|
  embedding and the @|folong| one, but the @|eolong|
- embedding may give a different result due to a logical error (@section-ref{sub:base}).
+ embedding may give a different result due to a violation of the types (@section-ref{sub:base}).
 After moving from base types to trees of base types, we can explain
  the truly essential difference between the @|holong| and @|folong| semantics:
  while the @|holong| embedding allows
  developers to reason compositionally about type annotations, users of
  the @|folong| variant must always consider the whole program (@section-ref{sub:first-order}).
-This non-compositional behavior means that logical errors may go undetected in
- seemingly type-correct code.
+This non-compositional behavior means that a violation of the type annotations
+ may go undetected in seemingly type-correct code.
 Higher-order types are similarly afflicted by the non-compositional behavior of
  the @|folong| embedding (@section-ref{sub:ho}).
 Lastly, the three approaches provide
@@ -285,29 +285,36 @@ The @|holong| embedding is one such approach; it catches the error before the
   }
 ]
 
-The @|eolong| embedding performs the call to @tt{moment} just like a dynamically-typed language:
-@; An error might occur with moment, maybe later, maybe no error at all
+The @|eolong| embedding performs the call to @tt{moment} just like a dynamically-typed language.
+If the numeric operations check their inputs, the execution ends in a tag error.
+If the primitives are un-checked, however, then the call may compute a nonsensical result:
 
 @dbend[
-  @warning{
-    \wellM \texttt{(moment lst)} \rrEDstar \texttt{....}
-  }
+  @warning|{
+    \wellM \texttt{(moment lst)} \rrEDstar
+      \left\{\begin{array}{l l}
+         \tagerror & \mbox{if \texttt{mean} or \texttt{-} check for strings}
+      \\ -1        & \mbox{if the primitives are unchecked}
+      \end{array}\right.
+  }|
 ]
 
 The @|folong| embedding confirms that @tt{lst} is a list, and then proceeds
  with the call.
-If the body of @tt{moment} extracts a float from the list, then the
- @|folong| approach reports a type mismatch.
-If not, then a runtime error may occur inside a function that @tt{moment}
- calls, leaving the client unsure whether the error is their own fault or due
- to a bug in the library:
+Since the body of @tt{moment} never directly extracts a float from the list,
+ it is impossible to predict what happens during the call.
+For example, @tt{mean} can raise a boundary error, raise a tag error, or
+ silently compute a sum of string pointers.
+In the latter cases, the client cannot be sure whether
+ the error is their own fault or due to a bug in the library:
 
 @dbend[
   @warning|{
     \wellM \texttt{(moment lst)} \rrKDstar
       \left\{\begin{array}{l l}
-         \boundaryerror & \mbox{if \texttt{moment} extracts a float}
-      \\ \tagerror & \mbox{if \texttt{moment} calls an untyped helper function}
+         \boundaryerror & \mbox{if \texttt{mean}, \texttt{-}, or \texttt{map} are typed}
+      \\ \tagerror & \mbox{if \texttt{mean} or \texttt{-} check for strings}
+      \\ -1        & \mbox{if the primitives are unchecked}
       \end{array}\right.
   }|
 ]
