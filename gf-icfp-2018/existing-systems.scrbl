@@ -13,8 +13,9 @@
 
 @Figure-ref{fig:existing-systems} classifies existing migratory and mixed-typed
  systems in terms of the three approaches.@note{The interested reader may
-  wish to consult the technical report, in which we instantiate
-  the framework of @section-ref{sec:design} for several existing systems@~cite[gf-tr-2018].}
+  wish to consult the @|supplement-short-name|, in which we instantiate
+  the framework of @section-ref{sec:design} for several existing systems@~cite[gf-tr-2018].
+  The @|supplement-short-name| also has URLs for the languages.}
 Systems listed under the box labeled @emph{@|holong| embedding} enforce
  higher-order types at run-time.
 Systems under the @emph{@|eolong| embedding} label provide an optional static type checker

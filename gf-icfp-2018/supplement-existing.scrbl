@@ -1,12 +1,6 @@
 #lang gf-icfp-2018
-@require{techreport.rkt}
+@require["techreport.rkt" (only-in scribble/base url)]
 
-@;  @url{http://hacklang.org/}
-@;  (@url{https://flow.org/})
-@;  (@url{http://mypy-lang.org/})
-@;  (@url{https://www.pyret.org/})
-@; (@url{https://pyre-check.org/})
-@; (@url{https://goo.gl/p5rmSe})  https://opensource.google.com/projects/pytype https://github.com/google/pytype
 
 @appendix-title{Existing Systems}
 
@@ -21,14 +15,86 @@ This section does not attempt to summarize the novelties and subtleties of
  each system.
 The interested reader must seek out the primary sources.
 
-The subsections also give canonical forms lemmas for each system.
-This is because at the time of writing the first author thought the lemmas
- gave a quick sample of the systems' logical implications.
-
+The subsections also give canonical forms lemmas for each system
+ as a taste of their logical implications.
+ 
 @; At present (2018-05-31) these illustrations have not been approved by the
 @;  authors of the systems.
 @; We plan to review these illustrations with the relevant authors before the ICFP
 @;  camera-ready.
+
+@parag{URLs}
+
+All URLs accessed on 2018-06-28.
+
+@itemlist[
+@item{
+  Gradualtalk : @url{https://pleiad.cl/research/software/gradualtalk}
+}
+@item{
+  Typed Racket : @url{https://github.com/racket/typed-racket}
+}
+@item{
+  TPD : @url{https://github.com/jack-williams/tpd}
+}
+@item{
+  StrongScript : @url{https://plg.uwaterloo.ca/~dynjs/strongscript/}
+}
+@item{
+  ActionScript : @url{https://www.adobe.com/devnet/actionscript.html}
+}
+@item{
+  mypy : @url{http://mypy-lang.org/}
+}
+@item{
+  Flow : @url{https://flow.org/}
+}
+@item{
+  Hack : @url{http://hacklang.org/}
+}
+@item{
+  Pyre : @url{https://pyre-check.org/}
+}
+@item{
+  Pytype : @url{https://opensource.google.com/projects/pytype}
+}
+@item{
+  rtc : @url{https://github.com/plum-umd/rtc}
+}
+@item{
+  Strongtalk : @url{http://strongtalk.org/}
+}
+@item{
+  TypeScript : @url{https://www.typescriptlang.org/}
+}
+@item{
+  Typed Clojure : @url{http://typedclojure.org/}
+}
+@item{
+  Typed Lua : @url{https://github.com/andremm/typedlua}
+}
+@item{
+  Pyret : @url{https://www.pyret.org/}
+}
+@item{
+  Thorn : @url{http://janvitek.org/yearly.htm}
+}
+@item{
+  Dart 2 : @url{https://www.dartlang.org/dart-2}
+}
+@item{
+  Nom : @url{https://www.cs.cornell.edu/~ross/publications/nomalive/}
+}
+@item{
+  Reticulated : @url{https://github.com/mvitousek/reticulated}
+}
+@item{
+  SafeTS : @url{https://www.microsoft.com/en-us/research/publication/safe-efficient-gradual-typing-for-typescript-3/}
+}
+@item{
+  @|TR_LD| : @url{https://github.com/bennn/typed-racket/releases/tag/ld1.0}
+}
+]
 
 
 @; -----------------------------------------------------------------------------
@@ -42,6 +108,7 @@ This is because at the time of writing the first author thought the lemmas
 @; and dynamic is not a subtype of anything
 
 @; -----------------------------------------------------------------------------
+@|clearpage|
 @section[#:tag "existing-thorn"]{Thorn}
 
 Thorn (@figure-ref{fig:existing-thorn}) is a nominally-typed object-oriented language.
