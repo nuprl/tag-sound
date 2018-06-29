@@ -78,6 +78,8 @@ TypeScript programmers must keep this behavior in mind to protect their type-era
 @; more python : https://github.com/Instagram/MonkeyType
 @; many of the python links are from : https://www.bernat.tech/the-state-of-type-hints-in-python/
 
+@; https://codeburst.io/five-tips-i-wish-i-knew-when-i-started-with-typescript-c9e8609029db
+
 Both the @|holong| embedding and the @|folong| embedding are sound for
  base types, e.g.,
  if @${v} is a value of type @${\tnat}, then @${v} is a natural number.
