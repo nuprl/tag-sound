@@ -160,8 +160,8 @@ Recent work evaluates the performance of practical migratory typing systems.
  report a high overhead for mixed-typed programs in Typed Racket.
 @citet[bbst-oopsla-2017] demonstrate that a tracing JIT compiler can significantly
  reduce the overhead in Typed Racket.
-@citet[mt-oopsla-2017] report excellent performance data for a
- concrete and gradual typing system on their benchmarks.
+In the related space of concrete types, @citet[mt-oopsla-2017] report excellent
+ performance for a new gradually-typed language on their benchmarks.
 @citet[rat-oopsla-2017] suggest integrating run-time type checks with
  the shape tests of an optimizing virtual machine.
 

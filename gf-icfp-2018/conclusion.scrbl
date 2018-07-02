@@ -73,7 +73,7 @@ In terms of performance, the picture is more nuanced than the literature
  of all three.
 Equipped with
  this comparison platform, we intend to explore additional ways of making
- some form of sound migratory typing sufficiently practical.
+ some form of sound migratory typing sufficiently practical for software development.
 
 One strategy is to improve the completion function of the @|folong| model and
  evaluation property than the one extracted from the literature;

@@ -69,7 +69,7 @@ a proper comparison:
 Researchers in this area have only recently begun to study the performance
  of implementations systematically@~cite[tfgnvf-popl-2016 gtnffvf-jfp-2017 mt-oopsla-2017 bbst-oopsla-2017].
 Previous attempts to compare approaches make claims about
- @emph{different programming languages} using loosely-related
+ @emph{different programming languages} using mostly-unrelated
  benchmarks@~cite[vss-popl-2017 mt-oopsla-2017 gm-pepm-2018].
 
  To answer this question properly, the paper measures

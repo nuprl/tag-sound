@@ -14,9 +14,14 @@
 
 A performance comparison of the three approaches to migratory typing must use
  three distinct compilers for the same syntax and typing system.
-Using the semantic models as guidance, we added a @|folong| compiler to
- Typed Racket and measured the three approaches on
- on @integer->word[NUM-TR] functional (with mutable references) benchmark programs.
+For the syntax and typing system, we use Typed Racket.
+For the compilers, we implement:
+ the @|holong| embedding using the Typed Racket compiler and optimizer;
+ the @|eolong| embedding by direct translation to (untyped) Racket;
+ and the @|folong| embedding using a modified version of the Typed Racket compiler.
+This section presents the results of an @emph{exhaustive} performance evaluation
+ of the three compilers for @integer->word[NUM-TR] functional (with mutable
+ references) benchmark programs.
 
 @;The data suggests that the @|folong| embedding is mostly an
 @; improvement over the @|holong| embedding for mixed-typed programs.
@@ -174,8 +179,13 @@ The @|tag-color-text| bars plot analogous data for @|TR_LD|
 
 The @bm{jpeg} and @bm{zombie} benchmarks are outliers.
 In @bm{jpeg}, the speedup of @|TR_N| over @|eolong| is high because
- the user program depends on a typed library; the library protects itself
- against @|TR_E| code.
+ the user program depends on a typed library;@note{To be clear, the @|TR_N|,
+  @|TR_E|, and @|TR_LD| versions of @bm{jpeg} rely on the same typed library.
+  We compile the library using @|TR_N| in all cases because the original library
+  is from Typed Racket and the original author of @bm{jpeg} chose to use this
+  library.
+ }
+ the library protects itself against @|TR_E| code.
 In @bm{zombie}, typed code is slower than @|eolong|.
 The typed version of @bm{zombie} performs a type cast in the inner loop.
 The untyped version replaces this cast with a rudimentary predicate check.

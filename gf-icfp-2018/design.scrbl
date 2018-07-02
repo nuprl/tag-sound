@@ -136,8 +136,8 @@ Specifically, primitive operations give rise to two kinds of errors:
  and its result represents a boundary error.
  The name ``boundary error'' suggests that one part of the program received
  an incorrect value from another part; in the case of @${\delta}, the
- run-time library (which implements the primitive operations directly as
- hardware instructions) received the value from (typed or untyped) user code.
+ run-time library (which implements the primitives directly as
+ hardware instructions) received the value from (possibly-typed) user code.
  Naturally, the same kind of error may arise when typed and untyped regions of code interact.
  }
 ]
@@ -172,7 +172,7 @@ They define a pair of @emph{boundary functions} (@${\vfromdyn} and @${\vfromsta}
  extend the @${\rrS} and @${\rrD} notions of reduction,
  and syntactically close the notions of reduction to reduction relations @${\rrSstar} and
  @${\rrDstar} for multi-language evaluation contexts.
-That is, @${\rrSstar} and @${\rrDstar} are designed for terms whose root is
+That is, @${\rrSstar} and @${\rrDstar} reduce terms whose root is
  produced by @${\exprsta} and @${\exprdyn}, respectively.
 
 
@@ -314,10 +314,10 @@ One notable lemma for the proof states that the codomain of
 A similar lemma does not hold of the surface-language typing judgment.
 Let @${v} be the identity function @${(\vlam{x}{x})}.
 In this case @${\wellM v} holds but @${\efromdynN{(\tarr{\tint}{\tint})}{v}}
- returns a monitor, which is not part of the surface language but rather an
- extension to support mixed-typed programs.
+ returns a monitor, which is not part of the surface language.
 A language with mutable references would require a similar extension
  to monitor reads and writes@~cite[stff-oopsla-2012].
+
 
 @; -----------------------------------------------------------------------------
 @section[#:tag "sec:erasure-embedding"]{@|EOlong| Embedding}
