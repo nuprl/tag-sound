@@ -31,7 +31,7 @@ different ways of thinking about the integrity of programs that combine
 statically typed and dynamically typed code.
 This paper presents a uniform semantic framework that explains all three approaches,
  illustrates how each approach affects a developer's work, and
- adds a systematic performance comparison based on a single implementation platform.
+ adds a systematic performance comparison for a single implementation platform.
 }
 
 @include-section{introduction.scrbl}

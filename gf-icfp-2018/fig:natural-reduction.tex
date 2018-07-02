@@ -46,6 +46,8 @@
 
   \lblextra{$e \rrNS e$}{ extends $\rrS$}{
     $\begin{array}{l@{\hspace{0.5em}}c@{\hspace{0.5em}}l}
+      \edyn{\tau}{v} & \rrNS & \efromdynN{\tau}{v}
+      \\
       \eapp{(\vmonfun{(\tarr{\tau_d}{\tau_c})}{v_f})}{v} & \rrNS
       & \edyn{\tau_c}{(\eapp{v_f}{e'})}
       \\ \sidecond{where $e' = \esta{\tau_d}{v}$}
@@ -56,6 +58,8 @@
 
   \lblextra{$e \rrND e$}{ extends $\rrD$}{
     $\begin{array}{l@{\hspace{0.5em}}c@{\hspace{0.5em}}l}
+      \esta{\tau}{v} & \rrND & \efromstaN{\tau}{v}
+      \\
       \eapp{(\vmonfun{(\tarr{\tau_d}{\tau_c})}{v_f})}{v} & \rrND
       & \esta{\tau_c}{(\eapp{v_f}{e'})}
       \\ \sidecond{where $e' = \edyn{\tau_d}{v}$}
@@ -69,10 +73,6 @@
     $\begin{array}{l@{\hspace{0.5em}}c@{\hspace{0.5em}}l}
       \ebase[e] & \ccNS & \ebase[e']
       \\ \sidecond{if $e \rrNS e'$}
-      \\
-      \esd[\esta{\tau}{v}] & \ccNS & \esd[\efromstaN{\tau}{v}]
-      \\
-      \esd[\edyn{\tau}{v}] & \ccNS & \esd[\efromdynN{\tau}{v}]
       \\
       \esd[\esta{\tau}{\ebase[e]}] & \ccNS & \esd[\esta{\tau}{\ebase[e']}]
       \\ \sidecond{if $e \rrNS e'$}
@@ -91,10 +91,6 @@
     $\begin{array}{l@{\hspace{0.5em}}c@{\hspace{0.5em}}l}
       \ebase[e] & \ccND & \ebase[e']
       \\ \sidecond{if $e \rrND e'$}
-      \\
-      \esd[\esta{\tau}{v}] & \ccND & \esd[\efromstaN{\tau}{v}]
-      \\
-      \esd[\edyn{\tau}{v}] & \ccND & \esd[\efromdynN{\tau}{v}]
       \\
       \esd[\esta{\tau}{\ebase[e]}] & \ccND & \esd[\esta{\tau}{\ebase[e']}]
       \\ \sidecond{if $e \rrNS e'$}

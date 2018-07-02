@@ -13,19 +13,19 @@ Early work focused on type reconstruction for dynamically-typed
 Over the past decade, researchers turned to the problem of creating a
  multi-language system@~cite[gff-oopsla-2005]
  that provides a type soundness guarantee@~cite[st-sfp-2006 tf-dls-2006 mf-toplas-2009 kf-toplas-2010].
-Recent work addresses stronger guarantees such as parametricity@~cite[ajsw-icfp-2017 isi-icfp-2017].
+@; Recent work addresses stronger guarantees such as parametricity@~cite[ajsw-icfp-2017 isi-icfp-2017].
 
 
 @section{Gradual Typing}
 
 Migratory typing is closely related to gradual typing@~cite[st-sfp-2006 svcb-snapl-2015].
-In the broad sense, the term gradual typing@~cite[st-sfp-2006] has come to describe
+In the broad sense, the term gradual typing has come to describe
  any type system that allows some amount of dynamic typing.
-In the precise technical sense@~cite[svcb-snapl-2015], a gradual typing
+In the precise sense of @citet[svcb-snapl-2015], a gradual typing
  system includes: (1) a dynamic type that may be implicitly cast to
  any other type; (2) a relation between types that are equal up to occurrences
  of the dynamic type; and (3) a proof that replacing any
- static type with the dynamic type can only (3a) remove a static type error
+ type with the dynamic type can only (3a) remove a compile-time type error
  or (3b) remove a run-time boundary error.
 @; in the other direction (SVCB SNAPL 2015)
 @;   "One of the primary use cases for gradual typing is to enable the evolution
@@ -56,7 +56,7 @@ This approach sacrifices expressiveness in favor of straightforward run-time che
  limited interaction with structurally-typed JavaScript objects;
  method calls are permitted, but typed and JavaScript objects
  cannot extend one another.@note{@citet[tsdtf-oopsla-2012] introduce
- @emph{opaque class contracts} to support mixed-typed class hierarchies.}
+ @emph{opaque class contracts} to support mixed-typed class hierarchies in Typed Racket.}
 @citet[mt-oopsla-2017] develop a theory of concrete and gradual@~cite[svcb-snapl-2015]
  typing and present an efficient implementation.
 Dynamic typing in Dart 2 is based on the concrete approach.@note{@hyperlink["https://www.dartlang.org/guides/language/sound-dart"]{@tt{dartlang.org/guides/language/sound-dart}}, accessed 2018-05-10}
@@ -64,15 +64,14 @@ Dynamic typing in Dart 2 is based on the concrete approach.@note{@hyperlink["htt
 
 @section{@|HOlong| Embedding}
 
-@citet[mf-toplas-2009] introduce the name @emph{natural embedding} to describe
- a type-directed strategy for converting between (higher-order) Scheme
+@citet[mf-toplas-2009] use the name @emph{natural embedding} to describe
+ a type-directed strategy of converting between Scheme
  and ML values.
-The name suggests that this inductive-checking, higher-order-wrapping technique
- is the obvious approach to the problem; indeed, earlier work on typed foreign-function
+Their name suggests that this inductive-checking, higher-order-wrapping technique
+ is the obvious approach to the problem; indeed, work on typed foreign-function
  interfaces@~cite[r-jfp-2008] and remote procedure calls@~cite[ok-popl-2003] used a similar approach.
-@citet[nl-fscd-2018] provide a semantic justification for the name; in brief, if an embedding
- allows untyped functions and is not equivalent to the natural wrapping strategy,
- then it cannot satisfy type soundness.
+@citet[nl-fscd-2018] provide a semantic justification for the name; in brief, an embedding
+ is unsound if it allows untyped functions but is not equivalent to the @emph{natural} wrapping strategy.
 
 
 @section{@|EOlong| Embedding}
@@ -84,9 +83,9 @@ The name suggests that this inductive-checking, higher-order-wrapping technique
 The @|eolong| approach is better known as optional typing, and the idea
  dates back to Common Lisp@~cite[s-lisp-1990] and Strongtalk@~cite[bg-oopsla-1993].
 Many languages now have optional type checkers.
-@Figure-ref{fig:existing-systems} lists some examples;
- the pluggable type checkers for Java@~cite[ddems-icse-2011 pacpe-issta-2008]
- apply the same principles to a statically-typed host language.
+@Figure-ref{fig:existing-systems} lists some examples.
+@; the pluggable type checkers for Java@~cite[ddems-icse-2011 pacpe-issta-2008]
+@; apply the same principles to a statically-typed host language.
 
 @; @note{Dart 1.x, @url{https://v1-dartlang-org.firebaseapp.com/}, accessed 2018-05-10.}
 
@@ -96,22 +95,28 @@ Many languages now have optional type checkers.
 The @|folong| embedding presented in @section-ref{sec:locally-defensive-embedding}
  is directly inspired by the transient semantics
  for Reticulated Python@~cite[vksb-dls-2014 vss-popl-2017].
-The transient approach begins with a surface language expression and elaborates
- into a typed intermediate language with explicit type-constructor checks.
+The transient approach begins with an uninterpreted surface language expression
+ and elaborates it into a typed intermediate language with explicit type-constructor checks.
 The main judgment has the form @${\Gamma \vdash e \carrow e' : \tau}
  where both @${e'} and @${\tau} are outputs.
-At first we tried adapting this elaboration to Typed Racket, but struggled
- with the lack of a specification for the @${\carrow} judgment in
- terms of the surface language.
-In particular, Reticulated has a dynamic type
- @; (@${\star})
- and thus a more flexible notion of type boundary.
-A true model of transient may insert run-time checks for different reasons than
- the twin-language model above.
 
-@citet[h-scp-1994] introduces the name @emph{completion} to decribe an untyped
- expression annotated with explicit type constructor checks.
-Our completion judgment is more precisely a type-directed coercion insertion@~cite[b-types-1995 shb-icfp-2009].
+@;At first we tried adapting this elaboration to Typed Racket, but struggled
+@; with the lack of a specification for the @${\carrow} judgment in
+@; terms of the surface language.
+@;In particular, Reticulated has a dynamic type
+@; @; (@${\star})
+@; and thus a more flexible notion of type boundary.
+@;A true model of transient may insert run-time checks for different reasons than
+@; the twin-language model above.
+
+@citet[h-scp-1994] uses the name @emph{completion process} to describe a type-directed
+ coercion insertion@~cite[b-types-1995 shb-icfp-2009].
+@;  adds explicit type constructor checks to an untyped
+@;  expression with a @emph{completion process} for the 
+@;  to decribe an untyped
+@;  expression annotated with explicit type constructor checks.
+@; Our completion judgment is 
+@; Our completion judgment is more precisely a type-directed coercion insertion
 
 @; The name ``locally-defensive'' is an attempt to separate specification from
 @;  implementation, and to tease apart three design choices
@@ -143,8 +148,8 @@ In practice there are two major challenges for type reconstruction:
 
 @section[#:tag "sec:related-work:performance"]{Performance of Mixed-Typed Programs}
 
-@citet[htf-hosc-2010] propose a first solution to the (space) inefficiency of
- the @|holong| embedding.
+@citet[htf-hosc-2010] recognize the problem of space-inefficiency in the
+ @|holong| embedding and propose a theoretical solution.
 Other theoretical solutions address the issue for gradual typing@~cite[htf-hosc-2010 sw-popl-2010 sgt-esop-2009],
  and more generally for higher-order contracts@~cite[g-popl-2015].
  @;@note{@url{https://arxiv.org/abs/1604.02474}}
@@ -185,8 +190,8 @@ Lastly, progressive types@~cite[pqk-onward-2012]
 Correct blame is an important consolation prize because a
  migratory typing system cannot guarantee the absence of certain
  run-time errors the way a statically-typed language can.
-Correct blame makes such errors easier to debug, though, by attributing the
- fault to one specific surface-level type boundary.
+Correct blame helps with debugging such errors by attributing the
+ fault to one specific type boundary.
 
 @; Given a boundary, either the type annotation or the untyped value is the source of the error.@note{For the
 @;  higher-order embedding, one could formulate a blame property by:
@@ -195,7 +200,7 @@ Correct blame makes such errors easier to debug, though, by attributing the
 @;  The proof, we conjecture, would follow from a complete monitoring
 @;  lemma@~cite[dtf-esop-2012].}
 
-Typed Racket informally guarantees blame correctness@~cite[tfffgksst-snapl-2017].
+Typed Racket informally guarantees blame correctness@~cite[dfff-popl-2011 tfffgksst-snapl-2017].
 @citet[mt-oopsla-2017] formally prove an @emph{immediate accountability} property
  that implies blame correctness, albeit for a language that limits the expressiveness
  of untyped code.

@@ -907,7 +907,7 @@
 (define dfff-popl-2011
   (make-bib
    #:title "Correct Blame for Contracts: No More Scapegoating"
-   #:author (authors "Christos Dimoulas" "Robert Bruce Findler" "Cormc Flanagan" "Matthias Felleisen")
+   #:author (authors "Christos Dimoulas" "Robert Bruce Findler" "Cormac Flanagan" "Matthias Felleisen")
    #:location (proceedings-location popl #:pages '(215 226))
    #:date 2011))
 
@@ -1114,7 +1114,7 @@
    #:location (proceedings-location esop #:pages '(214 233))
    #:date 2012))
 
-(define ho-contract-satisfaction
+(define df-toplas-2011
   (make-bib
    #:author (authors "Christos Dimoulas" "Matthias Felleisen")
    #:title "On Contract Satisfaction in a Higher-Order World"

@@ -66,6 +66,8 @@
 \begin{TwoColumn}
   \lblextra{$e \rrFS e$}{ extends $\rrS$}{
     $\begin{array}{l@{~~}c@{~}l}
+      \edyn{\tau}{v} & \rrFS & \efromdynF{\tau}{v}
+      \\
       \echk{\tau}{v} & \rrFS
       & \efromany{\tau}{v}
       \\
@@ -89,6 +91,8 @@
 
   \lblextra{$e \rrFD e$}{ extends $\rrD$}{
     $\begin{array}{l@{~~}c@{~}l}
+      \esta{\tau}{v} & \rrFD & \efromstaF{\tau}{v}
+      \\
       \\
       \eapp{(\vmonfun{(\tarr{\tau_d}{\tau_c})}{(\vlam{x}{e})})}{v} & \rrFD
       & \eapp{(\vlam{x}{e})}{v}

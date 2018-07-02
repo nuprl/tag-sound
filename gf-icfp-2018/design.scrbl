@@ -51,7 +51,7 @@ The expression @${(\edyn{\tau}{\exprdyn})} embeds a dynamically-typed subexpress
 
 The last two equations in @figure-ref{fig:multi-syntax} specify the names of
  primitive operations (@${\vunop}, @${\vbinop}).
-The primitives represent low-level procedures that manipulate bitstrings.
+The primitives represent low-level procedures that manipulate the machine-level representation of values (i.e., bitstrings).
 
 @include-figure["fig:multi-syntax.tex" @elem{Twin languages syntax}]
 @include-figure["fig:multi-preservation.tex" @elem{Twin languages static typing judgments}]
@@ -114,9 +114,10 @@ A boundary-free context @${\ebase} does not contain @${\vdyn} or @${\vsta} bound
 The semantic components in @figure-ref{fig:multi-reduction} are the
  @${\delta} function and the @${\rrS} and @${\rrD} notions of reduction@~cite[b-lambda-1981].
  The @${\delta} function
- is a computable, partial mathematical specification for the primitives.
+ is a partial mathematical specification for the primitives.
 The partial nature of @${\delta} represents certain
- errors that the use of a primitive operation may trigger.
+ errors that the use of a primitive operation may trigger;
+ we assume @${\delta} is computable wherever it is defined for an input.
 Specifically, primitive operations give rise to two kinds of errors:
 @itemlist[
 
@@ -129,20 +130,19 @@ Specifically, primitive operations give rise to two kinds of errors:
  function to an integer as a tag mismatch.}
 
 @item{By contrast, a @italic{boundary error} is the result of applying a
- partial primitive operation, such as division, to proper but exceptional
- values.
+ partial primitive operation, such as division, to exceptional inputs.
  Division-by-zero is a representative example.
- Mathematically put, the @${\delta} function is defined for these values,
- and the result represents a boundary error. The name suggests that the
- run-time library, which implements these primitive operations directly as
- hardware instructions, represents an untyped part of the program and that
- both the statically typed and dynamically typed parts send values across a
- boundary into this component. The name ``boundary error''
- anticipates the generalization of the concept to programs that mix typed
- and untyped code. }
+ The @${\delta} function is defined for the inputs,
+ and its result represents a boundary error.
+ The name ``boundary error'' suggests that one part of the program received
+ an incorrect value from another part; in the case of @${\delta}, the
+ run-time library (which implements the primitive operations directly as
+ hardware instructions) received the value from (typed or untyped) user code.
+ Naturally, the same kind of error may arise when typed and untyped regions of code interact.
+ }
 ]
 @exact{\noindent}The functions @${\Delta} and @${\delta} satisfy the
- typability condition@~cite[wf-ic-1994]:
+ typability condition@~cite[wf-ic-1994].
 
 @tr-proposition[#:key "delta-typability" @elem{@${\delta} typability}]{
   @itemlist[
@@ -166,14 +166,15 @@ Hence, @${\rrD} explicitly checks for
  malformed expressions and signals a tag error.
 These checks make the untyped language safe.
 
-The three models in the following sections build upon @figure-ref{fig:multi-reduction}.
+The three models in the following three sections build upon @figure-ref{fig:multi-reduction}.
 They define a pair of @emph{boundary functions} (@${\vfromdyn} and @${\vfromsta})
  for transporting a value across a boundary term,
  extend the @${\rrS} and @${\rrD} notions of reduction,
  and syntactically close the notions of reduction to reduction relations @${\rrSstar} and
  @${\rrDstar} for multi-language evaluation contexts.
-Lastly, the models define a syntactic property that is
- preserved with respect to the reduction relations and guarantees progress.
+That is, @${\rrSstar} and @${\rrDstar} are designed for terms whose root is
+ produced by @${\exprsta} and @${\exprdyn}, respectively.
+
 
 @include-figure["fig:multi-reduction.tex" @elem{Common semantic notions}]
 
@@ -218,12 +219,14 @@ The @${\vfromdynN} function imports a dynamically-typed value into a statically-
  context by checking the shape of the value and proceeding as outlined above.
 In particular, @${\vfromdynN} transports an untyped value @${v} into a
  context expecting a function with domain @${\tau_d} and codomain @${\tau_c}
- by checking that @${v} is a function and creating a monitor @${(\vmonfun{(\tarr{\tau_d}{\tau_c})}{v})}.
+ by checking that @${v} is a function and creating a monitor of the shape
+ @${(\vmonfun{(\tarr{\tau_d}{\tau_c})}{v})}.
 Conversely, the @${\vfromstaN} function exports a typed value to an untyped context.
 It transports an integer as-is, transports a pair recursively,
  and wraps a typed function in a monitor to protect it against untyped arguments.
 
-The extended notions of reduction in @figure-ref{fig:natural-reduction} define the semantics of monitors.
+The extended notions of reduction in @figure-ref{fig:natural-reduction} define
+ the semantics of boundary-crossing and monitors.
 In a statically-typed context, the application of a monitor expresses
  the application of a dynamically-typed function to a typed argument.
 Thus the semantics unfolds the monitor into two boundary terms:
@@ -309,11 +312,11 @@ One notable lemma for the proof states that the codomain of
 }@;
 @;
 A similar lemma does not hold of the surface-language typing judgment.
-To illustrate, let @${v} be the identity function @${(\vlam{x}{x})}.
+Let @${v} be the identity function @${(\vlam{x}{x})}.
 In this case @${\wellM v} holds but @${\efromdynN{(\tarr{\tint}{\tint})}{v}}
  returns a monitor, which is not part of the surface language but rather an
  extension to support mixed-typed programs.
-A language with references would require a similar extension
+A language with mutable references would require a similar extension
  to monitor reads and writes@~cite[stff-oopsla-2012].
 
 @; -----------------------------------------------------------------------------
@@ -327,13 +330,13 @@ A language with references would require a similar extension
 The @|eolong| approach is based on a view of types as an optional syntactic artifact.
 From this perspective, type annotations are just a structured form of comment
  that help developers read a codebase.
-A secondary purpose is to enable static type checking and IDE tools.
+A secondary purpose is to enable IDE tools.
 Whether the types are sound is incidental.
  @; , since type soundness never holds for the entirety of a practical language.
 
 The justification for the @|eolong| point of view is that the host
- language can safely execute both typed and untyped code.
-A value may cross any type boundary without risk of undefined behavior.
+ language safely executes untyped code.
+If all code is treated as untyped, there is no risk of undefined behavior.
 @; Hence, converting typed to untyped code is guaranteed to create a safe
 @;  program that does not get stuck.
 
@@ -447,7 +450,7 @@ Based on these assumptions, the @|folong| semantics employs a
 The defense takes the form of type-constructor checks; for example,
  if a typed context expects a value of type @${(\tarr{\tnat}{\tnat})} then a
  run-time check ensures that the context receives a function.
-If this function is applied @emph{in the same context}, then a second run-time
+If this function is applied in a context expecting a @${\tnat}, then a second run-time
  check confirms that the result is a natural number.
 If the same function is applied @emph{in a different typed context} that expects a
  result of type @${(\tpair{\tint}{\tint})}, then a different run-time check confirms that
@@ -458,7 +461,7 @@ Constructor checks run without creating monitors,
  structural object type require time linear in the size of the type.}
  and ensure that every value in a typed context has the correct top-level shape.
 Since the notions of reduction rely on @emph{only} the shape of a value to
- avoid stuck states, well-typed programs cannot ``go wrong''.
+ avoid stuck states, well-typed programs cannot ``go wrong.''
 @; or rather, "do not apply a typed elimination form to a value outside its domain" ?
 
 
@@ -473,7 +476,7 @@ Type constructors @${K} include one constructor @${\tagof{\tau}} for each
  type @${\tau}, and the technical @${\kany} constructor, which
  does not correspond to a static type.
 
-The purpose of @${\kany} is to reflect the weak invariants of the @|folong|
+The specific purpose of @${\kany} is to reflect the weak invariants of the @|folong|
  semantics.
 In contrast to full types, type constructors say nothing about the
  contents of a structured value.
@@ -510,7 +513,7 @@ The notions of reduction consequently turn the type annotation @${\tau_d} on
 In a dynamically-typed context, this check protects a typed function against
  untyped arguments.
 In a statically-typed context, this check protects a typed function against
- @emph{typed} arguments;
+ mis-matched @emph{typed} arguments;
  the following example demonstrates the need for this protection by applying a
  typed function that expects an integer to a typed pair value:
 
@@ -547,7 +550,7 @@ The second judgment is a constructor-typing system that formalizes the intuition
  given constructor.
 
 Soundness for the @|folong| embedding states that the evaluation of the
- @emph{completion} of any surface-level expression preserves the constructor
+ @emph{completion} of any surface-level expression preserves the @emph{constructor}
  of its static type.
 The theorems furthermore state that only the @${\rrKD} notion of reduction
  can yield a tag error, therefore such errors can only occur in dynamically-typed contexts.
@@ -655,8 +658,7 @@ Lastly, the models do not mention union types, universal types,
  dynamically-typed code.
 To extend the @|holong| embedding with support for these types, the language
  must add new kinds of monitors to enforce type soundness for their
- elimination forms.
-The literature on Typed Racket presents one strategy for handling such types@~cite[stff-oopsla-2012 tfdfftf-ecoop-2015].
+ elimination forms@~cite[stff-oopsla-2012 tfdfftf-ecoop-2015].
 To extend the @|folong| embedding, the language must add unions @${K \cup K}
  to its grammar of type constructor and must extend the @${\tagof{\cdot}} function.
 For a union type, let @${\tagof{\tau_0 \cup \tau_1}} be @${\tagof{\tau_0} \cup \tagof{\tau_1}},

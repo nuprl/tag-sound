@@ -26,6 +26,8 @@
 
   \lblextra{$e \rrES e$}{ extends $\rrS$}{
     $\begin{array}{l@{\hspace{0.5em}}c@{\hspace{0.5em}}l}
+      \edyn{\tau}{v} & \rrES & \efromdynE{\tau}{v}
+      \\
       \eapp{(\vlam{x}{e})}{v} & \rrES
       & \vsubst{e}{x}{v}
       \\
@@ -47,6 +49,8 @@
 
   \lblextra{$e \rrED e$}{ extends $\rrD$}{
     $\begin{array}{l@{\hspace{0.5em}}c@{\hspace{0.5em}}l}
+      \esta{\tau}{v} & \rrED & \efromstaE{\tau}{v}
+      \\
       \eapp{(\vlam{\tann{x}{\tau_d}}{e})}{v} & \rrED
       & \vsubst{e}{x}{v}
     \end{array}$
@@ -60,10 +64,6 @@
       \esd[e] & \ccES & \ctxE{e'}
       \\ \sidecond{if $e \rrES e'$}
       \\
-      \esd[\esta{\tau}{v}] & \ccES & \esd[\efromstaE{\tau}{v}]
-      \\
-      \esd[\edyn{\tau}{v}] & \ccES & \esd[\efromdynE{\tau}{v}]
-      \\
       \esd[\eerr] & \ccES & \eerr
     \end{array}$
   }
@@ -74,10 +74,6 @@
     $\begin{array}{l@{\hspace{0.5em}}c@{\hspace{0.5em}}l}
       \esd[e] & \ccED & \ctxE{e'}
       \\ \sidecond{if $e \rrED e'$}
-      \\
-      \esd[\esta{\tau}{v}] & \ccED & \esd[\efromstaE{\tau}{v}]
-      \\
-      \esd[\edyn{\tau}{v}] & \ccED & \esd[\efromdynE{\tau}{v}]
       \\
       \esd[\eerr] & \ccED & \eerr
     \end{array}$

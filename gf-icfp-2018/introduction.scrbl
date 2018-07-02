@@ -30,7 +30,7 @@ Over the years, three approaches have emerged for interpreting types in a
  form of traditional type soundness@~cite[st-sfp-2006 tf-dls-2006].
  Eager enforcement of higher-order types prevents dynamically typed code
  from sending (type) invalid arguments to a typed function or returning
- invalid results into a typed context via callbacks. But, it may impose a significant run-time
+ invalid results to a typed context from untyped functions. But, it may impose a significant run-time
  cost@~cite[tfgnvf-popl-2016 gtnffvf-jfp-2017].
 @;
  A second approach is to @emph{erase the types} and rely on the soundness
@@ -66,17 +66,17 @@ a proper comparison:
 
 @item{@emph{How do the three approaches compare with respect to performance}? 
 
-Researchers in this area have only recently studied the performance
+Researchers in this area have only recently begun to study the performance
  of implementations systematically@~cite[tfgnvf-popl-2016 gtnffvf-jfp-2017 mt-oopsla-2017 bbst-oopsla-2017].
 Previous attempts to compare approaches make claims about
- @emph{different programming languages} using (mostly) unrelated
+ @emph{different programming languages} using loosely-related
  benchmarks@~cite[vss-popl-2017 mt-oopsla-2017 gm-pepm-2018].
 
  To answer this question properly, the paper measures
  the same benchmarks in three implementations of the same syntax and type system,
  based on the common theoretical framework.
  While our results confirm the published conjectures to some degree, we
- consider it imperative for the future of this area to put the research
+ consider it imperative for the future of this research area to put such comparisons
  on solid ground.
 }
 

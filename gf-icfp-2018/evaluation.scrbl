@@ -16,13 +16,14 @@ A performance comparison of the three approaches to migratory typing must use
  three distinct compilers for the same syntax and typing system.
 Using the semantic models as guidance, we added a @|folong| compiler to
  Typed Racket and measured the three approaches on
- on @integer->word[NUM-TR] functional (with references) benchmark programs.
-The data suggests that the @|folong| embedding is mostly an
- improvement over the @|holong| embedding for mixed-typed programs.
-For fully-typed programs (and configurations with many typed modules@~cite[gf-tr-2018]),
- however, the @|holong| embedding offers the best performance of all three,
- thanks to the type guarantees of @|N-S-soundness|
- and the Typed Racket optimizer@~cite[stff-padl-2012 stf-oopsla-2012].
+ on @integer->word[NUM-TR] functional (with mutable references) benchmark programs.
+
+@;The data suggests that the @|folong| embedding is mostly an
+@; improvement over the @|holong| embedding for mixed-typed programs.
+@;For fully-typed programs (and configurations with many typed modules@~cite[gf-tr-2018]),
+@; however, the @|holong| embedding offers the best performance of all three,
+@; thanks to the type guarantees of @|N-S-soundness|
+@; and the Typed Racket optimizer@~cite[stff-padl-2012 stf-oopsla-2012].
 
 
 @; -----------------------------------------------------------------------------
@@ -45,8 +46,9 @@ We use this transformation to compare the @|holong| embedding
 
 To compare with the @|folong| approach, we modified the Typed Racket
  compiler to rewrite typed code and compile types to predicates
- that enforce type constructors@~cite[gf-tr-2018].
-Like the model, this implementation makes no claim about the quality of boundary error messages.
+ that enforce type constructors.
+The implementation is available online; see the supplement for
+ details@~cite[gf-tr-2018].
 
 The three approaches outlined above define three ways to compile a
  Typed Racket program to Racket: @|holong| @|TR_N|,
@@ -73,7 +75,7 @@ Since the promise of migratory typing is that a developer may choose to run any
  configurations by their overhead relative to the completely-untyped configuration.
 The key measure is the number of @deliverable{D} configurations.
 A configuration is @deliverable{D} if it runs no more than @${D}x slower than
- the untyped configuation@~cite[tfgnvf-popl-2016 gtnffvf-jfp-2017].
+ the untyped configuation.
 If an implementation of migratory typing adds little overhead to mixed-typed
  programs, then a large percentage of its configurations are @deliverable{D}
  for a low value of @${D}.
@@ -106,8 +108,8 @@ The evaluation reports the performance of the @|holong| (@|TR_N|),
  @|eolong| (@|TR_E|), and @|folong| (@|TR_LD|) approaches
  on @integer->word[NUM-TR] Typed Racket programs.
 Nine programs are the functional benchmarks from prior work on
- Typed Racket@~cite[tfgnvf-popl-2016 gtnffvf-jfp-2017].
-The tenth is adapted from a JPEG library.@note{@hyperlink["https://docs.racket-lang.org/gtp-benchmarks"]{@tt{docs.racket-lang.org/gtp-benchmarks}}}
+ Typed Racket; the
+ tenth is adapted from a JPEG library.@note{@hyperlink["https://docs.racket-lang.org/gtp-benchmarks"]{@tt{docs.racket-lang.org/gtp-benchmarks}}}
 
 For each configuration of each benchmark, and for both @|TR_N| and @|TR_LD|,
  we collected a sequence of @integer->word[NUM-ITERS] running times

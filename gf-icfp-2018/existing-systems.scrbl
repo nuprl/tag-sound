@@ -45,7 +45,7 @@ These two related systems are on different lines because only StrongScript suppo
 Pyret falls between the @|folong| and @|eolong| approaches.
 If a program contains type annotations, then Pyret enforces each annotation
  with a run-time type constructor check.
-A programmer can therefore opt-in to type-constructor
+A programmer can therefore opt into type-constructor
  soundness through disciplined use of type annotations.
 
 

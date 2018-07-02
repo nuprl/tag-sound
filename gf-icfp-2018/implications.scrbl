@@ -1,4 +1,5 @@
 #lang gf-icfp-2018
+@require[(only-in "techreport.rkt" tr-theorem tr-proof)]
 @title[#:tag "sec:implications"]{Implications}
 
 @Sections-ref{sec:design} and @secref{sec:evaluation} present the two critical aspects of the three
@@ -24,8 +25,8 @@ This non-compositional behavior means that a violation of the type annotations
 Higher-order types are similarly afflicted by the non-compositional behavior of
  the @|folong| embedding (@section-ref{sub:ho}).
 Lastly, the three approaches provide
- radically different support when it comes to boundary errors and debugging
- them (@section-ref{sub:err}).
+ radically different support when it comes to detecting, reporting, and
+ debugging boundary errors (@section-ref{sub:err}).
 
 For consequences with respect to performance, our work somewhat confirms
 the conjectures of the literature that lowering the standards of
@@ -154,7 +155,7 @@ The dynamically-typed module on the right mistakenly calls the addition function
  on two ``Descartes-style'' numbers, one of which does not match the type for
  Bessel numbers.
 
-Indeed, each of the three approaches to migratory typing behaves differently on this program.
+As it turns out, each of the three approaches to migratory typing behaves differently on this program.
 The @|holong| embedding correctly rejects the application of @tt{add-B} at the
  boundary:
 
@@ -259,15 +260,15 @@ In terms of the model,
  @|folong| system are vanishingly small.
 
 
-@section[#:tag "sub:err"]{For Error Messages}
+@section[#:tag "sub:err"]{For Errors and Error Messages}
 
 @figure["fig:list-error" @elem{Type-mismatch between a library function and client, adapted from @citet[vksb-dls-2014].}
         list-pict]
 
-Errors matter.
-Indeed @citet[vksb-dls-2014] claim that improved error messages are ``one of
+When run-time errors happen, error messages matter.
+As @citet[vksb-dls-2014] claim, improved error messages are ``one of
  the primary benefits'' of adding types to a dynamically-typed language.
-To illustrate, they describe a program similar to @figure-ref{fig:list-error}
+To illustrate, they describe a situation
  in which an untyped module sends a list of strings to a typed function that
  expects a list of numbers:
 
@@ -277,26 +278,34 @@ To illustrate, they describe a program similar to @figure-ref{fig:list-error}
    error points to the call to @tt{moment}
  }]
 
-@noindent[]This claim assumes that the gradual typing system enforces types.
-The @|holong| embedding is one such approach; it catches the error before the
+@noindent[]This claim assumes, of course, that the gradual typing system enforces types.
+
+@Figure-ref{fig:list-error} turns @citet[vksb-dls-2014] scenario into a concrete
+ example.
+The @tt{stats} module computes the @racket[m]-th @tt{moment} of a series of floats;
+ it defers most of the computation to the language's list package, meaning
+ a call to @tt{moment} may cause another boundary-crossing.
+The @tt{client} module calls @tt{moment} with an inappropriate list.
+
+The @|holong| embedding catches the error before the
  call to @tt{moment}:
 
 @dbend[
   @safe{
-    \wellM \texttt{(moment lst)} \rrNDstar \texttt{(moment ($\vfromdynN$(Listof(Float), lst))} \rrNDstar \boundaryerror
+    \wellM \texttt{(moment lst 2)} \rrNDstar \texttt{(moment ($\vfromdynN$(Listof(Float), lst)) 2)} \rrNDstar \boundaryerror
   }
 ]
 
-The @|eolong| embedding performs the call to @tt{moment} just like a dynamically-typed language.
+The @|eolong| embedding performs the call to @tt{moment} just like a dynamically-typed language would.
 If the numeric operations check their inputs, the execution ends in a tag error.
 If the primitives are un-checked, however, then the call may compute a nonsensical result:
 
 @dbend[
   @warning|{
-    \wellM \texttt{(moment lst)} \rrEDstar
+    \wellM \texttt{(moment lst 2)} \rrEDstar
       \left\{\begin{array}{l l}
          \tagerror & \mbox{if \texttt{mean} or \texttt{-} check for strings}
-      \\ -1        & \mbox{if the primitives are unchecked}
+      \\ -42       & \mbox{if the primitives are unchecked}
       \end{array}\right.
   }|
 ]
@@ -306,22 +315,22 @@ The @|folong| embedding confirms that @tt{lst} is a list, and then proceeds
 Since the body of @tt{moment} never directly extracts a float from the list,
  it is impossible to predict what happens during the call.
 For example, @tt{mean} can raise a boundary error, raise a tag error, or
- silently compute a sum of string pointers.
-In the latter cases, the client cannot be sure whether
- the error is their own fault or due to a bug in the library:
+ silently compute a sum of string pointers:
 
 @dbend[
   @warning|{
-    \wellM \texttt{(moment lst)} \rrKDstar
+    \wellM \texttt{(moment lst 2)} \rrKDstar
       \left\{\begin{array}{l l}
          \boundaryerror & \mbox{if \texttt{mean}, \texttt{-}, or \texttt{map} are typed}
       \\ \tagerror & \mbox{if \texttt{mean} or \texttt{-} check for strings}
-      \\ -1        & \mbox{if the primitives are unchecked}
+      \\ -42       & \mbox{if the primitives are unchecked}
       \end{array}\right.
   }|
 ]
 
-@noindent[]@citet[vss-popl-2017] propose a strategy that points the @|folong|
+@noindent[]In the case of a boundary error, it is not clear how a first-order embedding
+ can pinpoint the boundary that is violated.
+@citet[vss-popl-2017] propose a strategy that points the @|folong|
  error message to the call to @tt{moment}, but the strategy may double the
  running time of a program and reports a set of potentially-guilty boundaries
  rather than pinpointing the faulty one.
@@ -329,9 +338,27 @@ In the latter cases, the client cannot be sure whether
 By contrast, the @|holong| embedding can identify the first violation of the
  types --- even for higher-order interactions --- by storing debugging information
  in monitor values@~cite[tfffgksst-snapl-2017].
-Equipped with the relevant boundary term, the developer knows exactly where to
+With the relevant boundary term, the developer knows exactly where to
  begin debugging: either the type annotation is wrong or the dynamically-typed
  code does not match the type.
+
+The general comparison can be approximated with the following theorem, which
+ states that @|holong| discovers more errors than @|folong| and @|folong|
+ discovers more errors than @|eolong|:
+@; (assuming a safe dynamically-typed language).
+
+@tr-theorem[#:key "error-simulation" @elem{}]{
+  If @${e \in \exprsta} the following statements hold:
+  @itemlist[
+  @item{
+    if @${e \rrESstar \eerr} then @${e \rrKSstar \eerr}
+  }
+  @item{
+    if @${e \rrKSstar \eerr} then @${e \rrNSstar \eerr}
+  }
+  ]
+}@tr-proof[#:sketch? #true]{
+}
 
 
 @section[#:tag "sub:perf-mixed"]{For the Performance of Mixed-Typed Programs}
@@ -387,7 +414,7 @@ If a program has few dynamically-typed components, then the @|folong|
 This poor performance comes about because all typed expressions unconditionally
  check their inputs.
 For example, a function that adds both elements of a pair value must check
- that its input has integer-valued components.
+ that its input has integer-valued components:
 
 @dbend[
   @warning{

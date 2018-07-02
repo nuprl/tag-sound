@@ -107,6 +107,10 @@
   % this one "inherits", because it changes typed function application
   \lblextra{$e \rrKS e$}{ extends and overrides $\rrS$}{
     $\begin{array}{l@{\hspace{0.5em}}c@{\hspace{0.5em}}l}
+      \edynfake{v} & \ccKS & v
+      \\
+      \edyn{\tau}{v} & \ccKS & \efromdyn{\tau}{v}
+      \\
       \echk{K}{v} & \rrKS
       & \efromany{K}{v}
       \\
@@ -134,6 +138,10 @@
 
   \lblextra{$e \rrKD e$}{ extends $\rrD$}{
     $\begin{array}{l@{\hspace{0.5em}}c@{\hspace{0.5em}}l}
+      \estafake{v} & \rrKD & v
+      \\
+      \esta{\tau}{v} & \rrKD & \efromsta{\tau}{v}
+      \\
       \\
       \eapp{(\vlam{\tann{x}{\tau}}{e})}{v} & \rrKD
       & \boundaryerror
@@ -152,14 +160,6 @@
       \ebase[e] & \ccKS & \ebase[e']
       \\ \sidecond{if $e \rrKS e'$}
       \\
-      \esd[\estafake{v}] & \ccKS & \esd[v]
-      \\
-      \esd[\edynfake{v}] & \ccKS & \esd[v]
-      \\
-      \esd[\esta{\tau}{v}] & \ccKS & \esd[\efromsta{\tau}{v}]
-      \\
-      \esd[\edyn{\tau}{v}] & \ccKS & \esd[\efromdyn{\tau}{v}]
-      \\
       \esd[\esta{\tau}{\ebase[e]}] & \ccKS & \esd[\esta{\tau}{\ebase[e']}]
       \\ \sidecond{if $e \rrKS e'$}
       \\
@@ -176,14 +176,6 @@
     $\begin{array}{l@{\hspace{0.5em}}c@{\hspace{0.5em}}l}
       \ebase[e] & \ccKD & \ebase[e']
       \\ \sidecond{if $e \rrKD e'$}
-      \\
-      \esd[\estafake{v}] & \ccKD & \esd[v]
-      \\
-      \esd[\edynfake{v}] & \ccKD & \esd[v]
-      \\
-      \esd[\esta{\tau}{v}] & \ccKD & \esd[\efromsta{\tau}{v}]
-      \\
-      \esd[\edyn{\tau}{v}] & \ccKD & \esd[\efromdyn{\tau}{v}]
       \\
       \esd[\esta{\tau}{\ebase[e]}] & \ccKD & \esd[\esta{\tau}{\ebase[e']}]
       \\ \sidecond{if $e \rrKS e'$}

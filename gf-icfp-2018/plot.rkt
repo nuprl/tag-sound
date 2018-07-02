@@ -770,7 +770,7 @@
   (ht-append 60
     (codeblock-pict/numbers #:title "bessel.rkt"
 #<<>>
-#lang typed/racket
+#lang typed
 
 (define-type Bessel
   (List Nonnegative-Real Real))
@@ -782,7 +782,7 @@
 )
     (codeblock-pict/numbers #:title "student.rkt"
 #<<>>
-#lang racket
+#lang untyped
 
 (require "bessel.rkt")
 
@@ -797,7 +797,7 @@
   (ht-append 20
     (codeblock-pict/numbers #:title "database.rkt"
 #<<>>
-#lang racket
+#lang untyped
 
 (define (create db name)
   (exec-query ...))
@@ -807,7 +807,7 @@
 )
     (codeblock-pict/numbers #:title "typed-db.rkt"
 #<<>>
-#lang typed/racket
+#lang typed
 
 (require/typed/provide
   "database.rkt"
@@ -823,7 +823,7 @@
 )
     (codeblock-pict/numbers #:title "app.rkt"
 #<<>>
-#lang racket
+#lang untyped
 
 (require
   "typed-db.rkt")
@@ -841,20 +841,20 @@
   (ht-append 60
     (codeblock-pict/numbers #:title "stats.rkt"
 #<<>>
-#lang typed/racket
+#lang typed
 (require math)
 
 (: moment (-> (Listof Float) Integer Float))
 (define (moment xs m)
   (define u (mean xs))
   (define n (length xs))
-  (* (/ 1 n)
-     (sum (map (λ (x) (expt (- x u) m)) xs))))
+  (/ (sum (map (λ (x) (expt (- x u) m)) xs))
+     n))
 >>
 )
     (codeblock-pict/numbers #:title "client.rkt"
 #<<>>
-#lang racket
+#lang untyped
 
 (define lst
   (list "A" "B"))

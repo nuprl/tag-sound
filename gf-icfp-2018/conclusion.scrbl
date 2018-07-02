@@ -37,8 +37,8 @@ Second, this paper is the first to present an apples-to-apples performance
  migratory typing. This evaluation weakly confirms conjectures in the
  literature, which is valuable, but most importantly it shows that none of
  these approaches dominates across the whole spectrum. Jointly the two
- contributions put the systematic and comparative study of a ``spectrum'' on
- a firm basis that allows well-founded conclusions. 
+ contributions put the systematic and comparative study of a spectrum on
+ a firm basis that allows well-founded conclusions.
 
 In practice, each approach has different implications for how a developer can
 reason about the code, especially when diagnosing the cause of a run-time error:
@@ -51,7 +51,7 @@ Indeed, a violation of the types in the source code may go completely unnoticed.
 @item{
  Running a @TR_LD (@|folong|) program is guaranteed to reveal a
   violation of types @emph{if it affects the execution of typed code}.
- The delayed checking schema is unlikely to pinpoint the source of the error,
+ The checking schema is unlikely to pinpoint the source of the error,
  however.
 }
 @item{
@@ -59,7 +59,7 @@ Indeed, a violation of the types in the source code may go completely unnoticed.
  of type annotations as soon as there is a witness and pinpoints the exact
  type boundary that is violated by this witness.}
 ]@;
-@exact{\noindent}One open question is what developers actually think of these approaches.
+@exact{\noindent}One open question is whether developers want correctness and precise run-time errors.
 
 @; In light of the work by New and Licata, only the @|holong| embedding
 @;  can achieve type soundness in the traditional sense@~cite[fb-flops-2006 nl-fscd-2018].
@@ -69,8 +69,9 @@ In terms of performance, the picture is more nuanced than the literature
  @|folong| checks add overhead on a pay-as-you-annotate basis,
  and the @|holong|
  approach may render a working program unusably slow.  For fully-typed
- programs, the @|holong| embedding often dominates @|eolong| and is
- significantly faster than the @|folong| semantics. Equipped with
+ programs, the @|holong| embedding often provides the best performance
+ of all three.
+Equipped with
  this comparison platform, we intend to explore additional ways of making
  some form of sound migratory typing sufficiently practical.
 
@@ -88,6 +89,6 @@ A third strategy is to combine multiple semantics.
 @acks{
   The research reported here is supported in part by @hyperlink["https://www.nsf.gov/awardsearch/showAward?AWD_ID=1518844"]{NSF grant CCF-1518844}.
   We acknowledge Erik Ernst, Ron Garcia, Benjamin S. Lerner, Fabian Muehlboeck, Max S. New, Eric Tanter, and Ross Tate for insightful conversations,
-   and thank Artem Pelenitsyn, Jan Vitek, and the anonymous ICFP reviewers for feedback on earlier drafts.
+   and thank Artem Pelenitsyn, Jan Vitek, and the anonymous ICFP reviewers for feedback on early drafts.
 }
 

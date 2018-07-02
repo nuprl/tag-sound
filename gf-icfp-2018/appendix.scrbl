@@ -15,7 +15,7 @@ Forgetful limits each value to at most one monitor@~cite[g-popl-2015].
 Full definitions and proofs are in the supplement@~cite[gf-tr-2018].
 
 One might also explore an approach that monitors base values and further delays
- errors@~cite[dtw-pepm-2012].
+ errors@~cite[dtw-pepm-2012 df-toplas-2011].
 
 
 @; -----------------------------------------------------------------------------
@@ -69,11 +69,12 @@ The forgetful embedding, defined in @figure-ref{fig:forgetful-reduction}, preven
 If a monitored value reaches one of the @${\vfromdynF} or @${\vfromstaF} boundary
  functions, the function replaces the existing monitor.
 Consequently, a statically-typed function that crosses two type boundaries
- may be wrapped in a monitor with an incompatible type:
+ may be wrapped in a monitor with an incompatible type; let @${f = (\vlam{\tann{x}{\tint}}{{-2}})} in:
 
 @dbend[
   @neutral{
-    \wellM \edyn{(\tarr{\tnat}{\tnat})}{(\esta{(\tarr{\tint}{\tint})}{(\vlam{\tann{x}{\tint}}{{-2}})})} \rrFSstar \vmonfun{(\tarr{\tnat}{\tnat})}{(\vlam{\tann{x}{\tint}}{{-2}})}
+      \wellM \edyn{(\tarr{\tnat}{\tnat})}{(\esta{(\tarr{\tint}{\tint})}{f})} : \tarr{\tnat}{\tnat} \rrFSstar
+        \vmonfun{(\tarr{\tnat}{\tnat})}{f}
   }
 ]
 
