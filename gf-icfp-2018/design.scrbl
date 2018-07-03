@@ -668,7 +668,5 @@ For a universal type @${\tall{\alpha}{\tau}} let the constructor be @${\tagof{\t
  no elimination forms for a universally-quantified type variable.@note{This
   treatment of universal types fails to enforce parametricity.}
 For a recursive type @${\trec{\alpha}{\tau}}, let the constructor be
- @${\tagof{\vsubst{\tau}{\alpha}{\trec{\alpha}{\tau}}}}; this definition is
- well-founded if all occurrences of the type variable @${\alpha} occur within some type
- @${\tau'} such that the constructor of @${\tau'} is defined without recursion.
+ @${\tagof{\vsubst{\tau}{\alpha}{\tempty}}} where @${\tempty} is an empty type.
 
