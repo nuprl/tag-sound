@@ -1,5 +1,5 @@
 #lang gf-icfp-2018
-@require["techreport.rkt" (only-in gtp-plot/plot *OVERHEAD-LABEL?* *OVERHEAD-SHOW-RATIO*)]
+@require["techreport.rkt" (only-in gtp-plot/plot *OVERHEAD-LABEL?* *OVERHEAD-SHOW-RATIO* *OVERHEAD-FREEZE-BODY*) (only-in with-cache *use-cache?*)]
 @appendix-title{Performance vs. Number of Typed Modules}
 
 @(define data* (map list TR-DATA* TAG-DATA*))
@@ -41,6 +41,8 @@ The worst performance is in the middle, but improves significantly as the
 @(parameterize ([OVERHEADS-WIDTH 650]
                 [OVERHEADS-HEIGHT 700]
                 [*OVERHEAD-LABEL?* #true]
+                [*use-cache?* #false]
+                [*OVERHEAD-FREEZE-BODY* #true]
                 [*OVERHEAD-SHOW-RATIO* #true]
                 [FONT-SIZE 12]
                 [NUM-COLUMNS 1])

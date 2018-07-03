@@ -298,8 +298,7 @@
     (make-plot* data->plot x*)))
 
 (define (exact-plot* x*)
-  (parameterize ([*OVERHEAD-FREEZE-BODY* #false]
-                 [*POINT-COLOR* START-COLOR])
+  (parameterize ([*POINT-COLOR* START-COLOR])
     (make-plot* data->exact-plot x* "exact")))
 
 (define (ratios-only data**)
