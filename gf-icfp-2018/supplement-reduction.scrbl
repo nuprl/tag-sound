@@ -43,7 +43,7 @@ Full reduction sequences follow.
 Additionally:
 @figure-ref{fig:relprime-typing} demonstrates that @${\erelprime} is a well-typed
  surface term,
-@figure-ref{fig:relprime-completion} derives the completion of @${\erelprime}, and
+@figure-ref{fig:relprime-completion} derives a completion of @${\erelprime}, and
 @figure-ref{fig:relprime-tagging} gives the typing derivation of the completion.
 
 The completion of @${\erelprime} is the following expression:

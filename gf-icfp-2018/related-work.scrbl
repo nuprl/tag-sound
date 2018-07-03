@@ -109,14 +109,12 @@ The main judgment has the form @${\Gamma \vdash e \carrow e' : \tau}
 @;A true model of transient may insert run-time checks for different reasons than
 @; the twin-language model above.
 
-@citet[h-scp-1994] uses the name @emph{completion process} to describe a type-directed
- coercion insertion@~cite[b-types-1995 shb-icfp-2009].
-@;  adds explicit type constructor checks to an untyped
-@;  expression with a @emph{completion process} for the 
-@;  to decribe an untyped
-@;  expression annotated with explicit type constructor checks.
-@; Our completion judgment is 
-@; Our completion judgment is more precisely a type-directed coercion insertion
+@; TODO double-check "completion" against Matthias suggestions
+
+@citet[h-scp-1994] uses the name @emph{completion process} to describe a
+ procedure that adds type-constructor checks to the syntax of an untyped expression.
+Both Henglein's completion process and our completion function are examples of
+ type-directed coercion insertions@~cite[b-types-1995 shb-icfp-2009].
 
 @; The name ``locally-defensive'' is an attempt to separate specification from
 @;  implementation, and to tease apart three design choices

@@ -217,7 +217,7 @@ On the other hand, the performance of a full implementation could improve over
 First, @|TR_LD| does not take advantage of the @|TR_N| optimizer
  to remove checks for tag errors.
 Integrating the safe parts of the optimizer may offset some cost of the constructor checks.
-Second, the completion judgment for the prototype
+Second, the completion function for the prototype
  may introduce redundant checks.
 For example, consecutive reads from a list suffer the same check
  on the extracted element.

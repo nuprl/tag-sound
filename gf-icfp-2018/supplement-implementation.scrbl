@@ -42,7 +42,9 @@ The @|TR_LD| prototype replaces the Typed Racket optimizer with a completion
 The function implements a fold over the syntax of a type-annotated program,
  and performs two kinds of rewrites.
 
-First, the completion rewrites @emph{most} applications @racket[(f x)] to @racket[(check K (f x))], where @racket[K] is the static type of the application.
+First, the completion function rewrites @emph{most} applications @racket[(f x)]
+ to @racket[(check K (f x))], where @racket[K] is the static type of the
+ application.
 If @racket[f] is an identifier, however, there are two exceptional cases:
 @itemlist[
 @item{
@@ -58,10 +60,10 @@ If @racket[f] is an identifier, however, there are two exceptional cases:
    are unsafe like any other accessor, e.g., @racket[car]),
 }
 ]
-@exact{\noindent}For these exceptional cases, the completion does not insert
- a type-constructor check.
+@exact{\noindent}For these exceptional cases, the completion function
+ does not insert a type-constructor check.
 
-Second, the completion defends typed functions from dynamically-typed arguments
+Second, the completion function defends typed functions from dynamically-typed arguments
  by translating a function like @racket[(λ (x) e)] to @racket[(λ (x) (check x) e)].
 The structure of the check is based on the domain type of the function.
 
