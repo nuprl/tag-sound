@@ -189,7 +189,7 @@ Correct blame is an important consolation prize because a
  migratory typing system cannot guarantee the absence of certain
  run-time errors the way a statically-typed language can.
 Correct blame helps with debugging such errors by attributing the
- fault to one specific type boundary.
+ fault to one specific type boundary@~cite[dfff-popl-2011].
 
 @; Given a boundary, either the type annotation or the untyped value is the source of the error.@note{For the
 @;  higher-order embedding, one could formulate a blame property by:
@@ -198,16 +198,19 @@ Correct blame helps with debugging such errors by attributing the
 @;  The proof, we conjecture, would follow from a complete monitoring
 @;  lemma@~cite[dtf-esop-2012].}
 
-Typed Racket informally guarantees blame correctness@~cite[dfff-popl-2011 tfffgksst-snapl-2017].
+Typed Racket informally guarantees blame correctness@~cite[tfffgksst-snapl-2017].
 @citet[mt-oopsla-2017] formally prove an @emph{immediate accountability} property
  that implies blame correctness, albeit for a language that limits the expressiveness
  of untyped code.
 
-The original soundness criteria for Typed Racket includes a loosely related property;
- namely, a run-time type error cannot blame a typed module@~cite[tf-dls-2006].
+The first publication on Typed Racket (which pre-dates the first formal statements
+ of @emph{correct blame}@~cite[dfff-popl-2011] and @emph{complete monitoring}@~cite[dtf-esop-2012])
+ states that the evaluation of a typed expression cannot end in a tag error@~cite[tf-dls-2006].
+@; "stuck" ~ TagError ... not sure if helpful to say TagErr (vs. BndryErr) here
 @citet[wf-esop-2009] adapt this property to a type system with a dynamic type
- by stating that certain type-casts in their evaluation language cannot fail.
-Many other works prove similar blame theorems@~cite[svctg-esop-2015 svcb-snapl-2015 afsw-popl-2011 isi-icfp-2017  vss-popl-2017].
+ and name it ``the blame theorem.''
+Unlike correct blame, this less-precise property has been adapted to many
+ other systems@~cite[svctg-esop-2015 svcb-snapl-2015 afsw-popl-2011 isi-icfp-2017 vss-popl-2017].
 
 
 @section{Comparing Gradual Typing Systems}
