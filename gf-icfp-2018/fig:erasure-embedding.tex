@@ -121,6 +121,10 @@
 
 \lblextra{$e \rrES e$}{}{
   $\begin{array}{l@{\hspace{0.5em}}c@{\hspace{0.5em}}l}
+    \edyn{\tau}{v} & \rrES & \efromdynE{\tau}{v}
+    \\
+    \esta{\tau}{v} & \rrES & \efromstaE{\tau}{v}
+    \\
     \eapp{v_0}{v_1} & \rrES
     & \tagerror
     \\ \sidecond{if $v_0 \in \integers$ or $v_0 = \vpair{v}{v'}$}
@@ -149,6 +153,10 @@
 
 \lblextra{$e \rrED e$}{}{
   $\begin{array}{l@{\hspace{0.5em}}c@{\hspace{0.5em}}l}
+    \esta{\tau}{v} & \rrED & \efromstaE{\tau}{v}
+    \\
+    \edyn{\tau}{v} & \rrED & \efromdynE{\tau}{v}
+    \\
     \eapp{v_0}{v_1} & \rrED
     & \tagerror
     \\ \sidecond{if $v_0 \in \integers$ or $v_0 = \vpair{v}{v'}$}
@@ -180,10 +188,6 @@
     \esd[e] & \ccES & \ctxE{e'}
     \\ \sidecond{if $e \rrES e'$}
     \\
-    \esd[\esta{\tau}{v}] & \ccES & \esd[\efromstaE{\tau}{v}]
-    \\
-    \esd[\edyn{\tau}{v}] & \ccES & \esd[\efromdynE{\tau}{v}]
-    \\
     \esd[\eerr] & \ccES & \eerr
   \end{array}$
 }
@@ -192,10 +196,6 @@
   $\begin{array}{l@{\hspace{0.5em}}c@{\hspace{0.5em}}l}
     \esd[e] & \ccED & \ctxE{e'}
     \\ \sidecond{if $e \rrED e'$}
-    \\
-    \esd[\esta{\tau}{v}] & \ccED & \esd[\efromstaE{\tau}{v}]
-    \\
-    \esd[\edyn{\tau}{v}] & \ccED & \esd[\efromdynE{\tau}{v}]
     \\
     \esd[\eerr] & \ccED & \eerr
   \end{array}$

@@ -28,6 +28,8 @@
     $\begin{array}{l@{\hspace{0.5em}}c@{\hspace{0.5em}}l}
       \edyn{\tau}{v} & \rrES & \efromdynE{\tau}{v}
       \\
+      \esta{\tau}{v} & \rrES & \efromstaE{\tau}{v}
+      \\
       \eapp{(\vlam{x}{e})}{v} & \rrES
       & \vsubst{e}{x}{v}
       \\
@@ -50,6 +52,8 @@
   \lblextra{$e \rrED e$}{ extends $\rrD$}{
     $\begin{array}{l@{\hspace{0.5em}}c@{\hspace{0.5em}}l}
       \esta{\tau}{v} & \rrED & \efromstaE{\tau}{v}
+      \\
+      \edyn{\tau}{v} & \rrED & \efromdynE{\tau}{v}
       \\
       \eapp{(\vlam{\tann{x}{\tau_d}}{e})}{v} & \rrED
       & \vsubst{e}{x}{v}

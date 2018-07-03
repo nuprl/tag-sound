@@ -214,22 +214,26 @@
 
 \lbl{$e \rrNS e$}{
   $\begin{array}{l@{\hspace{0.5em}}c@{\hspace{0.5em}}l}
-  \eapp{(\vmonfun{(\tarr{\tau_d}{\tau_c})}{v_f})}{v} & \rrNS
-  & \edyn{\tau_c}{(\eapp{v_f}{(\esta{\tau_d}{v})})}
-  \\
-  \eapp{(\vlam{\tann{x}{\tau}}{e})}{v} & \rrNS
-  & \vsubst{e}{x}{v}
-  \\
-  \eunop{v} & \rrNS
-  & \delta(\vunop, v)
-  \\
-  \ebinop{v_0}{v_1} & \rrNS
-  & \delta(\vbinop, v_0, v_1)
-\end{array}$
+    \edyn{\tau}{v} & \rrNS & \efromdynN{\tau}{v}
+    \\
+    \eapp{(\vmonfun{(\tarr{\tau_d}{\tau_c})}{v_f})}{v} & \rrNS
+    & \edyn{\tau_c}{(\eapp{v_f}{(\esta{\tau_d}{v})})}
+    \\
+    \eapp{(\vlam{\tann{x}{\tau}}{e})}{v} & \rrNS
+    & \vsubst{e}{x}{v}
+    \\
+    \eunop{v} & \rrNS
+    & \delta(\vunop, v)
+    \\
+    \ebinop{v_0}{v_1} & \rrNS
+    & \delta(\vbinop, v_0, v_1)
+  \end{array}$
 }
 
 \lbl{$e \rrND e$}{
   $\begin{array}{l@{\hspace{0.5em}}c@{\hspace{0.5em}}l}
+    \esta{\tau}{v} & \rrND & \efromstaN{\tau}{v}
+    \\
     \eapp{v_0}{v_1} & \rrND & \tagerror
     \\ \sidecond{if $v_0 \in \integers$ or $v_0 = \vpair{v}{v'}$}
     \\
@@ -259,10 +263,6 @@
     \ebase[e] & \ccNS & \ebase[e']
     \\ \sidecond{if $e \rrNS e'$}
     \\
-    \esd[\esta{\tau}{v}] & \ccNS & \esd[\efromstaN{\tau}{v}]
-    \\
-    \esd[\edyn{\tau}{v}] & \ccNS & \esd[\efromdynN{\tau}{v}]
-    \\
     \esd[\esta{\tau}{\ebase[e]}] & \ccNS & \esd[\esta{\tau}{\ebase[e']}]
     \\ \sidecond{if $e \rrNS e'$}
     \\
@@ -277,10 +277,6 @@
   $\begin{array}{l@{\hspace{0.5em}}c@{\hspace{0.5em}}l}
       \ebase[e] & \ccND & \ebase[e']
       \\ \sidecond{if $e \rrND e'$}
-      \\
-      \esd[\esta{\tau}{v}] & \ccND & \esd[\efromstaN{\tau}{v}]
-      \\
-      \esd[\edyn{\tau}{v}] & \ccND & \esd[\efromdynN{\tau}{v}]
       \\
       \esd[\esta{\tau}{\ebase[e]}] & \ccND & \esd[\esta{\tau}{\ebase[e']}]
       \\ \sidecond{if $e \rrNS e'$}

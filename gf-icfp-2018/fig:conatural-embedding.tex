@@ -227,6 +227,8 @@
 
 \lbl{$e \rrCS e$}{
     $\begin{array}{l@{\hspace{0.5em}}c@{\hspace{0.5em}}l}
+      \edyn{\tau}{v} & \rrCS & \efromdynC{\tau}{v}
+      \\
       \eapp{(\vmonfun{(\tarr{\tau_d}{\tau_c})}{v_f})}{v} & \rrCS
       & \edyn{\tau_c}{(\eapp{v_f}{e'})}
       \\ \sidecond{where $e' = \esta{\tau_d}{v}$}
@@ -250,6 +252,8 @@
 
 \lbl{$e \rrCD e$}{
     $\begin{array}{l@{\hspace{0.5em}}c@{\hspace{0.5em}}l}
+      \esta{\tau}{v} & \rrCD & \efromstaC{\tau}{v}
+      \\
       \eapp{v_0}{v_1} & \rrCD & \tagerror
       \\ \sidecond{if $v_0 \in \integers$ or $v_0 = \vpair{v}{v'}$}
       \\
@@ -286,10 +290,6 @@
     \ebase[e] & \ccCS & \ebase[e']
     \\ \sidecond{if $e \rrCS e'$}
     \\
-    \esd[\esta{\tau}{v}] & \ccCS & \esd[\efromstaC{\tau}{v}]
-    \\
-    \esd[\edyn{\tau}{v}] & \ccCS & \esd[\efromdynC{\tau}{v}]
-    \\
     \esd[\esta{\tau}{\ebase[e]}] & \ccCS & \esd[\esta{\tau}{\ebase[e']}]
     \\ \sidecond{if $e \rrCS e'$}
     \\
@@ -304,10 +304,6 @@
   $\begin{array}{l@{\hspace{0.5em}}c@{\hspace{0.5em}}l}
     \ebase[e] & \ccCD & \ebase[e']
     \\ \sidecond{if $e \rrCD e'$}
-    \\
-    \esd[\esta{\tau}{v}] & \ccCD & \esd[\efromstaC{\tau}{v}]
-    \\
-    \esd[\edyn{\tau}{v}] & \ccCD & \esd[\efromdynC{\tau}{v}]
     \\
     \esd[\esta{\tau}{\ebase[e]}] & \ccCD & \esd[\esta{\tau}{\ebase[e']}]
     \\ \sidecond{if $e \rrCS e'$}

@@ -280,6 +280,8 @@
 
   \lbl{$e \rrFS e$}{
     $\begin{array}{l@{~~}c@{~}l}
+      \edyn{\tau}{v} & \rrFS & \efromdynF{\tau}{v}
+      \\
       \echk{\tau}{v} & \rrFS
       & \efromany{\tau}{v}
       \\
@@ -310,6 +312,8 @@
 
   \lbl{$e \rrFD e$}{
     $\begin{array}{l@{~~}c@{~}l}
+      \esta{\tau}{v} & \rrFD & \efromstaF{\tau}{v}
+      \\
       \eapp{v_0}{v_1} & \rrFD & \tagerror
       \\ \sidecond{if $v_0 \in \integers$ or $v_0 = \vpair{v}{v'}$}
       \\
@@ -349,10 +353,6 @@
       \ebase[e] & \ccFS & \ebase[e']
       \\ \sidecond{if $e \rrFS e'$}
       \\
-      \esd[\esta{\tau}{v}] & \ccFS & \esd[\efromstaF{\tau}{v}]
-      \\
-      \esd[\edyn{\tau}{v}] & \ccFS & \esd[\efromdynF{\tau}{v}]
-      \\
       \esd[\esta{\tau}{\ebase[e]}] & \ccFS & \esd[\esta{\tau}{\ebase[e']}]
       \\ \sidecond{if $e \rrFS e'$}
       \\
@@ -367,10 +367,6 @@
     $\begin{array}{l@{\hspace{0.5em}}c@{\hspace{0.5em}}l}
       \ebase[e] & \ccFD & \ebase[e']
       \\ \sidecond{if $e \rrFD e'$}
-      \\
-      \esd[\esta{\tau}{v}] & \ccFD & \esd[\efromstaF{\tau}{v}]
-      \\
-      \esd[\edyn{\tau}{v}] & \ccFD & \esd[\efromdynF{\tau}{v}]
       \\
       \esd[\esta{\tau}{\ebase[e]}] & \ccFD & \esd[\esta{\tau}{\ebase[e']}]
       \\ \sidecond{if $e \rrFS e'$}
