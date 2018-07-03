@@ -62,7 +62,7 @@ This approach sacrifices expressiveness in favor of straightforward run-time che
 Dynamic typing in Dart 2 is based on the concrete approach.@note{@hyperlink["https://www.dartlang.org/guides/language/sound-dart"]{@tt{dartlang.org/guides/language/sound-dart}}, accessed 2018-05-10}
 
 
-@section{@|HOlong| Embedding}
+@section{@|HOlong|, @|EOlong|, and @|FOlong|}
 
 @citet[mf-toplas-2009] use the name @emph{natural embedding} to describe
  a type-directed strategy of converting between Scheme
@@ -74,28 +74,22 @@ Their name suggests that this inductive-checking, higher-order-wrapping techniqu
  is unsound if it allows untyped functions but is not equivalent to the @emph{natural} wrapping strategy.
 
 
-@section{@|EOlong| Embedding}
-
 @; NOT ERASURE, types affect behavior!
 @; MACLISP@~cite[m-maclisp-1974] and Common Lisp@~cite[s-lisp-1990]
 @;  accept optional type hints to guide compilation.
 
 The @|eolong| approach is better known as optional typing, and the idea
  dates back to Common Lisp@~cite[s-lisp-1990] and Strongtalk@~cite[bg-oopsla-1993].
-Many languages now have optional type checkers.
-@Figure-ref{fig:existing-systems} lists some examples.
+Many languages now have optional type checkers (@figure-ref{fig:existing-systems}).
 @; the pluggable type checkers for Java@~cite[ddems-icse-2011 pacpe-issta-2008]
 @; apply the same principles to a statically-typed host language.
 
 @; @note{Dart 1.x, @url{https://v1-dartlang-org.firebaseapp.com/}, accessed 2018-05-10.}
 
-
-@section[#:tag "sec:related-work:locally-defensive"]{@|FOlong| Embedding}
-
 The @|folong| embedding presented in @section-ref{sec:locally-defensive-embedding}
  is directly inspired by the transient semantics
  for Reticulated Python@~cite[vksb-dls-2014 vss-popl-2017].
-The transient approach begins with an uninterpreted surface language expression
+Transient begins with an uninterpreted surface language expression
  and elaborates it into a typed intermediate language with explicit type-constructor checks.
 The main judgment has the form @${\Gamma \vdash e \carrow e' : \tau}
  where both @${e'} and @${\tau} are outputs.
@@ -159,7 +153,7 @@ Recent work evaluates the performance of practical migratory typing systems.
 @citet[bbst-oopsla-2017] demonstrate that a tracing JIT compiler can significantly
  reduce the overhead in Typed Racket.
 In the related space of concrete types, @citet[mt-oopsla-2017] report excellent
- performance for a new gradually-typed language on their benchmarks.
+ performance for a new gradually-typed language.
 @citet[rat-oopsla-2017] suggest integrating run-time type checks with
  the shape tests of an optimizing virtual machine.
 

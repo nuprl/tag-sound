@@ -11,12 +11,12 @@ Equipped with this objective
 information, we can now explain the logical implications and the performance consequences of
 choosing one of these three approaches. 
 
-For the logical consequences, we proceed in a type-directed manner.
+For the logical implications, we proceed in a type-directed manner.
 At the level of base types, there is no difference between the @|holong|
- embedding and the @|folong| one, but the @|eolong|
+ and @|folong| embeddings, but the @|eolong|
  embedding may give a different result due to a violation of the types (@section-ref{sub:base}).
 After moving from base types to trees of base types, we can explain
- the truly essential difference between the @|holong| and @|folong| semantics:
+ the truly essential difference between @|holong| and @|folong|:
  while the @|holong| embedding allows
  developers to reason compositionally about type annotations, users of
  the @|folong| variant must always consider the whole program (@section-ref{sub:first-order}).
@@ -47,8 +47,8 @@ For a program that computes a value of base type, it can be tempting to think
  that dynamic typing (via @|eolong|) provides all the soundness that matters in practice.
 After all, Ruby and Python throw a @tt{TypeError} if a program attempts to
  add an integer to a string.
-Similarly, the @|eolong| embedding throws a @${\tagerror} if an expression adds a
- number to a pair.
+@; Similarly, the @|eolong| embedding throws a @${\tagerror} if an expression adds a
+@;  number to a pair.
 
 This claim is only true, however, if the static typing system is restricted
  to exactly match the host language's notion of dynamic typing.
@@ -59,19 +59,11 @@ Adding a @emph{logical} distinction between natural numbers and integers,
 If the numbers represent votes, for example@~cite[tfffgksst-snapl-2017],
  then the lack of run-time checking can change the outcome of an election.
 
-
-@;@dbend[
-@;  @warning{
-@;    \wellM (\equotient{(\edyn{\tnat}{{-2}})}{(\edyn{\tnat}{{-2}})}) : \tnat \rrESstar (\equotient{{-2}}{{-2}}) \rrESstar 1
-@;  }
-@;]
-@;@exact{\noindent}
-
 Other host languages may allow more diverse kinds of silent failures.
 JavaScript, for example, supports adding a number to a string, array, or object.
-TypeScript programmers must keep this behavior in mind to protect their type-erased
- code against JavaScript.@note{The @tt{io.ts} library adds run-time validation to TypeScript:@linebreak[]
-  @exact{\indent}@hyperlink["https://lorefnon.tech/2018/03/25/typescript-and-validations-at-runtime-boundaries"]{@tt{lorefnon.tech/2018/03/25/typescript-and-validations-at-runtime-boundaries}}}
+TypeScript programmers must keep this behavior in mind, and may wish to use
+ a library,@note{@tt{io.is} is one such library: @hyperlink["https://lorefnon.tech/2018/03/25/typescript-and-validations-at-runtime-boundaries"]{@tt{lorefnon.tech/2018/03/25/typescript-and-validations-at-runtime-boundaries}}}
+ to protect their type-erased code against JavaScript.
 
 @; pydantic for python : https://pydantic-docs.helpmanual.io/
 @; also, PEP for variable annotations : https://www.python.org/dev/peps/pep-0526/
@@ -81,16 +73,12 @@ TypeScript programmers must keep this behavior in mind to protect their type-era
 
 @; https://codeburst.io/five-tips-i-wish-i-knew-when-i-started-with-typescript-c9e8609029db
 
-Both the @|holong| embedding and the @|folong| embedding are sound for
- base types, e.g.,
+Both the @|holong| and @|folong| embeddings are sound for base types, e.g.,
  if @${v} is a value of type @${\tnat}, then @${v} is a natural number.
-Informally, the two approaches perform the same check at a boundary of base type.
+Informally, both embeddings fully-check base types.
 
 
 @section[#:tag "sub:first-order"]{For First-Order, Non-Base Types}
-
-@figure["fig:silent-failure" @elem{Logical error using polar-form complex numbers}
-        @reynolds-pict]
 
 The practical difference between the @|holong| and @|folong| embeddings
  becomes clear in a mixed-typed program that deals with pairs.
@@ -136,6 +124,9 @@ For example, a typed context can safely extract a negative integer from a
  @${\tau_0} and type @${\tau_1} because type-constructor soundness is not compositional.
 
 @;Run-time checks in typed code provide a shallow form of defense, but limited by the context
+
+@figure["fig:silent-failure" @elem{Logical error using polar-form complex numbers}
+        @reynolds-pict]
 
 Reynolds classic paper on types and abstraction begins with a similar example 
  based on a distinction between real numbers and non-negative reals@~cite[r-ip-1983]:
@@ -265,7 +256,8 @@ In terms of the model,
 @figure["fig:list-error" @elem{Type-mismatch between a library function and client, adapted from @citet[vksb-dls-2014].}
         list-pict]
 
-When run-time errors happen, error messages matter.
+@; When run-time errors happen,
+Error messages matter.
 As @citet[vksb-dls-2014] claim, improved error messages are ``one of
  the primary benefits'' of adding types to a dynamically-typed language.
 To illustrate, they describe a situation
@@ -280,9 +272,9 @@ To illustrate, they describe a situation
 
 @noindent[]This claim assumes, of course, that the gradual typing system enforces types.
 
-@Figure-ref{fig:list-error} turns @citet[vksb-dls-2014] scenario into a concrete
+@Figure-ref{fig:list-error} turns their illustration into a concrete
  example.
-The @tt{stats} module computes the @racket[m]-th @tt{moment} of a series of floats;
+The @tt{stats} module computes the @racket[m]-th @tt{moment} of a list of floats;
  it defers most of the computation to the language's list package, meaning
  a call to @tt{moment} may cause another boundary-crossing.
 The @tt{client} module calls @tt{moment} with an inappropriate list.
@@ -310,7 +302,7 @@ If the primitives are un-checked, however, then the call may compute a nonsensic
   }|
 ]
 
-The @|folong| embedding confirms that @tt{lst} is a list, and then proceeds
+The @|folong| embedding confirms that @tt{lst} is a list and then proceeds
  with the call.
 Since the body of @tt{moment} never directly extracts a float from the list,
  it is impossible to predict what happens during the call.
@@ -321,7 +313,7 @@ For example, @tt{mean} can raise a boundary error, raise a tag error, or
   @warning|{
     \wellM \texttt{(moment lst 2)} \rrKDstar
       \left\{\begin{array}{l l}
-         \boundaryerror & \mbox{if \texttt{mean}, \texttt{-}, or \texttt{map} are typed}
+         \boundaryerror & \mbox{if \texttt{mean}, \texttt{-}, or \texttt{map} use the @tt{Float} type}
       \\ \tagerror & \mbox{if \texttt{mean} or \texttt{-} check for strings}
       \\ -42       & \mbox{if the primitives are unchecked}
       \end{array}\right.
@@ -342,9 +334,9 @@ With the relevant boundary term, the developer knows exactly where to
  begin debugging: either the type annotation is wrong or the dynamically-typed
  code does not match the type.
 
-The general comparison can be approximated with the following theorem, which
- states that @|holong| discovers more errors than @|folong| and @|folong|
- discovers more errors than @|eolong|:
+Generally speaking,
+ @|holong| discovers more errors than @|folong| and
+ @|folong| discovers more errors than @|eolong|:
 @; (assuming a safe dynamically-typed language).
 
 @tr-theorem[#:key "error-simulation" @elem{}]{
@@ -358,6 +350,9 @@ The general comparison can be approximated with the following theorem, which
   }
   ]
 }@tr-proof[#:sketch? #true]{
+  By some argument perhaps bisimulation perhaps contextual approximation
+   either way or at any rate not going to spend more than two lines
+   here.
 }
 
 

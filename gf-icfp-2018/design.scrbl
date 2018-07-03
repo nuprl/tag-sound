@@ -400,7 +400,7 @@ The embedding is sound, however, for well-typed expressions that do not
  contain boundary terms.
 In other words, a disciplined programmer who avoids libraries without types may
  be justified in assuming that evaluation preserves static types and never
- results in a tag error.
+ results in a tag error:
 
 @tr-theorem[#:key "E-pure-static" @elem{boundary-free @${\langE}-soundness}]{
   If @${e \in \exprsta} and @${\wellM e : \tau} and @${e} does not contain a subexpression @${(\edyn{\tau'}{e'})}
