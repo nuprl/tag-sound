@@ -1,7 +1,7 @@
 #lang gf-icfp-2018
 @require{techreport.rkt}
 
-@appendix-title++{@|FOlong| Embedding}
+@appendix-title++{(@${\langK}) @|FOlong| Embedding}
 
 @; -----------------------------------------------------------------------------
 @section{@|FOlong| Definitions}

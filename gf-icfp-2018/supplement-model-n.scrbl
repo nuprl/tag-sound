@@ -1,7 +1,7 @@
 #lang gf-icfp-2018
 @require{techreport.rkt}
 
-@appendix-title++{@|HOlong| Embedding}
+@appendix-title++{(@${\langN}) @|HOlong| Embedding}
 
 @section{@|HOlong| Definitions}
 @exact{\input{fig:natural-embedding.tex}}

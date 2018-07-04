@@ -1,7 +1,7 @@
 #lang gf-icfp-2018
 @require{techreport.rkt}
 
-@appendix-title++{@|EOlong| Embedding}
+@appendix-title++{(@${\langE}) @|EOlong| Embedding}
 
 @section{@|EOlong| Definitions}
 @exact{\input{fig:erasure-embedding.tex}}

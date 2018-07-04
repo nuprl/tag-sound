@@ -1,13 +1,13 @@
 #lang gf-icfp-2018
 @require{techreport.rkt}
 
-@appendix-title++{Co-Natural Embedding}
+@appendix-title++{(@${\langC}) @|CHlong| Embedding}
 
-@section{@${\langC} Definitions}
+@section{@|CHlong| Definitions}
 @exact{\input{fig:conatural-embedding.tex}}
 
 @|clearpage|
-@section{@${\langC} Theorems}
+@section{@|CHlong| Theorems}
 
 @(begin
    (define C-S-soundness @tr-ref[#:key "C-S-soundness"]{static @${\langC}-soundness})
@@ -105,7 +105,7 @@
 
 
 @|clearpage|
-@section{@${\langC} Lemmas}
+@section{@|CHlong| Lemmas}
 
 @tr-lemma[#:key "C-fromdyn-soundness" @elem{@${\vfromdynC} soundness}]{
   If @${\wellCE v} then @${\wellCE \efromdynC{\tau}{v} : \tau}

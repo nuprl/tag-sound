@@ -1,13 +1,13 @@
 #lang gf-icfp-2018
 @require{techreport.rkt}
 
-@appendix-title++{Forgetful Embedding}
+@appendix-title++{(@${\langF}) Forgetful Embedding}
 
-@section{@${\langF} Definitions}
+@section{@|FHlong| Definitions}
 @exact{\input{fig:forgetful-embedding.tex}}
 
 @|clearpage|
-@section{@${\langF} Theorems}
+@section{@|FHlong| Theorems}
 
 @(begin
    (define F-S-soundness @tr-ref[#:key "F-S-soundness"]{static @${\langF}-soundness})
@@ -122,7 +122,7 @@
 
 
 @|clearpage|
-@section{@${\langF} Lemmas}
+@section{@|FHlong| Lemmas}
 
 @tr-lemma[#:key "F-check" @elem{@${\mchk{\cdot}{\cdot}} soundness}]{
   If @${\Gamma \wellFE v \mbox{ or } \Gamma \wellFE v : \tau}

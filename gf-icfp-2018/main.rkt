@@ -137,6 +137,8 @@
   HOlong
   EOlong
   FOlong
+  CHlong
+  FHlong
   holong
   eolong
   folong
@@ -469,6 +471,8 @@
 (define HOlong @exact{\HOlong})
 (define EOlong @exact{\EOlong})
 (define FOlong @exact{\FOlong})
+(define CHlong @exact{\CHlong})
+(define FHlong @exact{\FHlong})
 
 (define holong @exact{\holong})
 (define eolong @exact{\eolong})
