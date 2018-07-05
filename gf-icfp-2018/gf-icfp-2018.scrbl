@@ -11,7 +11,7 @@
      @;#:city "Boston"
      @;#:state "Massachusetts"
      @;#:postcode "02115"
-     @;#:country "USA"
+     #:country "USA"
    ])
 
 @author["Ben Greenman"
