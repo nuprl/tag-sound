@@ -2229,7 +2229,7 @@
   (make-bib
     #:author (authors "Ben Greenman" "Matthias Felleisen")
     #:title "A Spectrum of Type Soundness and Performance Supplementary Material"
-    #:location (techrpt-location #:institution "Northeastern University" #:number "NU-CCIS-2018-001")
+    #:location (techrpt-location #:institution "Northeastern University" #:number "NU-CCIS-2018-002")
     #:date 2018))
 
 (define agd-ecoop-2005
