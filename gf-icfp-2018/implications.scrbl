@@ -355,8 +355,11 @@ Generally speaking,
   The supplement defines these equivalences as simulation relations@~cite[gf-tr-2018].
 }
 
-@; The reverse implications do not hold --- obvious from the previous section
-@;  and off-topic for here.
+The reverse implications do not hold.
+As @section-ref{sub:base} explains, the expression @${(\edyn{\tnat}{{-2}})}
+ steps to a boundary error via @${\rrKSstar} but not via the @${\rrESstar} relation.
+@Section-ref{sub:first-order} presents an example where @${\rrNSstar} steps
+ a boundary error and @${\rrKSstar} produces a value.
 
 
 @section[#:tag "sub:perf-mixed"]{For the Performance of Mixed-Typed Programs}
