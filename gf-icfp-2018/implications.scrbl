@@ -247,7 +247,7 @@ In terms of the model,
   }
 ]
 
-@exact{\noindent}Thus for all practical purposes, the benefits of writing a typed API in a
+@exact{\noindent}Thus the practical benefits of writing a typed API in a
  @|folong| system are vanishingly small.
 
 
