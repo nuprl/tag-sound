@@ -177,9 +177,17 @@ Unlike the @|folong| embedding, the run-time checks in the forgetful
   }
 ]
 
-@include-figure*["fig:conatural-reduction.tex" "Co-Natural Embedding"]
-@include-figure*["fig:conatural-preservation.tex" "Property judgments for the co-natural embedding"]
 @include-figure*["fig:forgetful-reduction.tex" "Forgetful Embedding"]
 @include-figure*["fig:forgetful-preservation.tex" "Property judgments for the forgetful embedding"]
+
+@include-figure*["fig:conatural-reduction.tex" "Co-Natural Embedding"]
+@include-figure*["fig:conatural-preservation.tex" "Property judgments for the co-natural embedding"]
+
+@acks{
+  The research reported here is supported in part by @hyperlink["https://www.nsf.gov/awardsearch/showAward?AWD_ID=1518844"]{NSF grant CCF-1518844}.
+  We acknowledge Erik Ernst, Ron Garcia, Benjamin S. Lerner, Fabian Muehlboeck, Max S. New, Eric Tanter, and Ross Tate for insightful conversations,
+   and thank Artem Pelenitsyn, Jan Vitek, and the anonymous ICFP reviewers for feedback on early drafts.
+}
+
 
 @exact{\clearpage}

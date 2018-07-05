@@ -86,9 +86,3 @@ Alternatively, combining the @|folong| approach with the Pycket@~cite[bauman-et-
  may yield an implementation with good performance in all configurations.
 A third strategy is to combine multiple semantics.
 
-@acks{
-  The research reported here is supported in part by @hyperlink["https://www.nsf.gov/awardsearch/showAward?AWD_ID=1518844"]{NSF grant CCF-1518844}.
-  We acknowledge Erik Ernst, Ron Garcia, Benjamin S. Lerner, Fabian Muehlboeck, Max S. New, Eric Tanter, and Ross Tate for insightful conversations,
-   and thank Artem Pelenitsyn, Jan Vitek, and the anonymous ICFP reviewers for feedback on early drafts.
-}
-
