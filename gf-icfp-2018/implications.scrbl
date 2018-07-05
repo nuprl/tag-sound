@@ -339,8 +339,8 @@ Generally speaking,
  @|folong| discovers more errors than @|eolong|:
 @; (assuming a safe dynamically-typed language).
 
-@tr-theorem[#:key "error-simulation" @elem{}]{
-  If @${e \in \exprsta} the following statements hold:
+@tr-theorem[#:key "error-simulation" @elem{@${\eerr} approximation}]{
+  If @${e \in \exprsta} and @${\wellM e : \tau} then the following statements hold:
   @itemlist[
   @item{
     if @${e \rrESstar \eerr} then @${e \rrKSstar \eerr}
@@ -350,10 +350,13 @@ Generally speaking,
   }
   ]
 }@tr-proof[#:sketch? #true]{
-  By some argument perhaps bisimulation perhaps contextual approximation
-   either way or at any rate not going to spend more than two lines
-   here.
+  Informally, each pair of reduction relations is ``equivalent'' up to their strategies
+   for enforcing static types.
+  The supplement defines these equivalences as simulation relations@~cite[gf-tr-2018].
 }
+
+@; The reverse implications do not hold --- obvious from the previous section
+@;  and off-topic for here.
 
 
 @section[#:tag "sub:perf-mixed"]{For the Performance of Mixed-Typed Programs}
