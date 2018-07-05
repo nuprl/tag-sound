@@ -51,11 +51,15 @@
    (define NK-approximation @tr-ref[#:key "NK-approximation"]{@${\langN}--@${\langK} approximation})
    (define NK-simulation @tr-ref[#:key "NK-simulation"]{@${\langN}--@${\langK} simulation})
    (define NK-refl @tr-ref[#:key "NK-refl"]{@${\langN}--@${\langK} reflexivity})
+   (define NK-stutter @tr-ref[#:key "NK-stutter"]{@${\langN}--@${\langK} stutter})
+   (define NK-step @tr-ref[#:key "NK-step"]{@${\langN}--@${\langK} step})
+   (define NK-hole-subst @tr-ref[#:key "NK-hole-subst"]{@${\langN}--@${\langK} context congruence})
 )
 
 @exact{\input{fig:simulation.tex}}
 
 
+@|clearpage|
 @section{Theorems}
 
 @tr-theorem[#:key "error-simulation" @elem{@${\eerr} approximation}]{
@@ -107,7 +111,7 @@
   ]
 }
 
-@tr-lemma[#:key "KE-simulation" @elem{@${\langE}--@${\langK} simulation}]{
+@tr-lemma[#:key "KE-simulation" @elem{@${\langK}--@${\langE} simulation}]{
   If @${\exprk_0 \kerel \expre_0} and @${\expre_0 \ccES \expre_1}
   and @${\exprk_0 \not\in \eerr} then:
   @itemlist[
@@ -266,19 +270,140 @@
 }
 
 
-@; --- ITS NOT OVER YET SNAKE
+@; -----------------------------------------------------------------------------
 
-@tr-lemma[#:key "NK-refl" @elem{reflexivity}]{
-  If @${\wellM e : \tau} then @${e \kerel e}.
+@tr-lemma[#:key "NK-approximation" @elem{@${\langN}--@${\langK} approximation}]{
+  If @${e \in \exprsta} and @${\wellM e : \tau}
+  and @${\wellKE e \carrow e'' : \tagof{\tau}}
+  and @${e'' \rrKSstar \eerr}
+  then @${e \rrNSstar \eerr}
 }@tr-proof{
-  By structural induction on the derivation of @${\wellM e : \tau}.
+  @itemlist[
+    @item{@tr-step{
+      @${e \nkrel e''}
+      @|NK-refl|
+    }}
+    @item{@tr-qed{
+      by @|NK-simulation|
+    }}
+  ]
+}
 
-  TODO
+
+@tr-lemma[#:key "NK-refl" @elem{@${\langN}--@${\langK} reflexivity}]{
+  If @${\wellM e : \tau} and @${\wellKE e \carrow e'' : \tagof{\tau}} then @${e'' \nkrel e}.
+}@tr-proof{
+  @itemlist[
+    @item{@tr-step{
+      @elem{@${e} and @${e''} are identical up to @${\vchk} expressions}
+      definition of @${\carrow}
+    }}
+    @item{@tr-qed{
+      by definition of @${\nkrel}
+    }}
+  ]
 }
 
 @tr-lemma[#:key "NK-simulation" @elem{@${\langK}--@${\langN} simulation}]{
-  yolo
+  If @${\exprn_0 \nkrel \exprk_0} and @${\exprk_0 \ccKS \exprk_1}
+  and @${\exprn_0 \not\in \eerr} then either:
+  @itemlist[
+    @item{
+      @${\exprk_0 = \ctxe_0[\echk{K}{v}]
+         @tr-and[]
+         \exprk_1 = \ctxe_0[v]
+         @tr-and[]
+         \exprn_0 \nkrel \exprk_1}
+    }
+    @item{
+      @${\exprn_0 \ccNS \ldots \ccNS \exprn_{n}
+         @tr-and[]
+         \forall i \in \{1 .. {n-1}\}.\, \exprn_i \kerel \exprk_0
+         @tr-and[]
+         \exprn_n \nkrel \exprk_1}
+    }
+  ]
 }@tr-proof{
-nooo
+  @tr-case[@${\exprk_0 = \ctxk_0[\exprk_{0'}
+              @tr-and[]
+              \wellKE \exprk_{0'}}]{
+    @tr-step{
+      @${\exprn_0 = \ctxn_0[\exprn_{0'}]
+         @tr-and[]
+         \ctxn_0 \nkrel \ctxk_0
+         @tr-and[]
+         \exprn_{0'} \nkrel \exprk_{0'}}
+      by definition @${\nkrel}
+    }
+    @tr-step{
+      @${\wellNE \exprn_{0'}}
+      by definition @${\nkrel}
+    }
+    @tr-step{
+      @${\ctxn_0[\exprn_{0'}] \ccNS \ldots \ccNS \ctxn_0[\exprn_{{n-1}'}]
+         @tr-and[] \forall i \in \{1 .. {n-1}\}\,.\, \ctxn_0[\exprn_{i'}] \nkrel \ctxk_0[\exprk_{0'}]}
+      repeated uses of @|NK-stutter|
+    }
+    @tr-step{
+      @${\ctxn_0[\exprn_{{n-1}'}] \ccNS \ctxn_0[\exprn_{{n}'}]
+         @tr-and[]
+         \ctxn_0[\exprn_{{n}'}] \nkrel \exprk_1}
+      case analysis on @${\rrKD}
+    }
+    @tr-qed{
+    }
+  }
+  @tr-case[@${\exprk_0 = \ctxk_0[\exprk_{0'}
+              @tr-and[]
+              \wellKE \exprk_{0'} : K}]{
+    @tr-step{
+      @${\exprn_0 = \ctxn_0[\exprn_{0'}]
+         @tr-and[]
+         \ctxn_0 \nkrel \ctxk_0
+         @tr-and[]
+         \exprn_{0'} \nkrel \exprk_{0'}}
+      by definition @${\nkrel}
+    }
+    @tr-step{
+      @${\wellNE \exprn_{0'} : \tau
+         @tr-and[]
+         K = \tagof{\tau}}
+      by definition @${\nkrel}
+    }
+    @tr-if[@${\exprk_{0'} = \echk{K}{v}}]{
+      @tr-step{
+        @${\exprn_{0'} \nkrel v}
+        definition @${\nkrel}
+      }
+      @tr-step{
+        @${\echk{K}{v} \rrKS v}
+        (2)
+      }
+      @tr-qed{}
+    }
+    @tr-else[@${\exprk_{0'} \neq \echk{K}{v}}]{
+      @tr-qed{
+        by @|NK-stutter| and case analysis on @${\rrKS}
+      }
+    }
+  }
+}
+
+@tr-lemma[#:key "NK-stutter" @elem{@${\langN}--@${\langK} stutter}]{
+  If @${\ctxn[\exprn] \nkrel \ctxk[\exprk]}
+  and @${\exprn = \ctxn_0[\eerr]
+         @tr-or[4]
+         \exprn = \ctxn_0[\edyn{\tau}{v_0}]
+          \wedge
+          \ctxn_0 \neq \ehole
+         @tr-or[4]
+         \exprn = \ctxn_0[\esta{\tau}{v_0}]
+          \wedge
+          \ctxn_0 \neq \ehole}
+  @linebreak[]
+  then @${\ctxn[\exprn] \ccNS \ctxn[\exprn_1]}
+  and @${\ctxn[\exprn_1] \nkrel \ctxk[\exprk]}.
+}@tr-proof[#:sketch? #true]{
+  by definition of @${\nkrel}
 }
 

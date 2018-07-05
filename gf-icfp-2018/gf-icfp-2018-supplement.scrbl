@@ -1,8 +1,36 @@
-#lang gf-icfp-2018 @sigplan @10pt @anonymous @review
+#lang gf-icfp-2018 @sigplan @10pt @review
 @require[scriblib/autobib]
 
 @title{A Spectrum of Soundness and Performance}
 @subtitle{Supplementary Material}
+
+@(define NEU
+   @affiliation[
+     #:institution "PLT @ Northeastern University"
+     @;#:city "Boston"
+     @;#:state "Massachusetts"
+     @;#:postcode "02115"
+     @;#:country "USA"
+   ])
+
+@author["Ben Greenman"
+        #:email "benjaminlgreenman@gmail.com"
+        #:orcid "0000-0001-7078-9287"
+        #:affiliation NEU]
+
+@author["Matthias Felleisen"
+        @;#:email "matthias@ccs.neu.edu"
+        #:affiliation NEU]
+
+@acmPrice{}
+@acmDOI{}
+@acmYear{2018}
+@acmConference["NU-CCIS-2018-002" "2018" "Northeastern University"]
+@;@acmJournal{PACMPL}
+@;@acmVolume{2}
+@;@acmNumber{ICFP}
+@;@acmArticle{5}
+@;@acmMonth{9}
 
 @table-of-contents[]
 
@@ -19,4 +47,5 @@
 @include-section{supplement-implementation.scrbl}
 @include-section{supplement-existing.scrbl}
 @include-section{supplement-model.scrbl}
+
 @;@include-section{supplement-reduction.scrbl}

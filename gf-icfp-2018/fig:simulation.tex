@@ -20,11 +20,6 @@
   \lblmathpar{$e \kerel e$}{
     \inferrule*{
     }{
-      \eerr \kerel \eerr
-    }
-
-    \inferrule*{
-    }{
       \eerr \kerel \expre
     }
 
@@ -110,6 +105,11 @@
       \esta{\tau}{\exprk_0} \kerel \esta{\tau}{\expre_0}
     }
 
+    \inferrule*{
+    }{
+      \eerr \kerel \eerr
+    }
+
   }
 
   \lblmathpar{$\esd \kerel \esd$}{
@@ -140,11 +140,11 @@
     }
 
     \inferrule*{
-      v_0 \kerel v_1
+      \valk \kerel \vale
       \\
       \ctxk \kerel \ctxe
     }{
-      \eapp{v_0}{\ctxk} \kerel \eapp{v_1}{\ctxe}
+      \eapp{\valk}{\ctxk} \kerel \eapp{\vale}{\ctxe}
     }
 
     \inferrule*{
@@ -156,11 +156,11 @@
     }
 
     \inferrule*{
-      v_0 \kerel v_1
+      \valk \kerel \vale
       \\
       \ctxk \kerel \ctxe
     }{
-      \vpair{v_0}{\ctxk} \kerel \vpair{v_1}{\ctxe}
+      \vpair{\valk}{\ctxk} \kerel \vpair{\vale}{\ctxe}
     }
 
     \inferrule*{
@@ -178,11 +178,11 @@
     }
 
     \inferrule*{
-      v_0 \kerel v_1
+      \valk \kerel \vale
       \\
       \ctxk \kerel \ctxe
     }{
-      \ebinop{v_0}{\ctxk} \kerel \ebinop{v_1}{\ctxe}
+      \ebinop{\valk}{\ctxk} \kerel \ebinop{\vale}{\ctxe}
     }
 
     \inferrule*{
@@ -197,5 +197,204 @@
       \esta{\tau}{\ctxk} \kerel \esta{\tau}{\ctxe}
     }
   }
+
+  \lblmathpar{$e \nkrel e$}{
+    \inferrule*{
+      \exprn \nkrel \exprk
+    }{
+      \exprn \nkrel \echk{K}{\exprk}
+    }
+
+    \inferrule*{
+    }{
+      \eerr \nkrel \exprk
+    }
+
+    \inferrule*{
+      \exprn \nkrel \exprk
+    }{
+      \edyn{\tau}{\exprn} \nkrel \exprk
+    }
+
+    \inferrule*{
+      \exprn \nkrel \exprk
+    }{
+      \esta{\tau}{\exprn} \nkrel \exprk
+    }
+
+    \inferrule*{
+      \exprn \nkrel \exprk
+    }{
+      \edyn{\tau}{\exprn} \nkrel \edyn{\tau}{\exprk}
+    }
+
+    \inferrule*{
+      \exprn \nkrel \exprk
+    }{
+      \edyn{\tau}{\exprn} \nkrel \edynfake{\exprk}
+    }
+
+    \inferrule*{
+      \exprn \nkrel \exprk
+    }{
+      \esta{\tau}{\exprn} \nkrel \esta{\tau}{\exprk}
+    }
+
+    \inferrule*{
+      \exprn \nkrel \exprk
+    }{
+      \esta{\tau}{\exprn} \nkrel \estafake{\exprk}
+    }
+
+    \inferrule*{
+      \exprn_0 \nkrel \exprk_0
+      \\
+      \exprn_1 \nkrel \exprk_1
+    }{
+      \eapp{\exprn_0}{\exprn_1} \nkrel \eapp{\exprk_0}{\exprk_1}
+    }
+
+    \inferrule*{
+      \exprn_0 \nkrel \exprk_0
+      \\
+      \exprn_1 \nkrel \exprk_1
+    }{
+      \vpair{\exprn_0}{\exprn_1} \nkrel \vpair{\exprk_0}{\exprk_1}
+    }
+
+    \inferrule*{
+      \exprn \nkrel \exprk
+    }{
+      \eunop{\exprn} \nkrel \eunop{\exprk}
+    }
+
+    \inferrule*{
+      \exprn_0 \nkrel \exprk_0
+      \\
+      \exprn_1 \nkrel \exprk_1
+    }{
+      \ebinop{\exprn_0}{\exprn_1} \nkrel \ebinop{\exprk_0}{\exprk_1}
+    }
+
+    \inferrule*{
+    }{
+      x \nkrel x
+    }
+
+    \inferrule*{
+    }{
+      i \nkrel i
+    }
+
+    \inferrule*{
+      \exprn \nkrel \exprk
+    }{
+      \vlam{x}{\exprn} \nkrel \vlam{x}{\exprk}
+    }
+
+    \inferrule*{
+      \exprn \nkrel \exprk
+    }{
+      \vlam{\tann{x}{\tau}}{\exprn} \nkrel \vlam{\tann{x}{\tau}}{\exprk}
+    }
+
+    \inferrule*{
+      \valn \nkrel \valk
+    }{
+      \vmonfun{\tau}{\valn} \nkrel \valk
+    }
+
+    \inferrule*{
+    }{
+      \eerr \nkrel \eerr
+    }
+  }
+
+  \lblmathpar{$\esd \nkrel \esd$}{
+    \inferrule*{
+      \ctxn \nkrel \ctxk
+    }{
+      \ctxn \nkrel \echk{K}{\ctxk}
+    }
+
+    \inferrule*{
+      \ctxn \nkrel \ctxk
+      \\
+      \exprn \nkrel \exprk
+    }{
+      \eapp{\ctxn}{\exprn} \nkrel \eapp{\ctxk}{\exprk}
+    }
+
+    \inferrule*{
+      \valn \nkrel \valk
+      \\
+      \ctxn \nkrel \ctxk
+    }{
+      \eapp{\valn}{\ctxn} \nkrel \eapp{\valk}{\ctxk}
+    }
+
+    \inferrule*{
+      \ctxn \nkrel \ctxk
+      \\
+      \exprn \nkrel \exprk
+    }{
+      \vpair{\ctxn}{\exprn} \nkrel \vpair{\ctxk}{\exprk}
+    }
+
+    \inferrule*{
+      \valn \nkrel \valk
+      \\
+      \ctxn \nkrel \ctxk
+    }{
+      \vpair{\valn}{\ctxn} \nkrel \vpair{\valk}{\ctxk}
+    }
+
+    \inferrule*{
+      \ctxn \nkrel \ctxk
+    }{
+      \eunop{\ctxn} \nkrel \eunop{\ctxk}
+    }
+
+    \inferrule*{
+      \ctxn \nkrel \ctxk
+      \\
+      \exprn \nkrel \exprk
+    }{
+      \ebinop{\ctxn}{\exprn} \nkrel \ebinop{\ctxk}{\exprk}
+    }
+
+    \inferrule*{
+      \valn \nkrel \valk
+      \\
+      \ctxn \nkrel \ctxk
+    }{
+      \ebinop{\valn}{\ctxn} \nkrel \ebinop{\valk}{\ctxk}
+    }
+
+    \inferrule*{
+      \ctxn \nkrel \ctxk
+    }{
+      \edyn{\tau}{\ctxn} \nkrel \edyn{\tau}{\ctxk}
+    }
+
+    \inferrule*{
+      \ctxn \nkrel \ctxk
+    }{
+      \edyn{\tau}{\ctxn} \nkrel \edynfake{\ctxk}
+    }
+
+    \inferrule*{
+      \ctxn \nkrel \ctxk
+    }{
+      \esta{\tau}{\ctxn} \nkrel \esta{\tau}{\ctxk}
+    }
+
+    \inferrule*{
+      \ctxn \nkrel \ctxk
+    }{
+      \esta{\tau}{\ctxn} \nkrel \estafake{\ctxk}
+    }
+  }
+
 
 \end{flushleft}
