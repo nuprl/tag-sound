@@ -75,9 +75,9 @@ Equipped with
  this comparison platform, we intend to explore additional ways of making
  some form of sound migratory typing sufficiently practical for software development.
 
-One strategy is to improve the completion function of the @|folong| model and
- evaluation property than the one extracted from the literature;
- the one in @section-ref{sec:locally-defensive-embedding} is correct, but simplistic.
+One strategy is to improve the completion function and
+ evaluation property of @|folong| model;
+ the pair in @section-ref{sec:locally-defensive-embedding} is correct, but simplistic.
 Occurrence typing@~cite[tf-icfp-2010] seems well-suited for this task.
 A second strategy is to design a JIT compiler that can dynamically minimize
  the cost of run-time constructor checks; the HiggsCheck compiler@~cite[rat-oopsla-2017]
