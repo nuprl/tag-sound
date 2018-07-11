@@ -207,8 +207,6 @@ For the specific case of an untyped function @${f} and the type @${(\tarr{\tnat}
  the @|holong| embedding wraps @${f} in a proxy.
 The wrapper checks that every result computed by @${f} is of type @${\tnat}
  and otherwise halts the program with a witness that @${f} does not match the type.
-If a typed value meets a boundary, the @|holong| embedding applies a dual strategy
- to proxy any typed functions contained within the value.
 
 
 @subsection[#:tag "sec:natural:model"]{Model}
