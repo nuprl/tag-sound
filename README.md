@@ -89,13 +89,6 @@ Other things:
 - `output/` results from a previous run of `make all` on this VM
 
 
-Unimportant things:
-
-- `legacy-model/`
-- `pi-2017/` source for a talk about this project
-- `pi-2018/` source for another talk about this project
-
-
 Notes
 ---
 
