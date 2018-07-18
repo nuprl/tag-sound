@@ -1442,11 +1442,279 @@
   If @${\exprk \kerel \expre} and @${\ctxk \kerel \ctxe}
   then @${\ctxk[\exprk] \kerel \ctxe[\expre]}
 }@tr-proof{
-  TODO
+  By induction on the structure of @${\ctxk}.
 
-  @tr-qed{
-    by definition of @${\kerel}
+  @tr-case[@${\ctxk = \ehole}]{
+    @tr-step{
+      @${\expre = \ehole}
+    }
+    @tr-step{
+      @${\ctxk[\exprk] = \exprk
+         @tr-and[]
+         \ctxe[\expre] = \expre}
+    }
+    @tr-qed{}
   }
+
+  @tr-case[@${\ctxk = \eapp{\ctxk_0}{\exprk_1}}]{
+    @tr-step{
+      @${\ctxe = \eapp{\ctxe_0}{\expre_1}
+         @tr-and[]
+         \ctxk_0 \kerel \ctxe_0
+         @tr-and[]
+         \exprk_1 \kerel \expre_1}
+      definition @${\kerel}
+    }
+    @tr-step{
+      @${\ctxk_0[\exprk] \kerel \ctxe_0[\expre]}
+      @tr-IH
+    }
+    @tr-step{
+      @${\ctxk[\exprk] = \eapp{\ctxk_0[\exprk_0]}{\exprk_1}}
+    }
+    @tr-step{
+      @${\ctxe[\expre] = \eapp{\ctxe_0[\expre_0]}{\expre_1}}
+    }
+    @tr-qed{
+      by (1, 2)
+    }
+  }
+
+  @tr-case[@${\ctxk = \eapp{\valk_0}{\ctxk_1}}]{
+    @tr-step{
+      @${\ctxe = \eapp{\expre_0}{\ctxe_1}
+         @tr-and[]
+         \exprk_0 \kerel \expre_0
+         @tr-and[]
+         \ctxk_1 \kerel \ctxe_1}
+      definition @${\kerel}
+    }
+    @tr-step{
+      @${\ctxk_1[\exprk] \kerel \ctxe_1[\expre]}
+      @tr-IH
+    }
+    @tr-step{
+      @${\ctxk[\exprk] = \eapp{\exprk_0}{\ctxk_1[\exprk_1]}}
+    }
+    @tr-step{
+      @${\ctxe[\expre] = \eapp{\expre_0}{\ctxe_1[\expre_1]}}
+    }
+    @tr-qed{
+      by (1, 2)
+    }
+  }
+
+  @tr-case[@${\ctxk = \vpair{\ctxk_0}{\exprk_1}}]{
+    @tr-step{
+      @${\ctxe = \vpair{\ctxe_0}{\expre_1}
+         @tr-and[]
+         \ctxk_0 \kerel \ctxe_0
+         @tr-and[]
+         \exprk_1 \kerel \expre_1}
+      definition @${\kerel}
+    }
+    @tr-step{
+      @${\ctxk_0[\exprk] \kerel \ctxe_0[\expre]}
+      @tr-IH
+    }
+    @tr-step{
+      @${\ctxk[\exprk] = \vpair{\ctxk_0[\exprk_0]}{\exprk_1}}
+    }
+    @tr-step{
+      @${\ctxe[\expre] = \vpair{\ctxe_0[\expre_0]}{\expre_1}}
+    }
+    @tr-qed{
+      by (1, 2)
+    }
+  }
+
+  @tr-case[@${\ctxk = \vpair{\valk_0}{\ctxk_1}}]{
+    @tr-step{
+      @${\ctxe = \vpair{\expre_0}{\ctxe_1}
+         @tr-and[]
+         \exprk_0 \kerel \expre_0
+         @tr-and[]
+         \ctxk_1 \kerel \ctxe_1}
+      definition @${\kerel}
+    }
+    @tr-step{
+      @${\ctxk_1[\exprk] \kerel \ctxe_1[\expre]}
+      @tr-IH
+    }
+    @tr-step{
+      @${\ctxk[\exprk] = \vpair{\exprk_0}{\ctxk_1[\exprk_1]}}
+    }
+    @tr-step{
+      @${\ctxe[\expre] = \vpair{\expre_0}{\ctxe_1[\expre_1]}}
+    }
+    @tr-qed{
+      by (1, 2)
+    }
+  }
+
+  @tr-case[@${\ctxk = \eunop{\ctxk_0}}]{
+    @tr-step{
+      @${\ctxe = \eunop{\ctxe_0}
+         @tr-and[]
+         \ctxk_0 \kerel \ctxe_0}
+      definition @${\kerel}
+    }
+    @tr-step{
+      @${\ctxk_0[\exprk] \kerel \ctxe_0[\expre]}
+      @tr-IH
+    }
+    @tr-step{
+      @${\ctxk[\exprk] = \eunop{\ctxk_0[\exprk_0]}}
+    }
+    @tr-step{
+      @${\ctxe[\expre] = \eunop{\ctxe_0[\expre_0]}}
+    }
+    @tr-qed{
+      by (1, 2)
+    }
+  }
+
+
+  @tr-case[@${\ctxk = \ebinop{\ctxk_0}{\exprk_1}}]{
+    @tr-step{
+      @${\ctxe = \ebinop{\ctxe_0}{\expre_1}
+         @tr-and[]
+         \ctxk_0 \kerel \ctxe_0
+         @tr-and[]
+         \exprk_1 \kerel \expre_1}
+      definition @${\kerel}
+    }
+    @tr-step{
+      @${\ctxk_0[\exprk] \kerel \ctxe_0[\expre]}
+      @tr-IH
+    }
+    @tr-step{
+      @${\ctxk[\exprk] = \ebinop{\ctxk_0[\exprk_0]}{\exprk_1}}
+    }
+    @tr-step{
+      @${\ctxe[\expre] = \ebinop{\ctxe_0[\expre_0]}{\expre_1}}
+    }
+    @tr-qed{
+      by (1, 2)
+    }
+  }
+
+  @tr-case[@${\ctxk = \ebinop{\valk_0}{\ctxk_1}}]{
+    @tr-step{
+      @${\ctxe = \ebinop{\expre_0}{\ctxe_1}
+         @tr-and[]
+         \exprk_0 \kerel \expre_0
+         @tr-and[]
+         \ctxk_1 \kerel \ctxe_1}
+      definition @${\kerel}
+    }
+    @tr-step{
+      @${\ctxk_1[\exprk] \kerel \ctxe_1[\expre]}
+      @tr-IH
+    }
+    @tr-step{
+      @${\ctxk[\exprk] = \ebinop{\exprk_0}{\ctxk_1[\exprk_1]}}
+    }
+    @tr-step{
+      @${\ctxe[\expre] = \ebinop{\expre_0}{\ctxe_1[\expre_1]}}
+    }
+    @tr-qed{
+      by (1, 2)
+    }
+  }
+
+  @tr-case[@${\ctxk = \edyn{\tau}{\ctxk_0}}]{
+    @tr-step{
+      @${\ctxe = \edyn{\tau}{\ctxe_0}
+         @tr-and[]
+         \ctxk_0 \kerel \ctxe_0}
+      definition @${\kerel}
+    }
+    @tr-step{
+      @${\ctxk_0[\exprk] \kerel \ctxe_0[\expre]}
+      @tr-IH
+    }
+    @tr-step{
+      @${\ctxk[\exprk] = \edyn{\tau}{\ctxk_0[\exprk_0]}}
+    }
+    @tr-step{
+      @${\ctxe[\expre] = \edyn{\tau}{\ctxe_0[\expre_0]}}
+    }
+    @tr-qed{
+      by (1, 2)
+    }
+  }
+
+  @tr-case[@${\ctxk = \esta{\tau}{\ctxk_0}}]{
+    @tr-step{
+      @${\ctxe = \esta{\tau}{\ctxe_0}
+         @tr-and[]
+         \ctxk_0 \kerel \ctxe_0}
+      definition @${\kerel}
+    }
+    @tr-step{
+      @${\ctxk_0[\exprk] \kerel \ctxe_0[\expre]}
+      @tr-IH
+    }
+    @tr-step{
+      @${\ctxk[\exprk] = \esta{\tau}{\ctxk_0[\exprk_0]}}
+    }
+    @tr-step{
+      @${\ctxe[\expre] = \esta{\tau}{\ctxe_0[\expre_0]}}
+    }
+    @tr-qed{
+      by (1, 2)
+    }
+  }
+
+  @tr-case[@${\ctxk = \echk{K}{\ctxk_0}}]{
+    @tr-step{
+      @${\ctxk_0 \kerel \ctxe}
+    }
+    @tr-step{
+      @${\ctxk_0[\exprk] \kerel \ctxe[\expre]}
+      @tr-IH (1)
+    }
+    @tr-step{
+      @${\ctxk[\exprk] = \echk{K}{\ctxk_0[\exprk]}}
+    }
+    @tr-qed{
+      (2)
+    }
+  }
+
+  @tr-case[@${\ctxk = \edynfake{\ctxk_0}}]{
+    @tr-step{
+      @${\ctxk_0 \kerel \ctxe}
+    }
+    @tr-step{
+      @${\ctxk_0[\exprk] \kerel \ctxe[\expre]}
+      @tr-IH (1)
+    }
+    @tr-step{
+      @${\ctxk[\exprk] = \edynfake{\ctxk_0[\exprk]}}
+    }
+    @tr-qed{
+      (2)
+    }
+  }
+
+  @tr-case[@${\ctxk = \estafake{\ctxk_0}}]{
+    @tr-step{
+      @${\ctxk_0 \kerel \ctxe}
+    }
+    @tr-step{
+      @${\ctxk_0[\exprk] \kerel \ctxe[\expre]}
+      @tr-IH (1)
+    }
+    @tr-step{
+      @${\ctxk[\exprk] = \estafake{\ctxk_0[\exprk]}}
+    }
+    @tr-qed{
+      (2)
+    }
+  }
+
 }
 
 @tr-lemma[#:key "KE-inversion" @elem{@${\langK}--@${\langE} inversion}]{
@@ -1469,9 +1737,295 @@
 }
 
 @tr-lemma[#:key "KE-subst" @elem{@${\langK}--@${\langE} substitution}]{
-  If @${\exprk \kerel \expre} and @${\valk \kerel \vale} then @${\vsubst{\exprk}{x}{\valk} \kerel \vsubst{\expre}{x}{\vale}}
+  If @${\exprk \kerel \expre} and @${\valk \kerel \vale} and @${\exprk} does not
+  contain a subterm of the form @${\eerr}
+  then @${\vsubst{\exprk}{x}{\valk} \kerel \vsubst{\expre}{x}{\vale}}
 }@tr-proof{
-  TODO
+  By induction on the structure of @${\exprk}.
+
+  @tr-case[@${\exprk = x}]{
+    @tr-step{
+      @${\expre = x}
+      @${\exprk \kerel \expre}
+    }
+    @tr-step{
+      @${\vsubst{\exprk}{x}{\valk} = \valk
+         @tr-and[]
+         \vsubst{\expre}{x}{\vale} = \vale}
+    }
+    @tr-qed{}
+  }
+
+  @tr-case[@${\exprk = y}]{
+    @tr-step{
+      @${\expre = y}
+      @${\exprk \kerel \expre}
+    }
+    @tr-step{
+      @${\vsubst{\exprk}{x}{\valk} = y
+         @tr-and[]
+         \vsubst{\expre}{x}{\vale} = y}
+    }
+    @tr-qed{(1)}
+  }
+
+  @tr-case[@${\exprk = i}]{
+    @tr-step{
+      @${\expre = i}
+      definition @${\kerel}
+    }
+    @tr-step{
+      @${\vsubst{\exprk}{x}{\valk} = i
+         @tr-and[]
+         \vsubst{\expre}{x}{\vale} = i}
+    }
+    @tr-qed{}
+  }
+
+  @tr-case[@${\exprk = \vlam{x}{\exprk_0}}]{
+    @tr-step{
+      @${\expre = \vlam{x}{\expre_0}
+         @tr-and[]
+         \exprk_0 \kerel \expre_0}
+      definition @${\kerel}
+    }
+    @tr-step{
+      @${\vsubst{\exprk}{x}{\valk} = \vlam{x}{\exprk_0}
+         @tr-and[]
+         \vsubst{\expre}{x}{\vale} = \vlam{x}{\expre_0}}
+    }
+    @tr-qed{}
+  }
+
+  @tr-case[@${\exprk = \vlam{\tann{x}{\tau}}{\exprk_0}}]{
+    @tr-step{
+      @${\expre = \vlam{\tann{x}{\tau}}{\expre_0}
+         @tr-and[]
+         \exprk_0 \kerel \expre_0}
+      definition @${\kerel}
+    }
+    @tr-step{
+      @${\vsubst{\exprk}{x}{\valk} = \vlam{\tann{x}{\tau}}{\exprk_0}
+         @tr-and[]
+         \vsubst{\expre}{x}{\vale} = \vlam{\tann{x}{\tau}}{\expre_0}}
+    }
+    @tr-qed{}
+  }
+
+  @tr-case[@${\exprk = \vlam{y}{\exprk_0}}]{
+    @tr-step{
+      @${\expre = \vlam{y}{\expre_0}
+         @tr-and[]
+         \exprk_0 \kerel \expre_0}
+      definition @${\kerel}
+    }
+    @tr-step{
+      @${\vsubst{\exprk_0}{x}{\valk} \kerel \vsubst{\expre_0}{x}{\vale}}
+      @tr-IH (1)
+    }
+    @tr-step{
+      @${\vsubst{\exprk}{x}{\valk} = \vlam{y}{\vsubst{\exprk_0}{x}{\vale}}
+         @tr-and[]
+         \vsubst{\expre}{x}{\vale} = \vlam{y}{\vsubst{\expre_0}{x}{\vale}}}
+    }
+    @tr-qed{
+      (2, 3)
+    }
+  }
+
+  @tr-case[@${\exprk = \vlam{\tann{y}{\tau}}{\exprk_0}}]{
+    @tr-step{
+      @${\expre = \vlam{\tann{y}{\tau}}{\expre_0}
+         @tr-and[]
+         \exprk_0 \kerel \expre_0}
+      definition @${\kerel}
+    }
+    @tr-step{
+      @${\vsubst{\exprk_0}{x}{\valk} \kerel \vsubst{\expre_0}{x}{\vale}}
+      @tr-IH (1)
+    }
+    @tr-step{
+      @${\vsubst{\exprk}{x}{\valk} = \vlam{\tann{y}{\tau}}{\vsubst{\exprk_0}{x}{\vale}}
+         @tr-and[]
+         \vsubst{\expre}{x}{\vale} = \vlam{\tann{y}{\tau}}{\vsubst{\expre_0}{x}{\vale}}}
+    }
+    @tr-qed{
+      (2, 3)
+    }
+  }
+
+  @tr-case[@${\exprk = \vmonfun{\tau}{\valk_0}}]{
+    @tr-contradiction{
+      @${\exprk \kerel \expre}
+    }
+  }
+
+  @tr-case[@${\exprk = \vpair{\exprk_0}{\exprk_1}}]{
+    @tr-step{
+      @${\expre = \vpair{\expre_0}{\expre_1}}
+    }
+    @tr-step{
+      @${\vsubst{\exprk_0}{x}{\valk} \kerel \vsubst{\expre_0}{x}{\vale}
+         @tr-and[]
+         \vsubst{\exprk_1}{x}{\valk} \kerel \vsubst{\expre_1}{x}{\vale}}
+      @tr-IH
+    }
+    @tr-step{
+      @${\vsubst{\exprk}{x}{\valk} = \vpair{\vsubst{\exprk_0}{x}{\valk}}{\vsubst{\exprk_1}{x}{\valk}}
+         @tr-and[]
+         \vsubst{\expre}{x}{\vale} = \vpair{\vsubst{\expre_0}{x}{\vale}}{\vsubst{\expre_1}{x}{\vale}}}
+    }
+    @tr-qed{
+      (2, 3)
+    }
+  }
+
+  @tr-case[@${\exprk = \eapp{\exprk_0}{\exprk_1}}]{
+    @tr-step{
+      @${\expre = \eapp{\expre_0}{\expre_1}}
+    }
+    @tr-step{
+      @${\vsubst{\exprk_0}{x}{\valk} \kerel \vsubst{\expre_0}{x}{\vale}
+         @tr-and[]
+         \vsubst{\exprk_1}{x}{\valk} \kerel \vsubst{\expre_1}{x}{\vale}}
+      @tr-IH
+    }
+    @tr-step{
+      @${\vsubst{\exprk}{x}{\valk} = \eapp{\vsubst{\exprk_0}{x}{\valk}}{\vsubst{\exprk_1}{x}{\valk}}
+         @tr-and[]
+         \vsubst{\expre}{x}{\vale} = \eapp{\vsubst{\expre_0}{x}{\vale}}{\vsubst{\expre_1}{x}{\vale}}}
+    }
+    @tr-qed{
+      (2, 3)
+    }
+  }
+
+  @tr-case[@${\exprk = \eunop{\exprk_0}}]{
+    @tr-step{
+      @${\expre = \eunop{\expre_0}}
+    }
+    @tr-step{
+      @${\vsubst{\exprk_0}{x}{\valk} \kerel \vsubst{\expre_0}{x}{\vale}}
+      @tr-IH
+    }
+    @tr-step{
+      @${\vsubst{\exprk}{x}{\valk} = \eunop{\vsubst{\exprk_0}{x}{\valk}}
+         @tr-and[]
+         \vsubst{\expre}{x}{\vale} = \eunop{\vsubst{\expre_0}{x}{\vale}}}
+    }
+    @tr-qed{
+      (2, 3)
+    }
+  }
+
+  @tr-case[@${\exprk = \ebinop{\exprk_0}{\exprk_1}}]{
+    @tr-step{
+      @${\expre = \ebinop{\expre_0}{\expre_1}}
+    }
+    @tr-step{
+      @${\vsubst{\exprk_0}{x}{\valk} \kerel \vsubst{\expre_0}{x}{\vale}
+         @tr-and[]
+         \vsubst{\exprk_1}{x}{\valk} \kerel \vsubst{\expre_1}{x}{\vale}}
+      @tr-IH
+    }
+    @tr-step{
+      @${\vsubst{\exprk}{x}{\valk} = \ebinop{\vsubst{\exprk_0}{x}{\valk}}{\vsubst{\exprk_1}{x}{\valk}}
+         @tr-and[]
+         \vsubst{\expre}{x}{\vale} = \ebinop{\vsubst{\expre_0}{x}{\vale}}{\vsubst{\expre_1}{x}{\vale}}}
+    }
+    @tr-qed{
+      (2, 3)
+    }
+  }
+
+  @tr-case[@${\exprk = \edyn{\tau}{\exprk_0}}]{
+    @tr-step{
+      @${\expre = \edyn{\tau}{\expre_0}}
+    }
+    @tr-step{
+      @${\vsubst{\exprk_0}{x}{\valk} \kerel \vsubst{\expre_0}{x}{\vale}}
+      @tr-IH
+    }
+    @tr-step{
+      @${\vsubst{\exprk}{x}{\valk} = \edyn{\tau}{\vsubst{\exprk_0}{x}{\valk}}
+         @tr-and[]
+         \vsubst{\expre}{x}{\vale} = \edyn{\tau}{\vsubst{\expre_0}{x}{\vale}}}
+    }
+    @tr-qed{
+      (2, 3)
+    }
+  }
+
+  @tr-case[@${\exprk = \esta{\tau}{\exprk_0}}]{
+    @tr-step{
+      @${\expre = \esta{\tau}{\expre_0}}
+    }
+    @tr-step{
+      @${\vsubst{\exprk_0}{x}{\valk} \kerel \vsubst{\expre_0}{x}{\vale}}
+      @tr-IH
+    }
+    @tr-step{
+      @${\vsubst{\exprk}{x}{\valk} = \esta{\tau}{\vsubst{\exprk_0}{x}{\valk}}
+         @tr-and[]
+         \vsubst{\expre}{x}{\vale} = \esta{\tau}{\vsubst{\expre_0}{x}{\vale}}}
+    }
+    @tr-qed{
+      (2, 3)
+    }
+  }
+
+  @tr-case[@${\exprk = \eerr}]{
+    @tr-contradiction{}
+  }
+
+  @tr-case[@${\exprk = \echk{K}{\exprk_0}}]{
+    @tr-step{
+      @${\exprk_0 \kerel \expre}
+    }
+    @tr-step{
+      @${\vsubst{\exprk_0}{x}{\valk} \kerel \vsubst{\expre}{x}{\vale}}
+      @tr-IH
+    }
+    @tr-step{
+      @${\vsubst{\exprk}{x}{\valk} = \echk{K}{\vsubst{\exprk_0}{x}{\valk}}}
+    }
+    @tr-qed{
+      (2, 3)
+    }
+  }
+
+  @tr-case[@${\exprk = \edynfake{\exprk_0}}]{
+    @tr-step{
+      @${\exprk_0 \kerel \expre}
+    }
+    @tr-step{
+      @${\vsubst{\exprk_0}{x}{\valk} \kerel \vsubst{\expre}{x}{\vale}}
+      @tr-IH
+    }
+    @tr-step{
+      @${\vsubst{\exprk}{x}{\valk} = \edynfake{\vsubst{\exprk_0}{x}{\valk}}}
+    }
+    @tr-qed{
+      (2, 3)
+    }
+  }
+
+  @tr-case[@${\exprk = \estafake{\exprk_0}}]{
+    @tr-step{
+      @${\exprk_0 \kerel \expre}
+    }
+    @tr-step{
+      @${\vsubst{\exprk_0}{x}{\valk} \kerel \vsubst{\expre}{x}{\vale}}
+      @tr-IH
+    }
+    @tr-step{
+      @${\vsubst{\exprk}{x}{\valk} = \estafake{\vsubst{\exprk_0}{x}{\valk}}}
+    }
+    @tr-qed{
+      (2, 3)
+    }
+  }
+
 }
 
 
