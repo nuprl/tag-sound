@@ -41,6 +41,7 @@
   tr-case
   tr-and
   tr-or
+  tr-conjunction
 
   tr-qed
   tr-contradiction
