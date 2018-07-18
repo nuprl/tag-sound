@@ -511,11 +511,9 @@
              \exprk_{1'} \kerel \expre_{1'}}
           @|KE-step|
         }
-        @tr-step{
-          @${\ctxk[\exprk_{1'}] \kerel \ctxe[\expre_{1'}]}
-          @|KE-hole-subst|
+        @tr-qed{
+          by @|KE-hole-subst| if @${\expre_{1'} \not\in \eerr} and by @${\ctxk[\exprk_{0'}] \ccKS \ctxk[\eerr] \ccKS \eerr} otherwise.
         }
-        @tr-qed{}
       }
     ]}
   ]
@@ -2050,7 +2048,7 @@
 
 
 @tr-lemma[#:key "NK-refl" @elem{@${\langN}--@${\langK} reflexivity}]{
-  If @${\wellM e : \tau} and @${\wellKE e : \tagof{\tau} \carrow e''} then @${e'' \nkrel e}.
+  If @${\wellM e : \tau} and @${\wellKE e : \tagof{\tau} \carrow e''} then @${e \nkrel e''}.
 }@tr-proof{
   @itemlist[
     @item{@tr-step{
@@ -2065,7 +2063,8 @@
 
 @tr-lemma[#:key "NK-simulation" @elem{@${\langK}--@${\langN} simulation}]{
   If @${\exprn_0 \nkrel \exprk_0} and @${\exprk_0 \ccKS \exprk_1}
-  and @${\exprn_0 \not\in \eerr} then either:
+  and @${\exprn_0} does not contain a subterm of the form @${\eerr}
+  then either:
   @itemlist[
     @item{
       @${\exprk_0 = \ctxe_0[\echk{K}{v}]
