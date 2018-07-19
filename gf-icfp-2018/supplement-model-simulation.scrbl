@@ -14,7 +14,6 @@
    (define KE-simulation @tr-ref[#:key "KE-simulation"]{@${\langK}--@${\langE} simulation})
    (define KE-refl @tr-ref[#:key "KE-refl"]{@${\langK}--@${\langE} reflexivity})
    (define KE-ctx @tr-ref[#:key "KE-ctx"]{@${\langK}--@${\langE} context factoring})
-   (define KE-stutter @tr-ref[#:key "KE-stutter"]{@${\langK}--@${\langE} stutter})
    (define KE-step @tr-ref[#:key "KE-step"]{@${\langK}--@${\langE} step})
    (define KE-hole-subst @tr-ref[#:key "KE-hole-subst"]{@${\langK}--@${\langE} context congruence})
    (define KE-inversion @tr-ref[#:key "KE-inversion"]{@${\langK}--@${\langE} inversion})
@@ -23,9 +22,13 @@
    (define NK-approximation @tr-ref[#:key "NK-approximation"]{@${\langN}--@${\langK} approximation})
    (define NK-simulation @tr-ref[#:key "NK-simulation"]{@${\langN}--@${\langK} simulation})
    (define NK-refl @tr-ref[#:key "NK-refl"]{@${\langN}--@${\langK} reflexivity})
-   (define NK-stutter @tr-ref[#:key "NK-stutter"]{@${\langN}--@${\langK} stutter})
-   (define NK-step @tr-ref[#:key "NK-step"]{@${\langN}--@${\langK} step})
-   (define NK-hole-subst @tr-ref[#:key "NK-hole-subst"]{@${\langN}--@${\langK} context congruence})
+   (define NK-S-type @tr-ref[#:key "NK-S-type"]{@${\langN}--@${\langK} static hole typing})
+   (define NK-D-type @tr-ref[#:key "NK-D-type"]{@${\langN}--@${\langK} dynamic hole typing})
+   (define NK-value @tr-ref[#:key "NK-value"]{@${\langN}--@${\langK} hole substitution})
+   (define NK-hole-subst @tr-ref[#:key "NK-hole-subst"]{@${\langN}--@${\langK} hole substitution})
+   (define NK-subst @tr-ref[#:key "NK-subst"]{@${\langN}--@${\langK} substitution})
+   (define NK-S-check @tr-ref[#:key "NK-S-check"]{@${\langN}--@${\langK} @${\vsta} checking})
+   (define NK-D-check @tr-ref[#:key "NK-D-check"]{@${\langN}--@${\langK} @${\vdyn} checking})
 )
 
 @exact{\input{fig:simulation.tex}}
@@ -468,7 +471,7 @@
           @${\ctxk[v_0] \kerel \ctxe[\expre_{0'}]}
           @|KE-hole-subst|
         }
-        @elem{repeat from step (2)}
+        @elem{repeat from step (2) with the smaller expression @${\ctxk[v_0]}}
       }
       @tr-if[@${\exprk_{0'} = \edynfake{v_0}}]{
         @tr-step{
@@ -482,7 +485,7 @@
           @${\ctxk[v_0] \kerel \ctxe[\expre_{0'}]}
           @|KE-hole-subst|
         }
-        @elem{repeat from step (2)}
+        @elem{repeat from step (2) with the smaller expression @${\ctxk[v_0]}}
       }
       @tr-if[@${\exprk_{0'} = \estafake{v_0}}]{
         @tr-step{
@@ -496,7 +499,7 @@
           @${\ctxk[v_0] \kerel \ctxe[\expre_{0'}]}
           @|KE-hole-subst|
         }
-        @elem{repeat from step (2)}
+        @elem{repeat from step (2) with the smaller expression @${\ctxk[v_0]}}
       }
       @tr-else[@${\exprk_{0'} \neq \echk{K}{v_0}
                   @tr-and[4]
@@ -1735,8 +1738,7 @@
 }
 
 @tr-lemma[#:key "KE-subst" @elem{@${\langK}--@${\langE} substitution}]{
-  If @${\exprk \kerel \expre} and @${\valk \kerel \vale} and @${\exprk} does not
-  contain a subterm of the form @${\eerr}
+  If @${\exprk \kerel \expre} and @${\valk \kerel \vale}
   then @${\vsubst{\exprk}{x}{\valk} \kerel \vsubst{\expre}{x}{\vale}}
 }@tr-proof{
   By induction on the structure of @${\exprk}.
@@ -1973,7 +1975,9 @@
   }
 
   @tr-case[@${\exprk = \eerr}]{
-    @tr-contradiction{}
+    @tr-qed{
+      @${\vsubst{\exprk}{x}{\valk} = \eerr}
+    }
   }
 
   @tr-case[@${\exprk = \echk{K}{\exprk_0}}]{
@@ -2050,118 +2054,146 @@
 @tr-lemma[#:key "NK-refl" @elem{@${\langN}--@${\langK} reflexivity}]{
   If @${\wellM e : \tau} and @${\wellKE e : \tagof{\tau} \carrow e''} then @${e \nkrel e''}.
 }@tr-proof{
-  @itemlist[
-    @item{@tr-step{
-      @elem{@${e} and @${e''} are identical up to @${\vchk} expressions}
-      definition of @${\carrow}
-    }}
-    @item{@tr-qed{
-      by definition of @${\nkrel}
-    }}
-  ]
+  TODO
 }
 
-@tr-lemma[#:key "NK-simulation" @elem{@${\langK}--@${\langN} simulation}]{
-  If @${\exprn_0 \nkrel \exprk_0} and @${\exprk_0 \ccKS \exprk_1}
-  and @${\exprn_0} does not contain a subterm of the form @${\eerr}
-  then either:
+@tr-lemma[#:key "NK-simulation" @elem{@${\langN}--@${\langK} simulation}]{
+  If @${\wellNE \exprn_0 : \tau
+         @tr-and[]
+         \wellKE \exprk_0 : \tagof{\tau}
+         @tr-and[]
+         \exprn_0 \nkrel \exprk_0
+         @tr-and[]
+         \exprk_0 \ccKS \exprk_1
+         @tr-and[]
+         \exprn_0 \mbox{ does not contain a subterm of the form} \eerr}
+  @linebreak[]
+  then @${\exprn_0 \rrNSstar \exprn_n} and @${\exprn_n \nkrel \exprk_1}
+}@tr-proof{
+  By case analysis on @${\exprk_0 \ccKS \exprk_1}.
+
+  TODO
+
+  @tr-case[@${???}]{
+  }
+}
+
+@tr-lemma[#:key "NK-S-type" @elem{@${\langN}--@${\langK} static hole typing}]{
+  If @${\wellNE \ctxn[\exprn] : \tau
+        @tr-and[]
+        \wellKE \ctxk[\exprk] : \tagof{\tau}
+        @tr-and[]
+        \ctxn[\exprn] \nkrel \ctxk[\exprk]}
+  @linebreak[]
+  then one of the following holds:
   @itemlist[
     @item{
-      @${\exprk_0 = \ctxe_0[\echk{K}{v}]
-         @tr-and[]
-         \exprk_1 = \ctxe_0[v]
-         @tr-and[]
-         \exprn_0 \nkrel \exprk_1}
+      @${\wellNE \exprn : \tau' @tr-and[] \wellKE \exprk : \tagof{\tau'}}
     }
     @item{
-      @${\exprn_0 \ccNS \ldots \ccNS \exprn_{n}
-         @tr-and[]
-         \forall i \in \{1 .. {n \mhyphen 1}\}.\, \exprn_i \kerel \exprk_0
-         @tr-and[]
-         \exprn_n \nkrel \exprk_1}
+      @${\wellNE \exprn @tr-and[] \wellKE \exprk}
     }
   ]
 }@tr-proof{
-  @tr-case[@${\exprk_0 = \ctxk_0[\exprk_{0'}
-              @tr-and[]
-              \wellKE \exprk_{0'}}]{
-    @tr-step{
-      @${\exprn_0 = \ctxn_0[\exprn_{0'}]
-         @tr-and[]
-         \ctxn_0 \nkrel \ctxk_0
-         @tr-and[]
-         \exprn_{0'} \nkrel \exprk_{0'}}
-      by definition @${\nkrel}
-    }
-    @tr-step{
-      @${\wellNE \exprn_{0'}}
-      by definition @${\nkrel}
-    }
-    @tr-step{
-      @${\ctxn_0[\exprn_{0'}] \ccNS \ldots \ccNS \ctxn_0[\exprn_{{n-1}'}]
-         @tr-and[] \forall i \in \{1 .. {n \mhyphen 1}\}\,.\, \ctxn_0[\exprn_{i'}] \nkrel \ctxk_0[\exprk_{0'}]}
-      repeated uses of @|NK-stutter|
-    }
-    @tr-step{
-      @${\ctxn_0[\exprn_{{n-1}'}] \ccNS \ctxn_0[\exprn_{{n}'}]
-         @tr-and[]
-         \ctxn_0[\exprn_{{n}'}] \nkrel \exprk_1}
-      case analysis on @${\rrKD}
-    }
-    @tr-qed{
-    }
-  }
-  @tr-case[@${\exprk_0 = \ctxk_0[\exprk_{0'}
-              @tr-and[]
-              \wellKE \exprk_{0'} : K}]{
-    @tr-step{
-      @${\exprn_0 = \ctxn_0[\exprn_{0'}]
-         @tr-and[]
-         \ctxn_0 \nkrel \ctxk_0
-         @tr-and[]
-         \exprn_{0'} \nkrel \exprk_{0'}}
-      by definition @${\nkrel}
-    }
-    @tr-step{
-      @${\wellNE \exprn_{0'} : \tau
-         @tr-and[]
-         K = \tagof{\tau}}
-      by definition @${\nkrel}
-    }
-    @tr-if[@${\exprk_{0'} = \echk{K}{v}}]{
-      @tr-step{
-        @${\exprn_{0'} \nkrel v}
-        definition @${\nkrel}
-      }
-      @tr-step{
-        @${\echk{K}{v} \rrKS v}
-        (2)
-      }
-      @tr-qed{}
-    }
-    @tr-else[@${\exprk_{0'} \neq \echk{K}{v}}]{
-      @tr-qed{
-        by @|NK-stutter| and case analysis on @${\rrKS}
-      }
-    }
-  }
+  By induction on the structure of @${\ctxk}.
+
+  TODO
 }
 
-@tr-lemma[#:key "NK-stutter" @elem{@${\langN}--@${\langK} stutter}]{
-  If @${\ctxn[\exprn] \nkrel \ctxk[\exprk]}
-  and @${\exprn = \ctxn_0[\eerr]
-         @tr-or[4]
-         \exprn = \ctxn_0[\edyn{\tau}{v_0}]
-          \wedge
-          \ctxn_0 \neq \ehole
-         @tr-or[4]
-         \exprn = \ctxn_0[\esta{\tau}{v_0}]
-          \wedge
-          \ctxn_0 \neq \ehole}
+@tr-lemma[#:key "NK-D-type" @elem{@${\langN}--@${\langK} dynamic hole typing}]{
+  If @${\wellNE \ctxn[\exprn]
+        @tr-and[]
+        \wellKE \ctxk[\exprk]
+        @tr-and[]
+        \ctxn[\exprn] \nkrel \ctxk[\exprk]}
   @linebreak[]
-  then @${\ctxn[\exprn] \ccNS \ctxn[\exprn_1]}
-  and @${\ctxn[\exprn_1] \nkrel \ctxk[\exprk]}.
-}@tr-proof[#:sketch? #true]{
-  by definition of @${\nkrel}
+  then one of the following holds:
+  @itemlist[
+    @item{
+      @${\wellNE \exprn : \tau' @tr-and[] \wellKE \exprk : \tagof{\tau'}}
+    }
+    @item{
+      @${\wellNE \exprn @tr-and[] \wellKE \exprk}
+    }
+  ]
+}@tr-proof{
+  By induction on the structure of @${\ctxk}.
+
+  TODO
 }
 
+@tr-lemma[#:key "NK-value" @elem{@${\langN}--@${\langK} value inversion}]{
+  If @${\wellNE \exprn : \tau
+        @tr-and[]
+        \exprn \nkrel \valk}
+  then @${\wellKE \valk : \tagof{\tau}}
+}@tr-proof{
+  By case analysis on @${\exprn \nkrel \valk}.
+
+  TODO
+}
+
+@tr-lemma[#:key "NK-S-check" @elem{@${\langN}--@${\langK} @${\vsta} checking}]{
+  If @${\wellNE \esta{\tau}{\valn}
+        @tr-and[]
+        \esta{\tau}{\valn} \nkrel \valk}
+  @linebreak[]
+  then one of the following holds:
+  @itemlist[
+    @item{
+      @${\esta{\tau}{\valn} \rrKDstar \boundaryerror}
+    }
+    @item{
+      @${\esta{\tau}{\valn} \rrKDstar \valn_1
+         @tr-and[]
+         \valn_1 \nkrel \valk}
+    }
+  ]
+}@tr-proof{
+  By induction on the structure of @${\tau}.
+
+  TODO
+}
+
+@tr-lemma[#:key "NK-D-check" @elem{@${\langN}--@${\langK} @${\vdyn} checking}]{
+  If @${\wellNE \edyn{\tau}{\valn} : \tau
+        @tr-and[]
+        \edyn{\tau}{\valn} \nkrel \valk}
+  @linebreak[]
+  then one of the following holds:
+  @itemlist[
+    @item{
+      @${\edyn{\tau}{\valn} \rrKSstar \boundaryerror}
+    }
+    @item{
+      @${\edyn{\tau}{\valn} \rrKSstar \valn_1
+         @tr-and[]
+         \valn_1 \nkrel \valk}
+    }
+  ]
+}@tr-proof{
+  By induction on the structure of @${\tau}.
+
+  TODO
+}
+
+@tr-lemma[#:key "NK-hole-subst" @elem{@${\langN}--@${\langK} hole substitution}]{
+  If @${\ctxn \nkrel \ctxk
+        @tr-and[]
+        \exprn \nkrel \exprk}
+  @linebreak[]
+  then @${\ctxn[\exprn] \nkrel \ctxk[\exprk]}
+}@tr-proof{
+  By induction on the structure of @${\ctxk}.
+
+  TODO
+}
+
+@tr-lemma[#:key "NK-subst" @elem{@${\langN}--@${\langK} substitution}]{
+  If @${\exprn \nkrel \exprk} and @${\valn \kerel \valk}
+  then @${\vsubst{\exprn}{x}{\valn} \kerel \vsubst{\exprk}{x}{\valk}}
+}@tr-proof{
+  By induction on the structure of @${\exprk}.
+
+  TODO
+}
