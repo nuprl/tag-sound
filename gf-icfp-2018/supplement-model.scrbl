@@ -14,8 +14,6 @@ Aside from the common notions in @section-ref{appendix:preliminaries},
 
 @; -----------------------------------------------------------------------------
 
-@include-section{supplement-model-background.scrbl}
-
 @;@figure["fig:model-roadmap" "Models Roadmap"
 @;  @models-roadmap[
 @;    #:D "I) Dynamic"
@@ -29,11 +27,13 @@ Aside from the common notions in @section-ref{appendix:preliminaries},
 
 @; -----------------------------------------------------------------------------
 
-@include-section{supplement-model-n.scrbl}
-@include-section{supplement-model-e.scrbl}
-@include-section{supplement-model-k.scrbl}
-@include-section{supplement-model-c.scrbl}
-@include-section{supplement-model-f.scrbl}
-
-@include-section{supplement-model-bridge.scrbl}
+@;@include-section{supplement-model-background.scrbl}
+@;
+@;@include-section{supplement-model-n.scrbl}
+@;@include-section{supplement-model-e.scrbl}
+@;@include-section{supplement-model-k.scrbl}
+@;@include-section{supplement-model-c.scrbl}
+@;@include-section{supplement-model-f.scrbl}
+@;
+@;@include-section{supplement-model-bridge.scrbl}
 @include-section{supplement-model-simulation.scrbl}

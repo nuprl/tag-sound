@@ -15,7 +15,7 @@
    (define KE-refl @tr-ref[#:key "KE-refl"]{@${\langK}--@${\langE} reflexivity})
    (define KE-ctx @tr-ref[#:key "KE-ctx"]{@${\langK}--@${\langE} context factoring})
    (define KE-step @tr-ref[#:key "KE-step"]{@${\langK}--@${\langE} step})
-   (define KE-hole-subst @tr-ref[#:key "KE-hole-subst"]{@${\langK}--@${\langE} context congruence})
+   (define KE-hole-subst @tr-ref[#:key "KE-hole-subst"]{@${\langK}--@${\langE} hole substitution})
    (define KE-inversion @tr-ref[#:key "KE-inversion"]{@${\langK}--@${\langE} inversion})
    (define KE-subst @tr-ref[#:key "KE-subst"]{@${\langK}--@${\langE} substitution})
 
@@ -1439,7 +1439,7 @@
 
 }
 
-@tr-lemma[#:key "KE-hole-subst" @elem{@${\langK}--@${\langE} context congruence}]{
+@tr-lemma[#:key "KE-hole-subst" @elem{@${\langK}--@${\langE} hole substitution}]{
   If @${\exprk \kerel \expre} and @${\ctxk \kerel \ctxe}
   then @${\ctxk[\exprk] \kerel \ctxe[\expre]}
 }@tr-proof{
@@ -2031,6 +2031,7 @@
 }
 
 
+  @exact{\newpage}
 @; -----------------------------------------------------------------------------
 
 @tr-lemma[#:key "NK-approximation" @elem{@${\langN}--@${\langK} approximation}]{
@@ -2088,7 +2089,8 @@
   then one of the following holds:
   @itemlist[
     @item{
-      @${\wellNE \exprn : \tau' @tr-and[] \wellKE \exprk : \tagof{\tau'}}
+      @${\wellNE \exprn : \tau' @tr-and[] \wellKE \exprk : K @tr-and[] \tagof{\tau'} \subt K}
+
     }
     @item{
       @${\wellNE \exprn @tr-and[] \wellKE \exprk}
@@ -2110,7 +2112,7 @@
   then one of the following holds:
   @itemlist[
     @item{
-      @${\wellNE \exprn : \tau' @tr-and[] \wellKE \exprk : \tagof{\tau'}}
+      @${\wellNE \exprn : \tau' @tr-and[] \wellKE \exprk : K @tr-and[] \tagof{\tau'} \subt K}
     }
     @item{
       @${\wellNE \exprn @tr-and[] \wellKE \exprk}
@@ -2125,7 +2127,10 @@
 @tr-lemma[#:key "NK-value" @elem{@${\langN}--@${\langK} value inversion}]{
   If @${\wellNE \exprn : \tau
         @tr-and[]
+        \exprn \not\in \eerr
+        @tr-and[]
         \exprn \nkrel \valk}
+  @linebreak[]
   then @${\wellKE \valk : \tagof{\tau}}
 }@tr-proof{
   By case analysis on @${\exprn \nkrel \valk}.
