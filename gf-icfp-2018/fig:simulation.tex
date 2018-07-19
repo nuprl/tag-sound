@@ -17,6 +17,8 @@
     \end{array}$
   }
 
+  \newpage
+
   \lblmathpar{$e \kerel e$}{
     \inferrule*{
     }{
@@ -203,6 +205,8 @@
     }
   }
 
+  \newpage
+
   \lblmathpar{$e \nkrel e$}{
     \inferrule*{
       \exprn \nkrel \exprk
@@ -230,6 +234,12 @@
     \inferrule*{
       \exprn \nkrel \exprk
     }{
+      \edyn{\tau_0}{(\esta{\tau_1}{\exprn})} \nkrel \exprk
+    }
+
+    \inferrule*{
+      \exprn \nkrel \exprk
+    }{
       \esta{\tau}{\exprn} \nkrel \esta{\tau}{\exprk}
     }
 
@@ -237,6 +247,12 @@
       \exprn \nkrel \exprk
     }{
       \esta{\tau}{\exprn} \nkrel \estafake{\exprk}
+    }
+
+    \inferrule*{
+      \exprn \nkrel \exprk
+    }{
+      \esta{\tau_0}{(\edyn{\tau_1}{\exprn})} \nkrel \exprk
     }
 
     \inferrule*{
@@ -379,6 +395,12 @@
     \inferrule*{
       \ctxn \nkrel \ctxk
     }{
+      \edyn{\tau_0}{(\esta{\tau_1}{\ctxn})} \nkrel \ctxk
+    }
+
+    \inferrule*{
+      \ctxn \nkrel \ctxk
+    }{
       \esta{\tau}{\ctxn} \nkrel \esta{\tau}{\ctxk}
     }
 
@@ -386,6 +408,12 @@
       \ctxn \nkrel \ctxk
     }{
       \esta{\tau}{\ctxn} \nkrel \estafake{\ctxk}
+    }
+
+    \inferrule*{
+      \ctxn \nkrel \ctxk
+    }{
+      \esta{\tau_0}{(\edyn{\tau_1}{\ctxn})} \nkrel \ctxk
     }
   }
 

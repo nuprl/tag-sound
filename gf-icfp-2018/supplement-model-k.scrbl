@@ -99,6 +99,11 @@
    (define M-S-canonical @tr-ref[#:key "KM-S-canonical"]{static canonical forms})
    (define M-S-inversion @tr-ref[#:key "KM-S-inversion"]{static inversion forms})
 )
+@(provide
+  K-S-completion
+  K-D-completion
+  K-S-factor
+  K-S-hole-typing)
 
 @tr-theorem[#:key "K-S-soundness" @elem{static @${\langK}-soundness}]{
   If @${\wellM e : \tau}

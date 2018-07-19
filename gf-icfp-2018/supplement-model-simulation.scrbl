@@ -1,5 +1,5 @@
 #lang gf-icfp-2018
-@require{techreport.rkt}
+@require["techreport.rkt" "supplement-model-k.scrbl"]
 
 @appendix-title++{Simulation Lemmas}
 
@@ -7,12 +7,10 @@
 @section{Definitions}
 
 @(begin
-   (define K-S-factor @tr-ref[#:key "K-S-factor"]{boundary factoring})
-   (define K-S-hole-typing @tr-ref[#:key "K-S-hole-typing"]{static hole typing})
-
    (define KE-approximation @tr-ref[#:key "KE-approximation"]{@${\langK}--@${\langE} approximation})
    (define KE-simulation @tr-ref[#:key "KE-simulation"]{@${\langK}--@${\langE} simulation})
-   (define KE-refl @tr-ref[#:key "KE-refl"]{@${\langK}--@${\langE} reflexivity})
+   (define KE-S-refl @tr-ref[#:key "KE-S-refl"]{@${\langK}--@${\langE} static reflexivity})
+   (define KE-D-refl @tr-ref[#:key "KE-D-refl"]{@${\langK}--@${\langE} dynamic reflexivity})
    (define KE-ctx @tr-ref[#:key "KE-ctx"]{@${\langK}--@${\langE} context factoring})
    (define KE-step @tr-ref[#:key "KE-step"]{@${\langK}--@${\langE} step})
    (define KE-hole-subst @tr-ref[#:key "KE-hole-subst"]{@${\langK}--@${\langE} hole substitution})
@@ -21,7 +19,8 @@
 
    (define NK-approximation @tr-ref[#:key "NK-approximation"]{@${\langN}--@${\langK} approximation})
    (define NK-simulation @tr-ref[#:key "NK-simulation"]{@${\langN}--@${\langK} simulation})
-   (define NK-refl @tr-ref[#:key "NK-refl"]{@${\langN}--@${\langK} reflexivity})
+   (define NK-S-refl @tr-ref[#:key "NK-S-refl"]{@${\langN}--@${\langK} static reflexivity})
+   (define NK-D-refl @tr-ref[#:key "NK-D-refl"]{@${\langN}--@${\langK} dynamic reflexivity})
    (define NK-S-type @tr-ref[#:key "NK-S-type"]{@${\langN}--@${\langK} static hole typing})
    (define NK-D-type @tr-ref[#:key "NK-D-type"]{@${\langN}--@${\langK} dynamic hole typing})
    (define NK-value @tr-ref[#:key "NK-value"]{@${\langN}--@${\langK} hole substitution})
@@ -53,6 +52,7 @@
   }
 }
 
+@exact{\newpage}
 @section{Lemmas}
 
 @tr-lemma[#:key "KE-approximation" @elem{@${\langK}--@${\langE} approximation}]{
@@ -70,7 +70,7 @@
   @itemlist[
     @item{@tr-step{
       @${e'' \kerel e}
-      @|KE-refl|
+      @|KE-S-refl|
     }}
     @item{@tr-qed{
       by @|KE-simulation|
@@ -79,144 +79,12 @@
 }
 
 
-@tr-lemma[#:key "KE-refl" @elem{@${\langK}--@${\langE} reflexivity}]{
+@tr-lemma[#:key "KE-S-refl" @elem{@${\langK}--@${\langE} static reflexivity}]{
   If @${\Gamma \wellM e : \tau} and @${\Gamma \wellKE e : \tagof{\tau} \carrow e''} then
   @${e'' \kerel e}.
 }@tr-proof{
   By structural induction on the @${\Gamma \wellKE e : \tagof{\tau} \carrow e''}
-   and @${\Gamma \wellKE e \carrow e''} judgments.
-
-  @tr-case[#:box? #true
-           @${\inferrule*{
-              }{
-                \Gamma \wellM i \carrow i
-              }}]{
-    @tr-qed{
-      @${i \kerel i}
-    }
-  }
-
-  @tr-case[#:box? #true
-           @${\inferrule*{
-             \Gamma \wellM e_0 \carrow e_0'
-             \\\\
-             \Gamma \wellM e_1 \carrow e_1'
-           }{
-             \Gamma \wellM \vpair{e_0}{e_1} \carrow \vpair{e_0'}{e_1'}
-           }}]{
-    @tr-step{
-      @${e_0' \kerel e_0
-         @tr-and[]
-         e_1' \kerel e_1}
-      @tr-IH
-    }
-    @tr-qed{
-      (1)
-    }
-  }
-
-  @tr-case[#:box? #true
-           @${\inferrule*{
-                x,\Gamma \wellM e \carrow e'
-              }{
-                \Gamma \wellM \vlam{x}{e} \carrow \vlam{x}{e'}
-              }}]{
-    @tr-step{
-      @${e' \kerel e}
-      @tr-IH
-    }
-    @tr-qed{
-      (1)
-    }
-  }
-
-  @tr-case[#:box? #true
-           @${\inferrule*{
-              }{
-                \Gamma \wellM x \carrow x
-              } }]{
-    @tr-qed{
-      @${x \kerel x}
-    }
-  }
-
-  @tr-case[#:box? #true
-           @${\inferrule*{
-                \Gamma \wellM e_0 \carrow e_0'
-                \\\\
-                \Gamma \wellM e_1 \carrow e_1'
-              }{
-                \Gamma \wellM \eapp{e_0}{e_1} \carrow \eapp{e_0'}{e_1'}
-              } }]{
-    @tr-step{
-      @${e_0' \kerel e_0
-         @tr-and[]
-         e_1' \kerel e_1}
-      @tr-IH
-    }
-    @tr-qed{
-      (1)
-    }
-  }
-
-  @tr-case[#:box? #true
-           @${\inferrule*{
-                \Gamma \wellM e \carrow e'
-              }{
-                \Gamma \wellM \eunop{e} \carrow \eunop{e'}
-              }}]{
-    @tr-step{
-      @${e' \kerel e}
-      @tr-IH
-    }
-    @tr-qed{
-      (1)
-    }
-  }
-
-  @tr-case[#:box? #true
-           @${\inferrule*{
-                \Gamma \wellM e_0 \carrow e_0'
-                \\\\
-                \Gamma \wellM e_1 \carrow e_1'
-              }{
-                \Gamma \wellM \ebinop{e_0}{e_1} \carrow \ebinop{e_0'}{e_1'}
-              } }]{
-    @tr-step{
-      @${e_0' \kerel e_0
-         @tr-and[]
-         e_1' \kerel e_1}
-      @tr-IH
-    }
-    @tr-qed{
-      (1)
-    }
-  }
-
-  @tr-case[#:box? #true
-           @${\inferrule*{
-              }{
-                \Gamma \wellM \eerr \carrow \eerr
-              } }]{
-    @tr-qed{
-      @${\eerr \kerel \eerr}
-    }
-  }
-
-  @tr-case[#:box? #true
-           @${\inferrule*{
-                \Gamma \wellM e : \tau \carrow e'
-              }{
-                \Gamma \wellM \esta{\tau}{e} \carrow \esta{\tau}{e'}
-              }
-              }]{
-    @tr-step{
-      @${e' \kerel e}
-    }
-    @tr-qed{
-      (1)
-    }
-  }
+   judgment.
 
   @tr-case[#:box? #true
            @${\inferrule*{
@@ -247,13 +115,19 @@
                 \Gamma \wellM \vpair{e_0}{e_1} : \tpair{\tau_0}{\tau_1} \carrow \vpair{e_0'}{e_1'}
               } }]{
     @tr-step{
+      @${\wellKE e_0' : \tagof{\tau_0}
+         @tr-and[]
+         \wellKE e_1' : \tagof{\tau_1}}
+      @|K-S-completion|
+    }
+    @tr-step{
       @${e_0' \kerel e_0
          @tr-and[]
          e_1' \kerel e_1}
-      @tr-IH
+      @tr-IH (1)
     }
     @tr-qed{
-      (1)
+      (2)
     }
   }
 
@@ -264,11 +138,15 @@
                 \Gamma \wellM \vlam{\tann{x}{\tau_d}}{e} : \tarr{\tau_d}{\tau_c} \carrow \vlam{\tann{x}{\tau_d}}{e'}
               } }]{
     @tr-step{
+      @${\wellKE e' \tagof{\tau_c}}
+      @|K-S-completion|
+    }
+    @tr-step{
       @${e' \kerel e}
-      @tr-IH
+      @tr-IH (1)
     }
     @tr-qed{
-      (1)
+      (2)
     }
   }
 
@@ -293,14 +171,20 @@
                 \Gamma \wellM \eapp{e_0}{e_1} : \tau_c \carrow \echk{K}{(\eapp{e_0'}{e_1'})}
               } }]{
     @tr-step{
+      @${\wellKE e_0' : \tagof{\tarr{\tau_d}{\tau_c}}
+         @tr-and[]
+         \wellKE e_1' : \tagof{\tau_d}}
+      @|K-S-completion|
+    }
+    @tr-step{
       @${e_0' \kerel e_0
          @tr-and[]
          e_1' \kerel e_1}
-      @tr-IH
+      @tr-IH (1)
     }
     @tr-step{
       @${\eapp{e_0'}{e_1'} \kerel \eapp{e_0}{e_1}}
-      (1)
+      (2)
     }
     @tr-qed{
       @${\echk{K}{\eapp{e_0'}{e_1'}} \kerel \eapp{e_0}{e_1}}
@@ -316,12 +200,16 @@
                 \Gamma \wellM \efst{e} : \tau_0 \carrow \echk{K}{(\efst{e'})}
               } }]{
     @tr-step{
+      @${\wellKE e' : \tagof{\tpair{\tau_0}{\tau_1}}}
+      @|K-S-completion|
+    }
+    @tr-step{
       @${e' \kerel e}
-      @tr-IH
+      @tr-IH (1)
     }
     @tr-step{
       @${\efst{e'} \kerel \efst{e}}
-      (1)
+      (2)
     }
     @tr-qed{
       @${\echk{K}{\efst{e'}} \kerel \efst{e}}
@@ -337,12 +225,16 @@
                 \Gamma \wellM \esnd{e} : \tau_1 \carrow \echk{K}{(\esnd{e'})}
               } }]{
     @tr-step{
+      @${\wellKE e' : \tagof{\tpair{\tau_0}{\tau_1}}}
+      @|K-S-completion|
+    }
+    @tr-step{
       @${e' \kerel e}
-      @tr-IH
+      @tr-IH (1)
     }
     @tr-step{
       @${\esnd{e'} \kerel \esnd{e}}
-      (1)
+      (2)
     }
     @tr-qed{
       @${\echk{K}{\esnd{e'}} \kerel \esnd{e}}
@@ -360,13 +252,19 @@
                 \Gamma \wellM \ebinop{e_0}{e_1} : \tau \carrow \ebinop{e_0'}{e_1'}
               } }]{
     @tr-step{
+      @${\wellKE e_0' : \tagof{\tau_0}
+         @tr-and[]
+         \wellKE e_1' : \tagof{\tau_1}}
+      @|K-S-completion|
+    }
+    @tr-step{
       @${e_0' \kerel e_0
          @tr-and[]
          e_1' \kerel e_1}
-      @tr-IH
+      @tr-IH (1)
     }
     @tr-qed{
-      (1)
+      (2)
     }
   }
 
@@ -378,8 +276,12 @@
               }{
                 \Gamma \wellM e : \tau \carrow e'
               } }]{
+    @tr-step{
+      @${\wellKE e' : \tagof{\tau'}}
+      @|K-S-completion|
+    }
     @tr-qed{
-      @tr-IH
+      @tr-IH (1)
     }
   }
 
@@ -400,13 +302,188 @@
                 \Gamma \wellM \edyn{\tau}{e} : \tau \carrow \edyn{\tau}{e'}
               } }]{
     @tr-step{
+      @${\wellKE e'}
+      @|K-D-completion|
+    }
+    @tr-step{
       @${e' \kerel e}
-      @tr-IH
+      @tr-IH (1)
     }
     @tr-qed{
-      (1)
+      (2)
     }
   }
+}
+
+@tr-lemma[#:key "KE-D-refl" @elem{@${\langK}--@${\langE} dynamic reflexivity}]{
+  If @${\Gamma \wellM e} and @${\Gamma \wellKE e \carrow e''} then
+  @${e'' \kerel e}.
+}@tr-proof{
+  By structural induction on the @${\Gamma \wellKE e \carrow e''} judgment.
+
+  @tr-case[#:box? #true
+           @${\inferrule*{
+              }{
+                \Gamma \wellM i \carrow i
+              }}]{
+    @tr-qed{
+      @${i \kerel i}
+    }
+  }
+
+  @tr-case[#:box? #true
+           @${\inferrule*{
+             \Gamma \wellM e_0 \carrow e_0'
+             \\\\
+             \Gamma \wellM e_1 \carrow e_1'
+           }{
+             \Gamma \wellM \vpair{e_0}{e_1} \carrow \vpair{e_0'}{e_1'}
+           }}]{
+    @tr-step{
+      @${\wellKE e_0'
+         @tr-and[]
+         \wellKE e_1'}
+      @|K-D-completion|
+    }
+    @tr-step{
+      @${e_0' \kerel e_0
+         @tr-and[]
+         e_1' \kerel e_1}
+      @tr-IH (1)
+    }
+    @tr-qed{
+      (2)
+    }
+  }
+
+  @tr-case[#:box? #true
+           @${\inferrule*{
+                x,\Gamma \wellM e \carrow e'
+              }{
+                \Gamma \wellM \vlam{x}{e} \carrow \vlam{x}{e'}
+              }}]{
+    @tr-step{
+      @${\wellKE e'}
+      @|K-D-completion|
+    }
+    @tr-step{
+      @${e' \kerel e}
+      @tr-IH (1)
+    }
+    @tr-qed{
+      (2)
+    }
+  }
+
+  @tr-case[#:box? #true
+           @${\inferrule*{
+              }{
+                \Gamma \wellM x \carrow x
+              } }]{
+    @tr-qed{
+      @${x \kerel x}
+    }
+  }
+
+  @tr-case[#:box? #true
+           @${\inferrule*{
+                \Gamma \wellM e_0 \carrow e_0'
+                \\\\
+                \Gamma \wellM e_1 \carrow e_1'
+              }{
+                \Gamma \wellM \eapp{e_0}{e_1} \carrow \eapp{e_0'}{e_1'}
+              } }]{
+    @tr-step{
+      @${\wellKE e_0'
+         @tr-and[]
+         \wellKE e_1'}
+      @|K-D-completion|
+    }
+    @tr-step{
+      @${e_0' \kerel e_0
+         @tr-and[]
+         e_1' \kerel e_1}
+      @tr-IH (1)
+    }
+    @tr-qed{
+      (2)
+    }
+  }
+
+  @tr-case[#:box? #true
+           @${\inferrule*{
+                \Gamma \wellM e \carrow e'
+              }{
+                \Gamma \wellM \eunop{e} \carrow \eunop{e'}
+              }}]{
+    @tr-step{
+      @${\wellKE e'}
+      @|K-D-completion|
+    }
+    @tr-step{
+      @${e' \kerel e}
+      @tr-IH (1)
+    }
+    @tr-qed{
+      (2)
+    }
+  }
+
+  @tr-case[#:box? #true
+           @${\inferrule*{
+                \Gamma \wellM e_0 \carrow e_0'
+                \\\\
+                \Gamma \wellM e_1 \carrow e_1'
+              }{
+                \Gamma \wellM \ebinop{e_0}{e_1} \carrow \ebinop{e_0'}{e_1'}
+              } }]{
+    @tr-step{
+      @${\wellKE e_0'
+         @tr-and[]
+         \wellKE e_1'}
+      @|K-D-completion|
+    }
+    @tr-step{
+      @${e_0' \kerel e_0
+         @tr-and[]
+         e_1' \kerel e_1}
+      @tr-IH (1)
+    }
+    @tr-qed{
+      (2)
+    }
+  }
+
+  @tr-case[#:box? #true
+           @${\inferrule*{
+              }{
+                \Gamma \wellM \eerr \carrow \eerr
+              } }]{
+    @tr-qed{
+      @${\eerr \kerel \eerr}
+    }
+  }
+
+  @tr-case[#:box? #true
+           @${\inferrule*{
+                \Gamma \wellM e : \tau \carrow e'
+              }{
+                \Gamma \wellM \esta{\tau}{e} \carrow \esta{\tau}{e'}
+              }
+              }]{
+    @tr-step{
+      @${\wellKE e' : \tagof{\tau}}
+      @|K-S-completion|
+    }
+    @tr-step{
+      @${e' \kerel e}
+      @|KE-S-refl| (1)
+    }
+    @tr-qed{
+      (2)
+    }
+  }
+
 }
 
 @tr-lemma[#:key "KE-simulation" @elem{@${\langK}--@${\langE} simulation}]{
@@ -2031,7 +2108,7 @@
 }
 
 
-  @exact{\newpage}
+@exact{\newpage}
 @; -----------------------------------------------------------------------------
 
 @tr-lemma[#:key "NK-approximation" @elem{@${\langN}--@${\langK} approximation}]{
@@ -2043,7 +2120,7 @@
   @itemlist[
     @item{@tr-step{
       @${e \nkrel e''}
-      @|NK-refl|
+      @|NK-S-refl|
     }}
     @item{@tr-qed{
       by @|NK-simulation|
@@ -2052,10 +2129,416 @@
 }
 
 
-@tr-lemma[#:key "NK-refl" @elem{@${\langN}--@${\langK} reflexivity}]{
-  If @${\wellM e : \tau} and @${\wellKE e : \tagof{\tau} \carrow e''} then @${e \nkrel e''}.
+@tr-lemma[#:key "NK-S-refl" @elem{@${\langN}--@${\langK} static reflexivity}]{
+  If @${\Gamma \wellM e : \tau
+        @tr-and[]
+        \Gamma \wellKE e : \tagof{\tau} \carrow e''}
+  @linebreak[]
+  then @${e \nkrel e''}.
 }@tr-proof{
-  TODO
+  By structural induction on the @${\Gamma \wellKE e : \tagof{\tau} \carrow e''} judgment.
+
+  @tr-case[#:box? #true
+           @${\inferrule*{
+              }{
+                \Gamma \wellM i : \tnat \carrow i
+              } }]{
+    @tr-qed{
+      @${i \nkrel i}
+    }
+  }
+
+  @tr-case[#:box? #true
+           @${\inferrule*{
+              }{
+                \Gamma \wellM i : \tint \carrow i
+              } }]{
+    @tr-qed{
+      @${i \nkrel i}
+    }
+  }
+
+  @tr-case[#:box? #true
+           @${\inferrule*{
+                \Gamma \wellM e_0 : \tau_0 \carrow e_0'
+                \\
+                \Gamma \wellM e_1 : \tau_1 \carrow e_1'
+              }{
+                \Gamma \wellM \vpair{e_0}{e_1} : \tpair{\tau_0}{\tau_1} \carrow \vpair{e_0'}{e_1'}
+              } }]{
+    @tr-step{
+      @${\wellKE e_0' : \tagof{\tau_0}
+         @tr-and[]
+         \wellKE e_1' : \tagof{\tau_1}}
+      @|K-S-completion|
+    }
+    @tr-step{
+      @${e_0' \nkrel e_0
+         @tr-and[]
+         e_1' \nkrel e_1}
+      @tr-IH (1)
+    }
+    @tr-qed{
+      (2)
+    }
+  }
+
+  @tr-case[#:box? #true
+           @${\inferrule*{
+                \tann{x}{\tau_d},\Gamma \wellM e : \tau_c \carrow e'
+              }{
+                \Gamma \wellM \vlam{\tann{x}{\tau_d}}{e} : \tarr{\tau_d}{\tau_c} \carrow \vlam{\tann{x}{\tau_d}}{e'}
+              } }]{
+    @tr-step{
+      @${\wellKE e' \tagof{\tau_c}}
+      @|K-S-completion|
+    }
+    @tr-step{
+      @${e' \nkrel e}
+      @tr-IH (1)
+    }
+    @tr-qed{
+      (2)
+    }
+  }
+
+  @tr-case[#:box? #true
+           @${\inferrule*{
+              }{
+                \Gamma \wellM x : \tau \carrow x
+              } }]{
+    @tr-qed{
+      @${x \nkrel x}
+    }
+  }
+
+  @tr-case[#:box? #true
+           @${\inferrule*{
+                \Gamma \wellM e_0 : \tarr{\tau_d}{\tau_c} \carrow e_0'
+                \\
+                \Gamma \wellM e_1 : \tau_d \carrow e_1'
+                \\
+                \tagof{\tau_c} = K
+              }{
+                \Gamma \wellM \eapp{e_0}{e_1} : \tau_c \carrow \echk{K}{(\eapp{e_0'}{e_1'})}
+              } }]{
+    @tr-step{
+      @${\wellKE e_0' : \tagof{\tarr{\tau_d}{\tau_c}}
+         @tr-and[]
+         \wellKE e_1' : \tagof{\tau_d}}
+      @|K-S-completion|
+    }
+    @tr-step{
+      @${e_0' \nkrel e_0
+         @tr-and[]
+         e_1' \nkrel e_1}
+      @tr-IH (1)
+    }
+    @tr-step{
+      @${\eapp{e_0'}{e_1'} \nkrel \eapp{e_0}{e_1}}
+      (2)
+    }
+    @tr-qed{
+      @${\echk{K}{\eapp{e_0'}{e_1'}} \nkrel \eapp{e_0}{e_1}}
+    }
+  }
+
+  @tr-case[#:box? #true
+           @${\inferrule*{
+                \Gamma \wellM e : \tpair{\tau_0}{\tau_1} \carrow e'
+                \\
+                \tagof{\tau_0} = K
+              }{
+                \Gamma \wellM \efst{e} : \tau_0 \carrow \echk{K}{(\efst{e'})}
+              } }]{
+    @tr-step{
+      @${\wellKE e' : \tagof{\tpair{\tau_0}{\tau_1}}}
+      @|K-S-completion|
+    }
+    @tr-step{
+      @${e' \nkrel e}
+      @tr-IH (1)
+    }
+    @tr-step{
+      @${\efst{e'} \nkrel \efst{e}}
+      (2)
+    }
+    @tr-qed{
+      @${\echk{K}{\efst{e'}} \nkrel \efst{e}}
+    }
+  }
+
+  @tr-case[#:box? #true
+           @${\inferrule*{
+                \Gamma \wellM e : \tpair{\tau_0}{\tau_1} \carrow e'
+                \\
+                \tagof{\tau_1} = K
+              }{
+                \Gamma \wellM \esnd{e} : \tau_1 \carrow \echk{K}{(\esnd{e'})}
+              } }]{
+    @tr-step{
+      @${\wellKE e' : \tagof{\tpair{\tau_0}{\tau_1}}}
+      @|K-S-completion|
+    }
+    @tr-step{
+      @${e' \nkrel e}
+      @tr-IH (1)
+    }
+    @tr-step{
+      @${\esnd{e'} \nkrel \esnd{e}}
+      (2)
+    }
+    @tr-qed{
+      @${\echk{K}{\esnd{e'}} \nkrel \esnd{e}}
+    }
+  }
+
+  @tr-case[#:box? #true
+           @${\inferrule*{
+                \Gamma \wellM e_0 : \tau_0 \carrow e_0'
+                \\\\
+                \Gamma \wellM e_1 : \tau_1 \carrow e_1'
+                %\\\\
+                %\Delta(\vbinop, \tau_0, \tau_1) = \tau
+              }{
+                \Gamma \wellM \ebinop{e_0}{e_1} : \tau \carrow \ebinop{e_0'}{e_1'}
+              } }]{
+    @tr-step{
+      @${\wellKE e_0' : \tagof{\tau_0}
+         @tr-and[]
+         \wellKE e_1' : \tagof{\tau_1}}
+      @|K-S-completion|
+    }
+    @tr-step{
+      @${e_0' \nkrel e_0
+         @tr-and[]
+         e_1' \nkrel e_1}
+      @tr-IH (1)
+    }
+    @tr-qed{
+      (2)
+    }
+  }
+
+  @tr-case[#:box? #true
+           @${\inferrule*{
+                \Gamma \wellM e : \tau' \carrow e'
+                \\\\
+                \tau' \subteq \tau
+              }{
+                \Gamma \wellM e : \tau \carrow e'
+              } }]{
+    @tr-step{
+      @${\wellKE e' : \tagof{\tau'}}
+      @|K-S-completion|
+    }
+    @tr-qed{
+      @tr-IH (1)
+    }
+  }
+
+  @tr-case[#:box? #true
+           @${\inferrule*{
+              }{
+                \Gamma \wellM \eerr : \tau \carrow \eerr
+              } }]{
+    @tr-qed{
+      @${\eerr \nkrel \eerr}
+    }
+  }
+
+  @tr-case[#:box? #true
+           @${\inferrule*{
+                \Gamma \wellM e \carrow e'
+              }{
+                \Gamma \wellM \edyn{\tau}{e} : \tau \carrow \edyn{\tau}{e'}
+              } }]{
+    @tr-step{
+      @${\wellKE e'}
+      @|K-D-completion|
+    }
+    @tr-step{
+      @${e' \nkrel e}
+      @tr-IH (1)
+    }
+    @tr-qed{
+      (2)
+    }
+  }
+}
+
+@tr-lemma[#:key "NK-D-refl" @elem{@${\langN}--@${\langK} dynamic reflexivity}]{
+  If @${\Gamma \wellM e
+        @tr-and[]
+        \Gamma \wellKE e \carrow e''}
+  @linebreak[]
+  then @${e \nkrel e''}.
+}@tr-proof{
+  By structural induction on the @${\Gamma \wellKE e \carrow e''} judgment.
+
+  @tr-case[#:box? #true
+           @${\inferrule*{
+              }{
+                \Gamma \wellM i \carrow i
+              }}]{
+    @tr-qed{
+      @${i \nkrel i}
+    }
+  }
+
+  @tr-case[#:box? #true
+           @${\inferrule*{
+             \Gamma \wellM e_0 \carrow e_0'
+             \\\\
+             \Gamma \wellM e_1 \carrow e_1'
+           }{
+             \Gamma \wellM \vpair{e_0}{e_1} \carrow \vpair{e_0'}{e_1'}
+           }}]{
+    @tr-step{
+      @${\wellKE e_0'
+         @tr-and[]
+         \wellKE e_1'}
+      @|K-D-completion|
+    }
+    @tr-step{
+      @${e_0' \nkrel e_0
+         @tr-and[]
+         e_1' \nkrel e_1}
+      @tr-IH (1)
+    }
+    @tr-qed{
+      (2)
+    }
+  }
+
+  @tr-case[#:box? #true
+           @${\inferrule*{
+                x,\Gamma \wellM e \carrow e'
+              }{
+                \Gamma \wellM \vlam{x}{e} \carrow \vlam{x}{e'}
+              }}]{
+    @tr-step{
+      @${\wellKE e'}
+      @|K-D-completion|
+    }
+    @tr-step{
+      @${e' \nkrel e}
+      @tr-IH (1)
+    }
+    @tr-qed{
+      (2)
+    }
+  }
+
+  @tr-case[#:box? #true
+           @${\inferrule*{
+              }{
+                \Gamma \wellM x \carrow x
+              } }]{
+    @tr-qed{
+      @${x \nkrel x}
+    }
+  }
+
+  @tr-case[#:box? #true
+           @${\inferrule*{
+                \Gamma \wellM e_0 \carrow e_0'
+                \\\\
+                \Gamma \wellM e_1 \carrow e_1'
+              }{
+                \Gamma \wellM \eapp{e_0}{e_1} \carrow \eapp{e_0'}{e_1'}
+              } }]{
+    @tr-step{
+      @${\wellKE e_0'
+         @tr-and[]
+         \wellKE e_1'}
+      @|K-D-completion|
+    }
+    @tr-step{
+      @${e_0' \nkrel e_0
+         @tr-and[]
+         e_1' \nkrel e_1}
+      @tr-IH (1)
+    }
+    @tr-qed{
+      (2)
+    }
+  }
+
+  @tr-case[#:box? #true
+           @${\inferrule*{
+                \Gamma \wellM e \carrow e'
+              }{
+                \Gamma \wellM \eunop{e} \carrow \eunop{e'}
+              }}]{
+    @tr-step{
+      @${\wellKE e'}
+      @|K-D-completion|
+    }
+    @tr-step{
+      @${e' \nkrel e}
+      @tr-IH (1)
+    }
+    @tr-qed{
+      (2)
+    }
+  }
+
+  @tr-case[#:box? #true
+           @${\inferrule*{
+                \Gamma \wellM e_0 \carrow e_0'
+                \\\\
+                \Gamma \wellM e_1 \carrow e_1'
+              }{
+                \Gamma \wellM \ebinop{e_0}{e_1} \carrow \ebinop{e_0'}{e_1'}
+              } }]{
+    @tr-step{
+      @${\wellKE e_0'
+         @tr-and[]
+         \wellKE e_1'}
+      @|K-D-completion|
+    }
+    @tr-step{
+      @${e_0' \nkrel e_0
+         @tr-and[]
+         e_1' \nkrel e_1}
+      @tr-IH (1)
+    }
+    @tr-qed{
+      (2)
+    }
+  }
+
+  @tr-case[#:box? #true
+           @${\inferrule*{
+              }{
+                \Gamma \wellM \eerr \carrow \eerr
+              } }]{
+    @tr-qed{
+      @${\eerr \nkrel \eerr}
+    }
+  }
+
+  @tr-case[#:box? #true
+           @${\inferrule*{
+                \Gamma \wellM e : \tau \carrow e'
+              }{
+                \Gamma \wellM \esta{\tau}{e} \carrow \esta{\tau}{e'}
+              }
+              }]{
+    @tr-step{
+      @${\wellKE e' : \tagof{\tau}}
+      @|K-S-completion|
+    }
+    @tr-step{
+      @${e' \nkrel e}
+      @|KE-S-refl| (1)
+    }
+    @tr-qed{
+      (2)
+    }
+  }
+
 }
 
 @tr-lemma[#:key "NK-simulation" @elem{@${\langN}--@${\langK} simulation}]{
@@ -2141,7 +2624,7 @@
 @tr-lemma[#:key "NK-S-check" @elem{@${\langN}--@${\langK} @${\vsta} checking}]{
   If @${\wellNE \esta{\tau}{\valn}
         @tr-and[]
-        \esta{\tau}{\valn} \nkrel \valk}
+        \valn \nkrel \valk}
   @linebreak[]
   then one of the following holds:
   @itemlist[
@@ -2163,7 +2646,7 @@
 @tr-lemma[#:key "NK-D-check" @elem{@${\langN}--@${\langK} @${\vdyn} checking}]{
   If @${\wellNE \edyn{\tau}{\valn} : \tau
         @tr-and[]
-        \edyn{\tau}{\valn} \nkrel \valk}
+        \valn \nkrel \valk}
   @linebreak[]
   then one of the following holds:
   @itemlist[
