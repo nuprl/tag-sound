@@ -103,7 +103,9 @@
   K-S-completion
   K-D-completion
   K-S-factor
-  K-S-hole-typing)
+  K-S-hole-typing
+  K-S-inversion
+  K-D-inversion)
 
 @tr-theorem[#:key "K-S-soundness" @elem{static @${\langK}-soundness}]{
   If @${\wellM e : \tau}

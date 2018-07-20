@@ -67,6 +67,12 @@
 
    (define N-weakening @tr-ref[#:key "N-weakening"]{weakening})
 )
+@(provide
+  N-S-preservation
+  N-D-preservation
+  N-S-canonical
+  N-S-inversion
+  N-D-inversion)
 
 @tr-theorem[#:key "N-S-soundness" @elem{static @${\langN}-soundness}]{
   If @${\wellM e : \tau} then @${\wellNE e : \tau} and one of the following holds:

@@ -1,5 +1,19 @@
 #lang gf-icfp-2018
-@require["techreport.rkt" "supplement-model-k.scrbl"]
+@require[
+  "techreport.rkt"
+  (only-in "supplement-model-n.scrbl"
+    N-S-preservation
+    N-D-preservation
+    N-S-canonical
+    N-S-inversion
+    N-D-inversion)
+  (only-in "supplement-model-k.scrbl"
+    K-S-completion
+    K-D-completion
+    K-S-factor
+    K-S-hole-typing
+    K-S-inversion
+    K-D-inversion)]
 
 @appendix-title++{Simulation Lemmas}
 
@@ -26,8 +40,12 @@
    (define NK-value @tr-ref[#:key "NK-value"]{@${\langN}--@${\langK} hole substitution})
    (define NK-hole-subst @tr-ref[#:key "NK-hole-subst"]{@${\langN}--@${\langK} hole substitution})
    (define NK-subst @tr-ref[#:key "NK-subst"]{@${\langN}--@${\langK} substitution})
+   (define NK-check @tr-ref[#:key "NK-check"]{@${\langN}--@${\langK} boundary checking})
    (define NK-S-check @tr-ref[#:key "NK-S-check"]{@${\langN}--@${\langK} @${\vsta} checking})
    (define NK-D-check @tr-ref[#:key "NK-D-check"]{@${\langN}--@${\langK} @${\vdyn} checking})
+   (define NK-S-stutter @tr-ref[#:key "NK-S-stutter"]{@${\langN}--@${\langK} static value stutter})
+   (define NK-D-stutter @tr-ref[#:key "NK-D-stutter"]{@${\langN}--@${\langK} dynamic value stutter})
+   (define NK-inversion @tr-ref[#:key "NK-inversion"]{@${\langN}--@${\langK} inversion})
 )
 
 @exact{\input{fig:simulation.tex}}
@@ -2542,24 +2560,191 @@
 }
 
 @tr-lemma[#:key "NK-simulation" @elem{@${\langN}--@${\langK} simulation}]{
-  If @${\wellNE \exprn_0 : \tau
+  If @${\wellNE \ctxn[\exprn_0] : \tau
          @tr-and[]
-         \wellKE \exprk_0 : \tagof{\tau}
+         \wellKE \ctxk[\exprk_0] : \tagof{\tau}
          @tr-and[]
-         \exprn_0 \nkrel \exprk_0
+         \ctxn[\exprn_0] \nkrel \ctxk[\exprk_0]
          @tr-and[]
-         \exprk_0 \ccKS \exprk_1
+         \ctxk[\exprk_0] \ccKS \ctxk[\exprk_1]
          @tr-and[]
-         \exprn_0 \mbox{ does not contain a subterm of the form} \eerr}
+         \ctxn[\exprn_0] \mbox{ does not contain a subterm of the form} \eerr}
   @linebreak[]
-  then @${\exprn_0 \rrNSstar \exprn_n} and @${\exprn_n \nkrel \exprk_1}
+  then @${\ctxn[\exprn_0] \rrNSstar \ctxn[\exprn_n]}
+  and @${\ctxn[\exprn_n] \nkrel \ctxk[\exprk_1]}
 }@tr-proof{
-  By case analysis on @${\exprk_0 \ccKS \exprk_1}.
+  By case analysis on @${\ctxk[\exprk_0] \ccKS \ctxk[\exprk_1]}
 
-  TODO
+  TODO 
+  - get all the cases
+  - for each, LHS might not be a value so use the stutter lemmas
+  - 
 
-  @tr-case[@${???}]{
+
+  @tr-case[@${\ctxk[\edynfake{\valk}] \ccKS \ctxk[\valk]}]{
   }
+
+  @tr-case[@${\ctxk[\estafake{\valk}] \ccKS \ctxk[\valk]}]{
+  }
+
+@;  @tr-case[""]{
+@;  }
+}
+
+@tr-lemma[#:key "NK-S-stutter" @elem{@${\langN}--@${\langK} static value stutter}]{
+  If @${\exprn \nkrel \valk} and @${\wellNE \exprn : \tau}
+  then one of the following holds:
+  @itemlist[
+    @item{
+      @${\exprn \rrNSstar \valn} and @${\valn \nkrel \valk}
+    }
+    @item{
+      @${\exprn \rrNSstar \boundaryerror}
+    }
+  ]
+}@tr-proof{
+  By induction on the number of boundary terms in @${\exprn},
+   and case analysis on @${\exprn \nkrel \valk}.
+
+  @tr-case[@${\exprn \mbox{ is a value}}]{
+    @tr-qed{}
+  }
+
+  @tr-case[@${\exprn = \edyn{\tau}{(\esta{\tau'}{\exprn_2})}}]{
+    @tr-step{
+      @${\exprn_2 \nkrel \valk}
+      @|NK-inversion|
+    }
+    @tr-step{
+      @${\wellNE \esta{\tau'}{\exprn_2}
+         @tr-and[]
+         \wellNE \exprn_2 : \tau'}
+      @|N-S-inversion| and @|N-D-inversion|
+    }
+    @tr-step{
+      @${\exprn_2 \rrNSstar \valn_2
+         @tr-and[]
+         \valn_2 \nkrel \valk}
+      @tr-IH (1, 2)
+    }
+    @tr-step{
+      @${\wellNE \esta{\tau'}{\valn_2}}
+      @|N-S-preservation| (2, 3)
+    }
+    @tr-step{
+      @${\esta{\tau'}{\valn_2} \rrNSstar \valn_3 \mbox{ and } \valn_3 \nkrel \valk
+         @tr-or[]
+         \esta{\tau'}{\valn_2} \rrNSstar \boundaryerror}
+      @|NK-check| (4)
+    }
+    @list[
+      @tr-if[@${\esta{\tau'}{\valn_2} \rrNSstar \valn_3}]{
+        @tr-step{
+          @${\wellNE \edyn{\tau}{\valn_3} : \tau}
+          @|N-S-preservation| (5)
+        }
+        @tr-step{
+          @${\edyn{\tau}{\valn_3} \rrNSstar \valn_4 \mbox{ and } \valn_4 \nkrel \valk
+             @tr-or[]
+             \edyn{\tau}{\valn_3} \rrNSstar \boundaryerror}
+          @|NK-check| (a)
+        }
+        @tr-qed{
+          (b)
+        }
+      }
+      @tr-else[@${\esta{\tau'}{\valn_2} \rrNSstar \boundaryerror}]{
+        @tr-qed{
+          @${\edyn{\tau}{(\esta{\tau'}{\exprn_2})} \rrNSstar \boundaryerror}
+        }
+      }
+    ]
+  }
+
+  @tr-case[@${\exprn = \esta{\tau}{(\edyn{\tau'}{\exprn_2})}}]{
+    @tr-contradiction{
+      @${\wellNE \exprn : \tau}
+    }
+  }
+
+}
+
+@tr-lemma[#:key "NK-D-stutter" @elem{@${\langN}--@${\langK} dynamic value stutter}]{
+  If @${\exprn \nkrel \valk} and @${\wellNE \exprn}
+  then one of the following holds:
+  @itemlist[
+    @item{
+      @${\exprn \rrNDstar \valn} and @${\valn \nkrel \valk}
+    }
+    @item{
+      @${\exprn \rrNDstar \boundaryerror}
+    }
+  ]
+}@tr-proof{
+  By induction on the number of boundary terms in @${\exprn},
+   and case analysis on @${\exprn \nkrel \valk}.
+
+  @tr-case[@${\exprn \mbox{ is a value}}]{
+    @tr-qed{}
+  }
+
+  @tr-case[@${\exprn = \edyn{\tau}{(\esta{\tau'}{\exprn_2})}}]{
+    @tr-contradiction{
+      @${\wellNE \exprn : \tau}
+    }
+  }
+
+  @tr-case[@${\exprn = \esta{\tau}{(\edyn{\tau'}{\exprn_2})}}]{
+    @tr-step{
+      @${\exprn_2 \nkrel \valk}
+      @|NK-inversion|
+    }
+    @tr-step{
+      @${\wellNE \edyn{\tau'}{\exprn_2} : \tau'
+         @tr-and[]
+         \wellNE \exprn_2}
+      @|N-S-inversion| and @|N-D-inversion|
+    }
+    @tr-step{
+      @${\exprn_2 \rrNDstar \valn_2
+         @tr-and[]
+         \valn_2 \nkrel \valk}
+      @tr-IH (1, 2)
+    }
+    @tr-step{
+      @${\wellNE \edyn{\tau'}{\valn_2}}
+      @|N-S-preservation| (2, 3)
+    }
+    @tr-step{
+      @${\edyn{\tau'}{\valn_2} \rrNSstar \valn_3 \mbox{ and } \valn_3 \nkrel \valk
+         @tr-or[]
+         \edyn{\tau'}{\valn_2} \rrNSstar \boundaryerror}
+      @|NK-check| (4)
+    }
+    @list[
+      @tr-if[@${\edyn{\tau'}{\valn_2} \rrNSstar \valn_3}]{
+        @tr-step{
+          @${\wellNE \esta{\tau}{\valn_3} : \tau}
+          @|N-S-preservation| (5)
+        }
+        @tr-step{
+          @${\esta{\tau}{\valn_3} \rrNSstar \valn_4 \mbox{ and } \valn_4 \nkrel \valk
+             @tr-or[]
+             \esta{\tau}{\valn_3} \rrNSstar \boundaryerror}
+          @|NK-check| (a)
+        }
+        @tr-qed{
+          (b)
+        }
+      }
+      @tr-else[@${\edyn{\tau'}{\valn_2} \rrNSstar \boundaryerror}]{
+        @tr-qed{
+          @${\esta{\tau}{(\edyn{\tau'}{\exprn_2})} \rrNSstar \boundaryerror}
+        }
+      }
+    ]
+  }
+
 }
 
 @tr-lemma[#:key "NK-S-type" @elem{@${\langN}--@${\langK} static hole typing}]{
@@ -2621,26 +2806,116 @@
   TODO
 }
 
+@tr-lemma[#:key "NK-check" @elem{@${\langN}--@${\langK} boundary checking}]{
+  @itemlist[
+    @item{
+      If @${\wellNE \esta{\tau}{\valn} \mbox{ and } \valn \nkrel \valk}
+      then
+          @${\esta{\tau}{\valn} \rrKDstar \valn_1
+             @tr-and[]
+             \valn_1 \nkrel \valk}
+    }
+    @item{
+      If @${\wellNE \edyn{\tau}{\valn} : \tau
+            \mbox{ and }
+            \valn \nkrel \valk}
+      then one of the following holds:
+      @itemlist[
+        @item{
+          @${\edyn{\tau}{\valn} \rrKSstar \boundaryerror}
+        }
+        @item{
+          @${\edyn{\tau}{\valn} \rrKSstar \valn_1
+             @tr-and[]
+             \valn_1 \nkrel \valk}
+        }
+      ]
+    }
+  ]
+}@tr-proof{
+  By the following two lemmas: @|NK-S-check| and @|NK-D-check|.
+}
+
 @tr-lemma[#:key "NK-S-check" @elem{@${\langN}--@${\langK} @${\vsta} checking}]{
   If @${\wellNE \esta{\tau}{\valn}
         @tr-and[]
         \valn \nkrel \valk}
   @linebreak[]
-  then one of the following holds:
-  @itemlist[
-    @item{
-      @${\esta{\tau}{\valn} \rrKDstar \boundaryerror}
-    }
-    @item{
+  then
       @${\esta{\tau}{\valn} \rrKDstar \valn_1
          @tr-and[]
          \valn_1 \nkrel \valk}
-    }
-  ]
 }@tr-proof{
   By induction on the structure of @${\tau}.
 
-  TODO
+  @tr-case[@${\tau = \tnat}]{
+    @tr-step{
+      @${\esta{\tau}{\valn} \rrND \valn}
+      definition @${\rrND}
+    }
+    @tr-qed{}
+  }
+
+  @tr-case[@${\tau = \tint}]{
+    @tr-step{
+      @${\esta{\tau}{\valn} \rrND \valn}
+      definition @${\rrND}
+    }
+    @tr-qed{}
+  }
+
+  @tr-case[@${\tau = \tpair{\tau_0}{\tau_1}}]{
+    @tr-step{
+      @${\valn = \vpair{\valn_0}{\valn_1}}
+      @|N-D-inversion| and @|N-S-canonical|
+    }
+    @tr-step{
+      @${\valk = \vpair{\valk_0}{\valk_1}
+         @tr-and[]
+         \valn_0 \nkrel \valk_0
+         @tr-and[]
+         \valn_1 \nkrel \valk_1}
+      @|NK-inversion|
+    }
+    @tr-step{
+      @${\esta{\tau}{\valn} \rrND \vpair{\esta{\tau_0}{\valn_0}}{\esta{\tau_1}{\valn_1}}}
+      definition @${\rrND}
+    }
+    @tr-step{
+      @${\wellNE \esta{\tau_0}{\valn_0}
+         @tr-and[]
+         \wellNE \esta{\tau_1}{\valn_1}}
+      @|N-S-preservation| and @|N-S-inversion|
+    }
+    @tr-step{
+      @${\esta{\tau_0}{\valn_0} \rrKDstar \valn_{0'}
+         @tr-and[]
+         \valn_{0'} \nkrel \valk_0
+         @tr-and[]
+         \esta{\tau_1}{\valn_1} \rrKDstar \valn_{1'}
+         @tr-and[]
+         \valn_{1'} \nkrel \valk_1}
+      @tr-IH (2, 4)
+    }
+    @tr-step{
+      @${\esta{\tau}{\valn} \rrNDstar \vpair{\valn_{0'}}{\valn_{1'}}
+         @tr-and[]
+         \vpair{\valn_{0'}}{\valn_{1'}} \nkrel \valk}
+      (5)
+    }
+    @tr-qed{}
+  }
+
+  @tr-case[@${\tau = \tarr{\tau_d}{\tau_c}}]{
+    @tr-step{
+      @${\esta{\tau}{\valn} \rrND \vmonfun{\tau}{\valn}}
+    }
+    @tr-step{
+      @${\vmonfun{\tau}{\valn} \nkrel \valk}
+      @${\valn \nkrel \valk}
+    }
+    @tr-qed{}
+  }
 }
 
 @tr-lemma[#:key "NK-D-check" @elem{@${\langN}--@${\langK} @${\vdyn} checking}]{
@@ -2662,7 +2937,118 @@
 }@tr-proof{
   By induction on the structure of @${\tau}.
 
-  TODO
+  @tr-case[@${\tau = \tnat} #:itemize? #false]{
+    @tr-if[@${\valn \in \natural}]{
+      @tr-step{
+        @${\edyn{\tau}{\valn} \rrNS \valn}
+        definition @${\rrNS}
+      }
+      @tr-qed{}
+    }
+    @tr-else[@${\valn \not\in \natural}]{
+      @tr-step{
+        @${\edyn{\tau}{\valn} \rrNS \boundaryerror}
+      }
+      @tr-qed{}
+    }
+  }
+
+  @tr-case[@${\tau = \tint} #:itemize? #false]{
+    @tr-if[@${\valn \in \integers}]{
+      @tr-step{
+        @${\edyn{\tau}{\valn} \rrNS \valn}
+        definition @${\rrNS}
+      }
+      @tr-qed{}
+    }
+    @tr-else[@${\valn \not\in \integers}]{
+      @tr-step{
+        @${\edyn{\tau}{\valn} \rrNS \boundaryerror}
+      }
+      @tr-qed{}
+    }
+  }
+
+  @tr-case[@${\tau = \tpair{\tau_0}{\tau_1}} #:itemize? #false]{
+    @tr-if[@${\valn = \vpair{\valn_0}{\valn_1}}]{
+      @tr-step{
+        @${\valk = \vpair{\valk_0}{\valk_1}
+           @tr-and[]
+           \valn_0 \nkrel \valk_0
+           @tr-and[]
+           \valn_1 \nkrel \valk_1}
+        @|NK-inversion|
+      }
+      @tr-step{
+        @${\edyn{\tau}{\valn} \rrNS \vpair{\edyn{\tau_0}{\valn_0}}{\edyn{\tau_1}{\valn_1}}}
+        definition @${\rrNS}
+      }
+      @tr-step{
+        @${\wellNE \edyn{\tau_0}{\valn_0} : \tau_0
+           @tr-and[]
+           \wellNE \edyn{\tau_1}{\valn_1} : \tau_1}
+        @|N-S-preservation| and @|N-S-inversion|
+      }
+      @tr-step{
+        @${\edyn{\tau_0}{\valn_0} \rrKDstar \exprn_0
+           @tr-and[]
+           \exprn_0 \nkrel \valk_0
+           @tr-and[]
+           \exprn_0 = \valn_{0'} \mbox{ or } \exprn_0 = \boundaryerror
+           @tr-and[]
+           \edyn{\tau_1}{\valn_1} \rrKDstar \exprn_1
+           @tr-and[]
+           \exprn_1 \nkrel \valk_1
+           \exprn_1 = \valn_{1'} \mbox{ or } \exprn_1 = \boundaryerror}
+        @tr-IH (2, 4)
+      }
+      @tr-step{
+        @${\edyn{\tau}{\valn} \rrNSstar \boundaryerror
+           @tr-or[]
+           \edyn{\tau}{\valn} \rrNSstar \vpair{\valn_{0'}}{\valn_{1'}}
+           \mbox{ and }
+           \vpair{\valn_{0'}}{\valn_{1'}} \nkrel \valk}
+        (5)
+      }
+      @tr-qed{
+      }
+    }
+    @tr-else[@${\valn \not\in \vpair{v}{v}}]{
+      @tr-step{
+        @${\edyn{\tau}{\valn} \rrNS \boundaryerror}
+      }
+      @tr-qed{}
+    }
+  }
+
+  @tr-case[@${\tau = \tarr{\tau_d}{\tau_c}} #:itemize? #false]{
+    @tr-if[@${\valn = \vlam{x}{\exprn}}]{
+      @tr-step{
+        @${\edyn{\tau}{\valn} \rrNS \vmonfun{\tau}{\valn}}
+      }
+      @tr-step{
+        @${\vmonfun{\tau}{\valn} \nkrel \valk}
+        @${\valn \nkrel \valk}
+      }
+      @tr-qed{}
+    }
+    @tr-if[@${\valn = \vmonfun{\tau_0}{\valn_0}}]{
+      @tr-step{
+        @${\edyn{\tau}{\valn} \rrNS \vmonfun{\tau}{\valn}}
+      }
+      @tr-step{
+        @${\vmonfun{\tau}{\valn} \nkrel \valk}
+        @${\valn \nkrel \valk}
+      }
+      @tr-qed{}
+    }
+    @tr-else[@${\valn \in i \vee \valn \in \vpair{v}{v}}]{
+      @tr-step{
+        @${\edyn{\tau}{\valn} \rrNS \boundaryerror}
+      }
+      @tr-qed{}
+    }
+  }
 }
 
 @tr-lemma[#:key "NK-hole-subst" @elem{@${\langN}--@${\langK} hole substitution}]{
@@ -2684,4 +3070,19 @@
   By induction on the structure of @${\exprk}.
 
   TODO
+}
+
+@tr-lemma[#:key "NK-inversion" @elem{@${\langN}--@${\langK} inversion}]{
+  @itemlist[
+    @item{
+      If @${\edyn{\tau}{(\esta{\tau'}{\exprn})} \nkrel \exprk}
+      then @${\exprn \nkrel \exprk}
+    }
+    @item{
+      If @${\vpair{\valn_0}{\valn_1} \nkrel \valk}
+      then @${\valk = \vpair{\valk_0}{\valk_1}}
+    }
+  ]
+}@tr-proof{
+  By the definition of @${\nkrel}.
 }
