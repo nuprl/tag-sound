@@ -64,8 +64,8 @@
    (define K-S-hole-subst @tr-ref[#:key "K-S-hole-subst"]{static boundary-free hole substitution})
    (define K-D-hole-subst @tr-ref[#:key "K-D-hole-subst"]{dynamic boundary-free hole substitution})
 
-   (define K-S-inversion @tr-ref[#:key "K-S-inversion"]{inversion})
-   (define K-D-inversion @tr-ref[#:key "K-D-inversion"]{inversion})
+   (define K-S-inversion @tr-ref[#:key "K-S-inversion"]{@${\langK} inversion})
+   (define K-D-inversion @tr-ref[#:key "K-D-inversion"]{@${\langK} inversion})
 
    (define K-S-canonical @tr-ref[#:key "K-S-canonical"]{canonical forms})
 
@@ -104,6 +104,7 @@
   K-D-completion
   K-S-factor
   K-S-hole-typing
+  K-subt-preservation
   K-S-inversion
   K-D-inversion)
 

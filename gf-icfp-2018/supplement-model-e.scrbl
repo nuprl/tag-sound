@@ -24,7 +24,7 @@
    (define E-uec @tr-ref[#:key "E-uec"]{unique evaluation contexts})
    (define E-hole-typing @tr-ref[#:key "E-hole-typing"]{hole typing})
    (define E-hole-subst @tr-ref[#:key "E-hole-subst"]{hole substitution})
-   (define E-inversion @tr-ref[#:key "E-inversion"]{inversion})
+   (define E-inversion @tr-ref[#:key "E-inversion"]{@${\langE} inversion})
    (define E-subst @tr-ref[#:key "E-subst"]{substitution})
    (define E-delta-preservation @tr-ref[#:key "E-delta-preservation"]{@${\delta} preservation})
    (define E-weakening @tr-ref[#:key "E-weakening"]{weakening})

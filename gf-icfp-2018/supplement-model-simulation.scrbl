@@ -12,6 +12,7 @@
     K-D-completion
     K-S-factor
     K-S-hole-typing
+    K-subt-preservation
     K-S-inversion
     K-D-inversion)]
 
@@ -37,7 +38,7 @@
    (define NK-D-refl @tr-ref[#:key "NK-D-refl"]{@${\langN}--@${\langK} dynamic reflexivity})
    (define NK-S-type @tr-ref[#:key "NK-S-type"]{@${\langN}--@${\langK} static hole typing})
    (define NK-D-type @tr-ref[#:key "NK-D-type"]{@${\langN}--@${\langK} dynamic hole typing})
-   (define NK-value @tr-ref[#:key "NK-value"]{@${\langN}--@${\langK} hole substitution})
+   (define NK-value @tr-ref[#:key "NK-value"]{@${\langN}--@${\langK} value inversion})
    (define NK-hole-subst @tr-ref[#:key "NK-hole-subst"]{@${\langN}--@${\langK} hole substitution})
    (define NK-subst @tr-ref[#:key "NK-subst"]{@${\langN}--@${\langK} substitution})
    (define NK-check @tr-ref[#:key "NK-check"]{@${\langN}--@${\langK} boundary checking})
@@ -45,7 +46,10 @@
    (define NK-D-check @tr-ref[#:key "NK-D-check"]{@${\langN}--@${\langK} @${\vdyn} checking})
    (define NK-S-stutter @tr-ref[#:key "NK-S-stutter"]{@${\langN}--@${\langK} static value stutter})
    (define NK-D-stutter @tr-ref[#:key "NK-D-stutter"]{@${\langN}--@${\langK} dynamic value stutter})
-   (define NK-inversion @tr-ref[#:key "NK-inversion"]{@${\langN}--@${\langK} inversion})
+   (define NK-fail @tr-ref[#:key "NK-fail"]{@${\vfromany} inversion})
+   (define NK-S-app @tr-ref[#:key "NK-S-app"]{@${\langN}--@${\langK} static application})
+   (define NK-D-app @tr-ref[#:key "NK-D-app"]{@${\langN}--@${\langK} dynamic application})
+   (define NK-delta @tr-ref[#:key "NK-delta"]{@${\langN}--@${\langK} @${\delta}-preservation})
 )
 
 @exact{\input{fig:simulation.tex}}
@@ -2129,6 +2133,11 @@
 @exact{\newpage}
 @; -----------------------------------------------------------------------------
 
+TODO need more
+        \exprn \not\in \eerr
+assumptions?
+TODO remove all such error assumptions please
+
 @tr-lemma[#:key "NK-approximation" @elem{@${\langN}--@${\langK} approximation}]{
   If @${e \in \exprsta} and @${\wellM e : \tau}
   and @${\wellKE e : \tagof{\tau} \carrow e''}
@@ -2575,20 +2584,1405 @@
 }@tr-proof{
   By case analysis on @${\ctxk[\exprk_0] \ccKS \ctxk[\exprk_1]}
 
-  TODO 
-  - get all the cases
-  - for each, LHS might not be a value so use the stutter lemmas
-  - 
-
-
-  @tr-case[@${\ctxk[\edynfake{\valk}] \ccKS \ctxk[\valk]}]{
+  @tr-case[@${\ctxk[\edynfake{\valk_0}] \ccKS \ctxk[\valk_0]}]{
+    @tr-step{
+      @${\exprn_0 = \edyn{\tau_0}{\exprn_{0'}}
+         @tr-and[]
+         \exprn_{0'} \nkrel \valk_0}
+      @${\nkrel}
+    }
+    @tr-step{
+      @${\wellNE \exprn_{0'}}
+      @${\wellNE \ctxn[\exprn_0] : \tau}
+    }
+    @tr-step{
+      @${\exprn_{0'} \rrNSstar \valn_0 \mbox{ and } \valn_0 \nkrel \valk_0
+         @tr-or[]
+         \exprn_{0'} \rrNSstar \boundaryerror}
+      @|NK-S-stutter| (1, 2)
+    }
+    @list[
+      @tr-if[@${\exprn_{0'} \rrNSstar \valn_0 \mbox{ and } \valn_0 \nkrel \valk_0}]{
+        @tr-step{
+          @${\wellNE \valn_0}
+          @|N-S-preservation|
+        }
+        @tr-step{
+          @${\edyn{\tau_0}{\valn_0} \rrNSstar \exprn_{1'}
+             @tr-and[]
+             \exprn_{1'} \nkrel \valk_0
+             @tr-and[]
+             \exprn_{1'} \in v \mbox{ or } \exprn_{1} = \boundaryerror}
+          @|NK-check|
+        }
+        @tr-qed{
+          @${\ctxn[\exprn_0] \rrNSstar \ctxn[\exprn_{1}]}
+        }
+      }
+      @tr-else[@${\exprn_{0'} \rrNSstar \boundaryerror}]{
+        @tr-qed{
+          @${\ctxn[\exprn_0] \rrNSstar \boundaryerror}
+        }
+      }
+    ]
   }
 
-  @tr-case[@${\ctxk[\estafake{\valk}] \ccKS \ctxk[\valk]}]{
+  @tr-case[@${\ctxk[\estafake{\valk_0}] \ccKS \ctxk[\valk_0]}]{
+    @tr-step{
+      @${\exprn_0 = \esta{\tau_0}{\exprn_{0'}}
+         @tr-and[]
+         \exprn_{0'} \nkrel \valk_0}
+      @${\nkrel}
+    }
+    @tr-step{
+      @${\wellNE \exprn_{0'} : \tau_0}
+      @${\wellNE \ctxn[\exprn_0] : \tau}
+    }
+    @tr-step{
+      @${\exprn_{0'} \rrNDstar \valn_0 \mbox{ and } \valn_0 \nkrel \valk_0
+         @tr-or[]
+         \exprn_{0'} \rrNDstar \boundaryerror}
+      @|NK-D-stutter| (1, 2)
+    }
+    @list[
+      @tr-if[@${\exprn_{0'} \rrNDstar \valn_0 \mbox{ and } \valn_0 \nkrel \valk_0}]{
+        @tr-step{
+          @${\wellNE \valn_0 : \tau_0}
+          @|N-D-preservation|
+        }
+        @tr-step{
+          @${\esta{\tau_0}{\valn_0} \rrNDstar \exprn_{1'}
+             @tr-and[]
+             \exprn_{1'} \nkrel \valk_0
+             @tr-and[]
+             \exprn_{1'} \in v \mbox{ or } \exprn_{1} = \boundaryerror}
+          @|NK-check|
+        }
+        @tr-qed{
+          @${\ctxn[\exprn_0] \rrNSstar \ctxn[\exprn_{1}]}
+        }
+      }
+      @tr-else[@${\exprn_{0'} \rrNDstar \boundaryerror}]{
+        @tr-qed{
+          @${\ctxn[\exprn_0] \rrNSstar \boundaryerror}
+        }
+      }
+    ]
   }
 
-@;  @tr-case[""]{
-@;  }
+  @tr-case[@${\ctxk[\edyn{\tau_0}{\valk_0}] \ccKS \ctxk[\boundaryerror]}]{
+    @tr-step{
+      @${\exprn_0 = \edyn{\tau_0}{\exprn_{0'}}
+         @tr-and[]
+         \exprn_{0'} \nkrel \valk_0}
+      @${\nkrel}
+    }
+    @tr-step{
+      @${\wellNE \exprn_{0'}}
+      @${\wellNE \ctxn[\exprn_0] : \tau}
+    }
+    @tr-step{
+      @${\exprn_{0'} \rrNSstar \valn_0 \mbox{ and } \valn_0 \nkrel \valk_0
+         @tr-or[]
+         \exprn_{0'} \rrNSstar \boundaryerror}
+      @|NK-S-stutter| (1, 2)
+    }
+    @list[
+      @tr-if[@${\exprn_{0'} \rrNSstar \valn_0 \mbox{ and } \valn_0 \nkrel \valk_0}]{
+        @tr-step{
+          @${\efromany{\tagof{\tau_0}}{\valk_0} = \boundaryerror}
+          @${\ctxk[\edyn{\tau_0}{\valk_0}] \ccKS \ctxk[\boundaryerror]}
+        }
+        @tr-step{
+          @${\efromdynN{\tau_0}{\valn_0} = \boundaryerror}
+          @|NK-fail|
+        }
+        @tr-qed{
+          @${\ctxn[\exprn_0] \rrNSstar \boundaryerror}
+        }
+      }
+      @tr-else[@${\exprn_{0'} \rrNSstar \boundaryerror}]{
+        @tr-qed{
+          @${\ctxn[\exprn_0] \rrNSstar \boundaryerror}
+        }
+      }
+    ]
+  }
+
+  @tr-case[@${\ctxk[\edyn{\tau_0}{\valk_0}] \ccKS \ctxk[\valk_0]}]{
+    @tr-step{
+      @${\exprn_0 = \edyn{\tau_0}{\exprn_{0'}}
+         @tr-and[]
+         \exprn_{0'} \nkrel \valk_0}
+      @${\nkrel}
+    }
+    @tr-step{
+      @${\wellNE \exprn_{0'}}
+      @${\wellNE \ctxn[\exprn_0] : \tau}
+    }
+    @tr-step{
+      @${\exprn_{0'} \rrNSstar \valn_0 \mbox{ and } \valn_0 \nkrel \valk_0
+         @tr-or[]
+         \exprn_{0'} \rrNSstar \boundaryerror}
+      @|NK-S-stutter| (1, 2)
+    }
+    @list[
+      @tr-if[@${\exprn_{0'} \rrNSstar \valn_0 \mbox{ and } \valn_0 \nkrel \valk_0}]{
+        @tr-step{
+          @${\wellNE \valn_0}
+          @|N-S-preservation|
+        }
+        @tr-step{
+          @${\edyn{\tau_0}{\valn_0} \rrNSstar \exprn_{1'}
+             @tr-and[]
+             \exprn_{1'} \nkrel \valk_0
+             @tr-and[]
+             \exprn_{1'} \in v \mbox{ or } \exprn_{1} = \boundaryerror}
+          @|NK-check|
+        }
+        @tr-qed{
+          @${\ctxn[\exprn_0] \rrNSstar \ctxn[\exprn_{1}]}
+        }
+      }
+      @tr-else[@${\exprn_{0'} \rrNSstar \boundaryerror}]{
+        @tr-qed{
+          @${\ctxn[\exprn_0] \rrNSstar \boundaryerror}
+        }
+      }
+    ]
+  }
+
+  @tr-case[@${\ctxk[\esta{\tau_0}{\valk_0}] \ccKS \ctxk[\valk_0]}]{
+    @tr-step{
+      @${\exprn_0 = \esta{\tau_0}{\exprn_{0'}}
+         @tr-and[]
+         \exprn_{0'} \nkrel \valk_0}
+      @${\nkrel}
+    }
+    @tr-step{
+      @${\wellNE \exprn_{0'} : \tau_0}
+      @${\wellNE \ctxn[\exprn_0] : \tau}
+    }
+    @tr-step{
+      @${\exprn_{0'} \rrNDstar \valn_0 \mbox{ and } \valn_0 \nkrel \valk_0
+         @tr-or[]
+         \exprn_{0'} \rrNDstar \boundaryerror}
+      @|NK-D-stutter| (1, 2)
+    }
+    @list[
+      @tr-if[@${\exprn_{0'} \rrNDstar \valn_0 \mbox{ and } \valn_0 \nkrel \valk_0}]{
+        @tr-step{
+          @${\wellNE \valn_0 : \tau_0}
+          @|N-D-preservation|
+        }
+        @tr-step{
+          @${\esta{\tau_0}{\valn_0} \rrNDstar \exprn_{1'}
+             @tr-and[]
+             \exprn_{1'} \nkrel \valk_0
+             @tr-and[]
+             \exprn_{1'} \in v \mbox{ or } \exprn_{1} = \boundaryerror}
+          @|NK-check|
+        }
+        @tr-qed{
+          @${\ctxn[\exprn_0] \rrNSstar \ctxn[\exprn_{1}]}
+        }
+      }
+      @tr-else[@${\exprn_{0'} \rrNDstar \boundaryerror}]{
+        @tr-qed{
+          @${\ctxn[\exprn_0] \rrNSstar \boundaryerror}
+        }
+      }
+    ]
+  }
+
+  @tr-case[@${\ctxk[\echk{K_0}{\valk_0}] \ccKS \ctxk[\boundaryerror]}]{
+    @tr-step{
+      @${\wellKE \echk{K_0}{\valk_0} : K_0}
+      @${\wellKE \ctxk[\exprk_0] : K}
+    }
+    @tr-step{
+      @${\wellNE \exprn_0 : \tau_0
+         @tr-and[]
+         \tagof{\tau_0} \subteq K_0}
+      @|NK-S-type|
+    }
+    @tr-step{
+      @${\exprn_0 \rrNSstar \valn_0 \mbox{ and } \valn_0 \nkrel \valk_0
+         @tr-or[]
+         \exprn_0 \rrNSstar \boundaryerror}
+      @|NK-S-stutter| (2)
+    }
+    @list[
+      @tr-if[@${\exprn_0 \rrNSstar \valn_0 \mbox{ and } \valn_0 \nkrel \valk_0}]{
+        @tr-step{
+          @${\wellKE \valk_0 : \tagof{\tau_0}}
+          @|NK-value| (2, 3)
+        }
+        @tr-step{
+          @${\echk{K_0}{\valk_0} \rrKS \valk_0}
+          definition @${\rrKS}
+        }
+        @tr-contradiction{
+          @${\ctxk[\echk{K_0}{\valk_0}] \ccKS \ctxk[\boundaryerror]} (b)
+        }
+      }
+      @tr-else[@${\exprn_0 \rrNSstar \boundaryerror}]{
+        @tr-qed{
+          @${\ctxn[\exprn_0] \rrNSstar \boundaryerror}
+        }
+      }
+    ]
+  }
+
+  @tr-case[@${\ctxk[\echk{K_0}{\valk_0}] \ccKS \ctxk[\valk_0]}]{
+    @tr-step{
+      @${\wellKE \echk{K_0}{\valk_0} : K_0}
+      @${\wellKE \ctxk[\exprk_0] : K}
+    }
+    @tr-step{
+      @${\wellNE \exprn_0 : \tau_0
+         @tr-and[]
+         \tagof{\tau_0} \subteq K_0}
+      @|NK-S-type|
+    }
+    @tr-step{
+      @${\exprn_0 \rrNSstar \valn_0 \mbox{ and } \valn_0 \nkrel \valk_0
+         @tr-or[]
+         \exprn_0 \rrNSstar \boundaryerror}
+      @|NK-S-stutter| (2)
+    }
+    @list[
+      @tr-if[@${\exprn_0 \rrNSstar \valn_0 \mbox{ and } \valn_0 \nkrel \valk_0}]{
+        @tr-qed{
+          @${\ctxn[\exprn_0] \rrNSstar \valn_0}
+        }
+      }
+      @tr-else[@${\exprn_0 \rrNSstar \boundaryerror}]{
+        @tr-qed{
+          @${\ctxn[\exprn_0] \rrNSstar \boundaryerror}
+        }
+      }
+    ]
+  }
+
+  @tr-case[@${\ctxk[\eapp{\valk_0}{\valk_1}] \ccKS \ctxk[\exprk_2]
+              @tr-and[]
+              \wellKE \eapp{\valk_0}{\valk_1} : K'}]{
+    @tr-step{
+      @${\wellNE \exprn_0 : \tau_0}
+      @|NK-S-type|
+    }
+    @tr-step{
+      @${\exprn_0 = \eapp{\exprn_{0'}}{\exprn_{1'}}}
+      @${\nkrel}
+    }
+    @tr-step{
+      @${\exprn_{0'} \rrNSstar \valn_0 \mbox{ and } \valn_0 \nkrel \valk_0
+         @tr-or[]
+         \exprn_{0'} \rrNSstar \boundaryerror}
+      @|NK-S-stutter| (1, 2)
+    }
+    @tr-step{
+      @${\exprn_{1'} \rrNSstar \valn_1 \mbox{ and } \valn_1 \nkrel \valk_1
+         @tr-or[]
+         \exprn_{1'} \rrNSstar \boundaryerror}
+      @|NK-S-stutter| (1, 2)
+    }
+    @list[
+      @tr-if[@${\exprn_{0'} \rrNSstar \valn_0
+                @tr-and[]
+                \exprn_{1'} \rrNSstar \valn_1}]{
+        @tr-step{
+          @${\eapp{\valn_0}{\valn_1} \rrNSstar \exprn_2
+             @tr-and[]
+             \exprn_2 \nkrel \exprk_2}
+          @|NK-S-app| (1)
+        }
+        @tr-qed{
+          @${\ctxn[\exprn_0] \rrNSstar \ctxn[\exprn_2]}
+        }
+      }
+      @tr-if[@${\exprn_{0'} \rrNSstar \boundaryerror}]{
+        @tr-qed{
+          @${\ctxn[\exprn_0] \rrNSstar \boundaryerror}
+        }
+      }
+      @tr-else[@${\exprn_{1'} \rrNSstar \boundaryerror}]{
+        @tr-qed{
+          @${\ctxn[\exprn_0] \rrNSstar \boundaryerror}
+        }
+      }
+    ]
+  }
+
+  @tr-case[@${\ctxk[\eapp{\valk_0}{\valk_1}] \ccKS \ctxk[\exprk_2]
+              @tr-and[]
+              \wellKE \eapp{\valk_0}{\valk_1}}]{
+    @tr-step{
+      @${\wellNE \exprn_0}
+      @|NK-S-type|
+    }
+    @tr-step{
+      @${\exprn_0 = \eapp{\exprn_{0'}}{\exprn_{1'}}}
+      @${\nkrel}
+    }
+    @tr-step{
+      @${\exprn_{0'} \rrNDstar \valn_0 \mbox{ and } \valn_0 \nkrel \valk_0
+         @tr-or[]
+         \exprn_{0'} \rrNDstar \boundaryerror}
+      @|NK-D-stutter| (1, 2)
+    }
+    @tr-step{
+      @${\exprn_{1'} \rrNDstar \valn_1 \mbox{ and } \valn_1 \nkrel \valk_1
+         @tr-or[]
+         \exprn_{1'} \rrNDstar \boundaryerror}
+      @|NK-D-stutter| (1, 2)
+    }
+    @list[
+      @tr-if[@${\exprn_{0'} \rrNDstar \valn_0
+                @tr-and[]
+                \exprn_{1'} \rrNDstar \valn_1}]{
+        @tr-step{
+          @${\eapp{\valn_0}{\valn_1} \rrNDstar \exprn_2
+             @tr-and[]
+             \exprn_2 \nkrel \exprk_2}
+          @|NK-D-app| (1)
+        }
+        @tr-qed{
+          @${\ctxn[\exprn_0] \rrNDstar \ctxn[\exprn_2]}
+        }
+      }
+      @tr-if[@${\exprn_{0'} \rrNDstar \boundaryerror}]{
+        @tr-qed{
+          @${\ctxn[\exprn_0] \rrNSstar \boundaryerror}
+        }
+      }
+      @tr-else[@${\exprn_{1'} \rrNDstar \boundaryerror}]{
+        @tr-qed{
+          @${\ctxn[\exprn_0] \rrNSstar \boundaryerror}
+        }
+      }
+    ]
+  }
+
+  @tr-case[@${\ctxk[\eunop{\valk_0}] \ccKS \ctxk[\delta(\vunop, \valk_0)]
+              @tr-and[]
+              \wellKE \eunop{\valk_0} : K_0}]{
+    @tr-step{
+      @${\wellNE \exprn_0 : \tau_0}
+      @|NK-S-type|
+    }
+    @tr-step{
+      @${\exprn_0 = \eunop{\exprn_{0'}}}
+      @${\nkrel}
+    }
+    @tr-step{
+      @${\wellNE \exprn_{0'} : \tau_{0'}}
+      @|N-S-inversion| (1, 2)
+    }
+    @tr-step{
+      @${\exprn_{0'} \nkrel \valk_0}
+      @${\nkrel}
+    }
+    @tr-step{
+      @${\exprn_{0'} \rrNSstar \valn_{0} \mbox{ and } \valn_0 \nkrel \valk_0
+         @tr-or[]
+         \exprn_{0'} \rrNSstar \boundaryerror}
+      @|NK-S-stutter|
+    }
+    @list[
+      @tr-if[@${\exprn_{0'} \rrNSstar \valn_{0}}]{
+        @tr-step{
+          @${\eunop{\valn_{0}} \rrNS \delta(\vunop, \valn_0}
+          @${\rrNS}
+        }
+        @tr-step{
+          @${\delta(\vunop, \valn_0) \nkrel \delta(\vunop, \valk_0)}
+          @|NK-delta|
+        }
+        @tr-qed{
+          @${\ctxn[\exprn_0] \rrNSstar \ctxn[\delta(\vunop, \valn_0)]}
+        }
+      }
+      @tr-else[@${\exprn_{0'} \rrNSstar \boundaryerror}]{
+        @tr-qed{
+          @${\ctxn[\exprn_0] \rrNSstar \boundaryerror}
+        }
+      }
+    ]
+  }
+
+  @tr-case[@${\ctxk[\eunop{\valk_0}] \ccKS \ctxk[\delta(\vunop, \valk_0)]
+              @tr-and[]
+              \wellKE \eunop{\valk_0}}]{
+    @tr-step{
+      @${\wellNE \exprn_0}
+      @|NK-D-type|
+    }
+    @tr-step{
+      @${\exprn_0 = \eunop{\exprn_{0'}}}
+      @${\nkrel}
+    }
+    @tr-step{
+      @${\wellNE \exprn_{0'} : \tau_{0'}}
+      @|N-D-inversion| (1, 2)
+    }
+    @tr-step{
+      @${\exprn_{0'} \nkrel \valk_0}
+      @${\nkrel}
+    }
+    @tr-step{
+      @${\exprn_{0'} \rrNDstar \valn_{0} \mbox{ and } \valn_0 \nkrel \valk_0
+         @tr-or[]
+         \exprn_{0'} \rrNDstar \boundaryerror}
+      @|NK-D-stutter|
+    }
+    @list[
+      @tr-if[@${\exprn_{0'} \rrNDstar \valn_{0}}]{
+        @tr-step{
+          @${\eunop{\valn_{0}} \rrND \delta(\vunop, \valn_0)}
+          @${\rrND}
+        }
+        @tr-step{
+          @${\delta(\vunop, \valn_0) \nkrel \delta(\vunop, \valk_0)}
+          @|NK-delta|
+        }
+        @tr-qed{
+          @${\ctxn[\exprn_0] \rrNSstar \ctxn[\delta(\vunop, \valn_0)]}
+        }
+      }
+      @tr-else[@${\exprn_{0'} \rrNDstar \boundaryerror}]{
+        @tr-qed{
+          @${\ctxn[\exprn_0] \rrNSstar \boundaryerror}
+        }
+      }
+    ]
+  }
+
+  @tr-case[@${\ctxk[\eunop{\valk_0}] \ccKS \ctxk[\tagerror]}]{
+    @tr-step{
+      @${\wellKE \eunop{\valk_0}}
+      definition @${\ccKS}
+    }
+    @tr-step{
+      @${\wellNE \exprn_0}
+      @|NK-D-type| (1)
+    }
+    @tr-step{
+      @${\exprn_0 = \eunop{\exprn_{0'}}}
+      @${\nkrel}
+    }
+    @tr-step{
+      @${\wellNE \exprn_{0'} : \tau_{0'}}
+      @|N-D-inversion| (2, 3)
+    }
+    @tr-step{
+      @${\exprn_{0'} \nkrel \valk_0}
+      @${\nkrel}
+    }
+    @tr-step{
+      @${\exprn_{0'} \rrNDstar \valn_{0} \mbox{ and } \valn_0 \nkrel \valk_0
+         @tr-or[]
+         \exprn_{0'} \rrNDstar \boundaryerror}
+      @|NK-D-stutter|
+    }
+    @list[
+      @tr-if[@${\exprn_{0'} \rrNDstar \valn_{0}}]{
+        @tr-step{
+          @elem{@${\delta(\vunop, \valk_0} is undefined}
+          definition @${\rrND}
+        }
+        @tr-step{
+          @${\valk_0 \not\in \vpair{v}{v}}
+          (a)
+        }
+        @tr-step{
+          @${\valn_0 \not\in \vpair{v}{v}}
+          @${\valn_0 \nkrel \valk_0}
+        }
+        @tr-qed{
+          @${\ctxn[\exprn_0] \rrNSstar \tagerror}
+        }
+      }
+      @tr-else[@${\exprn_{0'} \rrNDstar \boundaryerror}]{
+        @tr-qed{
+          @${\ctxn[\exprn_0] \rrNSstar \boundaryerror}
+        }
+      }
+    ]
+  }
+
+  @tr-case[@${\ctxk[\ebinop{\valk_0}{\valk_1}] \ccKS \ctxk[\delta(\vbinop, \valk_0, \valk_1)]
+              @tr-and[]
+              \wellKE \ebinop{\valk_0}{\valk_1} : K_0}]{
+    @tr-step{
+      @${\wellNE \exprn_0 : \tau_0}
+      @|NK-S-type|
+    }
+    @tr-step{
+      @${\exprn_0 = \ebinop{\exprn_{0'}}{\exprn_{1'}}}
+      @${\nkrel}
+    }
+    @tr-step{
+      @${\wellNE \exprn_{0'} : \tau_{0'}
+         @tr-and[]
+         \wellNE \exprn_{1'} : \tau_{1'}}
+      @|N-S-inversion| (1, 2)
+    }
+    @tr-step{
+      @${\exprn_{0'} \nkrel \valk_0
+         @tr-and[]
+         \exprn_{1'} \nkrel \valk_1}
+      @${\nkrel}
+    }
+    @tr-step{
+      @${\exprn_{0'} \rrNSstar \valn_{0} \mbox{ and } \valn_0 \nkrel \valk_0
+         @tr-or[]
+         \exprn_{0'} \rrNSstar \boundaryerror}
+      @|NK-S-stutter|
+    }
+    @tr-step{
+      @${\exprn_{1'} \rrNSstar \valn_{1} \mbox{ and } \valn_1 \nkrel \valk_1
+         @tr-or[]
+         \exprn_{1'} \rrNSstar \boundaryerror}
+      @|NK-S-stutter|
+    }
+    @list[
+      @tr-if[@${\exprn_{0'} \rrNSstar \valn_{0}
+                @tr-and[]
+                \exprn_{1'} \rrNSstar \valn_1}]{
+        @tr-step{
+          @${\ebinop{\valn_{0}}{\valn_{1}} \rrNS \delta(\vbinop, \valn_0, \valn_1)}
+          @${\rrND}
+        }
+        @tr-step{
+          @${\delta(\vbinop, \valn_0, \valn_1) \nkrel \delta(\vbinop, \valk_0, \valk_1)}
+          @|NK-delta|
+        }
+        @tr-qed{
+          @${\ctxn[\exprn_0] \rrNSstar \ctxn[\delta(\vbinop, \valn_0, \valn_1)]}
+        }
+      }
+      @tr-if[@${\exprn_{0'} \rrNSstar \boundaryerror}]{
+        @tr-qed{
+          @${\ctxn[\exprn_0] \rrNSstar \boundaryerror}
+        }
+      }
+      @tr-else[@${\exprn_{1'} \rrNSstar \boundaryerror}]{
+        @tr-qed{
+          @${\ctxn[\exprn_0] \rrNSstar \boundaryerror}
+        }
+      }
+    ]
+  }
+
+  @tr-case[@${\ctxk[\ebinop{\valk_0}{\valk_1}] \ccKS \ctxk[\delta(\vbinop, \valk_0, \valk_1)]
+              @tr-and[]
+              \wellKE \ebinop{\valk_0}{\valk_1}}]{
+    @tr-step{
+      @${\wellNE \exprn_0}
+      @|NK-S-type|
+    }
+    @tr-step{
+      @${\exprn_0 = \ebinop{\exprn_{0'}}{\exprn_{1'}}}
+      @${\nkrel}
+    }
+    @tr-step{
+      @${\wellNE \exprn_{0'}
+         @tr-and[]
+         \wellNE \exprn_{1'}}
+      @|N-S-inversion| (1, 2)
+    }
+    @tr-step{
+      @${\exprn_{0'} \nkrel \valk_0
+         @tr-and[]
+         \exprn_{1'} \nkrel \valk_1}
+      @${\nkrel}
+    }
+    @tr-step{
+      @${\exprn_{0'} \rrNDstar \valn_{0} \mbox{ and } \valn_0 \nkrel \valk_0
+         @tr-or[]
+         \exprn_{0'} \rrNDstar \boundaryerror}
+      @|NK-D-stutter|
+    }
+    @tr-step{
+      @${\exprn_{1'} \rrNDstar \valn_{1} \mbox{ and } \valn_1 \nkrel \valk_1
+         @tr-or[]
+         \exprn_{1'} \rrNDstar \boundaryerror}
+      @|NK-D-stutter|
+    }
+    @list[
+      @tr-if[@${\exprn_{0'} \rrNDstar \valn_{0}
+                @tr-and[]
+                \exprn_{1'} \rrNDstar \valn_1}]{
+        @tr-step{
+          @${\ebinop{\valn_{0}}{\valn_{1}} \rrND \delta(\vbinop, \valn_0, \valn_1)}
+          @${\rrND}
+        }
+        @tr-step{
+          @${\delta(\vbinop, \valn_0, \valn_1) \nkrel \delta(\vbinop, \valk_0, \valk_1)}
+          @|NK-delta|
+        }
+        @tr-qed{
+          @${\ctxn[\exprn_0] \rrNSstar \ctxn[\delta(\vbinop, \valn_0, \valn_1)]}
+        }
+      }
+      @tr-if[@${\exprn_{0'} \rrNDstar \boundaryerror}]{
+        @tr-qed{
+          @${\ctxn[\exprn_0] \rrNSstar \boundaryerror}
+        }
+      }
+      @tr-else[@${\exprn_{1'} \rrNDstar \boundaryerror}]{
+        @tr-qed{
+          @${\ctxn[\exprn_0] \rrNSstar \boundaryerror}
+        }
+      }
+    ]
+  }
+
+  @tr-case[@${\ctxk[\ebinop{\valk_0}{\valk_1}] \ccKS \ctxk[\tagerror]}]{
+    @tr-step{
+      @${\wellKE \ebinop{\valk_0}{\valk_1}}
+      definition @${\ccKS}
+    }
+    @tr-step{
+      @${\wellNE \exprn_0}
+      @|NK-D-type| (1)
+    }
+    @tr-step{
+      @${\exprn_0 = \ebinop{\exprn_{0'}}{\exprn_{1'}}}
+      @${\nkrel}
+    }
+    @tr-step{
+      @${\wellNE \exprn_{0'} : \tau_{0'}
+         @tr-and[]
+         \wellNE \exprn_{1'} : \tau_{1'}}
+      @|N-D-inversion| (2, 3)
+    }
+    @tr-step{
+      @${\exprn_{0'} \nkrel \valk_0
+         @tr-and[]
+         \exprn_{1'} \nkrel \valk_1}
+      @${\nkrel}
+    }
+    @tr-step{
+      @${\exprn_{0'} \rrNDstar \valn_{0} \mbox{ and } \valn_0 \nkrel \valk_0
+         @tr-or[]
+         \exprn_{0'} \rrNDstar \boundaryerror}
+      @|NK-D-stutter|
+    }
+    @tr-step{
+      @${\exprn_{1'} \rrNDstar \valn_{1} \mbox{ and } \valn_1 \nkrel \valk_1
+         @tr-or[]
+         \exprn_{1'} \rrNDstar \boundaryerror}
+      @|NK-D-stutter|
+    }
+    @list[
+      @tr-if[@${\exprn_{0'} \rrNDstar \valn_{0}
+                @tr-and[]
+                \exprn_{1'} \rrNDstar \valn_1}]{
+        @tr-step{
+          @elem{@${\delta(\vbinop, \valk_0, \valk_1} is undefined}
+          definition @${\rrND}
+        }
+        @tr-step{
+          @${\valk_0 \not\in \integers
+             @tr-and[]
+             \valk_1 \not\in \integers}
+          (a)
+        }
+        @tr-step{
+          @${\valn_0 \not\in \integers}
+          @${\valn_0 \nkrel \valk_0}
+        }
+        @tr-step{
+          @${\valn_1 \not\in \integers}
+          @${\valn_1 \nkrel \valk_1}
+        }
+        @tr-qed{
+          @${\ctxn[\exprn_0] \rrNSstar \tagerror}
+        }
+      }
+      @tr-if[@${\exprn_{0'} \rrNDstar \boundaryerror}]{
+        @tr-qed{
+          @${\ctxn[\exprn_0] \rrNSstar \boundaryerror}
+        }
+      }
+      @tr-else[@${\exprn_{1'} \rrNDstar \boundaryerror}]{
+        @tr-qed{
+          @${\ctxn[\exprn_0] \rrNSstar \boundaryerror}
+        }
+      }
+    ]
+  }
+
+}
+
+@tr-lemma[#:key "NK-S-app" @elem{@${\langN}--@${\langK} static application}]{
+  If @${\eapp{\valn_0}{\valn_1} \nkrel \eapp{\valk_0}{\valk_1}
+        @tr-and[]
+        \wellNE \eapp{\valn_0}{\valn_1} : \tau
+        @tr-and[]
+        \wellKE \eapp{\valk_0}{\valk_1} : K
+        @tr-and[]
+        \tagof{\tau} \subteq K
+        @tr-and[]
+        \eapp{\valk_0}{\valk_1} \ccKS \exprk_2}
+  then @${\eapp{\valn_0}{\valn_1} \rrNSstar \exprn_2}
+  and @${\exprn_2 \nkrel \exprk_2}
+}@tr-proof{
+  By induction on the number of monitors in @${\valn_0},
+   proceeding by case analysis on @${\eapp{\valk_0}{\valk_1} \ccKS \exprk_2}.
+
+  @tr-case[@${\eapp{(\vlam{\tann{x}{\tau_0}}{\exprk_0})}{\valk_1}
+                \ccKS \boundaryerror
+              @tr-and[4]
+              \valn_0 = \vlam{\tann{x}{\tau_0}}{\exprn_0}}]{
+    @tr-step{
+      @${\efromany{\tagof{\tau_0}}{\valk_1} = \boundaryerror}
+      definition @${\rrKS}
+    }
+    @tr-step{
+      @${\wellNE \valn_1 : \tau_1
+         @tr-and[]
+         \tau_1 \subteq \tau_0}
+      @|N-S-inversion|
+    }
+    @tr-step{
+      @${\valn_1 \nkrel \valk_1}
+      @${\eapp{\valn_0}{\valn_1} \nkrel \eapp{\valk_0}{\valk_1}}
+    }
+    @tr-step{
+      @${\wellKE \valk_1 : \tagof{\tau_1}}
+      @|NK-value| (3)
+    }
+    @tr-step{
+      @${\wellKE \valk_1 : \tagof{\tau_0}}
+      @|K-subt-preservation| (2)
+    }
+    @tr-step{
+      @${\efromany{\tagof{\tau_0}}{\valk_1} = \valk_1}
+      (5)
+    }
+    @tr-contradiction{
+      (1, 6)
+    }
+  }
+
+  @tr-case[@${\eapp{(\vlam{\tann{x}{\tau_0}}{\exprk_0})}{\valk_1}
+                \ccKS \boundaryerror
+              @tr-and[4]
+              \valn_0 = \vmonfun{(\tarr{\tau_d}{\tau_c})}{\valn_{0'}}}]{
+    @tr-step{
+      @${\valn_{0'} \nkrel \valk_0
+         @tr-and[]
+         \valn_1 \nkrel \valk_1}
+      @${\eapp{\valn_0}{\valn_1} \nkrel \eapp{\valk_0}{\valk_1}}
+    }
+    @tr-step{
+      @${\eapp{\valn_0}{\valn_1} \rrNS \edyn{\tau_c}{(\eapp{\valn_{0'}}{(\esta{\tau_d}{\valn_{1}})})}}
+      definition @${\rrNS}
+    }
+    @tr-step{
+      @${\wellNE \esta{\tau_d}{\valn_{1}}}
+      @|N-S-preservation|
+    }
+    @tr-step{
+      @${\esta{\tau_d}{\valn_1} \rrNDstar \valn_{1'} \mbox{ and } \valn_{1'} \nkrel \valk_1}
+      @|NK-check| (1, 3)
+    }
+    @tr-step{
+      @${\valn_{0'} = \vmonfun{(\tarr{\tau_d'}{\tau_c'})}{\valn_{0''}} \mbox{ and } \valn_{0''} \nkrel \valk_0
+         @tr-or[]
+         \valn_{0'} = \vlam{\tann{x}{\tau_0}}{\exprn} \mbox{ and } \exprn \nkrel \exprk_0}
+      (1)
+    }
+    @tr-if[@${\valn_{0'} = \vlam{\tann{x}{\tau_0}}{\exprn}}]{
+      @tr-contradiction{
+        @${\wellNE \eapp{\valn_0}{\valn_1} : \tau}
+      }
+    }
+    @tr-step{
+      @${\eapp{\valn_{0'}}{\valn_{1'}} \rrND \esta{\tau_c'}{(\eapp{\valn_{0''}}{(\edyn{\tau_d'}{\valn_{1'}})})}}
+    }
+    @tr-step{
+      @${\edyn{\tau_d'}{\valn_{1'}} \rrNSstar \valn_{1''} \mbox{ and } \valn_{1''} \nkrel \valk_1
+         @tr-or[]
+         \edyn{\tau_d'}{\valn_{1'}} \rrNSstar \boundaryerror}
+      @|NK-check|
+    }
+    @tr-if[@${\edyn{\tau_d'}{\valn_{1'}} \rrNSstar \boundaryerror}]{
+      @tr-qed{
+        @${\eapp{\valn_0}{\valn_1} \rrNSstar \boundaryerror}
+      }
+    }
+    @tr-step{
+      @${\edyn{\tau_c}{(\esta{\tau_c'}{\ehole})} \nkrel \ehole}
+      definition @${\nkrel}
+    }
+    @tr-step{
+      @${\eapp{\valn_{0''}}{\valn_{1''}} \nkrel \eapp{\valk_0}{\valk_1}}
+    }
+    @tr-step{
+      @${\wellNE \eapp{\valn_{0''}}{\valn_{1''}} : \tau_c'}
+      @|N-S-preservation|
+    }
+    @tr-step{
+      @${\eapp{\valn_{0''}}{\valn_{1''}} \rrNSstar \exprn_2
+         @tr-and[]
+         \exprn_2 \nkrel \boundaryerror}
+      @tr-IH
+    }
+    @tr-qed{
+      @${\eapp{\valn_0}{\valn_1} \rrNSstar \boundaryerror}
+    }
+  }
+
+  @tr-case[@${\eapp{(\vlam{\tann{x}{\tau_0}}{\exprk_0})}{\valk_1}
+                \ccKS \vsubst{\exprk_0}{x}{\efromany{\tagof{\tau_0}}{\valk_1}}
+              @tr-and[4]
+              \valn_0 = \vlam{\tann{x}{\tau_0}}{\exprn_0}}]{
+    @tr-step{
+      @${\efromany{\tagof{\tau_0}}{\valk_1} = \valk_1}
+      definition @${\rrKS}
+    }
+    @tr-step{
+      @${\wellNE \valn_1 : \tau_1
+         @tr-and[]
+         \tau_1 \subteq \tau_0}
+      @|N-S-inversion|
+    }
+    @tr-step{
+      @${\valn_1 \nkrel \valk_1
+         @tr-and[]
+         \exprn_0 \nkrel \exprk_0}
+      @${\eapp{\valn_0}{\valn_1} \nkrel \eapp{\valk_0}{\valk_1}}
+    }
+    @tr-step{
+      @${\eapp{(\vlam{\tann{x}{\tau_0}}{\exprn_0})}{\valn_1} \rrNS \vsubst{\exprn_0}{x}{\valn_1}}
+    }
+    @tr-step{
+      @${\vsubst{\exprn_0}{x}{\valn_1} \nkrel \vsubst{\exprk_0}{x}{\valk_1}}
+      @|NK-subst|
+    }
+    @tr-qed{
+      @${\eapp{\valn_0}{\valn_1} \rrNSstar \vsubst{\exprn_0}{x}{\valn_1}}
+    }
+  }
+
+  @tr-case[@${\eapp{(\vlam{\tann{x}{\tau_0}}{\exprk_0})}{\valk_1}
+                \ccKS \vsubst{\exprk_0}{x}{\efromany{\tagof{\tau_0}}{\valk_1}}
+              @tr-and[4]
+              \valn_0 = \vmonfun{(\tarr{\tau_d}{\tau_c})}{\valn_{0'}}}]{
+    @tr-step{
+      @${\valn_{0'} \nkrel \valk_0
+         @tr-and[]
+         \valn_1 \nkrel \valk_1}
+      @${\eapp{\valn_0}{\valn_1} \nkrel \eapp{\valk_0}{\valk_1}}
+    }
+    @tr-step{
+      @${\eapp{\valn_0}{\valn_1} \rrNS \edyn{\tau_c}{(\eapp{\valn_{0'}}{(\esta{\tau_d}{\valn_{1}})})}}
+      definition @${\rrNS}
+    }
+    @tr-step{
+      @${\wellNE \esta{\tau_d}{\valn_1}}
+      @|N-S-preservation|
+    }
+    @tr-step{
+      @${\esta{\tau_d}{\valn_1} \rrNDstar \valn_{1'} \mbox{ and } \valn_{1'} \nkrel \valk_1}
+      @|NK-check| (1, 3)
+    }
+    @tr-step{
+      @${\valn_{0'} = \vmonfun{(\tarr{\tau_d'}{\tau_c'})}{\valn_{0''}} \mbox{ and } \valn_{0''} \nkrel \valk_0
+         @tr-or[]
+         \valn_{0'} = \vlam{\tann{x}{\tau_0}}{\exprn} \mbox{ and } \exprn \nkrel \exprk_0}
+      (1)
+    }
+    @tr-if[@${\valn_{0'} = \vlam{\tann{x}{\tau_0}}{\exprn}}]{
+      @tr-step{
+        @${\wellNE \vmonfun{(\tarr{\tau_d}{\tau_c})}{\valn_{0'}} : \tarr{\tau_d}{\tau_c}}
+        @${\wellNE \eapp{\valn_0}{\valn_1} : \tau}
+      }
+      @tr-step{
+        @${\wellNE \valn_{0'}}
+        @|N-S-inversion| (a)
+      }
+      @tr-contradiction{
+        @${\wellNE \vlam{\tann{x}{\tau_0}}{\exprn}}
+      }
+    }
+    @tr-step{
+      @${\eapp{\valn_{0'}}{\valn_{1'}} \rrND \esta{\tau_c'}{(\eapp{\valn_{0''}}{(\edyn{\tau_d'}{\valn_{1'}})})}}
+    }
+    @tr-step{
+      @${\wellNE \edyn{\tau_d'}{\valn_{1'}} : \tau_d'}
+      @|N-D-preservation|
+    }
+    @tr-step{
+      @${\edyn{\tau_d'}{\valn_{1'}} \rrNSstar \valn_{1''} \mbox{ and } \valn_{1''} \nkrel \valk_1
+         @tr-or[]
+         \edyn{\tau_d'}{\valn_{1'}} \rrNSstar \boundaryerror}
+      @|NK-check|
+    }
+    @tr-if[@${\edyn{\tau_d'}{\valn_{1'}} \rrNSstar \boundaryerror}]{
+      @tr-qed{
+        @${\eapp{\valn_0}{\valn_1} \rrNSstar \boundaryerror}
+      }
+    }
+    @tr-step{
+      @${\edyn{\tau_c}{(\esta{\tau_c'}{\ehole})} \nkrel \ehole}
+      definition @${\nkrel}
+    }
+    @tr-step{
+      @${\eapp{\valn_{0''}}{\valn_{1''}} \nkrel \eapp{\valk_0}{\valk_1}}
+    }
+    @tr-step{
+      @${\wellNE \eapp{\valn_{0''}}{\valn_{1''}} : \tau_c'}
+      @|N-S-preservation|
+    }
+    @tr-step{
+      @${\eapp{\valn_{0''}}{\valn_{1''}} \rrNSstar \exprn_2
+         @tr-and[]
+         \exprn_2 \nkrel \exprk_2}
+      @tr-IH
+    }
+    @tr-qed{
+      @${\eapp{\valn_0}{\valn_1} \rrNSstar \edyn{\tau_c}{(\esta{\tau_c'}{\exprn_2})}}
+    }
+  }
+
+  @tr-case[@${\eapp{(\vlam{x}{\exprk_0})}{\valk_1}
+                \ccKS \edynfake{\vsubst{\exprk_0}{x}{\valk_1}}
+              @tr-and[4]
+              \valn_0 = \vlam{x}{\exprn_0}}]{
+    @tr-contradiction{
+      @${\wellNE \eapp{\valn_0}{\valn_1} : \tau}
+    }
+  }
+
+  @tr-case[@${\eapp{(\vlam{x}{\exprk_0})}{\valk_1}
+                \ccKS \edynfake{\vsubst{\exprk_0}{x}{\valk_1}}
+              @tr-and[4]
+              \valn_0 = \vmonfun{(\tarr{\tau_d}{\tau_c})}{\valn_{0'}}}]{
+    @tr-step{
+      @${\valn_{0'} \nkrel (\vlam{x}{\exprk_0})
+         @tr-and[]
+         \valn_1 \nkrel \valk_1}
+      @${\eapp{\valn_0}{\valn_1} \nkrel \eapp{\valk_0}{\valk_1}}
+    }
+    @tr-step{
+      @${\eapp{\valn_0}{\valn_1} \rrNS \edyn{\tau_c}{(\eapp{\valn_{0'}}{(\esta{\tau_d}{\valn_1})})}}
+      definition @${\rrNS}
+    }
+    @tr-step{
+      @${\wellNE \esta{\tau_d}{\valn_1}}
+      @|N-S-preservation|
+    }
+    @tr-step{
+      @${\esta{\tau_d}{\valn_1} \rrNDstar \valn_{1'} \mbox{ and } \valn_{1'} \nkrel \valk_1}
+      @|NK-check|
+    }
+    @tr-step{
+      @${\edyn{\tau_c}{\ehole} \nkrel \edynfake{\ehole}}
+      definition @${\nkrel}
+    }
+    @tr-step{
+      @${\wellNE \eapp{\valn_{0'}}{\valn_{1'}}}
+      @|N-S-preservation| (2, 3)
+    }
+    @tr-step{
+      @${\eapp{\valn_{0'}}{\valn_{1'}} \nkrel \eapp{\valk_0}{\valk_1}}
+    }
+    @tr-step{
+      @${\eapp{\valn_{0'}}{\valn_{1'}} \rrNDstar \exprn_2
+         @tr-and[]
+         \exprn_2 \nkrel \exprk_2}
+      @|NK-D-app| (6, 7)
+    }
+    @tr-qed{
+      @${\eapp{\valn_0}{\valn_1} \rrNSstar \edyn{\tau_c}{\exprn_2}
+         @tr-and[]
+         \edyn{\tau_c}{\exprn_2} \nkrel \edynfake{\exprk_2}}
+    }
+  }
+}
+
+@tr-lemma[#:key "NK-D-app" @elem{@${\langN}--@${\langK} dynamic application}]{
+  If @${\eapp{\valn_0}{\valn_1} \nkrel \eapp{\valk_0}{\valk_1}
+        @tr-and[]
+        \wellNE \eapp{\valn_0}{\valn_1}
+        @tr-and[]
+        \wellKE \eapp{\valk_0}{\valk_1}
+        @tr-and[]
+        \eapp{\valk_0}{\valk_1} \ccKD \exprk_2}
+  then @${\eapp{\valn_0}{\valn_1} \rrNDstar \exprn_2}
+  and @${\exprn_2 \nkrel \exprk_2}
+}@tr-proof{
+  By induction on the number of monitors in @${\valn_0},
+   proceeding by case analysis on @${\eapp{\valk_0}{\valk_1} \ccKD \exprk_2}.
+
+  @tr-case[@${\eapp{\valk_0}{\valk_1} \rrKD \tagerror}]{
+    @tr-step{
+      @${\valk_0 \in \integers
+         @tr-or[]
+         \valk_0 \in \vpair{v}{v}}
+      definition @${\rrKD}
+    }
+    @tr-step{
+      @${\valn_0 \in \integers
+         @tr-or[]
+         \valn_0 \in \vpair{v}{v}}
+      @${\valn_0 \nkrel \valk_0}
+    }
+    @tr-qed{
+      @${\eapp{\valn_0}{\valn_1} \rrND \tagerror}
+    }
+  }
+
+  @tr-case[@${\eapp{(\vlam{\tann{x}{\tau_0}}{\exprk_0})}{\valk_1}
+                \ccKD \boundaryerror
+              @tr-and[4]
+              \valn_0 = \vlam{\tann{x}{\tau_0}}{\exprn_0}}]{
+    @tr-contradiction{
+      @${\wellNE \eapp{\valn_0}{\valn_1}}
+    }
+  }
+
+  @tr-case[@${\eapp{(\vlam{\tann{x}{\tau_0}}{\exprk_0})}{\valk_1}
+                \ccKD \boundaryerror
+              @tr-and[4]
+              \valn_0 = \vmonfun{(\tarr{\tau_d}{\tau_c})}{\valn_{0'}}}]{
+    @tr-step{
+      @${\valn_{0'} \nkrel \valk_0
+         @tr-and[]
+         \valn_1 \nkrel \valk_1}
+      @${\eapp{\valn_0}{\valn_1} \nkrel \eapp{\valk_0}{\valk_1}}
+    }
+    @tr-step{
+      @${\eapp{\valn_0}{\valn_1} \rrND \esta{\tau_c}{(\eapp{\valn_{0'}}{(\edyn{\tau_d}{\valn_{1}})})}}
+      definition @${\rrND}
+    }
+    @tr-step{
+      @${\wellNE \edyn{\tau_d}{\valn_1} : \tau_d}
+      @|N-D-preservation|
+    }
+    @tr-step{
+      @${\edyn{\tau_d}{\valn_1} \rrNSstar \valn_{1'} \mbox{ and } \valn_{1'} \nkrel \valk_1
+         @tr-or[]
+         \edyn{\tau_d}{\valn_1} \rrNSstar \boundaryerror}
+      @|NK-check| (1, 3)
+    }
+    @tr-if[@${\edyn{\tau_d}{\valn_1} \rrNSstar \boundaryerror}]{
+      @tr-qed{
+        @${\eapp{\valn_0}{\valn_1} \rrNDstar \boundaryerror}
+      }
+    }
+    @tr-step{
+      @${\valn_{0'} = \vmonfun{(\tarr{\tau_d'}{\tau_c'})}{\valn_{0''}} \mbox{ and } \valn_{0''} \nkrel \valk_0
+         @tr-or[]
+         \valn_{0'} = \vlam{\tann{x}{\tau_0}}{\exprn} \mbox{ and } \exprn \nkrel \exprk_0}
+      (1)
+    }
+    @tr-if[@${\valn_{0'} = \vlam{\tann{x}{\tau_0}}{\exprn}}]{
+      @tr-step{
+        @${\efromany{\tagof{\tau_0}}{\valk_1} = \boundaryerror}
+        definition @${\rrKD}
+      }
+      @tr-step{
+        @${\wellNE \valn_{1'} : \tau_1
+           @tr-and[]
+           \tau_1 \subteq \tau_0}
+        @|N-S-inversion|
+      }
+      @tr-step{
+        @${\wellKE \valk_1 : \tagof{\tau_1}}
+        @|NK-value| (3)
+      }
+      @tr-step{
+        @${\wellKE \valk_1 : \tagof{\tau_0}}
+        @|K-subt-preservation| (c)
+      }
+      @tr-step{
+        @${\efromany{\tagof{\tau_0}}{\valk_1} = \valk_1}
+        (d)
+      }
+      @tr-contradiction{
+        (a)
+      }
+    }
+    @tr-step{
+      @${\eapp{\valn_{0'}}{\valn_{1'}} \rrNS \edyn{\tau_c'}{(\eapp{\valn_{0''}}{(\esta{\tau_d'}{\valn_{1'}})})}}
+    }
+    @tr-step{
+      @${\wellNE \esta{\tau_d'}{\valn_{1'}}}
+      @|N-S-preservation|
+    }
+    @tr-step{
+      @${\esta{\tau_d'}{\valn_{1'}} \rrNDstar \valn_{1''} \mbox{ and } \valn_{1''} \nkrel \valk_1}
+      @|NK-check|
+    }
+    @tr-step{
+      @${\esta{\tau_c}{(\edyn{\tau_c'}{\ehole})} \nkrel \ehole}
+      definition @${\nkrel}
+    }
+    @tr-step{
+      @${\eapp{\valn_{0''}}{\valn_{1''}} \nkrel \eapp{\valk_0}{\valk_1}}
+    }
+    @tr-step{
+      @${\wellNE \eapp{\valn_{0''}}{\valn_{1''}}}
+      @|N-D-preservation|
+    }
+    @tr-step{
+      @${\eapp{\valn_{0''}}{\valn_{1''}} \rrNDstar \exprn_2
+         @tr-and[]
+         \exprn_2 \nkrel \boundaryerror}
+      @tr-IH
+    }
+    @tr-qed{
+      @${\eapp{\valn_0}{\valn_1} \rrNDstar \boundaryerror}
+    }
+  }
+
+  @tr-case[@${\eapp{(\vlam{\tann{x}{\tau_0}}{\exprk_0})}{\valk_1}
+                \ccKD \estafake{\vsubst{\exprk_0}{x}{\efromany{\tagof{\tau_0}}{\valk_1}}}
+              @tr-and[4]
+              \valn_0 = \vlam{\tann{x}{\tau_0}}{\exprn_0}}]{
+    @tr-step{
+      @${\wellNE \valn_0}
+      @|N-D-inversion|
+    }
+    @tr-contradiction{
+      @${\wellNE \vlam{\tann{x}{\tau_0}}{\exprn_0}}
+    }
+  }
+
+  @tr-case[@${\eapp{(\vlam{\tann{x}{\tau_0}}{\exprk_0})}{\valk_1}
+                \ccKD \estafake{\vsubst{\exprk_0}{x}{\efromany{\tagof{\tau_0}}{\valk_1}}}
+              @tr-and[4]
+              \valn_0 = \vmonfun{(\tarr{\tau_d}{\tau_c})}{\valn_{0'}}}]{
+    @tr-step{
+      @${\valn_{0'} \nkrel \valk_0
+         @tr-and[]
+         \valn_1 \nkrel \valk_1}
+      @${\eapp{\valn_0}{\valn_1} \nkrel \eapp{\valk_0}{\valk_1}}
+    }
+    @tr-step{
+      @${\eapp{\valn_0}{\valn_1} \rrND \esta{\tau_c}{(\eapp{\valn_{0'}}{(\edyn{\tau_d}{\valn_{1}})})}}
+      definition @${\rrND}
+    }
+    @tr-step{
+      @${\wellNE \edyn{\tau_d}{\valn_1} : \tau_d}
+      @|N-D-preservation|
+    }
+    @tr-step{
+      @${\edyn{\tau_d}{\valn_1} \rrNSstar \valn_{1'} \mbox{ and } \valn_{1'} \nkrel \valk_1
+         @tr-or[]
+         \edyn{\tau_d}{\valn_1} \rrNSstar \boundaryerror}
+      @|NK-check| (1, 3)
+    }
+    @tr-if[@${\edyn{\tau_d}{\valn_1} \rrNSstar \boundaryerror}]{
+      @tr-qed{
+        @${\eapp{\valn_0}{\valn_1} \rrNDstar \boundaryerror}
+      }
+    }
+    @tr-step{
+      @${\esta{\tau_c}{\ehole} \nkrel \estafake{\ehole}}
+      definition of @${\nkrel}
+    }
+    @tr-step{
+      @${\wellNE \eapp{\valn_{0'}}{\valn_{1'}} : \tau_c}
+      @|N-D-preservation|
+    }
+    @tr-step{
+      @${\eapp{\valn_{0'}}{\valn_{1'}} \nkrel \eapp{\valk_0}{\valk_1}}
+    }
+    @tr-step{
+      @${\eapp{\valn_{0'}}{\valn_{1'}} \rrNSstar \exprn_2
+         @tr-and[]
+         \exprn_2 \nkrel \exprk_2}
+      @|NK-S-app| (7, 8)
+    }
+    @tr-qed{
+      @${\eapp{\valn_0}{\valn_1} \rrNDstar \esta{\tau_c}{\exprn_2}
+         @tr-and[]
+         \esta{\tau_c}{\exprn_2} \nkrel \estafake{\exprk_2}}
+    }
+  }
+
+  @tr-case[@${\eapp{(\vlam{x}{\exprk_0})}{\valk_1}
+                \ccKS \vsubst{\exprk_0}{x}{\valk_1}
+              @tr-and[4]
+              \valn_0 = \vlam{x}{\exprn_0}}]{
+    @tr-step{
+      @${\exprn_0 \nkrel \exprn_0
+         @tr-and[]
+         \valn_1 \nkrel \valk_1}
+      @${\eapp{\valn_0}{\valn_1} \nkrel \eapp{\valk_0}{\valk_1}}
+    }
+    @tr-step{
+      @${\eapp{\valn_0}{\valn_1} \rrND \vsubst{\exprn_0}{x}{\valn_1}}
+      definition @${\rrND}
+    }
+    @tr-step{
+      @${\vsubst{\exprn_0}{x}{\valn_1} \nkrel \vsubst{\exprk_0}{x}{\valk_1}}
+      @|NK-subst|
+    }
+    @tr-qed{}
+  }
+
+  @tr-case[@${\eapp{(\vlam{x}{\exprk_0})}{\valk_1}
+                \ccKD \vsubst{\exprk_0}{x}{\valk_1}
+              @tr-and[4]
+              \valn_0 = \vmonfun{(\tarr{\tau_d}{\tau_c})}{\valn_{0'}}}]{
+    @tr-step{
+      @${\valn_{0'} \nkrel (\vlam{x}{\exprk_0})
+         \valn_1 \nkrel \valk_1}
+      @${\eapp{\valn_0}{\valn_1} \nkrel \eapp{\valk_0}{\valk_1}}
+    }
+    @tr-step{
+      @${\eapp{\valn_0}{\valn_1} \rrND \esta{\tau_c}{(\eapp{\valn_{0'}}{(\edyn{\tau_d}{\valn_1})})}}
+      definition @${\rrND}
+    }
+    @tr-step{
+      @${\wellNE \edyn{\tau_d}{\valn_1} : \tau_d}
+      @|N-D-preservation|
+    }
+    @tr-step{
+      @${\edyn{\tau_d}{\valn_1} \rrNDstar \valn_{1'} \mbox{ and } \valn_{1'} \nkrel \valk_1
+         @tr-or[]
+         \edyn{\tau_d}{\valn_1} \rrNDstar \boundaryerror}
+      @|NK-check| (1, 3)
+    }
+    @tr-if[@${\edyn{\tau_d}{\valn_1} \rrNDstar \boundaryerror}]{
+      @tr-qed{
+        @${\eapp{\valn_0}{\valn_1} \rrNDstar \boundaryerror}
+      }
+    }
+    @tr-step{
+      @${\valn_{0'} = \vmonfun{(\tarr{\tau_d'}{\tau_c'})}{\valn_{0''}} \mbox{ and } \valn_{0''} \nkrel \valk_0
+         @tr-or[]
+         \valn_{0'} = \vlam{x}{\exprn} \mbox{ and } \exprn \nkrel \exprk_0}
+      (1)
+    }
+    @tr-if[@${\valn_{0'} = \vlam{x}{\exprn}}]{
+      @tr-step{
+        @${\wellNE \valn_{0'} : \tau_0
+           @tr-and[]
+           \tau_0 \subteq \tarr{\tau_d}{\tau_c}}
+        @|N-D-inversion|
+      }
+      @tr-contradiction{
+        @${\wellNE \vlam{x}{\exprn} : \tau_0}
+      }
+    }
+    @tr-step{
+      @${\eapp{\valn_{0'}}{\valn_{1'}} \rrNS \edyn{\tau_c'}{(\esta{\tau_d'}{\valn_{1'}})}}
+      definition @${\rrNS}
+    }
+    @tr-step{
+      @${\wellNE \esta{\tau_d'}{\valn_{1'}} : \tau_d'}
+      @|N-S-preservation|
+    }
+    @tr-step{
+      @${\esta{\tau_d'}{\valn_{1'}} \rrNSstar \valn_{1''} \mbox{ and } \valn_{1''} \nkrel \valk_1}
+      @|NK-check|
+    }
+    @tr-step{
+      @${\esta{\tau_c}{(\edyn{\tau_c'}{\ehole})} \nkrel \ehole}
+      definition @${\nkrel}
+    }
+    @tr-step{
+      @${\eapp{\valn_{0''}}{\valn_{1''}} \nkrel \eapp{\valk_0}{\valk_1}}
+    }
+    @tr-step{
+      @${\wellNE \eapp{\valn_{0''}}{\valn_{1''}}}
+      @|N-D-preservation|
+    }
+    @tr-step{
+      @${\eapp{\valn_{0''}}{\valn_{1''}} \rrNDstar \exprn_2
+         @tr-and[]
+         \exprn_2 \nkrel \exprk_2}
+      @tr-IH
+    }
+    @tr-qed{
+      @${\eapp{\valn_0}{\valn_1} \rrNSstar \esta{\tau_c}{(\edyn{\tau_c'}{\exprn_2})}}
+    }
+  }
+}
+
+@tr-lemma[#:key "NK-fail" @elem{@${\vfromany} inversion}]{
+  If @${\efromany{\tagof{\tau}}{\valk} = \boundaryerror} and @${\valn \nkrel \valk}
+  then @${\efromdynN{\tau}{\valn} = \boundaryerror}
+}@tr-proof{
+  By case analysis on @${\tau}.
+
+  @tr-case[@${\tau = \tnat}]{
+    @tr-step{
+      @${\valk \not\in \naturals}
+      @${\efromany{\tagof{\tau}}{\valk} = \boundaryerror}
+    }
+    @tr-step{
+      @${\valn \not\in \naturals}
+      (1)
+    }
+    @tr-step{
+      @${\efromdynN{\tau}{\valn} = \boundaryerror}
+      (2)
+    }
+    @tr-qed{}
+  }
+
+  @tr-case[@${\tau = \tint}]{
+    @tr-step{
+      @${\valk \not\in \integers}
+      @${\efromany{\tagof{\tau}}{\valk} = \boundaryerror}
+    }
+    @tr-step{
+      @${\valn \not\in \integers}
+      (1)
+    }
+    @tr-step{
+      @${\efromdynN{\tau}{\valn} = \boundaryerror}
+      (2)
+    }
+    @tr-qed{}
+  }
+
+  @tr-case[@${\tau = \tpair{\tau_0}{\tau_1}}]{
+    @tr-step{
+      @${\valk \not\in \vpair{v}{v}}
+      @${\efromany{\tagof{\tau}}{\valk} = \boundaryerror}
+    }
+    @tr-step{
+      @${\valn \not\in \vpair{v}{v}}
+      (1)
+    }
+    @tr-step{
+      @${\efromdynN{\tau}{\valn} = \boundaryerror}
+      (2)
+    }
+    @tr-qed{}
+  }
+
+  @tr-case[@${\tau = \tarr{\tau_d}{\tau_c}}]{
+    @tr-step{
+      @${\valk \in \integers
+         @tr-or[]
+         \valk \in \vpair{v}{v}}
+      @${\efromany{\tagof{\tau}}{\valk} = \boundaryerror}
+    }
+    @tr-step{
+      @${\valn \in \integers
+         @tr-or[]
+         \valn \in \vpair{v}{v}}
+      (1)
+    }
+    @tr-step{
+      @${\efromdynN{\tau}{\valn} = \boundaryerror}
+      (2)
+    }
+    @tr-qed{}
+  }
 }
 
 @tr-lemma[#:key "NK-S-stutter" @elem{@${\langN}--@${\langK} static value stutter}]{
@@ -2613,7 +4007,7 @@
   @tr-case[@${\exprn = \edyn{\tau}{(\esta{\tau'}{\exprn_2})}}]{
     @tr-step{
       @${\exprn_2 \nkrel \valk}
-      @|NK-inversion|
+      @${\nkrel}
     }
     @tr-step{
       @${\wellNE \esta{\tau'}{\exprn_2}
@@ -2697,7 +4091,7 @@
   @tr-case[@${\exprn = \esta{\tau}{(\edyn{\tau'}{\exprn_2})}}]{
     @tr-step{
       @${\exprn_2 \nkrel \valk}
-      @|NK-inversion|
+      @${\nkrel}
     }
     @tr-step{
       @${\wellNE \edyn{\tau'}{\exprn_2} : \tau'
@@ -2750,7 +4144,9 @@
 @tr-lemma[#:key "NK-S-type" @elem{@${\langN}--@${\langK} static hole typing}]{
   If @${\wellNE \ctxn[\exprn] : \tau
         @tr-and[]
-        \wellKE \ctxk[\exprk] : \tagof{\tau}
+        \wellKE \ctxk[\exprk] : K
+        @tr-and[]
+        \tagof{\tau} \subteq K
         @tr-and[]
         \ctxn[\exprn] \nkrel \ctxk[\exprk]}
   @linebreak[]
@@ -2765,7 +4161,7 @@
     }
   ]
 }@tr-proof{
-  By induction on the structure of @${\ctxk}.
+  By induction on the structure of @${\ctxn[\exprn] \nkrel \ctxk[\exprk]} judgment.
 
   TODO
 }
@@ -2787,21 +4183,19 @@
     }
   ]
 }@tr-proof{
-  By induction on the structure of @${\ctxk}.
+  By induction on the structure of @${\ctxn[\exprn] \nkrel \ctxk[\exprk]} judgment.
 
   TODO
 }
 
 @tr-lemma[#:key "NK-value" @elem{@${\langN}--@${\langK} value inversion}]{
-  If @${\wellNE \exprn : \tau
+  If @${\wellNE \valn : \tau
         @tr-and[]
-        \exprn \not\in \eerr
-        @tr-and[]
-        \exprn \nkrel \valk}
+        \valn \nkrel \valk}
   @linebreak[]
   then @${\wellKE \valk : \tagof{\tau}}
 }@tr-proof{
-  By case analysis on @${\exprn \nkrel \valk}.
+  By case analysis on @${\valn \nkrel \valk}.
 
   TODO
 }
@@ -2875,7 +4269,7 @@
          \valn_0 \nkrel \valk_0
          @tr-and[]
          \valn_1 \nkrel \valk_1}
-      @|NK-inversion|
+      @${\nkrel}
     }
     @tr-step{
       @${\esta{\tau}{\valn} \rrND \vpair{\esta{\tau_0}{\valn_0}}{\esta{\tau_1}{\valn_1}}}
@@ -2977,7 +4371,7 @@
            \valn_0 \nkrel \valk_0
            @tr-and[]
            \valn_1 \nkrel \valk_1}
-        @|NK-inversion|
+        @${\nkrel}
       }
       @tr-step{
         @${\edyn{\tau}{\valn} \rrNS \vpair{\edyn{\tau_0}{\valn_0}}{\edyn{\tau_1}{\valn_1}}}
@@ -3058,7 +4452,7 @@
   @linebreak[]
   then @${\ctxn[\exprn] \nkrel \ctxk[\exprk]}
 }@tr-proof{
-  By induction on the structure of @${\ctxk}.
+  By induction on the structure of the @${\exprn \nkrel \exprk} judgment.
 
   TODO
 }
@@ -3067,22 +4461,97 @@
   If @${\exprn \nkrel \exprk} and @${\valn \kerel \valk}
   then @${\vsubst{\exprn}{x}{\valn} \kerel \vsubst{\exprk}{x}{\valk}}
 }@tr-proof{
-  By induction on the structure of @${\exprk}.
+  By induction on the structure of the @${\exprn \nkrel \exprk} judgment.
 
   TODO
 }
 
-@tr-lemma[#:key "NK-inversion" @elem{@${\langN}--@${\langK} inversion}]{
+@tr-lemma[#:key "NK-delta" @elem{@${\langN}--@${\langK} @${\delta}-preservation}]{
   @itemlist[
     @item{
-      If @${\edyn{\tau}{(\esta{\tau'}{\exprn})} \nkrel \exprk}
-      then @${\exprn \nkrel \exprk}
+      If @${\valn \nkrel \valk}
+      and @${\delta(\vunop, \valn)} is defined
+      then @${\delta(\vunop, \valn) \nkrel \delta(\vunop, \valk)}
     }
     @item{
-      If @${\vpair{\valn_0}{\valn_1} \nkrel \valk}
-      then @${\valk = \vpair{\valk_0}{\valk_1}}
+      If @${\valn_0 \nkrel \valk_0}
+      and @${\valn_1 \nkrel \valk_1}
+      and @${\delta(\vbinop, \valn_0, \valn_1)} is defined
+      then @${\delta(\vbinop, \valn_0, \valn_1) \nkrel \delta(\vbinop, \valk_0, \valk_1)}
     }
   ]
 }@tr-proof{
-  By the definition of @${\nkrel}.
+  @tr-case[@${\vunop = \vfst}]{
+    @tr-step{
+      @${\valn = \vpair{\valn_0}{\valn_1}}
+      @${\delta(\vfst, \valn)} is defined
+    }
+    @tr-step{
+      @${\valk = \vpair{\valk_0}{\valk_1}
+         @tr-and[]
+         \valn_0 \nkrel \valk_0 \mbox{ and } \valn_1 \nkrel \valk_1}
+      @${\nkrel}
+    }
+    @tr-step{
+      @${\delta(\vfst, \valn) = \valn_0
+         @tr-and[]
+         \delta(\vfst, \valk) = \valk_0}
+    }
+    @tr-qed{
+      (2)
+    }
+  }
+
+  @tr-case[@${\vunop = \vsnd}]{
+    @tr-step{
+      @${\valn = \vpair{\valn_0}{\valn_1}}
+      @${\delta(\vsnd, \valn)} is defined
+    }
+    @tr-step{
+      @${\valk = \vpair{\valk_0}{\valk_1}
+         @tr-and[]
+         \valn_0 \nkrel \valk_0 \mbox{ and } \valn_1 \nkrel \valk_1}
+      @${\nkrel}
+    }
+    @tr-step{
+      @${\delta(\vsnd, \valn) = \valn_1
+         @tr-and[]
+         \delta(\vsnd, \valk) = \valk_1}
+    }
+    @tr-qed{
+      (2)
+    }
+  }
+
+  @tr-case[@${\vbinop = \vsum}]{
+    @tr-step{
+      @${\valn_0 \in \integers
+         @tr-and[]
+         \valn_1 \in \integers}
+      @${\delta(\vbinop, \valn_0, \valn_1)} is defined
+    }
+    @tr-step{
+      @${\valn_0 = \valk_0
+          @tr-and[]
+          \valn_1 = \valk_1}
+      @${\nkrel}
+    }
+    @tr-qed[]
+  }
+
+  @tr-case[@${\vbinop = \vquotient}]{
+    @tr-step{
+      @${\valn_0 \in \integers
+         @tr-and[]
+         \valn_1 \in \integers}
+      @${\delta(\vbinop, \valn_0, \valn_1)} is defined
+    }
+    @tr-step{
+      @${\valn_0 = \valk_0
+          @tr-and[]
+          \valn_1 = \valk_1}
+      @${\nkrel}
+    }
+    @tr-qed[]
+  }
 }

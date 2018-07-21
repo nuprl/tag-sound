@@ -48,8 +48,8 @@
    (define N-S-hole-subst @tr-ref[#:key "N-S-hole-subst"]{static boundary-free hole substitution})
    (define N-D-hole-subst @tr-ref[#:key "N-D-hole-subst"]{dynamic boundary-free hole substitution})
 
-   (define N-S-inversion @tr-ref[#:key "N-S-inversion"]{inversion})
-   (define N-D-inversion @tr-ref[#:key "N-D-inversion"]{inversion})
+   (define N-S-inversion @tr-ref[#:key "N-S-inversion"]{@${\langN} inversion})
+   (define N-D-inversion @tr-ref[#:key "N-D-inversion"]{@${\langN} inversion})
 
    (define N-S-canonical @tr-ref[#:key "N-S-canonical"]{canonical forms})
 
