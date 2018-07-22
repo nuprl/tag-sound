@@ -104,10 +104,10 @@
 
 
 @tr-lemma[#:key "KE-S-refl" @elem{@${\langK}--@${\langE} static reflexivity}]{
-  If @${\Gamma \wellM e : \tau} and @${\Gamma \wellKE e : \tagof{\tau} \carrow e''} then
+  If @${\Gamma \wellM e : \tau} and @${\Gamma \wellM e : \tau \carrow e''} then
   @${e'' \kerel e}.
 }@tr-proof{
-  By structural induction on the @${\Gamma \wellKE e : \tagof{\tau} \carrow e''}
+  By structural induction on the @${\Gamma \wellM e : \tau \carrow e''}
    judgment.
 
   @tr-case[#:box? #true
@@ -340,10 +340,10 @@
 }
 
 @tr-lemma[#:key "KE-D-refl" @elem{@${\langK}--@${\langE} dynamic reflexivity}]{
-  If @${\Gamma \wellM e} and @${\Gamma \wellKE e \carrow e''} then
+  If @${\Gamma \wellM e} and @${\Gamma \wellM e \carrow e''} then
   @${e'' \kerel e}.
 }@tr-proof{
-  By structural induction on the @${\Gamma \wellKE e \carrow e''} judgment.
+  By structural induction on the @${\Gamma \wellM e \carrow e''} judgment.
 
   @tr-case[#:box? #true
            @${\inferrule*{
@@ -2810,6 +2810,10 @@
         @tr-step{
           @${\wellKE \valk_0 : \tagof{\tau_0}}
           @|NK-value| (2, 3)
+        }
+        @tr-step{
+          @${K_0 = \tagof{\tau_0}}
+          @|K-S-completion|, @|NK-S-refl|, @|N-S-preservation|, and @|K-S-preservation|
         }
         @tr-step{
           @${\echk{K_0}{\valk_0} \rrKS \valk_0}
