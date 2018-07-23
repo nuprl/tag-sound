@@ -102,6 +102,7 @@
 @(provide
   K-S-completion
   K-D-completion
+  K-S-preservation
   K-S-factor
   K-S-hole-typing
   K-subt-preservation
