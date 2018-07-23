@@ -48,6 +48,7 @@
    (define NK-fail @tr-ref[#:key "NK-fail"]{@${\vfromany} inversion})
    (define NK-S-app @tr-ref[#:key "NK-S-app"]{@${\langN}--@${\langK} static application})
    (define NK-D-app @tr-ref[#:key "NK-D-app"]{@${\langN}--@${\langK} dynamic application})
+   (define NK-completion @tr-ref[#:key "NK-completion"]{@${\vchk} inversion})
    (define NK-delta @tr-ref[#:key "NK-delta"]{@${\langN}--@${\langK} @${\delta}-preservation})
    (define NK-Delta-inversion @tr-ref[#:key "NK-Delta-inversion" @elem{@${\Delta} codomain inversion}])
 )
@@ -2517,8 +2518,8 @@
           @|NK-value| (2, 3)
         }
         @tr-step{
-          @${K_0 = \tagof{\tau_0}}
-          @|K-S-completion|, @|NK-S-refl|, @|N-S-preservation|, and @|K-S-preservation|
+          @${\tagof{\tau_0} = K_0}
+          @|NK-completion|, @|NK-S-refl|, @|N-S-preservation|, and @|K-S-preservation|
         }
         @tr-step{
           @${\echk{K_0}{\valk_0} \rrKS \valk_0}
@@ -4954,7 +4955,6 @@
     @tr-qed{
     }
   }
-  }
 
   @tr-case[@${\eapp{\exprn_0}{\exprn_1} \nkrel \eapp{\exprk_0}{\exprk_1}}]{
     @tr-step{
@@ -5131,6 +5131,47 @@
       @${\vsubst{\eerr}{x}{\valn} = \eerr}
     }
   }
+}
+
+@tr-lemma[#:key "NK-completion" @elem{@${\vchk} inversion}]{
+  If @${\Gamma \wellKE \echk{K}{e'} : K}
+  and @${\Gamma \wellM e : \tau \carrow \echk{K}{e'}}
+  then @${K = \tagof{\tau}}.
+}@tr-proof{
+  By case analysis on @${\carrow}.
+
+  @tr-case[@${\inferrule*{
+                \Gamma \wellM e_0 : \tarr{\tau_d}{\tau_c} \carrow e_0'
+                \\
+                \Gamma \wellM e_1 : \tau_d \carrow e_1'
+                \\
+                \tagof{\tau_c} = K
+              }{
+                \Gamma \wellM \eapp{e_0}{e_1} : \tau_c \carrow \echk{K}{(\eapp{e_0'}{e_1'})}
+              }} #:box? #true]{
+    @tr-qed[]
+  }
+
+  @tr-case[@${\inferrule*{
+                \Gamma \wellM e : \tpair{\tau_0}{\tau_1} \carrow e'
+                \\
+                \tagof{\tau_0} = K
+              }{
+                \Gamma \wellM \efst{e} : \tau_0 \carrow \echk{K}{(\efst{e'})}
+              }} #:box? #true]{
+    @tr-qed[]
+  }
+
+  @tr-case[@${\inferrule*{
+                \Gamma \wellM e : \tpair{\tau_0}{\tau_1} \carrow e'
+                \\
+                \tagof{\tau_1} = K
+              }{
+                \Gamma \wellM \esnd{e} : \tau_1 \carrow \echk{K}{(\esnd{e'})}
+              }} #:box? #true]{
+    @tr-qed[]
+  }
+
 }
 
 @tr-lemma[#:key "NK-delta" @elem{@${\langN}--@${\langK} @${\delta}-preservation}]{

@@ -14,10 +14,10 @@
    (define N-D-soundness @tr-ref[#:key "N-S-soundness"]{static @${\langN}-soundness})
    (define N-compilation @tr-ref[#:key "N-compilation"]{@${\langN}-compilation})
 
-   (define N-S-progress @tr-ref[#:key "N-S-progress"]{static progress})
-   (define N-D-progress @tr-ref[#:key "N-D-progress"]{dynamic progress})
-   (define N-S-preservation @tr-ref[#:key "N-S-preservation"]{static preservation})
-   (define N-D-preservation @tr-ref[#:key "N-D-preservation"]{dynamic preservation})
+   (define N-S-progress @tr-ref[#:key "N-S-progress"]{@${\langN} static progress})
+   (define N-D-progress @tr-ref[#:key "N-D-progress"]{@${\langN} dynamic progress})
+   (define N-S-preservation @tr-ref[#:key "N-S-preservation"]{@${\langN} static preservation})
+   (define N-D-preservation @tr-ref[#:key "N-D-preservation"]{@${\langN} dynamic preservation})
 
    (define N-S-implies @tr-ref[#:key "N-S-implies"]{static subset})
    (define N-D-implies @tr-ref[#:key "N-D-implies"]{dynamic subset})

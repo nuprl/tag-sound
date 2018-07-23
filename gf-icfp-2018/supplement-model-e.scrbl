@@ -12,8 +12,8 @@
 @(begin
    (define E-S-soundness @tr-ref[#:key "E-S-soundness"]{static @${\langE} soundness})
 
-   (define E-progress @tr-ref[#:key "E-progress"]{progress})
-   (define E-preservation @tr-ref[#:key "E-preservation"]{preservation})
+   (define E-progress @tr-ref[#:key "E-progress"]{@${\langE} progress})
+   (define E-preservation @tr-ref[#:key "E-preservation"]{@${\langE} preservation})
 
    (define E-bf-progress @tr-ref[#:key "E-bf-progress"]{boundary-free progress})
    (define E-bf-preservation @tr-ref[#:key "E-bf-preservation"]{broundary-free preservation})

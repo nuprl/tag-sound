@@ -30,10 +30,10 @@
    (define K-compilation @tr-ref[#:key "K-compilation"]{@${\langK}-compilation})
    (define NK-base-type @tr-ref[#:key "NK-base-type"]{base type equivalence})
 
-   (define K-S-progress @tr-ref[#:key "K-S-progress"]{static progress})
-   (define K-D-progress @tr-ref[#:key "K-D-progress"]{dynamic progress})
-   (define K-S-preservation @tr-ref[#:key "K-S-preservation"]{static preservation})
-   (define K-D-preservation @tr-ref[#:key "K-D-preservation"]{dynamic preservation})
+   (define K-S-progress @tr-ref[#:key "K-S-progress"]{@${\langK} static progress})
+   (define K-D-progress @tr-ref[#:key "K-D-progress"]{@${\langK} dynamic progress})
+   (define K-S-preservation @tr-ref[#:key "K-S-preservation"]{@${\langK} static preservation})
+   (define K-D-preservation @tr-ref[#:key "K-D-preservation"]{@${\langK} dynamic preservation})
 
    (define K-S-completion @tr-ref[#:key "K-S-completion"]{@${\carrow} static soundness})
    (define K-D-completion @tr-ref[#:key "K-D-completion"]{@${\carrow} dynamic soundness})
