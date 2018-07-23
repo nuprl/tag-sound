@@ -1,7 +1,7 @@
 #lang gf-icfp-2018 @sigplan @10pt @review
 @require[scriblib/autobib]
 
-@title{A Spectrum of Soundness and Performance}
+@title{A Spectrum of Type Soundness and Performance}
 @subtitle{Supplementary Material}
 
 @(define NEU
