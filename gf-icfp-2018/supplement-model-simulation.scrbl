@@ -9,7 +9,6 @@
     N-D-inversion)
   (only-in "supplement-model-k.scrbl"
     K-S-completion
-    K-D-completion
     K-S-preservation
     K-S-factor
     K-S-hole-typing
@@ -29,7 +28,6 @@
    (define KE-S-stutter @tr-ref[#:key "KE-S-stutter"]{@${\langK}--@${\langE} static value stutter})
    (define KE-D-stutter @tr-ref[#:key "KE-D-stutter"]{@${\langK}--@${\langE} dynamic value stutter})
    (define KE-hole-subst @tr-ref[#:key "KE-hole-subst"]{@${\langK}--@${\langE} hole substitution})
-   (define KE-inversion @tr-ref[#:key "KE-inversion"]{@${\langK}--@${\langE} inversion})
    (define KE-subst @tr-ref[#:key "KE-subst"]{@${\langK}--@${\langE} substitution})
    (define KE-delta @tr-ref[#:key "KE-delta"]{@${\langK}--@${\langE} delta})
 
@@ -265,7 +263,7 @@
                 \Gamma \wellM e : \tau \carrow e'
               } }]{
     @tr-qed{
-      @tr-IH (1)
+      by @tr-IH
     }
   }
 
@@ -420,15 +418,10 @@
               }
               }]{
     @tr-step{
-      @${\wellKE e' : \tagof{\tau}}
-      @|K-S-completion|
-    }
-    @tr-step{
       @${e' \kerel e}
-      @|KE-S-refl| (1)
+      @|KE-S-refl|
     }
     @tr-qed{
-      (2)
     }
   }
 
@@ -467,19 +460,21 @@
         @tr-step{
           @${\exprk_0 \rrKSstar \boundaryerror}
         }
-        @tr-qed{
+        @tr-step{
           @${\ctxk[\boundaryerror] \kerel \ctxe[\expre_1]}
           @|KE-hole-subst|
         }
+        @tr-qed{}
       }
       @tr-else[@${\exprk_{0'} \rrKDstar \valk_{0}}]{
         @tr-step{
           @${\exprk_0 \rrKSstar \valk_0}
         }
-        @tr-qed{
+        @tr-step{
           @${\ctxk[\valk_0] \kerel \ctxe[\vale_0]}
           @|KE-hole-subst|
         }
+        @tr-qed{}
       }
     ]
   }
@@ -508,19 +503,21 @@
         @tr-step{
           @${\exprk_0 \rrKDstar \boundaryerror}
         }
-        @tr-qed{
+        @tr-step{
           @${\ctxk[\boundaryerror] \kerel \ctxe[\expre_1]}
           @|KE-hole-subst|
         }
+        @tr-qed{}
       }
       @tr-else[@${\exprk_{0'} \rrKSstar \valk_{0}}]{
         @tr-step{
           @${\exprk_0 \rrKDstar \valk_0}
         }
-        @tr-qed{
+        @tr-step{
           @${\ctxk[\valk_0] \kerel \ctxe[\vale_0]}
           @|KE-hole-subst|
         }
+        @tr-qed{}
       }
     ]
   }
@@ -692,10 +689,11 @@
       @${\vsubst{\exprk}{x}{\valk_1} \kerel \vsubst{\expre}{x}{\vale_1}}
       @|KE-subst|
     }
-    @tr-qed{
+    @tr-step{
       @${\ctxk[\vsubst{\exprk}{x}{\valk_1}] \kerel \ctxe[\vsubst{\expre}{x}{\vale_1}]}
       @|KE-hole-subst|
     }
+    @tr-qed{}
   }
 
   @tr-case[@${\eapp{(\vlam{\tann{x}{\tau}}{\expre_0})}{\vale_1}
@@ -749,10 +747,11 @@
           @${\vsubst{\exprk}{x}{\valk_1} \kerel \vsubst{\expre}{x}{\vale_1}}
           @|KE-subst|
         }
-        @tr-qed{
+        @tr-step{
           @${\ctxk[\vsubst{\exprk}{x}{\valk_1}] \kerel \ctxe[\vsubst{\expre}{x}{\vale_1}]}
           @|KE-hole-subst|
         }
+        @tr-qed{}
       }
       @tr-if[@${\eapp{\valk_0}{\valk_1} \rrKS \boundaryerror}]{
         @tr-step{
@@ -770,10 +769,11 @@
           @${\vsubst{\exprk}{x}{\valk_1} \kerel \vsubst{\expre}{x}{\vale_1}}
           @|KE-subst|
         }
-        @tr-qed{
+        @tr-step{
           @${\ctxk[\vsubst{\exprk}{x}{\valk_1}] \kerel \ctxe[\vsubst{\expre}{x}{\vale_1}]}
           @|KE-hole-subst|
         }
+        @tr-qed{}
       }
     ]
   }
@@ -794,6 +794,16 @@
       @|KE-D-stutter| or @|KE-S-stutter|
     }
     @list[
+      @tr-if[@${\exprk_{0'} \rrKDstar \boundaryerror
+                @tr-or[2]
+                \exprk_{0'} \rrKSstar \boundaryerror}]{
+        @tr-step{
+          @${\exprk \rrKDstar \boundaryerror}
+        }
+        @tr-qed{
+          @${\ctxk[\boundaryerror] \kerel \ctxe[\tagerror]}
+        }
+      }
       @tr-if[@${\exprk_{0'} \rrKDstar \valk_{0}}]{
         @tr-step{
           @${\vale_0 \not\in \vpair{v}{v}}
@@ -811,15 +821,7 @@
           @${\ctxk[\tagerror] \kerel \ctxe[\tagerror]}
         }
       }
-      @tr-if[@${\exprk_{0'} \rrKDstar \boundaryerror}]{
-        @tr-step{
-          @${\exprk \rrKDstar \boundaryerror}
-        }
-        @tr-qed{
-          @${\ctxk[\boundaryerror] \kerel \ctxe[\tagerror]}
-        }
-      }
-      @tr-if[@${\exprk_{0'} \rrKSstar \valk_{0}}]{
+      @tr-else[@${\exprk_{0'} \rrKSstar \valk_{0}}]{
         @tr-step{
           @${\wellKE \eunop{\exprk_{0'}} : K_0}
         }
@@ -837,14 +839,6 @@
         }
         @tr-contradiction{
           (b)
-        }
-      }
-      @tr-else[@${\exprk_{0'} \rrKSstar \boundaryerror}]{
-        @tr-step{
-          @${\exprk \rrKSstar \boundaryerror}
-        }
-        @tr-qed{
-          @${\ctxk[\boundaryerror] \kerel \ctxe[\tagerror]}
         }
       }
     ]
@@ -1540,25 +1534,6 @@
 
 }
 
-@tr-lemma[#:key "KE-inversion" @elem{@${\langK}--@${\langE} inversion}]{
-  @itemlist[
-    @item{
-      if @${\valk \kerel i} then @${\valk = i}
-    }
-    @item{
-      if @${\valk \kerel \vpair{\vale_0}{\vale_1}} then @${\valk = \vpair{\valk_0}{\valk_1}} and @${\valk_0 \kerel \vale_0} and @${\valk_1 \kerel \vale_1}
-    }
-    @item{
-      if @${\valk \kerel \vlam{x}{\expre}} then @${\valk = \vlam{x}{\exprk}} and @${\exprk \kerel \expre}
-    }
-    @item{
-      if @${\valk \kerel \vlam{\tann{x}{\tau}}{\expre}} then @${\valk = \vlam{\tann{x}{\tau}}{\exprk}} and @${\exprk \kerel \expre}
-    }
-  ]
-}@tr-proof{
-  By the definition of @${\kerel}
-}
-
 @tr-lemma[#:key "KE-subst" @elem{@${\langK}--@${\langE} substitution}]{
   If @${\exprk \kerel \expre} and @${\valk \kerel \vale}
   then @${\vsubst{\exprk}{x}{\valk} \kerel \vsubst{\expre}{x}{\vale}}
@@ -2002,19 +1977,12 @@
                 \Gamma \wellM \vpair{e_0}{e_1} : \tpair{\tau_0}{\tau_1} \carrow \vpair{e_0'}{e_1'}
               } }]{
     @tr-step{
-      @${\wellKE e_0' : \tagof{\tau_0}
-         @tr-and[]
-         \wellKE e_1' : \tagof{\tau_1}}
-      @|K-S-completion|
-    }
-    @tr-step{
       @${e_0' \nkrel e_0
          @tr-and[]
          e_1' \nkrel e_1}
-      @tr-IH (1)
+      @tr-IH
     }
     @tr-qed{
-      (2)
     }
   }
 
@@ -2025,15 +1993,10 @@
                 \Gamma \wellM \vlam{\tann{x}{\tau_d}}{e} : \tarr{\tau_d}{\tau_c} \carrow \vlam{\tann{x}{\tau_d}}{e'}
               } }]{
     @tr-step{
-      @${\wellKE e' \tagof{\tau_c}}
-      @|K-S-completion|
-    }
-    @tr-step{
       @${e' \nkrel e}
-      @tr-IH (1)
+      @tr-IH
     }
     @tr-qed{
-      (2)
     }
   }
 
@@ -2058,20 +2021,13 @@
                 \Gamma \wellM \eapp{e_0}{e_1} : \tau_c \carrow \echk{K}{(\eapp{e_0'}{e_1'})}
               } }]{
     @tr-step{
-      @${\wellKE e_0' : \tagof{\tarr{\tau_d}{\tau_c}}
-         @tr-and[]
-         \wellKE e_1' : \tagof{\tau_d}}
-      @|K-S-completion|
-    }
-    @tr-step{
       @${e_0' \nkrel e_0
          @tr-and[]
          e_1' \nkrel e_1}
-      @tr-IH (1)
+      @tr-IH
     }
     @tr-step{
       @${\eapp{e_0'}{e_1'} \nkrel \eapp{e_0}{e_1}}
-      (2)
     }
     @tr-qed{
       @${\echk{K}{\eapp{e_0'}{e_1'}} \nkrel \eapp{e_0}{e_1}}
@@ -2087,16 +2043,11 @@
                 \Gamma \wellM \efst{e} : \tau_0 \carrow \echk{K}{(\efst{e'})}
               } }]{
     @tr-step{
-      @${\wellKE e' : \tagof{\tpair{\tau_0}{\tau_1}}}
-      @|K-S-completion|
-    }
-    @tr-step{
       @${e' \nkrel e}
-      @tr-IH (1)
+      @tr-IH
     }
     @tr-step{
       @${\efst{e'} \nkrel \efst{e}}
-      (2)
     }
     @tr-qed{
       @${\echk{K}{\efst{e'}} \nkrel \efst{e}}
@@ -2112,16 +2063,11 @@
                 \Gamma \wellM \esnd{e} : \tau_1 \carrow \echk{K}{(\esnd{e'})}
               } }]{
     @tr-step{
-      @${\wellKE e' : \tagof{\tpair{\tau_0}{\tau_1}}}
-      @|K-S-completion|
-    }
-    @tr-step{
       @${e' \nkrel e}
-      @tr-IH (1)
+      @tr-IH
     }
     @tr-step{
       @${\esnd{e'} \nkrel \esnd{e}}
-      (2)
     }
     @tr-qed{
       @${\echk{K}{\esnd{e'}} \nkrel \esnd{e}}
@@ -2139,19 +2085,12 @@
                 \Gamma \wellM \ebinop{e_0}{e_1} : \tau \carrow \ebinop{e_0'}{e_1'}
               } }]{
     @tr-step{
-      @${\wellKE e_0' : \tagof{\tau_0}
-         @tr-and[]
-         \wellKE e_1' : \tagof{\tau_1}}
-      @|K-S-completion|
-    }
-    @tr-step{
       @${e_0' \nkrel e_0
          @tr-and[]
          e_1' \nkrel e_1}
-      @tr-IH (1)
+      @tr-IH
     }
     @tr-qed{
-      (2)
     }
   }
 
@@ -2163,12 +2102,8 @@
               }{
                 \Gamma \wellM e : \tau \carrow e'
               } }]{
-    @tr-step{
-      @${\wellKE e' : \tagof{\tau'}}
-      @|K-S-completion|
-    }
     @tr-qed{
-      @tr-IH (1)
+      by @tr-IH
     }
   }
 
@@ -2225,19 +2160,12 @@
              \Gamma \wellM \vpair{e_0}{e_1} \carrow \vpair{e_0'}{e_1'}
            }}]{
     @tr-step{
-      @${\wellKE e_0'
-         @tr-and[]
-         \wellKE e_1'}
-      @|K-D-completion|
-    }
-    @tr-step{
       @${e_0' \nkrel e_0
          @tr-and[]
          e_1' \nkrel e_1}
-      @tr-IH (1)
+      @tr-IH
     }
     @tr-qed{
-      (2)
     }
   }
 
@@ -2248,15 +2176,10 @@
                 \Gamma \wellM \vlam{x}{e} \carrow \vlam{x}{e'}
               }}]{
     @tr-step{
-      @${\wellKE e'}
-      @|K-D-completion|
-    }
-    @tr-step{
       @${e' \nkrel e}
-      @tr-IH (1)
+      @tr-IH
     }
     @tr-qed{
-      (2)
     }
   }
 
@@ -2279,19 +2202,12 @@
                 \Gamma \wellM \eapp{e_0}{e_1} \carrow \eapp{e_0'}{e_1'}
               } }]{
     @tr-step{
-      @${\wellKE e_0'
-         @tr-and[]
-         \wellKE e_1'}
-      @|K-D-completion|
-    }
-    @tr-step{
       @${e_0' \nkrel e_0
          @tr-and[]
          e_1' \nkrel e_1}
-      @tr-IH (1)
+      @tr-IH
     }
     @tr-qed{
-      (2)
     }
   }
 
@@ -2302,15 +2218,10 @@
                 \Gamma \wellM \eunop{e} \carrow \eunop{e'}
               }}]{
     @tr-step{
-      @${\wellKE e'}
-      @|K-D-completion|
-    }
-    @tr-step{
       @${e' \nkrel e}
-      @tr-IH (1)
+      @tr-IH
     }
     @tr-qed{
-      (2)
     }
   }
 
@@ -2323,19 +2234,12 @@
                 \Gamma \wellM \ebinop{e_0}{e_1} \carrow \ebinop{e_0'}{e_1'}
               } }]{
     @tr-step{
-      @${\wellKE e_0'
-         @tr-and[]
-         \wellKE e_1'}
-      @|K-D-completion|
-    }
-    @tr-step{
       @${e_0' \nkrel e_0
          @tr-and[]
          e_1' \nkrel e_1}
-      @tr-IH (1)
+      @tr-IH
     }
     @tr-qed{
-      (2)
     }
   }
 
@@ -2357,15 +2261,10 @@
               }
               }]{
     @tr-step{
-      @${\wellKE e' : \tagof{\tau}}
-      @|K-S-completion|
-    }
-    @tr-step{
       @${e' \nkrel e}
-      @|KE-S-refl| (1)
+      @|KE-S-refl|
     }
     @tr-qed{
-      (2)
     }
   }
 
@@ -3982,7 +3881,7 @@
       @${\ctxn[\exprn] \nkrel \ctxk_0[\exprk]}
     }
     @tr-qed{
-      @tr-IH
+      by @tr-IH
     }
   }
 
@@ -4003,7 +3902,7 @@
       @${\ctxn_0[\exprn] \nkrel \ctxk_0[\exprk]}
     }
     @tr-qed{
-      @tr-IH
+      by @tr-IH
     }
   }
 
@@ -4024,7 +3923,7 @@
       @${\ctxn_1[\exprn] \nkrel \ctxk_1[\exprk]}
     }
     @tr-qed{
-      @tr-IH
+      by @tr-IH
     }
   }
 
@@ -4045,7 +3944,7 @@
       @${\ctxn_0[\exprn] \nkrel \ctxk_0[\exprk]}
     }
     @tr-qed{
-      @tr-IH
+      by @tr-IH
     }
   }
 
@@ -4066,7 +3965,7 @@
       @${\ctxn_1[\exprn] \nkrel \ctxk_1[\exprk]}
     }
     @tr-qed{
-      @tr-IH
+      by @tr-IH
     }
   }
 
@@ -4087,7 +3986,7 @@
       @${\ctxn_0[\exprn] \nkrel \ctxk_0[\exprk]}
     }
     @tr-qed{
-      @tr-IH
+      by @tr-IH
     }
   }
 
@@ -4108,7 +4007,7 @@
       @${\ctxn_0[\exprn] \nkrel \ctxk_0[\exprk]}
     }
     @tr-qed{
-      @tr-IH
+      by @tr-IH
     }
   }
 
@@ -4127,7 +4026,7 @@
       @${\ctxn_1[\exprn] \nkrel \ctxk_1[\exprk]}
     }
     @tr-qed{
-      @tr-IH
+      by @tr-IH
     }
   }
 
@@ -4183,7 +4082,7 @@
       @${\ctxn_0[\exprn] \nkrel \ctxk[\exprk]}
     }
     @tr-qed{
-      @tr-IH
+      by @tr-IH
     }
   }
 
@@ -4217,7 +4116,7 @@
   then one of the following holds:
   @itemlist[
     @item{
-      @${\wellNE \exprn : \tau' @tr-and[] \wellKE \exprk : K @tr-and[] \tagof{\tau'} \subt K}
+      @${\wellNE \exprn : \tau' @tr-and[] \wellKE \exprk : K}
     }
     @item{
       @${\wellNE \exprn @tr-and[] \wellKE \exprk}
@@ -4259,7 +4158,7 @@
       @${\ctxn_0[\exprn] \nkrel \ctxk_0[\exprk]}
     }
     @tr-qed{
-      @tr-IH
+      by @tr-IH
     }
   }
 
@@ -4280,7 +4179,7 @@
       @${\ctxn_1[\exprn] \nkrel \ctxk_1[\exprk]}
     }
     @tr-qed{
-      @tr-IH
+      by @tr-IH
     }
   }
 
@@ -4301,7 +4200,7 @@
       @${\ctxn_0[\exprn] \nkrel \ctxk_0[\exprk]}
     }
     @tr-qed{
-      @tr-IH
+      by @tr-IH
     }
   }
 
@@ -4322,7 +4221,7 @@
       @${\ctxn_1[\exprn] \nkrel \ctxk_1[\exprk]}
     }
     @tr-qed{
-      @tr-IH
+      by @tr-IH
     }
   }
 
@@ -4343,7 +4242,7 @@
       @${\ctxn_0[\exprn] \nkrel \ctxk_0[\exprk]}
     }
     @tr-qed{
-      @tr-IH
+      by @tr-IH
     }
   }
 
@@ -4364,7 +4263,7 @@
       @${\ctxn_0[\exprn] \nkrel \ctxk_0[\exprk]}
     }
     @tr-qed{
-      @tr-IH
+      by @tr-IH
     }
   }
 
@@ -4387,7 +4286,7 @@
       @${\ctxn_1[\exprn] \nkrel \ctxk_1[\exprk]}
     }
     @tr-qed{
-      @tr-IH
+      by @tr-IH
     }
   }
 
@@ -4461,7 +4360,7 @@
       @${\ctxn_0[\exprn] \nkrel \ctxk[\exprk]}
     }
     @tr-qed{
-      @tr-IH
+      by @tr-IH
     }
   }
 
@@ -4530,7 +4429,7 @@
       @${\valn \nkrel \valk}
     }
     @tr-qed{
-      @tr-IH
+      by @tr-IH
     }
   }
 }
@@ -4804,7 +4703,7 @@
       @${\ctxn \nkrel \ctxk_0}
     }
     @tr-qed{
-      @tr-IH
+      by @tr-IH
     }
   }
 
@@ -4813,7 +4712,7 @@
       @${\ctxn_0 \nkrel \ctxk_0}
     }
     @tr-qed{
-      @tr-IH
+      by @tr-IH
     }
   }
 
@@ -4822,7 +4721,7 @@
       @${\ctxn_1 \nkrel \ctxk_1}
     }
     @tr-qed{
-      @tr-IH
+      by @tr-IH
     }
   }
 
@@ -4831,7 +4730,7 @@
       @${\ctxn_0 \nkrel \ctxk_0}
     }
     @tr-qed{
-      @tr-IH
+      by @tr-IH
     }
   }
 
@@ -4840,7 +4739,7 @@
       @${\ctxn_1 \nkrel \ctxk_1}
     }
     @tr-qed{
-      @tr-IH
+      by @tr-IH
     }
   }
 
@@ -4849,7 +4748,7 @@
       @${\ctxn_0 \nkrel \ctxk_0}
     }
     @tr-qed{
-      @tr-IH
+      by @tr-IH
     }
   }
 
@@ -4858,7 +4757,7 @@
       @${\ctxn_0 \nkrel \ctxk_0}
     }
     @tr-qed{
-      @tr-IH
+      by @tr-IH
     }
   }
 
@@ -4867,7 +4766,7 @@
       @${\ctxn_1 \nkrel \ctxk_1}
     }
     @tr-qed{
-      @tr-IH
+      by @tr-IH
     }
   }
 
@@ -4876,7 +4775,7 @@
       @${\ctxn_0 \nkrel \ctxk_0}
     }
     @tr-qed{
-      @tr-IH
+      by @tr-IH
     }
   }
 
@@ -4885,7 +4784,7 @@
       @${\ctxn_0 \nkrel \ctxk_0}
     }
     @tr-qed{
-      @tr-IH
+      by @tr-IH
     }
   }
 
@@ -4894,7 +4793,7 @@
       @${\ctxn_0 \nkrel \ctxk_0}
     }
     @tr-qed{
-      @tr-IH
+      by @tr-IH
     }
   }
 
@@ -4903,7 +4802,7 @@
       @${\ctxn_0 \nkrel \ctxk_0}
     }
     @tr-qed{
-      @tr-IH
+      by @tr-IH
     }
   }
 
@@ -4912,7 +4811,7 @@
       @${\ctxn_0 \nkrel \ctxk_0}
     }
     @tr-qed{
-      @tr-IH
+      by @tr-IH
     }
   }
 
@@ -4921,7 +4820,7 @@
       @${\ctxn_0 \nkrel \ctxk_0}
     }
     @tr-qed{
-      @tr-IH
+      by @tr-IH
     }
   }
 
