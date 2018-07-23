@@ -42,9 +42,9 @@
 @; a diff between Typed Racket and Tag-Sound Racket.
 
 
-@;@include-section{supplement-descriptions.scrbl}
-@;@include-section{supplement-linear.scrbl}
-@;@include-section{supplement-implementation.scrbl}
-@;@include-section{supplement-existing.scrbl}
+@include-section{supplement-descriptions.scrbl}
+@include-section{supplement-linear.scrbl}
+@include-section{supplement-implementation.scrbl}
+@include-section{supplement-existing.scrbl}
 @include-section{supplement-model.scrbl}
 
