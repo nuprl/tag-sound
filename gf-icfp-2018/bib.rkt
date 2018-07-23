@@ -2228,7 +2228,7 @@
 (define gf-tr-2018
   (make-bib
     #:author (authors "Ben Greenman" "Matthias Felleisen")
-    #:title "A Spectrum of Type Soundness and Performance Supplementary Material"
+    #:title "A Spectrum of Type Soundness and Performance: Supplementary Material"
     #:location (techrpt-location #:institution "Northeastern University" #:number "NU-CCIS-2018-002")
     #:date 2018))
 
