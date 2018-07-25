@@ -1604,13 +1604,6 @@
 ;    #:location "arXiv:1802.00061"
 ;    #:date 2018))
 
-;(define cvgrl-arxiv-2017
-;  (make-bib
-;    #:author (authors "Avik Chaudhuri" "Panagiotis Vekris" "Sam Goldman" "Marshall Roch" "Gabriel Levy")
-;    #:title "Fast and Precise Type Checking for JavaScript"
-;    #:location "arXiv:1708.08021"
-;    #:date 2017))
-
 ; -----------------------------------------------------------------------------
 
 (define m-maclisp-1974
@@ -2112,6 +2105,13 @@
    #:location (journal-location pacmpl #:volume "1" #:number "OOPSLA" #:pages '("56:1" "56:30"))
    #:date 2017))
 
+(define cvgrl-oopsla-2017
+  (make-bib
+    #:author (authors "Avik Chaudhuri" "Panagiotis Vekris" "Sam Goldman" "Marshall Roch" "Gabriel Levy")
+    #:title "Fast and Precise Type Checking for JavaScript"
+    #:location (journal-location pacmpl #:volume "1" #:number "OOPSLA" #:pages '(48:1 48:30))
+    #:date 2017))
+
 (define g-popl-2015
   (make-bib
    #:title "Space-Efficient Manifest Contracts"
@@ -2298,8 +2298,8 @@
 (define clzv-ecoop-2018
   (make-bib
     #:author (authors "Benjamin W. Chung" "Paley Li" "Francesco Zappa Nardelli" "Jan Vitek")
-    #:title "A Framework for Object-Oriented Gradual Typing"
-    #:location (proceedings-location ecoop #:pages 'to-appear)
+    #:title "KafKa: Gradual Typing for Objects"
+    #:location (proceedings-location ecoop #:pages '(12:1 12:23))
     #:date 2018))
 
 (define ajsw-icfp-2017

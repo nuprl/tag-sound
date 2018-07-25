@@ -71,7 +71,7 @@ A programmer can therefore opt into type-constructor
   \node (Esub)
     [align=center,below of=E,yshift=-3ex]
     {ActionScript@|MT|@~cite[rch-popl-2012], mypy@|MT|, \\
-     Flow@|MT|, Hack@|MT|, Pyre@|MT|, Pytype@|MT|, \\
+     Flow@|MT|@~cite[cvgrl-oopsla-2017], Hack@|MT|, Pyre@|MT|, Pytype@|MT|, \\
      rtc@|MT|@~cite[rtsf-sac-2013], Strongtalk@|MT|@~cite[bg-oopsla-1993], \\
      TypeScript@|MT|@~cite[bat-ecoop-2014], Typed Clojure@|MT|@~cite[bdt-esop-2016], \\
      Typed Lua@|MT|@~cite[mmi-dls-2015]};
