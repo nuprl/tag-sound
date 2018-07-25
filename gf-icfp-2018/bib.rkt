@@ -1107,13 +1107,6 @@
 ;; ----------------------------------------
 ; Contracts
 
-(define complete-monitors
-  (make-bib
-   #:author (authors "Christos Dimoulas" "Sam Tobin-Hochstadt" "Matthias Felleisen")
-   #:title "Complete Monitors for Behavioral Contracts"
-   #:location (proceedings-location esop #:pages '(214 233))
-   #:date 2012))
-
 (define df-toplas-2011
   (make-bib
    #:author (authors "Christos Dimoulas" "Matthias Felleisen")
