@@ -11,6 +11,12 @@
 \renewenvironment{AutoBibliography}{\begin{small}\footnotesize}{\end{small}}
 \renewenvironment{bigtabular}{\footnotesize\begin{pltstabular}}{\end{pltstabular}}
 
+\usepackage{watermark}
+\newcommand{\SacmBadge}[2]{\href{#1}{\includegraphics[width=5.5em]{#2}}}
+\thiswatermark{\hspace*{28em}
+\SacmBadge{https://www.acm.org/publications/policies/artifact-review-badging}{artifacts_available.jpg}
+\SacmBadge{https://www.acm.org/publications/policies/artifact-review-badging}{artifacts_evaluated_functional.jpg}}
+
 %\usepackage{draftwatermark}
 %\SetWatermarkText{DRAFT}
 %\SetWatermarkScale{1}
