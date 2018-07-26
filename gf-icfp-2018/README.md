@@ -6,6 +6,8 @@ paper
 - `tagged-racket-src.tar.gz` contains a copy of the fork of typed racket
   used to take measurements
 
+- permanent url for the supplement: <http://hdl.handle.net/2047/D20290215>
+
 
 - - -
 
