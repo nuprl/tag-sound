@@ -91,30 +91,67 @@ only first-order from outside then HO = FO ... in general error implication
 
 thus concludes the first piece of folklore
 
-the second piece is about performance specifically the more constraints ye
-adds to a program the better performance. The history ... [RESEARCH]
-more mixed
+The second major component of the paper has to do with performance.
+Specifically about how these three checking strategies relate to one another.
+One would expect (yes this low-level is probably right for a draft until M sees it):
+- higher-order can have a serious cost, but soundness means optimizations
+- erasure no cost
+- first-order little cost even if optimized
 
-rather than push the fish story further, let me just sketch what we found
-types are constraints, more types in the same program is more constraints
-
-erasure = flat (does it need to be flat?)
-
-first order = linear!!!! wow
-
+To test this, we have three implementations for one surface language (typed racket).
+This is not a perfect comparison because the first-order has little optimizations
+and nothing for error messages, so let me just sketch what we found.
+(as a function of increasing types)
+erasure = flat,
+first-order = line,
 higher-order = umbrella
 
-... say more
+what does this mean? first the conjectures are right to some extent,
+higher-order is the only extreme one and it is quite extreme, erasure is flat,
+first-order is not extreme (well I already said that)
 
-... conclusion
+but the deeper meaning, first higher-order is fastest at right --- even when NOT
+100% typed --- because things inside the boundary can run full-speed++.
 
-A = Findler? Tobin-Hochstadt?
-B = Bracha
-C = Vitousek?
+   Diagram:
+
+   |   ______
+   |  /      \
+   | ------------
+   |           \_
+   |______________ t
+
+               !!!!
+
+second the cost of first-order is more-or-less linear in the number of type
+annotations! each type annotation may add a check, just like the hatching eggs
+need to conservatively guard every elimination form in typed code! Adds up.
+Typically adds up slower than higher-order, but thats not always the case we
+found ONE counterexample.
+
+Lets wrap up. We put different checking strategies for gradual typing into
+a common theoretical framework and a common implementation. Its 3 back-ends
+for one surface language. With this we can articulate the three differnt
+notions of soundness that these can be show to satisfy, and we can formulate
+relational theorems, first about soundiness and second about errors.
+(We can also give the first alternate semantics for transient)
+and compare the performance of three implementations of a full language
+
+What do we learn? Soundness is not a binary proposition, there are compelling
+reasons for an intermediate statement. Also the performance story is much
+more subtle than previously expected. (than the literature would lead one to
+believe)
+
+
+??? is that really the end?
+
 
 - - -
 
 soundiness is a "sound up to X" statement, where X is a set of language features
+http://soundiness.org/
+https://cacm.acm.org/magazines/2015/2/182650-in-defense-of-soundiness/fulltext
+
 
 for us we have two "soundiness" theorem:
 
