@@ -14,8 +14,7 @@ This is a talk about folklore as you all know folklore can be true can be false
 
 Concerned with two pieces of folklore today. First soundness is binary proposition,
 either sound or unsound. Now yes maybe that's not the whole story maybe that maybe
-is clear already there are murmerings in the hallway about ``soundiness'' for
-static analysis which is not seemingly going anywhere [RESEARCH] and how
+is clear already there are murmerings in the hallway (soundiness unrelated) and how
 TypeScript is unsound but ``Nevertheless the world of unsoundness is not a shapeless,
 unintelligible mess''
 
@@ -109,6 +108,20 @@ higher-order = umbrella
 
 ... conclusion
 
-a = Findler? Tobin-Hochstadt?
+A = Findler? Tobin-Hochstadt?
 B = Bracha
 C = Vitousek?
+
+- - -
+
+soundiness is a "sound up to X" statement, where X is a set of language features
+
+for us we have two "soundiness" theorem:
+
+- theorem i1 : soundness up to typed/untyped interaction (if no interaction
+               then fully sound)
+
+- theorem i2 : soundness up to functions and pairs across boundaries (if no
+               pairs cross, then first-order is equal to higher-order)
+
+Thorn invented a soundiness with theorem i2.
