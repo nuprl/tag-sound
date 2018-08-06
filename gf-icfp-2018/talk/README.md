@@ -98,6 +98,9 @@ One would expect (yes this low-level is probably right for a draft until M sees 
 - erasure no cost
 - first-order little cost even if optimized
 
+Touches on a second folklore: adding constraints improves performance. Here
+the types are the constraints.
+
 To test this, we have three implementations for one surface language (typed racket).
 This is not a perfect comparison because the first-order has little optimizations
 and nothing for error messages, so let me just sketch what we found.
@@ -129,6 +132,7 @@ need to conservatively guard every elimination form in typed code! Adds up.
 Typically adds up slower than higher-order, but thats not always the case we
 found ONE counterexample.
 
+(in the paper you'll find ....)
 Lets wrap up. We put different checking strategies for gradual typing into
 a common theoretical framework and a common implementation. Its 3 back-ends
 for one surface language. With this we can articulate the three differnt
@@ -137,14 +141,16 @@ relational theorems, first about soundiness and second about errors.
 (We can also give the first alternate semantics for transient)
 and compare the performance of three implementations of a full language
 
-What do we learn? Soundness is not a binary proposition, there are compelling
-reasons for an intermediate statement. Also the performance story is much
-more subtle than previously expected. (than the literature would lead one to
-believe)
+What do we learn? Soundness is not a binary proposition for pair of languages,
+there are compelling reasons for an intermediate statement. Thats just what GT
+deals with ... other settings benefit too I'm sure.
+Also the performance story is much more subtle than previously expected.
+(than the literature would lead one to believe). Check the data in the
+paper and form your own conclusions, but to me see a need for:
+- optimize transient (go Vitousek)
+- algorithmic higher-order improvements (revive Pycket?)
 
-
-??? is that really the end?
-
+go forth and do good science (be good scientists?)
 
 - - -
 
@@ -162,3 +168,12 @@ for us we have two "soundiness" theorem:
                pairs cross, then first-order is equal to higher-order)
 
 Thorn invented a soundiness with theorem i2.
+
+- - -
+
+careful! performance is only up-to the same design decisions as reticulated
+... but adding wrappers will only save cost of checking input for non-exported
+
+- - -
+
+shout out to Vitousek etal for working on a fix, set-based analysis?
