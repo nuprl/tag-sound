@@ -10,86 +10,129 @@ TODO
 
 - - -
 
-This is a talk about folklore as you all know folklore can be true can be false
+[ HOLY CROW everything literally everything written here is bad and needs work]
 
-Concerned with two pieces of folklore today. First soundness is binary proposition,
-either sound or unsound. Now yes maybe that's not the whole story maybe that maybe
-is clear already there are murmerings in the hallway (soundiness unrelated) and how
-TypeScript is unsound but ``Nevertheless the world of unsoundness is not a shapeless,
-unintelligible mess''
+Hello I'm Ben going to talk about gradual typing, language design, type
+soundness, and performance.
 
-whats up well first the background [RESEARCH]
-any programmer could say this is not the whole story because what about this
-and that other ways to interface aren't these soundness holes but I guess its
-okay what about PLDI16 type providers hm hm
-academics dont seem to appreciate the question its debatable and anyway enough
-to be done on the sound side in the binary world so nevermind
+That's the technical overview. At a higher level the talk, and the paper,
+deals with two pieces of folkore --- the kind of things you might hear in the
+hallway, or know without knowing (implicitly accept as truth).
 
-gradual typing makes the question important and you can see from the start (from
-the start!) papers struggling to jive with ye olde type soundness. The cannonical
-forms are diffent have new kinds of values to ... getting a little detailed
-here ... anyway this soundness is NOT that soundness because exists untyped
-code lost the closed-world assumption lost ALL TRACES of that assumption!
-goes much further with work on typescript where you see lines like ``integration
-with a formal semantics of jabascript is future work'' wtf brooo thats a big
-if --- and hasn't come around yet. And then is the reticulated paper which
-for lack of a better phrase has a type soundness theorem thats nothing much
-like soundness at all, can have a term of type List(Int) and get a list of
-real numbers furthermore can extract a real number from the list in typed
-code! okay I am simplifying but all this is true. Its not soundness in ye olde
-sense that much is clear. But the argument is this is reasonable because typed
-code basic assumptions are preserved (and nothing goes wrong)
+1. soundness is a binary proposition
+      TypeScript is unsound but ``Nevertheless the world of unsoundness is not
+      a shapeless, unintelligible mess''
+2. adding type constraints to a program improves performance
 
-In the paper we state three notions of type soundness and we prove a
-few properties relating them. I'd like to give you a preview of that now,
-but instead of laying the formal groundwork and talking about type soundess,
-I'm going to illustrate by talking about fish instead. Start with a body of
-water add a pair of special red fish these are red snappers they fall in love
-lay some eggs hatch babies live happily ever after. Now for this body of water
-I claim it possible to prove a very strong fish soundness property, namely a
-red snapper soundness that every fish at any point in time is a red snapper
-fish and every egg is a red snapper egg how do you like that. This matches
-ye olde binary soundness. Things change when we decide, for whatever reason,
-that its expedient to open a gate between the lake and another unknown body
-of water. What now of red snapper soundness? Its an interesting question.
-So to mitigate the ecological impacts of the new foreign waterway the owners
-of the pond enlists three emininent biologists (ecologists?) Dr A Dr B Dr C
+The high-level point of the paper is to analyze these two statements in the
+context of gradual typing (or more accurately migratory typing)
 
-Dr A is very concerned with the red snapper population, for their continued
-success he wants to preserve the red snapper soundness at all costs and proposes
-a plan where every fish incoming from the new water is subject to a full
-anatomical screening. Nonsnappers go out the other side never enter the lake
-for fish cant perform the same inspection without risking the larvae so invents
-and ingenious cage-like device to wrap the eggs, so they hatch without issue
-and can be inspected when old enough. Should be clear, this preserves the
-red snapper property modulo these caged eggs
+Lets set the stage. Or: What I mean is this. Have two languages, one untyped
+language and one typed language. Both have similar expressions, values, and
+semantics. Both have a type system (or well-formed judgment) but one is
+stronger than the other in a sense that I'm not going to make precise basically
+good(e) implies good(e'). Doesn't matter for the talk --- have two similar
+languages, but one has stronger guarantees than the other. The gradual/migratory
+typing question is, what happens when we combine them?
 
-Dr B is the hands-off type. Proposes to do nothing with the lake, let nature
-run its couse. When asked about red snapper soundness says "covfefe" all that
-really matters is having an ecosystem
+What do we do to combine?
+What happens to soundness?
+What happens to performance?
 
-Dr C is sympathetic towards Dr A's plan but finds it outrageous, offers a compromise.
-Instead of this full physical who knows how expensive lets just check the color
-allow any red fish to arrive. If its not red, goodbye. If its not a fish, goodbye.
-If its an egg, well its tricky because could be an egg containing a non-fish
-or a non-red so to be safe check everything that hatches. If the egg floats
-on, no big deal and we didn't lose one of the expensive cages. Overapproximates
-but the work for each is so little shouldn't matter.
+In the paper, we start with a pair of lambda-calculus languages and go into
+detail with three strategies for combining typed and untyped code.  To a first
+approximation, these strategies come from TypeScript, Reticulated Python, and
+Typed Racket. (Of course, many others do the TS and TR approaches, still others
+are similar to RP.) Leads to three pairs of soundness theorems in our formal
+model, and leads to three implementations of Racket / Typed Racket that we
+measure performance for. 
 
-There you have it three expert opinions on how to connect the two ponds,
-three variants of fish soundness: (deep) red snapper soundness,
-(shallow) red soundness, and (erasure) ecosystem soundness.
-Each independent and useful for different reasons, each based on different
-border control. takeaway from this story is that soundness for a pari of
-languages is quite different from soundness for a single language; the binary
-point of view is inadequate to show the full range of useful options.
+That's all very good, but you don't need all this formal machinery to
+understand the three strategies. So let's forget about functional programming
+for a minute, and instead of two languages, we'll have two bodies of water.
 
-in the paper, have a higher-order erasure first-order checking strategies
-the relation theorems ... if disconnected from outside, equal ... if
-only first-order from outside then HO = FO ... in general error implication
-(no comment on how easy or how folklore?)
+On the right we have a small closed-off pond. This pond is home to a pair of
+fish, red snapper fish to be precise (Lutjanus campechanus). Its a small world
+in this pond and over time the fish meet, exchange their software, and then
+the pond is not so empty anymore but also has little fish eggs. To be precise
+these are red snapper eggs, made by a pair of red snappers, and if they hatch
+they'll hatch into a little copy of their parents (same genus, same species).
+If these are the only two processes in our pond:
+- RSF + RSF --> RSE + RSF + RSF
+- RSE --> RSF
+then we can guarantee that at any point in the future, the pond contains only
+red snapper fish and red snapper eggs (defined as 'eggs that hatch into snappers')
+I call this the red snapper property.
 
-thus concludes the first piece of folklore
+On the left we have a flowing river. All kinds of fish and fish eggs live in
+the river, depending on the time of year. Consequently we can't prove a red
+snapper property for the river. The analogous property is much weaker; namely,
+at any point in time its all fish and fish eggs.
+
+There's our ecosytem. Two disconnected bodies of water with two populations
+that satisfy two different properties. (The property on the right is stronger
+than the property on the left --- that doesn't actually matter.)
+
+One day three biologists visit the pond and discover it is dangerously low
+on entropy. Something must be done else the fish are going to die. They all
+agree, the best course of action is to divert the nearby river to flow into
+our little pond. They disagree on whether something else should be done to
+preserve the existing red snapper population.
+
+Dr. H insists that the red snapper property be preserved. His plan is to put
+an inspection station between the river and the pond. Whenever a fish arrives,
+perform a DNA test to ensure its a red snapper otherwise send it back.
+Whenever an egg arrives, well, they don't have the techology to inspect an
+egg but Dr. H has prepared with an ingenious monitoring device that can
+incubate the egg until it hatches, keeping the new organism separate from the
+pond until a technician can perform a DNA test. With the inspections + monitors,
+Dr. H claims we have a straightforward generalization of the red snapper property:
+in the future every fish is a red snapper and every egg is either a red snapper
+egg or a monitored egg. 
+
+Dr. E doesn't understand all the fuss about the red snapper property. She
+proposes to open the pond and let nature run its course. Both bodies of water
+then satisfy the weak fish soundness property and we're done. Nice and simple.
+(Simple as possible and no simpler.)
+
+Dr. 1 is torn. On one hand, he is sympathetic towards Dr. H's plan, because his
+office overlooks the little pond and he enjoys watching the red snappers. It
+just wouldn't be the same aesthetic with different fish swimming around. On the
+other hand, he finds the inspection station and monitors to be impractical.
+See he's already thinking ahead to our next topic, performance, and wondering
+how much time and $$$ its going to cost to preserve red snapper soundness.
+So Dr. 1 proposes a compromise. We add an inspection station that just checks
+the color of incoming fish. Red fish are ok, other fish go back. For the eggs,
+all eggs pass the inspection but the pond gets a supervisor who checks the
+color of every hatchling. If its not red, goodbye. This, Dr 1 says, guarantees
+a "red fish" property. Its stronger than the fish property, but weaker than
+the original red snapper property.
+
+The point of this fish story is to show that if we combine two systems with
+different guarantees, there are at least 3 properties that we might try to
+preserve in the combined system. In the context of gradual typing systems,
+Dr. H corresponds to the higher-order approach taken by systems like
+Typed Racket TPD Gradualtalk. This higher-order enforcement can guarantee
+a natural generalization of a standard type soundness theorem. Types enforce
+levels of abstraction.
+Dr. E's erasure approach is similar to what happens in TypeScript, Hack, PyType,
+Strongtalk .... where the optional types are used only for static analysis
+and have no effect on program behavior.
+Finally Dr. 1's approach matches Reticulated Python, which ensures that
+typed code doesn't get stuck by sprinkling first-order checks around every
+elimination form in typed code
+(wow, quite a lot to illustrate in this paragraph)
+
+Just as the doctors were worried about complexity, designers of gradual typing
+systems were also worried about performance when they introduced alternatives.
+
+[Conclusion] Soundness for a pair of languages is different than soundness for a single
+language. For a pair, 
+
+
+
+
+
 
 The second major component of the paper has to do with performance.
 Specifically about how these three checking strategies relate to one another.
@@ -177,3 +220,14 @@ careful! performance is only up-to the same design decisions as reticulated
 - - -
 
 shout out to Vitousek etal for working on a fix, set-based analysis?
+
+- - -
+
+  interop, non-binary soundness:
+  - PLDI16 type providers
+  - 
+
+- - -
+
+Back to PLs, the fish are immutable data the eggs are thunks.
+The paper goes beyond thunks and allows two-way interaction 
