@@ -10,8 +10,6 @@ TODO
 
 - - -
 
-[ HOLY CROW everything literally everything written here is bad and needs work]
-
 Hello I'm Ben going to talk about gradual typing, language design, type
 soundness, and performance.
 
@@ -20,8 +18,7 @@ deals with two pieces of folkore --- the kind of things you might hear in the
 hallway, or know without knowing (implicitly accept as truth).
 
 1. soundness is a binary proposition
-      TypeScript is unsound but ``Nevertheless the world of unsoundness is not
-      a shapeless, unintelligible mess''
+   (TypeScript is unsound but ``Nevertheless the world of unsoundness is not a shapeless, unintelligible mess'')
 2. adding type constraints to a program improves performance
 
 The high-level point of the paper is to analyze these two statements in the
@@ -126,13 +123,15 @@ elimination form in typed code
 Just as the doctors were worried about complexity, designers of gradual typing
 systems were also worried about performance when they introduced alternatives.
 
+
+
 [Conclusion] Soundness for a pair of languages is different than soundness for a single
 language. For a pair, 
 
 
 
 
-
+# OLD
 
 The second major component of the paper has to do with performance.
 Specifically about how these three checking strategies relate to one another.
@@ -166,7 +165,6 @@ but the deeper meaning, first higher-order is fastest at right --- even when NOT
    | ------------
    |           \_
    |______________ t
-
                !!!!
 
 second the cost of first-order is more-or-less linear in the number of type
@@ -231,3 +229,28 @@ shout out to Vitousek etal for working on a fix, set-based analysis?
 
 Back to PLs, the fish are immutable data the eggs are thunks.
 The paper goes beyond thunks and allows two-way interaction 
+
+
+- - -
+
+Q. What do the names mean?
+
+See the paper for H E 1
+
+Q. What about Pycket?
+
+In theory, Pycket demonstrated that a tracing JIT can solve the issues with H
+and might solve any issues with 1.
+In practice, there are constant factors and low-level issues in the way.
+Until those practical issues are resolved --- which might be soon --- I believe
+its still worthwhile to investigate across-the-board improvements to H and 1.
+
+
+
+- - -
+
+Q. (variational) First off, this technique is still interesting despite its
+application to Reticulated being not so interesting. Second, in a language
+with subtyping there might be more than one way to type a program or expression.
+Have you thought about extending the technique to compare different ways of
+typing the same program?
