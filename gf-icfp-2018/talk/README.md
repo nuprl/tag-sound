@@ -8,192 +8,200 @@ TODO
 [ ] give presentation
 [ ] blog post
 
+
 - - -
+# OUTLINE
 
-Hello I'm Ben going to talk about gradual typing, language design, type
-soundness, and performance.
+This work is about gradual typing, but the talk is really about two pieces of
+folklore. As you know folklore can be true and can be false, and its often
+much simpler than the full picture. Onward.
 
-That's the technical overview. At a higher level the talk, and the paper,
-deals with two pieces of folkore --- the kind of things you might hear in the
-hallway, or know without knowing (implicitly accept as truth).
+The first folklore proposition is that soundness, in the sense of type
+soundness, is a binary proposition.  Either a language is sound or unsound, and
+there's no place for grey areas in between. This, I claim, is just false for a
+language that mixes typed and untyped code. Or rather, its not a useful way of
+thinking.
 
-1. soundness is a binary proposition
-   (TypeScript is unsound but ``Nevertheless the world of unsoundness is not a shapeless, unintelligible mess'')
-2. adding type constraints to a program improves performance
+The second folkore proposition is that adding type information to a program can
+only improve performance.  The idea being, there's no downside to adding type
+information and a smart compiler can leverage the types. This is also
+misleading-at-best in a language that allows typed and untyped code.
 
-The high-level point of the paper is to analyze these two statements in the
-context of gradual typing (or more accurately migratory typing)
+Look, its another world out there and things don't just work like they did
+before. Your standard interoperability story.
 
-Lets set the stage. Or: What I mean is this. Have two languages, one untyped
-language and one typed language. Both have similar expressions, values, and
-semantics. Both have a type system (or well-formed judgment) but one is
-stronger than the other in a sense that I'm not going to make precise basically
-good(e) implies good(e'). Doesn't matter for the talk --- have two similar
-languages, but one has stronger guarantees than the other. The gradual/migratory
-typing question is, what happens when we combine them?
+Lets explain the situation. A gradually typed language is split into two
+(like the cold war) two languages, two concrete syntaxes, and two definitions
+for typed and untyped expressions.
 
-What do we do to combine?
-What happens to soundness?
-What happens to performance?
+For now, I want to just share the essence of the problem The easiest way to do
+that is to tell you a story. Once upon a time there was a little pond and a big
+river. The pond was home to a rare breed of fish, the golden tuna. In fact
+every fish in the pond was a golden tuna, and every egg in the pond was a gold
+tuna egg. People would come from far and wide to visit the little pond with the
+remarkable golden tuna invariant.
 
-In the paper, we start with a pair of lambda-calculus languages and go into
-detail with three strategies for combining typed and untyped code.  To a first
-approximation, these strategies come from TypeScript, Reticulated Python, and
-Typed Racket. (Of course, many others do the TS and TR approaches, still others
-are similar to RP.) Leads to three pairs of soundness theorems in our formal
-model, and leads to three implementations of Racket / Typed Racket that we
-measure performance for. 
+The river was home to all kinds of fish, including some golden tuna but also
+including many other fish of different shapes colors and sizes. Instead of the
+golden tuna property, the river had a weaker, "just fish", invariant. Other things
+being equal, the river is always going to contain fish.
 
-That's all very good, but you don't need all this formal machinery to
-understand the three strategies. So let's forget about functional programming
-for a minute, and instead of two languages, we'll have two bodies of water.
+One day the river changed direction and started to flow into the pond. The
+villagers hired three ecologists to decide what to do about the impending
+merger of the pond and the river. That is, given that the waters are going to
+mix, what if anything is to be done to preserve the golden tuna invariant.
 
-On the right we have a small closed-off pond. This pond is home to a pair of
-fish, red snapper fish to be precise (Lutjanus campechanus). Its a small world
-in this pond and over time the fish meet, exchange their software, and then
-the pond is not so empty anymore but also has little fish eggs. To be precise
-these are red snapper eggs, made by a pair of red snappers, and if they hatch
-they'll hatch into a little copy of their parents (same genus, same species).
-If these are the only two processes in our pond:
-- RSF + RSF --> RSE + RSF + RSF
-- RSE --> RSF
-then we can guarantee that at any point in the future, the pond contains only
-red snapper fish and red snapper eggs (defined as 'eggs that hatch into snappers')
-I call this the red snapper property.
+The first scientist, Dr. H, wants to preserve the golden tuna property. Dr H's
+plan is to put a scanning machine at the edge of the pond. If a fish enters the
+scanner, the machine performs a DNA test to check that the fish is both golden
+and tuna. If an egg enters the scanner, the machine wraps it in a little
+scanner; when the egg hatches then the little scanner performs a DNA test and
+either releases the fish or sounds an alarm. With the scanner in place, fish
+can flow in from the river and we have the invariant that everything in the
+pond is either a golden tuna, a golden tuna egg, or a monitored egg.
 
-On the left we have a flowing river. All kinds of fish and fish eggs live in
-the river, depending on the time of year. Consequently we can't prove a red
-snapper property for the river. The analogous property is much weaker; namely,
-at any point in time its all fish and fish eggs.
+The second scientist, Dr. E, is not concerted about the golden tuna invariant.
+Dr E suggests letting the river fish flow in with no checks. This strategy is
+very simple and does not require any scanners, but can only guarantee that the
+pond has ``just fish'' like the river.  Its a lowest-common-denominator
+property.
 
-There's our ecosytem. Two disconnected bodies of water with two populations
-that satisfy two different properties. (The property on the right is stronger
-than the property on the left --- that doesn't actually matter.)
+The third scientist, Dr 1, suggests a compromise. Dr 1's plan is to install a
+few cameras around the pond and one at the entrance. The camera at the entrance
+looks at everything flowing in and sounds an alarm if it sees a non-golden
+fisr. Other fish and eggs are free to go. The cameras around the pond check
+every egg-hatching. If a non-gold fish pops out, the cameras sound an alarm.
+This guarantees a "golden fish" invariant.
 
-One day three biologists visit the pond and discover it is dangerously low
-on entropy. Something must be done else the fish are going to die. They all
-agree, the best course of action is to divert the nearby river to flow into
-our little pond. They disagree on whether something else should be done to
-preserve the existing red snapper population.
+The three ecologists got together to decide what to do, but unfortunately they
+all spoke different languages and are still arguing to this day. The end.
 
-Dr. H insists that the red snapper property be preserved. His plan is to put
-an inspection station between the river and the pond. Whenever a fish arrives,
-perform a DNA test to ensure its a red snapper otherwise send it back.
-Whenever an egg arrives, well, they don't have the techology to inspect an
-egg but Dr. H has prepared with an ingenious monitoring device that can
-incubate the egg until it hatches, keeping the new organism separate from the
-pond until a technician can perform a DNA test. With the inspections + monitors,
-Dr. H claims we have a straightforward generalization of the red snapper property:
-in the future every fish is a red snapper and every egg is either a red snapper
-egg or a monitored egg. 
+In this story, the river represents an untyped piece of code. The ``just fish''
+property means the code is ready to run --- no mismatched parentheses or
+misused keywords. The pond represents well-typed code according to a sound type
+system. The connection between the river and the pond corresponds to an import
+statement, where the typed code expects either golden tuna or golden tuna eggs.
+The golden tuna represetnts an immutable data structure, such as a list or a
+tree. The eggs represent thunks -- that might return gold tuna or some other
+fish.
 
-Dr. E doesn't understand all the fuss about the red snapper property. She
-proposes to open the pond and let nature run its course. Both bodies of water
-then satisfy the weak fish soundness property and we're done. Nice and simple.
-(Simple as possible and no simpler.)
+type gold_tuna = integer safe
+type egg = unit -> fish
+type fish = gold_tuna | red_tuna | swordfish | ....
 
-Dr. 1 is torn. On one hand, he is sympathetic towards Dr. H's plan, because his
-office overlooks the little pond and he enjoys watching the red snappers. It
-just wouldn't be the same aesthetic with different fish swimming around. On the
-other hand, he finds the inspection station and monitors to be impractical.
-See he's already thinking ahead to our next topic, performance, and wondering
-how much time and $$$ its going to cost to preserve red snapper soundness.
-So Dr. 1 proposes a compromise. We add an inspection station that just checks
-the color of incoming fish. Red fish are ok, other fish go back. For the eggs,
-all eggs pass the inspection but the pond gets a supervisor who checks the
-color of every hatchling. If its not red, goodbye. This, Dr 1 says, guarantees
-a "red fish" property. Its stronger than the fish property, but weaker than
-the original red snapper property.
+(A safe is like a list, but has not elimination forms. Simple!)
 
-The point of this fish story is to show that if we combine two systems with
-different guarantees, there are at least 3 properties that we might try to
-preserve in the combined system. In the context of gradual typing systems,
-Dr. H corresponds to the higher-order approach taken by systems like
-Typed Racket TPD Gradualtalk. This higher-order enforcement can guarantee
-a natural generalization of a standard type soundness theorem. Types enforce
-levels of abstraction.
-Dr. E's erasure approach is similar to what happens in TypeScript, Hack, PyType,
-Strongtalk .... where the optional types are used only for static analysis
-and have no effect on program behavior.
-Finally Dr. 1's approach matches Reticulated Python, which ensures that
-typed code doesn't get stuck by sprinkling first-order checks around every
-elimination form in typed code
-(wow, quite a lot to illustrate in this paragraph)
+Of course a real language will have more than two kinds of first-order data and
+1 kind of function. But this is enough to explain the ecologists 3 plans.
 
-Just as the doctors were worried about complexity, designers of gradual typing
-systems were also worried about performance when they introduced alternatives.
+In terms of these datatypes, the Dr. H plan is to check first-order data with a
+deep structural traversal and to check higher-order data using higher-order
+contracts to express delayed obligations. Typed Racket is one language that
+implements this approach. 
 
+The Dr E plan is to allow any kind of untyped value to flow into typed code, in
+spite of the type annotation at the boundary. TypeScript is one language that
+implements this plan.
 
+The Dr 1 plan is the really interesting one. At the boundary, the strateyy is
+to check that incoming data is a function or a safe. If its a safe then its
+free to go with no check on its contents. If its a function its also goes free
+--- but every function application in typed code must factor through a check
+that the application produced a safe. Reticulated Python implements this plan.
 
-[Conclusion] Soundness for a pair of languages is different than soundness for a single
-language. For a pair, 
+The last things to explain are the three invariants. The golden tuna invariant
+corresponds to a generalized notion of type soundnenss that admits monitored
+funcitions and boundary alarms. The ``just fish'' property basically says that
+the program has a well-defined semantics. And finally the ``gold fish''
+property is a soundness at the level of type constructors. Every value in typed
+code matches the constructor of its static type.
 
+With this I can now make the point that soundness is not a binary proposition
+for a language that can mix typed and untyped code. There are at least these
+three alternatives (and the appendix of the paper states two others).
+nteresting choices that offer different guarantees and require different levels
+of sophistication to implement.
 
+`` soundness is not binary when we move from one language to a pair of languages''
 
+the second folklore result we started with claims that adding type information
+to a program can only improve its perfroance. If we begin with an untyped
+program made of a few components and add types to some, the idea is that a
+smart optimzizer should be able to leverage the types in each component.
 
-# OLD
+Already therea re two issues with this picture. First it does not account for
+the cost of interaction between components. As we've seen a typed component
+needs to check values provided by an untyped component if it wants to provide
+some kind of type soundness. Second, it assumes that a typed component is
+always safe to leverage its types. This is only true if the types are sound.
 
-The second major component of the paper has to do with performance.
-Specifically about how these three checking strategies relate to one another.
-One would expect (yes this low-level is probably right for a draft until M sees it):
-- higher-order can have a serious cost, but soundness means optimizations
-- erasure no cost
-- first-order little cost even if optimized
+So as you add types going to increase typed/untyped interaction and maybe
+cannot make use of types in optimizations. HMM
 
-Touches on a second folklore: adding constraints improves performance. Here
-the types are the constraints.
+To measure performance we implemented an extension to Typed Racket. In Normal
+Typed Racket starts with a Racket/TR program, compiles higher-order enforcement
+of types, and runs on the Racket bytecode and VM. Our extension adds two
+alternate compiler pipelines: one that erases the types and another that
+enforces type constructor soundness with first-order checks. For any program
+this gives three ways of running it. 
 
-To test this, we have three implementations for one surface language (typed racket).
-This is not a perfect comparison because the first-order has little optimizations
-and nothing for error messages, so let me just sketch what we found.
-(as a function of increasing types)
-erasure = flat,
-first-order = line,
-higher-order = umbrella
+Then, to measure the effect of adding types, we start with a fully-typed
+program and systematically remove all the type annotations. This is easy going
+module-at-a-time, start fully typed because the reverse direction comes with
+awkward principal types question) Now for one program we can repeat this
+performance lattice experiment three times and see how performance changes with
+the numner of type annotations. We ran this experiment on 10 functional
+programs (with refs) The details are in the paper. For now I want to summarize
+the conclusions.
 
-what does this mean? first the conjectures are right to some extent,
-higher-order is the only extreme one and it is quite extreme, erasure is flat,
-first-order is not extreme (well I already said that)
+For the H strtategy we found that increasing the number of type annotaitons
+leads to an umbrella kind of shape. That is performance can spike depending on
+the typed/untyped interaction in the program. But then as typed/untyped
+interaction is less those optimizations start to pay off (enabled by soundness)
+even in the presence of untyped code H-protected programs can run faster
 
-but the deeper meaning, first higher-order is fastest at right --- even when NOT
-100% typed --- because things inside the boundary can run full-speed++.
+For the E strategy types are erased and have no effect on performance. Types
+are not enforces so theres no slowdon at the boudnary. And types are not sound
+so theres no optimizing because its unsafe. No matter the annotations.
+Performance is always the same as if there were no types.
 
-   Diagram:
+For the 1 strategy, performance seems to be a lineary function of the number of
+type annotations. The first half of this curve should not be surprising ---
+adding types to some modules means the typed/untyped interaction has a cost ...
+a moderate cost because the boundary-checks are simple first-order checks. On
+the right, this is more surprosing. Even a fully-typed program is pretty slow.
+Theres no boundary interacction on the right. The slowdown comes from
+elimination forms (function call, list ref) in typed code. Since typed can only
+trust the constructor, this is an overapproximation to be safe. Now that's not
+100% true because if we apply a typed function we know for sure what the result
+will be so there is no need for the check. TLDR we have some basic optimizations
+that somewhat mitigate the cost ... but overall still slow.
 
-   |   ______
-   |  /      \
-   | ------------
-   |           \_
-   |______________ t
-               !!!!
+To summarize here our full picture for performance. H pays to enforce interactions
+Sometimes that cost is huge but standard type-driven optimizations do apply.
+For E performance is just as untyped. For 1 there no extreme case but its an
+inevitable cost (words here are very important to get right)
 
-second the cost of first-order is more-or-less linear in the number of type
-annotations! each type annotation may add a check, just like the hatching eggs
-need to conservatively guard every elimination form in typed code! Adds up.
-Typically adds up slower than higher-order, but thats not always the case we
-found ONE counterexample.
+Theres a lot more work to be done in this performance space. Pycket suggests we
+can change the landscape. Even if we cannot might be possible to find the point
+where its best to switch between H and 1. At any rate, the relative performance
+of these typed/untyped strategies is not a simple picture and its certainly not
+the case that if one adds more type information then a compiler can just go
+ahead and improve performance.
 
-(in the paper you'll find ....)
-Lets wrap up. We put different checking strategies for gradual typing into
-a common theoretical framework and a common implementation. Its 3 back-ends
-for one surface language. With this we can articulate the three differnt
-notions of soundness that these can be show to satisfy, and we can formulate
-relational theorems, first about soundiness and second about errors.
-(We can also give the first alternate semantics for transient)
-and compare the performance of three implementations of a full language
+To summarize we saw three strategies for typed/untyped interaction
+corresponding to impleentations (TR TS RP) the existence of these 3
+fundamentally different approaches means that soundness is not a binary thing
+we also saw that performance for these is more subtle
 
-What do we learn? Soundness is not a binary proposition for pair of languages,
-there are compelling reasons for an intermediate statement. Thats just what GT
-deals with ... other settings benefit too I'm sure.
-Also the performance story is much more subtle than previously expected.
-(than the literature would lead one to believe). Check the data in the
-paper and form your own conclusions, but to me see a need for:
-- optimize transient (go Vitousek)
-- algorithmic higher-order improvements (revive Pycket?)
+Next up .. speed up H 1 ... look for other strategies ...
 
 go forth and do good science (be good scientists?)
 
+
+
 - - -
+# QUESTIONS
 
 soundiness is a "sound up to X" statement, where X is a set of language features
 http://soundiness.org/
