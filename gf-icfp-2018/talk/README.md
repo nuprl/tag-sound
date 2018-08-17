@@ -12,6 +12,26 @@ TODO
 - - -
 # OUTLINE
 
+1. folklore I II
+2. untyped, error paths
+3. typed, error paths unused by types proven unused by soundness
+  - origins of folklore ... no benefit of unsoundness, just means paths get used ... lol bug
+  - more types clearly better can remove more paths
+  - DONT FORGET RUNTIME LIBRARY
+4. gradual , problem statemnt, 3 neighboring villages
+5. H E 1 same surface languages all different runtime type system different abstractions anti-folklore
+6. 3 choices ... simplicity & compatibility & explainability ... and performance ->
+7. flagged paths need checks, checks depend on types, predict costs
+8. measured for Racket + TR surface language ... setup impls benchmarks results
+  - for mixed-typed usually E < 1 < H
+  - for nearly-typed usually H < E < 1 wow
+9. picture is mixed, quite mixed
+   cannot just optimize because boundaries and abstractions
+10. future
+
+- - -
+# SCRIPT
+
 This work is about gradual typing, but the talk is really about two pieces of
 folklore. As you know folklore can be true and can be false, and its often
 much simpler than the full picture. Onward.
