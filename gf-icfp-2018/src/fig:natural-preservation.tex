@@ -1,0 +1,144 @@
+\begin{TwoColumn}
+\lblmathparextra{$\Gamma \wellNE e$}{ \myinherits\ $\Gamma \wellM e$}{
+%  \inferrule*{
+%    x \in \GammaD
+%  }{
+%    \GammaD \wellNE x
+%  }
+%
+%  \inferrule*{
+%    x,\GammaD \wellNE e
+%  }{
+%    \GammaD \wellNE \vlam{x}{e}
+%  }
+%
+%  \inferrule*{
+%  }{
+%    \GammaD \wellNE i
+%  }
+%
+%  \inferrule*{
+%    \GammaD \wellNE e_0
+%    \\\\
+%    \GammaD \wellNE e_1
+%  }{
+%    \GammaD \wellNE \vpair{e_0}{e_1}
+%  }
+%
+%  \inferrule*{
+%    \GammaD \wellNE e_0
+%    \\\\
+%    \GammaD \wellNE e_1
+%  }{
+%    \GammaD \wellNE e_0~e_1
+%  }
+%
+%  \inferrule*{
+%    \GammaD \wellNE e
+%  }{
+%    \GammaD \wellNE \eunop{e}
+%  }
+%
+%  \inferrule*{
+%    \GammaD \wellNE e_0
+%    \\\\
+%    \GammaD \wellNE e_1
+%  }{
+%    \GammaD \wellNE \ebinop{e_0}{e_1}
+%  }
+
+  \inferrule*{
+    \Gamma \wellNE v : \tarr{\tau_d}{\tau_c}
+  }{
+    \Gamma \wellNE \vmonfun{(\tarr{\tau_d}{\tau_c})}{v}
+  }
+%
+%  \inferrule*{
+%    \Gamma \wellNE e : \tau
+%  }{
+%    \Gamma \wellNE \esta{\tau}{e}
+%  }
+}
+
+\multicolsbreak
+
+\lblmathparextra{$\Gamma \wellNE e : \tau$}{ \myinherits\ $\Gamma \wellM e : \tau$}{
+%  \inferrule*{
+%    \tann{x}{\tau} \in \GammaS
+%  }{
+%    \GammaS \wellNE x : \tau
+%  }
+%
+%  \inferrule*{
+%    \tann{x}{\tau_d},\GammaS \wellNE e : \tau_c
+%  }{
+%    \GammaS \wellNE \vlam{\tann{x}{\tau_d}}{e} : \tarr{\tau_d}{\tau_c}
+%  }
+%
+%  \inferrule*{
+%    i \in \naturals
+%  }{
+%    \GammaS \wellNE i : \tnat
+%  }
+%
+%  \inferrule*{
+%  }{
+%    \GammaS \wellNE i : \tint
+%  }
+%
+%  \inferrule*{
+%    \GammaS \wellNE e_0 : \tau_0
+%    \\\\
+%    \GammaS \wellNE e_1 : \tau_1
+%  }{
+%    \GammaS \wellNE \vpair{e_0}{e_1} : \tpair{\tau_0}{\tau_1}
+%  }
+%
+%  \inferrule*{
+%    \GammaS \wellNE e_0 : \tau_d \tarrow \tau_c
+%    \\\\
+%    \GammaS \wellNE e_1 : \tau_d
+%  }{
+%    \GammaS \wellNE e_0~e_1 : \tau_c
+%  }
+%
+%  \inferrule*{
+%    \GammaS \wellNE e_0 : \tau_0
+%    \\\\
+%    \Delta(\vunop, \tau_0) = \tau
+%  }{
+%    \GammaS \wellNE \vunop~e_0 : \tau
+%  }
+%
+%  \inferrule*{
+%    \GammaS \wellNE e_0 : \tau_0
+%    \\\\
+%    \GammaS \wellNE e_1 : \tau_1
+%    \\\\
+%    \Delta(\vbinop, \tau_0, \tau_1) = \tau
+%  }{
+%    \GammaS \wellNE \vbinop~e_0~e_1 : \tau
+%  }
+%
+%  \inferrule*{
+%    \GammaS \wellNE e : \tau'
+%    \\\\
+%    \tau' \subt \tau
+%  }{
+%    \GammaS \wellNE e : \tau
+%  }
+
+  \inferrule*{
+    \Gamma \wellNE v
+  }{
+    \Gamma \wellNE \vmonfun{(\tarr{\tau_d}{\tau_c})}{v} : \tarr{\tau_d}{\tau_c}
+  }
+%
+%  \inferrule*{
+%    \Gamma \wellNE e
+%  }{
+%    \Gamma \wellNE \edyn{\tau}{e} : \tau
+%  }
+}
+\end{TwoColumn}
+\vspace{-5ex}

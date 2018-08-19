@@ -1,0 +1,189 @@
+\begin{TwoColumn}
+  \lblextra{Language $\langK$}{ \myinherits\ Evaluation Syntax}{
+    $\begin{array}{l@{\hspace{0.5em}}c@{\hspace{0.5em}}l}
+      e & \BNFeq & \ldots \mid
+        \arraycell{\echk{K}{e}}{\echk{K}{\esd}} \mid
+        \arraycell{\edynfake{e}}{\edynfake{\esd}} \mid
+        \arraycell{\estafake{e}}{\estafake{\esd}}
+      \\
+  %    v & \BNFeq & i \mid \vpair{v}{v} \mid \vlam{x}{e} \mid \vlam{\tann{x}{\tau}}{e}
+  %    \\
+  %    \tau & \BNFeq & \tnat \mid \tint \mid \tpair{\tau}{\tau} \mid \tau \tarrow \tau
+  %    \\
+      \ebase & \BNFeq & \ldots \mid \echk{K}{\ebase}
+      \\
+      \esd & \BNFeq & \ldots \mid \echk{K}{\esd} \mid \edynfake{\esd} \mid \estafake{\esd}
+      \\
+      K & \BNFeq & \kint \mid \knat \mid \kpair \mid \kfun \mid \kany
+    \end{array}$
+  }
+
+  \multicolsbreak
+
+  \lbl{$\tagof{\cdot} : \specarrf{\tau}{K}$}{
+    $\begin{array}{l c l}
+      \tagof{\tint} & = & \kint
+      \\
+      \tagof{\tnat} & = & \knat
+      \\
+      \tagof{\tpair{\tau_0}{\tau_1}} & = & \kpair
+      \\
+      \tagof{\tarr{\tau_d}{\tau_c}} & = & \kfun
+    \end{array}$
+  }
+\end{TwoColumn}
+
+\lblmathparextra{$\Gamma \wellM e : \tau \carrow e$}{ (selected rules)}{
+  \inferrule*{
+    \Gamma \wellM e_0 : \tarr{\tau_d}{\tau_c} \carrow e_0'
+    \\
+    \Gamma \wellM e_1 : \tau_d \carrow e_1'
+  }{
+    \Gamma \wellM \eapp{e_0}{e_1} : \tau_c \carrow \echk{\tagof{\tau_c}}{(\eapp{e_0'}{e_1'})}
+  }
+
+
+  \inferrule*{
+    \Gamma \wellM e : \tpair{\tau_0}{\tau_1} \carrow e'
+  }{
+    \Gamma \wellM \efst{e} : \tau_0 \carrow \echk{\tagof{\tau_0}}{(\efst{e'})}
+  }
+%
+%  \inferrule*{
+%    \Gamma \wellM e : \tpair{\tau_0}{\tau_1} \carrow e'
+%    \\\\
+%    \tagof{\tau_1} = K
+%  }{
+%    \Gamma \wellM \esnd{e} : \tau_1 \carrow \echk{K}{(\esnd{e'})}
+%  }
+}
+
+\begin{TwoColumn}
+  \lblextra{$\vfromdynK : \specarrf{\tpair{\tau}{v}}{v}\vphantom{\vfromstaK}$}{}{
+    $\begin{array}{l@{~~}c@{~}l}
+      \efromdynK{\tau}{v} & = & \efromany{\tagof{\tau}}{v}
+    \end{array}$
+  }
+
+  \multicolsbreak
+
+  \lblextra{$\vfromstaK : \specarrf{\tpair{\tau}{v}}{v}$}{}{
+    $\begin{array}{l@{~~}c@{~}l}
+      \efromstaK{\tau}{v} & = & v
+    \end{array}$
+  }
+\end{TwoColumn}
+
+\begin{flushleft}
+  \fbox{$\vfromany : \specarrf{\tpair{K}{v}}{v}$}\\[-2.7ex]{
+  $\begin{array}{l@{\hspace{7em}}l}
+    \begin{array}{l@{~~}c@{~}l}
+      \efromany{\kfun}{\vlam{x}{e}} & = & \vlam{x}{e}
+      \\
+      \efromany{\kfun}{\vlam{\tann{x}{\tau}}{e}} & = & \vlam{\tann{x}{\tau}}{e}
+      \\
+      \efromany{\kpair}{\vpair{v_0}{v_1}} & = & \vpair{v_0}{v_1}
+      \\
+      \\
+    \end{array}
+  &
+    \begin{array}{l@{~~}c@{~}l}
+      \\
+      \efromany{\kint}{i} & = & i
+      \\
+      \efromany{\knat}{i} & = & i
+      \\ \sidecond{if $i \in \naturals$}
+      \\
+      \efromany{K}{v} & = & \boundaryerror
+      \\ \sidecond{otherwise}
+    \end{array}
+  \end{array}$
+}
+\end{flushleft}
+% -----------------------------------------------------------------------------
+% --- reduction
+\begin{TwoColumn}
+
+  % this one "inherits", because it changes typed function application
+  \lblextra{$e \rrKS e$}{ extends and overrides $\rrS$}{
+    $\begin{array}{l@{\hspace{0.5em}}c@{\hspace{0.5em}}l}
+      \edynfake{v} & \rrKS & v
+      \\
+      \edyn{\tau}{v} & \rrKS & \efromdyn{\tau}{v}
+      \\
+      \echk{K}{v} & \rrKS
+      & \efromany{K}{v}
+      \\
+      \eapp{(\vlam{\tann{x}{\tau}}{e})}{v} & \rrKS
+      & \boundaryerror
+      \\ \sidecond{if $\efromany{\tagof{\tau}}{v} = \boundaryerror$}
+      \\
+      \eapp{(\vlam{\tann{x}{\tau}}{e})}{v} & \rrKS
+      & \vsubst{e}{x}{\efromany{\tagof{\tau}}{v}}
+      \\ \sidecond{if $\efromany{\tagof{\tau}}{v} \neq \boundaryerror$}
+      \\
+      \eapp{(\vlam{x}{e})}{v} & \rrKS
+      & \edynfake{(\vsubst{e}{x}{v})}
+  %    \eunop{v} & \rrKS
+  %    & e
+  %    & \mbox{if $\delta(\vunop, v) = e$}
+  %    \\
+  %    \ebinop{v_0}{v_1} & \rrKS
+  %    & \delta(\vbinop, v_0, v_1)
+  %    & \mbox{if $\delta(\vbinop, v_0, v_1) = e$}
+    \end{array}$
+  }
+
+  \multicolsbreak
+
+  \lblextra{$e \rrKD e$}{ extends $\rrD$}{
+    $\begin{array}{l@{\hspace{0.5em}}c@{\hspace{0.5em}}l}
+      \estafake{v} & \rrKD & v
+      \\
+      \esta{\tau}{v} & \rrKD & \efromsta{\tau}{v}
+      \\
+      \\
+      \eapp{(\vlam{\tann{x}{\tau}}{e})}{v} & \rrKD
+      & \boundaryerror
+      \\ \sidecond{if $\efromany{\tagof{\tau}}{v} = \boundaryerror$}
+      \\
+      \eapp{(\vlam{\tann{x}{\tau}}{e})}{v} & \rrKD
+      & \estafake{(\vsubst{e}{x}{\efromany{\tagof{\tau}}{v}})}
+      \\ \sidecond{if $\efromany{\tagof{\tau}}{v} \neq \boundaryerror$}
+    \end{array}$
+  }
+\end{TwoColumn}
+
+\begin{TwoColumn}
+  \lblextra{$e\!\rrKSstar e$}{ reflexive, transitive closure of $\!\ccKS$}{
+    $\begin{array}{l@{\hspace{0.5em}}c@{\hspace{0.5em}}l}
+      \ebase[e] & \ccKS & \ebase[e']
+      \\ \sidecond{if $e \rrKS e'$}
+      \\
+      \esd[\esta{\tau}{\ebase[e]}] & \ccKS & \esd[\esta{\tau}{\ebase[e']}]
+      \\ \sidecond{if $e \rrKS e'$}
+      \\
+      \esd[\edyn{\tau}{\ebase[e]}] & \ccKS & \esd[\edyn{\tau}{\ebase[e']}]
+      \\ \sidecond{if $e \rrKD e'$}
+      \\
+      \esd[\eerr] & \ccKS & \eerr
+    \end{array}$
+  }
+
+  \multicolsbreak
+
+  \lblextra{$e\!\rrKDstar e$}{ reflexive, transitive closure of $\!\ccKD$}{
+    $\begin{array}{l@{\hspace{0.5em}}c@{\hspace{0.5em}}l}
+      \ebase[e] & \ccKD & \ebase[e']
+      \\ \sidecond{if $e \rrKD e'$}
+      \\
+      \esd[\esta{\tau}{\ebase[e]}] & \ccKD & \esd[\esta{\tau}{\ebase[e']}]
+      \\ \sidecond{if $e \rrKS e'$}
+      \\
+      \esd[\edyn{\tau}{\ebase[e]}] & \ccKD & \esd[\edyn{\tau}{\ebase[e']}]
+      \\ \sidecond{if $e \rrKD e'$}
+      \\
+      \esd[\eerr] & \ccKD & \eerr
+    \end{array}$
+  }
+\end{TwoColumn}

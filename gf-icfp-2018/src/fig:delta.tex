@@ -1,0 +1,19 @@
+\lbl{$\delta(\vunop, v) = e$}{
+$\begin{array}{l@{~~}c@{~~}l}
+  \delta(\vfst, \vpair{v_0}{v_1}) & = & v_0
+\\
+  \delta(\vsnd, \vpair{v_0}{v_1}) & = & v_1
+\end{array}$
+}
+
+\lbl{$\delta(\vbinop, v, v) = e$}{
+$\begin{array}{l@{~~}c@{~~}l}
+  \delta(\vsum, i_0, i_1) & = & i_0 + i_1
+\\
+  \delta(\vquotient, i_0, 0) & = & \boundaryerror
+\\
+  \delta(\vquotient, i_0, i_1) & = & \floorof{i_0 / i_1}
+\\ \multicolumn{3}{l}{\mbox{\quad if $i_1 \neq 0$}}
+\end{array}$
+}
+

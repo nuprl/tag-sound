@@ -1,0 +1,176 @@
+\lblmathparextra{$K \subkeq K$}{}{
+  \inferrule*{
+  }{
+    K \subkeq \kany
+  }
+
+  \inferrule*{
+  }{
+    \knat \subkeq \kint
+  }
+
+  \inferrule*{
+  }{
+    K \subkeq K
+  }
+
+  \inferrule*{
+    K \subkeq K'
+    \\
+    K' \subkeq K''
+  }{
+    K \subkeq K''
+  }
+}
+
+\lblmathparextra{$\Gamma \wellKE e$}{ (selected rules)}{
+  \inferrule*{
+    x \in \Gamma
+  }{
+    \Gamma \wellKE x
+  }
+
+  \inferrule*{
+    \tann{x}{\tau} \in \Gamma
+  }{
+    \Gamma \wellKE x
+  }
+
+  \inferrule*{
+    x,\Gamma \wellKE e
+  }{
+    \Gamma \wellKE \vlam{x}{e}
+  }
+
+  \inferrule*{
+    \tann{x}{\tau},\Gamma \wellKE e : \kany
+  }{
+    \Gamma \wellKE \vlam{\tann{x}{\tau}}{e}
+  }
+
+  \inferrule*{
+    \Gamma \wellKE e : \tagof{\tau}
+  }{
+    \Gamma \wellKE \esta{\tau}{e}
+  }
+
+  \inferrule*{
+    \Gamma \wellKE e : \kany
+  }{
+    \Gamma \wellKE \estafake{e}
+  }
+}
+
+\lblmathparextra{$\Gamma \wellKE e : K$}{}{
+  \inferrule*{
+    x \in \Gamma
+  }{
+    \Gamma \wellKE x : \kany
+  }
+
+  \inferrule*{
+    \tann{x}{\tau} \in \Gamma
+    \\
+    \tagof{\tau} = K
+  }{
+    \Gamma \wellKE x : K
+  }
+
+  \inferrule*{
+    x,\Gamma \wellKE e
+  }{
+    \Gamma \wellKE \vlam{x}{e} : \kfun
+  }
+
+  \inferrule*{
+    \tann{x}{\tau},\Gamma \wellKE e : \kany
+  }{
+    \Gamma \wellKE \vlam{\tann{x}{\tau}}{e} : \kfun
+  }
+
+  \inferrule*{
+    \Gamma \wellKE e_0 : \kany
+    \\
+    \Gamma \wellKE e_1 : \kany
+  }{
+    \Gamma \wellKE \vpair{e_0}{e_1} : \kpair
+  }
+
+  \inferrule*{
+    i \in \naturals
+  }{
+    \Gamma \wellKE i : \knat
+  }
+
+  \inferrule*{
+  }{
+    \Gamma \wellKE i : \kint
+  }
+
+  \inferrule*{
+    \Gamma \wellKE e_0 : \kfun
+    \\
+    \Gamma \wellKE e_1 : \kany
+  }{
+    \Gamma \wellKE \eapp{e_0}{e_1} : \kany
+  }
+
+  \inferrule*{
+    \Gamma \wellKE e : \kpair
+  }{
+    \Gamma \wellKE \efst{e} : \kany
+  }
+
+  \inferrule*{
+    \Gamma \wellKE e : \kpair
+  }{
+    \Gamma \wellKE \esnd{e} : \kany
+  }
+
+  \inferrule*{
+    \Gamma \wellKE e_0 : K_0
+    \\
+    \Gamma \wellKE e_1 : K_1
+    %\\\\
+    %\tau_0 = K_0
+    %\\
+    %\tau_1 = K_1
+    \\\\
+    \Delta(\vbinop, K_0, K_1) = K
+  }{
+    \Gamma \wellKE \ebinop{e_0}{e_1} : K
+  }
+
+  \inferrule*{
+    \Gamma \wellKE e : K'
+    \\
+    K' \subkeq K
+  }{
+    \Gamma \wellKE e : K
+  }
+
+  \inferrule*{
+  }{
+    \Gamma \wellKE \eerr : K
+  }
+
+  \inferrule*{
+    \Gamma \wellKE e
+    \\
+    \tagof{\tau} = K
+  }{
+    \Gamma \wellKE \edyn{\tau}{e} : K
+  }
+
+  \inferrule*{
+    \Gamma \wellKE e
+  }{
+    \Gamma \wellKE \edynfake{e} : \kany
+  }
+
+  \inferrule*{
+    \Gamma \wellKE e : \kany
+  }{
+    \Gamma \wellKE \echk{K}{e} : K
+  }
+}

@@ -1,0 +1,40 @@
+\lblextra{$\strongscript$}{ (sketch)}{
+  $\begin{array}{l@{\hspace{0.5em}}c@{\hspace{0.5em}}l}
+    \tau & \BNFeq & \sstconcrete{C} \mid C \mid \sstdyn \mid \tarr{\tau}{\tau}
+    \\
+    v & \BNFeq & \ssobj{\tann{s}{v} \ldots m \ldots}{\tau} \mid \ssfun{\tann{x}{\tau}}{e}{\tau}
+    \\
+    s & \in & \mathsf{Strings}
+    \\
+    m & \BNFeq & \ssmth{x}{\tann{x}{\tau}}{e}{\tau}
+  \end{array}$
+}
+
+\lblextra{$\vfromdyn : \specarrf{\tpair{\tau}{v}}{e}\vphantom{\vfromsta}$}{ (undefined, all values have a static type)}{
+  $\begin{array}{l@{~~}c@{~}l}
+  \end{array}$
+}
+
+\lblextra{$\vfromsta : \specarrp{\tpair{\tau}{v}}{e}$}{ (via explicit type-cast)}{
+  $\begin{array}{l@{~~}c@{~}l}
+    \efromsta{\tarr{\tau_d}{\tau_c}}{v} & = & v'
+    \\ \sidecond{if $v \valeq \ssfun{\tann{x}{\tau_x}}{e}{\tau_v}$}
+    \\ \sidecond{where $v' \valeq \ssfun{\tann{x}{\tau_d}}{(\sscast{\tau_c}{(\eapp{v}{(\sscast{\tau_x}{x})})})}{\tau_c}$}
+    \\
+    \efromsta{C}{v} & = & v
+    \\ \sidecond{if $v \valeq \ssobj{\tann{s}{v} \ldots m \ldots}{C'}$}
+    \\ \sidecond{and $C' \subteq C$}
+    \\
+    \efromsta{\sstdyn}{v} & = & v
+    \\ \sidecond{if $v \valeq \ssobj{\tann{s}{v}\ldots m \ldots}{\sstdyn}$}
+    \\ \sidecond{or $v \valeq \ssobj{\tann{s}{v}\ldots m \ldots}{C}$}
+    \\
+    \efromsta{\sstdyn}{v} & = & v'
+    \\ \sidecond{if $v \valeq \ssfun{\tann{x}{\tau_d}}{e}{\tau_c}$}
+    \\ \sidecond{where $v'\!\valeq\!\ssfun{\tann{x}{\sstdyn}}{\sscast{\sstdyn}{\!(\eapp{v}{(\sscast{\tau_d}{\!x})})}}{\sstdyn}$}
+    \\
+    \efromsta{\tau}{v} & = & \boundaryerror
+    \\ \sidecond{otherwise}
+  \end{array}$
+}
+

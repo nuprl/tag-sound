@@ -1,0 +1,122 @@
+\begin{mathpar}
+\inferrule*{
+  \inferrule*{
+    \inferrule*{
+      \inferrule*{
+        \tann{x}{\tpair{\tint}{\tnat}} \in \tann{x}{\tpair{\tint}{\tnat}}, \cdot
+        \\
+        \tagof{\tpair{\tint}{\tnat}} = \kpair
+      }{
+        \tann{x}{\tpair{\tint}{\tnat}}, \cdot \vdash x : \kpair
+      }
+    }{
+      \tann{x}{\tpair{\tint}{\tnat}}, \cdot \vdash \efst{x} : \kany
+    }
+  }{
+    \tann{x}{\tpair{\tint}{\tnat}}, \cdot \vdash \echk{\kint}{(\efst{x})} : \kint
+  }
+  \\
+  \kint \subk \kany
+}{
+  \tann{x}{\tpair{\tint}{\tnat}}, \cdot \vdash \echk{\kint}{(\efst{x})} : \kany
+  \\\\
+  \vdots_3
+}
+
+\inferrule*{
+  \inferrule*{
+    \inferrule*{
+      \inferrule*{
+        \tann{x}{\tpair{\tint}{\tnat}} \in \tann{x}{\tpair{\tint}{\tnat}}, \cdot
+        \\
+        \tagof{\tpair{\tint}{\tnat}} = \kpair
+      }{
+        \tann{x}{\tpair{\tint}{\tnat}}, \cdot \vdash x : \kpair
+      }
+    }{
+      \tann{x}{\tpair{\tint}{\tnat}}, \cdot \vdash \esnd{x} : \kany
+    }
+  }{
+    \tann{x}{\tpair{\tint}{\tnat}}, \cdot \vdash \echk{\knat}{(\esnd{x})} : \knat
+  }
+  \\
+  \knat \subk \kany
+}{
+  \tann{x}{\tpair{\tint}{\tnat}}, \cdot \vdash \echk{\knat}{(\esnd{x})} : \kany
+  \\\\
+  \vdots_4
+}
+
+\inferrule*{
+  \inferrule*{
+    \inferrule*{
+      \vdots_3
+      \\
+      \\
+      \\
+      \vdots_4
+    }{
+      \tann{x}{\tpair{\tint}{\tnat}}, \cdot \vdash \vpair{\echk{\kint}{(\efst{x})}}{\echk{\kany}{(\esnd{x})}} : \kpair
+    }
+    \\
+    \kpair \subk \kany
+  }{
+    \tann{x}{\tpair{\tint}{\tnat}}, \cdot \vdash \vpair{\echk{\kint}{(\efst{x})}}{\echk{\knat}{(\esnd{x})}} : \kany
+  }
+}{
+  \cdot \vdash \vlam{\tann{x}{\tpair{\tint}{\tnat}}}{\vpair{\echk{\kint}{(\efst{x})}}{\echk{\knat}{(\esnd{x})}}} : \kfun
+  \\\\
+  \vdots_1
+}
+
+\inferrule*{
+  \inferrule*{
+    \inferrule*{}{
+      \vdots_1
+      \\\\
+      \cdot \wellKE \erelprimefun'' : \kfun
+    }
+    \\
+    \inferrule*{
+      \inferrule*{
+        \inferrule*{
+          \inferrule*{
+            \inferrule*{
+              \inferrule*{
+              }{
+                \cdot \wellKE -1
+              }
+              \\
+              \inferrule*{
+              }{
+                \cdot \wellKE -2
+              }
+            }{
+              \cdot \wellKE \vpair{-1}{-2}
+            }
+            \\
+            \tagof{\tpair{\tnat}{\tnat}} = \tagof{\tpair{\tnat}{\tnat}}
+          }{
+            \cdot \wellKE \edyn{\tpair{\tnat}{\tnat}}{\vpair{-1}{-2}} : \tagof{\tpair{\tnat}{\tnat}}
+          }
+        }{
+          \cdot \wellKE \esta{\tpair{\tnat}{\tnat}}{(\edyn{\tpair{\tnat}{\tnat}}{\vpair{-1}{-2}})}
+        }
+        \\
+        \tagof{\tpair{\tint}{\tnat}} = \kpair
+      }{
+        \cdot \wellKE \edyn{\tpair{\tint}{\tnat}}{(\esta{\tpair{\tnat}{\tnat}}{(\edyn{\tpair{\tnat}{\tnat}}{\vpair{-1}{-2}})})} : \kpair
+      }
+      \\
+      \kpair \subk \kany
+    }{
+      \cdot \wellKE \edyn{\tpair{\tint}{\tnat}}{(\esta{\tpair{\tnat}{\tnat}}{(\edyn{\tpair{\tnat}{\tnat}}{\vpair{-1}{-2}})})} : \kany
+    }
+  }{
+    \cdot \wellKE \eapp{\erelprimefun''}{\erelprimearg} : \kany
+  }
+}{
+  \cdot \wellKE \echk{\kpair}{(\eapp{\erelprimefun''}{\erelprimearg})} : \kpair
+}
+
+\end{mathpar}

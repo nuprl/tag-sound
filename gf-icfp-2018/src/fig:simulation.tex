@@ -1,0 +1,400 @@
+\begin{flushleft}
+  \lblextra{Combined Language}{}{
+    $\begin{array}{l@{\hspace{0.5em}}c@{\hspace{0.5em}}l}
+      e & \BNFeq & x \mid v \mid \vpair{e}{e} \mid \eapp{e}{e} \mid \eunop{e} \mid \ebinop{e}{e} \mid
+      \\ & & \edyn{\tau}{e} \mid \esta{\tau}{e} \mid \eerr \mid \echk{K}{e} \mid \edynfake{e} \mid \estafake{e}
+      \\
+      v & \BNFeq & i \mid \vpair{v}{v} \mid \vlam{x}{e} \mid \vlam{\tann{x}{\tau}}{e} \mid \vmonfun{(\tarr{\tau}{\tau})}{v}
+      \\
+      \ebase & \BNFeq & \ehole \mid \eapp{\ebase}{e} \mid \eapp{v}{\ebase} \mid
+                     \vpair{\ebase}{e} \mid \vpair{v}{\ebase} \mid
+      \\ & & \eunop{\ebase} \mid \ebinop{\ebase}{e} \mid \ebinop{v}{\ebase} \mid \echk{K}{\ebase}
+      \\
+      \esd & \BNFeq & \ebase \mid \eapp{\esd}{e} \mid \eapp{v}{\esd} \mid
+                      \vpair{\esd}{e} \mid \vpair{v}{\esd} \mid \eunop{\esd} \mid
+      \\ & &          \ebinop{\esd}{e} \mid \ebinop{v}{\esd} \mid \edyn{\tau}{\esd} \mid \esta{\tau}{\esd}
+      \\ & &          \echk{K}{\esd} \mid \edynfake{\esd} \mid \estafake{\esd}
+    \end{array}$
+  }
+
+  \lblmathpar{$e \kerel e$}{
+    \inferrule*{
+    }{
+      \eerr \kerel \expre
+    }
+
+    \inferrule*{
+      \exprk \kerel \expre
+    }{
+      \echk{K}{\exprk} \kerel \expre
+    }
+
+    \inferrule*{
+      \exprk \kerel \expre
+    }{
+      \edynfake{\exprk} \kerel \expre
+    }
+
+    \inferrule*{
+      \exprk \kerel \expre
+    }{
+      \estafake{\exprk} \kerel \expre
+    }
+
+    \inferrule*{
+    }{
+      x \kerel x
+    }
+
+    \inferrule*{
+    }{
+      i \kerel i
+    }
+
+    \inferrule*{
+      \exprk \kerel \expre
+    }{
+      \vlam{x}{\exprk} \kerel \vlam{x}{\expre}
+    }
+
+    \inferrule*{
+      \exprk \kerel \expre
+    }{
+      \vlam{\tann{x}{\tau}}{\exprk} \kerel \vlam{\tann{x}{\tau}}{\expre}
+    }
+
+    \inferrule*{
+      \exprk_0 \kerel \expre_0
+      \\
+      \exprk_1 \kerel \expre_1
+    }{
+      \eapp{\exprk_0}{\exprk_1} \kerel \eapp{\expre_0}{\expre_1}
+    }
+
+    \inferrule*{
+      \exprk_0 \kerel \expre_0
+      \\
+      \exprk_1 \kerel \expre_1
+    }{
+      \vpair{\exprk_0}{\exprk_1} \kerel \vpair{\expre_0}{\expre_1}
+    }
+
+    \inferrule*{
+      \exprk_0 \kerel \expre_0
+    }{
+      \eunop{\exprk_0} \kerel \eunop{\expre_0}
+    }
+
+    \inferrule*{
+      \exprk_0 \kerel \expre_0
+      \\
+      \exprk_1 \kerel \expre_1
+    }{
+      \ebinop{\exprk_0}{\exprk_1} \kerel \ebinop{\expre_0}{\expre_1}
+    }
+
+    \inferrule*{
+      \exprk_0 \kerel \expre_0
+    }{
+      \edyn{\tau}{\exprk_0} \kerel \edyn{\tau}{\expre_0}
+    }
+
+    \inferrule*{
+      \exprk_0 \kerel \expre_0
+    }{
+      \esta{\tau}{\exprk_0} \kerel \esta{\tau}{\expre_0}
+    }
+
+    \inferrule*{
+    }{
+      \eerr \kerel \eerr
+    }
+
+  }
+
+  \lblmathpar{$\esd \kerel \esd$}{
+    \inferrule*{
+      \ctxk \kerel \ctxe
+    }{
+      \echk{K}{\ctxk} \kerel \ctxe
+    }
+
+    \inferrule*{
+      \ctxk \kerel \ctxe
+    }{
+      \edynfake{\ctxk} \kerel \ctxe
+    }
+
+    \inferrule*{
+      \ctxk \kerel \ctxe
+    }{
+      \estafake{\ctxk} \kerel \ctxe
+    }
+
+    \inferrule*{
+      \ctxk \kerel \ctxe
+      \\
+      \exprk \kerel \expre
+    }{
+      \eapp{\ctxk}{\exprk} \kerel \eapp{\ctxe}{\expre}
+    }
+
+    \inferrule*{
+      \valk \kerel \vale
+      \\
+      \ctxk \kerel \ctxe
+    }{
+      \eapp{\valk}{\ctxk} \kerel \eapp{\vale}{\ctxe}
+    }
+
+    \inferrule*{
+      \ctxk \kerel \ctxe
+      \\
+      \exprk \kerel \expre
+    }{
+      \vpair{\ctxk}{\exprk} \kerel \vpair{\ctxe}{\expre}
+    }
+
+    \inferrule*{
+      \valk \kerel \vale
+      \\
+      \ctxk \kerel \ctxe
+    }{
+      \vpair{\valk}{\ctxk} \kerel \vpair{\vale}{\ctxe}
+    }
+
+    \inferrule*{
+      \ctxk \kerel \ctxe
+    }{
+      \eunop{\ctxk} \kerel \eunop{\ctxe}
+    }
+
+    \inferrule*{
+      \ctxk \kerel \ctxe
+      \\
+      \exprk \kerel \expre
+    }{
+      \ebinop{\ctxk}{\exprk} \kerel \ebinop{\ctxe}{\expre}
+    }
+
+    \inferrule*{
+      \valk \kerel \vale
+      \\
+      \ctxk \kerel \ctxe
+    }{
+      \ebinop{\valk}{\ctxk} \kerel \ebinop{\vale}{\ctxe}
+    }
+
+    \inferrule*{
+      \ctxk \kerel \ctxe
+    }{
+      \edyn{\tau}{\ctxk} \kerel \edyn{\tau}{\ctxe}
+    }
+
+    \inferrule*{
+      \ctxk \kerel \ctxe
+    }{
+      \esta{\tau}{\ctxk} \kerel \esta{\tau}{\ctxe}
+    }
+  }
+
+  \lblmathpar{$e \nkrel e$}{
+    \inferrule*{
+      \exprn \nkrel \exprk
+    }{
+      \exprn \nkrel \echk{K}{\exprk}
+    }
+
+    \inferrule*{
+    }{
+      \eerr \nkrel \exprk
+    }
+
+    \inferrule*{
+      \exprn \nkrel \exprk
+    }{
+      \edyn{\tau}{\exprn} \nkrel \exprk
+    }
+
+    \inferrule*{
+      \exprn \nkrel \exprk
+    }{
+      \esta{\tau}{\exprn} \nkrel \exprk
+    }
+
+    \inferrule*{
+      \exprn \nkrel \exprk
+    }{
+      \edyn{\tau}{\exprn} \nkrel \edyn{\tau}{\exprk}
+    }
+
+    \inferrule*{
+      \exprn \nkrel \exprk
+    }{
+      \edyn{\tau}{\exprn} \nkrel \edynfake{\exprk}
+    }
+
+    \inferrule*{
+      \exprn \nkrel \exprk
+    }{
+      \esta{\tau}{\exprn} \nkrel \esta{\tau}{\exprk}
+    }
+
+    \inferrule*{
+      \exprn \nkrel \exprk
+    }{
+      \esta{\tau}{\exprn} \nkrel \estafake{\exprk}
+    }
+
+    \inferrule*{
+      \exprn_0 \nkrel \exprk_0
+      \\
+      \exprn_1 \nkrel \exprk_1
+    }{
+      \eapp{\exprn_0}{\exprn_1} \nkrel \eapp{\exprk_0}{\exprk_1}
+    }
+
+    \inferrule*{
+      \exprn_0 \nkrel \exprk_0
+      \\
+      \exprn_1 \nkrel \exprk_1
+    }{
+      \vpair{\exprn_0}{\exprn_1} \nkrel \vpair{\exprk_0}{\exprk_1}
+    }
+
+    \inferrule*{
+      \exprn \nkrel \exprk
+    }{
+      \eunop{\exprn} \nkrel \eunop{\exprk}
+    }
+
+    \inferrule*{
+      \exprn_0 \nkrel \exprk_0
+      \\
+      \exprn_1 \nkrel \exprk_1
+    }{
+      \ebinop{\exprn_0}{\exprn_1} \nkrel \ebinop{\exprk_0}{\exprk_1}
+    }
+
+    \inferrule*{
+    }{
+      x \nkrel x
+    }
+
+    \inferrule*{
+    }{
+      i \nkrel i
+    }
+
+    \inferrule*{
+      \exprn \nkrel \exprk
+    }{
+      \vlam{x}{\exprn} \nkrel \vlam{x}{\exprk}
+    }
+
+    \inferrule*{
+      \exprn \nkrel \exprk
+    }{
+      \vlam{\tann{x}{\tau}}{\exprn} \nkrel \vlam{\tann{x}{\tau}}{\exprk}
+    }
+
+    \inferrule*{
+      \valn \nkrel \valk
+    }{
+      \vmonfun{\tau}{\valn} \nkrel \valk
+    }
+
+    \inferrule*{
+    }{
+      \eerr \nkrel \eerr
+    }
+  }
+
+  \lblmathpar{$\esd \nkrel \esd$}{
+    \inferrule*{
+      \ctxn \nkrel \ctxk
+    }{
+      \ctxn \nkrel \echk{K}{\ctxk}
+    }
+
+    \inferrule*{
+      \ctxn \nkrel \ctxk
+      \\
+      \exprn \nkrel \exprk
+    }{
+      \eapp{\ctxn}{\exprn} \nkrel \eapp{\ctxk}{\exprk}
+    }
+
+    \inferrule*{
+      \valn \nkrel \valk
+      \\
+      \ctxn \nkrel \ctxk
+    }{
+      \eapp{\valn}{\ctxn} \nkrel \eapp{\valk}{\ctxk}
+    }
+
+    \inferrule*{
+      \ctxn \nkrel \ctxk
+      \\
+      \exprn \nkrel \exprk
+    }{
+      \vpair{\ctxn}{\exprn} \nkrel \vpair{\ctxk}{\exprk}
+    }
+
+    \inferrule*{
+      \valn \nkrel \valk
+      \\
+      \ctxn \nkrel \ctxk
+    }{
+      \vpair{\valn}{\ctxn} \nkrel \vpair{\valk}{\ctxk}
+    }
+
+    \inferrule*{
+      \ctxn \nkrel \ctxk
+    }{
+      \eunop{\ctxn} \nkrel \eunop{\ctxk}
+    }
+
+    \inferrule*{
+      \ctxn \nkrel \ctxk
+      \\
+      \exprn \nkrel \exprk
+    }{
+      \ebinop{\ctxn}{\exprn} \nkrel \ebinop{\ctxk}{\exprk}
+    }
+
+    \inferrule*{
+      \valn \nkrel \valk
+      \\
+      \ctxn \nkrel \ctxk
+    }{
+      \ebinop{\valn}{\ctxn} \nkrel \ebinop{\valk}{\ctxk}
+    }
+
+    \inferrule*{
+      \ctxn \nkrel \ctxk
+    }{
+      \edyn{\tau}{\ctxn} \nkrel \edyn{\tau}{\ctxk}
+    }
+
+    \inferrule*{
+      \ctxn \nkrel \ctxk
+    }{
+      \edyn{\tau}{\ctxn} \nkrel \edynfake{\ctxk}
+    }
+
+    \inferrule*{
+      \ctxn \nkrel \ctxk
+    }{
+      \esta{\tau}{\ctxn} \nkrel \esta{\tau}{\ctxk}
+    }
+
+    \inferrule*{
+      \ctxn \nkrel \ctxk
+    }{
+      \esta{\tau}{\ctxn} \nkrel \estafake{\ctxk}
+    }
+  }
+
+
+\end{flushleft}

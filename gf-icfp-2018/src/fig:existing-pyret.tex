@@ -1,0 +1,89 @@
+\lblextra{Pyret}{ (sketch)}{
+  $\begin{array}{l@{\hspace{0.5em}}c@{\hspace{0.5em}}l}
+    \tau & \BNFeq & \tint \mid \tnat \mid \tpair{\tau}{\tau} \mid \tarr{\tau}{\tau}
+    \\
+    K & \BNFeq & \kint \mid \knat \mid \kpair \mid \kfun
+    \\
+    v & \BNFeq & i \mid \vpair{v}{v} \mid \vlam{x}{e} \mid \vlam{\tann{\tann{x}{\tau}}{\tau}}{e}
+    \\
+    i & \in & \integers
+    \\
+    e & \BNFeq & \ldots \mid \echk{K}{e}
+  \end{array}$
+}
+
+\begin{TwoColumn}
+  \lblextra{$\vfromdyn : \specarrf{\tpair{\tau}{v}}{e}\vphantom{\vfromsta}$}{}{
+    $\begin{array}{l@{~~}c@{~}l}
+      \efromdyn{\tau}{v} & = & \efromany{\tagof{\tau}}{v}
+    \end{array}$
+  }
+
+  \multicolsbreak
+
+  \lblextra{$\vfromsta : \specarrp{\tpair{\tau}{v}}{e}$}{}{
+    $\begin{array}{l@{~~}c@{~}l}
+      \efromsta{\tau}{v} & = & \efromany{\tagof{\tau}}{v}
+    \end{array}$
+  }
+\end{TwoColumn}
+
+\lblextra{$\vfromany : \specarrp{\tpair{K}{v}}{e}$}{}{
+  $\begin{array}{l@{~~}c@{~}l}
+    \efromany{\kfun}{v} & = & v
+    \\ \sidecond{if $v \valeq \vlam{x}{e}$ or $v \valeq \vlam{\tann{\tann{x}{\tau_d'}}{\tau_c'}}{e}$}
+    \\
+    \efromany{\kpair}{v} & = & v
+    \\ \sidecond{if $v \valeq \vpair{v_0}{v_1}$}
+    \\
+    \efromany{\kint}{i} & = & i
+    \\
+    \efromany{\knat}{i} & = & i
+    \\ \sidecond{if $i \in \naturals$}
+    \\
+    \efromany{K}{v} & = & \boundaryerror
+    \\ \sidecond{otherwise}
+  \end{array}$
+}
+
+\lblextra{$e \rrS e$}{}{
+  $\begin{array}{l@{\hspace{0.5em}}c@{\hspace{0.5em}}l}
+    \eapp{(\vlam{x}{e})}{v} & \rrS
+    & \vsubst{e}{x}{v}
+    \\
+    \eapp{(\vlam{\tann{\tann{x}{\tau_d}}{\tau_c}}{e})}{v} & \rrS
+    & \boundaryerror
+    \\ \sidecond{if $\efromany{\tagof{\tau_d}}{v} = \boundaryerror$}
+    \\
+    \eapp{(\vlam{\tann{\tann{x}{\tau_d}}{\tau_c}}{e})}{v} & \rrS
+    & \echk{\tagof{\tau_c}}{(\vsubst{e}{x}{\efromany{\tagof{\tau_d}}{v}})}
+    \\ \sidecond{if $\efromany{\tagof{\tau_d}}{v} \neq \boundaryerror$}
+    \\
+    %\efst{\vpair{v_0}{v_1}} & \rrS
+    %& v_0
+    %\\
+    \echk{K}{v} & \rrS
+    & \efromany{K}{v}
+  \end{array}$
+}
+
+\lblextra{$e \rrD e$}{}{
+  $\begin{array}{l@{\hspace{0.5em}}c@{\hspace{0.5em}}l}
+    \eapp{(\vlam{x}{e})}{v} & \rrD
+    & \vsubst{e}{x}{v}
+    \\
+    \eapp{(\vlam{\tann{\tann{x}{\tau_d}}{\tau_c}}{e})}{v} & \rrD
+    & \boundaryerror
+    \\ \sidecond{if $\efromany{\tagof{\tau_d}}{v} = \boundaryerror$}
+    \\
+    \eapp{(\vlam{\tann{\tann{x}{\tau_d}}{\tau_c}}{e})}{v} & \rrD
+    & \echk{\tagof{\tau_c}}{(\vsubst{e}{x}{\efromany{\tagof{\tau_d}}{v}})}
+    \\ \sidecond{if $\efromany{\tagof{\tau_d}}{v} \neq \boundaryerror$}
+    \\
+    %\efst{\vpair{v_0}{v_1}} & \rrD
+    %& v_0
+    %\\
+    \echk{K}{v} & \rrD
+    & \efromany{K}{v}
+  \end{array}$
+}

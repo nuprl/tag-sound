@@ -1,0 +1,56 @@
+\lblextra{Thorn}{ (sketch)}{
+  $\begin{array}{l@{\hspace{0.5em}}c@{\hspace{0.5em}}l}
+    \tau & \BNFeq & C \mid \thornlike{C} \mid \thorndyn
+    \\
+    v & \BNFeq & p \mid \thorncast{\thorndyn}{p} \mid \thorncast{\thornlike{C}}{p}
+    \\
+    p & \BNFeq & C(f = v, \ldots)
+  \end{array}$
+}
+
+%\lblmathpar{$\tau \subteq \tau$}{
+%  \inferrule{
+%    \thornclass\ C\ \thornextends\ D \{ \emph{fds}\,;\,\emph{mds} \}
+%  }{
+%    C \subteq D
+%  }
+%
+%  \inferrule{
+%  }{
+%    C \subteq \thornobject
+%  }
+%
+%  \inferrule{
+%    C_1 \subteq C_2
+%  }{
+%    \thornlike{C_1} \subteq \thornlike{C_2}
+%  }
+%
+%  \inferrule{
+%  }{
+%    C \subteq \thornlike{C}
+%  }
+%}
+
+\lblextra{$\vfromdyn : \specarrf{\tpair{\tau}{v}}{e}\vphantom{\vfromsta}$}{ (undefined, all values have a static type)}{
+  $\begin{array}{l@{~~}c@{~}l}
+  \end{array}$
+}
+
+\lblextra{$\vfromsta : \specarrp{\tpair{\tau}{v}}{e}$}{ (via explicit type-cast)}{
+  $\begin{array}{l@{~~}c@{~}l}
+    \efromsta{C}{v} & = & p
+    \\ \sidecond{if $v \valeq p$ or $v \valeq \thorncast{\thorndyn}{p}$ or $v \valeq \thorncast{\thornlike{C'}}{p}$}
+    \\ \sidecond{and $p \valeq C''(f = v, \ldots)$}
+    \\ \sidecond{and $C'' \subteq C$}
+    \\
+    \efromsta{\thornlike{C}}{v} & = & \thorncast{\thornlike{C}}{p}
+    \\ \sidecond{if $v \valeq p$ or $v \valeq \thorncast{\thorndyn}{p}$ or $v \valeq \thorncast{\thornlike{C'}}{p}$}
+    \\
+    \efromsta{\thorndyn}{v} & = & \thorncast{\thorndyn}{p}
+    \\ \sidecond{if $v \valeq p$ or $v \valeq \thorncast{\thorndyn}{p}$ or $v \valeq \thorncast{\thornlike{C'}}{p}$}
+    \\
+    \efromsta{\tau}{v} & = & \boundaryerror
+    \\ \sidecond{otherwise}
+  \end{array}$
+}

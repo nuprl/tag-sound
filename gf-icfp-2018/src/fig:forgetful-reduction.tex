@@ -1,0 +1,162 @@
+\lblextra{Language $\langF$}{ \myinherits\ Evaluation Syntax}{
+  $\begin{array}{l@{\hspace{0.5em}}c@{\hspace{0.5em}}l}
+    e & \BNFeq & \ldots \mid \echk{\tau}{e}
+    \\
+    v & \BNFeq & \ldots \mid
+                 \vmonfun{(\tarr{\tau}{\tau})}{(\vlam{x}{e})} \mid
+                 \vmonfun{(\tarr{\tau}{\tau})}{(\vlam{\tann{x}{\tau}}{e})} \mid
+                 \vmonpair{(\tpair{\tau}{\tau})}{\vpair{v}{v}}
+    \\
+    \ebase & \BNFeq & \ldots \mid \echk{\tau}{\ebase}
+    \\
+    \esd & \BNFeq & \ldots \mid \echk{\tau}{\esd}
+  \end{array}$
+}
+
+\begin{TwoColumn}
+  \lblextra{$\vfromdynF : \specarrf{\tpair{\tau}{v}}{e}\vphantom{\vfromsta}$}{}{
+    $\begin{array}{l@{~~}c@{~}l}
+      \efromdynF{\tau}{v} & = & \efromany{\tau}{v}
+    \end{array}$
+  }
+
+  \multicolsbreak
+
+  \lblextra{$\vfromstaF : \specarrf{\tpair{\tau}{v}}{e}$}{}{
+    $\begin{array}{l@{~~}c@{~}l}
+      \efromstaF{\tau}{v} & = & \efromany{\tau}{v}
+    \end{array}$
+  }
+\end{TwoColumn}
+
+\vspace{-2ex}
+\lblextra{$\vfromany : \specarrf{\tpair{\tau}{v}}{e}$}{}{
+  $\begin{array}{l@{~~}c@{~}l}
+      \efromany{\tarr{\tau_d}{\tau_c}}{\vlam{x}{e}} & =
+      & \vmonfun{(\tarr{\tau_d}{\tau_c})}{(\vlam{x}{e})}
+      \\
+      \efromany{\tarr{\tau_d}{\tau_c}}{\vlam{\tann{x}{\tau}}{e}} & =
+      & \vmonfun{(\tarr{\tau_d}{\tau_c})}{(\vlam{\tann{x}{\tau}}{e})}
+      \\
+      \efromany{\tarr{\tau_d}{\tau_c}}{\vmonfun{(\tarr{\tau_d'}{\tau_c'})}{v'}} & =
+      & \vmonfun{(\tarr{\tau_d}{\tau_c})}{v'}
+      \\
+      \efromany{\tpair{\tau_0}{\tau_1}}{\vpair{v_0}{v_1}} & =
+      & \vmonpair{(\tpair{\tau_0}{\tau_1})}{\vpair{v_0}{v_1}}
+      \\
+      \efromany{\tpair{\tau_0}{\tau_1}}{\vmonpair{(\tpair{\tau_0'}{\tau_1'})}{v'}} & =
+      & \vmonpair{(\tpair{\tau_0}{\tau_1})}{v'}
+      \\
+      \efromany{\tint}{i} & =
+      & i
+      \\
+      \efromany{\tnat}{i} & =
+      & i
+      \\ \sidecond{if $i \in \naturals$}
+      \\
+      \efromany{\tau}{v} & =
+      & \boundaryerror
+      \\ \sidecond{otherwise}
+  \end{array}$
+}
+
+% -----------------------------------------------------------------------------
+% --- reduction
+\vspace{-1ex}
+\begin{TwoColumn}
+  \lblextra{$e \rrFS e$}{ extends $\rrS$}{
+    $\begin{array}{l@{~~}c@{~}l}
+      \edyn{\tau}{v} & \rrFS & \efromdynF{\tau}{v}
+      \\
+      \echk{\tau}{v} & \rrFS
+      & \efromany{\tau}{v}
+      \\
+      \eapp{(\vmonfun{(\tarr{\tau_d}{\tau_c})}{(\vlam{x}{e}}))}{v} & \rrFS
+      & \edyn{\tau_c}{e'}
+      \\ \sidecond{where $e' = \eapp{(\vlam{x}{e})}{(\efromany{\tau_d}{v})}$}
+      \\
+      \eapp{(\vmonfun{(\tarr{\tau_d}{\tau_c})}{(\vlam{\tann{x}{\tau}}{e})})}{v}
+      & \rrFS & \echk{\tau_c}{e'}
+      \\ \sidecond{where $e' = \eapp{(\vlam{\tann{x}{\tau}}{e})}{(\efromany{\tau}{v})}$}
+      \\
+      \efst{(\vmonpair{(\tpair{\tau_0}{\tau_1})}{\vpair{v_0}{v_1}})} & \rrFS
+      & \efromany{\tau_0}{v_0}
+      \\
+      \esnd{(\vmonpair{(\tpair{\tau_0}{\tau_1})}{\vpair{v_0}{v_1}})} & \rrFS
+      & \efromany{\tau_1}{v_1}
+    \end{array}$
+  }
+
+  \multicolsbreak
+
+  \lblextra{$e \rrFD e$}{ extends $\rrD$}{
+    $\begin{array}{l@{~~}c@{~}l}
+      \esta{\tau}{v} & \rrFD & \efromstaF{\tau}{v}
+      \\
+      \\
+      \eapp{(\vmonfun{(\tarr{\tau_d}{\tau_c})}{(\vlam{x}{e})})}{v} & \rrFD
+      & \eapp{(\vlam{x}{e})}{v}
+      \\
+      \\
+      \eapp{(\vmonfun{(\tarr{\tau_d}{\tau_c})}{(\vlam{\tann{x}{\tau}}{e})})}{v}
+      & \rrFD & \esta{\tau_c}{e'}
+      \\ \sidecond{where $e' = \echk{\tau_c}{(\eapp{(\vlam{\tann{x}{\tau}}{e})}{(\efromany{\tau}{v})})}$}
+      \\
+      \efst{(\vmonpair{(\tpair{\tau_0}{\tau_1})}{\vpair{v_0}{v_1}})} & \rrFD
+      & \efromany{\tau_0}{v_0}
+      \\
+      \esnd{(\vmonpair{(\tpair{\tau_0}{\tau_1})}{\vpair{v_0}{v_1}})} & \rrFD
+      & \efromany{\tau_1}{v_1}
+    \end{array}$
+  }
+\end{TwoColumn}
+
+\vspace{-4ex}
+\begin{TwoColumn}
+  \lblextra{$e \rrFSstar e$}{ similar to $\rrNSstar$, see tech. rpt.}{}
+
+  %\lblextra{$e \rrFSstar e$}{ reflexive, transitive closure of $\ccFS$}{
+  %  $\begin{array}{l@{\hspace{0.5em}}c@{\hspace{0.5em}}l}
+  %    \ebase[e] & \ccFS & \ebase[e']
+  %    \\ \sidecond{if $e \rrFS e'$}
+  %    \\
+  %    \esd[\esta{\tau}{v}] & \ccFS & \esd[\efromstaF{\tau}{v}]
+  %    \\
+  %    \esd[\edyn{\tau}{v}] & \ccFS & \esd[\efromdynF{\tau}{v}]
+  %    \\
+  %    \esd[\esta{\tau}{\ebase[e]}] & \ccFS & \esd[\esta{\tau}{\ebase[e']}]
+  %    \\ \sidecond{if $e \rrFS e'$}
+  %    \\
+  %    \esd[\edyn{\tau}{\ebase[e]}] & \ccFS & \esd[\edyn{\tau}{\ebase[e']}]
+  %    \\ \sidecond{if $e \rrFD e'$}
+  %    \\
+  %    \esd[\eerr] & \ccFS & \eerr
+  %  \end{array}$
+  %}
+
+  \multicolsbreak
+
+  \smallskip
+  \lblextra{$e \rrFDstar e$}{ similar to $\rrNDstar$, see tech. rpt.}{}
+
+  %\lblextra{$e \rrFDstar e$}{ reflexive, transitive closure of $\ccFD$}{
+  %  $\begin{array}{l@{\hspace{0.5em}}c@{\hspace{0.5em}}l}
+  %    \ebase[e] & \ccFD & \ebase[e']
+  %    \\ \sidecond{if $e \rrFD e'$}
+  %    \\
+  %    \esd[\esta{\tau}{v}] & \ccFD & \esd[\efromstaF{\tau}{v}]
+  %    \\
+  %    \esd[\edyn{\tau}{v}] & \ccFD & \esd[\efromdynF{\tau}{v}]
+  %    \\
+  %    \esd[\esta{\tau}{\ebase[e]}] & \ccFD & \esd[\esta{\tau}{\ebase[e']}]
+  %    \\ \sidecond{if $e \rrFS e'$}
+  %    \\
+  %    \esd[\edyn{\tau}{\ebase[e]}] & \ccFD & \esd[\edyn{\tau}{\ebase[e']}]
+  %    \\ \sidecond{if $e \rrFD e'$}
+  %    \\
+  %    \esd[\eerr] & \ccFD & \eerr
+  %  \end{array}$
+  %}
+
+
+\end{TwoColumn}

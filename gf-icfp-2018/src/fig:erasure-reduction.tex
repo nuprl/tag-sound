@@ -1,0 +1,87 @@
+%\lblextra{Language $\langE$}{ \myinherits\ Evaluation Syntax}{
+%}
+%
+%% -----------------------------------------------------------------------------
+%% --- reduction
+
+\begin{TwoColumn}
+
+  \lblextra{$\vfromdynE : \specarrf{\tpair{\tau}{v}}{e}\vphantom{\vfromstaE}$}{}{
+    $\begin{array}{l@{~~}c@{~}l}
+      \efromdynE{\tau}{v} & = & v
+    \end{array}$
+  }
+
+  \multicolsbreak
+
+  \lblextra{$\vfromstaE : \specarrp{\tpair{\tau}{v}}{e}$}{}{
+    $\begin{array}{l@{~~}c@{~}l}
+      \efromstaE{\tau}{v} & = & v
+    \end{array}$
+  }
+
+\end{TwoColumn}
+
+\begin{TwoColumn}
+
+  \lblextra{$e \rrES e$}{ extends $\rrS$}{
+    $\begin{array}{l@{\hspace{0.5em}}c@{\hspace{0.5em}}l}
+      \edyn{\tau}{v} & \rrES & \efromdynE{\tau}{v}
+      \\
+      \esta{\tau}{v} & \rrES & \efromstaE{\tau}{v}
+      \\
+      \eapp{(\vlam{x}{e})}{v} & \rrES
+      & \vsubst{e}{x}{v}
+      \\
+      \eapp{v_0}{v_1} & \rrES
+      & \tagerror
+      \\ \sidecond{if $v_0 \in \integers$ or $v_0 = \vpair{v}{v'}$}
+      \\
+      \eunop{v} & \rrES
+      & \tagerror
+      \\ \sidecond{if $\delta(\vunop, v)$ is undefined}
+      \\
+      \ebinop{v_0}{v_1} & \rrES
+      & \tagerror
+      \\ \sidecond{if $\delta(\vbinop, v_0, v_1)$ is undefined}
+    \end{array}$
+  }
+
+  \multicolsbreak
+
+  \lblextra{$e \rrED e$}{ extends $\rrD$}{
+    $\begin{array}{l@{\hspace{0.5em}}c@{\hspace{0.5em}}l}
+      \esta{\tau}{v} & \rrED & \efromstaE{\tau}{v}
+      \\
+      \edyn{\tau}{v} & \rrED & \efromdynE{\tau}{v}
+      \\
+      \eapp{(\vlam{\tann{x}{\tau_d}}{e})}{v} & \rrED
+      & \vsubst{e}{x}{v}
+    \end{array}$
+  }
+
+\end{TwoColumn}
+
+\begin{TwoColumn}
+  \lblextra{$e \rrESstar e$}{ reflexive, transitive closure of $\ccES$}{
+    $\begin{array}{l@{\hspace{0.5em}}c@{\hspace{0.5em}}l}
+      \esd[e] & \ccES & \ctxE{e'}
+      \\ \sidecond{if $e \rrES e'$}
+      \\
+      \esd[\eerr] & \ccES & \eerr
+    \end{array}$
+  }
+
+  \multicolsbreak
+
+  \lblextra{$e \rrEDstar e$}{ reflexive, transitive closure of $\ccED$}{
+    $\begin{array}{l@{\hspace{0.5em}}c@{\hspace{0.5em}}l}
+      \esd[e] & \ccED & \ctxE{e'}
+      \\ \sidecond{if $e \rrED e'$}
+      \\
+      \esd[\eerr] & \ccED & \eerr
+    \end{array}$
+  }
+
+
+\end{TwoColumn}

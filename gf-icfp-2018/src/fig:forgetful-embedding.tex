@@ -1,0 +1,384 @@
+\begin{flushleft}
+
+  \lbl{Language $\langF$}{
+    $\begin{array}{l@{\hspace{0.5em}}c@{\hspace{0.5em}}l}
+      e & \BNFeq & x \mid v \mid \vpair{e}{e} \mid \eapp{e}{e} \mid \eunop{e} \mid \ebinop{e}{e} \mid
+      \\ & & \edyn{\tau}{e} \mid \esta{\tau}{e} \mid \eerr \mid \echk{\tau}{e}
+      \\
+      v & \BNFeq & i \mid \vpair{v}{v} \mid \vlam{x}{e} \mid \vlam{\tann{x}{\tau}}{e} \mid
+      \\ & & \vmonfun{(\tarr{\tau}{\tau})}{(\vlam{x}{e})} \mid
+             \vmonfun{(\tarr{\tau}{\tau})}{(\vlam{\tann{x}{\tau}}{e})} \mid
+      \\ & & \vmonpair{(\tpair{\tau}{\tau})}{\vpair{v}{v}}
+      \\
+      \tau & \BNFeq & \tnat \mid \tint \mid \tpair{\tau}{\tau} \mid \tarr{\tau}{\tau}
+      \\
+      \Gamma & \BNFeq & \cdot \mid x,\Gamma \mid \tann{x}{\tau},\Gamma
+      \\
+      \eerr & \BNFeq & \boundaryerror \mid \tagerror
+      \\
+      \vresult & \BNFeq & v \mid \eerr
+      \\
+      \ebase & \BNFeq & \ehole \mid \eapp{\ebase}{e} \mid \eapp{v}{\ebase} \mid
+                     \vpair{\ebase}{e} \mid \vpair{v}{\ebase} \mid
+      \\ & & \eunop{\ebase} \mid \ebinop{\ebase}{e} \mid \ebinop{v}{\ebase}
+      \\
+      \esd & \BNFeq & \ebase \mid \eapp{\esd}{e} \mid \eapp{v}{\esd} \mid
+                      \vpair{\esd}{e} \mid \vpair{v}{\esd} \mid \eunop{\esd} \mid
+      \\ & &          \ebinop{\esd}{e} \mid \ebinop{v}{\esd} \mid \edyn{\tau}{\esd} \mid \esta{\tau}{\esd}
+    \end{array}$
+  }
+
+  \input{fig:multi-typing.tex}
+
+\lblmathpar{$\Gamma \wellFE e$}{
+  \inferrule*{
+    x \in \GammaD
+  }{
+    \GammaD \wellFE x
+  }
+
+  \inferrule*{
+    x,\GammaD \wellFE e
+  }{
+    \GammaD \wellFE \vlam{x}{e}
+  }
+
+  \inferrule*{
+  }{
+    \GammaD \wellFE i
+  }
+
+  \inferrule*{
+    \GammaD \wellFE e_0
+    \\
+    \GammaD \wellFE e_1
+  }{
+    \GammaD \wellFE \vpair{e_0}{e_1}
+  }
+
+  \inferrule*{
+    \GammaD \wellFE e_0
+    \\
+    \GammaD \wellFE e_1
+  }{
+    \GammaD \wellFE \eapp{e_0}{e_1}
+  }
+
+  \inferrule*{
+    \GammaD \wellFE e
+  }{
+    \GammaD \wellFE \eunop{e}
+  }
+
+  \inferrule*{
+    \GammaD \wellFE e_0
+    \\
+    \GammaD \wellFE e_1
+  }{
+    \GammaD \wellFE \ebinop{e_0}{e_1}
+  }
+
+  \inferrule*{
+  }{
+    \Gamma \wellFE \eerr
+  }
+
+  \inferrule*{
+    \Gamma \wellFE e : \tau
+  }{
+    \Gamma \wellFE \esta{\tau}{e}
+  }
+
+  \inferrule*{
+    \Gamma \wellFE v_0 : \tau_0'
+    \\
+    \Gamma \wellFE v_1 : \tau_1'
+  }{
+    \Gamma \wellFE \vmonpair{(\tpair{\tau_0}{\tau_1})}{\vpair{v_0}{v_1}}
+  }
+
+  \inferrule*{
+    \Gamma \wellFE v_0
+    \\
+    \Gamma \wellFE v_1
+  }{
+    \Gamma \wellFE \vmonpair{(\tpair{\tau_0}{\tau_1})}{\vpair{v_0}{v_1}}
+  }
+
+  \inferrule*{
+    \Gamma \wellFE \vlam{x}{e}
+  }{
+    \Gamma \wellFE \vmonfun{(\tarr{\tau_d}{\tau_c})}{\vlam{x}{e}}
+  }
+
+  \inferrule*{
+    \Gamma \wellFE \vlam{\tann{x}{\tau_d'}}{e} : \tarr{\tau_d'}{\tau_c'}
+  }{
+    \Gamma \wellFE \vmonfun{(\tarr{\tau_d}{\tau_c})}{\vlam{\tann{x}{\tau_d'}}{e}}
+  }
+}
+
+\lblmathpar{$\Gamma \wellFE e : \tau$}{
+  \inferrule*{
+    \tann{x}{\tau} \in \GammaS
+  }{
+    \GammaS \wellFE x : \tau
+  }
+
+  \inferrule*{
+    \tann{x}{\tau_d},\GammaS \wellFE e : \tau_c
+  }{
+    \GammaS \wellFE \vlam{\tann{x}{\tau_d}}{e} : \tau_d \tarrow \tau_c
+  }
+
+  \inferrule*{
+    i \in \naturals
+  }{
+    \GammaS \wellFE i : \tnat
+  }
+
+  \inferrule*{
+  }{
+    \GammaS \wellFE i : \tint
+  }
+
+  \inferrule*{
+    \GammaS \wellFE e_0 : \tau_0
+    \\\\
+    \GammaS \wellFE e_1 : \tau_1
+  }{
+    \GammaS \wellFE \vpair{e_0}{e_1} : \tpair{\tau_0}{\tau_1}
+  }
+
+  \inferrule*{
+    \GammaS \wellFE e_0 : \tau_d \tarrow \tau_c
+    \\\\
+    \GammaS \wellFE e_1 : \tau_d
+  }{
+    \GammaS \wellFE \eapp{e_0}{e_1} : \tau_c
+  }
+
+  \inferrule*{
+    \GammaS \wellFE e_0 : \tau_0
+    \\\\
+    \Delta(\vunop, \tau_0) = \tau
+  }{
+    \GammaS \wellFE \eunop{e_0} : \tau
+  }
+
+  \inferrule*{
+    \GammaS \wellFE e_0 : \tau_0
+    \\\\
+    \GammaS \wellFE e_1 : \tau_1
+    \\\\
+    \Delta(\vbinop, \tau_0, \tau_1) = \tau
+  }{
+    \GammaS \wellFE \ebinop{e_0}{e_1} : \tau
+  }
+
+  \inferrule*{
+    \GammaS \wellFE e : \tau'
+    \\\\
+    \tau' \subt \tau
+  }{
+    \GammaS \wellFE e : \tau
+  }
+
+  \inferrule*{
+  }{
+    \Gamma \wellFE \eerr : \tau
+  }
+
+  \inferrule*{
+    \Gamma \wellFE e
+  }{
+    \Gamma \wellFE \edyn{\tau}{e} : \tau
+  }
+
+  \inferrule*{
+    \Gamma \wellFE v_0 : \tau_0'
+    \\
+    \Gamma \wellFE v_1 : \tau_1'
+  }{
+    \Gamma \wellFE \vmonpair{(\tpair{\tau_0}{\tau_1})}{\vpair{v_0}{v_1}} : (\tpair{\tau_0}{\tau_1})
+  }
+
+  \inferrule*{
+    \Gamma \wellFE v_0
+    \\
+    \Gamma \wellFE v_1
+  }{
+    \Gamma \wellFE \vmonpair{(\tpair{\tau_0}{\tau_1})}{\vpair{v_0}{v_1}} : (\tpair{\tau_0}{\tau_1})
+  }
+
+  \inferrule*{
+    \Gamma \wellFE \vlam{x}{e}
+  }{
+    \Gamma \wellFE \vmonfun{(\tarr{\tau_d}{\tau_c})}{\vlam{x}{e}} : (\tarr{\tau_d}{\tau_c})
+  }
+
+  \inferrule*{
+    \Gamma \wellFE \vlam{\tann{x}{\tau_d'}}{e} : \tarr{\tau_d'}{\tau_c'}
+  }{
+    \Gamma \wellFE \vmonfun{(\tarr{\tau_d}{\tau_c})}{\vlam{\tann{x}{\tau_d'}}{e}} : (\tarr{\tau_d}{\tau_c})
+  }
+
+  \inferrule*{
+    \Gamma \wellFE e : \tau'
+  }{
+    \Gamma \wellFE \echk{\tau}{e} : \tau
+  }
+
+}
+
+%% -----------------------------------------------------------------------------
+%% --- semantics
+
+\input{fig:delta.tex}
+
+  \lblextra{$\vfromdynF : \specarrf{\tpair{\tau}{v}}{e}\vphantom{\vfromsta}$}{}{
+    $\begin{array}{l@{~~}c@{~}l}
+      \efromdynF{\tau}{v} & = & \efromany{\tau}{v}
+    \end{array}$
+  }
+
+  \lblextra{$\vfromstaF : \specarrf{\tpair{\tau}{v}}{e}$}{}{
+    $\begin{array}{l@{~~}c@{~}l}
+      \efromstaF{\tau}{v} & = & \efromany{\tau}{v}
+    \end{array}$
+  }
+
+  \lblextra{$\vfromany : \specarrf{\tpair{\tau}{v}}{e}$}{}{
+    $\begin{array}{l@{~~}c@{~}l}
+      \efromany{\tarr{\tau_d}{\tau_c}}{\vlam{x}{e}} & =
+      & \vmonfun{(\tarr{\tau_d}{\tau_c})}{(\vlam{x}{e})}
+      \\
+      \efromany{\tarr{\tau_d}{\tau_c}}{\vlam{\tann{x}{\tau}}{e}} & =
+      & \vmonfun{(\tarr{\tau_d}{\tau_c})}{(\vlam{\tann{x}{\tau}}{e})}
+      \\
+      \efromany{\tarr{\tau_d}{\tau_c}}{\vmonfun{(\tarr{\tau_d'}{\tau_c'})}{v'}} & =
+      & \vmonfun{(\tarr{\tau_d}{\tau_c})}{v'}
+      \\
+      \efromany{\tpair{\tau_0}{\tau_1}}{\vpair{v_0}{v_1}} & =
+      & \vmonpair{(\tpair{\tau_0}{\tau_1})}{\vpair{v_0}{v_1}}
+      \\
+      \efromany{\tpair{\tau_0}{\tau_1}}{\vmonpair{(\tpair{\tau_0'}{\tau_1'})}{v'}} & =
+      & \vmonpair{(\tpair{\tau_0}{\tau_1})}{v'}
+      \\
+      \efromany{\tint}{i} & =
+      & i
+      \\
+      \efromany{\tnat}{i} & =
+      & i
+      \\ \sidecond{if $i \in \naturals$}
+      \\
+      \efromany{\tau}{v} & =
+      & \boundaryerror
+      \\ \sidecond{otherwise}
+    \end{array}$
+  }
+
+  \lbl{$e \rrFS e$}{
+    $\begin{array}{l@{~~}c@{~}l}
+      \edyn{\tau}{v} & \rrFS & \efromdynF{\tau}{v}
+      \\
+      \echk{\tau}{v} & \rrFS
+      & \efromany{\tau}{v}
+      \\
+      \eapp{(\vmonfun{(\tarr{\tau_d}{\tau_c})}{(\vlam{x}{e}}))}{v} & \rrFS
+      & \edyn{\tau_c}{e'}
+      \\ \sidecond{where $e' = \eapp{(\vlam{x}{e})}{(\efromany{\tau_d}{v})}$}
+      \\
+      \eapp{(\vmonfun{(\tarr{\tau_d}{\tau_c})}{(\vlam{\tann{x}{\tau}}{e})})}{v}
+      & \rrFS & \echk{\tau_c}{e'}
+      \\ \sidecond{where $e' = \eapp{(\vlam{\tann{x}{\tau}}{e})}{(\efromany{\tau}{v})}$}
+      \\
+      \efst{(\vmonpair{(\tpair{\tau_0}{\tau_1})}{\vpair{v_0}{v_1}})} & \rrFS
+      & \efromany{\tau_0}{v_0}
+      \\
+      \esnd{(\vmonpair{(\tpair{\tau_0}{\tau_1})}{\vpair{v_0}{v_1}})} & \rrFS
+      & \efromany{\tau_1}{v_1}
+      \\
+      \eapp{(\vlam{\tann{x}{\tau}}{e})}{v} & \rrFS
+      & \vsubst{e}{x}{v}
+      \\
+      \eunop{v} & \rrFS
+      & \delta(\vunop, v)
+      \\
+      \ebinop{v_0}{v_1} & \rrFS
+      & \delta(\vbinop, v_0, v_1)
+    \end{array}$
+  }
+
+  \lbl{$e \rrFD e$}{
+    $\begin{array}{l@{~~}c@{~}l}
+      \esta{\tau}{v} & \rrFD & \efromstaF{\tau}{v}
+      \\
+      \eapp{v_0}{v_1} & \rrFD & \tagerror
+      \\ \sidecond{if $v_0 \in \integers$ or $v_0 = \vpair{v}{v'}$}
+      \\
+      \eapp{(\vmonfun{(\tarr{\tau_d}{\tau_c})}{(\vlam{x}{e})})}{v} & \rrFD
+      & \eapp{(\vlam{x}{e})}{v}
+      \\
+      \eapp{(\vmonfun{(\tarr{\tau_d}{\tau_c})}{(\vlam{\tann{x}{\tau}}{e})})}{v}
+      & \rrFD & \esta{\tau_c}{e'}
+      \\ \sidecond{where $e' = \echk{\tau_c}{(\eapp{(\vlam{\tann{x}{\tau}}{e})}{(\efromany{\tau}{v})})}$}
+      \\
+      \eapp{(\vlam{x}{e})}{v} & \rrND & \vsubst{e}{x}{v}
+      \\
+      \efst{(\vmonpair{(\tpair{\tau_0}{\tau_1})}{\vpair{v_0}{v_1}})} & \rrFD
+      & \efromany{\tau_0}{v_0}
+      \\
+      \esnd{(\vmonpair{(\tpair{\tau_0}{\tau_1})}{\vpair{v_0}{v_1}})} & \rrFD
+      & \efromany{\tau_1}{v_1}
+      \\
+      \eunop{v} & \rrND
+      & \tagerror
+      \\ \sidecond{if $\delta(\vunop, v)$ is undefined}
+      \\
+      \eunop{v} & \rrND
+      & \delta(\vunop, v)
+      \\
+      \ebinop{v_0}{v_1} & \rrND
+      & \tagerror
+      \\ \sidecond{if $\delta(\vbinop, v_0, v_1)$ is undefined}
+      \\
+      \ebinop{v_0}{v_1} & \rrND
+      & \delta(\vbinop, v_0, v_1)
+    \end{array}$
+  }
+
+  \lbl{$e \ccFS e$}{
+    $\begin{array}{l@{\hspace{0.5em}}c@{\hspace{0.5em}}l}
+      \ebase[e] & \ccFS & \ebase[e']
+      \\ \sidecond{if $e \rrFS e'$}
+      \\
+      \esd[\esta{\tau}{\ebase[e]}] & \ccFS & \esd[\esta{\tau}{\ebase[e']}]
+      \\ \sidecond{if $e \rrFS e'$}
+      \\
+      \esd[\edyn{\tau}{\ebase[e]}] & \ccFS & \esd[\edyn{\tau}{\ebase[e']}]
+      \\ \sidecond{if $e \rrFD e'$}
+      \\
+      \esd[\eerr] & \ccFS & \eerr
+    \end{array}$
+  }
+
+  \lbl{$e \ccFD e$}{
+    $\begin{array}{l@{\hspace{0.5em}}c@{\hspace{0.5em}}l}
+      \ebase[e] & \ccFD & \ebase[e']
+      \\ \sidecond{if $e \rrFD e'$}
+      \\
+      \esd[\esta{\tau}{\ebase[e]}] & \ccFD & \esd[\esta{\tau}{\ebase[e']}]
+      \\ \sidecond{if $e \rrFS e'$}
+      \\
+      \esd[\edyn{\tau}{\ebase[e]}] & \ccFD & \esd[\edyn{\tau}{\ebase[e']}]
+      \\ \sidecond{if $e \rrFD e'$}
+      \\
+      \esd[\eerr] & \ccFD & \eerr
+    \end{array}$
+  }
+
+\lblextra{$e \rrFSstar e$}{ reflexive, transitive closure of $\ccFS$}{}
+\lblextra{$e \rrFDstar e$}{ reflexive, transitive closure of $\ccFD$}{}
+
+\end{flushleft}

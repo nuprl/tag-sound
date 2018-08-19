@@ -1,0 +1,207 @@
+\begin{flushleft}
+
+  \lblextra{Language $\langE$}{}{
+    $\begin{array}{l@{\hspace{0.5em}}c@{\hspace{0.5em}}l}
+      e & \BNFeq & x \mid v \mid \vpair{e}{e} \mid \eapp{e}{e} \mid \eunop{e} \mid \ebinop{e}{e} \mid
+      \\ & & \edyn{\tau}{e} \mid \esta{\tau}{e} \mid \eerr
+      \\
+      v & \BNFeq & i \mid \vpair{v}{v} \mid \vlam{x}{e} \mid \vlam{\tann{x}{\tau}}{e}
+      \\
+      \tau & \BNFeq & \tnat \mid \tint \mid \tpair{\tau}{\tau} \mid \tarr{\tau}{\tau}
+      \\
+      \Gamma & \BNFeq & \cdot \mid x,\Gamma \mid \tann{x}{\tau},\Gamma
+      \\
+      \eerr & \BNFeq & \boundaryerror \mid \tagerror
+      \\
+      \vresult & \BNFeq & v \mid \eerr
+      \\
+      \ebase & \BNFeq & \ehole \mid \eapp{\ebase}{e} \mid \eapp{v}{\ebase} \mid
+                     \vpair{\ebase}{e} \mid \vpair{v}{\ebase} \mid
+      \\ & & \eunop{\ebase} \mid \ebinop{\ebase}{e} \mid \ebinop{v}{\ebase}
+      \\
+      \esd & \BNFeq & \ebase \mid \eapp{\esd}{e} \mid \eapp{v}{\esd} \mid
+                      \vpair{\esd}{e} \mid \vpair{v}{\esd} \mid \eunop{\esd} \mid
+      \\ & &          \ebinop{\esd}{e} \mid \ebinop{v}{\esd} \mid \edyn{\tau}{\esd} \mid \esta{\tau}{\esd}
+    \end{array}$
+  }
+
+\input{fig:multi-typing.tex}
+
+\lblmathpar{$\Gamma \wellEE e$}{
+  \inferrule*{
+    x \in \GammaD
+  }{
+    \GammaD \wellEE x
+  }
+
+  \inferrule*{
+    \tann{x}{\tau} \in \GammaD
+  }{
+    \GammaD \wellEE x
+  }
+
+  \inferrule*{
+    x,\GammaD \wellEE e
+  }{
+    \GammaD \wellEE \vlam{x}{e}
+  }
+
+  \inferrule*{
+    \tann{x}{\tau},\Gamma \wellEE e
+  }{
+    \Gamma \wellEE \vlam{\tann{x}{\tau}}{e}
+  }
+
+  \inferrule*{
+  }{
+    \GammaD \wellEE i
+  }
+
+  \inferrule*{
+    \GammaD \wellEE e_0
+    \\
+    \GammaD \wellEE e_1
+  }{
+    \GammaD \wellEE \vpair{e_0}{e_1}
+  }
+
+  \inferrule*{
+    \GammaD \wellEE e_0
+    \\
+    \GammaD \wellEE e_1
+  }{
+    \GammaD \wellEE \vapp{e_0}{e_1}
+  }
+
+  \inferrule*{
+    \GammaD \wellEE e
+  }{
+    \GammaD \wellEE \eunop{e}
+  }
+
+  \inferrule*{
+    \GammaD \wellEE e_0
+    \\
+    \GammaD \wellEE e_1
+  }{
+    \GammaD \wellEE \ebinop{e_0}{e_1}
+  }
+
+  \inferrule*{
+  }{
+    \Gamma \wellEE \eerr
+  }
+
+  \inferrule*{
+    \Gamma \wellEE e
+  }{
+    \Gamma \wellEE \edyn{\tau}{e}
+  }
+
+  \inferrule*{
+    \Gamma \wellEE e
+  }{
+    \Gamma \wellEE \esta{\tau}{e}
+  }
+}
+
+\input{fig:delta.tex}
+
+\lblextra{$\vfromdynE : \specarrf{\tpair{\tau}{v}}{e}\vphantom{\vfromstaE}$}{}{
+  $\begin{array}{l@{~~}c@{~}l}
+    \efromdynE{\tau}{v} & = & v
+  \end{array}$
+}
+
+\lblextra{$\vfromstaE : \specarrp{\tpair{\tau}{v}}{e}$}{}{
+  $\begin{array}{l@{~~}c@{~}l}
+    \efromstaE{\tau}{v} & = & v
+  \end{array}$
+}
+
+\lblextra{$e \rrES e$}{}{
+  $\begin{array}{l@{\hspace{0.5em}}c@{\hspace{0.5em}}l}
+    \edyn{\tau}{v} & \rrES & \efromdynE{\tau}{v}
+    \\
+    \esta{\tau}{v} & \rrES & \efromstaE{\tau}{v}
+    \\
+    \eapp{v_0}{v_1} & \rrES
+    & \tagerror
+    \\ \sidecond{if $v_0 \in \integers$ or $v_0 = \vpair{v}{v'}$}
+    \\
+    \eapp{(\vlam{\tann{x}{\tau}}{e})}{v} & \rrES
+    & \vsubst{e}{x}{v}
+    \\
+    \eapp{(\vlam{x}{e})}{v} & \rrES
+    & \vsubst{e}{x}{v}
+    \\
+    \eunop{v} & \rrES
+    & \tagerror
+    \\ \sidecond{if $\delta(\vunop, v)$ is undefined}
+    \\
+    \eunop{v} & \rrES
+    & \delta(\vunop, v)
+    \\
+    \ebinop{v_0}{v_1} & \rrES
+    & \tagerror
+    \\ \sidecond{if $\delta(\vbinop, v_0, v_1)$ is undefined}
+    \\
+    \ebinop{v_0}{v_1} & \rrES
+    & \delta(\vbinop, v_0, v_1)
+  \end{array}$
+}
+
+\lblextra{$e \rrED e$}{}{
+  $\begin{array}{l@{\hspace{0.5em}}c@{\hspace{0.5em}}l}
+    \esta{\tau}{v} & \rrED & \efromstaE{\tau}{v}
+    \\
+    \edyn{\tau}{v} & \rrED & \efromdynE{\tau}{v}
+    \\
+    \eapp{v_0}{v_1} & \rrED
+    & \tagerror
+    \\ \sidecond{if $v_0 \in \integers$ or $v_0 = \vpair{v}{v'}$}
+    \\
+    \eapp{(\vlam{\tann{x}{\tau}}{e})}{v} & \rrED
+    & \vsubst{e}{x}{v}
+    \\
+    \eapp{(\vlam{x}{e})}{v} & \rrED
+    & \vsubst{e}{x}{v}
+    \\
+    \eunop{v} & \rrED
+    & \tagerror
+    \\ \sidecond{if $\delta(\vunop, v)$ is undefined}
+    \\
+    \eunop{v} & \rrED
+    & \delta(\vunop, v)
+    \\
+    \ebinop{v_0}{v_1} & \rrED
+    & \tagerror
+    \\ \sidecond{if $\delta(\vbinop, v_0, v_1)$ is undefined}
+    \\
+    \ebinop{v_0}{v_1} & \rrED
+    & \delta(\vbinop, v_0, v_1)
+  \end{array}$
+}
+
+\lblextra{$e \ccES e$}{}{
+  $\begin{array}{l@{\hspace{0.5em}}c@{\hspace{0.5em}}l}
+    \esd[e] & \ccES & \ctxE{e'}
+    \\ \sidecond{if $e \rrES e'$}
+    \\
+    \esd[\eerr] & \ccES & \eerr
+  \end{array}$
+}
+
+\lblextra{$e \ccED e$}{}{
+  $\begin{array}{l@{\hspace{0.5em}}c@{\hspace{0.5em}}l}
+    \esd[e] & \ccED & \ctxE{e'}
+    \\ \sidecond{if $e \rrED e'$}
+    \\
+    \esd[\eerr] & \ccED & \eerr
+  \end{array}$
+}
+
+\lblextra{$e \rrESstar e$}{ reflexive, transitive closure of $\ccES$}{}
+\lblextra{$e \rrEDstar e$}{ reflexive, transitive closure of $\ccED$}{}
+
+\end{flushleft}

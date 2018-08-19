@@ -1,0 +1,30 @@
+\lbl{Surface Syntax}{
+  $\begin{array}{l@{\hspace{0.5em}}c@{\hspace{0.5em}}l}
+    \exprdyn & \BNFeq & x \mid
+         \arraycell{\vlam{x}{\exprdyn}}{\vlam{\tann{x}{\tau}}{\exprsta}}
+         \mid
+         i \mid
+         \vpair{\exprdyn}{\exprdyn} \mid
+         \eapp{\exprdyn}{\exprdyn} \mid
+         \eunop{\exprdyn} \mid
+         \ebinop{\exprdyn}{\exprdyn} \mid
+         \esta{\tau}{\exprsta}
+    \\
+    \exprsta & \BNFeq & x \mid
+         \vlam{\tann{x}{\tau}}{\exprsta} \mid
+         i \mid
+         \arraycell{\vpair{\exprsta}{\exprsta}}{\vpair{\exprdyn}{\exprdyn}} \mid
+         \arraycell{\eapp{\exprsta}{\exprsta}}{\eapp{\exprdyn}{\exprdyn}} \mid
+         \arraycell{\eunop{\exprsta}}{\eunop{\exprdyn}} \mid
+         \arraycell{\ebinop{\exprsta}{\exprsta}}{\ebinop{\exprdyn}{\exprdyn}} \mid
+         \edyn{\tau}{\exprdyn}
+    \\
+    \tau & \BNFeq & \tint \mid \tnat \mid \tpair{\tau}{\tau} \mid \tau \tarrow \tau
+    \\
+    i & \in & \integers
+    \\
+    \vunop & \BNFeq & \vfst \mid \vsnd
+    \\
+    \vbinop & \BNFeq & \vsum \mid \vquotient
+  \end{array}$
+}

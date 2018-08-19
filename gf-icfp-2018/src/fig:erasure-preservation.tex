@@ -1,0 +1,30 @@
+% does NOT extend the dynamically-typed judgment (see dyn rule)
+\lblmathparextra{$\Gamma \wellEE e$}{ (selected rules)}{
+
+  \inferrule*{
+    x,\GammaD \wellEE e
+  }{
+    \GammaD \wellEE \vlam{x}{e}
+  }
+
+
+  \inferrule*{
+    \tann{x}{\tau},\Gamma \wellEE e
+  }{
+    \Gamma \wellEE \vlam{\tann{x}{\tau}}{e}
+  }
+
+
+  \inferrule*{
+    \Gamma \wellEE e
+  }{
+    \Gamma \wellEE \edyn{\tau}{e}
+  }
+
+
+  \inferrule*{
+    \Gamma \wellEE e
+  }{
+    \Gamma \wellEE \esta{\tau}{e}
+  }
+}

@@ -1,0 +1,294 @@
+\begin{flushleft}
+
+  \lblextra{Language $\langN$}{}{
+    $\begin{array}{l@{\hspace{0.5em}}c@{\hspace{0.5em}}l}
+      e & \BNFeq & x \mid v \mid \vpair{e}{e} \mid \eapp{e}{e} \mid \eunop{e} \mid \ebinop{e}{e} \mid
+      \\ & & \edyn{\tau}{e} \mid \esta{\tau}{e} \mid \eerr
+      \\
+      v & \BNFeq & i \mid \vpair{v}{v} \mid \vlam{x}{e} \mid \vlam{\tann{x}{\tau}}{e} \mid
+      \\ & & \vmonfun{(\tarr{\tau}{\tau})}{v}
+      \\
+      \tau & \BNFeq & \tnat \mid \tint \mid \tpair{\tau}{\tau} \mid \tarr{\tau}{\tau}
+      \\
+      \Gamma & \BNFeq & \cdot \mid x,\Gamma \mid \tann{x}{\tau},\Gamma
+      \\
+      \eerr & \BNFeq & \boundaryerror \mid \tagerror
+      \\
+      \vresult & \BNFeq & v \mid \eerr
+      \\
+      \ebase & \BNFeq & \ehole \mid \eapp{\ebase}{e} \mid \eapp{v}{\ebase} \mid
+                     \vpair{\ebase}{e} \mid \vpair{v}{\ebase} \mid
+      \\ & & \eunop{\ebase} \mid \ebinop{\ebase}{e} \mid \ebinop{v}{\ebase}
+      \\
+      \esd & \BNFeq & \ebase \mid \eapp{\esd}{e} \mid \eapp{v}{\esd} \mid
+                      \vpair{\esd}{e} \mid \vpair{v}{\esd} \mid \eunop{\esd} \mid
+      \\ & &          \ebinop{\esd}{e} \mid \ebinop{v}{\esd} \mid \edyn{\tau}{\esd} \mid \esta{\tau}{\esd}
+    \end{array}$
+  }
+
+  \input{fig:multi-typing.tex}
+
+\lblmathpar{$\Gamma \wellNE e$}{
+  \inferrule*{
+    x \in \GammaD
+  }{
+    \GammaD \wellNE x
+  }
+
+  \inferrule*{
+    x,\GammaD \wellNE e
+  }{
+    \GammaD \wellNE \vlam{x}{e}
+  }
+
+  \inferrule*{
+  }{
+    \GammaD \wellNE i
+  }
+
+  \inferrule*{
+    \GammaD \wellNE e_0
+    \\
+    \GammaD \wellNE e_1
+  }{
+    \GammaD \wellNE \vpair{e_0}{e_1}
+  }
+
+  \inferrule*{
+    \GammaD \wellNE e_0
+    \\
+    \GammaD \wellNE e_1
+  }{
+    \GammaD \wellNE e_0~e_1
+  }
+
+  \inferrule*{
+    \GammaD \wellNE e
+  }{
+    \GammaD \wellNE \eunop{e}
+  }
+
+  \inferrule*{
+    \GammaD \wellNE e_0
+    \\
+    \GammaD \wellNE e_1
+  }{
+    \GammaD \wellNE \ebinop{e_0}{e_1}
+  }
+
+  \inferrule*{
+  }{
+    \Gamma \wellNE \eerr
+  }
+
+  \inferrule*{
+    \Gamma \wellNE e : \tau
+  }{
+    \Gamma \wellNE \esta{\tau}{e}
+  }
+
+  \inferrule*{
+    \Gamma \wellNE v : \tarr{\tau_d}{\tau_c}
+  }{
+    \Gamma \wellNE \vmonfun{(\tarr{\tau_d}{\tau_c})}{v}
+  }
+}
+
+\lblmathpar{$\Gamma \wellNE e : \tau$}{
+  \inferrule*{
+    \tann{x}{\tau} \in \GammaS
+  }{
+    \GammaS \wellNE x : \tau
+  }
+
+  \inferrule*{
+    \tann{x}{\tau_d},\GammaS \wellNE e : \tau_c
+  }{
+    \GammaS \wellNE \vlam{\tann{x}{\tau_d}}{e} : \tarr{\tau_d}{\tau_c}
+  }
+
+  \inferrule*{
+    i \in \naturals
+  }{
+    \GammaS \wellNE i : \tnat
+  }
+
+  \inferrule*{
+  }{
+    \GammaS \wellNE i : \tint
+  }
+
+  \inferrule*{
+    \GammaS \wellNE e_0 : \tau_0
+    \\\\
+    \GammaS \wellNE e_1 : \tau_1
+  }{
+    \GammaS \wellNE \vpair{e_0}{e_1} : \tpair{\tau_0}{\tau_1}
+  }
+
+  \inferrule*{
+    \GammaS \wellNE e_0 : \tau_d \tarrow \tau_c
+    \\\\
+    \GammaS \wellNE e_1 : \tau_d
+  }{
+    \GammaS \wellNE e_0~e_1 : \tau_c
+  }
+
+  \inferrule*{
+    \GammaS \wellNE e_0 : \tau_0
+    \\\\
+    \Delta(\vunop, \tau_0) = \tau
+  }{
+    \GammaS \wellNE \vunop~e_0 : \tau
+  }
+
+  \inferrule*{
+    \GammaS \wellNE e_0 : \tau_0
+    \\\\
+    \GammaS \wellNE e_1 : \tau_1
+    \\\\
+    \Delta(\vbinop, \tau_0, \tau_1) = \tau
+  }{
+    \GammaS \wellNE \vbinop~e_0~e_1 : \tau
+  }
+
+  \inferrule*{
+    \GammaS \wellNE e : \tau'
+    \\\\
+    \tau' \subt \tau
+  }{
+    \GammaS \wellNE e : \tau
+  }
+
+  \inferrule*{
+  }{
+    \Gamma \wellNE \eerr : \tau
+  }
+
+  \inferrule*{
+    \Gamma \wellNE e
+  }{
+    \Gamma \wellNE \edyn{\tau}{e} : \tau
+  }
+
+  \inferrule*{
+    \Gamma \wellNE v
+  }{
+    \Gamma \wellNE \vmonfun{(\tarr{\tau_d}{\tau_c})}{v} : (\tarr{\tau_d}{\tau_c})
+  }
+}
+
+%% -----------------------------------------------------------------------------
+%% --- semantics
+
+\input{fig:delta.tex}
+
+\lblextra{$\vfromdynN : \specarrf{\tpair{\tau}{v}}{e}\vphantom{\vfromstaN}$}{}{
+  $\begin{array}{l@{~~}c@{~}l}
+    \efromdynN{\tarr{\tau_d}{\tau_c}}{v} & = & \vmonfun{(\tarr{\tau_d}{\tau_c})}{v}
+    \\ \sidecond{if $v \valeq \vlam{x}{e}$ or $v \valeq \vmonfun{\tau'}{v'}$}
+    \\
+    \efromdynN{\tpair{\tau_0}{\tau_1}}{\vpair{v_0}{v_1}} & = & \vpair{\edyn{\tau_0}{v_0}}{\edyn{\tau_1}{v_1}}
+    \\
+    \efromdynN{\tint}{i} & = & i
+    \\
+    \efromdynN{\tnat}{i} & = & i
+    \\ \sidecond{if $i \in \naturals$}
+    \\
+    \efromdynN{\tau}{v} & = & \boundaryerror
+    \\ \sidecond{otherwise}
+  \end{array}$
+}
+
+\lblextra{$\vfromstaN : \specarrp{\tpair{\tau}{v}}{e}$}{}{
+  $\begin{array}{l@{~~}c@{~}l}
+    \efromstaN{\tarr{\tau_d}{\tau_c}}{v} & = & \vmonfun{(\tarr{\tau_d}{\tau_c})}{v}
+    \\
+    \efromstaN{\tpair{\tau_0}{\tau_1}}{\vpair{v_0}{v_1}} & = & \vpair{\esta{\tau_0}{v_0}}{\esta{\tau_1}{v_1}}
+    \\
+    \efromstaN{\tint}{v} & = & v
+    \\ 
+    \efromstaN{\tnat}{v} & = & v
+  \end{array}$
+}
+
+\lbl{$e \rrNS e$}{
+  $\begin{array}{l@{\hspace{0.5em}}c@{\hspace{0.5em}}l}
+    \edyn{\tau}{v} & \rrNS & \efromdynN{\tau}{v}
+    \\
+    \eapp{(\vmonfun{(\tarr{\tau_d}{\tau_c})}{v_f})}{v} & \rrNS
+    & \edyn{\tau_c}{(\eapp{v_f}{(\esta{\tau_d}{v})})}
+    \\
+    \eapp{(\vlam{\tann{x}{\tau}}{e})}{v} & \rrNS
+    & \vsubst{e}{x}{v}
+    \\
+    \eunop{v} & \rrNS
+    & \delta(\vunop, v)
+    \\
+    \ebinop{v_0}{v_1} & \rrNS
+    & \delta(\vbinop, v_0, v_1)
+  \end{array}$
+}
+
+\lbl{$e \rrND e$}{
+  $\begin{array}{l@{\hspace{0.5em}}c@{\hspace{0.5em}}l}
+    \esta{\tau}{v} & \rrND & \efromstaN{\tau}{v}
+    \\
+    \eapp{v_0}{v_1} & \rrND & \tagerror
+    \\ \sidecond{if $v_0 \in \integers$ or $v_0 = \vpair{v}{v'}$}
+    \\
+    \eapp{(\vmonfun{\tarr{\tau_d}{\tau_c}}{v_f})}{v} & \rrND
+    & \esta{\tau_c}{(\eapp{v_f}{(\edyn{\tau_d}{v})})}
+    \\
+    \eapp{(\vlam{x}{e})}{v} & \rrND & \vsubst{e}{x}{v}
+    \\
+    \eunop{v} & \rrND
+    & \tagerror
+    \\ \sidecond{if $\delta(\vunop, v)$ is undefined}
+    \\
+    \eunop{v} & \rrND
+    & \delta(\vunop, v)
+    \\
+    \ebinop{v_0}{v_1} & \rrND
+    & \tagerror
+    \\ \sidecond{if $\delta(\vbinop, v_0, v_1)$ is undefined}
+    \\
+    \ebinop{v_0}{v_1} & \rrND
+    & \delta(\vbinop, v_0, v_1)
+  \end{array}$
+}
+
+\lbl{$e \ccNS e$}{
+  $\begin{array}{l@{\hspace{0.5em}}c@{\hspace{0.5em}}l}
+    \ebase[e] & \ccNS & \ebase[e']
+    \\ \sidecond{if $e \rrNS e'$}
+    \\
+    \esd[\esta{\tau}{\ebase[e]}] & \ccNS & \esd[\esta{\tau}{\ebase[e']}]
+    \\ \sidecond{if $e \rrNS e'$}
+    \\
+    \esd[\edyn{\tau}{\ebase[e]}] & \ccNS & \esd[\edyn{\tau}{\ebase[e']}]
+    \\ \sidecond{if $e \rrND e'$}
+    \\
+    \esd[\eerr] & \ccNS & \eerr
+  \end{array}$
+}
+
+\lbl{$e \ccND e$}{
+  $\begin{array}{l@{\hspace{0.5em}}c@{\hspace{0.5em}}l}
+      \ebase[e] & \ccND & \ebase[e']
+      \\ \sidecond{if $e \rrND e'$}
+      \\
+      \esd[\esta{\tau}{\ebase[e]}] & \ccND & \esd[\esta{\tau}{\ebase[e']}]
+      \\ \sidecond{if $e \rrNS e'$}
+      \\
+      \esd[\edyn{\tau}{\ebase[e]}] & \ccND & \esd[\edyn{\tau}{\ebase[e']}]
+      \\ \sidecond{if $e \rrND e'$}
+      \\
+      \esd[\eerr] & \ccND & \eerr
+    \end{array}$
+}
+
+\lblextra{$e \rrNSstar e$}{ reflexive, transitive closure of $\ccNS$}{}
+\lblextra{$e \rrNDstar e$}{ reflexive, transitive closure of $\ccND$}{}
+
+\end{flushleft}

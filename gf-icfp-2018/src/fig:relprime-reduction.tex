@@ -1,0 +1,126 @@
+\subsection{Natural Embedding}
+
+$\begin{array}{l}
+  \erelprime = \ES_0[\edyn{\tpair{\tint}{\tnat}}{}
+\\\qquad\quad\quad \ES_1[\esta{\tpair{\tnat}{\tnat}}{}
+\\\qquad\quad\quad\quad\ES_2[\edyn{\tpair{\tnat}{\tnat}}{\vpair{-1}{-2}}]]]
+\\\ccNS \ES_0[\edyn{\tpair{\tint}{\tnat}}{}
+\\\qquad\quad \ES_1[\esta{\tpair{\tnat}{\tnat}}{}
+\\\qquad\quad\quad \ES_2[\vpair{\edyn{\tnat}{{-1}}}{\edyn{\tnat}{{-2}}}]]]
+\\\ccNS \boundaryerror
+\\[1ex]
+  \mbox{where } \ES_0 = \eapp{(\vlam{\tann{x}{\tpair{\tint}{\tnat}}}{\vpair{\efst{x}}{\esnd{x}}})}{\ehole}
+\\\mbox{and } \ES_1 = \ehole
+\\\mbox{and } \ES_2 = \ehole
+\end{array}$
+
+
+\subsection{Co-Natural Embedding}
+
+$\begin{array}{l}
+  \erelprime = \ES_0[\edyn{\tpair{\tint}{\tnat}}{}
+\\\qquad\quad\quad \ES_1[\esta{\tpair{\tnat}{\tnat}}{}
+\\\qquad\quad\quad\quad \ES_2[\edyn{\tpair{\tnat}{\tnat}}{\vpair{-1}{-2}}]]]
+\\\ccCS \ES_0[\edyn{\tpair{\tint}{\tnat}}{}
+\\\qquad\qquad \ES_1[\esta{\tpair{\tnat}{\tnat}}{}
+\\\qquad\qquad\qquad (\vmonpair{\tpair{\tnat}{\tnat}}{\vpair{-1}{-2}})]]
+\\\ccCS \ES_0[\edyn{\tpair{\tint}{\tnat}}{}
+\\\qquad\qquad (\vmonpair{\tpair{\tnat}{\tnat}}{(\vmonpair{\tpair{\tnat}{\tnat}}{\vpair{-1}{-2}})})]
+\\\ccCS \ES_0[v_{mon}]
+\\\ccCS \vpair{\efst{v_{mon}}}{\esnd{v_{mon}}}
+\\\ccCS \langle\edyn{\tint}{}
+\\\qquad\quad (\efst{(\vmonpair{\tpair{\tnat}{\tnat}}{(\vmonpair{\tpair{\tnat}{\tnat}}{\vpair{-1}{-2}})})})
+\\\qquad ,\,{\esnd{v_{mon}}}\rangle
+\\\ccCS \langle\edyn{\tint}{}
+\\\qquad\quad (\esta{\tnat}{(\efst{(\vmonpair{\tpair{\tnat}{\tnat}}{\vpair{-1}{-2}})})})
+\\\qquad ,\,{\esnd{v_{mon}}}\rangle
+\\\ccCS \langle\edyn{\tint}{}
+\\\qquad\quad (\esta{\tnat}{(\edyn{\tnat}{(\efst{\vpair{-1}{-2}})})})
+\\\qquad ,\,\esnd{v_{mon}}\rangle
+\\\ccCS \vpair{\edyn{\tint}{(\esta{\tnat}{(\edyn{\tnat}{{-1}})})}}{\esnd{v_{mon}}}
+\\\ccCS \boundaryerror
+\\[1ex]
+  \mbox{where } \ES_0 = \eapp{(\vlam{\tann{x}{\tpair{\tint}{\tnat}}}{\vpair{\efst{x}}{\esnd{x}}})}{\ehole}
+\\\mbox{and } \ES_1 = \ehole
+\\\mbox{and } \ES_2 = \ehole
+\\\mbox{and } v_{mon} = (\vmonpair{\tpair{\tint}{\tnat}}{}
+\\\qquad\qquad\qquad (\vmonpair{\tpair{\tnat}{\tnat}}{}
+\\\qquad\qquad\qquad\quad (\vmonpair{\tpair{\tnat}{\tnat}}{\vpair{-1}{-2}})))
+\end{array}$
+
+
+\subsection{Forgetful Embedding}
+
+$\begin{array}{l}
+  \erelprime = \ES_0[\edyn{\tpair{\tint}{\tnat}}{}
+\\\qquad\qquad \ES_1[\esta{\tpair{\tnat}{\tnat}}{}
+\\\qquad\qquad\quad \ES_2[\edyn{\tpair{\tnat}{\tnat}}{\vpair{-1}{-2}}]]]
+\\\ccFS \ES_0[\edyn{\tpair{\tint}{\tnat}}{}
+\\\qquad\quad \ES_1[\esta{\tpair{\tnat}{\tnat}}{}
+\\\qquad\qquad\quad (\vmonpair{\tpair{\tnat}{\tnat}}{\vpair{-1}{-2}})]]
+\\\ccFS \ES_0[\edyn{\tpair{\tint}{\tnat}}{}
+\\\qquad\qquad (\vmonpair{\tpair{\tnat}{\tnat}}{\vpair{-1}{-2}})]
+\\\ccFS \ES_0[v_{mon}]
+\\\ccFS \vpair{\efst{v_{mon}}}{\esnd{v_{mon}}}
+\\\ccFS \vpair{\edyn{\tint}{(\efst{\vpair{-1}{-2}})}}{\esnd{v_{mon}}}
+\\\ccFS \vpair{\edyn{\tint}{{-1}}}{\esnd{v_{mon}}}
+\\\ccFS \vpair{{-1}}{\esnd{v_{mon}}}
+\\\ccFS \vpair{{-1}}{\edyn{\tnat}{(\esnd{\vpair{-1}{-2}})}}
+\\\ccFS \vpair{{-1}}{\edyn{\tnat}{-2}}
+\\\ccFS \boundaryerror
+\\[1ex]
+  \mbox{where } \ES_0 = \eapp{(\vlam{\tann{x}{\tpair{\tint}{\tnat}}}{\vpair{\efst{x}}{\esnd{x}}})}{\ehole}
+\\\mbox{and } \ES_1 = \ehole
+\\\mbox{and } \ES_2 = \ehole
+\\\mbox{and } v_{mon} = \vmonpair{\tpair{\tint}{\tnat}}{\vpair{-1}{-2}}
+\end{array}$
+
+\subsection{Locally-Defensive Embedding}
+
+$\begin{array}{l}
+  \erelprime : \tpair{\tint}{\tnat} \carrow \erelprime''
+\\\erelprime'' = \ES_0[\edyn{\tpair{\tint}{\tnat}}{}
+\\\qquad\quad\quad \ES_1[\esta{\tpair{\tnat}{\tnat}}{}
+\\\qquad\quad\quad\quad \ES_2[\edyn{\tpair{\tnat}{\tnat}}{\vpair{-1}{-2}}]]]
+\\\ccKS \ES_0[\edyn{\tpair{\tint}{\tnat}}{}
+\\\qquad\quad \ES_1[\esta{\tpair{\tnat}{\tnat}}{\vpair{-1}{-2}}]]
+\\\ccKS \ES_0[\edyn{\tpair{\tint}{\tnat}}{\vpair{-1}{-2}}]
+\\\ccKS \ES_0[\vpair{-1}{-2}]
+\\\ccKS \echk{\kpair}{}
+\\\qquad\quad \langle{\echk{\tint}{(\efst{\vpair{-1}{-2}})}}
+\\\qquad\quad ,\,{\echk{\tnat}{(\esnd{\vpair{-1}{-2}})}}\rangle
+\\\ccKS \echk{\kpair}{}
+\\\qquad\quad \vpair{\echk{\tint}{{-1}}}{\echk{\tnat}{(\esnd{\vpair{-1}{-2}})}}
+\\\ccKS \echk{\kpair}{}
+\\\qquad\quad \vpair{-1}{\echk{\tnat}{(\esnd{\vpair{-1}{-2}})}}
+\\\ccKS \echk{\kpair}{}
+\\\qquad\quad \vpair{-1}{\echk{\tnat}{{-2}}}
+\\\ccKS \boundaryerror
+\\[1ex]
+  \mbox{where } \ES_0 = \echk{\kpair}{}
+\\\qquad\qquad\qquad ((\vlam{\tann{x}{\tpair{\tint}{\tnat}}}{}
+\\\qquad\qquad\qquad\quad {\vpair{\echk{\tint}{(\efst{x})}}{\echk{\tnat}{(\esnd{x})}}})
+\\\qquad\qquad\qquad\ {\ehole})
+\\\mbox{and } \ES_1 = \ehole
+\\\mbox{and } \ES_2 = \ehole
+\\\mbox{and } v_{mon} = \vmonpair{\tpair{\tint}{\tnat}}{\vpair{-1}{-2}}
+\end{array}$
+
+\subsection{Erasure Embedding}
+
+$\begin{array}{l}
+  \erelprime = \ES_0[\edyn{\tpair{\tint}{\tnat}}{}
+\\\qquad\quad\quad \ES_1[\esta{\tpair{\tnat}{\tnat}}{}
+\\\qquad\quad\quad\quad \ES_2[\edyn{\tpair{\tnat}{\tnat}}{\vpair{-1}{-2}}]]]
+\\\ccES \ES_0[\edyn{\tpair{\tint}{\tnat}}{}
+\\\qquad\quad \ES_1[\esta{\tpair{\tnat}{\tnat}}{\vpair{-1}{-2}}]]
+\\\ccES \ES_0[\edyn{\tpair{\tint}{\tnat}}{\vpair{-1}{-2}}]
+\\\ccES \ES_0[\vpair{-1}{-2}]
+\\\ccES \vpair{\efst{\vpair{-1}{-2}}}{\esnd{\vpair{-1}{-2}}}
+\\\ccES \vpair{-1}{\esnd{\vpair{-1}{-2}}}
+\\\ccES \vpair{-1}{-2}
+\\[1ex]
+  \mbox{where } \ES_0 = \eapp{(\vlam{\tann{x}{\tpair{\tint}{\tnat}}}{\vpair{\efst{x}}{\esnd{x}}})}{\ehole}
+\\\mbox{and } \ES_1 = \ehole
+\\\mbox{and } \ES_2 = \ehole
+\end{array}$

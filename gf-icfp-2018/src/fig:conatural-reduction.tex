@@ -1,0 +1,135 @@
+
+\lblextra{Language $\langC$}{ \myinherits\ Evaluation Syntax}{
+  $\begin{array}{l@{\hspace{0.5em}}c@{\hspace{0.5em}}l}
+    v & \BNFeq & \ldots \mid \vmonfun{(\tarr{\tau}{\tau})}{v} \mid \vmonpair{(\tpair{\tau}{\tau})}{v}
+  \end{array}$
+}
+
+%% -----------------------------------------------------------------------------
+
+\begin{TwoColumn}
+  \lblextra{$\vfromdynC : \specarrf{\tpair{\tau}{v}}{e}\vphantom{\vfromsta}$}{}{
+    $\begin{array}{l@{~~}c@{~}l}
+      \efromdynC{\tarr{\tau_d}{\tau_c}}{v} & = & \vmonfun{(\tarr{\tau_d}{\tau_c})}{v}
+      \\ \sidecond{if $v \valeq \vlam{x}{e}$ or $v \valeq \vmonfun{(\tarr{\tau_d'}{\tau_c'})}{v'}$}
+      \\
+      \efromdynC{\tpair{\tau_0}{\tau_1}}{v} & = & \vmonpair{(\tpair{\tau_0}{\tau_1})}{v}
+      \\ \sidecond{if $v \valeq \vpair{v_0}{v_1}$ or $v \valeq \vmonpair{(\tpair{\tau_0'}{\tau_1'})}{v'}$}
+      \\
+      \efromdynC{\tint}{i} & = & i
+      \\
+      \efromdynC{\tnat}{i} & = & i
+      \\ \sidecond{if $i \in \naturals$}
+      \\
+      \efromdynC{\tau}{v} & = & \boundaryerror
+      \\ \sidecond{otherwise}
+    \end{array}$
+  }
+
+  \multicolsbreak
+
+  \lblextra{$\vfromstaC : \specarrf{\tpair{\tau}{v}}{e}$}{}{
+    $\begin{array}{l@{~~}c@{~}l}
+      \efromstaC{\tarr{\tau_d}{\tau_c}}{v} & = & \vmonfun{(\tarr{\tau_d}{\tau_c})}{v}
+      \\
+      \\
+      \efromstaC{\tpair{\tau_0}{\tau_1}}{v} & = & \vmonpair{(\tpair{\tau_0}{\tau_1})}{v}
+      \\
+      \\
+      \\
+      \\
+      \\
+      \efromstaC{\tau}{v} & = & v
+      \\ \sidecond{otherwise}
+    \end{array}$
+  }
+\end{TwoColumn}
+
+\vspace{-5ex}
+\begin{TwoColumn}
+  \lblextra{$e \rrCS e$}{ extends $\rrS$}{
+    $\begin{array}{l@{\hspace{0.5em}}c@{\hspace{0.5em}}l}
+      \edyn{\tau}{v} & \rrCS & \efromdynC{\tau}{v}
+      \\
+      \eapp{(\vmonfun{(\tarr{\tau_d}{\tau_c})}{v_f})}{v} & \rrCS
+      & \edyn{\tau_c}{(\eapp{v_f}{e'})}
+      \\ \sidecond{where $e' = \esta{\tau_d}{v}$}
+      \\
+      \efst{(\vmonpair{(\tpair{\tau_0}{\tau_1})}{v})} & \rrCS
+      & \edyn{\tau_0}{(\efst{v})}
+      \\
+      \esnd{(\vmonpair{(\tpair{\tau_0}{\tau_1})}{v})} & \rrCS
+      & \edyn{\tau_1}{(\esnd{v})}
+    \end{array}$
+  }
+
+  \multicolsbreak
+
+  \lblextra{$e \rrCD e$}{ extends $\rrD$}{
+    $\begin{array}{l@{\hspace{0.5em}}c@{\hspace{0.5em}}l}
+      \esta{\tau}{v} & \rrCD & \efromstaC{\tau}{v}
+      \\
+      \eapp{(\vmonfun{(\tarr{\tau_d}{\tau_c})}{v_f})}{v} & \rrCD
+      & \esta{\tau_c}{(\eapp{v_f}{e'})}
+      \\ \sidecond{where $e' = \edyn{\tau_d}{v}$}
+      \\
+      \efst{(\vmonpair{(\tpair{\tau_0}{\tau_1})}{v})} & \rrCD
+      & \esta{\tau_0}{(\efst{v})}
+      \\
+      \esnd{(\vmonpair{(\tpair{\tau_0}{\tau_1})}{v})} & \rrCD
+      & \esta{\tau_1}{(\esnd{v})}
+      \\
+    \end{array}$
+  }
+
+\end{TwoColumn}
+
+\vspace{-5ex}
+\begin{TwoColumn}
+  \lblextra{$e \rrCSstar e$}{ similar to $\rrNSstar$, see tech. rpt.}{}
+
+  %\lblextra{$e \rrCSstar e$}{ reflexive, transitive closure of $\ccCS$}{
+  %  $\begin{array}{l@{\hspace{0.5em}}c@{\hspace{0.5em}}l}
+  %    \ebase[e] & \ccCS & \ebase[e']
+  %    \\ \sidecond{if $e \rrCS e'$}
+  %    \\
+  %    \esd[\esta{\tau}{v}] & \ccCS & \esd[\efromstaC{\tau}{v}]
+  %    \\
+  %    \esd[\edyn{\tau}{v}] & \ccCS & \esd[\efromdynC{\tau}{v}]
+  %    \\
+  %    \esd[\esta{\tau}{\ebase[e]}] & \ccCS & \esd[\esta{\tau}{\ebase[e']}]
+  %    \\ \sidecond{if $e \rrCS e'$}
+  %    \\
+  %    \esd[\edyn{\tau}{\ebase[e]}] & \ccCS & \esd[\edyn{\tau}{\ebase[e']}]
+  %    \\ \sidecond{if $e \rrCD e'$}
+  %    \\
+  %    \esd[\eerr] & \ccCS & \eerr
+  %  \end{array}$
+  %}
+
+  \multicolsbreak
+
+  \smallskip
+  \lblextra{$e \rrCDstar e$}{ similar to $\rrNDstar$, see tech. rpt.}{}
+
+  %\lblextra{$e \rrCDstar e$}{ reflexive, transitive closure of $\ccCD$}{
+  %  $\begin{array}{l@{\hspace{0.5em}}c@{\hspace{0.5em}}l}
+  %    \ebase[e] & \ccCD & \ebase[e']
+  %    \\ \sidecond{if $e \rrCD e'$}
+  %    \\
+  %    \esd[\esta{\tau}{v}] & \ccCD & \esd[\efromstaC{\tau}{v}]
+  %    \\
+  %    \esd[\edyn{\tau}{v}] & \ccCD & \esd[\efromdynC{\tau}{v}]
+  %    \\
+  %    \esd[\esta{\tau}{\ebase[e]}] & \ccCD & \esd[\esta{\tau}{\ebase[e']}]
+  %    \\ \sidecond{if $e \rrCS e'$}
+  %    \\
+  %    \esd[\edyn{\tau}{\ebase[e]}] & \ccCD & \esd[\edyn{\tau}{\ebase[e']}]
+  %    \\ \sidecond{if $e \rrCD e'$}
+  %    \\
+  %    \esd[\eerr] & \ccCD & \eerr
+  %  \end{array}$
+  %}
+
+
+\end{TwoColumn}
