@@ -100,12 +100,63 @@ language the goal is simple just allow unlimited connects between the two any
 statically typed function can now receive its input from a dynamically typed
 context how now do we do safety?
 
+in practice, three reasonably-successful strategies have emerged I'm going to
+call these the higher-order erasure and first-order strategies ... the paper
+spells out their connection to existing languages (?)
+
 5
-one way
+(zero a first thing we could try is inferring labels for the dynamically typed
+bits and checking that all the labels are respoected people have tried this the
+problem is called type reconstruction and its difficult thats all for today)
 
-a second way
+the higher-order appraoch keeps the dynamic and static components as they are
+and guarads the boundary between with new conversion functions depending on the
+direction the boundary functions either check that an untyped value matches a
+type or protects a typed value its best to go through some examples if
+expecting a triangle use a camera to check triangle? if expecting a list of
+triangles check that input is a list and check triangle? for each element if
+expecting a function on triangles then return a new function that checsk the
+output more generally a function needs to protect its input and check its
+output so lets talk about protection the reverse direction for a triangle
+protection is a no-op same for a list of triangles and for a function on
+triangles check that input is a triangle thats all with these higher-order
+enforcement at boundaries its guaranteed that every value in static code has
+the correct label --- with the caveat that some functions are now partial in a
+new way and so both sides have exactly the same benefits as before
 
-finally a third way
+implemented in TR gradualtalk tpd ? ... they really deserve a shout-out
+
+the erasure approach is a much simpler way to build a safe langage instead of
+enforcing the boundaries with special treatment it allows any value to cross
+between this means typed code can receive input that doesnt match the label so
+the solution is to drop the labels and use checked primitives instead of
+unchecked ones this is now safe for the same reason the dynamic language was
+safe the types are still useful for static analysis and overall its much
+simpler the main complain i have about this approach is that types no longer
+mean anything at runtime you begin with a statically well typed program and
+nothing about the types is guaranteed preserved the types do not define
+abstractions nobody can build abstractions limited to runtime abstractions but
+again its safe mission accomplished
+
+implemented in typescript hack and many others
+
+now for the first order approach I think the main insight to understand is that
+we want a safe program and the static-typed code is safe provided the unchecked
+primitives dont get input outside their domain (2) the domain is based on the
+top level structure of the data suppose we have a simple typed function expects
+a triangle well this is safe if guarded with a shape check suppose its a little
+more complicated expecting a function apply primop to the result then safe if
+check that input is a function-shape and its result has triangle-shape more
+generally the first-order approach guards the boundary with first-order checks
+and then guards elimination forms --- cod! --- with more first-order checks
+this gives the invariant that every value in typed code has the same top-level
+shape as its label and yes this is enough for safety limited optz limited
+abstractions
+
+implemented in reticulated and pioneered by vitousek (maybe henglein gets
+credit hard to say)
+
+[[ punch line didn't talk about language for primitives it was untyped all along ? ]]
 
 6
 so weve seen there are at least three ways to make a combined safe language
