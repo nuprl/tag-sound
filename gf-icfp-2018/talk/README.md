@@ -6,7 +6,7 @@ TODO
 [X] outline
 [X] draft keynote slides
 [ ] draft slideshow slides
-  - basic components (ugly if necessary)
+  X basic components (ugly if necessary)
   - basic show
   - animated components (ugly if necessary)
   - decide color scheme
