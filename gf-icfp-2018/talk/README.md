@@ -3,9 +3,18 @@ talk
 
 TODO
 
-[ ] outline
-[ ] draft slides
+[X] outline
+[X] draft keynote slides
+[ ] draft slideshow slides
+  - basic components (ugly if necessary)
+  - basic show
+  - animated components (ugly if necessary)
+  - decide color scheme
+  - nice
 [ ] give presentation
+  - torture
+  - nepls
+  - icfp
 [ ] blog post
 
 
