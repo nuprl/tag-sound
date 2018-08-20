@@ -54,6 +54,10 @@
                 )
     (sec:title)
     (sec:shape-preview)
+    ;;
+    (sec:folklore-I)
+    (sec:graph)
+    (sec:folklore-II)
     (sec:extra)
     (void)))
 
@@ -200,7 +204,7 @@
 (define (sec:title)
   (slide
     ;; TODO racket-logo title slide
-    @text[TITLESTR (current-main-font) (+ (current-font-size) 20)]
+    @text[TITLESTR (current-main-font) (+ (current-font-size) 10)]
     @t{Ben Greenman & Matthias Felleisen}
     @t{PLT @"@" Northeastern University}
     @comment{
@@ -221,6 +225,18 @@
     (make-scanner (make-triangle) #:alarm? #true)
     (make-scanner (make-triangle))
     )
+  (void))
+
+(define (sec:folklore-I)
+  ;; original folklore
+  (void))
+
+(define (sec:graph)
+  ;; perf vs types graph
+  (void))
+
+(define (sec:folklore-II)
+  ;; revised folklore
   (void))
 
 (define (sec:extra)
