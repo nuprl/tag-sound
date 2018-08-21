@@ -43,233 +43,195 @@ TODO
 # SCRIPT
 
 1
-Hello this paper is about gradual typing but this talk is really about two
-pieces of folklore folklore I is the belief that type soundness is a yes-or-no
-proposition namely a langauge is either type-sound, unsound, or has a bug ---
-the space in between is useless folklore II is the belief that adding type
-information to a program can only improve performance in that it gives a
-compiler more information about invariants and nothing else as you know the
-thing about folklore is it can be true and useful or false and misleading the
-goal of this talk is to show that neither claim is very true (or useful) for a
-language that allows types and utnyped code to interact and that said to
-substitute an accurate picture based on the content of our paper
-
+to get us started here are two folklore statements about type systems first
+type soundness is all-or-nothing; either a type system is sound (perhaps up to
+certain features), or it is unsound and its not worthwhile to make further
+distinctions second is that adding type information to a program can only improve
+its performance; in other words a typed program might run faster if a compiler
+can leverage the types for now think about whether you believe these are true
+and we'll revisit near the end of the talk
 
 2
-(lets get started) this is a function the label on the left says that this
-function expects triangles as input and the label on the right says it produces
-triangles as output and yes if we run it on a triangle we get back a new
-triangle (tri -> green tri) if we run it on something that is not a triangle,
-say a square or a list of triangles or --- since this is a higher-order
-language --- another function, then the result is undefined it might crash our
-function and it might compute a nonsense output so theres a danger of crashes
-and silent failures
-
-this is a larger function its label says it expects any kind of input and may
-compute any kind of result if we look inside this function we see its composed
-of a few other functions, some total some partial and so we see that a function
-can be composed of other functions and really a program is just one big
-function composed of moving parts that handle and transform values
-
-of course a program can go badly if one of the functions inside receives an
-invalid input what we have here is an unsafe language that is a categorical bad
-lets move on and focus on safe languages a language is safe if every labeled
-function in a running program is guaranteed to get a correct input
-
-one way to build a safe language is to limit the partial functions to one
-built-in set require that every user-defined function be total over the value
-domain and protect these partial functions with a scanner that checks the basic
-shape of input to the partial functions if the scanner finds invalid input it
-raises an alarm to halt the program pros: (1) this technique gives a safe
-language (2) it offers some flexibility in gluing together programs cons:
-(1) these scanners add a little overhead to look at values (2) and the user
-doesnt have the freedom to make labeled function this strategy is called
-dynamic typing and thats all I want to say about that for now
+the paper is about gradual typing systems here are the names of a few gradual
+typing systems there are a lot of names these are organized by date because
+right now, at the start of this talk, there aren't many better options
+we could organize by language but that doesnt seem like a useful classification,
+we could group by origin academic-lab vs industry-lab ... also not useful,
+we could group by those with claims to a type soundness guarantee but theres
+ an issue the soundnesses are different heres TR vs. Reticulated (pasted from
+ papers) and they are different!,
+we could also try to group by performance ... fine, slow, dead ... but this
+ is worst of all because its across different languages AND different benchmarks
 
 3
-a second way to build a safe language is to add rules for how these components
-can fit together starting with the delta functions add labels assume correct (!)
-then labels for user-defined functions to make sure every labeled function gets
-correct input this severly limits the set of programs the language can express
-but offers two benefits first user-defined functions can (must?) have labels
-and second since were guaranteed correct input theres no need to check the
-input to the primitives we can use the partial functions directly additionally
-the language of labels can go beyond the scanners language to anything that
-fits in our logic as opposed to what we can efficiently decide at runtime in
-contrast to the previous approach this is called static typing one comment
-before we move on if the type system was unsound then it would not be true that
-every function gets correct input and unless the primitives are once again
-guarded theres a change the program goes horribly wrong so this is where that
-first piece of folklore comes from --- an unsound static type system is missing
-one of the main benefits that a programmer can trust the types its just a bug
+the main contribution of this paper is that it adds order to this space via
+three formal semantics in particular start with one surface language that admits
+typed code and untyped code, then define three ways of running a surface expression
+we call these strategies [higher-order erasure first-order] together they provide
+a nice foundation for understanding the literature
 
 4
-now for the main event weve talked about static typing and dynamic typing lets
-talk about ways to combine the two safe-language strategies in one-and-the-same
-language the goal is simple just allow unlimited connects between the two any
-statically typed function can now receive its input from a dynamically typed
-context how now do we do safety?
-
-in practice, three reasonably-successful strategies have emerged I'm going to
-call these the higher-order erasure and first-order strategies ... the paper
-spells out their connection to existing languages (?)
+indeed based on the semantics we can compare the theory of the three approaches
+and the practical implementation (by scaling the models to a real language)
+in other words the results have consequences for three kinds of people who might
+be in the audience: theoreticians who care about type soundness,
+language implementors who care about relative performance,
+and developers who care about using these systems for actual work
 
 5
-(zero a first thing we could try is inferring labels for the dynamically typed
-bits and checking that all the labels are respoected people have tried this the
-problem is called type reconstruction and its difficult thats all for today)
+back to the outline slide, we have three semantics the main differences between
+them is what they do at the boundary between typed and untyped code ... when
+an untyped value crosses in, what happens?
 
-the higher-order appraoch keeps the dynamic and static components as they are
-and guarads the boundary between with new conversion functions depending on the
-direction the boundary functions either check that an untyped value matches a
-type or protects a typed value its best to go through some examples if
-expecting a triangle use a camera to check triangle? if expecting a list of
-triangles check that input is a list and check triangle? for each element if
-expecting a function on triangles then return a new function that checsk the
-output more generally a function needs to protect its input and check its
-output so lets talk about protection the reverse direction for a triangle
-protection is a no-op same for a list of triangles and for a function on
-triangles check that input is a triangle thats all with these higher-order
-enforcement at boundaries its guaranteed that every value in static code has
-the correct label --- with the caveat that some functions are now partial in a
-new way and so both sides have exactly the same benefits as before
+to explain I need a little formal machinery a small language with a static typing
+system and a dynamic typing system
 
-implemented in TR gradualtalk tpd ? ... they really deserve a shout-out
+... types for natural numbers integers pairs and functions the type Nat is a subtype
+of the type Int this is very important later for values need natural numbers
+integers pairs and functions the set of natural numbers is a subset of the set
+of integers functios are split into two parts, typed and untyped take as given
+a language of expressions the critical part is two boundary expressions dyn/stat
+these interact with the typing systems ... a statically typed epxression can
+embed untyped code and a dynamically-typed expression can embed statically-typed
+code ... and now we can talk about program that combine stiatic and dynamic
+typing, for example this program that applies a statically typed function to a
+dynamically typed value this program is well typed but as you can see something
+interesting is going to happen when we run the program ... this value (-1,-2) is
+going to cross a boundary from the dynamically-typed world into the statically
+typed world, and the static world expects a pair of naturals
 
-the erasure approach is a much simpler way to build a safe langage instead of
-enforcing the boundaries with special treatment it allows any value to cross
-between this means typed code can receive input that doesnt match the label so
-the solution is to drop the labels and use checked primitives instead of
-unchecked ones this is now safe for the same reason the dynamic language was
-safe the types are still useful for static analysis and overall its much
-simpler the main complain i have about this approach is that types no longer
-mean anything at runtime you begin with a statically well typed program and
-nothing about the types is guaranteed preserved the types do not define
-abstractions nobody can build abstractions limited to runtime abstractions but
-again its safe mission accomplished
+wouldn't be well typed, but questionable what to do at runtime
 
-implemented in typescript hack and many others
+now onto the three approaches the higher-order approach rejects this interaction,
+if (-1,-2) meets a boundary expecting (Nat,Nat) then rejected because components
+are not natural numbers more generally higher-order enforces a pair type by
+asserting the value is a pair and recursively checking its components for other
+types, accepts natural numbers for Nat accepts integers for Int thats
+straightforward and for functions checks the value is a closure and wraps it
+in a new closure that encapsulates the boundary if youre familiar with contracts
+for higher-order functions this is exactly that other combos are errors
 
-now for the first order approach I think the main insight to understand is that
-we want a safe program and the static-typed code is safe provided the unchecked
-primitives dont get input outside their domain (2) the domain is based on the
-top level structure of the data suppose we have a simple typed function expects
-a triangle well this is safe if guarded with a shape check suppose its a little
-more complicated expecting a function apply primop to the result then safe if
-check that input is a function-shape and its result has triangle-shape more
-generally the first-order approach guards the boundary with first-order checks
-and then guards elimination forms --- cod! --- with more first-order checks
-this gives the invariant that every value in typed code has the same top-level
-shape as its label and yes this is enough for safety limited optz limited
-abstractions
+bottom fully enforces types --- either by exhaustive checking if possible and
+by monitoring future behaviors otherwise
 
-implemented in reticulated and pioneered by vitousek (maybe henglein gets
-credit hard to say)
+back to the outline, TR GT TSC are examples of higher-order gradual typing
+systems
 
-[[ punch line didn't talk about language for primitives it was untyped all along ? ]]
+next erasure the erasure approach does not check anything at the boundary
+for our example program, it invokes the function with the ill-typed pair
+come what may more generally for pairs anything goes for naturas and integers
+anything goes and for functions anything goes more simply anything goes
+
+thats erasure and its a popular way to combine static and dynamic typing
+many systems take this approach and not just for laziness, its based on a view
+of static types as a pure syntactic artifact
+
+finally the third approach is the first-order as the name suggests the idea is
+to check first-order properties at boundaries and do not use monitors / contracts
+to supervise behavior that said theres a few ways to go about this what I'm going
+to present is the transient approach taken by reticulated python because its
+the only one that works with untyped higher-order values the first-order properties
+transient checks get the type constructor of the value for our sample program
+the pair is approved because its a pair more generally for any pair type we
+accept any pair value for natural and integers the constructor happens to be
+the full type and that is whats checked for function types simply check the
+incoming value is a function
+
+in addition transient first-order treats selectors/elim forms as boundaries,
+(picture, pulling \delta functions out of the typed world)
+so if the typed function were to extract an element of the pair it might
+see a mismatch ---- might, because it depends on what the context expects
+
+at any rate the main thing is the boundaries and the type constructor checks
+
+this completes the picture ... other first-order systems are nom and dart but
+these have stronger type soundness because they restrict the untyped code ...
+in between approaches we have thorn and pyret and strongscript
 
 6
-so weve seen there are at least three ways to make a combined safe language
-from typed and untyped sub-languages I claim that each of these approaches has
-merits the higher-order approach gives the strongest guarantees the erasure
-approach is trivial to implemnet and easy to explain to a programmer the
-first-order approach is simple to implement and might provide enough assurance
-for everyday use (unknown) one very important thing is that first-order doesnt
-require proxies and no matter how useful proxies are they are still rare and
-even when implemented "correctly" theyre still probably not contextually
-equivalent (the worry is not equivalence the worry is FFI segfaults)
+with this understanding in hand we added two points to the space building off
+typed racket (blip, blip)
 
-if you agree with me about the merits then youll agree type soundness for such
-a language is not a yes-or-no proposition but rather there is at least one
-useful statement in between in fact theres a whole family of statements the
-paper gives two more (in appendix) and I can think of a few more all depends on
-how to enforce types
+the way typed racket is organized, is a program gets type-checked, optimized,
+types compiled to boundary checks, and run as a racket program
 
-... three choices with consequences for simplicity compatibility explainability
-and also performance
+TR-E is a type-erased racket ... the back end is different it type-checks
+but does not optimize (because the types are not enforced!) and runs the plain
+extracted program
 
-folklore 1 is out ... folklore II is about performance so lets focus on that
+TR-1 is a transient racket it type checks changes the boundaries and runs
+the erased un-optimized program the lack of optimizations is somewhat an issue
 
-7
-suppose we start with a fully dynamic program and one-by-one move componets
-into the statically typed region this is one way of adding type information to
-a program if there are N components then we have 2^N ways (gosh this is bad)
-combinations, which I'll call configurations from now on, at a glance we can
-make some conjectures about performance for higher-order typed code has strong
-invariants for optimization but the cost at boundaries may be expensive for
-erasure no invariants but no cost at boundaries will be parity with
-dynamically-typed (THE BASELINE) and for first-order have weak invariants and
-unit costs spread throughout in fact the literature has such conjectures
-
-but the only way to really know is to measure so that is what we did for this paper
-
-we started with racket and typed racket the standard typed racket compiler
-compiles types to higher-order contracts erasing types is straightforward and
-we added a new compiler that takes the types disables the normal optimizer and
-adds first-order protection checks now for one program we can run it three ways
-and compare the results apples to apples
-
-we took 10 functional programs ranging in size from A to B lines of code and C
-to D modules for each program we ran all configurations the #mods tells you
-this was a modest-sized experiment I dont think it took more than 1 month to
-collect all the data
-
-great
+with three backends have 3 ways of running a program so we did just that for
+a systematic performance evaluation took 10 functional programs mostly from
+proir work on typed racket ... these programs range in size, they're not very big
+the largest in lines had xxx the largest in modules had yyy for each program
+considered all ways of adding types and measured the full lattice
 
 8
-the results were a bit surprising heres two axis the x is the number of type
-annotations, increasing, the y is overhead relative to fully untyped now going
-to plot representative results for the three strategies for erasure obviously
-adding more types does not hurt performance a little less obviously it doesnt
-improve performance either now you could take a closed-world assumption and
-optimize based on the erased types but if that assumption is ever broken were
-back to dangerous unsafe land for higher order we see a serious umbrella shape
-depending on the trace of the program if values frequently cross between typed
-and untyped code and the data is big or the boundary is higher order then
-theres quite a cost but on the other hand if the program is fully typed or
-nearly so then those optimizations made possible by type soundness start to
-outweigh the costs we see a payoff for trustworthy types now for first order
-the overhead is roughly a linear function of the number of type annotations the
-left half of this figure should not be surprising because obviously first order
-pays a unit cost for boundaries its something always but never severe (never
-traverse a list etc) but the right half of the figure this is saying even with
-no boundaries theres quite a cost of checking the elimination forms in typed
-code it adds up the fully-typed configuration usually not the worst because we
-do some optimizing (could definitely do more) but not much further than type
-constructors because thats all soundness guarantees in the graph thusly there
-are two funny inflection points, first where H exceeds 1 and second where H
-exceeds E .... (silence on purpose)
+the most interesting result is what happens to a typical program as we add types
+on the x-axis is discrete scale of number of typed modules if program has 3 modules
+here's the histogram ... the y-axis is overhead relative to untyped so theres
+speedup and slowdown
 
-at any rate, adding type information is 
+for higher-order the curve is an umbrella shape middle region: when typed and
+untyped code interact there is a cost and it can be very high usually many
+configurations have the cost right region: fully typed or nearly typed benefit
+from optimizations and dont suffer the costs made possible by type invariants /
+types are enforced
+
+for erasure performance is uniform across the board on the right this means
+nothing to be done optimizing because cannot assume the value matches its
+static type (you could optimize C++ with undefined behavior ... or assuming
+fully-typed but then why not use one of the ecellenet typed languages to me
+gradual typing really only makes sense if you have untyped code you want to
+work with and support)
+
+for firts order perofrmance goes down as the number of types goes up on the left
+this should make sense boundaries have  acost on the right its more surprising
+this is the cost of those modified boundaries the unit cost for every selector
+and elimination form in typed code
+
+with all three lines down there are two very intersting points on this graph
+for lots of mixed-typed programs E < 1 < H but as number of typed components
+increases likely to get E < H < 1 a flip and going further its quite possible
+H fastest of all
+
+what this means is, the current performance landscape is subtle too soon to
+generalize and theres much to be done predicting the cost of typed untyped
+interaction
+
+8
+in the beginning I posed two folklore results hope its now clear that these
+are not true in a language that allows typed and untyped code in terms of
+soundness we saw three ways of mixing that preserve different invariants
+in terms of performance adding types can enable the optimizer but it can also
+add boundaries with cost ... at minimum replace mental model with
+Perf ~ Inv(t) * Opt/Dyn performance is based on the invariants those types imply,
+and it proportional to the optimizations the invariants enable and inversely
+proportional to the cost of establishing those invariants
+
+what does this all mean?
+
+for the theoretician, it means the literature is too narrow on type soundness
+for gradual languages theres multiple ways to do soundness each with different
+tradeoffs and in general its a question of soundness for a pair of languages
+rather than soundness for one language
+
+for the language implementor, performance is difficult to predict for H and
+complicated invariants interactions ... adding types to a program not necessarily
+good but we're lacking guidance for users
+
+for the working programmer, the main implications are for debugging in H the
+error points to a boundary in E the search space is the whole program but not
+guaranteed to detect in 1 ditto --- whole program and might not detect
 
 9
-allright time for new folklore
+going forward look for new soundness  new combinations  more performance ...
 
-1. soundness is a statement about the ability to create new abstractions;
-   this may or may not be desirable --- for simplicity, ease-of-use, cost of
-   enforcement
+idk
 
-2. Perf \propto Inv(t) * (Opt / Dyn)
-   instead of performance proportional to the number of types, with implication
-   `Perf \propto t * Opt`, truer formula is this one --- consider the invariants
-   those types establish, multiply by ability to optimize, and divide by the
-   cost of dynamically establishing invariants on untyped components. In a
-   statically typed language Dyn is close to 1 (not exactly for input data) so
-   fair to ignore and Inv is identity function, but look its missing the point
-   for gradual
-
-10
-where to we go from here???????
-
-first explore other soundnesses unclear whether to useful in practice
-
-second try changing the performance landscape
-
-third probably useful to combine approaches choose 1 vs H depending on the
-perforamnce consequences
-
-ayyy
-
+the end thanks
 
 go forth and do good science (be good scientists?)
 
@@ -366,3 +328,41 @@ yes itd be great to do work case-by-case but look, the meta-statement in this
 paper is ... too many unfounded general statements ... analogy to chemistry?
 "meaningful distinctions deserve to be maintained"
 
+- - -
+
+Q. why not F for first-order?
+
+because we used 1 in the paper, because we used F to name a different underground
+semantics in the appendix, because that semantics is very similar to Michael
+Greenbergs "forgetful" semantics for space-efficient manifest contracts, because
+"forgetful" starts with an "f"
+
+... because F was taken. In the process of developing the first-order semantics
+as inspired by transient, we realized there were at least two alternative
+higher-order semantics that fit between these two in terms of errors. One of
+these alternatives is very similar to M. Greenberg's _forgetful_ semantics for
+space-efficient contracts, so we used F for that one.
+
+- - -
+
+Q. you say gradual but where is dyn
+
+short answer: dyn is an orthgonal issue
+
+long answer: I tried to avoid the word gradual, because the modern interpretation
+is a static type system with a special dynamic type that has specific properties
+the work I presented is not concered with static typing; we're about _if_ you
+have a well-typed program with static and dynamic components, what happens at
+run-time between those parts
+
+- - -
+
+Q. superceded by Vitousek at DLS?
+
+thats an inspiring work, but doesn't present a formal semantics and doesnt
+systematically compare ... they claim to have 3 implementations by do not
+compare the performance
+
+- - -
+
+Q. please explain how transient first-order changes the boundaries
