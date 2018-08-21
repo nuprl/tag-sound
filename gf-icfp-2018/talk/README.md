@@ -12,8 +12,8 @@ TODO
   - decide color scheme
   - nice
 [ ] give presentation
-  - torture
-  - nepls
+  - torture (2018-08-24 10:00am NEU 366 WVH)
+  - nepls   (2018-08-27 10:00am Harvard G115)
   - icfp
 [ ] blog post
 
@@ -22,21 +22,22 @@ TODO
 # OUTLINE
 
 1. folklore I II
-2. untyped, error paths
-3. typed, error paths unused by types proven unused by soundness
-  - origins of folklore ... no benefit of unsoundness, just means paths get used ... lol bug
-  - more types clearly better can remove more paths
-  - DONT FORGET RUNTIME LIBRARY
-4. gradual , problem statemnt, 3 neighboring villages
-5. H E 1 same surface languages all different runtime type system different abstractions anti-folklore
-6. 3 choices ... simplicity & compatibility & explainability ... and performance ->
-7. flagged paths need checks, checks depend on types, predict costs
-8. measured for Racket + TR surface language ... setup impls benchmarks results
-  - for mixed-typed usually E < 1 < H
-  - for nearly-typed usually H < E < 1 wow
-  - picture is mixed, quite mixed
-    cannot just optimize because boundaries and abstractions
-9. future
+2. disorganized space, attempts to organize
+3. main contribution: order via semantics
+4. other contribution: theory, systems, developers
+5. 3 semantics, position systems
+   (Pyret etc. in between, blanks = future)
+6. 3 implementations
+   (equipped with new understanding ... added points to figure)
+7. relative performance results
+8. what does this mean
+   - for theory = different soundness, for a pair, missing!
+   - for systems = performance consequences of the semantics,
+                   can we improve? idk,
+                   can we trade/swap idk
+   - for developers = need to know semantics for debugging
+9. the end thanks
+
 
 - - -
 # SCRIPT
@@ -356,4 +357,12 @@ typed and untyped code unless there is some untyped (and actually untyped) code
 you want to work with if not just pick one of the many excellent typed
 languages and live at a higher level of abstraction ... hard to picture a
 neutered untyped language being compelling
+
+- - -
+
+Q. combinatorial explosion
+
+yes itd be great to do work case-by-case but look, the meta-statement in this
+paper is ... too many unfounded general statements ... analogy to chemistry?
+"meaningful distinctions deserve to be maintained"
 
