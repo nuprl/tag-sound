@@ -277,10 +277,11 @@ go forth and do good science (be good scientists?)
 - - -
 # QUESTIONS
 
+Q. you talked about a spectrum of soundness --- do you mean ``soundiness'' ?
+
 soundiness is a "sound up to X" statement, where X is a set of language features
 http://soundiness.org/
 https://cacm.acm.org/magazines/2015/2/182650-in-defense-of-soundiness/fulltext
-
 
 for us we have two "soundiness" theorem:
 
@@ -294,30 +295,37 @@ Thorn invented a soundiness with theorem i2.
 
 - - -
 
-careful! performance is only up-to the same design decisions as reticulated
-... but adding wrappers will only save cost of checking input for non-exported
+Q. whats the connection to KafKa? didn't they already do this?
+
+by contrast: (1) our paper starts with a common surface language and type system
+and demonstrates three semantics, each of which preserves different properties
+(2) KafKa starts with a common surface language and demonstrates three translations
+into a common core language
+
+instead of direct semantics, encode things in the KafKa type system
+
+the paper is missing a connection between surface typing and core typing, and
+more severly the translations change type annotations in a program making it
+much harder to identify a violation of the static types
+
+also the surface language is limited (no untyped objects) and so obscures the
+distinction between transient and concrete ... sometimes not possible to use
+subtyping to check a value
+aka
+KafKa doesn't have untyped values ... part of the challenge is to get a value
+from untyped code and figure out what it is; this is not a challenge in KafKa
+because every higher-order value comes with a type spec. Still maybe useful for
+semantics of a gradual language, but not for working with untyped code
 
 - - -
 
-shout out to Vitousek etal for working on a fix, set-based analysis?
-
-- - -
+Q.  ???
 
   interop, non-binary soundness:
   - PLDI16 type providers
   - 
 
 - - -
-
-Back to PLs, the fish are immutable data the eggs are thunks.
-The paper goes beyond thunks and allows two-way interaction 
-
-
-- - -
-
-Q. What do the names mean?
-
-See the paper for H E 1
 
 Q. What about Pycket?
 
@@ -328,12 +336,11 @@ Until those practical issues are resolved --- which might be soon --- I believe
 its still worthwhile to investigate across-the-board improvements to H and 1.
 
 
-
 - - -
 
-Q. (variational) First off, this technique is still interesting despite its
-application to Reticulated being not so interesting. Second, in a language
-with subtyping there might be more than one way to type a program or expression.
+Q. (for variational) First off, this technique is still interesting despite its
+application to Reticulated being not so interesting. Second, in a language with
+subtyping there might be more than one way to type a program or expression.
 Have you thought about extending the technique to compare different ways of
 typing the same program?
 
@@ -349,3 +356,4 @@ typed and untyped code unless there is some untyped (and actually untyped) code
 you want to work with if not just pick one of the many excellent typed
 languages and live at a higher level of abstraction ... hard to picture a
 neutered untyped language being compelling
+
