@@ -38,12 +38,12 @@
     (sec:title)
     (sec:folklore-I)
     (sec:gt-system-pre)
-    (sec:main-result)
-    (sec:embeddings)
-    (sec:implementation)
-    (sec:graph)
-    (sec:folklore-II)
-    (sec:conclusion)
+#;    (sec:main-result)
+#;    (sec:embeddings)
+#;    (sec:implementation)
+#;    (sec:graph)
+#;    (sec:folklore-II)
+#;    (sec:conclusion)
 
     ;(sec:extra)
     (void)))
@@ -73,7 +73,34 @@ pieces of folklore ....
   (void))
 
 (define (sec:gt-system-pre)
-  ;; TODO
+  (pslide
+    #:title "(by date)"
+    (let ([by-date* (sort all-system* < #:key gt-system-year)])
+      (for/fold ((acc (blank 10 0)))
+                ((x (in-list by-date*)))
+        (hc-append 10 acc (gt-system->pict x)))))
+  (pslide
+    #:title "(by language)"
+    (let ([by-lang** (group-by gt-system-host-lang all-system*)])
+      (for/fold ((acc (blank 10 0)))
+                ((x* (in-list by-lang**)))
+        (hc-append 10 acc (apply vl-append (map gt-system->pict x*))))))
+  (pslide
+    #:title "(by academia vs industry)"
+    (let ([academic* (filter/source 'A all-system*)]
+          [industry* (filter/source 'I all-system*)]
+          [both* (filter/source '(A I) all-system*)])
+      (hc-append 10
+                 (apply vl-append (map gt-system->pict academic*))
+                 (apply vl-append (map gt-system->pict industry*))
+                 (apply vl-append (map gt-system->pict both*)))))
+  (pslide
+    #:title "(by sound vs. unsound)"
+    (hc-append 50
+               (apply vl-append (map gt-system->pict E-system*))
+               (apply vl-append (map gt-system->pict (append H-system* 1-system* HE-system* 1E-system*)))))
+  (pslide
+    @t{All bad})
   (void))
 
 (define (sec:main-result)

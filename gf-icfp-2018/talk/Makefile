@@ -6,10 +6,11 @@ all: preview
 compile:
 	@${RACO} make -v ${TALK}
 
-preview: compile
+preview: compile test
 	@${RACO} slideshow --right-half-screen ${TALK}
 
 test: compile
+	@${RACO} test src/gt-system.rkt
 	@${RACO} test ${TALK}
 
 show: compile

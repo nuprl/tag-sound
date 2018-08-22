@@ -6,6 +6,15 @@
 (require racket/contract)
 (provide
   (contract-out
+    [struct gt-system
+            ([name string?]
+             [year fixnum?]
+             [host-lang string?]
+             [source gt-system-source?]
+             [embedding embedding?]
+             [perf (>=/c 1)]
+             [url string?])
+            #:omit-constructor]
     [all-system*
       (listof gt-system?)]
     [H-system*
@@ -25,6 +34,8 @@
       (-> any/c boolean?)]
     [filter/embedding
       (-> embedding? (listof gt-system?) (listof gt-system?))]
+    [filter/source
+      (-> gt-system-source? (listof gt-system?) (listof gt-system?))]
     )
   )
 
@@ -73,7 +84,7 @@
         #:transparent)
 
 (define (gt-system->pict gt)
-  (void))
+  (text (gt-system-name gt)))
 
 (define (make-gt-system #:name name
                         #:year year
@@ -84,15 +95,19 @@
                         #:url url)
   (gt-system name year host from embedding worst-case-perf url))
 
-(define (filter/embedding e gt*)
-  (define same-embedding?
-    (if (list? e)
-      (lambda (gt)
-        (let ([gt-e (gt-system-embedding gt)])
-          (and (list? gt-e) (set=? e gt-e))))
-      (lambda (gt)
-        (eq? e (gt-system-embedding gt)))))
-  (filter same-embedding? gt*))
+(define (make-filter selector)
+  (lambda (e gt*)
+    (let ([same? 
+           (if (list? e)
+             (lambda (gt)
+               (let ([gt-e (selector gt)])
+                 (and (list? gt-e) (set=? e gt-e))))
+             (lambda (gt)
+               (eq? e (selector gt))))])
+      (filter same? gt*))))
+
+(define filter/embedding (make-filter gt-system-embedding))
+(define filter/source (make-filter gt-system-source))
 
 ;; -----------------------------------------------------------------------------
 
@@ -328,5 +343,16 @@
 
 (module+ test
   (require rackunit)
-  (void)
+
+  (test-case "filter/embedding"
+    (check-true (and (member thorn 1E-system*) #true))
+    (check-false (and (member thorn H-system*) #true)))
+
+  (test-case "filter/source"
+    (let ((E/I-system* (filter/source 'I E-system*)))
+      (check-true (and (member mypy E/I-system*) #true))
+      (check-false (and (member typed-racket E/I-system*) #true)))
+    (let ((AI-system* (filter/source '(A I) all-system*)))
+      (check-true (and (member typed-clojure AI-system*) #true))
+      (check-false (and (member reticulated AI-system*) #true))))
 )
