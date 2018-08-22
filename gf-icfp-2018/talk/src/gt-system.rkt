@@ -36,12 +36,17 @@
       (-> embedding? (listof gt-system?) (listof gt-system?))]
     [filter/source
       (-> gt-system-source? (listof gt-system?) (listof gt-system?))]
+    [filter/perf
+      (-> (>=/c 0) (listof gt-system?) (listof gt-system?))]
+    [filter-not/perf
+      (-> (>=/c 0) (listof gt-system?) (listof gt-system?))]
     )
-  )
+)
 
 (require
   pict
-  racket/set)
+  (only-in racket/set set=?)
+  (only-in racket/list filter-not))
 
 ;; -----------------------------------------------------------------------------
 
@@ -95,7 +100,7 @@
                         #:url url)
   (gt-system name year host from embedding worst-case-perf url))
 
-(define (make-filter selector)
+(define (make-filter selector [eq? eq?] [not? #false])
   (lambda (e gt*)
     (let ([same? 
            (if (list? e)
@@ -103,11 +108,14 @@
                (let ([gt-e (selector gt)])
                  (and (list? gt-e) (set=? e gt-e))))
              (lambda (gt)
-               (eq? e (selector gt))))])
-      (filter same? gt*))))
+               (eq? e (selector gt))))]
+          [f (if not? filter-not filter)])
+      (f same? gt*))))
 
 (define filter/embedding (make-filter gt-system-embedding))
 (define filter/source (make-filter gt-system-source))
+(define filter/perf (make-filter gt-system-perf >=))
+(define filter-not/perf (make-filter gt-system-perf >= #true))
 
 ;; -----------------------------------------------------------------------------
 
@@ -355,4 +363,11 @@
     (let ((AI-system* (filter/source '(A I) all-system*)))
       (check-true (and (member typed-clojure AI-system*) #true))
       (check-false (and (member reticulated AI-system*) #true))))
+
+  (test-case "filter/perf"
+    (let ((slow (filter-not/perf 90 all-system*)))
+      (check-equal? 1 (length slow))
+      (check-equal? (list typed-racket) slow))
+    (let ((fast (filter/perf 90 all-system*)))
+      (check-true (not (member typed-racket fast)))))
 )

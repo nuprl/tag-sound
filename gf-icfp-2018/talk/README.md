@@ -75,10 +75,13 @@ a nice foundation for understanding the literature
 
 indeed based on the semantics we can compare the theory of the three approaches
 and the practical implementation (by scaling the models to a real language)
+
+;; ????
 in other words the results have consequences for three kinds of people who might
 be in the audience: theoreticians who care about type soundness,
 language implementors who care about relative performance,
 and developers who care about using these systems for actual work
+;; no please this is ugly
 
 5
 back to the outline slide, we have three semantics the main differences between
