@@ -1,4 +1,4 @@
-TALK=gf-icfp-2018.ss
+TALK=simple.ss
 RACO=raco
 
 all: preview

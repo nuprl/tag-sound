@@ -24,7 +24,7 @@ TODO
 1. folklore I II
 2. disorganized space, attempts to organize
 3. main contribution: order via semantics
-4. other contribution: theory, systems, developers
+   other contribution: theory, systems, developers
 5. 3 semantics, position systems
    (Pyret etc. in between, blanks = future)
 6. 3 implementations
@@ -52,10 +52,11 @@ can leverage the types for now think about whether you believe these are true
 and we'll revisit near the end of the talk
 
 2
-the paper is about gradual typing systems here are the names of a few gradual
-typing systems there are a lot of names these are organized by date because
+the paper is about languages that combine typed and untyped code
+here are the names of a few such languages
+there are a lot of names these are organized by date because
 right now, at the start of this talk, there aren't many better options
-we could organize by language but that doesnt seem like a useful classification,
+we could organize by language but thats not much better than discrete topology,
 we could group by origin academic-lab vs industry-lab ... also not useful,
 we could group by those with claims to a type soundness guarantee but theres
  an issue the soundnesses are different heres TR vs. Reticulated (pasted from
@@ -65,12 +66,13 @@ we could also try to group by performance ... fine, slow, dead ... but this
 
 3
 the main contribution of this paper is that it adds order to this space via
-three formal semantics in particular start with one surface language that admits
+three formal semantics ... more on these soon
+
+in particular start with one surface language that admits
 typed code and untyped code, then define three ways of running a surface expression
 we call these strategies [higher-order erasure first-order] together they provide
 a nice foundation for understanding the literature
 
-4
 indeed based on the semantics we can compare the theory of the three approaches
 and the practical implementation (by scaling the models to a real language)
 in other words the results have consequences for three kinds of people who might
@@ -142,7 +144,7 @@ in addition transient first-order treats selectors/elim forms as boundaries,
 so if the typed function were to extract an element of the pair it might
 see a mismatch ---- might, because it depends on what the context expects
 
-at any rate the main thing is the boundaries and the type constructor checks
+at any rate the main thing is the type constructor checks
 
 this completes the picture ... other first-order systems are nom and dart but
 these have stronger type soundness because they restrict the untyped code ...
