@@ -17,6 +17,8 @@
             #:omit-constructor]
     [all-system*
       (listof gt-system?)]
+    [new-system*
+      (listof gt-system?)]
     [H-system*
       (listof gt-system?)]
     [E-system*
@@ -326,11 +328,31 @@
                   #:perf 1
                   #:url "https://www.microsoft.com/en-us/research/publication/safe-efficient-gradual-typing-for-typescript-3"))
 
-
 (define all-system*
   (list gradualtalk gradualtalk typed-racket tpd strongscript actionscript mypy
         flow hack pyre pytype rtc strongtalk typescript typed-clojure typed-lua
         pyret thorn dart2 dart1 nom pycket reticulated safets))
+
+(define tr-e
+  (make-gt-system #:name "TR-E"
+                  #:year 2018
+                  #:host "Racket"
+                  #:from 'A
+                  #:embedding 'E
+                  #:perf 1
+                  #:url ""))
+
+(define tr-1
+  (make-gt-system #:name "TR-1"
+                  #:year 2018
+                  #:host "Racket"
+                  #:from 'A
+                  #:embedding '1
+                  #:perf 1
+                  #:url ""))
+
+(define new-system*
+  (list tr-e tr-1))
 
 (define H-system*
   (filter/embedding 'H all-system*))

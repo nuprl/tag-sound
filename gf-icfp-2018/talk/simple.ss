@@ -44,6 +44,8 @@
 (define BLACK (string->color "black"))
 (define GREY (string->color "gray"))
 (define DARK-GREY (string->color "DarkSlateGray"))
+(define DYN-COLOR WHITE)
+(define STAT-COLOR DARK-GREY)
 
 (define (make-> str)
   (define tag (string->symbol (format "->~a" str)))
@@ -64,8 +66,8 @@
 ;    (sec:folklore-I)
 ;    (sec:gt-system-pre)
 ;    (sec:main-result)
-    (sec:embeddings)
-#;    (sec:implementation)
+;    (sec:embeddings)
+    (sec:implementation)
 #;    (sec:graph)
 #;    (sec:folklore-II)
 #;    (sec:conclusion)
@@ -151,27 +153,18 @@ pieces of folklore ....
 
 (define (sec:main-result)
   (pslide
-    (make-embeddings-pict))
-  (pslide
-    #:go (coord 2/4 1/4)
-    (tag-pict @t{e} 'e)
-    #:go (coord 1/4 1/2)
-    ->H
-    #:go (coord 2/4 1/2)
-    ->E
-    #:go (coord 3/4 1/2)
-    ->1
-    #:set (for/fold ([p ppict-do-state])
-                    ([tag (in-list '(->H ->E ->1))]
-                     [?-find (in-list (list lb-find cb-find rb-find))])
-            (pin-arrow-line 8 p
-                            (find-tag p 'e) ?-find
-                            (find-tag p tag) ct-find))
-    )
+    (make-embeddings-pict)
+    #:next
+    #:go (coord 1/2 1/2)
+    #:alt [(file-icon (* 5/6 400) 400 "honeydew")]
+    #:go (coord 1/2 1/2)
+    (make-boundary-pict))
   (main-results-slide)
   (void))
 
 (define (sec:embeddings)
+  (pslide
+    @t{Model})
   (embedding:warmup)
   (embedding:H)
   (embedding:E)
@@ -181,34 +174,35 @@ pieces of folklore ....
 
 (define (embedding:warmup)
   (pslide
-    (make-embeddings-pict)
-    ;; goto center, add boundary pict
-    #:go (coord 1/2 1/2)
-    (disk 40) ;; typed world , untyped world, boundary, value crossing over
-    )
-  (pslide
-    @t{t ::= Nat  Int  t x t  t - t}
+    @t{Types}
+    @t{τ = Nat | Int | τ × τ | τ → τ}
     @t{Nat <: Int}
-    @t{v ::= n  i  <v,v>  lam x e  lam x:t e}
-    @t{n subset i}
-    @t{e ::= ....  dyn t e  stat t e}
+    #:next
+    @t{Values}
+    @t{v = n | i | ⟨v,v⟩ | λ(x)e}
+    @t{n ⊂ i}
+    #:next
+    @t{e = .... | dyn τ e | stat τ e}
     @comment{
     })
   (pslide
-    @t{- e      - e : t}
-    @t{ blah }
-    @t{ - e / - dyn t e : t}
-    @t{ - e : t / - stat t e}
-    @comment{
-    })
+    @hb-append[40 (make-sig-pict @t{⊢ e : τ}) (make-sig-pict @t{⊢ e})]
+    @hb-append[
+      40
+      @inferrule[@t{⊢ e}
+                 @t{⊢ dyn τ e : τ}]
+      @inferrule[@t{⊢ e : τ}
+                 @t{⊢ stat τ e}]])
   (pslide
-    @t{(f (dyn NatxNat <-1,-2>))}
-    @comment{
-    })
+    @t{f (dyn (Nat × Nat) ⟨-1,-2⟩)}
+    #:next
+    @t{Γ = f : Nat × Nat → Nat}
+    @inferrule[@t{...} ;; show derivation up to use of ⊢ _ ?
+               @t{Γ ⊢ f (dyn (Nat × Nat) ⟨-1, -2⟩) : Nat}])
   (pslide
-    @t{typed world .. f    untyped world pair    boundary}
-    @comment{
-    })
+    (make-boundary-pict #:left (hc-append @t{f} (make-hole))
+                        #:right @t{⟨-1, -2⟩}
+                        #:arrow @t{Nat}))
   (void))
 
 (define (embedding:H)
@@ -216,88 +210,75 @@ pieces of folklore ....
     ;; TODO highlight H
     (make-embeddings-pict))
   (pslide
-    @t{f x <-- NxN -- <-1,-2>}
-    @t{rejected}
-    @comment{
-    })
+    (make-example-boundary-pict)
+    #:next
+    #:go (coord 1/2 1/2)
+    (big-x-icon))
   (pslide
-    @t{sig :: dyn t v = v}
-    @t{dyn Nat n = n}
-    @t{dyn Int i = i}
-    @t{dyn t0xt1 <v0v1> = <dyn,dyn>}
-    @t{dyn td->tc \x:t.e = \x (stat tc ((\x:t.e) (dyn td x)))}
-    @t{dyn t v = BE otherwise}
-    @comment{
-    })
+    (make-sig-pict (make-step @t{dyn τ v} ->H @t{v}))
+    (make-step @t{dyn Nat n} ->H @t{n})
+    (make-step @t{dyn Int i} ->H @t{i})
+    (make-step @t{dyn (τ0 × τ1) ⟨v0, v1⟩} ->H @t{⟨dyn τ0 v0, dyn τ1 v1⟩})
+    (make-step @t{dyn (τd → τc) λ(x)e} ->H @t{λ(y)(stat τc ((λ(x)e) (dyn τd y)))})
+    (make-step @t{dyn t v} ->H (little-x-icon)))
   (void))
 
 (define (embedding:E)
   (pslide
-    (make-embeddings-pict H-system*)
     ;; TODO highlight E
-    @comment{
-    })
+    (make-embeddings-pict H-system*))
   (pslide
-    @t{f x <-- NxN -- <-1,-2>}
-    @t{OK}
-    @comment{
-    })
+    (make-example-boundary-pict)
+    #:next
+    #:go (coord 1/2 1/2)
+    (big-check-icon))
   (pslide
-    @t{sig :: dyn t v = v}
-    @t{dyn Nat v = v}
-    @t{dyn Int v = v}
-    @t{dyn t0xt1 v = v}
-    @t{dyn td->tc v = v}
-    @comment{
-    })
+    (make-sig-pict (make-step @t{dyn τ v} ->E @t{v}))
+    (make-step @t{dyn Nat v} ->E @t{v})
+    (make-step @t{dyn Int v} ->E @t{v})
+    (make-step @t{dyn (τ0 × τ1) v} ->E @t{v})
+    (make-step @t{dyn (τd → τc) v} ->E @t{v}))
   (pslide
-    @t{sig :: dyn t v = v}
-    @t{dyn t v = v}
-    @comment{
-      simple!!!
-    })
+    (make-sig-pict (make-step @t{dyn τ v} ->E @t{v}))
+    (make-step @t{dyn τ v} ->E @t{v}))
   (void))
 
 (define (embedding:1)
   (pslide
-    (make-embeddings-pict H-system* E-system*)
     ;; TODO highlight 1
-    @comment{
-    })
+    (make-embeddings-pict H-system* E-system*))
   (pslide
-    @t{f x <-- NxN -- <-1,-2>}
-    @t{OK (transient)}
-    @comment{
-    })
+    (make-example-boundary-pict)
+    #:next
+    #:go (coord 1/2 1/2)
+    (big-check-icon))
+  (transient-dyn-slide)
   (pslide
-    @t{sig :: dyn t v = v}
-    @t{dyn Nat n = n}
-    @t{dyn Int i = i}
-    @t{dyn t0xt1 <v0v1> = <v0v1>}
-    @t{dyn td->tc \x e = \x e}
-    @comment{
-    })
+    #:title "Transient Invariant"
+    (make-step @t{(λ(x:t)e) v} ->1 @t{e{x/v}})
+    @t{if and only if ⊢ v : constructor-of(t)})
   (pslide
-    @t{Tworld <-- Uworld}
-    @t{move delta to Uworld}
-    @comment{
-    })
-  (pslide
-    (make-embeddings-pict H-system* E-system*)
-    ;; TODO highlight 1
-    @comment{
-    })
+    (make-example-boundary-pict)
+    #:next
+    #:go (coord 1/2 1/5)
+    @t{f = λ(x)(first x)})
+  (transient-dyn-slide)
   (void))
 
 (define (embedding:end)
   (pslide
-    (make-embeddings-pict H-system* E-system* 1-system* HE-system* 1E-system*)
-    @comment{
-    })
+    (make-embeddings-pict H-system* E-system* 1-system*))
+  (pslide
+    (make-embeddings-pict all-system*))
   (void))
 
 (define (sec:implementation)
-  ;; two new points
+  (pslide
+    @t{Implementation})
+  (pslide
+    #:alt [(make-embeddings-pict all-system*)]
+    (make-embeddings-pict all-system* new-system*))
+
   ;; TR-N pipeline
   ;; TR-e pipeline
   ;; TR-1 pipeline
@@ -381,11 +362,12 @@ the end thank you
 
 (define (main-results-slide)
   (pslide
-    @t{One surface language}
-    @t{Two typing systems}
-    @t{Three semantics}
-    @t{Three pairs of soundness theorems}
-    @t{Three implementations}
+    @t{1 mixed-typed surface language}
+    @t{3 semantics}
+    ;; controlled experiment ... scientific results
+    @t{MODEL: 3 pairs of soundness theorems}
+    @t{IMPL: 3 datasets for the same benchmark programs}
+    @t{EXAMPLES: 3 consequences for each program}
     @comment{
       in particular start with one surface language that admits
       typed code and untyped code, then define three ways of running a surface expression
@@ -394,6 +376,43 @@ the end thank you
     })
   (void))
 
+(define (make-sig-pict p)
+  (define sig-scale 1/10)
+  (define sig-color BLUE)
+  (define w+ (scale-* (pict-width p) sig-scale))
+  (define h+ (scale-* (pict-height p) sig-scale))
+  (cc-superimpose
+    (filled-rounded-rectangle w+ h+ #:color sig-color)
+    p))
+
+(define (scale-* n s)
+  (+ n (* n s)))
+
+(define (make-boundary-pict #:left [left-pict #f] #:right [right-pict #f] #:arrow [arrow-pict (blank)])
+  (define x-offset 1/7)
+  (ppict-do
+    (blank (/ client-w 2) (/ client-h 2))
+    #:go (coord x-offset 1/2)
+    (let ([stat-pict (tag-pict (make-component-file STAT-COLOR) 'stat-file)])
+      (maybe-superimpose stat-pict left-pict))
+    #:go (coord (- 1 x-offset) 1/2)
+    (let ([dyn-pict (tag-pict (make-component-file DYN-COLOR) 'dyn-file)])
+      (maybe-superimpose dyn-pict right-pict))
+    #:set (let ((p ppict-do-state))
+            (pin-arrows-line 10 p
+                             (find-tag p 'stat-file) rc-find
+                             (find-tag p 'dyn-file) lc-find
+                             #:label arrow-pict))))
+
+(define (maybe-superimpose base new)
+  (if new
+    (cc-superimpose base new)
+    base))
+
+(define (make-component-file c)
+  (define h 180)
+  (file-icon (* 5/6 h) h c))
+
 (define (make-gtspace-bg)
   (cellophane (filled-rectangle client-w client-h #:color "darkcyan") 0.2))
 
@@ -401,13 +420,20 @@ the end thank you
   (ppict-do
     (make-gtspace-bg)
     #:go (coord 1/4 1/4)
-    (filled-rectangle 100 100 #:color RED)
+    (make-embedding-box ->H RED)
     #:go (coord 3/4 1/2)
-    (filled-rectangle 100 100 #:color BLUE)
+    (make-embedding-box ->E BLUE)
     #:go (coord 1/4 3/4)
-    (filled-rectangle 100 100 #:color GREEN)))
+    (make-embedding-box ->1 GREEN)))
+
+(define (make-embedding-box -> color)
+  (ppict-do
+    (filled-rectangle 100 100 #:color color)
+    #:go (coord 1/2 1/2)
+    ->))
 
 (define (make-embeddings-pict . gt-system-tree)
+  ;; TODO draw the tree nodes!!
   ;(define gt* (flatten gt-system-tree))
   ;(define H* (filter/embedding 'H gt*))
   ;(define E* (filter/embedding 'E gt*))
@@ -416,8 +442,48 @@ the end thank you
   ;(define 1E-system* (filter/embedding '(E 1) gt*))
   (make-base-embeddings-pict))
 
+(define (transient-dyn-slide)
+  (pslide
+    (make-sig-pict (make-step @t{dyn τ v} ->1 @t{v}))
+    (make-step @t{dyn Nat n} ->1 @t{n})
+    (make-step @t{dyn Int i} ->1 @t{i})
+    (make-step @t{dyn (τ0 × τ1) ⟨v0, v1⟩} ->1 @t{⟨v0, v1⟩})
+    (make-step @t{dyn (τd → τc) λ(x)e} ->1 @t{λ(x)e})
+    (make-step @t{dyn t v} ->1 (little-x-icon))))
+
 (define (comment . stuff*)
   (blank 0 0))
+
+(define (inferrule top bot)
+  (vc-append 10
+             top
+             (hline (pict-width bot) 10)
+             bot))
+
+(define (make-hole)
+  ;; so ugly, its incredible
+  (define x @t{x})
+  (filled-rectangle (pict-width x) (pict-height x) #:color WHITE))
+
+(define (big-x-icon)
+  (make-icon x-icon #:height 80))
+
+(define (little-x-icon)
+  (make-icon x-icon #:height 30))
+
+(define (big-check-icon)
+  (make-icon check-icon #:height 80))
+
+(define (make-icon i #:height h)
+  (bitmap (i #:material plastic-icon-material #:height h)))
+
+(define (make-step lhs -> rhs)
+  (hc-append 20 lhs -> rhs))
+
+(define (make-example-boundary-pict)
+  (make-boundary-pict #:left (hc-append @t{f} (make-hole))
+                      #:right @t{⟨-1, -2⟩}
+                      #:arrow @t{Nat}))
 
 ;; =============================================================================
 

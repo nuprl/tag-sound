@@ -6,16 +6,13 @@ TODO
 [X] outline
 [X] draft keynote slides
 [ ] draft slideshow slides
-  X basic components (ugly if necessary)
-  - basic show
-  - animated components (ugly if necessary)
-  - decide color scheme
-  - nice
 [ ] give presentation
   - torture (2018-08-24 10:00am NEU 366 WVH)
   - nepls   (2018-08-27 10:00am Harvard G115)
   - icfp
 [ ] blog post
+
+- clarify, don't actually have semantics for everything in the figure
 
 
 - - -
@@ -65,23 +62,30 @@ we could also try to group by performance ... fine, slow, dead ... but this
  is worst of all because its across different languages AND different benchmarks
 
 3
-the main contribution of this paper is that it adds order to this space via
-three formal semantics ... more on these soon
+the main contribution of this paper is to categorize different systems by
+their semantics; in particular, by the strategy they employ at the boundaries
+between typed and untyped code
 
-in particular start with one surface language that admits
-typed code and untyped code, then define three ways of running a surface expression
-we call these strategies [higher-order erasure first-order] together they provide
-a nice foundation for understanding the literature
+conceptually, we start with a mixed-typed program, split it into statically
+typed and dynamically-typed parts, and focus on what happens when values cross
+between the two components (parts? principals?) at runtime
 
-indeed based on the semantics we can compare the theory of the three approaches
-and the practical implementation (by scaling the models to a real language)
+to clarify, our approach to modeling is to start with one surface language
+with notions of statically typed and dynamically typed code and then define
+three semantics that are basically equal up to their strategy for checking
+values at a boundary for each semantics we can then talk about its soundness
+with respect to the surface typing systems and make formal comparisons between
+the systems
 
-;; ????
-in other words the results have consequences for three kinds of people who might
-be in the audience: theoreticians who care about type soundness,
-language implementors who care about relative performance,
-and developers who care about using these systems for actual work
-;; no please this is ugly
+we then used the models as a guide to build three implementations so that we
+could perform the first apples-to-apples comparison between three approaches
+on identical program
+
+between the models and implementations this lets us compare the theory,
+performance, and practical consequences of each approach in a scientifically
+sound manner
+
+(somewhat proud to say, this is the first controlled experiment of its kind)
 
 5
 back to the outline slide, we have three semantics the main differences between
@@ -107,6 +111,7 @@ typed world, and the static world expects a pair of naturals
 
 wouldn't be well typed, but questionable what to do at runtime
 
+NATURAL
 now onto the three approaches the higher-order approach rejects this interaction,
 if (-1,-2) meets a boundary expecting (Nat,Nat) then rejected because components
 are not natural numbers more generally higher-order enforces a pair type by
@@ -122,6 +127,7 @@ by monitoring future behaviors otherwise
 back to the outline, TR GT TSC are examples of higher-order gradual typing
 systems
 
+ERASURE
 next erasure the erasure approach does not check anything at the boundary
 for our example program, it invokes the function with the ill-typed pair
 come what may more generally for pairs anything goes for naturas and integers
@@ -131,23 +137,30 @@ thats erasure and its a popular way to combine static and dynamic typing
 many systems take this approach and not just for laziness, its based on a view
 of static types as a pure syntactic artifact
 
+FIRST-ORDER
 finally the third approach is the first-order as the name suggests the idea is
-to check first-order properties at boundaries and do not use monitors / contracts
-to supervise behavior that said theres a few ways to go about this what I'm going
-to present is the transient approach taken by reticulated python because its
-the only one that works with untyped higher-order values the first-order properties
-transient checks get the type constructor of the value for our sample program
-the pair is approved because its a pair more generally for any pair type we
-accept any pair value for natural and integers the constructor happens to be
-the full type and that is whats checked for function types simply check the
-incoming value is a function
+to check first-order properties at boundaries and do not use monitors ...
+before with higher-order we saw a wrapping-lambda to check the future behaviors
+of a function; nothing like that for first order all checks that are going to
+happen, happen right at the boundary the literature has a few strategies for
+making due with first order checks the one we focus on is the transient strategy
+implemented in reticulated python because its the only one that handles untyped
+values the others restrict untyped code so for example cannot define a function
+back to our running example when this pair reaches a boundary expecing a pair
+of naturals the transient first-order approach says OK and lets the pair through
+more generally the strategy is to enforce type constructors at the boundary
+this is looking to establish an invariant that every value in typed code matches
+its static type constructor
 
-in addition transient first-order treats selectors/elim forms as boundaries,
-(picture, pulling \delta functions out of the typed world)
-so if the typed function were to extract an element of the pair it might
-see a mismatch ---- might, because it depends on what the context expects
+this alone is of course not enough to preserve the invariant because back to our
+example if the function extracts an eleemnt from the untyped pair its going to
+have a integer where the type annotations expect a natural number so in addition
+to the normal boundaries transient conservatively treats every selector operation
+(like first, function application, etc) as a boundary that way the result of
+first gets a check and we're invariant
 
-at any rate the main thing is the type constructor checks
+the details are not so imporatnt, suffice to say theres an extended notion of
+boundary and these are the boundary checks
 
 this completes the picture ... other first-order systems are nom and dart but
 these have stronger type soundness because they restrict the untyped code ...
@@ -157,8 +170,10 @@ in between approaches we have thorn and pyret and strongscript
 with this understanding in hand we added two points to the space building off
 typed racket (blip, blip)
 
-the way typed racket is organized, is a program gets type-checked, optimized,
-types compiled to boundary checks, and run as a racket program
+to explain how we added these implementations, it helps to know a little about
+typed racket given a program TR expands the macros, type checks the expanded
+program, optimizes the typed code, compiles the types to boundary checks, and
+runs the generated racket code
 
 TR-E is a type-erased racket ... the back end is different it type-checks
 but does not optimize (because the types are not enforced!) and runs the plain
