@@ -29,9 +29,11 @@
       (listof gt-system?)]
     [1E-system*
       (listof gt-system?)]
+    [typed-racket
+      gt-system?]
+    [reticulated
+      gt-system?]
 
-    [gt-system->pict
-      (-> gt-system? pict?)]
     [embedding?
       (-> any/c boolean?)]
     [filter/embedding
@@ -42,11 +44,12 @@
       (-> (>=/c 0) (listof gt-system?) (listof gt-system?))]
     [filter-not/perf
       (-> (>=/c 0) (listof gt-system?) (listof gt-system?))]
+    [gt-system-source<
+      (-> gt-system-source? gt-system-source? boolean?)]
     )
 )
 
 (require
-  pict
   (only-in racket/set set=?)
   (only-in racket/list filter-not))
 
@@ -81,7 +84,7 @@
 (define the-source* '(A I))
 
 (define gt-system-source?
-  (let ([src? (lambda (x) (memq x the-source*))])
+  (let ([src? (lambda (x) (and (memq x the-source*) #true))])
     (lambda (y)
       (if (list? y)
         (andmap src? y)
@@ -89,9 +92,6 @@
 
 (struct gt-system [name year host-lang source embedding perf url]
         #:transparent)
-
-(define (gt-system->pict gt)
-  (text (gt-system-name gt)))
 
 (define (make-gt-system #:name name
                         #:year year
@@ -329,7 +329,7 @@
                   #:url "https://www.microsoft.com/en-us/research/publication/safe-efficient-gradual-typing-for-typescript-3"))
 
 (define all-system*
-  (list gradualtalk gradualtalk typed-racket tpd strongscript actionscript mypy
+  (list gradualtalk typed-racket tpd strongscript actionscript mypy
         flow hack pyre pytype rtc strongtalk typescript typed-clojure typed-lua
         pyret thorn dart2 dart1 nom pycket reticulated safets))
 
@@ -369,6 +369,24 @@
 (define 1E-system*
   (filter/embedding '(E 1) all-system*))
 
+(define (make-derived< x->nat)
+  (lambda (a b)
+    (<= (x->nat a)
+        (x->nat b))))
+
+(define (source->nat src)
+  (cond
+    [(eq? src 'A)
+     0]
+    [(pair? src)
+     1]
+    [(eq? src 'I)
+     2]
+    [else
+      (raise-argument-error 'source->nat "source?" src)]))
+
+(define gt-system-source< (make-derived< source->nat))
+
 ;; -----------------------------------------------------------------------------
 
 (module+ test
@@ -392,4 +410,10 @@
       (check-equal? (list typed-racket) slow))
     (let ((fast (filter/perf 90 all-system*)))
       (check-true (not (member typed-racket fast)))))
+
+  (test-case "gt-system-source"
+    (check-true (gt-system-source? 'A))
+    (check-true (gt-system-source? 'I))
+    (check-true (gt-system-source? '(A I)))
+    (check-true (gt-system-source? '(I A))))
 )

@@ -234,8 +234,12 @@ interaction
 
 8
 in the beginning I posed two folklore results hope its now clear that these
-are not true in a language that allows typed and untyped code in terms of
-soundness we saw three ways of mixing that preserve different invariants
+are not true in a language that allows typed and untyped code in terms of ...
+
+in a language that mixes typed and untyped code these are not the whole story
+not entirely true
+
+... soundness we saw three ways of mixing that preserve different invariants
 in terms of performance adding types can enable the optimizer but it can also
 add boundaries with cost ... at minimum replace mental model with
 Perf ~ Inv(t) * Opt/Dyn performance is based on the invariants those types imply,
