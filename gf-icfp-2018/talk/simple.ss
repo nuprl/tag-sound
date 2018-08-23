@@ -5,7 +5,6 @@
 ;; TODO
 ;; - if NEPLS, need to clarify there's a paper here
 ;; - asumu text style package?
-;; - leif stacks package?
 ;; - abstraction for HE1
 ;; - abstraction for 'main results' slide
 ;; - abstraction for typed/untyped world slide ... boundary-crossing
@@ -14,11 +13,10 @@
 
 (require
   "src/gt-system.rkt"
-  pict
-  pict/convert
+  pict pict/convert
   ppict/2
-  ppict/slideshow2
   slideshow/code
+  plot/no-gui plot/utils
   racket/draw racket/runtime-path
   images/icons/arrow images/icons/control images/icons/misc images/icons/symbol images/icons/style
   (only-in racket/list make-list flatten))
@@ -47,10 +45,14 @@
 (define DYN-COLOR WHITE)
 (define STAT-COLOR DARK-GREY)
 
+(define FILE-RATIO 5/6) ;; TODO nonsense
+(define PLOT-RATIO 3/4) ;; TODO nonsense
+
 (define (make-> str)
   (define tag (string->symbol (format "->~a" str)))
   (tag-pict (text (format "→~a" str) '() 20) tag))
 
+(define ->racket (make-> "racket")) ;; TODO racket logo
 (define ->H (make-> "H"))
 (define ->E (make-> "E"))
 (define ->1 (make-> "1"))
@@ -67,8 +69,8 @@
 ;    (sec:gt-system-pre)
 ;    (sec:main-result)
 ;    (sec:embeddings)
-    (sec:implementation)
-#;    (sec:graph)
+;    (sec:implementation)
+    (sec:graph)
 #;    (sec:folklore-II)
 #;    (sec:conclusion)
 
@@ -82,11 +84,7 @@
     ;; TODO racket-logo title slide ... make package for that
     @text[TITLESTR (current-main-font) (+ (current-font-size) 10)]
     @t{Ben Greenman & Matthias Felleisen}
-    @t{PLT @"@" Northeastern University}
-    @comment{
-hello this paper is about gradual typing but this talk is really about two
-pieces of folklore ....
-    })
+    @t{PLT @"at" Northeastern University})
   (void))
 
 (define (sec:folklore-I)
@@ -156,7 +154,7 @@ pieces of folklore ....
     (make-embeddings-pict)
     #:next
     #:go (coord 1/2 1/2)
-    #:alt [(file-icon (* 5/6 400) 400 "honeydew")]
+    #:alt [(file-icon (* FILE-RATIO 400) 400 "honeydew")]
     #:go (coord 1/2 1/2)
     (make-boundary-pict))
   (main-results-slide)
@@ -278,26 +276,47 @@ pieces of folklore ....
   (pslide
     #:alt [(make-embeddings-pict all-system*)]
     (make-embeddings-pict all-system* new-system*))
-
-  ;; TR-N pipeline
-  ;; TR-e pipeline
-  ;; TR-1 pipeline
-  ;; how to measure
-  ;; benchmarks overview
-  ;;  - as bullet points or a table? or garph to show size???
+  (pslide
+    ;; TODO align at top !!!
+    #:go (coord 1/2 2/5)
+    #:alt [(vc-append (make-TR-stack)
+                      (make-step @t{e+} ->racket @t{...}))]
+    #:go (coord 2/5 2/5)
+    (make-TR-H-stack)
+    #:go (coord 3/5 2/5)
+    (make-TR-E-stack)
+    #:go (coord 4/5 2/5)
+    (make-TR-1-stack)
+    #:go (coord 1/2 4/5)
+    (make-step @t{e+} ->racket @t{...}))
+  (pslide
+    #:go (coord 1/10 1/2)
+    (make-mixed-typed-program 0)
+    #:next
+    #:go (coord 3/10 2/7)
+    (make-mixed-typed-program 1)
+    #:next
+    #:go (coord 4/10 4/7)
+    (make-mixed-typed-program 3)
+    #:go (coord 8/10 1/2)
+    (make-mixed-typed-program 8))
+  (pslide
+    #:title "Experiment"
+    ;; TODO show details? names? size? yes please a table would be great
+    @t{10 benchmark programs}
+    @t{(range of sizes)}
+    @t{Measure all mixed-typed combinations})
   (void))
 
 (define (sec:graph)
   (pslide
+    @t{Results})
+  (pslide
     #:title "`Typical Program'"
-    @t{TBA}
-    @comment{
-      gee lets just use plot!
-      H first
-      E next
-      1 last
-      intersections
-    })
+    #:alt [(make-overhead-plot '())]
+    #:alt [(make-overhead-plot '(H))]
+    #:alt [(make-overhead-plot '(H E))]
+    (make-overhead-plot '(H E 1)))
   (void))
 
 (define (sec:folklore-II)
@@ -411,7 +430,7 @@ the end thank you
 
 (define (make-component-file c)
   (define h 180)
-  (file-icon (* 5/6 h) h c))
+  (file-icon (* FILE-RATIO h) h c))
 
 (define (make-gtspace-bg)
   (cellophane (filled-rectangle client-w client-h #:color "darkcyan") 0.2))
@@ -474,16 +493,95 @@ the end thank you
 (define (big-check-icon)
   (make-icon check-icon #:height 80))
 
+(define (small-tau-icon)
+  (t "τ"))
+
 (define (make-icon i #:height h)
   (bitmap (i #:material plastic-icon-material #:height h)))
 
 (define (make-step lhs -> rhs)
   (hc-append 20 lhs -> rhs))
 
+(define (make-stack #:color [color BOX-COLOR] txt*)
+  (for/fold ([acc (blank)])
+            ([txt (in-list txt*)])
+    (vc-append acc
+               (cc-superimpose
+                 (filled-rectangle 200 100 #:color color)
+                 (t txt)))))
+
 (define (make-example-boundary-pict)
   (make-boundary-pict #:left (hc-append @t{f} (make-hole))
                       #:right @t{⟨-1, -2⟩}
                       #:arrow @t{Nat}))
+
+(define (make-typed-racket-stack title)
+  (make-labeled-stack title
+                      '("expand" "typecheck" "optimize" "enforce τ")
+                      #:color BOX-COLOR))
+
+(define (make-TR-stack)
+  (make-typed-racket-stack "Typed Racket (TR-H)"))
+
+(define (make-TR-H-stack)
+  (make-typed-racket-stack "TR-H"))
+
+(define (make-TR-E-stack)
+  (make-labeled-stack "TR-E"
+                      '("expand" "typecheck" "erase")
+                      #:color RED))
+
+(define (make-TR-1-stack)
+  (make-labeled-stack "TR-1"
+                      '("expand" "typecheck" "defend")
+                      #:color BLUE))
+
+(define (make-labeled-stack title txt* #:color c)
+  (vc-append (t title)
+             (make-stack txt* #:color c)))
+
+(define make-mixed-typed-program
+  (let ((rng (make-pseudo-random-generator)))
+    (lambda (num-types)
+      (define h 100)
+      (parameterize ((current-pseudo-random-generator rng))
+        (random-seed 11)
+        (ppict-do
+          (file-icon (* FILE-RATIO h) h "honeydew")
+          #:set (for/fold ((p ppict-do-state))
+                          ((_ (in-range num-types)))
+                  (ppict-add (ppict-go p (coord (random) (random))) (small-tau-icon))))))))
+
+(define (make-overhead-plot e*)
+  (define w 500)
+  (define x-min 0)
+  (define x-max pi)
+  (parameterize ((plot-x-ticks no-ticks)
+                 (plot-y-ticks no-ticks))
+    (plot-pict
+      (for/list ((e (in-list e*))
+                 (i (in-naturals 1)))
+        (function (make-embedding-function e x-min x-max)
+                  #:color i))
+      #:width 500
+      #:height (* PLOT-RATIO w)
+      #:x-min x-min
+      #:x-max x-max
+      #:y-min 0
+      #:y-max (* 10 (+ 1 (order-of-magnitude x-max)))
+      #:x-label "Overhead vs. Untyped"
+      #:y-label "Num. Type Ann.")))
+
+(define (make-embedding-function e x-min x-max)
+  (case e
+    ((H)
+     (lambda (n) (add1 (* 10 (sin n)))))
+    ((E)
+     (lambda (n) 1))
+    ((1)
+     (lambda (n) (add1 n)))
+    (else
+      (raise-argument-error 'make-embedding-line "embedding?" e))))
 
 ;; =============================================================================
 

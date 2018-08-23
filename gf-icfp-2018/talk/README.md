@@ -180,7 +180,18 @@ but does not optimize (because the types are not enforced!) and runs the plain
 extracted program
 
 TR-1 is a transient racket it type checks changes the boundaries and runs
-the erased un-optimized program the lack of optimizations is somewhat an issue
+the erased un-optimized program the lack of optimizations is AN ISSUE
+
+with three implementations (3 compilers?) we can now take one program that mixes
+typed and untyped code and directly compare the performance of three semantics
+this prepares the way for us to answer a more interesting question as a programmer
+explores the space of mixed-typed programs how does the choice of semantics
+affect performance? 
+
+(there is a threat to validity with how we pick one type assignment, but it
+ seems unlikely that threat should affect relative performance of
+ implementations)
+
 
 with three backends have 3 ways of running a program so we did just that for
 a systematic performance evaluation took 10 functional programs mostly from
