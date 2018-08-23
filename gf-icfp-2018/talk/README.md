@@ -66,6 +66,8 @@ the main contribution of this paper is to categorize different systems by
 their semantics; in particular, by the strategy they employ at the boundaries
 between typed and untyped code
 
+[[ contribue to scientific understanding, classify by semantics ... compare impls ]]
+
 conceptually, we start with a mixed-typed program, split it into statically
 typed and dynamically-typed parts, and focus on what happens when values cross
 between the two components (parts? principals?) at runtime

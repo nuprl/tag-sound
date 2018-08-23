@@ -3,12 +3,7 @@
 ;; Slides for ICFP 2018
 
 ;; TODO
-;; - if NEPLS, need to clarify there's a paper here
-;; - asumu text style package?
-;; - abstraction for HE1
-;; - abstraction for 'main results' slide
-;; - abstraction for typed/untyped world slide ... boundary-crossing
-;; - abstraction for S/D definition
+;; - if NEPLS, need to clarify there's a paper here ... also 17 min
 ;; - page numbers, customize! (pslide macro?)
 
 (require
@@ -16,6 +11,7 @@
   pict pict/convert
   ppict/2
   scribble-abbrevs/pict
+  slideshow-text-style
   slideshow/code
   plot/no-gui plot/utils
   racket/draw racket/runtime-path
@@ -48,6 +44,7 @@
 (define DARK-GREY (string->color "DarkSlateGray"))
 (define DYN-COLOR WHITE)
 (define STAT-COLOR DARK-GREY)
+(define HIGHLIGHT-COLOR (string->color "DarkViolet"))
 
 (define FILE-RATIO 5/6) ;; TODO nonsense
 (define PLOT-RATIO 3/4) ;; TODO nonsense
@@ -76,9 +73,17 @@
                  #;[current-titlet string->title]
                  #;[*current-tech* #true]
                 )
+
+  (pslide
+    #:alt [(make-embeddings-pict)]
+    #:alt [(make-embeddings-pict #:highlight 'H)]
+    #:alt [(make-embeddings-pict #:highlight 'E)]
+    (make-embeddings-pict #:highlight '1)
+    )
+
     ;(sec:title)
     ;(sec:folklore-I)
-    (sec:gt-landscape)
+    ;(sec:gt-landscape)
     ;(sec:main-result)
     ;(sec:embeddings)
     ;(sec:implementation)
@@ -224,8 +229,8 @@
 
 (define (embedding:H)
   (pslide
-    ;; TODO highlight H
-    (make-embeddings-pict))
+    #:alt [(make-embeddings-pict)]
+    (make-embeddings-pict #:highlight 'H))
   (pslide
     (make-example-boundary-pict)
     #:next
@@ -242,8 +247,8 @@
 
 (define (embedding:E)
   (pslide
-    ;; TODO highlight E
-    (make-embeddings-pict H-system*))
+    #:alt [(make-embeddings-pict H-system*)]
+    (make-embeddings-pict H-system* #:highlight 'E))
   (pslide
     (make-example-boundary-pict)
     #:next
@@ -259,8 +264,8 @@
 
 (define (embedding:1)
   (pslide
-    ;; TODO highlight 1
-    (make-embeddings-pict H-system* E-system*))
+    #:alt ((make-embeddings-pict H-system* E-system*))
+    (make-embeddings-pict H-system* E-system* #:highlight '1))
   (pslide
     (make-example-boundary-pict)
     #:next
@@ -455,15 +460,25 @@
   (define mh (* 4 mw))
   (cellophane (filled-rectangle (- client-w mw) (- client-h mh) #:color "darkcyan") 0.2))
 
-(define (make-base-embeddings-pict)
+(define (make-base-embeddings-pict highlight)
   (ppict-do
     (make-gtspace-bg)
     #:go (coord 1/4 1/4)
-    (make-embedding-box ->H RED)
+    (maybe-highlight (make-embedding-box ->H RED) (eq? highlight 'H))
     #:go (coord 3/4 1/2)
-    (make-embedding-box ->E BLUE)
+    (maybe-highlight (make-embedding-box ->E BLUE) (eq? highlight 'E))
     #:go (coord 1/4 3/4)
-    (make-embedding-box ->1 GREEN)))
+    (maybe-highlight (make-embedding-box ->1 GREEN) (eq? highlight '1))))
+
+(define (maybe-highlight p yes?)
+  (if yes?
+    (let ((w (pict-width p))
+          (h (pict-height p))
+          (margin 20))
+      (cc-superimpose
+        (filled-rectangle (+ w margin) (+ h margin) #:color HIGHLIGHT-COLOR #:draw-border? #false)
+        p))
+    p))
 
 (define (make-embedding-box -> color)
   (ppict-do
@@ -471,7 +486,7 @@
     #:go (coord 1/2 1/2)
     ->))
 
-(define (make-embeddings-pict . gt-system-tree)
+(define (make-embeddings-pict #:highlight [highlight #f] . gt-system-tree)
   ;; TODO draw the tree nodes!!
   ;(define gt* (flatten gt-system-tree))
   ;(define H* (filter/embedding 'H gt*))
@@ -479,7 +494,7 @@
   ;(define 1* (filter/embedding '1 gt*))
   ;(define HE-system* (filter/embedding '(H E) gt*))
   ;(define 1E-system* (filter/embedding '(E 1) gt*))
-  (make-base-embeddings-pict))
+  (make-base-embeddings-pict highlight))
 
 (define (transient-dyn-slide)
   (pslide
@@ -562,17 +577,14 @@
   (vc-append (t title)
              (make-stack txt* #:color c)))
 
-(define make-mixed-typed-program
-  (let ((rng (make-pseudo-random-generator)))
-    (lambda (num-types)
-      (define h 100)
-      (parameterize ((current-pseudo-random-generator rng))
-        (random-seed 11)
-        (ppict-do
-          (file-icon (* FILE-RATIO h) h "honeydew")
-          #:set (for/fold ((p ppict-do-state))
-                          ((_ (in-range num-types)))
-                  (ppict-add (ppict-go p (coord (random) (random))) (small-tau-icon))))))))
+(define (make-mixed-typed-program num-types)
+  (define h 100)
+  (random-seed 11)
+  (ppict-do
+    (file-icon (* FILE-RATIO h) h "honeydew")
+    #:set (for/fold ((p ppict-do-state))
+                    ((_ (in-range num-types)))
+            (ppict-add (ppict-go p (coord (random) (random))) (small-tau-icon)))))
 
 (define (make-overhead-plot e*)
   (define w 500)
