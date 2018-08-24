@@ -33,6 +33,7 @@
 (define BROWN (string->color "chocolate"))
 (define GREEN (string->color "mediumseagreen"))
 (define BLUE (string->color "cornflowerblue"))
+(define LIGHT-BLUE (string->color "Lavender"))
 (define DARK-BLUE syntax-icon-color)
 (define RED (string->color "firebrick"))
 (define LIGHT-RED (string->color "Tomato"))
@@ -44,7 +45,7 @@
 (define GREY (string->color "gray"))
 (define DARK-GREY (string->color "DarkSlateGray"))
 (define DYN-COLOR DARK-GREY)
-(define DYN-TEXT-COLOR light-metal-icon-color)
+(define DYN-TEXT-COLOR (string->color light-metal-icon-color))
 (define STAT-COLOR (string->color "Pink"))
 (define HIGHLIGHT-COLOR (string->color "DarkViolet"))
 
@@ -79,12 +80,12 @@
     ;(sec:title)
     ;(sec:folklore-I)
     ;(sec:gt-landscape)
-    (sec:main-result)
+    ;(sec:main-result)
     ;(sec:embeddings)
     ;(sec:implementation)
-    ;(sec:graph)
-    ;(sec:conclusion)
-    ;(sec:folklore-II)
+    (sec:graph)
+    (sec:conclusion)
+    (sec:folklore-II)
     (sec:extra)
     (void)))
 
@@ -190,36 +191,40 @@
   (void))
 
 (define (embedding:warmup)
+  (define x-offset 1/20)
   (pslide
-    @t{Types}
+    #:go (coord x-offset 1/5 'lt)
+    ;;@t{Types}
     @t{τ = Nat | Int | τ × τ | τ → τ}
     @t{Nat <: Int}
     #:next
-    @t{Values}
-    @t{v = n | i | ⟨v,v⟩ | λ(x)e}
+    #:go (coord (- 1 x-offset) 1/5 'rt)
+    ;;@t{Values}
+    @t{v = n | i | ⟨v,v⟩ | λ(x)e | λ(x:τ)e}
     @t{n ⊂ i}
     #:next
+    #:go (coord 1/2 2/5)
     @t{e = .... | dyn τ e | stat τ e}
-    @comment{
-    })
-  (pslide
-    @hb-append[40 (make-sig-pict @t{⊢ e : τ}) (make-sig-pict @t{⊢ e})]
+    #:next
+    ;;@hb-append[40 (make-sig-pict @t{⊢ e : τ}) (make-sig-pict @t{⊢ e})]
+    #:go (coord 1/2 3/5)
     @hb-append[
-      40
+      100
       @inferrule[@t{⊢ e}
                  @t{⊢ dyn τ e : τ}]
       @inferrule[@t{⊢ e : τ}
                  @t{⊢ stat τ e}]])
   (pslide
+    #:go (coord 1/2 1/5)
     @t{f (dyn (Nat × Nat) ⟨-1,-2⟩)}
     #:next
-    @t{Γ = f : Nat × Nat → Nat}
+    #:go (coord 1/2 2/5 'ct)
     @inferrule[@t{...} ;; show derivation up to use of ⊢ _ ?
-               @t{Γ ⊢ f (dyn (Nat × Nat) ⟨-1, -2⟩) : Nat}])
+               (hb-append 10
+                 (text "f : Nat × Nat → Nat" (current-main-font) (- (current-font-size) 6))
+                 @t{⊢ f (dyn (Nat × Nat) ⟨-1, -2⟩) : Nat})])
   (pslide
-    (make-boundary-pict #:left (hc-append @t{f} (make-hole))
-                        #:right @t{⟨-1, -2⟩}
-                        #:arrow @t{Nat}))
+    (make-example-boundary-pict))
   (void))
 
 (define (embedding:H)
@@ -229,60 +234,71 @@
   (pslide
     (make-example-boundary-pict)
     #:next
-    #:go (coord 1/2 1/2)
+    #:go (coord 1/2 1/2 'cb)
     (big-x-icon))
   (pslide
+    #:go (coord 1/15 1/5 'lt)
     (make-sig-pict (make-step @t{dyn τ v} ->H @t{v}))
-    (make-step @t{dyn Nat n} ->H @t{n})
-    (make-step @t{dyn Int i} ->H @t{i})
-    (make-step @t{dyn (τ0 × τ1) ⟨v0, v1⟩} ->H @t{⟨dyn τ0 v0, dyn τ1 v1⟩})
-    (make-step @t{dyn (τd → τc) λ(x)e} ->H @t{λ(y)(stat τc ((λ(x)e) (dyn τd y)))})
-    (make-step @t{dyn t v} ->H (little-x-icon)))
+    #:go (coord 2/15 3/10 'lt)
+    (make-embedding-table
+      (list
+        @t{dyn Nat n} ->H @t{n}
+        @t{dyn Int i} ->H @t{i}
+        @t{dyn (τ0 × τ1) ⟨v0, v1⟩} ->H @t{⟨dyn τ0 v0, dyn τ1 v1⟩}
+        @t{dyn (τd → τc) λ(x)e} ->H @t{λ(y:τd)(dyn τc ((λ(x)e) (stat τd y)))}
+        @t{dyn τ v} ->H (little-x-icon))))
   (void))
 
 (define (embedding:E)
   (pslide
+    #:alt [(make-embeddings-pict)]
     #:alt [(make-embeddings-pict H-system*)]
     (make-embeddings-pict H-system* #:highlight 'E))
   (pslide
     (make-example-boundary-pict)
     #:next
-    #:go (coord 1/2 1/2)
+    #:go (coord 1/2 1/2 'cb)
     (big-check-icon))
   (pslide
+    #:go (coord 1/15 1/5 'lt)
     (make-sig-pict (make-step @t{dyn τ v} ->E @t{v}))
-    (make-step @t{dyn Nat v} ->E @t{v})
-    (make-step @t{dyn Int v} ->E @t{v})
-    (make-step @t{dyn (τ0 × τ1) v} ->E @t{v})
-    (make-step @t{dyn (τd → τc) v} ->E @t{v}))
+    #:go (coord 2/15 3/10 'lt)
+    (make-embedding-table
+      (list
+        @t{dyn Nat v} ->E @t{v}
+        @t{dyn Int v} ->E @t{v}
+        @t{dyn (τ0 × τ1) v} ->E @t{v}
+        @t{dyn (τd → τc) v} ->E @t{v})))
   (void))
 
 (define (embedding:1)
   (pslide
+    #:alt ((make-embeddings-pict H-system*))
     #:alt ((make-embeddings-pict H-system* E-system*))
     (make-embeddings-pict H-system* E-system* #:highlight '1))
   (pslide
     (make-example-boundary-pict)
     #:next
-    #:go (coord 1/2 1/2)
+    #:go (coord 1/2 1/2 'cb)
     (big-check-icon))
   (transient-dyn-slide)
-  (pslide
+  #;(pslide
     #:title "Transient Invariant"
     (make-step @t{(λ(x:t)e) v} ->1 @t{e{x/v}})
     @t{if and only if ⊢ v : constructor-of(t)})
   (pslide
     (make-example-boundary-pict)
     #:next
-    #:go (coord 1/2 1/5)
+    #:go (coord 1/2 1/5 'rt)
     @t{f = λ(x)(first x)})
   (transient-dyn-slide)
   (void))
 
 (define (embedding:end)
   (pslide
-    #:alt [(make-embeddings-pict H-system* E-system* reticulated)
-           (make-embeddings-pict H-system* E-system* 1-system*)]
+    #:alt [(make-embeddings-pict H-system* E-system*)]
+    #:alt [(make-embeddings-pict H-system* E-system* reticulated)]
+    #:alt [(make-embeddings-pict H-system* E-system* 1-system*)]
     (make-embeddings-pict all-system*))
   (void))
 
@@ -293,14 +309,14 @@
     #:alt [(make-embeddings-pict all-system*)]
     (make-embeddings-pict all-system* new-system*))
   (pslide
-    #:go (coord 1/2 2/5 'ct)
+    #:go (coord 1/2 1/5 'ct)
     #:alt [(vc-append (make-TR-stack)
                       (make-step @t{e+} ->racket @t{...}))]
-    #:go (coord 2/5 2/5 'ct)
+    #:go (coord 1/8 1/5 'ct)
     (make-TR-H-stack)
-    #:go (coord 3/5 2/5 'ct)
+    #:go (coord 1/2 1/5 'ct)
     (make-TR-E-stack)
-    #:go (coord 4/5 2/5 'ct)
+    #:go (coord 7/8 1/5 'ct)
     (make-TR-1-stack)
     #:go (coord 1/2 4/5 'ct)
     (make-step @t{e+} ->racket @t{...}))
@@ -418,8 +434,8 @@
   (void))
 
 (define (make-sig-pict p)
-  (define sig-scale 1/10)
-  (define sig-color BLUE)
+  (define sig-scale 2/10)
+  (define sig-color LIGHT-BLUE)
   (define w+ (scale-* (pict-width p) sig-scale))
   (define h+ (scale-* (pict-height p) sig-scale))
   (cc-superimpose
@@ -478,10 +494,10 @@
   (make-embedding-box ->H LIGHT-RED))
 
 (define (make-E-box)
-  (make-embedding-box ->E BLUE))
+  (make-embedding-box ->E GREEN))
 
 (define (make-1-box)
-  (make-embedding-box ->1 GREEN))
+  (make-embedding-box ->1 BLUE))
 
 (define (maybe-highlight p yes?)
   (if yes?
@@ -521,9 +537,7 @@
       #:go (at-find-pict 1-pos lt-find 'rt #:abs-x (- margin))
       (if (null? 1*)
         (blank)
-        (vc-append 30
-                   (t "Reticulated")
-                   (make-name-stack (filter-not/name "Reticulated" 1*))))
+        (make-name-stack (cons reticulated (filter-not/name "Reticulated" 1*))))
       #:set (let ((p ppict-do-state)
                   (HE-pict (make-name-stack HE-system*))
                   (1E-pict (make-name-stack 1E-system*)))
@@ -544,12 +558,16 @@
 
 (define (transient-dyn-slide)
   (pslide
+    #:go (coord 1/15 1/5 'lt)
     (make-sig-pict (make-step @t{dyn τ v} ->1 @t{v}))
-    (make-step @t{dyn Nat n} ->1 @t{n})
-    (make-step @t{dyn Int i} ->1 @t{i})
-    (make-step @t{dyn (τ0 × τ1) ⟨v0, v1⟩} ->1 @t{⟨v0, v1⟩})
-    (make-step @t{dyn (τd → τc) λ(x)e} ->1 @t{λ(x)e})
-    (make-step @t{dyn t v} ->1 (little-x-icon))))
+    #:go (coord 2/15 3/10 'lt)
+    (make-embedding-table
+      (list
+        @t{dyn Nat n} ->1 @t{n}
+        @t{dyn Int i} ->1 @t{i}
+        @t{dyn (τ0 × τ1) ⟨v0, v1⟩} ->1 @t{⟨v0, v1⟩}
+        @t{dyn (τd → τc) λ(x)e} ->1 @t{λ(x)e}
+        @t{dyn τ v} ->1 (little-x-icon)))))
 
 (define (comment . stuff*)
   (blank 0 0))
@@ -560,10 +578,13 @@
              (hline (pict-width bot) 10)
              bot))
 
+(define (apply-to-hole f-pict)
+  (hc-append 20 f-pict (make-hole)))
+
 (define (make-hole)
-  ;; so ugly, its incredible
-  (define x @t{x})
-  (filled-rectangle (pict-width x) (pict-height x) #:color WHITE))
+  (define x @t{X})
+  (define w (pict-width x))
+  (filled-rectangle w w #:color GREY))
 
 (define (big-x-icon)
   (make-icon x-icon #:height 80))
@@ -598,6 +619,14 @@
 (define (make-step lhs -> rhs)
   (hc-append 20 lhs -> rhs))
 
+(define (make-embedding-table p*)
+  (table
+    3
+    p*
+    lc-superimpose
+    cc-superimpose
+    20 20))
+
 (define (make-stack #:v [v 2] #:color [color BOX-COLOR] #:bg [pre-bg-pict #f] txt*)
   (define bg-pict (or pre-bg-pict (filled-rectangle 200 100 #:color color)))
   (for/fold ([acc (blank)])
@@ -609,14 +638,14 @@
                  (t txt)))))
 
 (define (make-example-boundary-pict)
-  (make-boundary-pict #:left (hc-append @t{f} (make-hole))
-                      #:right @t{⟨-1, -2⟩}
+  (make-boundary-pict #:left (apply-to-hole @t{f})
+                      #:right @dyn-text{⟨-1, -2⟩}
                       #:arrow @t{Nat}))
 
 (define (make-typed-racket-stack title)
   (make-labeled-stack title
                       '("expand" "typecheck" "optimize" "enforce τ")
-                      #:color BOX-COLOR))
+                      #:color LIGHT-RED))
 
 (define (make-TR-stack)
   (make-typed-racket-stack "Typed Racket (TR-H)"))
@@ -627,7 +656,7 @@
 (define (make-TR-E-stack)
   (make-labeled-stack "TR-E"
                       '("expand" "typecheck" "erase")
-                      #:color RED))
+                      #:color GREEN))
 
 (define (make-TR-1-stack)
   (make-labeled-stack "TR-1"
@@ -654,25 +683,28 @@
   (define x-min 0)
   (define x-max pi)
   (parameterize ((plot-x-ticks no-ticks)
-                 (plot-y-ticks no-ticks))
+                 (plot-y-ticks no-ticks)
+                 (plot-font-size (current-font-size)))
     (plot-pict
       (for/list ((e (in-list e*))
-                 (i (in-naturals 1)))
+                 (c (in-list (list LIGHT-RED GREEN BLUE))))
         (function (make-embedding-function e x-min x-max)
-                  #:color i))
-      #:width 500
+                  #:width (* 15 (line-width))
+                  #:alpha 0.6
+                  #:color c))
+      #:width 700
       #:height (* PLOT-RATIO w)
       #:x-min x-min
       #:x-max x-max
       #:y-min 0
       #:y-max (* 10 (+ 1 (order-of-magnitude x-max)))
-      #:x-label "Overhead vs. Untyped"
-      #:y-label "Num. Type Ann.")))
+      #:y-label "Overhead vs. Untyped"
+      #:x-label "Num. Type Ann.")))
 
 (define (make-embedding-function e x-min x-max)
   (case e
     ((H)
-     (lambda (n) (add1 (* 10 (sin n)))))
+     (lambda (n) (max (if (< n 2) 1 0.4) (+ 0.5 (* 10 (sin n))))))
     ((E)
      (lambda (n) 1))
     ((1)
@@ -731,6 +763,9 @@
   (if (eq? e 'E)
     e
     'NA))
+
+(define (dyn-text str)
+  (text str (cons DYN-TEXT-COLOR (current-main-font)) (current-font-size)))
 
 ;; =============================================================================
 
