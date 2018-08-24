@@ -35,6 +35,7 @@
 (define BLUE (string->color "cornflowerblue"))
 (define DARK-BLUE syntax-icon-color)
 (define RED (string->color "firebrick"))
+(define LIGHT-RED (string->color "Tomato"))
 (define WHITE (string->color "Snow"))
 (define RAY-COLOR RED)
 (define BOX-COLOR (string->color "bisque"))
@@ -42,8 +43,9 @@
 (define BLACK (string->color "black"))
 (define GREY (string->color "gray"))
 (define DARK-GREY (string->color "DarkSlateGray"))
-(define DYN-COLOR WHITE)
-(define STAT-COLOR DARK-GREY)
+(define DYN-COLOR DARK-GREY)
+(define DYN-TEXT-COLOR light-metal-icon-color)
+(define STAT-COLOR (string->color "Pink"))
 (define HIGHLIGHT-COLOR (string->color "DarkViolet"))
 
 (define FILE-RATIO 5/6) ;; TODO nonsense
@@ -73,18 +75,11 @@
                  #;[current-titlet string->title]
                  #;[*current-tech* #true]
                 )
-
-  (pslide
-    #:alt [(make-embeddings-pict)]
-    #:alt [(make-embeddings-pict #:highlight 'H)]
-    #:alt [(make-embeddings-pict #:highlight 'E)]
-    (make-embeddings-pict #:highlight '1)
-    )
-
+    (void)
     ;(sec:title)
     ;(sec:folklore-I)
     ;(sec:gt-landscape)
-    ;(sec:main-result)
+    (sec:main-result)
     ;(sec:embeddings)
     ;(sec:implementation)
     ;(sec:graph)
@@ -166,21 +161,21 @@
     #:alt [(make-categories-pict "by Date" gt-system-year <)]
     #:alt [(make-categories-pict "by Host Language" gt-system-host-lang (lambda (x y) #t))]
     #:alt [(make-categories-pict "Academia vs. Industry" gt-system-source gt-system-source< #:show-label? #false)]
-    #:alt [(make-categories-pict "Sound vs. Unsound" gt-system-embedding%E (lambda (x y) (eq? x 'E)) #:show-label? #false)]
+    #:alt [(make-categories-pict "Sound vs. Unsound" gt-system-embedding%E (lambda (x y) (eq? y 'E)) #:show-label? #false)]
     (make-categories-pict "Alive vs. Dead" gt-system-name%TR (lambda (x y) (string=? y "Typed Racket")) #:show-label? #false))
   (pslide
     ;; TODO prettier
-    @t{All bad!})
+    @t{Chaos!})
   (void))
 
 (define (sec:main-result)
   (pslide
-    (make-embeddings-pict)
-    #:next
+    (make-embeddings-pict))
+  (pslide
     #:go (coord 1/2 1/2)
-    #:alt [(file-icon (* FILE-RATIO 400) 400 "honeydew")]
-    #:go (coord 1/2 1/2)
-    (make-boundary-pict))
+    #:alt [(make-mixed-typed-program 6 #:height 200)]
+    #:alt [(make-boundary-pict #:left (large-tau-icon) #:right (large-lambda-icon) #:arrow #false)]
+    (make-boundary-pict #:left (large-tau-icon) #:right (large-lambda-icon) #:arrow (make-large-focus-icon)))
   (main-results-slide)
   (void))
 
@@ -395,27 +390,31 @@
 ;; -----------------------------------------------------------------------------
 
 (define (main-results-slide)
+  (define w (/ client-w 2))
+  (define h (* 3/4 client-h))
+  (define p/2 (blank w h))
   (pslide
-    @t{1 mixed-typed surface language}
-    @t{3 semantics}
-    ;; controlled experiment ... scientific results
-    @t{MODEL: 3 pairs of soundness theorems}
-    @t{IMPL: 3 datasets for the same benchmark programs}
-    @t{EXAMPLES: 3 consequences for each program}
-    @comment{
-      in particular start with one surface language that admits
-      typed code and untyped code, then define three ways of running a surface expression
-      we call these strategies [higher-order erasure first-order] together they provide
-      a nice foundation for understanding the literature
-    })
-  #;(pslide
-    #:title "Scientific Foundation for Typed/Untyped Interaction"
-    @item{1 language, static + dynamic typing}
-    @item{3 formal semantics}
-    @item{3 **pairs** of type soundness theorems}
-    @item{3 models, 3 implementations}
-    @comment{
-    })
+    #:title "Contributions"
+    #:go (coord 1/2 1/2)
+    (hc-append
+      (scale-to-fit
+        (vc-append -40
+          (make-boundary-pict #:h 2/7 #:left (large-tau-icon) #:right (large-lambda-icon))
+          (hc-append 40 (make-H-box) (make-E-box) (make-1-box)))
+        w h)
+      (ppict-do
+        p/2
+        #:go (coord 0 3/10 'lt)
+        @t{First systematic comparison of:}
+        #:go (coord 0 4/10 'lt)
+        @t{- type soundness theorems}
+        #:go (coord 0 5/10 'lt)
+        @t{- performance of mixed-}
+        @t{  typed programs}
+        ;#:go (coord 0 7/10 'lt)
+        ;@t{Examples to illustrate the}
+        ;@t{consequence for developers}
+        )))
   (void))
 
 (define (make-sig-pict p)
@@ -430,8 +429,10 @@
 (define (scale-* n s)
   (+ n (* n s)))
 
-(define (make-boundary-pict #:left [left-pict #f] #:right [right-pict #f] #:arrow [arrow-pict (blank)])
-  (define x-offset 1/7)
+(define (make-boundary-pict #:left [left-pict #f]
+                            #:right [right-pict #f]
+                            #:h [x-offset 1/7]
+                            #:arrow [arrow-pict (blank)])
   (ppict-do
     (blank (/ client-w 2) (/ client-h 2))
     #:go (coord x-offset 1/2)
@@ -441,10 +442,13 @@
     (let ([dyn-pict (tag-pict (make-component-file DYN-COLOR) 'dyn-file)])
       (maybe-superimpose dyn-pict right-pict))
     #:set (let ((p ppict-do-state))
-            (pin-arrows-line 10 p
-                             (find-tag p 'stat-file) rc-find
-                             (find-tag p 'dyn-file) lc-find
-                             #:label arrow-pict))))
+            (if arrow-pict
+              (pin-arrows-line 10 p
+                               (find-tag p 'stat-file) rc-find
+                               (find-tag p 'dyn-file) lc-find
+                               #:y-adjust-label (+ 8 (pict-height arrow-pict))
+                               #:label arrow-pict)
+              p))))
 
 (define (maybe-superimpose base new)
   (if new
@@ -464,11 +468,20 @@
   (ppict-do
     (make-gtspace-bg)
     #:go (coord 1/4 1/4)
-    (maybe-highlight (make-embedding-box ->H RED) (eq? highlight 'H))
+    (maybe-highlight (make-H-box) (eq? highlight 'H))
     #:go (coord 3/4 1/2)
-    (maybe-highlight (make-embedding-box ->E BLUE) (eq? highlight 'E))
-    #:go (coord 1/4 3/4)
-    (maybe-highlight (make-embedding-box ->1 GREEN) (eq? highlight '1))))
+    (maybe-highlight (make-E-box) (eq? highlight 'E))
+    #:go (coord 1/3 3/4)
+    (maybe-highlight (make-1-box) (eq? highlight '1))))
+
+(define (make-H-box)
+  (make-embedding-box ->H LIGHT-RED))
+
+(define (make-E-box)
+  (make-embedding-box ->E BLUE))
+
+(define (make-1-box)
+  (make-embedding-box ->1 GREEN))
 
 (define (maybe-highlight p yes?)
   (if yes?
@@ -484,17 +497,50 @@
   (ppict-do
     (filled-rectangle 100 100 #:color color)
     #:go (coord 1/2 1/2)
-    ->))
+    (scale -> 2)))
 
 (define (make-embeddings-pict #:highlight [highlight #f] . gt-system-tree)
-  ;; TODO draw the tree nodes!!
-  ;(define gt* (flatten gt-system-tree))
-  ;(define H* (filter/embedding 'H gt*))
-  ;(define E* (filter/embedding 'E gt*))
-  ;(define 1* (filter/embedding '1 gt*))
-  ;(define HE-system* (filter/embedding '(H E) gt*))
-  ;(define 1E-system* (filter/embedding '(E 1) gt*))
-  (make-base-embeddings-pict highlight))
+  (define gt* (flatten gt-system-tree))
+  (define H* (filter/embedding 'H gt*))
+  (define E* (filter/embedding 'E gt*))
+  (define 1* (filter/embedding '1 gt*))
+  (define HE-system* (filter/embedding '(H E) gt*))
+  (define 1E-system* (filter/embedding '(E 1) gt*))
+  (define p0 (make-base-embeddings-pict highlight))
+  (define H-pos (find-tag p0 '->H))
+  (define E-pos (find-tag p0 '->E))
+  (define 1-pos (find-tag p0 '->1))
+  (define margin 50)
+  (parameterize ((current-font-size (- (current-font-size) 10)))
+    (ppict-do
+      p0
+      #:go (at-find-pict H-pos lt-find 'rc #:abs-x (- margin))
+      (make-name-stack H*)
+      #:go (at-find-pict E-pos rt-find 'lc #:abs-x margin)
+      (make-name-stack E*)
+      #:go (at-find-pict 1-pos lt-find 'rt #:abs-x (- margin))
+      (if (null? 1*)
+        (blank)
+        (vc-append 30
+                   (t "Reticulated")
+                   (make-name-stack (filter-not/name "Reticulated" 1*))))
+      #:set (let ((p ppict-do-state)
+                  (HE-pict (make-name-stack HE-system*))
+                  (1E-pict (make-name-stack 1E-system*)))
+              (pin-line
+                (pin-line
+                  p
+                  H-pos rc-find E-pos lt-find
+                  #:y-adjust-label (- (/ (pict-height HE-pict) 2))
+                  #:style (if (null? HE-system*) 'transparent 'short-dash)
+                  #:label HE-pict)
+                1-pos rc-find E-pos lb-find
+                #:y-adjust-label (pict-height 1E-pict)
+                #:style (if (null? 1E-system*) 'transparent 'short-dash)
+                #:label 1E-pict)))))
+
+(define (make-name-stack gt*)
+  (make-stack #:v 10 #:bg (blank) (map gt-system-name gt*)))
 
 (define (transient-dyn-slide)
   (pslide
@@ -530,6 +576,21 @@
 
 (define (small-tau-icon)
   (t "τ"))
+
+(define (large-tau-icon)
+  (text "τ" (current-main-font) (+ 10 (current-font-size))))
+
+(define (small-lambda-icon)
+  (make-icon lambda-icon #:height 40))
+
+(define (large-lambda-icon)
+  (make-icon lambda-icon #:height 90))
+
+(define (make-large-focus-icon)
+  (make-icon magnifying-glass-icon #:height 90))
+
+(define (make-small-focus-icon)
+  (make-icon magnifying-glass-icon #:height 50))
 
 (define (make-icon i #:height h)
   (bitmap (i #:material plastic-icon-material #:height h)))
@@ -577,14 +638,16 @@
   (vc-append (t title)
              (make-stack txt* #:color c)))
 
-(define (make-mixed-typed-program num-types)
-  (define h 100)
-  (random-seed 11)
+(define (make-mixed-typed-program num-types #:height [h 100])
+  (random-seed 12)
+  (define x* (linear-seq 0.1 0.9 num-types))
+  (define y* (shuffle x*))
   (ppict-do
     (file-icon (* FILE-RATIO h) h "honeydew")
     #:set (for/fold ((p ppict-do-state))
-                    ((_ (in-range num-types)))
-            (ppict-add (ppict-go p (coord (random) (random))) (small-tau-icon)))))
+                    ((x (in-list x*))
+                     (y (in-list y*)))
+            (ppict-add (ppict-go p (coord x y)) (small-tau-icon)))))
 
 (define (make-overhead-plot e*)
   (define w 500)

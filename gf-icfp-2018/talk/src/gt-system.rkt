@@ -44,6 +44,8 @@
       (-> (>=/c 0) (listof gt-system?) (listof gt-system?))]
     [filter-not/perf
       (-> (>=/c 0) (listof gt-system?) (listof gt-system?))]
+    [filter-not/name
+      (-> string? (listof gt-system?) (listof gt-system?))]
     [gt-system-source<
       (-> gt-system-source? gt-system-source? boolean?)]
     )
@@ -118,6 +120,7 @@
 (define filter/source (make-filter gt-system-source))
 (define filter/perf (make-filter gt-system-perf >=))
 (define filter-not/perf (make-filter gt-system-perf >= #true))
+(define filter-not/name (make-filter gt-system-name string=? #true))
 
 ;; -----------------------------------------------------------------------------
 
@@ -328,8 +331,17 @@
                   #:perf 1
                   #:url "https://www.microsoft.com/en-us/research/publication/safe-efficient-gradual-typing-for-typescript-3"))
 
+(define titan
+  (make-gt-system #:name "Titan"
+                  #:year 2018
+                  #:host "Lua"
+                  #:from 'A
+                  #:embedding '1
+                  #:perf 1
+                  #:url "https://github.com/titan-lang"))
+
 (define all-system*
-  (list gradualtalk typed-racket tpd strongscript actionscript mypy
+  (list gradualtalk typed-racket tpd strongscript #;actionscript mypy titan
         flow hack pyre pytype rtc strongtalk typescript typed-clojure typed-lua
         pyret thorn dart2 dart1 nom pycket reticulated safets))
 
