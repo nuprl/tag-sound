@@ -5,6 +5,7 @@
 ;; TODO
 ;; - if NEPLS, need to clarify there's a paper here ... also 17 min
 ;; - page numbers, customize! (pslide macro?)
+;; - add micro/macro dyn/not knobs for ICFP
 
 (require
   "src/gt-system.rkt"
@@ -77,15 +78,18 @@
                  #;[*current-tech* #true]
                 )
     (void)
-    ;(sec:title)
-    ;(sec:folklore-I)
-    ;(sec:gt-landscape)
-    ;(sec:main-result)
-    ;(sec:embeddings)
-    ;(sec:implementation)
+    (sec:title)
+    (sec:folklore-I)
+    (sec:gt-landscape)
+    (sec:main-result)
+    (sec:embeddings)
+    (sec:implementation)
     (sec:graph)
     (sec:conclusion)
-    (sec:folklore-II)
+    ;(sec:folklore-II)
+    (pslide
+      (make-section-header "The End"))
+    (main-results-slide)
     (sec:extra)
     (void)))
 
@@ -304,7 +308,7 @@
 
 (define (sec:implementation)
   (pslide
-    (make-section-header "Implementation"))
+    (make-section-header "Experiment"))
   (pslide
     #:alt [(make-embeddings-pict all-system*)]
     (make-embeddings-pict all-system* new-system*))
@@ -334,9 +338,9 @@
   (pslide
     #:title "Experiment"
     ;; TODO show details? names? size? yes please a table would be great
-    @t{10 benchmark programs}
-    @t{(range of sizes)}
-    @t{Measure all mixed-typed combinations})
+    @item{10 benchmark programs, 2-10 modules each}
+    @item{Measure all mixed-typed combinations}
+    @item{Compare overhead to untyped})
   (void))
 
 (define (sec:graph)
@@ -353,30 +357,52 @@
   (void))
 
 (define (sec:conclusion)
+  (define-values [w h] (two-column-dims))
   (pslide
     (make-section-header "Conclusions")
     #:next
     @t{for: theory, systems, practice})
   (pslide
     #:title "Conclusions: for Theoreticians"
-    @item{Soundness for a pair of languages is different than soundness for one language; requires a pair of theorems}
-    @item{Useful to model different systems as different semantics instead of different compilers}
-    @item{Compare semantics via simulation proofs}
-    ;; what does confined, or Siek/Wadler, do to compare?
+    (hc-append
+      (ppict-do
+        (blank w h)
+        #:go (coord 1/10 3/10 'lt)
+        @t{Soundness for a pair of languages}
+        @t{is different than soundness for}
+        @t{one language!})
+  ;; @item{Useful to model different systems as different semantics instead of different compilers}
+  ;  @item{Compare semantics via simulation proofs}
+  ;  ;; what does confined, or Siek/Wadler, do to compare?
+      (scale-to-fit
+        (make-boundary-pict #:h 2/7 #:left (large-tau-icon) #:right (large-lambda-icon))
+        w h))
     )
   (pslide
-    #:title "Conclusion: for Language Builders"
-    @item{higher-order : large cost at boundaries, enables full optimizations}
-    @item{first-order (with untyped values) : small cost in typed code, can trust type constructors}
-    ;; confident can work for micro-benchmarks, less sure itll scale
-    @item{More to learn!}
-    )
+    #:title "Conclusions: for Language Implementors"
+    (hc-append
+      (ppict-do
+        (blank w h)
+        #:go (coord 1/10 3/10 'lt)
+        @t{- How to predict overhead?}
+        #:go (coord 1/10 4/10 'lt)
+        @t{- Possible to change}
+        @t{  landscape?})
+      (scale-to-fit
+        (make-overhead-plot '(H E 1))
+        w h)))
   (pslide
     #:title "Conclusion: for Programmers"
-    @item{Erasure (and others) helps for writing code}
-    @item{Higher-order helps debugging}
-    @item{First-order is a best effort}
-    )
+    #:go (coord 1/10 1/5 'lt)
+    @t{Invariants help catch bugs}
+    #:go (coord 1/10 2/5 'lt)
+    (hc-append 20 (scale (make-H-box) 3/4) @t{enforces types})
+    #:go (coord 1/10 3/5 'lt)
+    (hc-append 20 (scale (make-E-box) 3/4) @t{enforces nothing})
+    #:go (coord 1/10 4/5 'lt)
+    (hc-append 20 (scale (make-1-box) 3/4) @t{enforces type constructors})
+    ;#:go (coord 1/10 6/10 'lt)
+    #;@t{Many examples in the paper})
   (void))
 
 (define (sec:folklore-II)
@@ -390,9 +416,6 @@
     @item{Enforcing soundness adds a cost}
     ;; @item{Perf ~ Inv(t) * Opt/Dyn} ;; is this pundit equation really going to help anyone? this is still supposed to be a science talk
     )
-  (pslide
-    (make-section-header "The End"))
-  (main-results-slide)
   (void))
 
 (define (sec:extra)
@@ -405,9 +428,11 @@
 
 ;; -----------------------------------------------------------------------------
 
+(define (two-column-dims)
+  (values (/ client-w 2) (* 3/4 client-h)))
+
 (define (main-results-slide)
-  (define w (/ client-w 2))
-  (define h (* 3/4 client-h))
+  (define-values [w h] (two-column-dims))
   (define p/2 (blank w h))
   (pslide
     #:title "Contributions"
