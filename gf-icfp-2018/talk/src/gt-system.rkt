@@ -331,6 +331,24 @@
                   #:perf 1
                   #:url "https://www.microsoft.com/en-us/research/publication/safe-efficient-gradual-typing-for-typescript-3"))
 
+(define grace
+  (make-gt-system #:name "Grace"
+                  #:year 2010
+                  #:host "Grace"
+                  #:from 'A
+                  #:embedding '1
+                  #:perf 1
+                  #:url "http://gracelang.org/applications/home"))
+
+(define pallene
+  (make-gt-system #:name "Pallene"
+                  #:year 2018
+                  #:host "Lua"
+                  #:from 'A
+                  #:embedding '1
+                  #:perf 1
+                  #:url "https://github.com/pallene-lang"))
+
 (define titan
   (make-gt-system #:name "Titan"
                   #:year 2018
@@ -341,9 +359,9 @@
                   #:url "https://github.com/titan-lang"))
 
 (define all-system*
-  (list gradualtalk typed-racket tpd strongscript #;actionscript mypy titan
-        flow hack pyre pytype rtc strongtalk typescript typed-clojure typed-lua
-        pyret thorn dart2 dart1 nom pycket reticulated safets))
+  (list gradualtalk typed-racket tpd strongscript #;actionscript mypy pallene
+        grace flow hack pyre pytype rtc strongtalk typescript typed-clojure
+        typed-lua pyret thorn dart2 dart1 nom pycket reticulated safets))
 
 (define tr-e
   (make-gt-system #:name "TR-E"
