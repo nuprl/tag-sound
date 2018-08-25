@@ -8,100 +8,65 @@
 ;; - add micro/macro dyn/not knobs for ICFP
 
 (require
-  "src/gt-system.rkt"
+  "src/gt-system.rkt" "src/constant.rkt"
   pict pict/convert
   ppict/2
   scribble-abbrevs/pict
   slideshow-text-style
   slideshow/code
   plot/no-gui plot/utils
-  racket/draw racket/runtime-path
-  images/icons/arrow images/icons/control images/icons/misc images/icons/symbol images/icons/style
-  (only-in racket/list make-list flatten))
+  racket/draw
+  racket/list
+  images/icons/arrow images/icons/control images/icons/misc images/icons/symbol images/icons/style)
 
 ;; =============================================================================
 
-(define PAGENUM #true)
-(define TITLESTR "A Spectrum of Type Soundness and Performance")
-
-(define (string->color str)
-  (or (send the-color-database find-color str)
-      (raise-argument-error 'string->color "color-name?" str)))
-
-(define (triplet->color rgb)
-  (make-object color% (car rgb) (cadr rgb) (caddr rgb)))
-
-(define BROWN (string->color "chocolate"))
-(define GREEN (string->color "mediumseagreen"))
-(define BLUE (string->color "cornflowerblue"))
-(define LIGHT-BLUE (string->color "Lavender"))
-(define DARK-BLUE syntax-icon-color)
-(define RED (string->color "firebrick"))
-(define LIGHT-RED (string->color "Tomato"))
-(define WHITE (string->color "Snow"))
-(define RAY-COLOR RED)
-(define BOX-COLOR (string->color "bisque"))
-(define FF-COLOR (string->color "forestgreen"))
-(define BLACK (string->color "black"))
-(define GREY (string->color "gray"))
-(define DARK-GREY (string->color "DarkSlateGray"))
-(define DYN-COLOR DARK-GREY)
-(define DYN-TEXT-COLOR (string->color light-metal-icon-color))
-(define STAT-COLOR (string->color "Pink"))
-(define HIGHLIGHT-COLOR (string->color "DarkViolet"))
-
-(define FILE-RATIO 5/6) ;; TODO nonsense
-(define PLOT-RATIO 3/4) ;; TODO nonsense
-
-(define (make-> str)
-  (define tag (string->symbol (format "->~a" str)))
-  (tag-pict (text (format "→~a" str) '() 20) tag))
-
-(define ->racket (make-> "racket")) ;; TODO racket logo
-(define ->H (make-> "H"))
-(define ->E (make-> "E"))
-(define ->1 (make-> "1"))
-
-(define-syntax-rule (define-static-pict pict-name pict-path)
-  (begin
-    (define-runtime-path internal-pict-name pict-path)
-    (define pict-name (scale-to-fit (bitmap internal-pict-name) 80 80))))
-
-(define-static-pict racket-logo "./src/racket-logo.png")
-(define-static-pict neu-logo "./src/neu-seal.png")
+;; -----------------------------------------------------------------------------
 
 (define (do-show)
   (set-page-numbers-visible! PAGENUM)
-  (parameterize ([current-main-font "Avenir"]
+  (parameterize ([current-main-font MONO-FONT]
                  [current-font-size 32]
-                 #;[current-titlet string->title]
+                 [current-titlet string->title]
                  #;[*current-tech* #true]
                 )
     (void)
     (sec:title)
-    (sec:folklore-I)
-    (sec:gt-landscape)
-    (sec:main-result)
-    (sec:embeddings)
-    (sec:implementation)
-    (sec:graph)
-    (sec:conclusion)
-    ;(sec:folklore-II)
-    (pslide
-      (make-section-header "The End"))
-    (main-results-slide)
-    (sec:extra)
+    ;(sec:folklore-I)
+    ;(sec:gt-landscape)
+    ;(sec:main-result)
+    ;(sec:embeddings)
+    ;(sec:implementation)
+    ;(sec:graph)
+    ;(sec:conclusion)
+    ;;(sec:folklore-II)
+    ;(pslide (make-section-header "The End"))
+    ;(main-results-slide)
+    ;(sec:extra)
     (void)))
 
 ;; -----------------------------------------------------------------------------
 
+(define (make-plt-title-background _w _h)
+  (define w (* 4/5 client-w))
+  (scale-to-fit (cellophane (bitmap racket-logo.png) WATERMARK-ALPHA) w w))
+
+(define (string->title str)
+  (colorize (text str (current-main-font) 55) BLACK))
+
 (define (sec:title)
   (pslide
-    ;; TODO racket-logo title slide ... make package for that
-    @text[TITLESTR (current-main-font) (+ (current-font-size) 10)]
-    @t{Ben Greenman & Matthias Felleisen}
-    (hc-append 40 @t{PLT} racket-logo)
-    (hc-append 40 @t{Northeastern University} neu-logo))
+    #:go (coord 1/5 2/5)
+    (make-plt-title-background client-w client-h)
+    #:go (coord 7/8 8/10)
+    (scale-to-fit (cellophane (bitmap neu-logo.png) WATERMARK-ALPHA) 300 300)
+    #:go (coord SLIDE-LEFT 1/2 'lb)
+    @string->title{A Spectrum of Type Soundness}
+    @string->title{and Performance}
+    #:go (coord SLIDE-RIGHT SLIDE-BOTTOM 'rb)
+    (vl-append 10
+               @t{Ben Greenman & Matthias Felleisen}
+               @t{Northeastern University}))
   (void))
 
 (define (sec:folklore-I)
@@ -791,6 +756,10 @@
 
 (define (dyn-text str)
   (text str (cons DYN-TEXT-COLOR (current-main-font)) (current-font-size)))
+
+(define (neu)
+  (hc-append 40 @t{Northeastern University}
+             (scale-to-fit (bitmap neu-logo.png) 60 60)))
 
 ;; =============================================================================
 

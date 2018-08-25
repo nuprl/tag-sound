@@ -11,7 +11,6 @@ preview: compile test
 
 test: compile
 	@${RACO} test src/gt-system.rkt
-	@${RACO} test ${TALK}
 
 show: compile
 	@${RACO} slideshow ${TALK}
