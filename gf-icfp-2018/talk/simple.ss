@@ -9,7 +9,7 @@
 
 (require
   "src/gt-system.rkt" "src/constant.rkt"
-  pict pict/convert
+  pict pict/convert pict/balloon
   ppict/2
   scribble-abbrevs/pict
   slideshow-text-style
@@ -31,15 +31,15 @@
                  #;[*current-tech* #true]
                 )
     (void)
-    (sec:title)
-    ;(sec:folklore-I)
+    ;(sec:title)
+    (sec:folklore-I)
     ;(sec:gt-landscape)
     ;(sec:main-result)
     ;(sec:embeddings)
     ;(sec:implementation)
     ;(sec:graph)
     ;(sec:conclusion)
-    ;;(sec:folklore-II)
+    (sec:folklore-II)
     ;(pslide (make-section-header "The End"))
     ;(main-results-slide)
     ;(sec:extra)
@@ -70,13 +70,7 @@
   (void))
 
 (define (sec:folklore-I)
-  (pslide
-    #:title "Folklore"
-    ;; TODO think about these, then ask matthias
-    @item{Type soundness is all-or-nothing}
-    @item{Adding types can only improve performance}
-    @comment{
-    })
+  (make-folklore-slide)
   (void))
 
 (define (group-gt-systems-by sel <)
@@ -371,16 +365,7 @@
   (void))
 
 (define (sec:folklore-II)
-  (pslide
-    #:title "Folklore"
-    @item{Type soundness is all-or-nothing}
-    @item{Adding types can only improve performance})
-  (pslide
-    #:title "Revised Folklore"
-    @item{Type soundness is about invariants, may not be desirable} ;; TODO re-word
-    @item{Enforcing soundness adds a cost}
-    ;; @item{Perf ~ Inv(t) * Opt/Dyn} ;; is this pundit equation really going to help anyone? this is still supposed to be a science talk
-    )
+  (make-folklore-slide #:answers? #true)
   (void))
 
 (define (sec:extra)
@@ -760,6 +745,66 @@
 (define (neu)
   (hc-append 40 @t{Northeastern University}
              (scale-to-fit (bitmap neu-logo.png) 60 60)))
+
+(define make-folklore-slide
+  (let ([q1 "Is type soundness all-or-nothing?"]
+        [q1-h 2/10]
+        [a1 '("What invariants should the" "language guarantee?")]
+        ;;
+        [q2 "Can adding types slow down a program?"]
+        [q2-h 5/10]
+        [a2 '("Yes, through interaction with" "untyped code (or data)")])
+    (lambda (#:answers? [answers? #false])
+      (if answers?
+        (pslide
+          #:go (coord SLIDE-LEFT q1-h 'lt)
+          (make-rumor-pict 'left q1)
+          #:go (coord SLIDE-LEFT q2-h 'lt)
+          (make-rumor-pict 'left q2)
+          #:next
+          #:go (coord SLIDE-RIGHT 31/100 'rt)
+          (make-rumor-pict 'right a1)
+          #:go (coord SLIDE-RIGHT 61/100 'rt)
+          (make-rumor-pict 'right a2))
+        (pslide
+          #:go (coord SLIDE-LEFT q1-h 'lt)
+          (make-rumor-pict 'left q1)
+          #:go (coord SLIDE-LEFT q2-h 'lt)
+          (make-rumor-pict 'left q2))))))
+
+(define (set-alpha c a)
+  (make-object color% (send c red) (send c green) (send c blue) a))
+
+(define q-color
+  (set-alpha (string->color "LemonChiffon") WATERMARK-ALPHA))
+
+(define a-color
+  (string->color "AliceBlue"))
+
+(define (string*->text str*)
+  (if (string? str*)
+    (t str*)
+    (apply vl-append (map string*->text str*))))
+
+(define (make-rumor-pict direction str*)
+  (define balloon-tail-param 8)
+  (define-values [spike +- c]
+    (case direction
+      [(left)
+       (values 'sw - q-color)]
+      [(right)
+       (values 'se + a-color)]
+      [else
+       (raise-argument-error 'make-rumor-pict "direction?" direction)]))
+  (define str-pict (string*->text str*))
+  (define str-w (pict-width str-pict))
+  (define str-h (pict-height str-pict))
+  (define balloon-w (+ str-w 70))
+  (define balloon-h (+ str-h 40))
+  (ppict-do
+    (balloon-pict (balloon balloon-w balloon-h balloon-tail-param spike (+- balloon-tail-param) balloon-tail-param c))
+    #:go (coord 1/20 1/2 'lc)
+    str-pict))
 
 ;; =============================================================================
 
