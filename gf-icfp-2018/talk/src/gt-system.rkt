@@ -360,8 +360,9 @@
 
 (define all-system*
   (list gradualtalk typed-racket tpd strongscript #;actionscript mypy pallene
-        grace flow hack pyre pytype rtc strongtalk typescript typed-clojure
-        typed-lua pyret thorn dart2 dart1 nom pycket reticulated safets))
+        grace flow hack pyre pytype rtc safets strongtalk typescript
+        typed-clojure typed-lua pyret thorn dart1 dart2 nom pycket
+        reticulated))
 
 (define tr-e
   (make-gt-system #:name "TR-E"

@@ -68,3 +68,20 @@
 (define MONO-FONT "Triplicate T4s")
 
 (define WATERMARK-ALPHA 1/5)
+
+(define (set-alpha c a)
+  (make-object color% (send c red) (send c green) (send c blue) a))
+
+(define q-color
+  (set-alpha (string->color "LemonChiffon") WATERMARK-ALPHA))
+
+(define a-color
+  (string->color "AliceBlue"))
+
+(define TITLE-FONT "Fira Sans, Heavy")
+
+(define POOL-TAG 'pool)
+(define STAT-TAG 'stat-file)
+(define DYN-TAG 'dyn-file)
+(define POOL-X-BASE 30)
+(define POOL-Y-BASE 60)

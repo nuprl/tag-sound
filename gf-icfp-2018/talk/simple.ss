@@ -39,7 +39,7 @@
     ;(sec:implementation)
     ;(sec:graph)
     ;(sec:conclusion)
-    (sec:folklore-II)
+    ;(sec:folklore-II)
     ;(pslide (make-section-header "The End"))
     ;(main-results-slide)
     ;(sec:extra)
@@ -52,7 +52,7 @@
   (scale-to-fit (cellophane (bitmap racket-logo.png) WATERMARK-ALPHA) w w))
 
 (define (string->title str)
-  (colorize (text str (current-main-font) 55) BLACK))
+  (colorize (text str TITLE-FONT 55) BLACK))
 
 (define (sec:title)
   (pslide
@@ -61,8 +61,8 @@
     #:go (coord 7/8 8/10)
     (scale-to-fit (cellophane (bitmap neu-logo.png) WATERMARK-ALPHA) 300 300)
     #:go (coord SLIDE-LEFT 1/2 'lb)
-    @string->title{A Spectrum of Type Soundness}
-    @string->title{and Performance}
+    @titlet{A Spectrum of Type Soundness}
+    @titlet{and Performance}
     #:go (coord SLIDE-RIGHT SLIDE-BOTTOM 'rb)
     (vl-append 10
                @t{Ben Greenman & Matthias Felleisen}
@@ -73,74 +73,38 @@
   (make-folklore-slide)
   (void))
 
-(define (group-gt-systems-by sel <)
-  (define g** (filter-not null? (group-by sel all-system*)))
-  (sort g** < #:key (compose1 sel car)))
-
-(define (make-categories-pict title sel elem< #:show-label? [pre-show-label? #true])
-  (define title-pict (t (format "Typed/Untyped Languages (~a)" title)))
-  (define gt** (group-gt-systems-by sel elem<))
-  (define num-groups (length gt**))
-  (define show-label? (if (< num-groups 10) pre-show-label? #f))
-  (define names-v10 9)
-  (define names-v1 (/ names-v10 10))
-  (define-values [nat->x nat->y]
-    (cond
-      [(< num-groups 4)
-       (define x-offset (/ 1 (+ 1 num-groups)))
-       (values (lambda (x)
-                 (* x-offset x))
-               (lambda (y)
-                 (- 1 names-v1)))]
-      [else
-       (define x-offset (/ 1 (+ 1 num-groups)))
-       (values (lambda (x)
-                 (* x-offset x))
-               (lambda (y)
-                 (- names-v1 (/ (+ 1 (modulo (+ 2 (* 3 y)) names-v10)) 10))))]))
-  (parameterize ((current-font-size (- (current-font-size) 10)))
-    (vl-append
-      title-pict
-      (ppict-do
-        (make-gtspace-bg)
-        #:set (for/fold ((p ppict-do-state))
-                        ((i (in-naturals 1))
-                         (gt* (in-list gt**)))
-                (define cat (sel (car gt*)))
-                (define name* (make-stack #:v 10 #:bg (blank) (map gt-system-name gt*)))
-                (define x-pos (nat->x i))
-                (define y-pos (nat->y i))
-                (ppict-add
-                  (ppict-go
-                    (if show-label?
-                      (ppict-add (ppict-go p (coord x-pos 0.04))
-                                 (add-border (t (format "~a" cat))))
-                      p)
-                    (coord x-pos y-pos 'ct))
-                  name*))))))
-
 (define (sec:gt-landscape)
   (define lambda-pict (large-lambda-icon))
   (define tau (large-tau-icon))
   (define dyn-file (make-dyn-file lambda-pict))
   (pslide
     (make-section-header "Migratory Typing"))
+  ;(pslide
+  ;  #:go (coord 1/2 1/2)
+  ;  #:alt [dyn-file
+  ;         #:next
+  ;         #:go (at-find-pict 'dyn-file lc-find 'rc)
+  ;         tau]
+  ;  (hc-append 40 (make-stat-file tau) dyn-file))
+  (make-gtspace-slide)
+  (make-gtspace-slide
+    all-system*)
+  (make-gtspace-slide
+    all-system*
+    #:title '("by Date" "Oldest" "Newest")
+    #:layout year-gt-layout)
+
+
+  ;  #:alt [(make-gtspace-bg)]
+  ;  #:alt [(make-categories-pict #f eq-hash-code <=)]
+  ;  #:alt [(make-categories-pict "by Date" gt-system-year <=)]
+  ;  #:alt [(make-categories-pict "by Host Language" gt-system-host-lang (lambda (x y) #t))]
+  ;  #:alt [(make-categories-pict "Academia vs. Industry" gt-system-source gt-system-source< #:show-label? #false)]
+  ;  #:alt [(make-categories-pict "Sound vs. Unsound" gt-system-embedding%E (lambda (x y) (eq? y 'E)) #:show-label? #false)]
+  ;  (make-categories-pict "Alive vs. Dead" gt-system-name%TR (lambda (x y) (string=? y "Typed Racket")) #:show-label? #false))
   (pslide
-    #:go (coord 1/2 1/2)
-    #:alt [dyn-file
-           #:next
-           #:go (at-find-pict 'dyn-file lc-find 'rc)
-           tau]
-    (hc-append 40 (make-stat-file tau) dyn-file))
-  (pslide
-    #:alt [(make-categories-pict "by Date" gt-system-year <)]
-    #:alt [(make-categories-pict "by Host Language" gt-system-host-lang (lambda (x y) #t))]
-    #:alt [(make-categories-pict "Academia vs. Industry" gt-system-source gt-system-source< #:show-label? #false)]
-    #:alt [(make-categories-pict "Sound vs. Unsound" gt-system-embedding%E (lambda (x y) (eq? y 'E)) #:show-label? #false)]
-    (make-categories-pict "Alive vs. Dead" gt-system-name%TR (lambda (x y) (string=? y "Typed Racket")) #:show-label? #false))
-  (pslide
-    ;; TODO prettier
-    @t{Chaos!})
+    ;; TODO prettier ... outline-flash ?
+    @titlet{Chaos!})
   (void))
 
 (define (sec:main-result)
@@ -465,10 +429,118 @@
 (define (make-dyn-file [super #f])
   (maybe-superimpose (tag-pict (make-component-file DYN-COLOR) 'dyn-file) super))
 
-(define (make-gtspace-bg)
-  (define mw (* 2 margin))
-  (define mh (* 4 mw))
-  (cellophane (filled-rectangle (- client-w mw) (- client-h mh) #:color "darkcyan") 0.2))
+(define (gt->pict gt)
+  (define txt-p (text (gt-system-name gt) (current-main-font) 22))
+  (define w (+ 10 (pict-width txt-p)))
+  (define h (+ 10 (pict-height txt-p)))
+  (cc-superimpose
+    (filled-rectangle w h #:color "Gainsboro" #;"Light Steel Blue" #;"Orange")
+    txt-p))
+
+(define (add-gt-system* base gt* [pre-f-layout #f])
+  (define gt-layout (or pre-f-layout random-gt-layout))
+  (ppict-do base #:set (gt-layout ppict-do-state gt*)))
+
+(define (random-gt-layout base gt*)
+  (define p* (map gt->pict gt*))
+  (define-values [base-w base-h] (values (pict-width base) (pict-height base)))
+  (define x-sep 20)
+  (define y-sep 100)
+  (define x-base POOL-X-BASE)
+  (define y-base POOL-Y-BASE)
+  (for/fold ((acc base)
+             (prev-x #false)
+             (prev-y #false)
+             #:result acc)
+            ((p (in-list p*)))
+          (define-values [x y align]
+            (cond
+              [(and prev-x (<= (+ prev-x (pict-width p)) base-w))
+               (values prev-x prev-y (random-l-align))]
+              [else
+               (values x-base (if prev-y (+ prev-y y-sep) y-base) (random-l-align))]))
+          (define c (coord (/ x base-w) (/ y base-h) align))
+          (values (ppict-do acc #:go c p) (+ x (pict-width p) x-sep) y)))
+
+(define (year-gt-layout base gt*)
+  (define gt**
+    ;; ad-hoc shuffling
+    (let ((gt** (group-gt-systems-by gt* gt-system-year <=)))
+      (for/list ((gt* (in-list gt**)))
+        (define n* (map gt-system-name gt*))
+        (cond
+          [(member "Typed Lua" n*)
+           (define (name<= a b)
+             (string=? b "Typed Lua"))
+           (sort gt* name<= #:key gt-system-name)]
+          [(member "Flow" n*)
+           (define (name<= a b)
+             (string=? a "Flow"))
+           (sort gt* name<= #:key gt-system-name)]
+          [else
+           gt*]))))
+  (define x-base (/ POOL-X-BASE (pict-width base)))
+  (define y-base (/ POOL-X-BASE (pict-height base)))
+  (define x-offset (/ 1 (add1 (length gt**))))
+  (define (get-y i)
+    (vector-ref '#(0 8/30 19/30) (modulo i 3)))
+  (ppict-do
+    base
+    #:set (for/fold ((acc ppict-do-state))
+                    ((g* (in-list gt**))
+                     (i (in-naturals)))
+            (ppict-do
+              acc
+              #:go (coord (+ x-base (* i x-offset)) (+ y-base (get-y i)) 'lt)
+              (apply vc-append 8 (map gt->pict g*))))))
+
+(define (label-text str)
+  (define b (blank 10 0))
+  (hc-append b (text str TITLE-FONT 26) b))
+
+(define (make-gtspace-bg gt* [gt-layout #f])
+  (define h (- client-h (* 2 1/5 client-h)))
+  (define w (- client-w (* 2 SLIDE-LEFT client-w)))
+  (cc-superimpose
+    (cellophane (filled-rectangle (+ (* 2 margin) client-w) (+ margin h) #:color "DarkKhaki") 0.4)
+    (add-gt-system* (filled-rounded-rectangle w h -1/5 #:color "AliceBlue") gt* gt-layout)))
+
+(define (make-gtspace-slide [gt* '()] #:title [title #f] #:layout [gt-layout #f])
+  (define top-margin -6)
+  (define x-margin 40)
+  (define arrow-size 12)
+  (pslide
+    #:go (coord SLIDE-LEFT SLIDE-TOP 'lb)
+    (text "Typed/Untyped Languages" TITLE-FONT 50)
+    #:go (coord 1/2 1/2)
+    (tag-pict (make-gtspace-bg gt* gt-layout) POOL-TAG)
+    #:set (let ((p ppict-do-state))
+            (if title
+              (let ([left-label (label-text (cadr title))]
+                    [right-label (label-text (caddr title))]
+                    [center-label (label-text (car title))])
+                (ppict-do p
+                          #:go (at-find-pict POOL-TAG lt-find 'lb #:abs-y top-margin #:abs-x x-margin)
+                          left-label
+                          #:go (at-find-pict POOL-TAG rt-find 'rb #:abs-y top-margin #:abs-x (- x-margin))
+                          right-label
+                          #:go (at-find-pict POOL-TAG ct-find 'cb #:abs-y top-margin)
+                          center-label
+                          #:set (let ((p ppict-do-state))
+                                  (pin-arrow-line
+                                    arrow-size
+                                    (pin-arrow-line
+                                      arrow-size
+                                      p
+                                      center-label
+                                      lc-find
+                                      left-label
+                                      rc-find)
+                                    center-label
+                                    rc-find
+                                    right-label
+                                    lc-find))))
+              p))))
 
 (define (make-base-embeddings-pict highlight)
   (ppict-do
@@ -668,6 +740,22 @@
                      (y (in-list y*)))
             (ppict-add (ppict-go p (coord x y)) (small-tau-icon)))))
 
+(define random-l-align
+  (let ((state (box 0))
+        (a* '#(lt lc lb)))
+    (lambda ()
+      (vector-ref a* (begin0 (modulo (unbox state) 3)
+                             (set-box! state (+ (unbox state) 1))))))
+  #;(case (random 3)
+    [(0)
+     'lt]
+    [(1)
+     'lc]
+    [(2)
+     'lb]
+    [else
+     (raise-user-error 'random-l-align "bad")]))
+
 (define (make-overhead-plot e*)
   (define w 500)
   (define x-min 0)
@@ -740,7 +828,7 @@
       (set-box! ix (add1 i))
       (cc-superimpose
         (rectangle/2t (client-w/margin) 300 #:color-1 (triplet->color (->brush-color i)) #:color-2 "white")
-        (text str "Fira Sans, Heavy" 60)))))
+        (titlet str)))))
 
 (define (gt-system-name%TR gt)
   (define n (gt-system-name gt))
@@ -787,15 +875,6 @@
           #:go (coord SLIDE-LEFT q2-h 'lt)
           (make-rumor-pict 'left q2))))))
 
-(define (set-alpha c a)
-  (make-object color% (send c red) (send c green) (send c blue) a))
-
-(define q-color
-  (set-alpha (string->color "LemonChiffon") WATERMARK-ALPHA))
-
-(define a-color
-  (string->color "AliceBlue"))
-
 (define (string*->text str*)
   (if (string? str*)
     (t str*)
@@ -820,6 +899,52 @@
     (balloon-pict (balloon balloon-w balloon-h balloon-tail-param spike (+- balloon-tail-param) balloon-tail-param c))
     #:go (coord 1/20 1/2 'lc)
     str-pict))
+
+(define (group-gt-systems-by gt* sel <)
+  (define g** (filter-not null? (group-by sel gt*)))
+  (sort g** < #:key (compose1 sel car)))
+
+(define (make-categories-pict title sel elem< #:show-label? [pre-show-label? #true])
+  (define title-pict (t (format "Typed/Untyped Languages~a" (if title (string-append " (" title ")") ""))))
+  (define gt** (group-gt-systems-by sel elem<))
+  (define num-groups (length gt**))
+  (define show-label? (if (< num-groups 10) pre-show-label? #f))
+  (define names-v10 9)
+  (define names-v1 (/ names-v10 10))
+  (define-values [nat->x nat->y]
+    (cond
+      [(< num-groups 4)
+       (define x-offset (/ 1 (+ 1 num-groups)))
+       (values (lambda (x)
+                 (* x-offset x))
+               (lambda (y)
+                 (- 1 names-v1)))]
+      [else
+       (define x-offset (/ 1 (+ 1 num-groups)))
+       (values (lambda (x)
+                 (* x-offset x))
+               (lambda (y)
+                 (- names-v1 (/ (+ 1 (modulo (+ 2 (* 3 y)) names-v10)) 10))))]))
+  (parameterize ((current-font-size (- (current-font-size) 10)))
+    (vl-append
+      title-pict
+      (ppict-do
+        (make-gtspace-bg)
+        #:set (for/fold ((p ppict-do-state))
+                        ((i (in-naturals 1))
+                         (gt* (in-list gt**)))
+                (define cat (sel (car gt*)))
+                (define name* (make-stack #:v 10 #:bg (blank) (map gt-system-name gt*)))
+                (define x-pos (nat->x i))
+                (define y-pos (nat->y i))
+                (ppict-add
+                  (ppict-go
+                    (if show-label?
+                      (ppict-add (ppict-go p (coord x-pos 0.04))
+                                 (add-border (t (format "~a" cat))))
+                      p)
+                    (coord x-pos y-pos 'ct))
+                  name*))))))
 
 ;; =============================================================================
 
