@@ -7,9 +7,9 @@ TODO
 [X] draft keynote slides
 [ ] draft slideshow slides
 [ ] give presentation
-  - torture (2018-08-24 10:00am NEU 366 WVH)
-  - nepls   (2018-08-27 10:00am Harvard G115)
-  - icfp
+  - [X] torture (2018-08-24 10:00am NEU 366 WVH)
+  - [ ] nepls   (2018-08-27 10:00am Harvard G115)
+  - [ ] icfp
 [ ] blog post
 
 - clarify, don't actually have semantics for everything in the figure
@@ -48,7 +48,19 @@ its performance; in other words a typed program might run faster if a compiler
 can leverage the types for now think about whether you believe these are true
 and we'll revisit near the end of the talk
 
+AS SCIENTISTS HAVE TO INVESTIGATE
+
 2
+Moving on, I'm intersted in migratory typing
+bring type systems research to bear on a dynamically typed language
+wind up with a language that mixes ..
+this is one angle on a more general problem of gradual typing, or rather combining
+static and dynamic typing, so its good to look to that area for inspiration
+
+and its a big space, here's just a few languages that allow static and dynamic
+code
+
+
 the paper is about languages that combine typed and untyped code
 here are the names of a few such languages
 there are a lot of names these are organized by date because

@@ -32,8 +32,8 @@
                 )
     (void)
     ;(sec:title)
-    (sec:folklore-I)
-    ;(sec:gt-landscape)
+    ;(sec:folklore-I)
+    (sec:gt-landscape)
     ;(sec:main-result)
     ;(sec:embeddings)
     ;(sec:implementation)
@@ -120,7 +120,18 @@
                   name*))))))
 
 (define (sec:gt-landscape)
-  ;; TODO add header slide? I think not
+  (define lambda-pict (large-lambda-icon))
+  (define tau (large-tau-icon))
+  (define dyn-file (make-dyn-file lambda-pict))
+  (pslide
+    (make-section-header "Migratory Typing"))
+  (pslide
+    #:go (coord 1/2 1/2)
+    #:alt [dyn-file
+           #:next
+           #:go (at-find-pict 'dyn-file lc-find 'rc)
+           tau]
+    (hc-append 40 (make-stat-file tau) dyn-file))
   (pslide
     #:alt [(make-categories-pict "by Date" gt-system-year <)]
     #:alt [(make-categories-pict "by Host Language" gt-system-host-lang (lambda (x y) #t))]
@@ -427,11 +438,9 @@
   (ppict-do
     (blank (/ client-w 2) (/ client-h 2))
     #:go (coord x-offset 1/2)
-    (let ([stat-pict (tag-pict (make-component-file STAT-COLOR) 'stat-file)])
-      (maybe-superimpose stat-pict left-pict))
+    (make-stat-file left-pict)
     #:go (coord (- 1 x-offset) 1/2)
-    (let ([dyn-pict (tag-pict (make-component-file DYN-COLOR) 'dyn-file)])
-      (maybe-superimpose dyn-pict right-pict))
+    (make-dyn-file right-pict)
     #:set (let ((p ppict-do-state))
             (if arrow-pict
               (pin-arrows-line 10 p
@@ -449,6 +458,12 @@
 (define (make-component-file c)
   (define h 180)
   (file-icon (* FILE-RATIO h) h c))
+
+(define (make-stat-file [super #f])
+  (maybe-superimpose (tag-pict (make-component-file STAT-COLOR) 'stat-file) super))
+
+(define (make-dyn-file [super #f])
+  (maybe-superimpose (tag-pict (make-component-file DYN-COLOR) 'dyn-file) super))
 
 (define (make-gtspace-bg)
   (define mw (* 2 margin))
