@@ -8,7 +8,7 @@
 ;; - add micro/macro dyn/not knobs for ICFP
 
 (require
-  "src/gt-system.rkt" "src/constant.rkt" "src/tau-icon.rkt"
+  "src/gt-system.rkt" "src/constant.rkt"
   pict pict/convert pict/balloon
   ppict/2
   scribble-abbrevs/pict
@@ -33,7 +33,7 @@
     (void)
     ;(sec:title)
     ;(sec:folklore-I)
-    ;(sec:gt-landscape)
+    (sec:gt-landscape)
     ;(sec:kafka) ;; shout out for NEPLS
     ;(sec:main-result)
     ;(sec:embeddings)
@@ -84,7 +84,7 @@
     #:go (coord 1/2 1/2)
     #:alt [dyn-file
            #:next
-           #:go (at-find-pict 'dyn-file lc-find 'rc)
+           #:go (at-find-pict 'dyn-file lc-find 'rc #:abs-x -10)
            tau]
     (hc-append 40 (make-stat-file tau) dyn-file))
   (make-gtspace-slide)
@@ -692,10 +692,13 @@
   (make-icon check-icon #:height 80))
 
 (define (small-tau-icon)
-  (t "τ"))
+  (make-icon tau-icon #:height 40))
 
 (define (large-tau-icon)
-  (text "τ" (current-main-font) (+ 10 (current-font-size))))
+  (make-icon tau-icon #:height 90))
+
+(define (tau-icon #:color [c TAU-COLOR] #:height [h (default-icon-height)] #:material [m (default-icon-material)])
+  (text-icon "t" (make-font #:weight 'bold) #:color c #:height h #:material m))
 
 (define (small-lambda-icon)
   (make-icon lambda-icon #:height 40))

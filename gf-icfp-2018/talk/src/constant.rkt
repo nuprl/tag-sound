@@ -46,6 +46,8 @@
 (define STAT-COLOR (string->color "Pink"))
 (define HIGHLIGHT-COLOR (string->color "DarkViolet"))
 
+(define TAU-COLOR "DarkGoldenrod")
+
 (define FILE-RATIO 5/6) ;; TODO nonsense
 (define PLOT-RATIO 3/4) ;; TODO nonsense
 
