@@ -8,7 +8,7 @@
 ;; - add micro/macro dyn/not knobs for ICFP
 
 (require
-  "src/gt-system.rkt" "src/constant.rkt"
+  "src/gt-system.rkt" "src/constant.rkt" "src/tau-icon.rkt"
   pict pict/convert pict/balloon
   ppict/2
   scribble-abbrevs/pict
@@ -33,7 +33,8 @@
     (void)
     ;(sec:title)
     ;(sec:folklore-I)
-    (sec:gt-landscape)
+    ;(sec:gt-landscape)
+    ;(sec:kafka) ;; shout out for NEPLS
     ;(sec:main-result)
     ;(sec:embeddings)
     ;(sec:implementation)
@@ -109,6 +110,14 @@
     ;; TODO prettier ... outline-flash ?
     @titlet{Chaos!})
   (void))
+
+(define (sec:kafka)
+  ;; TODO prettier
+  (pslide
+    #:go (coord SLIDE-LEFT 1/2 'lb)
+    @t{KafKa: Gradual Typing for Objects}
+    @t{Chung, Li, Zappa Nardelli, Vitek}
+    @t{ECOOP 2018}))
 
 (define (sec:main-result)
   (pslide
