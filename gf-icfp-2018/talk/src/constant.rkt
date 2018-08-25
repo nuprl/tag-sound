@@ -3,7 +3,7 @@
 (provide (all-defined-out))
 
 (require
-  images/icons/style
+  images/icons/style images/logos
   pict
   ppict/tag
   racket/class
@@ -57,14 +57,25 @@
 (define racket-logo (scale-to-fit (bitmap racket-logo.png) 80 80))
 (define neu-logo (scale-to-fit (bitmap neu-logo.png) 80 80))
 
+(define (arrow-text str)
+  (text str '() 20))
+
 (define (make-> str)
   (define tag (string->symbol (format "->~a" str)))
-  (tag-pict (text (format "→~a" str) '() 20) tag))
+  (tag-pict (arrow-text (format "→~a" str)) tag))
+
+(define make-TR->
+  (let ([tiny (bitmap (plt-logo #:height 20))])
+    (lambda (str)
+      (hc-append tiny (arrow-text str)))))
 
 (define ->racket (make-> "racket"))
 (define ->H (make-> "H"))
 (define ->E (make-> "E"))
 (define ->1 (make-> "1"))
+(define ->TR-H (make-TR-> "H"))
+(define ->TR-E (make-TR-> "E"))
+(define ->TR-1 (make-TR-> "1"))
 
 (define ALL-CAPS-FONT "Bebas Neue")
 (define MONO-FONT "Triplicate T4s")

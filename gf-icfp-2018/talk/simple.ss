@@ -33,9 +33,9 @@
     (void)
     ;(sec:title)
     ;(sec:folklore-I)
-    (sec:gt-landscape)
+    ;(sec:gt-landscape)
     ;(sec:kafka) ;; shout out for NEPLS
-    ;(sec:main-result)
+    (sec:main-result)
     ;(sec:embeddings)
     ;(sec:implementation)
     ;(sec:graph)
@@ -123,10 +123,13 @@
   (pslide
     (make-embeddings-pict))
   (pslide
-    #:go (coord 1/2 1/2)
-    #:alt [(make-mixed-typed-program 6 #:height 200)]
-    #:alt [(make-boundary-pict #:left (large-tau-icon) #:right (large-lambda-icon) #:arrow #false)]
-    (make-boundary-pict #:left (large-tau-icon) #:right (large-lambda-icon) #:arrow (make-large-focus-icon)))
+    #:go (coord 1/5 25/100 'lt)
+    (let ([box+text (lambda (b t) (hc-append 20 b t))])
+      (vl-append
+        20
+        (box+text (make-H-box) @t{higher-order semantics})
+        (box+text (make-E-box) @t{erasure semantics})
+        (box+text (make-1-box) @t{first-order semantics}))))
   (main-results-slide)
   (void))
 
@@ -371,28 +374,52 @@
 (define (main-results-slide)
   (define-values [w h] (two-column-dims))
   (define p/2 (blank w h))
+  (define y-base 15/100)
+  (define (smaller p) (scale-to-fit p (- w 80) (- h 80)))
+  (define tu-pict (hc-append 10 (make-stat-file (large-tau-icon)) (make-dyn-file (large-lambda-icon))))
+  (define model-pict
+    (smaller (make-1-on-3 tu-pict (make-H-box) (make-E-box) (make-1-box))))
+  (define impl-pict
+    (let* ((h (pict-height tu-pict))
+           (rkt-pict (scale-to-fit (bitmap racket-logo.png) h h)))
+      (smaller (make-1-on-3 rkt-pict (make-TR-H-box) (make-TR-E-box) (make-TR-1-box)))))
+  (define x-base (- SLIDE-LEFT 2/100))
+  (define (contrib*->pict str*)
+    (ppict-do
+      p/2
+      #:set (for/fold ((p ppict-do-state))
+                      ((str (in-list str*))
+                       (i (in-naturals)))
+              (ppict-do p
+                #:go (coord 0 (+ y-base (* i 1/10)) 'lt)
+                (t str)))))
+  (define (h-append a b #:x-shift [x 0])
+    (hc-append (+ x 10) a b))
   (pslide
-    #:title "Contributions"
-    #:go (coord 1/2 1/2)
-    (hc-append
-      (scale-to-fit
-        (vc-append -40
-          (make-boundary-pict #:h 2/7 #:left (large-tau-icon) #:right (large-lambda-icon))
-          (hc-append 40 (make-H-box) (make-E-box) (make-1-box)))
-        w h)
-      (ppict-do
-        p/2
-        #:go (coord 0 3/10 'lt)
-        @t{First systematic comparison of:}
-        #:go (coord 0 4/10 'lt)
-        @t{- type soundness theorems}
-        #:go (coord 0 5/10 'lt)
-        @t{- performance of mixed-}
-        @t{  typed programs}
-        ;#:go (coord 0 7/10 'lt)
-        ;@t{Examples to illustrate the}
-        ;@t{consequence for developers}
-        )))
+    #:go (coord SLIDE-LEFT SLIDE-TOP 'lt)
+    @titlet{Contributions (1/2)}
+    #:go (coord x-base 1/2 'lc)
+    (h-append
+      model-pict
+      (contrib*->pict
+        '("Model:"
+          "- one mixed-typed language"
+          "- one surface type system"
+          "- three semantics"))))
+  (pslide
+    #:go (coord SLIDE-LEFT SLIDE-TOP 'lt)
+    @titlet{Contributions (2/2)}
+    #:go (coord x-base 1/2 'lc)
+    #:alt [(h-append model-pict (blank (pict-width impl-pict) 0))]
+    #:alt [(h-append model-pict impl-pict)]
+    (h-append #:x-shift -40
+      (contrib*->pict
+        '("Implementation:"
+          "- Racket syntax/types"
+          "- three compilers"
+          "- the first controlled"
+          "  performance experiment"))
+      impl-pict))
   (void))
 
 (define (make-sig-pict p)
@@ -532,12 +559,15 @@
   (define b (blank 10 0))
   (hc-append b (text str TITLE-FONT 26) b))
 
-(define (make-gtspace-bg gt* [gt-layout #f])
+(define (make-gtspace-bg [gt* '()] [gt-layout #f])
   (define h (- client-h (* 2 1/5 client-h)))
   (define w (- client-w (* 2 SLIDE-LEFT client-w)))
   (cc-superimpose
     (cellophane (filled-rectangle (+ (* 2 margin) client-w) (+ margin h) #:color "DarkKhaki") 0.4)
     (add-gt-system* (filled-rounded-rectangle w h -1/5 #:color "AliceBlue") gt* gt-layout)))
+
+(define (heading-text str)
+  (text str TITLE-FONT 50))
 
 (define (make-gtspace-slide [gt* '()] #:title [title #f] #:layout [gt-layout #f])
   (define top-margin -6)
@@ -545,7 +575,7 @@
   (define arrow-size 12)
   (pslide
     #:go (coord SLIDE-LEFT SLIDE-TOP 'lb)
-    (if title (blank) (text "Typed/Untyped Languages" TITLE-FONT 50))
+    (if title (blank) (heading-text "Typed/Untyped Languages"))
     #:go (coord 1/2 1/2)
     (tag-pict (make-gtspace-bg gt* gt-layout) POOL-TAG)
     #:set (let ((p ppict-do-state))
@@ -577,14 +607,36 @@
               p))))
 
 (define (make-base-embeddings-pict highlight)
+  ;; TODO magic ratios
   (ppict-do
     (make-gtspace-bg)
-    #:go (coord 1/4 1/4)
+    #:go (coord 30/100 1/4)
     (maybe-highlight (make-H-box) (eq? highlight 'H))
-    #:go (coord 3/4 1/2)
+    #:go (coord 65/100 2/4)
     (maybe-highlight (make-E-box) (eq? highlight 'E))
-    #:go (coord 1/3 3/4)
+    #:go (coord 40/100 3/4)
     (maybe-highlight (make-1-box) (eq? highlight '1))))
+
+(define (add-bottom-margin m p)
+  (vc-append p (blank 0 m)))
+
+(define (add-top-margin m p)
+  (vc-append (blank 0 m) p))
+
+(define (make-1-on-3 pre-base-pict pre-a pre-b pre-c)
+  (define m 4)
+  (define base-pict (add-top-margin m pre-base-pict))
+  (define a (add-bottom-margin m pre-a))
+  (define b (add-bottom-margin m pre-b))
+  (define c (add-bottom-margin m pre-c))
+  (define boxes (vc-append 40 base-pict (hc-append 40 a b c)))
+  (for/fold ((acc boxes))
+            ((tgt (in-list (list a b c))))
+    (pin-line acc
+              base-pict
+              cb-find
+              tgt
+              ct-find)))
 
 (define (make-H-box)
   (make-embedding-box ->H LIGHT-RED))
@@ -594,6 +646,15 @@
 
 (define (make-1-box)
   (make-embedding-box ->1 BLUE))
+
+(define (make-TR-H-box)
+  (make-embedding-box ->TR-H LIGHT-RED))
+
+(define (make-TR-E-box)
+  (make-embedding-box ->TR-E GREEN))
+
+(define (make-TR-1-box)
+  (make-embedding-box ->TR-1 BLUE))
 
 (define (maybe-highlight p yes?)
   (if yes?
