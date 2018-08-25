@@ -79,13 +79,13 @@
   (define dyn-file (make-dyn-file lambda-pict))
   (pslide
     (make-section-header "Migratory Typing"))
-  ;(pslide
-  ;  #:go (coord 1/2 1/2)
-  ;  #:alt [dyn-file
-  ;         #:next
-  ;         #:go (at-find-pict 'dyn-file lc-find 'rc)
-  ;         tau]
-  ;  (hc-append 40 (make-stat-file tau) dyn-file))
+  (pslide
+    #:go (coord 1/2 1/2)
+    #:alt [dyn-file
+           #:next
+           #:go (at-find-pict 'dyn-file lc-find 'rc)
+           tau]
+    (hc-append 40 (make-stat-file tau) dyn-file))
   (make-gtspace-slide)
   (make-gtspace-slide
     all-system*)
@@ -93,15 +93,18 @@
     all-system*
     #:title '("by Date" "Oldest" "Newest")
     #:layout year-gt-layout)
-
-
-  ;  #:alt [(make-gtspace-bg)]
-  ;  #:alt [(make-categories-pict #f eq-hash-code <=)]
-  ;  #:alt [(make-categories-pict "by Date" gt-system-year <=)]
-  ;  #:alt [(make-categories-pict "by Host Language" gt-system-host-lang (lambda (x y) #t))]
-  ;  #:alt [(make-categories-pict "Academia vs. Industry" gt-system-source gt-system-source< #:show-label? #false)]
-  ;  #:alt [(make-categories-pict "Sound vs. Unsound" gt-system-embedding%E (lambda (x y) (eq? y 'E)) #:show-label? #false)]
-  ;  (make-categories-pict "Alive vs. Dead" gt-system-name%TR (lambda (x y) (string=? y "Typed Racket")) #:show-label? #false))
+  (make-gtspace-slide
+    all-system*
+    #:title '("by Creator" "Academia" "Industry")
+    #:layout creator-gt-layout)
+  (make-gtspace-slide
+    all-system*
+    #:title '("by Theory" "Sound" "Unsound")
+    #:layout theory-gt-layout)
+  (make-gtspace-slide
+    all-system*
+    #:title '("by Performance" "Not Dead" "Dead")
+    #:layout performance-gt-layout)
   (pslide
     ;; TODO prettier ... outline-flash ?
     @titlet{Chaos!})
@@ -463,22 +466,7 @@
           (values (ppict-do acc #:go c p) (+ x (pict-width p) x-sep) y)))
 
 (define (year-gt-layout base gt*)
-  (define gt**
-    ;; ad-hoc shuffling
-    (let ((gt** (group-gt-systems-by gt* gt-system-year <=)))
-      (for/list ((gt* (in-list gt**)))
-        (define n* (map gt-system-name gt*))
-        (cond
-          [(member "Typed Lua" n*)
-           (define (name<= a b)
-             (string=? b "Typed Lua"))
-           (sort gt* name<= #:key gt-system-name)]
-          [(member "Flow" n*)
-           (define (name<= a b)
-             (string=? a "Flow"))
-           (sort gt* name<= #:key gt-system-name)]
-          [else
-           gt*]))))
+  (define gt** (group-gt-systems-by gt* gt-system-year <=))
   (define x-base (/ POOL-X-BASE (pict-width base)))
   (define y-base (/ POOL-X-BASE (pict-height base)))
   (define x-offset (/ 1 (add1 (length gt**))))
@@ -492,7 +480,44 @@
             (ppict-do
               acc
               #:go (coord (+ x-base (* i x-offset)) (+ y-base (get-y i)) 'lt)
-              (apply vc-append 8 (map gt->pict g*))))))
+              (gt*->pict g*)))))
+
+(define (gt*->pict g*)
+  (apply vc-append 8 (map gt->pict g*)))
+
+(define (creator-gt-layout base gt*)
+  (histogram-gt-layout base (group-gt-systems-by gt* gt-system-source gt-system-source<)))
+
+(define (theory-gt-layout base gt*)
+  (histogram-gt-layout base (group-gt-systems-by gt* gt-system-embedding%E (lambda (x y) (eq? y 'E)))))
+
+(define (performance-gt-layout base gt*)
+  (histogram-gt-layout base (group-gt-systems-by gt* gt-system-name%TR (lambda (x y) (string=? y "Typed Racket")))))
+
+(define (histogram-gt-layout base gt**)
+  (define num-groups (length gt**))
+  (define x-base (/ POOL-X-BASE (pict-width base)))
+  (define y-base (/ POOL-X-BASE (pict-height base)))
+  (define align*
+    (if (< num-groups 2)
+      '(lt)
+      (append '(lt) (make-list (- num-groups 2) 'ct) '(rt))))
+  (ppict-do
+    base
+    #:set (for/fold ((acc ppict-do-state))
+                    ((x (in-list (linear-seq x-base (- 1 x-base) num-groups)))
+                     (align (in-list align*))
+                     (g* (in-list gt**)))
+            (define h?-append (if (eq? align 'lt) hb-append ht-append))
+            (ppict-do
+              acc
+              #:go (coord x y-base align)
+              (let loop ([g* g*])
+                ;; TODO 10 is magic number
+                (if (< (length g*) 10)
+                  (gt*->pict g*)
+                  (let-values ([(a* b*) (split-at g* 10)])
+                    (h?-append 4 (gt*->pict a*) (loop b*)))))))))
 
 (define (label-text str)
   (define b (blank 10 0))
@@ -511,7 +536,7 @@
   (define arrow-size 12)
   (pslide
     #:go (coord SLIDE-LEFT SLIDE-TOP 'lb)
-    (text "Typed/Untyped Languages" TITLE-FONT 50)
+    (if title (blank) (text "Typed/Untyped Languages" TITLE-FONT 50))
     #:go (coord 1/2 1/2)
     (tag-pict (make-gtspace-bg gt* gt-layout) POOL-TAG)
     #:set (let ((p ppict-do-state))

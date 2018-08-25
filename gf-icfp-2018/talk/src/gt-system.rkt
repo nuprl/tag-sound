@@ -227,7 +227,7 @@
   (make-gt-system #:name "Strongtalk"
                   #:year 1993
                   #:host "Smalltalk"
-                  #:from '(A I)
+                  #:from 'A
                   #:embedding 'E
                   #:perf 1
                   #:url "http://strongtalk.org"))
@@ -245,7 +245,7 @@
   (make-gt-system #:name "Typed Clojure"
                   #:year 2012
                   #:host "Clojure"
-                  #:from '(A I)
+                  #:from 'A
                   #:embedding 'E
                   #:perf 1
                   #:url "http://typedclojure.org"))
@@ -430,10 +430,7 @@
   (test-case "filter/source"
     (let ((E/I-system* (filter/source 'I E-system*)))
       (check-true (and (member mypy E/I-system*) #true))
-      (check-false (and (member typed-racket E/I-system*) #true)))
-    (let ((AI-system* (filter/source '(A I) all-system*)))
-      (check-true (and (member typed-clojure AI-system*) #true))
-      (check-false (and (member reticulated AI-system*) #true))))
+      (check-false (and (member typed-racket E/I-system*) #true))))
 
   (test-case "filter/perf"
     (let ((slow (filter-not/perf 90 all-system*)))
