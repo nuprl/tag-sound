@@ -43,10 +43,10 @@
     (sec:experiment)
     (sec:graph)
     (sec:conclusion)
-    ;(sec:folklore-II)
     ;(pslide (make-section-header "The End"))
     ;(main-results-slide)
     (sec:extra)
+    (sec:folklore-II)
     (void)))
 
 ;; -----------------------------------------------------------------------------
@@ -1214,7 +1214,4 @@
   (do-show))
 
 (module+ test
-  (require rackunit)
-
-  (test-case "yolo"
-    (check-true #true)))
+  (require rackunit) )
