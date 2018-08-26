@@ -35,8 +35,8 @@
     ;(sec:folklore-I)
     ;(sec:gt-landscape)
     ;(sec:kafka) ;; shout out for NEPLS
-    (sec:main-result)
-    ;(sec:embeddings)
+    ;(sec:main-result)
+    (sec:embeddings)
     ;(sec:implementation)
     ;(sec:graph)
     ;(sec:conclusion)
@@ -146,36 +146,51 @@
 (define (embedding:warmup)
   (define x-offset 1/20)
   (pslide
-    #:go (coord x-offset 1/5 'lt)
+    #:go (coord SLIDE-LEFT SLIDE-TOP 'lt)
     ;;@t{Types}
-    @t{τ = Nat | Int | τ × τ | τ → τ}
-    @t{Nat <: Int}
+    (vl-append 10
+               @t{t = Nat | Int | t × t | t → t}
+               @t{Nat <: Int})
     #:next
-    #:go (coord (- 1 x-offset) 1/5 'rt)
+    #:go (coord SLIDE-LEFT 25/100 'lt)
     ;;@t{Values}
-    @t{v = n | i | ⟨v,v⟩ | λ(x)e | λ(x:τ)e}
-    @t{n ⊂ i}
+    (vl-append 10
+               @t{v = n | i | ⟨v,v⟩ | λ(x)e | λ(x:t)e}
+               @t{n ⊂ i})
     #:next
-    #:go (coord 1/2 2/5)
-    @t{e = .... | dyn τ e | stat τ e}
+    #:go (coord SLIDE-LEFT 45/100 'lt)
+    @t{e = fst | snd | app | .... | dyn t e | stat t e}
     #:next
-    ;;@hb-append[40 (make-sig-pict @t{⊢ e : τ}) (make-sig-pict @t{⊢ e})]
-    #:go (coord 1/2 3/5)
+    ;;@hb-append[40 (make-sig-pict @t{⊢ e : t}) (make-sig-pict @t{⊢ e})]
+    #:go (coord 55/100 3/5 'ct)
     @hb-append[
       100
       @inferrule[@t{⊢ e}
-                 @t{⊢ dyn τ e : τ}]
-      @inferrule[@t{⊢ e : τ}
-                 @t{⊢ stat τ e}]])
+                 @t{⊢ dyn t e : t}]
+      @inferrule[@t{⊢ e : t}
+                 @t{⊢ stat t e}]])
+  (define (v-append . x*)
+    (apply vl-append 10 x*))
+  (define types-pict
+    (vl-append 10
+      @t{fib : Nat → Nat}
+      @t{norm : Nat×Nat → Nat}
+      @t{map : (Nat → Nat) → Nat×Nat → Nat×Nat}))
   (pslide
-    #:go (coord 1/2 1/5)
-    @t{f (dyn (Nat × Nat) ⟨-1,-2⟩)}
-    #:next
-    #:go (coord 1/2 2/5 'ct)
-    @inferrule[@t{...} ;; show derivation up to use of ⊢ _ ?
-               (hb-append 10
-                 (text "f : Nat × Nat → Nat" (current-main-font) (- (current-font-size) 6))
-                 @t{⊢ f (dyn (Nat × Nat) ⟨-1, -2⟩) : Nat})])
+    #:go (coord 1/2 SLIDE-TOP 'ct)
+    (vc-append
+      100
+      (hc-append 10
+        @t{Γ =}
+        (text "{" (current-main-font) (+ 40 (current-font-size))) ;}
+        types-pict)
+      (vl-append 25
+        @t{Γ ⊢ fib (dyn Nat -1) : Nat}
+        @t{Γ ⊢ norm (dyn Nat×Nat ⟨-1,-2⟩) : Nat}
+        @t{Γ ⊢ map (dyn (Nat → Nat) (λ(x)e)) nats : Nat×Nat})))
+  ;(pslide
+  ;  ;; TODO examples
+  ;  (make-examples-slide
   (pslide
     (make-example-boundary-pict))
   (void))
@@ -191,15 +206,15 @@
     (big-x-icon))
   (pslide
     #:go (coord 1/15 1/5 'lt)
-    (make-sig-pict (make-step @t{dyn τ v} ->H @t{v}))
+    (make-sig-pict (make-step @t{dyn t v} ->H @t{v}))
     #:go (coord 2/15 3/10 'lt)
     (make-embedding-table
       (list
         @t{dyn Nat n} ->H @t{n}
         @t{dyn Int i} ->H @t{i}
-        @t{dyn (τ0 × τ1) ⟨v0, v1⟩} ->H @t{⟨dyn τ0 v0, dyn τ1 v1⟩}
-        @t{dyn (τd → τc) λ(x)e} ->H @t{λ(y:τd)(dyn τc ((λ(x)e) (stat τd y)))}
-        @t{dyn τ v} ->H (little-x-icon))))
+        @t{dyn (t0 × t1) ⟨v0, v1⟩} ->H @t{⟨dyn t0 v0, dyn t1 v1⟩}
+        @t{dyn (td → tc) λ(x)e} ->H @t{λ(y:td)(dyn tc ((λ(x)e) (stat td y)))}
+        @t{dyn t v} ->H (little-x-icon))))
   (void))
 
 (define (embedding:E)
@@ -214,14 +229,14 @@
     (big-check-icon))
   (pslide
     #:go (coord 1/15 1/5 'lt)
-    (make-sig-pict (make-step @t{dyn τ v} ->E @t{v}))
+    (make-sig-pict (make-step @t{dyn t v} ->E @t{v}))
     #:go (coord 2/15 3/10 'lt)
     (make-embedding-table
       (list
         @t{dyn Nat v} ->E @t{v}
         @t{dyn Int v} ->E @t{v}
-        @t{dyn (τ0 × τ1) v} ->E @t{v}
-        @t{dyn (τd → τc) v} ->E @t{v})))
+        @t{dyn (t0 × t1) v} ->E @t{v}
+        @t{dyn (td → tc) v} ->E @t{v})))
   (void))
 
 (define (embedding:1)
@@ -716,15 +731,15 @@
 (define (transient-dyn-slide)
   (pslide
     #:go (coord 1/15 1/5 'lt)
-    (make-sig-pict (make-step @t{dyn τ v} ->1 @t{v}))
+    (make-sig-pict (make-step @t{dyn t v} ->1 @t{v}))
     #:go (coord 2/15 3/10 'lt)
     (make-embedding-table
       (list
         @t{dyn Nat n} ->1 @t{n}
         @t{dyn Int i} ->1 @t{i}
-        @t{dyn (τ0 × τ1) ⟨v0, v1⟩} ->1 @t{⟨v0, v1⟩}
-        @t{dyn (τd → τc) λ(x)e} ->1 @t{λ(x)e}
-        @t{dyn τ v} ->1 (little-x-icon)))))
+        @t{dyn (t0 × t1) ⟨v0, v1⟩} ->1 @t{⟨v0, v1⟩}
+        @t{dyn (td → tc) λ(x)e} ->1 @t{λ(x)e}
+        @t{dyn t v} ->1 (little-x-icon)))))
 
 (define (comment . stuff*)
   (blank 0 0))
@@ -804,7 +819,7 @@
 
 (define (make-typed-racket-stack title)
   (make-labeled-stack title
-                      '("expand" "typecheck" "optimize" "enforce τ")
+                      '("expand" "typecheck" "optimize" "enforce t")
                       #:color LIGHT-RED))
 
 (define (make-TR-stack)
