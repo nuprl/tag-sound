@@ -110,3 +110,5 @@
 
 (define MAIN-CONTRIB-X (- SLIDE-LEFT 2/100))
 (define MAIN-CONTRIB-Y 15/100)
+
+(define PLOT-FN-ALPHA 0.6)

@@ -17,7 +17,8 @@
   plot/no-gui plot/utils
   racket/draw
   racket/list
-  images/icons/arrow images/icons/control images/icons/misc images/icons/symbol images/icons/style)
+  images/icons/arrow images/icons/control images/icons/misc images/icons/symbol images/icons/style
+  (only-in scribble/base url))
 
 ;; =============================================================================
 
@@ -37,9 +38,10 @@
     ;(sec:kafka) ;; shout out for NEPLS
     ;(sec:main-result)
     ;(sec:embeddings)
-    ;(sec:soundness)
-    (sec:implementation)
-    ;(sec:graph)
+    ;(sec:soundness/implementation)
+    ;(sec:implementation)
+    ;(sec:experiment)
+    (sec:graph)
     ;(sec:conclusion)
     ;(sec:folklore-II)
     ;(pslide (make-section-header "The End"))
@@ -254,7 +256,7 @@
     (make-embeddings-pict all-system*))
   (void))
 
-(define (sec:soundness)
+(define (sec:soundness/implementation)
   (define-values [model-pict impl-pict] (make-model/impl-pict))
   (define scale-factor 1.6)
   (define type-pict*
@@ -284,7 +286,7 @@
                            (add-between
                              (for/list ((type-pict (in-list type-pict*))
                                         (a (in-list (list ->H ->E ->1))))
-                               (hc-append type-pict (t " sound for ") (scale a scale-factor)))
+                               (hc-append (t "- ") type-pict (t " sound for ") (scale a scale-factor)))
                              (blank)))))
   (pslide
     (make-section-header "Implementation"))
@@ -298,56 +300,54 @@
 (define (sec:implementation)
   (define box*
     (list (make-TR-H-box) (make-TR-E-box) (make-TR-1-box)))
+  (define x* '(1/5 1/2 4/5))
+  (define stack-y 1/4)
   (pslide
     #:set (for/fold ((acc ppict-do-state))
                     ((b (in-list box*))
-                     (x (in-list '(1/5 1/2 4/5))))
-            (ppict-do acc #:go (coord x SLIDE-TOP 'ct) b)))
-  (pslide
-    #:alt [(make-embeddings-pict all-system*)]
-    (make-embeddings-pict all-system* new-system*))
-  (pslide
-    #:go (coord 1/2 1/5 'ct)
-    #:alt [(vc-append (make-TR-stack)
-                      (make-step @t{e+} ->racket @t{...}))]
-    #:go (coord 1/8 1/5 'ct)
+                     (x (in-list x*)))
+            (ppict-do acc #:go (coord x SLIDE-TOP 'ct) b))
+    #:next
+    #:go (coord (car x*) stack-y 'ct)
     (make-TR-H-stack)
-    #:go (coord 1/2 1/5 'ct)
+    #:next
+    #:go (coord (cadr x*) stack-y 'ct)
     (make-TR-E-stack)
-    #:go (coord 7/8 1/5 'ct)
-    (make-TR-1-stack)
-    #:go (coord 1/2 4/5 'ct)
-    (make-step @t{e+} ->racket @t{...}))
-  (pslide
-    #:go (coord 1/10 1/2 'ct)
-    (make-mixed-typed-program 0)
     #:next
-    #:go (coord 3/10 2/7 'ct)
-    (make-mixed-typed-program 1)
-    #:next
-    #:go (coord 4/10 4/7 'ct)
-    (make-mixed-typed-program 3)
-    #:go (coord 8/10 1/2 'ct)
-    (make-mixed-typed-program 8))
+    #:go (coord (caddr x*) stack-y 'ct)
+    (make-TR-1-stack))
+  (void))
+
+(define (sec:experiment)
   (pslide
-    #:title "Experiment"
-    ;; TODO show details? names? size? yes please a table would be great
-    @item{10 benchmark programs, 2-10 modules each}
-    @item{Measure all mixed-typed combinations}
-    @item{Compare overhead to untyped})
+    (make-section-header "Experiment"))
+  (pslide
+    #:go (coord SLIDE-LEFT 1/4 'lt)
+    @t{- 10 benchmark programs}
+    #:go (coord SLIDE-LEFT (+ 1/4 1/10) 'lt)
+    @t{- 2 to 10 modules each}
+    #:go (coord SLIDE-LEFT (+ 1/4 2/10) 'lt)
+    @t{- 4 to 1024 configurations each}
+    #:go (coord SLIDE-LEFT (+ 1/4 3/10) 'lt)
+    @t{- compare overhead to untyped}
+    #:go (coord 1/2 (+ 1/4 4/10) 'ct)
+    @url{docs.racket-lang.org/gtp-benchmarks})
   (void))
 
 (define (sec:graph)
   (pslide
     (make-section-header "Results"))
-  (pslide
-    #:title "`Typical Program'"
-    #:alt [(make-overhead-plot '())]
-    #:alt [(make-overhead-plot '(H))]
-    #:alt [(make-overhead-plot '(H E))]
-    (make-overhead-plot '(H E 1))
-    ;; MORE RESEARCH NECESSARY
-    )
+  (parameterize ([current-font-size 26])
+    (pslide
+      #:go (coord SLIDE-LEFT SLIDE-TOP 'lb)
+      @titlet{Typical program}
+      #:go (coord (- SLIDE-LEFT 1/40) 1/5 'lt)
+      #:alt [(make-overhead-plot '())]
+      #:alt [(make-overhead-plot '(H))]
+      #:alt [(make-overhead-plot '(H E))]
+      (make-overhead-plot '(H E 1))
+      ;; MORE RESEARCH NECESSARY
+      ))
   (void))
 
 (define (sec:conclusion)
@@ -851,14 +851,17 @@
     20 20))
 
 (define (make-stack #:v [v 2] #:color [color BOX-COLOR] #:bg [pre-bg-pict #f] txt*)
-  (define bg-pict (or pre-bg-pict (filled-rectangle 200 100 #:color color)))
+  (define bg-pict (or pre-bg-pict (filled-rectangle 240 100 #:color color)))
+  (define blank-bg-pict (blank 0 (pict-height bg-pict)))
   (for/fold ([acc (blank)])
             ([txt (in-list txt*)])
     (vc-append v
                acc
-               (cc-superimpose
-                 bg-pict
-                 (t txt)))))
+               (if txt
+                 (cc-superimpose
+                   bg-pict
+                   (t txt))
+                 blank-bg-pict))))
 
 (define make-example-boundary-pict
   (lambda ([a0 (blank)] [a1 (blank)] [a2 (blank)])
@@ -884,7 +887,7 @@
 
 (define (make-typed-racket-stack title)
   (make-labeled-stack title
-                      '("expand" "typecheck" "optimize" "enforce t")
+                      '("expand" "typecheck" "enforce t" "optimize")
                       #:color LIGHT-RED))
 
 (define (make-TR-stack)
@@ -895,17 +898,17 @@
 
 (define (make-TR-E-stack)
   (make-labeled-stack "TR-E"
-                      '("expand" "typecheck" "erase")
+                      '("expand" "typecheck" "erase t")
                       #:color GREEN))
 
 (define (make-TR-1-stack)
   (make-labeled-stack "TR-1"
-                      '("expand" "typecheck" "defend")
+                      '("expand" "typecheck" "enforce K(t)")
                       #:color BLUE))
 
 (define (make-labeled-stack title txt* #:color c)
-  (vc-append (t title)
-             (make-stack txt* #:color c)))
+  ;; ignores label
+  (make-stack txt* #:color c))
 
 (define (make-mixed-typed-program num-types #:height [h 100])
   (random-seed 12)
@@ -938,24 +941,40 @@
   (define w 500)
   (define x-min 0)
   (define x-max pi)
-  (parameterize ((plot-x-ticks no-ticks)
-                 (plot-y-ticks no-ticks)
-                 (plot-font-size (current-font-size)))
-    (plot-pict
-      (for/list ((e (in-list e*))
-                 (c (in-list (list LIGHT-RED GREEN BLUE))))
-        (function (make-embedding-function e x-min x-max)
-                  #:width (* 15 (line-width))
-                  #:alpha 0.6
-                  #:color c))
-      #:width 700
-      #:height (* PLOT-RATIO w)
-      #:x-min x-min
-      #:x-max x-max
-      #:y-min 0
-      #:y-max (* 10 (+ 1 (order-of-magnitude x-max)))
-      #:y-label "Overhead vs. Untyped"
-      #:x-label "Num. Type Ann.")))
+  (define pp
+    (parameterize ((plot-x-ticks no-ticks)
+                   (plot-y-ticks no-ticks)
+                   (plot-font-size (current-font-size)))
+      (plot-pict
+        (for/list ((e (in-list e*))
+                   (c (in-list (list LIGHT-RED GREEN BLUE))))
+          (function (make-embedding-function e x-min x-max)
+                    #:width (* 15 (line-width))
+                    #:alpha PLOT-FN-ALPHA
+                    #:color c))
+        #:y-label #f ;;"Overhead vs. Untyped"
+        #:x-label #f ;;"Num. Type Ann."
+        #:width 700
+        #:height (* PLOT-RATIO w)
+        #:x-min x-min
+        #:x-max x-max
+        #:y-min 0
+        #:y-max (* 10 (+ 1 (order-of-magnitude x-max))))))
+  (ht-append 20
+             (make-overhead-legend e*)
+             (add-overhead-axis-labels pp)))
+
+(define (make-overhead-legend e*)
+  (define w (* 22/100 client-w))
+  (for/fold ([acc (blank w 50)])
+            ([e (in-list e*)])
+    (vl-append 20 acc (make-embedding-legend e))))
+
+(define (add-overhead-axis-labels pp)
+  (define margin 20)
+  (define y-label (t "Overhead vs. Untyped"))
+  (define x-label (t "Num. Type Annotations"))
+  (vl-append margin y-label (vr-append margin (frame pp) x-label)))
 
 (define (make-embedding-function e x-min x-max)
   (case e
@@ -967,6 +986,21 @@
      (lambda (n) (add1 n)))
     (else
       (raise-argument-error 'make-embedding-line "embedding?" e))))
+
+(define (make-embedding-legend e)
+  (define-values [bx txt]
+    (case e
+      ((H)
+       (values (make-H-box) "higher-order"))
+      ((E)
+       (values (make-E-box) "erasure"))
+      ((1)
+       (values (make-1-box) "first-order"))
+      (else
+        (raise-argument-error 'make-embedding-legend "embedding?" e))))
+  (define txt-pict (t txt))
+  (define h 20)
+  (hc-append 10 (scale-to-fit (cellophane bx PLOT-FN-ALPHA) h h) txt-pict))
 
 (define (rectangle/2t width height
                       #:border-width [border-width 1]
@@ -1129,6 +1163,9 @@
       [else
        (define-values [a* b*] (loop (cdr x*) (sub1 n)))
        (values (cons (car x*) a*) b*)])))
+
+(define (url str)
+  (hyperlinkize (tt str)))
 
 ;; =============================================================================
 
