@@ -64,6 +64,12 @@
   (define tag (string->symbol (format "->~a" str)))
   (tag-pict (arrow-text (format "→~a" str)) tag))
 
+(define (make-⊢ str)
+  (ht-append -6
+             (arrow-text "⊢")
+             (vl-append (blank 0 16)
+                        (arrow-text str))))
+
 (define make-TR->
   (let ([tiny (bitmap (plt-logo #:height 20))])
     (lambda (str)
@@ -76,6 +82,9 @@
 (define ->TR-H (make-TR-> "H"))
 (define ->TR-E (make-TR-> "E"))
 (define ->TR-1 (make-TR-> "1"))
+(define ⊢H (make-⊢ "H"))
+(define ⊢E (make-⊢ "E"))
+(define ⊢1 (make-⊢ "1"))
 
 (define ALL-CAPS-FONT "Bebas Neue")
 (define MONO-FONT "Triplicate T4s")
@@ -98,3 +107,6 @@
 (define DYN-TAG 'dyn-file)
 (define POOL-X-BASE 30)
 (define POOL-Y-BASE 60)
+
+(define MAIN-CONTRIB-X (- SLIDE-LEFT 2/100))
+(define MAIN-CONTRIB-Y 15/100)

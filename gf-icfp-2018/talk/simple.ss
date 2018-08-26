@@ -36,8 +36,9 @@
     ;(sec:gt-landscape)
     ;(sec:kafka) ;; shout out for NEPLS
     ;(sec:main-result)
-    (sec:embeddings)
-    ;(sec:implementation)
+    ;(sec:embeddings)
+    ;(sec:soundness)
+    (sec:implementation)
     ;(sec:graph)
     ;(sec:conclusion)
     ;(sec:folklore-II)
@@ -187,10 +188,7 @@
       (vl-append 25
         @t{Γ ⊢ fib (dyn Nat -1) : Nat}
         @t{Γ ⊢ norm (dyn Nat×Nat ⟨-1,-2⟩) : Nat}
-        @t{Γ ⊢ map (dyn (Nat → Nat) (λ(x)e)) nats : Nat×Nat})))
-  ;(pslide
-  ;  ;; TODO examples
-  ;  (make-examples-slide
+        @t{Γ ⊢ map (dyn (Nat → Nat) (λ(x)e)) y : Nat×Nat})))
   (pslide
     (make-example-boundary-pict))
   (void))
@@ -200,21 +198,18 @@
     #:alt [(make-embeddings-pict)]
     (make-embeddings-pict #:highlight 'H))
   (pslide
-    (make-example-boundary-pict)
-    #:next
-    #:go (coord 1/2 1/2 'cb)
-    (big-x-icon))
-  (pslide
-    #:go (coord 1/15 1/5 'lt)
-    (make-sig-pict (make-step @t{dyn t v} ->H @t{v}))
-    #:go (coord 2/15 3/10 'lt)
-    (make-embedding-table
-      (list
-        @t{dyn Nat n} ->H @t{n}
-        @t{dyn Int i} ->H @t{i}
-        @t{dyn (t0 × t1) ⟨v0, v1⟩} ->H @t{⟨dyn t0 v0, dyn t1 v1⟩}
-        @t{dyn (td → tc) λ(x)e} ->H @t{λ(y:td)(dyn tc ((λ(x)e) (stat td y)))}
-        @t{dyn t v} ->H (little-x-icon))))
+    (make-example-boundary-pict (big-x-icon) (big-x-icon) (big-lock-icon)))
+  ;(pslide
+  ;  #:go (coord 1/15 1/5 'lt)
+  ;  (make-sig-pict (make-step @t{dyn t v} ->H @t{v}))
+  ;  #:go (coord 2/15 3/10 'lt)
+  ;  (make-embedding-table
+  ;    (list
+  ;      @t{dyn Nat n} ->H @t{n}
+  ;      @t{dyn Int i} ->H @t{i}
+  ;      @t{dyn (t0 × t1) ⟨v0, v1⟩} ->H @t{⟨dyn t0 v0, dyn t1 v1⟩}
+  ;      @t{dyn (td → tc) λ(x)e} ->H @t{λ(y:td)(dyn tc ((λ(x)e) (stat td y)))}
+  ;      @t{dyn t v} ->H (little-x-icon))))
   (void))
 
 (define (embedding:E)
@@ -223,20 +218,17 @@
     #:alt [(make-embeddings-pict H-system*)]
     (make-embeddings-pict H-system* #:highlight 'E))
   (pslide
-    (make-example-boundary-pict)
-    #:next
-    #:go (coord 1/2 1/2 'cb)
-    (big-check-icon))
-  (pslide
-    #:go (coord 1/15 1/5 'lt)
-    (make-sig-pict (make-step @t{dyn t v} ->E @t{v}))
-    #:go (coord 2/15 3/10 'lt)
-    (make-embedding-table
-      (list
-        @t{dyn Nat v} ->E @t{v}
-        @t{dyn Int v} ->E @t{v}
-        @t{dyn (t0 × t1) v} ->E @t{v}
-        @t{dyn (td → tc) v} ->E @t{v})))
+    (make-example-boundary-pict (big-check-icon) (big-check-icon) (big-check-icon)))
+  ;(pslide
+  ;  #:go (coord 1/15 1/5 'lt)
+  ;  (make-sig-pict (make-step @t{dyn t v} ->E @t{v}))
+  ;  #:go (coord 2/15 3/10 'lt)
+  ;  (make-embedding-table
+  ;    (list
+  ;      @t{dyn Nat v} ->E @t{v}
+  ;      @t{dyn Int v} ->E @t{v}
+  ;      @t{dyn (t0 × t1) v} ->E @t{v}
+  ;      @t{dyn (td → tc) v} ->E @t{v})))
   (void))
 
 (define (embedding:1)
@@ -245,21 +237,13 @@
     #:alt ((make-embeddings-pict H-system* E-system*))
     (make-embeddings-pict H-system* E-system* #:highlight '1))
   (pslide
-    (make-example-boundary-pict)
-    #:next
-    #:go (coord 1/2 1/2 'cb)
-    (big-check-icon))
-  (transient-dyn-slide)
-  #;(pslide
-    #:title "Transient Invariant"
-    (make-step @t{(λ(x:t)e) v} ->1 @t{e{x/v}})
-    @t{if and only if ⊢ v : constructor-of(t)})
-  (pslide
-    (make-example-boundary-pict)
-    #:next
-    #:go (coord 1/2 1/5 'rt)
-    @t{f = λ(x)(first x)})
-  (transient-dyn-slide)
+    (make-example-boundary-pict (big-x-icon) (big-check-icon) (big-check-icon)))
+  ;(pslide
+  ;  ;; TODO illustrate selectors moving over boundary ??? I don't think appropriate for NEPLS
+  ;  (make-example-boundary-pict)
+  ;  #:next
+  ;  #:go (coord 1/2 1/5 'rt)
+  ;  @t{f = λ(x)(first x)})
   (void))
 
 (define (embedding:end)
@@ -270,9 +254,55 @@
     (make-embeddings-pict all-system*))
   (void))
 
-(define (sec:implementation)
+(define (sec:soundness)
+  (define-values [model-pict impl-pict] (make-model/impl-pict))
+  (define scale-factor 1.6)
+  (define type-pict*
+    (for/list ((p (in-list (list ⊢H ⊢E ⊢1)))
+               (str (in-list '("t" "K(t)" #f))))
+      (hc-append 0 (scale p scale-factor) (blank 2 0) (t "e") (if str (t (string-append ":" str)) (blank)))))
+  (define model-pict+
+    (ppict-do
+      model-pict
+      #:set (for/fold ((acc ppict-do-state))
+                      ((tag (in-list '(->H ->E ->1)))
+                       (type-pict (in-list type-pict*)))
+              (ppict-do
+                acc
+                #:go (at-find-pict tag cb-find 'ct #:abs-y 40)
+                type-pict))))
+  (define x-base MAIN-CONTRIB-X)
+  (define y-base MAIN-CONTRIB-Y)
+  (define my-blank (blank (pict-width impl-pict) 0))
+  (make-folklore-slide #:q2? #false)
   (pslide
-    (make-section-header "Experiment"))
+    #:go (coord x-base 1/2 'lc)
+    #:alt [(main-contrib-append model-pict (contrib*->pict '("Same type soundness?")))]
+    #:alt [(main-contrib-append model-pict (contrib*->pict '("Same type soundness?" "No!")))]
+    (main-contrib-append model-pict+
+                         (contrib*->pict
+                           (add-between
+                             (for/list ((type-pict (in-list type-pict*))
+                                        (a (in-list (list ->H ->E ->1))))
+                               (hc-append type-pict (t " sound for ") (scale a scale-factor)))
+                             (blank)))))
+  (pslide
+    (make-section-header "Implementation"))
+  (pslide
+    #:go (coord x-base 1/2 'lc)
+    #:alt [(main-contrib-append model-pict my-blank)]
+    #:alt [(main-contrib-append model-pict impl-pict)]
+    (main-contrib-append my-blank impl-pict))
+  (void))
+
+(define (sec:implementation)
+  (define box*
+    (list (make-TR-H-box) (make-TR-E-box) (make-TR-1-box)))
+  (pslide
+    #:set (for/fold ((acc ppict-do-state))
+                    ((b (in-list box*))
+                     (x (in-list '(1/5 1/2 4/5))))
+            (ppict-do acc #:go (coord x SLIDE-TOP 'ct) b)))
   (pslide
     #:alt [(make-embeddings-pict all-system*)]
     (make-embeddings-pict all-system* new-system*))
@@ -383,38 +413,50 @@
 
 ;; -----------------------------------------------------------------------------
 
+(define (neu)
+  (hc-append 40 @t{Northeastern University}
+             (scale-to-fit (bitmap neu-logo.png) 60 60)))
+
+(define (dyn-text str)
+  (text str (cons DYN-TEXT-COLOR (current-main-font)) (current-font-size)))
+
 (define (two-column-dims)
   (values (/ client-w 2) (* 3/4 client-h)))
 
-(define (main-results-slide)
+(define (make-model/impl-pict)
   (define-values [w h] (two-column-dims))
-  (define p/2 (blank w h))
-  (define y-base 15/100)
   (define (smaller p) (scale-to-fit p (- w 80) (- h 80)))
   (define tu-pict (hc-append 10 (make-stat-file (large-tau-icon)) (make-dyn-file (large-lambda-icon))))
-  (define model-pict
-    (smaller (make-1-on-3 tu-pict (make-H-box) (make-E-box) (make-1-box))))
-  (define impl-pict
+  (define m (smaller (make-1-on-3 tu-pict (make-H-box) (make-E-box) (make-1-box))))
+  (define i
     (let* ((h (pict-height tu-pict))
            (rkt-pict (scale-to-fit (bitmap racket-logo.png) h h)))
       (smaller (make-1-on-3 rkt-pict (make-TR-H-box) (make-TR-E-box) (make-TR-1-box)))))
-  (define x-base (- SLIDE-LEFT 2/100))
-  (define (contrib*->pict str*)
-    (ppict-do
-      p/2
-      #:set (for/fold ((p ppict-do-state))
-                      ((str (in-list str*))
-                       (i (in-naturals)))
-              (ppict-do p
-                #:go (coord 0 (+ y-base (* i 1/10)) 'lt)
-                (t str)))))
-  (define (h-append a b #:x-shift [x 0])
-    (hc-append (+ x 10) a b))
+  (values m i))
+
+(define (contrib*->pict str*)
+  (define-values [w h] (two-column-dims))
+  (define p/2 (blank w h))
+  (ppict-do
+    p/2
+    #:set (for/fold ((p ppict-do-state))
+                    ((str (in-list str*))
+                     (i (in-naturals)))
+            (ppict-do p
+              #:go (coord 0 (+ MAIN-CONTRIB-Y (* i 1/10)) 'lt)
+              (if (pict? str) str (t str))))))
+
+(define (main-contrib-append a b #:x-shift [x 0])
+  (hc-append (+ x 10) a b))
+
+(define (main-results-slide)
+  (define-values [model-pict impl-pict] (make-model/impl-pict))
+  (define x-base MAIN-CONTRIB-X)
   (pslide
     #:go (coord SLIDE-LEFT SLIDE-TOP 'lt)
     @titlet{Contributions (1/2)}
     #:go (coord x-base 1/2 'lc)
-    (h-append
+    (main-contrib-append
       model-pict
       (contrib*->pict
         '("Model:"
@@ -425,9 +467,9 @@
     #:go (coord SLIDE-LEFT SLIDE-TOP 'lt)
     @titlet{Contributions (2/2)}
     #:go (coord x-base 1/2 'lc)
-    #:alt [(h-append model-pict (blank (pict-width impl-pict) 0))]
-    #:alt [(h-append model-pict impl-pict)]
-    (h-append #:x-shift -40
+    #:alt [(main-contrib-append model-pict (blank (pict-width impl-pict) 0))]
+    #:alt [(main-contrib-append model-pict impl-pict)]
+    (main-contrib-append #:x-shift -40
       (contrib*->pict
         '("Implementation:"
           "- Racket syntax/types"
@@ -453,19 +495,20 @@
                             #:right [right-pict #f]
                             #:h [x-offset 1/7]
                             #:arrow [arrow-pict (blank)])
+  (define sf (make-stat-file left-pict))
+  (define df (make-dyn-file right-pict))
   (ppict-do
-    (blank (/ client-w 2) (/ client-h 2))
+    (blank (/ client-w 2) (pict-height sf))
     #:go (coord x-offset 1/2)
-    (make-stat-file left-pict)
+    sf
     #:go (coord (- 1 x-offset) 1/2)
-    (make-dyn-file right-pict)
+    df
     #:set (let ((p ppict-do-state))
             (if arrow-pict
-              (pin-arrows-line 10 p
-                               (find-tag p 'stat-file) rc-find
-                               (find-tag p 'dyn-file) lc-find
-                               #:y-adjust-label (+ 8 (pict-height arrow-pict))
-                               #:label arrow-pict)
+              (pin-arrow-line 10 p
+                              (find-tag p 'dyn-file) lc-find
+                              (find-tag p 'stat-file) rc-find
+                              #:label arrow-pict)
               p))))
 
 (define (maybe-superimpose base new)
@@ -698,21 +741,22 @@
   (define H-pos (find-tag p0 '->H))
   (define E-pos (find-tag p0 '->E))
   (define 1-pos (find-tag p0 '->1))
-  (define margin 50)
+  (define margin 30)
   (parameterize ((current-font-size (- (current-font-size) 10)))
     (ppict-do
       p0
-      #:go (at-find-pict H-pos lt-find 'rc #:abs-x (- margin))
-      (make-name-stack H*)
-      #:go (at-find-pict E-pos rt-find 'lc #:abs-x margin)
-      (make-name-stack E*)
-      #:go (at-find-pict 1-pos lt-find 'rt #:abs-x (- margin))
+      #:go (at-find-pict H-pos lt-find 'rc #:abs-y 10 #:abs-x (- margin))
+      (gt*->pict (sort H* < #:key (compose1 string-length gt-system-name)))
+      #:go (at-find-pict E-pos rt-find 'lc #:abs-x margin #:abs-y 30)
+      (gt*->pict E*)
+      #:go (at-find-pict 1-pos lt-find 'rt #:abs-x (- margin) #:abs-y -15)
       (if (null? 1*)
         (blank)
-        (make-name-stack (cons reticulated (filter-not/name "Reticulated" 1*))))
+        (let-values (((a* b*) (split/2 (cons reticulated (filter-not/name "Reticulated" 1*)))))
+          (ht-append 10 (gt*->pict b*) (gt*->pict a*))))
       #:set (let ((p ppict-do-state)
-                  (HE-pict (make-name-stack HE-system*))
-                  (1E-pict (make-name-stack 1E-system*)))
+                  (HE-pict (gt*->pict HE-system*))
+                  (1E-pict (gt*->pict 1E-system*)))
               (pin-line
                 (pin-line
                   p
@@ -721,7 +765,7 @@
                   #:style (if (null? HE-system*) 'transparent 'short-dash)
                   #:label HE-pict)
                 1-pos rc-find E-pos lb-find
-                #:y-adjust-label (pict-height 1E-pict)
+                #:y-adjust-label (/ (pict-height 1E-pict) 2)
                 #:style (if (null? 1E-system*) 'transparent 'short-dash)
                 #:label 1E-pict)))))
 
@@ -750,13 +794,17 @@
              (hline (pict-width bot) 10)
              bot))
 
-(define (apply-to-hole f-pict)
-  (hc-append 20 f-pict (make-hole)))
+(define (hole-append . p*)
+  (apply hc-append 20 p*))
 
-(define (make-hole)
-  (define x @t{X})
-  (define w (pict-width x))
-  (filled-rectangle w w #:color GREY))
+(define make-hole
+  (let* ([x @t{X}]
+         [w (pict-width x)])
+    (lambda ()
+      (filled-rectangle w w #:color GREY))))
+
+(define (big-lock-icon)
+  (make-icon lock-icon #:height 80))
 
 (define (big-x-icon)
   (make-icon x-icon #:height 80))
@@ -812,10 +860,27 @@
                  bg-pict
                  (t txt)))))
 
-(define (make-example-boundary-pict)
-  (make-boundary-pict #:left (apply-to-hole @t{f})
-                      #:right @dyn-text{⟨-1, -2⟩}
-                      #:arrow @t{Nat}))
+(define make-example-boundary-pict
+  (lambda ([a0 (blank)] [a1 (blank)] [a2 (blank)])
+    (let ([l0 (hole-append @t{fib} (make-hole))]
+          [r0 @dyn-text{-1}]
+          [l1 (hole-append @t{norm} (make-hole))]
+          [r1 @dyn-text{⟨-1, -2⟩}]
+          [l2 (hole-append @t{map} (make-hole) @t{y})]
+          [r2 @dyn-text{λ(x)e}]
+          [afp (lambda (t) (at-find-pict t cb-find 'ct #:abs-y 6))])
+      (ppict-do
+        (vc-append
+          30
+          (make-boundary-pict #:left l0 #:right r0 #:arrow (tag-pict @t{Nat} 'lbl-0))
+          (make-boundary-pict #:left l1 #:right r1 #:arrow (tag-pict @t{Nat×Nat} 'lbl-1))
+          (make-boundary-pict #:left l2 #:right r2 #:arrow (tag-pict @t{Nat → Nat} 'lbl-2)))
+        #:go (afp 'lbl-0)
+        a0
+        #:go (afp 'lbl-1)
+        a1
+        #:go (afp 'lbl-2)
+        a2))))
 
 (define (make-typed-racket-stack title)
   (make-labeled-stack title
@@ -955,13 +1020,6 @@
     e
     'NA))
 
-(define (dyn-text str)
-  (text str (cons DYN-TEXT-COLOR (current-main-font)) (current-font-size)))
-
-(define (neu)
-  (hc-append 40 @t{Northeastern University}
-             (scale-to-fit (bitmap neu-logo.png) 60 60)))
-
 (define make-folklore-slide
   (let ([q1 "Is type soundness all-or-nothing?"]
         [q1-h 2/10]
@@ -970,7 +1028,7 @@
         [q2 "Can adding types slow down a program?"]
         [q2-h 5/10]
         [a2 '("Yes, through interaction with" "untyped code (or data)")])
-    (lambda (#:answers? [answers? #false])
+    (lambda (#:q1? [q1? #true] #:q2? [q2? #true] #:answers? [answers? #false])
       (if answers?
         (pslide
           #:go (coord SLIDE-LEFT q1-h 'lt)
@@ -984,9 +1042,9 @@
           (make-rumor-pict 'right a2))
         (pslide
           #:go (coord SLIDE-LEFT q1-h 'lt)
-          (make-rumor-pict 'left q1)
+          (if q1? (make-rumor-pict 'left q1) (blank))
           #:go (coord SLIDE-LEFT q2-h 'lt)
-          (make-rumor-pict 'left q2))))))
+          (if q2? (make-rumor-pict 'left q2) (blank)))))))
 
 (define (string*->text str*)
   (if (string? str*)
@@ -1058,6 +1116,19 @@
                       p)
                     (coord x-pos y-pos 'ct))
                   name*))))))
+
+(define (split/2 x*)
+  (define len/2 (quotient (length x*) 2))
+  (let loop ((x* x*)
+             (n len/2))
+    (cond
+      [(null? x*)
+       (values x* '())]
+      [(= n 0)
+       (values '() x*)]
+      [else
+       (define-values [a* b*] (loop (cdr x*) (sub1 n)))
+       (values (cons (car x*) a*) b*)])))
 
 ;; =============================================================================
 
