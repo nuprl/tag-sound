@@ -13,7 +13,8 @@
              [source gt-system-source?]
              [embedding embedding?]
              [perf (>=/c 1)]
-             [url string?])
+             [url string?]
+             [mt? boolean?])
             #:omit-constructor]
     [all-system*
       (listof gt-system?)]
@@ -92,7 +93,7 @@
         (andmap src? y)
         (src? y)))))
 
-(struct gt-system [name year host-lang source embedding perf url]
+(struct gt-system [name year host-lang source embedding perf url mt?]
         #:transparent)
 
 (define (make-gt-system #:name name
@@ -101,8 +102,9 @@
                         #:from from
                         #:embedding embedding
                         #:perf worst-case-perf
-                        #:url url)
-  (gt-system name year host from embedding worst-case-perf url))
+                        #:url url
+                        #:mt? mt?)
+  (gt-system name year host from embedding worst-case-perf url mt?))
 
 (define (make-filter selector [eq? eq?] [not? #false])
   (lambda (e gt*)
@@ -131,7 +133,8 @@
                   #:from 'A
                   #:embedding 'H
                   #:perf 10 ;; TODO support this
-                  #:url "https://pleiad.cl/research/software/gradualtalk"))
+                  #:url "https://pleiad.cl/research/software/gradualtalk"
+                  #:mt? #true))
 
 (define typed-racket
   (make-gt-system #:name "Typed Racket"
@@ -140,7 +143,8 @@
                   #:from 'A
                   #:embedding 'H
                   #:perf 100
-                  #:url "https://github.com/racket/typed-racket"))
+                  #:url "https://github.com/racket/typed-racket"
+                  #:mt? #true))
 
 (define tpd
   (make-gt-system #:name "TPD"
@@ -149,7 +153,8 @@
                   #:from 'A
                   #:embedding 'H
                   #:perf 1.4
-                  #:url "https://github.com/jack-williams/tpd"))
+                  #:url "https://github.com/jack-williams/tpd"
+                  #:mt? #true))
 
 (define strongscript
   (make-gt-system #:name "StrongScript"
@@ -158,7 +163,8 @@
                   #:from 'A
                   #:embedding '(H E)
                   #:perf 10
-                  #:url "https://plg.uwaterloo.ca/~dynjs/strongscript"))
+                  #:url "https://plg.uwaterloo.ca/~dynjs/strongscript"
+                  #:mt? #false))
 
 (define actionscript
   (make-gt-system #:name "ActionScript"
@@ -167,7 +173,8 @@
                   #:from 'I
                   #:embedding 'E
                   #:perf 1
-                  #:url "https://www.adobe.com/devnet/actionscript.html"))
+                  #:url "https://www.adobe.com/devnet/actionscript.html"
+                  #:mt? #true))
 
 (define mypy
   (make-gt-system #:name "mypy"
@@ -176,7 +183,8 @@
                   #:from 'I
                   #:embedding 'E
                   #:perf 1
-                  #:url "http://mypy-lang.org"))
+                  #:url "http://mypy-lang.org"
+                  #:mt? #true))
 
 (define flow
   (make-gt-system #:name "Flow"
@@ -185,7 +193,8 @@
                   #:from 'I
                   #:embedding 'E
                   #:perf 1
-                  #:url "https://flow.org"))
+                  #:url "https://flow.org"
+                  #:mt? #true))
 
 (define hack
   (make-gt-system #:name "Hack"
@@ -194,7 +203,8 @@
                   #:from 'I
                   #:embedding 'E
                   #:perf 1
-                  #:url "http://hacklang.org"))
+                  #:url "http://hacklang.org"
+                  #:mt? #true))
 
 (define pyre
   (make-gt-system #:name "Pyre"
@@ -203,7 +213,8 @@
                   #:from 'I
                   #:embedding 'E
                   #:perf 1
-                  #:url "https://pyre-check.org"))
+                  #:url "https://pyre-check.org"
+                  #:mt? #true))
 
 (define pytype
   (make-gt-system #:name "Pytype"
@@ -212,7 +223,8 @@
                   #:from 'I
                   #:embedding 'E
                   #:perf 1
-                  #:url "https://opensource.google.com/projects/pytype"))
+                  #:url "https://opensource.google.com/projects/pytype"
+                  #:mt? #true))
 
 (define rtc
   (make-gt-system #:name "rtc"
@@ -221,7 +233,8 @@
                   #:from 'A
                   #:embedding 'E
                   #:perf 1
-                  #:url "https://github.com/plum-umd/rtc"))
+                  #:url "https://github.com/plum-umd/rtc"
+                  #:mt? #true))
 
 (define strongtalk
   (make-gt-system #:name "Strongtalk"
@@ -230,7 +243,8 @@
                   #:from 'A
                   #:embedding 'E
                   #:perf 1
-                  #:url "http://strongtalk.org"))
+                  #:url "http://strongtalk.org"
+                  #:mt? #true))
 
 (define typescript
   (make-gt-system #:name "TypeScript"
@@ -239,7 +253,8 @@
                   #:from 'I
                   #:embedding 'E
                   #:perf 1
-                  #:url "https://www.typescriptlang.org"))
+                  #:url "https://www.typescriptlang.org"
+                  #:mt? #true))
 
 (define typed-clojure
   (make-gt-system #:name "Typed Clojure"
@@ -248,7 +263,8 @@
                   #:from 'A
                   #:embedding 'E
                   #:perf 1
-                  #:url "http://typedclojure.org"))
+                  #:url "http://typedclojure.org"
+                  #:mt? #true))
 
 (define typed-lua
   (make-gt-system #:name "Typed Lua"
@@ -257,7 +273,8 @@
                   #:from 'A
                   #:embedding 'E
                   #:perf 1
-                  #:url "https://github.com/andremm/typedlua"))
+                  #:url "https://github.com/andremm/typedlua"
+                  #:mt? #true))
 
 (define pyret
   (make-gt-system #:name "Pyret"
@@ -266,7 +283,8 @@
                   #:from 'A
                   #:embedding '(E 1)
                   #:perf 1.2
-                  #:url "https://www.pyret.org"))
+                  #:url "https://www.pyret.org"
+                  #:mt? #true))
 
 (define thorn
   (make-gt-system #:name "Thorn"
@@ -275,7 +293,8 @@
                   #:from 'A
                   #:embedding '(E 1)
                   #:perf 1.1
-                  #:url "http://janvitek.org/yearly.htm"))
+                  #:url "http://janvitek.org/yearly.htm"
+                  #:mt? #false))
 
 (define dart2
   (make-gt-system #:name "Dart 2"
@@ -284,7 +303,8 @@
                   #:from 'I
                   #:embedding '1
                   #:perf 1.1
-                  #:url "https://www.dartlang.org/dart-2"))
+                  #:url "https://www.dartlang.org/dart-2"
+                  #:mt? #false))
 
 (define dart1
   (make-gt-system #:name "Dart 1"
@@ -293,7 +313,8 @@
                   #:from 'I
                   #:embedding 'E
                   #:perf 1.1
-                  #:url "https://v1-dartlang-org.firebaseapp.com"))
+                  #:url "https://v1-dartlang-org.firebaseapp.com"
+                  #:mt? #true))
 
 (define nom
   (make-gt-system #:name "Nom"
@@ -302,7 +323,8 @@
                   #:from 'A
                   #:embedding '1
                   #:perf 1.2 ;; TODO
-                  #:url "https://www.cs.cornell.edu/~ross/publications/nomalive"))
+                  #:url "https://www.cs.cornell.edu/~ross/publications/nomalive"
+                  #:mt? #false))
 
 (define pycket
   (make-gt-system #:name "Pycket"
@@ -311,7 +333,8 @@
                   #:from 'A
                   #:embedding 'H
                   #:perf 3 ;; TODO
-                  #:url "https://github.com/pycket/pycket"))
+                  #:url "https://github.com/pycket/pycket"
+                  #:mt? #true))
 
 (define reticulated
   (make-gt-system #:name "Reticulated"
@@ -320,7 +343,8 @@
                   #:from 'A
                   #:embedding '1
                   #:perf 3 ;; TODO
-                  #:url "https://github.com/mvitousek/reticulated"))
+                  #:url "https://github.com/mvitousek/reticulated"
+                  #:mt? #true))
 
 (define safets
   (make-gt-system #:name "SafeTS"
@@ -329,7 +353,8 @@
                   #:from 'A
                   #:embedding '1
                   #:perf 1
-                  #:url "https://www.microsoft.com/en-us/research/publication/safe-efficient-gradual-typing-for-typescript-3"))
+                  #:url "https://www.microsoft.com/en-us/research/publication/safe-efficient-gradual-typing-for-typescript-3"
+                  #:mt? #false))
 
 (define grace
   (make-gt-system #:name "Grace"
@@ -338,7 +363,8 @@
                   #:from 'A
                   #:embedding '1
                   #:perf 1
-                  #:url "http://gracelang.org/applications/home"))
+                  #:url "http://gracelang.org/applications/home"
+                  #:mt? #true))
 
 (define pallene
   (make-gt-system #:name "Pallene"
@@ -347,7 +373,8 @@
                   #:from 'A
                   #:embedding '1
                   #:perf 1
-                  #:url "https://github.com/pallene-lang"))
+                  #:url "https://github.com/pallene-lang"
+                  #:mt? #true))
 
 (define titan
   (make-gt-system #:name "Titan"
@@ -356,7 +383,8 @@
                   #:from 'A
                   #:embedding '1
                   #:perf 1
-                  #:url "https://github.com/titan-lang"))
+                  #:url "https://github.com/titan-lang"
+                  #:mt? #true))
 
 (define all-system*
   (list gradualtalk typed-racket tpd strongscript #;actionscript mypy pallene
@@ -371,7 +399,8 @@
                   #:from 'A
                   #:embedding 'E
                   #:perf 1
-                  #:url ""))
+                  #:url ""
+                  #:mt? #true))
 
 (define tr-1
   (make-gt-system #:name "TR-1"
@@ -380,7 +409,8 @@
                   #:from 'A
                   #:embedding '1
                   #:perf 1
-                  #:url ""))
+                  #:url ""
+                  #:mt? #true))
 
 (define new-system*
   (list tr-e tr-1))

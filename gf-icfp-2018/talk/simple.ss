@@ -6,6 +6,7 @@
 ;; - if NEPLS, need to clarify there's a paper here ... also 17 min
 ;; - page numbers, customize! (pslide macro?)
 ;; - add micro/macro dyn/not knobs for ICFP
+;; - what does confined or Siek/Wadler do to compare?
 
 (require
   gf-icfp-2018/talk/src/gt-system gf-icfp-2018/talk/src/constant
@@ -32,21 +33,20 @@
                  #;[*current-tech* #true]
                 )
     (void)
-    ;(sec:title)
-    ;(sec:folklore-I)
-    ;(sec:gt-landscape)
-    ;(sec:kafka) ;; shout out for NEPLS
-    ;(sec:main-result)
-    ;(sec:embeddings)
-    ;(sec:soundness/implementation)
-    ;(sec:implementation)
-    ;(sec:experiment)
+    (sec:title)
+    (sec:folklore-I)
+    (sec:gt-landscape)
+    (sec:kafka) ;; shout out for NEPLS
+    (sec:main-result)
+    (sec:embeddings)
+    (sec:soundness/implementation)
+    (sec:experiment)
     (sec:graph)
-    ;(sec:conclusion)
+    (sec:conclusion)
     ;(sec:folklore-II)
     ;(pslide (make-section-header "The End"))
     ;(main-results-slide)
-    ;(sec:extra)
+    (sec:extra)
     (void)))
 
 ;; -----------------------------------------------------------------------------
@@ -117,10 +117,12 @@
 (define (sec:kafka)
   ;; TODO prettier
   (pslide
-    #:go (coord SLIDE-LEFT 1/2 'lb)
-    @t{KafKa: Gradual Typing for Objects}
-    @t{Chung, Li, Zappa Nardelli, Vitek}
-    @t{ECOOP 2018}))
+    #:go (coord 1/2 1/4 'ct)
+    (bitmap kafka.png))
+;    @t{KafKa: Gradual Typing for Objects}
+;    @t{Chung, Li, Zappa Nardelli, Vitek}
+;    @t{ECOOP 2018}
+  (void))
 
 (define (sec:main-result)
   (pslide
@@ -152,7 +154,7 @@
     #:go (coord SLIDE-LEFT SLIDE-TOP 'lt)
     ;;@t{Types}
     (vl-append 10
-               @t{t = Nat | Int | t × t | t → t}
+               @t{t = Nat | Int | t×t | t → t}
                @t{Nat <: Int})
     #:next
     #:go (coord SLIDE-LEFT 25/100 'lt)
@@ -199,8 +201,7 @@
   (pslide
     #:alt [(make-embeddings-pict)]
     (make-embeddings-pict #:highlight 'H))
-  (pslide
-    (make-example-boundary-pict (big-x-icon) (big-x-icon) (big-lock-icon)))
+  (make-H-example-slide)
   ;(pslide
   ;  #:go (coord 1/15 1/5 'lt)
   ;  (make-sig-pict (make-step @t{dyn t v} ->H @t{v}))
@@ -219,8 +220,7 @@
     #:alt [(make-embeddings-pict)]
     #:alt [(make-embeddings-pict H-system*)]
     (make-embeddings-pict H-system* #:highlight 'E))
-  (pslide
-    (make-example-boundary-pict (big-check-icon) (big-check-icon) (big-check-icon)))
+  (make-E-example-slide)
   ;(pslide
   ;  #:go (coord 1/15 1/5 'lt)
   ;  (make-sig-pict (make-step @t{dyn t v} ->E @t{v}))
@@ -238,8 +238,7 @@
     #:alt ((make-embeddings-pict H-system*))
     #:alt ((make-embeddings-pict H-system* E-system*))
     (make-embeddings-pict H-system* E-system* #:highlight '1))
-  (pslide
-    (make-example-boundary-pict (big-x-icon) (big-check-icon) (big-check-icon)))
+  (make-1-example-slide)
   ;(pslide
   ;  ;; TODO illustrate selectors moving over boundary ??? I don't think appropriate for NEPLS
   ;  (make-example-boundary-pict)
@@ -258,11 +257,10 @@
 
 (define (sec:soundness/implementation)
   (define-values [model-pict impl-pict] (make-model/impl-pict))
-  (define scale-factor 1.6)
   (define type-pict*
     (for/list ((p (in-list (list ⊢H ⊢E ⊢1)))
                (str (in-list '("t" "K(t)" #f))))
-      (hc-append 0 (scale p scale-factor) (blank 2 0) (t "e") (if str (t (string-append ":" str)) (blank)))))
+      (hc-append 0 (scale-for-bullet p) (blank 2 0) (t "e") (if str (t (string-append ":" str)) (blank)))))
   (define model-pict+
     (ppict-do
       model-pict
@@ -286,18 +284,15 @@
                            (add-between
                              (for/list ((type-pict (in-list type-pict*))
                                         (a (in-list (list ->H ->E ->1))))
-                               (hc-append (t "- ") type-pict (t " sound for ") (scale a scale-factor)))
+                               (hc-append (t "- ") type-pict (t " sound for ") (scale-for-bullet a)))
                              (blank)))))
   (pslide
     (make-section-header "Implementation"))
   (pslide
     #:go (coord x-base 1/2 'lc)
     #:alt [(main-contrib-append model-pict my-blank)]
-    #:alt [(main-contrib-append model-pict impl-pict)]
-    (main-contrib-append my-blank impl-pict))
-  (void))
-
-(define (sec:implementation)
+    (main-contrib-append model-pict impl-pict))
+  ;; implementation
   (define box*
     (list (make-TR-H-box) (make-TR-E-box) (make-TR-1-box)))
   (define x* '(1/5 1/2 4/5))
@@ -315,7 +310,9 @@
     (make-TR-E-stack)
     #:next
     #:go (coord (caddr x*) stack-y 'ct)
-    (make-TR-1-stack))
+    (make-TR-1-stack)
+    #:next
+    (vl-append (blank 0 20) (t "Optimize?")))
   (void))
 
 (define (sec:experiment)
@@ -340,57 +337,66 @@
   (make-overhead-plot-slide '())
   (make-overhead-plot-slide '(H E 1))
   (pslide
-    (scale-to-fit (bitmap cache-scatterplots.png) client-w client-h))
+    (make-scatterplots-pict))
   ;; TODO table of lo-hi performance, to better support prescriptions at the end
   ;(make-folklore-slide #:q1? #false)
-  (make-overhead-plot-slide '(H E 1))
+  ;(make-overhead-plot-slide '(H E 1))
   (void))
 
+(define (make-scatterplots-pict)
+  (scale-to-fit (bitmap cache-scatterplots.png) client-w client-h))
+
+
 (define (sec:conclusion)
-  (define-values [w h] (two-column-dims))
+  (define-values [box-pict sup-pict]
+    (let* ([sup-pict (text "⊃" (current-main-font) 40)]
+           [b (blank (pict-width sup-pict) 0)])
+      (values
+        (hc-append 10 (make-H-box) b (make-1-box) b (make-E-box))
+        (hc-append 10 (make-H-box) sup-pict (make-1-box) sup-pict (make-E-box)))))
+  (define y-sep 30)
+  (define soundness-pict
+    (tag-pict
+      (apply vl-append y-sep
+        (for/list ((arr (in-list (list ->H ->E ->1)))
+                   (what (in-list (list "types" #f "type constructors"))))
+          (ht-append (scale-for-bullet arr)
+                     (if what
+                       (vl-append 10
+                                  (t " progress + preserves")
+                                  (t (string-append " " what)))
+                       (t " progress")))))
+
+      'bullets))
+  (define perf-pict
+    (tag-pict
+      (apply vl-append y-sep
+        (for/list ((arr (in-list (list ->H ->E ->1)))
+                   (where (in-list (list "to 'packages'" "anywhere" "sparingly"))))
+          (hc-append (scale-for-bullet arr)
+                     (t (format " add types ~a" where)))))
+      'perf))
   (pslide
     (make-section-header "Implications"))
   (pslide
-    #:title "Conclusions: for Theoreticians"
-    (hc-append
-      (ppict-do
-        (blank w h)
-        #:go (coord 1/10 3/10 'lt)
-        @t{Soundness for a pair of languages}
-        @t{is different than soundness for}
-        @t{one language!})
-  ;; @item{Useful to model different systems as different semantics instead of different compilers}
-  ;  @item{Compare semantics via simulation proofs}
-  ;  ;; what does confined, or Siek/Wadler, do to compare?
-      (scale-to-fit
-        (make-boundary-pict #:h 2/7 #:left (large-tau-icon) #:right (large-lambda-icon))
-        w h))
-    )
+    #:go (coord SLIDE-LEFT SLIDE-TOP 'lt)
+    @titlet{Theory Implications}
+    #:go (coord SLIDE-LEFT 1/4 'lt)
+    #:alt [(main-contrib-append box-pict soundness-pict)]
+    (main-contrib-append sup-pict soundness-pict)
+    #:next
+    #:go (at-find-pict 'bullets lb-find 'lt #:abs-y y-sep)
+    (vl-append y-sep
+               (hc-append (t "- ") (scale-for-bullet ->H) (t " refines ") (scale-for-bullet ->1))
+               (hc-append (t "- ") (scale-for-bullet ->1) (t " refines ") (scale-for-bullet ->E))))
   (pslide
-    #:title "Conclusions: for Language Implementors"
-    (hc-append
-      (ppict-do
-        (blank w h)
-        #:go (coord 1/10 3/10 'lt)
-        @t{- How to predict overhead?}
-        #:go (coord 1/10 4/10 'lt)
-        @t{- Possible to change}
-        @t{  landscape?})
-      (scale-to-fit
-        (make-overhead-plot '(H E 1))
-        w h)))
-  (pslide
-    #:title "Conclusion: for Programmers"
-    #:go (coord 1/10 1/5 'lt)
-    @t{Invariants help catch bugs}
-    #:go (coord 1/10 2/5 'lt)
-    (hc-append 20 (scale (make-H-box) 3/4) @t{enforces types})
-    #:go (coord 1/10 3/5 'lt)
-    (hc-append 20 (scale (make-E-box) 3/4) @t{enforces nothing})
-    #:go (coord 1/10 4/5 'lt)
-    (hc-append 20 (scale (make-1-box) 3/4) @t{enforces type constructors})
-    ;#:go (coord 1/10 6/10 'lt)
-    #;@t{Many examples in the paper})
+    #:go (coord SLIDE-LEFT SLIDE-TOP 'lt)
+    @titlet{Performance Implications (for now)}
+    #:go (coord SLIDE-LEFT 1/4 'lt)
+    (main-contrib-append
+      perf-pict
+      (let ((w (pict-width box-pict)))
+        (scale-to-fit (make-overhead-plot '(H E 1) #:legend? #false) w w))))
   (void))
 
 (define (sec:folklore-II)
@@ -399,6 +405,13 @@
 
 (define (sec:extra)
   (pslide)
+  (make-H-example-slide)
+  (make-E-example-slide)
+  (make-1-example-slide)
+  (pslide
+    (make-embeddings-pict all-system*))
+  (pslide
+    (make-scatterplots-pict))
   ;; TODO
   #;(QA:kafka)
   #;(QA:...)
@@ -406,6 +419,21 @@
   (void))
 
 ;; -----------------------------------------------------------------------------
+
+(define (make-H-example-slide)
+  (make-?-example-slide (make-H-box) (big-x-icon) (big-x-icon) (big-lock-icon)))
+
+(define (make-E-example-slide)
+  (make-?-example-slide (make-E-box) (big-check-icon) (big-check-icon) (big-check-icon)))
+
+(define (make-1-example-slide)
+  (make-?-example-slide (make-1-box) (big-x-icon) (big-check-icon) (big-check-icon)))
+
+(define (make-?-example-slide lbl r0 r1 r2)
+  (pslide
+    (make-example-boundary-pict r0 r1 r2)
+    #:go (coord SLIDE-TOP SLIDE-LEFT 'lt)
+    lbl))
 
 (define (neu)
   (hc-append 40 @t{Northeastern University}
@@ -521,7 +549,11 @@
   (maybe-superimpose (tag-pict (make-component-file DYN-COLOR) 'dyn-file) super))
 
 (define (gt->pict gt)
-  (define txt-p (text (gt-system-name gt) (current-main-font) 22))
+  (define str
+    (let ([n (gt-system-name gt)]
+          [m (gt-system-mt? gt)])
+      (string-append n (if m "" "*"))))
+  (define txt-p (text str (current-main-font) 22))
   (define w (+ 10 (pict-width txt-p)))
   (define h (+ 10 (pict-height txt-p)))
   (cc-superimpose
@@ -775,7 +807,7 @@
       (list
         @t{dyn Nat n} ->1 @t{n}
         @t{dyn Int i} ->1 @t{i}
-        @t{dyn (t0 × t1) ⟨v0, v1⟩} ->1 @t{⟨v0, v1⟩}
+        @t{dyn (t0×t1) ⟨v0, v1⟩} ->1 @t{⟨v0, v1⟩}
         @t{dyn (td → tc) λ(x)e} ->1 @t{λ(x)e}
         @t{dyn t v} ->1 (little-x-icon)))))
 
@@ -862,7 +894,7 @@
     (let ([l0 (hole-append @t{fib} (make-hole))]
           [r0 @dyn-text{-1}]
           [l1 (hole-append @t{norm} (make-hole))]
-          [r1 @dyn-text{⟨-1, -2⟩}]
+          [r1 @dyn-text{⟨-1,-2⟩}]
           [l2 (hole-append @t{map} (make-hole) @t{y})]
           [r2 @dyn-text{λ(x)e}]
           [afp (lambda (t) (at-find-pict t cb-find 'ct #:abs-y 6))])
@@ -939,10 +971,10 @@
       #:go (coord (- SLIDE-LEFT 1/40) 1/5 'lt)
       (make-overhead-plot e*))))
 
-(define (make-overhead-plot e*)
+(define (make-overhead-plot e* #:legend? [legend? #true])
   (define w 500)
   (define x-min 0)
-  (define x-max pi)
+  (define x-max (+ (/ pi 10) pi))
   (define pp
     (parameterize ((plot-x-ticks no-ticks)
                    (plot-y-ticks no-ticks)
@@ -962,9 +994,10 @@
         #:x-max x-max
         #:y-min 0
         #:y-max (* 10 (+ 1 (order-of-magnitude x-max))))))
-  (ht-append 20
-             (make-overhead-legend e*)
-             (add-overhead-axis-labels pp)))
+  (define pp+axis (add-overhead-axis-labels pp))
+  (if legend?
+    (ht-append 20 (make-overhead-legend e*) pp+axis)
+    pp+axis))
 
 (define (make-overhead-legend e*)
   (define w (* 22/100 client-w))
@@ -981,7 +1014,9 @@
 (define (make-embedding-function e x-min x-max)
   (case e
     ((H)
-     (lambda (n) (max (if (< n 2) 1 0.4) (+ 0.5 (* 10 (sin n))))))
+     (lambda (n) (max (if (< n 2) 1 0.4)
+                      0
+                      (+ 0.5 (* 10 (sin n))))))
     ((E)
      (lambda (n) 1))
     ((1)
@@ -1168,6 +1203,10 @@
 
 (define (url str)
   (hyperlinkize (tt str)))
+
+(define (scale-for-bullet p)
+  (define scale-factor 1.6)
+  (scale p scale-factor))
 
 ;; =============================================================================
 
