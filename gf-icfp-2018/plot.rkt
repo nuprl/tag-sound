@@ -45,7 +45,8 @@
 
   list-pict
   db-app-pict
-  reynolds-pict)
+  reynolds-pict
+  data->exact-plot)
 
 (require
   "lined-codeblock.rkt"

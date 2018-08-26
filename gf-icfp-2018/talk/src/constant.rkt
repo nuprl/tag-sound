@@ -28,12 +28,12 @@
 (define SLIDE-RIGHT (- 1 SLIDE-LEFT))
 
 (define BROWN (string->color "chocolate"))
+(define RED (string->color "firebrick"))
+(define LIGHT-RED (string->color "Tomato"))
 (define GREEN (string->color "mediumseagreen"))
 (define BLUE (string->color "cornflowerblue"))
 (define LIGHT-BLUE (string->color "Lavender"))
 (define DARK-BLUE syntax-icon-color)
-(define RED (string->color "firebrick"))
-(define LIGHT-RED (string->color "Tomato"))
 (define WHITE (string->color "Snow"))
 (define RAY-COLOR RED)
 (define BOX-COLOR (string->color "bisque"))
@@ -112,3 +112,5 @@
 (define MAIN-CONTRIB-Y 15/100)
 
 (define PLOT-FN-ALPHA 0.6)
+
+(define-runtime-path cache-scatterplots.png "cache-scatterplots.png")
