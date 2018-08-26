@@ -8,7 +8,7 @@
 ;; - add micro/macro dyn/not knobs for ICFP
 
 (require
-  "src/gt-system.rkt" "src/constant.rkt"
+  gf-icfp-2018/talk/src/gt-system gf-icfp-2018/talk/src/constant
   pict pict/convert pict/balloon
   ppict/2
   scribble-abbrevs/pict
@@ -337,25 +337,19 @@
 (define (sec:graph)
   (pslide
     (make-section-header "Results"))
-  (parameterize ([current-font-size 26])
-    (pslide
-      #:go (coord SLIDE-LEFT SLIDE-TOP 'lb)
-      @titlet{Typical program}
-      #:go (coord (- SLIDE-LEFT 1/40) 1/5 'lt)
-      #:alt [(make-overhead-plot '())]
-      #:alt [(make-overhead-plot '(H))]
-      #:alt [(make-overhead-plot '(H E))]
-      (make-overhead-plot '(H E 1))
-      ;; MORE RESEARCH NECESSARY
-      ))
+  (make-overhead-plot-slide '())
+  (make-overhead-plot-slide '(H E 1))
+  (pslide
+    (scale-to-fit (bitmap cache-scatterplots.png) client-w client-h))
+  ;; TODO table of lo-hi performance, to better support prescriptions at the end
+  ;(make-folklore-slide #:q1? #false)
+  (make-overhead-plot-slide '(H E 1))
   (void))
 
 (define (sec:conclusion)
   (define-values [w h] (two-column-dims))
   (pslide
-    (make-section-header "Conclusions")
-    #:next
-    @t{for: theory, systems, practice})
+    (make-section-header "Implications"))
   (pslide
     #:title "Conclusions: for Theoreticians"
     (hc-append
@@ -936,6 +930,14 @@
      'lb]
     [else
      (raise-user-error 'random-l-align "bad")]))
+
+(define (make-overhead-plot-slide e*)
+  (parameterize ([current-font-size 26])
+    (pslide
+      #:go (coord SLIDE-LEFT SLIDE-TOP 'lb)
+      @titlet{Typical program}
+      #:go (coord (- SLIDE-LEFT 1/40) 1/5 'lt)
+      (make-overhead-plot e*))))
 
 (define (make-overhead-plot e*)
   (define w 500)
