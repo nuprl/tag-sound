@@ -12,278 +12,232 @@ TODO
   - [ ] icfp
 [ ] blog post
 
-- clarify, don't actually have semantics for everything in the figure
-
-
-- - -
-# OUTLINE
-
-1. folklore I II
-2. disorganized space, attempts to organize
-3. main contribution: order via semantics
-   other contribution: theory, systems, developers
-5. 3 semantics, position systems
-   (Pyret etc. in between, blanks = future)
-6. 3 implementations
-   (equipped with new understanding ... added points to figure)
-7. relative performance results
-8. what does this mean
-   - for theory = different soundness, for a pair, missing!
-   - for systems = performance consequences of the semantics,
-                   can we improve? idk,
-                   can we trade/swap idk
-   - for developers = need to know semantics for debugging
-9. the end thanks
-
-
 - - -
 # SCRIPT
 
-1
-to get us started here are two folklore statements about type systems first
-type soundness is all-or-nothing; either a type system is sound (perhaps up to
-certain features), or it is unsound and its not worthwhile to make further
-distinctions second is that adding type information to a program can only improve
-its performance; in other words a typed program might run faster if a compiler
-can leverage the types for now think about whether you believe these are true
-and we'll revisit near the end of the talk
+s2
+Hi. To start off, here are two questions. The first asks if type soundness is
+a binary notion --- in other words, a language is either sound or unsound, and
+anything in between is not important. The second asks whether adding type
+information to a program can have a negative effect on its performance. At a
+glance it seems like the answer to that one should be ``no'', because more types
+should give an optimizer more to work with, and nothing else.
 
-AS SCIENTISTS HAVE TO INVESTIGATE
+But as scientists, its our job to investigate questions like this systematically
 
-2
-Moving on, I'm intersted in migratory typing
-bring type systems research to bear on a dynamically typed language
-wind up with a language that mixes ..
-this is one angle on a more general problem of gradual typing, or rather combining
-static and dynamic typing, so its good to look to that area for inspiration
+Thats all I want to say about these for now, and we'll come back to the ideas
+later.
 
-and its a big space, here's just a few languages that allow static and dynamic
-code
+s3
+ok so I am interested in migratory typing which is the idea of starting with an
+existing dynamically typed language desigining a static type system to reason
+about programs written in this language and arriving at a pair of languages ---
+one statically typed, one dynamically typed, that can interact
 
+if youve heard of gradual typing, its very similar, but this constraint of
+starting from a dynamically typed language is very important to me
 
-the paper is about languages that combine typed and untyped code
-here are the names of a few such languages
-there are a lot of names these are organized by date because
-right now, at the start of this talk, there aren't many better options
-we could organize by language but thats not much better than discrete topology,
-we could group by origin academic-lab vs industry-lab ... also not useful,
-we could group by those with claims to a type soundness guarantee but theres
- an issue the soundnesses are different heres TR vs. Reticulated (pasted from
- papers) and they are different!,
-we could also try to group by performance ... fine, slow, dead ... but this
- is worst of all because its across different languages AND different benchmarks
+with that said, related work on gradual typing systems and really any language
+that combines static and dynamic typing is a good source of inspiration and the
+work I'm here to present today started with me trying to make sense of this space
 
-3
-the main contribution of this paper is to categorize different systems by
-their semantics; in particular, by the strategy they employ at the boundaries
-between typed and untyped code
+so the swimming pool here represents the design space of languages that combine
+static and dynamic typing here are a few of the languages in the space, arranged
+in no particular order. There are a lot of names. Unfortunately, theres not much
+we can do to organize. One idea is to sort them by release date, from oldest on
+the left to newest on the right, where the y-axis doesn't mean anything, but
+this doesn't tell us much except some growth trend. We can try grouping by
+where they came from. On the left is a cluster of research languages and on the
+right are languages that came out of industry. Again the y-axis doesn't mean
+anything, and the second column on the left is only because the first column
+ran out of space. (Lets move on, this isn't a very useful distinction.) The
+next thing I thought to try is grouping the languages by whether they claim to
+be type sound, or whether they erase types at runtime. This is a little more
+interesting, but if you dig deeper the papers that describe these type soundnesses
+often have very different theorems! In the SafeTS paper for example, soundness
+is just for the statically-typed part of the language ... theres no soundness
+for programs that mix typed and untyped code. Another thing we can try is
+grouping by performance, somehow. We need to be careful in comparing across
+languages, but to a first approximation we can say Typed Racket is dead and
+everything else I guess is not dead.
 
-[[ contribue to scientific understanding, classify by semantics ... compare impls ]]
+s13
+You get the point, the space is a zoo.
 
-conceptually, we start with a mixed-typed program, split it into statically
-typed and dynamically-typed parts, and focus on what happens when values cross
-between the two components (parts? principals?) at runtime
+s14
+I'm aware of just one other work that attempts a scientific comparison, and
+thats KafKa by Ben Chung and others.  Ben is here today, if you want to learn
+more about that.
 
-to clarify, our approach to modeling is to start with one surface language
-with notions of statically typed and dynamically typed code and then define
-three semantics that are basically equal up to their strategy for checking
-values at a boundary for each semantics we can then talk about its soundness
-with respect to the surface typing systems and make formal comparisons between
-the systems
+s15
+Our work presents a way to organize this space by semantics. In the paper we
+have three formal semantics for a common surface language, called the
+higher-order, erasure, and first-order semantics. The names come from the most
+important part of each, which is the strategy they use to enforce types at the
+boundary between statically typed and dynamically typed code.
 
-we then used the models as a guide to build three implementations so that we
-could perform the first apples-to-apples comparison between three approaches
-on identical program
+To be clear, one main contribution of our paper is a model for one mixed-typed
+language, one surface-level type system, and three formal semantics. So then we
+can take one program, validated by one static typing system, and compare the
+results of running the same code three different ways.
 
-between the models and implementations this lets us compare the theory,
-performance, and practical consequences of each approach in a scientifically
-sound manner
+Then using the model as a guide, we took Typed Racket as the surface language
+and added two new compilers. The second main contribution of the paper is a
+performance evaluation comparing the three semantics extracted from the
+literature on equal source programs. This is the first evaluation of its kind
+and I'm excited to tell you about it.
 
-(somewhat proud to say, this is the first controlled experiment of its kind)
+s21
+But first, lets explain the model. We have a small grammar of types, and a
+matching grammar of values. I claim these types are the simplest possible to
+ask all the interesting questions about typed/untyped interaction; in particular
+we have a coinductive type for functions, an inductive type for pairs, a base
+type for integers, and a type for natural numbers that is a subtype of the type
+for integers. On the value side, the natural-number literals are a subset of
+the integer literals.
 
-5
-back to the outline slide, we have three semantics the main differences between
-them is what they do at the boundary between typed and untyped code ... when
-an untyped value crosses in, what happens?
+This subset relation is extremely important. It reflects how programmers can use
+predicates to identify a subset of the value domain and make a logical distinction
+between values that is useful for people, but the underlying machine doesn't
+care about. In other words the language of types should not be limited by the
+kinds of values the runtime system knows about.
 
-to explain I need a little formal machinery a small language with a static typing
-system and a dynamic typing system
+And finally we have primitive operations and expressions. The non-standard part
+of the expression language are these two boundary terms. A dyn expression
+embeds a dynamically typed expression in statically typed code, and a stat
+expression embeds a statically-typed expression in dynamically-typed code.
 
-... types for natural numbers integers pairs and functions the type Nat is a subtype
-of the type Int this is very important later for values need natural numbers
-integers pairs and functions the set of natural numbers is a subset of the set
-of integers functios are split into two parts, typed and untyped take as given
-a language of expressions the critical part is two boundary expressions dyn/stat
-these interact with the typing systems ... a statically typed epxression can
-embed untyped code and a dynamically-typed expression can embed statically-typed
-code ... and now we can talk about program that combine stiatic and dynamic
-typing, for example this program that applies a statically typed function to a
-dynamically typed value this program is well typed but as you can see something
-interesting is going to happen when we run the program ... this value (-1,-2) is
-going to cross a boundary from the dynamically-typed world into the statically
-typed world, and the static world expects a pair of naturals
+In this model we can write well-typed programs that mix typed and untyped
+code, like this, or with more readable syntax like this. On the left we have
+three statically typed contexts and on the right three dynamically typed
+expressions. All three are well-typed, so we can run them and see what the
+semantics says about these three type mismatches.
 
-wouldn't be well typed, but questionable what to do at runtime
+First, lets do the higher-order semantics. The higher-order approach enforces
+types at the boundaries. If the types expect a natural number and untyped code
+sends an integer, higher order raises a runtime error. Similarly, if we're
+expecting a pair of natural numbers and receive a pair of negative numbers,
+then higher order raises an error because the components of the pair don't match
+the type. Finally if we're expecting a function on natural numbers and receive
+an untyped lambda, higher-order conditionally accepts the value. That's what
+the lock is trying to indicate. In the model we monitor the untyped function
+and check that every value it returns, forever more, is a natural number. If
+not then higher-order can trace the violation back to this boundary. And that's
+all you need to know to understand the higher-order semantics. It checks types
+eagerly when possible, and lazily when necessary.
 
-NATURAL
-now onto the three approaches the higher-order approach rejects this interaction,
-if (-1,-2) meets a boundary expecting (Nat,Nat) then rejected because components
-are not natural numbers more generally higher-order enforces a pair type by
-asserting the value is a pair and recursively checking its components for other
-types, accepts natural numbers for Nat accepts integers for Int thats
-straightforward and for functions checks the value is a closure and wraps it
-in a new closure that encapsulates the boundary if youre familiar with contracts
-for higher-order functions this is exactly that other combos are errors
+And here, I know of 4 existing systems that implement the higher-order semantics.
 
-bottom fully enforces types --- either by exhaustive checking if possible and
-by monitoring future behaviors otherwise
+Next up is E for erasure. As the name suggests, the erasure semantics ignores
+types at runtime, so all three examples go through despite the apparent type
+mismatch. Many systems implement the erasure semantics. To its credit, it adds
+the benefits of static type checking and type-based IDE tools and its very easy
+to add this semantics to an existing language --- just use the existing language!
 
-back to the outline, TR GT TSC are examples of higher-order gradual typing
-systems
+Now we come to the number 1, for first-order. The goal here is to enforce some
+parts of the types, but avoid the higher-order lock we had before. For our
+running examples, the first-order semantics we give in the paper rejects the
+first one, where a negative number meets a nat boundary, but accepts the other
+two. Because in the second case we expect a pair and got a pair, and in the
+third case we expect a function and got a function. Theres more to say about
+what happens when typed code goes to use the pair or function, but this is the
+main idea, to enforce type constructors at the boundary.
 
-ERASURE
-next erasure the erasure approach does not check anything at the boundary
-for our example program, it invokes the function with the ill-typed pair
-come what may more generally for pairs anything goes for naturas and integers
-anything goes and for functions anything goes more simply anything goes
+This first-order semantics I've sketched is very similar to what Reticulated
+Python does. In fact Reticualted was the inspriation for this --- first-order
+is me trying to understand the essence of what they did. But other systems also
+fit in this space. Pallene and Grace are vaguely similar to Reticulated's
+first-order strategy. The others that I'm calling first=order do something a
+little different, and all have stars next to their names because of that.
+The star means these languages put restrictions on the untyped code. In short,
+every value comes with a type, so its possible to check types at a boundary
+with a subtyping test.
 
-thats erasure and its a popular way to combine static and dynamic typing
-many systems take this approach and not just for laziness, its based on a view
-of static types as a pure syntactic artifact
+With that, we've just about organized the names we started with. There are three
+missing ---- and here they are, StrongScript Pyret and Thorn fall between a
+pair of semantics because they let a programmer choose to erase some types.
 
-FIRST-ORDER
-finally the third approach is the first-order as the name suggests the idea is
-to check first-order properties at boundaries and do not use monitors ...
-before with higher-order we saw a wrapping-lambda to check the future behaviors
-of a function; nothing like that for first order all checks that are going to
-happen, happen right at the boundary the literature has a few strategies for
-making due with first order checks the one we focus on is the transient strategy
-implemented in reticulated python because its the only one that handles untyped
-values the others restrict untyped code so for example cannot define a function
-back to our running example when this pair reaches a boundary expecing a pair
-of naturals the transient first-order approach says OK and lets the pair through
-more generally the strategy is to enforce type constructors at the boundary
-this is looking to establish an invariant that every value in typed code matches
-its static type constructor
+s43
+Now lets revisit our question from before, about whether there might be different
+useful notions of type soundness. I've sketched for you three ways of running
+a program. All three act differently when typed and untyped code interact.
+Do you think they all satisfy the same notion of type soundness?
 
-this alone is of course not enough to preserve the invariant because back to our
-example if the function extracts an eleemnt from the untyped pair its going to
-have a integer where the type annotations expect a natural number so in addition
-to the normal boundaries transient conservatively treats every selector operation
-(like first, function application, etc) as a boundary that way the result of
-first gets a check and we're invariant
+No! of course not! In fact we had to develop three runtime-level properties
+to capture what these semantics preserve. The higher-order judgment is a
+proposition about types, the erasure judgment is just about well-formed expressions,
+and the first-order judgment is about this K-of-t, which pulls out the top-level
+type constructor from a type. Each semantics satisfies progress and preservation
+lemmas for the matching judgment, but none of these are exactly like standard
+type soundness.
 
-the details are not so imporatnt, suffice to say theres an extended notion of
-boundary and these are the boundary checks
-
-this completes the picture ... other first-order systems are nom and dart but
-these have stronger type soundness because they restrict the untyped code ...
-in between approaches we have thorn and pyret and strongscript
-
-6
-with this understanding in hand we added two points to the space building off
-typed racket (blip, blip)
-
-to explain how we added these implementations, it helps to know a little about
-typed racket given a program TR expands the macros, type checks the expanded
-program, optimizes the typed code, compiles the types to boundary checks, and
-runs the generated racket code
-
-TR-E is a type-erased racket ... the back end is different it type-checks
-but does not optimize (because the types are not enforced!) and runs the plain
-extracted program
-
-TR-1 is a transient racket it type checks changes the boundaries and runs
-the erased un-optimized program the lack of optimizations is AN ISSUE
-
-with three implementations (3 compilers?) we can now take one program that mixes
-typed and untyped code and directly compare the performance of three semantics
-this prepares the way for us to answer a more interesting question as a programmer
-explores the space of mixed-typed programs how does the choice of semantics
-affect performance? 
-
-(there is a threat to validity with how we pick one type assignment, but it
- seems unlikely that threat should affect relative performance of
- implementations)
+...
 
 
-with three backends have 3 ways of running a program so we did just that for
-a systematic performance evaluation took 10 functional programs mostly from
-proir work on typed racket ... these programs range in size, they're not very big
-the largest in lines had xxx the largest in modules had yyy for each program
-considered all ways of adding types and measured the full lattice
+Lets move to the implementations. Like I said in the beginning, we used the
+models as a guide to implement the three semantics for Typed Racket. The
+implementation for higher-order was already there --- for this we reused
+Typed Racket's back end which macro-expands a program, checks types, compiles
+types to higher-order contracts, and performs some ahead-of-time type-driven
+optimizations. For erasure we re-used to expander and type checker, but then
+erase the types. For first order, we again reuse the typechecker and then
+enforce type constructors.
 
-8
-the most interesting result is what happens to a typical program as we add types
-on the x-axis is discrete scale of number of typed modules if program has 3 modules
-here's the histogram ... the y-axis is overhead relative to untyped so theres
-speedup and slowdown
+Neither erasure or first-order have an optimizer. For erasure this mostly makes
+sense, because the types are not guaranteed to make any sense at runtime. But
+for first-order you might be wondering whether its possible to use the type
+constructors to optimize. That's true, but our first priority in this work
+was to reproduce first-order as its described in the literature, to test the
+informal claims that you see in those papers. Adding an optimizer to first-order
+Racket is future work.
 
-for higher-order the curve is an umbrella shape middle region: when typed and
-untyped code interact there is a cost and it can be very high usually many
-configurations have the cost right region: fully typed or nearly typed benefit
-from optimizations and dont suffer the costs made possible by type invariants /
-types are enforced
+With these implementations in hand, we set out to measure the overhead of
+mixing static and dynamic code. For this we used an existing set of benchmarks.
+We picked 10 programs, that range in size from 2 to 10 modules each, and measured
+all possible mixed-typed configurations. Since TR allows any module to be typed
+or untyped, this means we measured 2-to-the-4 to 2-to-the-10 configurations each.
+To a sense of scale, I think it took less than 1 month to run all the benchmarks.
+This URL has more details about the benchmark suite.
 
-for erasure performance is uniform across the board on the right this means
-nothing to be done optimizing because cannot assume the value matches its
-static type (you could optimize C++ with undefined behavior ... or assuming
-fully-typed but then why not use one of the ecellenet typed languages to me
-gradual typing really only makes sense if you have untyped code you want to
-work with and support)
+We present lots of results in the paper. The one that I found most interesting
+is how the running time of a program changes (along the y-axis, higher is worse)
+as the number of type annotations increases. On the next slide I'll show some
+real data, but in general what we see is this --- higher order can have some
+extreme costs when typed and untyped code interactions, but benefits significantly
+from the optimizer. Erasure is just a flat line because types dont affect a
+program's behavior. And first-order has a basically linear phenonemon, where
+adding types adds overhead.
 
-for firts order perofrmance goes down as the number of types goes up on the left
-this should make sense boundaries have  acost on the right its more surprising
-this is the cost of those modified boundaries the unit cost for every selector
-and elimination form in typed code
+Lets see the data. These are points instead of lines, except for the green.
+These y-axes aren't normalized in any way, so sometimes the cost of higher-order
+dwarfs everything else.
 
-with all three lines down there are two very intersting points on this graph
-for lots of mixed-typed programs E < 1 < H but as number of typed components
-increases likely to get E < H < 1 a flip and going further its quite possible
-H fastest of all
+I'm sure there's questions about these, but lets move on to the conclusions.
 
-what this means is, the current performance landscape is subtle too soon to
-generalize and theres much to be done predicting the cost of typed untyped
-interaction
+From the model, we saw three ways of running a program each with a different
+notion of soundness. The higher-order approach preserves types and the others
+preserve something weaker. As we know from theory, the purpose of type soundess
+is to rule out certain illegal behaviors. Using the models, we can prove that
+the weaker semantics catch fewer illegal behaviors, in the sense that whenever
+erasure detects an error, first-order detects the same or an earlier error.
+Similarly for first-order and higher-order --- that's what these superset
+symbols indicate, the one on the left detects the most logical errors.
+These are proper containment relations, and the examples we used to demonstrate
+each semantics are proof of that. Bottom line, we have some meta-theory that
+relates these different approaches.
 
-8
-in the beginning I posed two folklore results hope its now clear that these
-are not true in a language that allows typed and untyped code in terms of ...
+Regarding performance, we've seen that adding types can add overhead to a program
+if those types need to be enforced at runtime. These bullet points are recommendations
+based on the data we have --- in a higher-order system, its best to avoid type
+boundaries by adding types to tightly-connected clusters of modules. That's
+what I mean by packages. For first-order, I suggest adding types sparingly,
+only to modules where correctness is crucial. And finally for erasure, you
+can add types wherever you like, just keep in mind those types don't mean
+anything at runtime.
 
-in a language that mixes typed and untyped code these are not the whole story
-not entirely true
+The end.
 
-... soundness we saw three ways of mixing that preserve different invariants
-in terms of performance adding types can enable the optimizer but it can also
-add boundaries with cost ... at minimum replace mental model with
-Perf ~ Inv(t) * Opt/Dyn performance is based on the invariants those types imply,
-and it proportional to the optimizations the invariants enable and inversely
-proportional to the cost of establishing those invariants
-
-what does this all mean?
-
-for the theoretician, it means the literature is too narrow on type soundness
-for gradual languages theres multiple ways to do soundness each with different
-tradeoffs and in general its a question of soundness for a pair of languages
-rather than soundness for one language
-
-for the language implementor, performance is difficult to predict for H and
-complicated invariants interactions ... adding types to a program not necessarily
-good but we're lacking guidance for users
-
-for the working programmer, the main implications are for debugging in H the
-error points to a boundary in E the search space is the whole program but not
-guaranteed to detect in 1 ditto --- whole program and might not detect
-
-9
-going forward look for new soundness  new combinations  more performance ...
-
-idk
-
-the end thanks
-
-go forth and do good science (be good scientists?)
-
+(go forth and do good science)
 
 
 - - -
