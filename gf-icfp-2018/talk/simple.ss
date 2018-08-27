@@ -159,12 +159,10 @@
                @t{n ⊂ i})
     #:next
     #:go (coord SLIDE-LEFT 40/100 'lt)
-    (vl-append 10
-               @t{δ = fst | snd | app | ....}
-               @t{e = .... | dyn t e | stat t e})
+    @t{e = .... | dyn t e | stat t e}
     #:next
     ;;@hb-append[40 (make-sig-pict @t{⊢ e : t}) (make-sig-pict @t{⊢ e})]
-    #:go (coord 55/100 60/100 'ct)
+    #:go (coord 55/100 50/100 'ct)
     @hb-append[
       100
       @inferrule[@t{⊢ e}
