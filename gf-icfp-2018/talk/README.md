@@ -21,28 +21,27 @@ a binary notion --- in other words, a language is either sound or unsound, and
 anything in between is not important. The second asks whether adding type
 information to a program can have a negative effect on its performance. At a
 glance it seems like the answer to that one should be ``no'', because more types
-should give an optimizer more to work with, and nothing else.
-
-But as scientists, its our job to investigate questions like this systematically
+should give an optimizer more to work with, and nothing else.  But as
+scientists, its our job to investigate questions like this systematically
 
 Thats all I want to say about these for now, and we'll come back to the ideas
 later.
 
 s3
-ok so I am interested in migratory typing which is the idea of starting with an
-existing dynamically typed language desigining a static type system to reason
+I am interested in migratory typing, which is the idea of starting with an
+existing dynamically typed language, designing a static type system to reason
 about programs written in this language and arriving at a pair of languages ---
 one statically typed, one dynamically typed, that can interact
 
-if youve heard of gradual typing, its very similar, but this constraint of
-starting from a dynamically typed language is very important to me
+If you've heard of gradual typing, its very similar, but this constraint of
+starting from a dynamically typed language is an important difference.
 
-with that said, related work on gradual typing systems and really any language
-that combines static and dynamic typing is a good source of inspiration and the
+With that said, related work on gradual typing systems and really any language
+that combines static and dynamic typing is a useful source of inspiration and the
 work I'm here to present today started with me trying to make sense of this space
 
-so the swimming pool here represents the design space of languages that combine
-static and dynamic typing here are a few of the languages in the space, arranged
+The swimming pool here represents the design space.
+Here are a few of the languages in the space, arranged
 in no particular order. There are a lot of names. Unfortunately, theres not much
 we can do to organize. One idea is to sort them by release date, from oldest on
 the left to newest on the right, where the y-axis doesn't mean anything, but
@@ -62,7 +61,8 @@ languages, but to a first approximation we can say Typed Racket is dead and
 everything else I guess is not dead.
 
 s13
-You get the point, the space is a zoo.
+You get the point, there's tons of languages and little in the way of organizing
+principles.
 
 s14
 I'm aware of just one other work that attempts a scientific comparison, and
@@ -78,8 +78,8 @@ boundary between statically typed and dynamically typed code.
 
 To be clear, one main contribution of our paper is a model for one mixed-typed
 language, one surface-level type system, and three formal semantics. So then we
-can take one program, validated by one static typing system, and compare the
-results of running the same code three different ways.
+can take one program, validated by one surface-level static typing system, and
+compare the results of running the same code three different ways.
 
 Then using the model as a guide, we took Typed Racket as the surface language
 and added two new compilers. The second main contribution of the paper is a
@@ -90,19 +90,21 @@ and I'm excited to tell you about it.
 s21
 But first, lets explain the model. We have a small grammar of types, and a
 matching grammar of values. I claim these types are the simplest possible to
-ask all the interesting questions about typed/untyped interaction; in particular
+ask all the interesting questions about type soundness; in particular
 we have a coinductive type for functions, an inductive type for pairs, a base
 type for integers, and a type for natural numbers that is a subtype of the type
 for integers. On the value side, the natural-number literals are a subset of
 the integer literals.
 
-This subset relation is extremely important. It reflects how programmers can use
-predicates to identify a subset of the value domain and make a logical distinction
-between values that is useful for people, but the underlying machine doesn't
-care about. In other words the language of types should not be limited by the
-kinds of values the runtime system knows about.
+This subset relation is extremely important. It reflects how programmers use
+predicates to identify a subset of the value domain and make a logical
+distinction that is useful for people, but the underlying language doesn't care
+about. This is the kind of thing that happens in dynamically typed languages
+that a migratory typing system ought to support. Also its a statement that the
+he language of types should not be limited by the kinds of values the runtime
+system knows about.
 
-And finally we have primitive operations and expressions. The non-standard part
+And finally we have a simple language of expressions. The non-standard part
 of the expression language are these two boundary terms. A dyn expression
 embeds a dynamically typed expression in statically typed code, and a stat
 expression embeds a statically-typed expression in dynamically-typed code.
