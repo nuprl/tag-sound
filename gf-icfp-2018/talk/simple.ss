@@ -422,18 +422,20 @@
 ;; -----------------------------------------------------------------------------
 
 (define (make-H-example-slide)
-  (make-?-example-slide (make-H-box) (big-x-icon) (big-x-icon) (big-lock-icon)))
+  (make-?-example-slide "higher-order" (make-H-box) (big-x-icon) (big-x-icon) (big-lock-icon)))
 
 (define (make-E-example-slide)
-  (make-?-example-slide (make-E-box) (big-check-icon) (big-check-icon) (big-check-icon)))
+  (make-?-example-slide "erasure" (make-E-box) (big-check-icon) (big-check-icon) (big-check-icon)))
 
 (define (make-1-example-slide)
-  (make-?-example-slide (make-1-box) (big-x-icon) (big-check-icon) (big-check-icon)))
+  (make-?-example-slide "first-order" (make-1-box) (big-x-icon) (big-check-icon) (big-check-icon)))
 
-(define (make-?-example-slide lbl r0 r1 r2)
+(define (make-?-example-slide name lbl r0 r1 r2)
   (pslide
     (make-example-boundary-pict r0 r1 r2)
     #:go (coord SLIDE-TOP SLIDE-LEFT 'lt)
+    (t name)
+    (blank 0 10)
     lbl))
 
 (define (neu)
