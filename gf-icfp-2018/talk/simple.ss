@@ -378,7 +378,6 @@
     #:go (coord SLIDE-LEFT SLIDE-TOP 'lt)
     @titlet{Theory Implications}
     #:go (coord SLIDE-LEFT 1/4 'lt)
-    #:alt [(main-contrib-append box-pict soundness-pict)]
     (main-contrib-append sup-pict soundness-pict)
     #:next
     #:go (at-find-pict 'bullets lb-find 'lt #:abs-y y-sep)
