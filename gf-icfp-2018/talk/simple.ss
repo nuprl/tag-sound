@@ -23,10 +23,8 @@
 
 ;; =============================================================================
 
-;; -----------------------------------------------------------------------------
-
 (define (do-show)
-  (set-page-numbers-visible! PAGENUM)
+  (set-page-numbers-visible! #false)
   (parameterize ([current-main-font MONO-FONT]
                  [current-font-size 32]
                  [current-titlet string->title]
@@ -163,11 +161,13 @@
                @t{v = n | i | ⟨v,v⟩ | λ(x)e | λ(x:t)e}
                @t{n ⊂ i})
     #:next
-    #:go (coord SLIDE-LEFT 45/100 'lt)
-    @t{e = fst | snd | app | .... | dyn t e | stat t e}
+    #:go (coord SLIDE-LEFT 40/100 'lt)
+    (vl-append 10
+               @t{δ = fst | snd | app | ....}
+               @t{e = .... | dyn t e | stat t e})
     #:next
     ;;@hb-append[40 (make-sig-pict @t{⊢ e : t}) (make-sig-pict @t{⊢ e})]
-    #:go (coord 55/100 3/5 'ct)
+    #:go (coord 55/100 60/100 'ct)
     @hb-append[
       100
       @inferrule[@t{⊢ e}

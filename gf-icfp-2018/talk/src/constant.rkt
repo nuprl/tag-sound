@@ -19,7 +19,6 @@
 (define (triplet->color rgb)
   (make-object color% (car rgb) (cadr rgb) (caddr rgb)))
 
-(define PAGENUM #true)
 (define TITLESTR "A Spectrum of Type Soundness and Performance")
 
 (define SLIDE-TOP 1/10)
