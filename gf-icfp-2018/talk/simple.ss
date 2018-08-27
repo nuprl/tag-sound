@@ -35,7 +35,8 @@
     (sec:kafka) ;; shout out for NEPLS
     (sec:main-result)
     (sec:embeddings)
-    (sec:soundness/implementation)
+    (sec:soundness)
+    (sec:implementation)
     (sec:experiment)
     (sec:graph)
     (sec:conclusion)
@@ -251,7 +252,7 @@
     (make-embeddings-pict all-system*))
   (void))
 
-(define (sec:soundness/implementation)
+(define (sec:soundness)
   (define-values [model-pict impl-pict] (make-model/impl-pict))
   (define type-pict*
     (for/list ((p (in-list (list ⊢H ⊢E ⊢1)))
@@ -282,11 +283,16 @@
                                         (a (in-list (list ->H ->E ->1))))
                                (hc-append (t "- ") type-pict (t " sound for ") (scale-for-bullet a)))
                              (blank)))))
+  (void))
+
+(define (sec:implementation)
+  (define-values [model-pict impl-pict] (make-model/impl-pict))
+  (define x-base MAIN-CONTRIB-X)
+  (define y-base MAIN-CONTRIB-Y)
   (pslide
     (make-section-header "Implementation"))
   (pslide
     #:go (coord x-base 1/2 'lc)
-    #:alt [(main-contrib-append model-pict my-blank)]
     (main-contrib-append model-pict impl-pict))
   ;; implementation
   (define box*
