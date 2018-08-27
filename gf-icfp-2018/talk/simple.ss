@@ -3,10 +3,10 @@
 ;; Slides for ICFP 2018
 
 ;; TODO
-;; - if NEPLS, need to clarify there's a paper here ... also 17 min
 ;; - page numbers, customize! (pslide macro?)
 ;; - add micro/macro dyn/not knobs for ICFP
 ;; - what does confined or Siek/Wadler do to compare?
+;; - thank-you slide
 
 (require
   gf-icfp-2018/talk/src/gt-system gf-icfp-2018/talk/src/constant
@@ -27,9 +27,7 @@
   (set-page-numbers-visible! #false)
   (parameterize ([current-main-font MONO-FONT]
                  [current-font-size 32]
-                 [current-titlet string->title]
-                 #;[*current-tech* #true]
-                )
+                 [current-titlet string->title])
     (void)
     (sec:title)
     (sec:folklore-I)
@@ -108,12 +106,10 @@
     #:title '("by Performance" "Not Dead" "Dead")
     #:layout performance-gt-layout)
   (pslide
-    ;; TODO prettier ... outline-flash ?
     @titlet{Chaos!})
   (void))
 
 (define (sec:kafka)
-  ;; TODO prettier
   (pslide
     #:go (coord 1/2 1/4 'ct)
     (bitmap kafka.png))
@@ -259,7 +255,7 @@
   (define-values [model-pict impl-pict] (make-model/impl-pict))
   (define type-pict*
     (for/list ((p (in-list (list ⊢H ⊢E ⊢1)))
-               (str (in-list '("t" "K(t)" #f))))
+               (str (in-list '("t" #f "K(t)"))))
       (hc-append 0 (scale-for-bullet p) (blank 2 0) (t "e") (if str (t (string-append ":" str)) (blank)))))
   (define model-pict+
     (ppict-do
@@ -391,7 +387,7 @@
                (hc-append (t "- ") (scale-for-bullet ->1) (t " refines ") (scale-for-bullet ->E))))
   (pslide
     #:go (coord SLIDE-LEFT SLIDE-TOP 'lt)
-    @titlet{Performance Implications (for now)}
+    @titlet{Performance Implications}
     #:go (coord SLIDE-LEFT 1/4 'lt)
     (main-contrib-append
       perf-pict
