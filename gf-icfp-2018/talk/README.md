@@ -3,14 +3,14 @@ talk
 
 TODO
 
-[X] outline
-[X] draft keynote slides
-[ ] draft slideshow slides
-[ ] give presentation
+- [X] outline
+- [X] draft keynote slides
+- [ ] draft slideshow slides
+- [ ] give presentation
   - [X] torture (2018-08-24 10:00am NEU 366 WVH)
   - [ ] nepls   (2018-08-27 10:00am Harvard G115)
   - [ ] icfp
-[ ] blog post
+- [ ] blog post
 
 - - -
 # SCRIPT
@@ -273,11 +273,11 @@ into a common core language
 instead of direct semantics, encode things in the KafKa type system
 
 the paper is missing a connection between surface typing and core typing, and
-more severly the translations change type annotations in a program making it
+the translations change type annotations in a program making it
 much harder to identify a violation of the static types
 
-also the surface language is limited (no untyped objects) and so obscures the
-distinction between transient and concrete ... sometimes not possible to use
+also the surface language is limited (no untyped objects) and so its hard to see
+the distinction between transient and concrete ... sometimes not possible to use
 subtyping to check a value
 aka
 KafKa doesn't have untyped values ... part of the challenge is to get a value
@@ -287,51 +287,29 @@ semantics of a gradual language, but not for working with untyped code
 
 - - -
 
-Q.  ???
-
-  interop, non-binary soundness:
-  - PLDI16 type providers
-  - 
-
-- - -
-
 Q. What about Pycket?
 
-In theory, Pycket demonstrated that a tracing JIT can solve the issues with H
+Pycket demonstrated that a tracing JIT can solve the issues with H
 and might solve any issues with 1.
-In practice, there are constant factors and low-level issues in the way.
+There are constant factors and low-level issues in the way of reusing Pycket.
 Until those practical issues are resolved --- which might be soon --- I believe
 its still worthwhile to investigate across-the-board improvements to H and 1.
 
-
 - - -
 
-Q. (for variational) First off, this technique is still interesting despite its
-application to Reticulated being not so interesting. Second, in a language with
-subtyping there might be more than one way to type a program or expression.
-Have you thought about extending the technique to compare different ways of
-typing the same program?
-
-- - -
-
-Q. Thorn / Nom / SafeTS
-
-of course another way to deal with the cost of higher-order enforcement is to
-just eliminate it, restrict the boundary types to first-order checkable things
-at least three groups have worked out a theory of this its compelling but needs
-more practical evaluation for me at least I don't see much point in combining
-typed and untyped code unless there is some untyped (and actually untyped) code
-you want to work with if not just pick one of the many excellent typed
-languages and live at a higher level of abstraction ... hard to picture a
-neutered untyped language being compelling
-
-- - -
-
-Q. combinatorial explosion
+Q. too many soundnesses
 
 yes itd be great to do work case-by-case but look, the meta-statement in this
 paper is ... too many unfounded general statements ... analogy to chemistry?
 "meaningful distinctions deserve to be maintained"
+
+- - -
+
+Q. superceded by Vitousek at DLS?
+
+thats an inspiring work, but doesn't present a formal semantics and doesnt
+systematically compare ... they claim to have 3 implementations by do not
+compare the performance
 
 - - -
 
@@ -347,27 +325,3 @@ as inspired by transient, we realized there were at least two alternative
 higher-order semantics that fit between these two in terms of errors. One of
 these alternatives is very similar to M. Greenberg's _forgetful_ semantics for
 space-efficient contracts, so we used F for that one.
-
-- - -
-
-Q. you say gradual but where is dyn
-
-short answer: dyn is an orthgonal issue
-
-long answer: I tried to avoid the word gradual, because the modern interpretation
-is a static type system with a special dynamic type that has specific properties
-the work I presented is not concered with static typing; we're about _if_ you
-have a well-typed program with static and dynamic components, what happens at
-run-time between those parts
-
-- - -
-
-Q. superceded by Vitousek at DLS?
-
-thats an inspiring work, but doesn't present a formal semantics and doesnt
-systematically compare ... they claim to have 3 implementations by do not
-compare the performance
-
-- - -
-
-Q. please explain how transient first-order changes the boundaries
