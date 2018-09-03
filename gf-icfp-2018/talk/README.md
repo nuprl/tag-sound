@@ -9,6 +9,13 @@ TODO
 - [ ] give presentation
   - [X] torture (2018-08-24 10:00am NEU 366 WVH)
   - [ ] nepls   (2018-08-27 10:00am Harvard G115)
+    - where does Cython fit in the space
+    - pool, but background on the groups
+    - t vs. tau
+    - KafKa came out of nowhere
+    - step function instead of sine
+    - be clearer about contribution, we did the semantics
+    - pull requests
   - [ ] icfp
 - [ ] blog post
 
@@ -325,3 +332,11 @@ as inspired by transient, we realized there were at least two alternative
 higher-order semantics that fit between these two in terms of errors. One of
 these alternatives is very similar to M. Greenberg's _forgetful_ semantics for
 space-efficient contracts, so we used F for that one.
+
+- - -
+
+Q. relation to Swords Sabry TH ICFP'15 / JFP'17
+
+related, orthogonal --- thats about when to check, we're about what to check
+(and we have soundess as guiding principle, they're exploring the space more
+generally)
