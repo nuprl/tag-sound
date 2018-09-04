@@ -6,14 +6,17 @@
   "draw-lib"
   "gtp-plot"
   "gtp-util"
+  "images-lib"
   "math-lib"
   "mf-apply"
   "pict-lib"
   "plot-lib"
+  "ppict"
   "redex-abbrevs"
   "redex-lib"
   "scribble-abbrevs"
   "scribble-lib"
+  "slideshow-lib"
   "with-cache"
 ))
 (define build-deps '(

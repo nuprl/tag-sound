@@ -13,7 +13,6 @@
   pict pict/convert pict/balloon
   ppict/2
   scribble-abbrevs/pict
-  slideshow-text-style
   slideshow/code
   plot/no-gui plot/utils
   racket/draw
