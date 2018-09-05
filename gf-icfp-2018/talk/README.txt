@@ -5,17 +5,10 @@ TODO
 
 - [X] outline
 - [X] draft keynote slides
-- [ ] draft slideshow slides
+- [X] draft slideshow slides
 - [ ] give presentation
   - [X] torture (2018-08-24 10:00am NEU 366 WVH)
-  - [ ] nepls   (2018-08-27 10:00am Harvard G115)
-    - where does Cython fit in the space
-    - pool, but background on the groups
-    - t vs. tau
-    - KafKa came out of nowhere
-    - step function instead of sine
-    - be clearer about contribution, we did the semantics
-    - pull requests
+  - [X] nepls   (2018-08-27 10:00am Harvard G115)
   - [ ] icfp
 - [ ] blog post
 
@@ -30,6 +23,9 @@ information to a program can have a negative effect on its performance. At a
 glance it seems like the answer to that one should be ``no'', because more types
 should give an optimizer more to work with, and nothing else.  But as
 scientists, its our job to investigate questions like this systematically
+
+TODO questions have been considered a solved problem ... migratory typing has
+re-opened them!
 
 Thats all I want to say about these for now, and we'll come back to the ideas
 later.

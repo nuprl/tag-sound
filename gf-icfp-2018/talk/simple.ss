@@ -4,6 +4,13 @@
 
 ;; TODO
 ;; - everything on the checklist
+;;  - where does Cython fit in the space
+;;  - pool, but background on the groups
+;;  - t vs. tau
+;;  - KafKa came out of nowhere
+;;  - step function instead of sine
+;;  - be clearer about contribution, we did the semantics
+;;  - pull requests
 ;; - add micro/macro dyn/not knobs for ICFP
 ;; - what does confined or Siek/Wadler do to compare?
 ;; - thank-you slide
@@ -497,6 +504,9 @@
           "- the first controlled"
           "  performance experiment"))
       impl-pict))
+  (pslide
+    #:go (coord 1/2 1/2)
+    (text "First apples-to-apples soundness and performance comparisons"))
   (void))
 
 (define (make-sig-pict p)
