@@ -47,7 +47,7 @@
     (sec:graph)
     (sec:conclusion)
     (pslide)
-    (sec:extra)
+    ;(sec:extra)
     (void)))
 
 ;; -----------------------------------------------------------------------------
@@ -154,32 +154,32 @@
     #:go (coord SLIDE-LEFT SLIDE-TOP 'lt)
     ;;@t{Types}
     (vl-append 10
-               @t{t = Nat | Int | t×t | t → t}
+               @t{τ = Nat | Int | τ × τ | τ → τ}
                @t{Nat <: Int})
     #:next
     #:go (coord SLIDE-LEFT 25/100 'lt)
     ;;@t{Values}
     (vl-append 10
-               @t{v = n | i | ⟨v,v⟩ | λ(x)e | λ(x:t)e}
+               @t{v = n | i | ⟨v,v⟩ | λ(x)e | λ(x:τ)e}
                @t{n ⊂ i})
     #:next
     #:go (coord SLIDE-LEFT 40/100 'lt)
-    @t{e = .... | dyn t e | stat t e}
+    @t{e = .... | dyn τ e | stat τ e}
     #:next
-    ;;@hb-append[40 (make-sig-pict @t{⊢ e : t}) (make-sig-pict @t{⊢ e})]
+    ;;@hb-append[40 (make-sig-pict @t{⊢ e : τ}) (make-sig-pict @t{⊢ e})]
     #:go (coord 55/100 50/100 'ct)
     @hb-append[
       100
       @inferrule[@t{⊢ e}
-                 @t{⊢ dyn t e : t}]
-      @inferrule[@t{⊢ e : t}
-                 @t{⊢ stat t e}]])
+                 @t{⊢ dyn τ e : τ}]
+      @inferrule[@t{⊢ e : τ}
+                 @t{⊢ stat τ e}]])
   (define (v-append . x*)
     (apply vl-append 10 x*))
   (define types-pict
     (vl-append 10
       @t{fib : Nat → Nat}
-      @t{norm : Nat×Nat → Nat}
+      @t{norm : Nat × Nat → Nat}
       @t{map : (Nat → Nat) → Nat×Nat → Nat×Nat}))
   (pslide
     #:go (coord 1/2 SLIDE-TOP 'ct)
@@ -202,17 +202,6 @@
     #:alt [(make-embeddings-pict)]
     (make-embeddings-pict #:highlight 'H))
   (make-H-example-slide)
-  ;(pslide
-  ;  #:go (coord 1/15 1/5 'lt)
-  ;  (make-sig-pict (make-step @t{dyn t v} ->H @t{v}))
-  ;  #:go (coord 2/15 3/10 'lt)
-  ;  (make-embedding-table
-  ;    (list
-  ;      @t{dyn Nat n} ->H @t{n}
-  ;      @t{dyn Int i} ->H @t{i}
-  ;      @t{dyn (t0 × t1) ⟨v0, v1⟩} ->H @t{⟨dyn t0 v0, dyn t1 v1⟩}
-  ;      @t{dyn (td → tc) λ(x)e} ->H @t{λ(y:td)(dyn tc ((λ(x)e) (stat td y)))}
-  ;      @t{dyn t v} ->H (little-x-icon))))
   (void))
 
 (define (embedding:E)
@@ -221,16 +210,6 @@
     #:alt [(make-embeddings-pict H-system*)]
     (make-embeddings-pict H-system* #:highlight 'E))
   (make-E-example-slide)
-  ;(pslide
-  ;  #:go (coord 1/15 1/5 'lt)
-  ;  (make-sig-pict (make-step @t{dyn t v} ->E @t{v}))
-  ;  #:go (coord 2/15 3/10 'lt)
-  ;  (make-embedding-table
-  ;    (list
-  ;      @t{dyn Nat v} ->E @t{v}
-  ;      @t{dyn Int v} ->E @t{v}
-  ;      @t{dyn (t0 × t1) v} ->E @t{v}
-  ;      @t{dyn (td → tc) v} ->E @t{v})))
   (void))
 
 (define (embedding:1)
@@ -259,7 +238,7 @@
   (define-values [model-pict impl-pict] (make-model/impl-pict))
   (define type-pict*
     (for/list ((p (in-list (list ⊢H ⊢E ⊢1)))
-               (str (in-list '("t" #f "K(t)"))))
+               (str (in-list '("τ" #f "K(τ)"))))
       (hc-append 0 (scale-for-bullet p) (blank 2 0) (t "e") (if str (t (string-append ":" str)) (blank)))))
   (define model-pict+
     (ppict-do
@@ -350,7 +329,6 @@
 
 (define (make-scatterplots-pict)
   (scale-to-fit (bitmap cache-scatterplots.png) client-w client-h))
-
 
 (define (sec:conclusion)
   (define-values [box-pict sup-pict]
@@ -857,8 +835,11 @@
 (define (large-tau-icon)
   (make-icon tau-icon #:height 90))
 
+(define tau-font
+  (make-font #:smoothing 'unsmoothed #:family 'roman #:weight 'semibold))
+
 (define (tau-icon #:color [c TAU-COLOR] #:height [h (default-icon-height)] #:material [m (default-icon-material)])
-  (text-icon "t" (make-font #:weight 'bold) #:color c #:height h #:material m))
+  (text-icon "τ" tau-font #:color c #:height h #:material m))
 
 (define (small-lambda-icon)
   (make-icon lambda-icon #:height 40))
