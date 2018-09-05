@@ -1106,7 +1106,6 @@
           (make-rumor-pict 'left q1)
           #:go (coord SLIDE-LEFT q2-h 'lt)
           (make-rumor-pict 'left q2)
-          #:next
           #:go (coord SLIDE-RIGHT 31/100 'rt)
           (make-rumor-pict 'right a1)
           #:go (coord SLIDE-RIGHT 61/100 'rt)
