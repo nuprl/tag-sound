@@ -41,7 +41,6 @@
     (sec:conclusion)
     (pslide)
     (sec:extra)
-    (sec:folklore-II)
     (void)))
 
 ;; -----------------------------------------------------------------------------
@@ -1097,12 +1096,13 @@
         [q1-h 2/10]
         [a1 '("What invariants should the" "language guarantee?")]
         ;;
-        [q2 "Can adding types slow down a program?"]
+        [q2 "How does type soundness affect performance?"]
         [q2-h 5/10]
         [a2 '("Yes, through interaction with" "untyped code (or data)")])
     (lambda (#:q1? [q1? #true] #:q2? [q2? #true] #:answers? [answers? #false])
       (if answers?
-        (pslide
+        (raise-user-error 'make-folklore-slide "#:answers? not implemented")
+        #;(pslide
           #:go (coord SLIDE-LEFT q1-h 'lt)
           (make-rumor-pict 'left q1)
           #:go (coord SLIDE-LEFT q2-h 'lt)
