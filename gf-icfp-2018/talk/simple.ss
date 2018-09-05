@@ -3,7 +3,7 @@
 ;; Slides for ICFP 2018
 
 ;; TODO
-;; - page numbers, customize! (pslide macro?)
+;; - everything on the checklist
 ;; - add micro/macro dyn/not knobs for ICFP
 ;; - what does confined or Siek/Wadler do to compare?
 ;; - thank-you slide
@@ -39,8 +39,7 @@
     (sec:experiment)
     (sec:graph)
     (sec:conclusion)
-    ;(pslide (make-section-header "The End"))
-    ;(main-results-slide)
+    (pslide)
     (sec:extra)
     (sec:folklore-II)
     (void)))
@@ -104,7 +103,8 @@
   (make-gtspace-slide
     all-system*
     #:title '("by Performance" "Not Dead" "Dead")
-    #:layout performance-gt-layout)
+    #:layout performance-gt-layout
+    #:disclaimer (make-disclaimer-pict "(the word 'dead' is used here in a technical sense)"))
   (pslide
     @titlet{Chaos!})
   (void))
@@ -402,7 +402,6 @@
   (void))
 
 (define (sec:extra)
-  (pslide)
   (make-H-example-slide)
   (make-E-example-slide)
   (make-1-example-slide)
@@ -653,7 +652,7 @@
 (define (heading-text str)
   (text str TITLE-FONT 50))
 
-(define (make-gtspace-slide [gt* '()] #:title [title #f] #:layout [gt-layout #f])
+(define (make-gtspace-slide [gt* '()] #:title [title #f] #:layout [gt-layout #f] #:disclaimer [extra-pict (blank)])
   (define top-margin -6)
   (define x-margin 40)
   (define arrow-size 12)
@@ -662,6 +661,8 @@
     (if title (blank) (heading-text "Typed/Untyped Languages"))
     #:go (coord 1/2 1/2)
     (tag-pict (make-gtspace-bg gt* gt-layout) POOL-TAG)
+    #:go (coord 1/2 9/10 'cb)
+    extra-pict
     #:set (let ((p ppict-do-state))
             (if title
               (let ([left-label (label-text (cadr title))]
@@ -1206,6 +1207,9 @@
 (define (scale-for-bullet p)
   (define scale-factor 1.6)
   (scale p scale-factor))
+
+(define (make-disclaimer-pict str)
+  (text str (current-main-font) (- (current-font-size) 4)))
 
 ;; =============================================================================
 
