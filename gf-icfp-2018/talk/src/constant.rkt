@@ -49,6 +49,10 @@
 
 (define FILE-RATIO 5/6) ;; TODO nonsense
 (define PLOT-RATIO 3/4) ;; TODO nonsense
+(define COL-RATIO 94/100)
+
+(define (scale-for-column p)
+  (scale p COL-RATIO))
 
 (define-runtime-path racket-logo.png "racket-logo.png")
 (define-runtime-path neu-logo.png "neu-seal.png")

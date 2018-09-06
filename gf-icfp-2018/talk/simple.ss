@@ -26,20 +26,20 @@
                  [current-font-size 32]
                  [current-titlet string->title])
     (void)
-    (sec:title)
-    (sec:folklore-I)
-    (sec:migratory-typing)
-    (sec:gt-landscape)
-    (sec:kafka)
+    ;(sec:title)
+    ;(sec:folklore-I)
+    ;(sec:migratory-typing)
+    ;(sec:gt-landscape)
+    ;(sec:kafka)
     (sec:main-result)
-    (sec:embeddings)
-    (sec:soundness)
-    (sec:implementation)
-    (sec:experiment)
-    (sec:graph)
-    (sec:conclusion)
-    (pslide)
-    (sec:extra)
+    ;(sec:embeddings)
+    ;(sec:soundness)
+    ;(sec:implementation)
+    ;(sec:experiment)
+    ;(sec:graph)
+    ;(sec:conclusion)
+    ;(pslide)
+    ;(sec:extra)
     (void)))
 
 ;; -----------------------------------------------------------------------------
@@ -460,46 +460,55 @@
 
 (define (contrib*->pict str*)
   (define-values [w h] (two-column-dims))
-  (define p/2 (blank w h))
-  (ppict-do
-    p/2
-    #:set (for/fold ((p ppict-do-state))
-                    ((str (in-list str*))
-                     (i (in-naturals)))
-            (ppict-do p
-              #:go (coord 0 (+ MAIN-CONTRIB-Y (* i 1/10)) 'lt)
-              (if (pict? str) str (t str))))))
+  (for/fold ((p (blank)))
+            ((str (in-list str*))
+             (i (in-naturals)))
+    (vl-append 10 p (if (pict? str) str (t str)))))
 
 (define (main-contrib-append a b #:x-shift [x 0])
-  (hc-append (+ x 10) a b))
+  (ht-append (+ x 10) a b))
 
 (define (main-results-slide)
-  (define-values [model-pict impl-pict] (make-model/impl-pict))
+  (define-values [model-pict0 impl-pict0] (make-model/impl-pict))
   (define x-base MAIN-CONTRIB-X)
+  (define fig-coord (coord x-base 1/4 'lt))
+  (define contrib-0-pict
+    (contrib*->pict
+      '("Model:"
+        "- one mixed-typed language"
+        "- one surface type system"
+        "- three semantics")))
+  (define contrib-1-pict
+    (contrib*->pict
+      '("Implementation:"
+        "- Racket syntax/types"
+        "- three compilers"
+        "- the first controlled"
+        "  performance experiment")))
+  (define model-pict
+    (cc-superimpose
+      (blank (pict-width contrib-1-pict) 0)
+      (scale-for-column model-pict0)))
+  (define impl-pict (scale-for-column impl-pict0))
   (pslide
     #:go (coord SLIDE-LEFT SLIDE-TOP 'lt)
     @titlet{Contributions (1/2)}
-    #:go (coord x-base 1/2 'lc)
+    #:go fig-coord
     (main-contrib-append
       model-pict
-      (contrib*->pict
-        '("Model:"
-          "- one mixed-typed language"
-          "- one surface type system"
-          "- three semantics"))))
+      contrib-0-pict))
   (pslide
     #:go (coord SLIDE-LEFT SLIDE-TOP 'lt)
     @titlet{Contributions (2/2)}
-    #:go (coord x-base 1/2 'lc)
-    #:alt [(main-contrib-append model-pict (blank (pict-width impl-pict) 0))]
-    #:alt [(main-contrib-append model-pict impl-pict)]
-    (main-contrib-append #:x-shift -40
-      (contrib*->pict
-        '("Implementation:"
-          "- Racket syntax/types"
-          "- three compilers"
-          "- the first controlled"
-          "  performance experiment"))
+    #:go fig-coord
+    #:alt [(main-contrib-append model-pict (blank (pict-width impl-pict) 0))
+           #:go (coord 1/2 1/2 'cb)
+           (large-right-arrow)]
+    #:alt [(main-contrib-append model-pict impl-pict)
+           #:go (coord 1/2 1/2 'cb)
+           (large-right-arrow)]
+    (main-contrib-append
+      contrib-1-pict
       impl-pict))
   (pslide
     #:go (coord 1/2 1/2)
@@ -738,18 +747,16 @@
 
 (define (make-1-on-3 pre-base-pict pre-a pre-b pre-c)
   (define m 4)
-  (define base-pict (add-top-margin m pre-base-pict))
+  (define anchor (blank 40 0))
+  (define base-pict (cb-superimpose anchor (add-top-margin m pre-base-pict)))
   (define a (add-bottom-margin m pre-a))
   (define b (add-bottom-margin m pre-b))
   (define c (add-bottom-margin m pre-c))
   (define boxes (vc-append 40 base-pict (hc-append 40 a b c)))
   (for/fold ((acc boxes))
-            ((tgt (in-list (list a b c))))
-    (pin-line acc
-              base-pict
-              cb-find
-              tgt
-              ct-find)))
+            ((tgt (in-list (list a b c)))
+             (?-find (in-list (list lb-find cb-find rb-find))))
+    (pin-line acc anchor ?-find tgt ct-find)))
 
 (define (make-H-box)
   (make-embedding-box ->H LIGHT-RED))
@@ -871,6 +878,13 @@
 
 (define (big-check-icon)
   (make-icon check-icon #:height 80))
+
+(define large-right-arrow
+  (let ([right-arrow-icon2
+          (lambda (#:height h #:material m)
+            (right-arrow-icon #:color run-icon-color #:height h #:material m))])
+    (lambda ()
+      (make-icon right-arrow-icon2 #:height 80))))
 
 (define (small-tau-icon)
   (make-icon tau-icon #:height 40))
