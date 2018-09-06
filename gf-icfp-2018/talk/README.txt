@@ -336,3 +336,14 @@ Q. relation to Swords Sabry TH ICFP'15 / JFP'17
 related, orthogonal --- thats about when to check, we're about what to check
 (and we have soundess as guiding principle, they're exploring the space more
 generally)
+
+- - -
+
+Q. Cython
+
+Cython type checks Python/C code and extracts to C. Seems to be sound by limiting
+OR delaying interactions to first-order types
+
+e.g. cannot assign a Python list to a `cdef` array
+     can assign an element of a Python `[int]` to a `cdef int`, and the assignment
+      is guarded with a runtime check
