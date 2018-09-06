@@ -5,7 +5,6 @@
 ;; TODO
 ;; - be clearer about contribution, we did the semantics
 ;; - add micro/macro dyn/not knobs for ICFP
-;; - what does confined or Siek/Wadler do to compare?
 
 (require
   gf-icfp-2018/talk/src/gt-system gf-icfp-2018/talk/src/constant
@@ -27,19 +26,19 @@
                  [current-font-size 32]
                  [current-titlet string->title])
     (void)
-    ;(sec:title)
-    ;(sec:folklore-I)
-    ;(sec:migratory-typing)
-    ;(sec:gt-landscape)
+    (sec:title)
+    (sec:folklore-I)
+    (sec:migratory-typing)
+    (sec:gt-landscape)
     (sec:kafka)
-    ;(sec:main-result)
-    ;(sec:embeddings)
-    ;(sec:soundness)
-    ;(sec:implementation)
-    ;(sec:experiment)
-    ;(sec:graph)
-    ;(sec:conclusion)
-    ;(pslide)
+    (sec:main-result)
+    (sec:embeddings)
+    (sec:soundness)
+    (sec:implementation)
+    (sec:experiment)
+    (sec:graph)
+    (sec:conclusion)
+    (pslide)
     (sec:extra)
     (void)))
 
@@ -158,15 +157,13 @@
 
 (define (sec:main-result)
   (pslide
-    (make-embeddings-pict))
-  (pslide
     #:go (coord 1/5 25/100 'lt)
     (let ([box+text (lambda (b t) (hc-append 20 b t))])
       (vl-append
         20
         (box+text (make-H-box) @t{higher-order semantics})
-        (box+text (make-E-box) @t{erasure semantics})
-        (box+text (make-1-box) @t{first-order semantics}))))
+        (box+text (make-1-box) @t{first-order semantics})
+        (box+text (make-E-box) @t{erasure semantics}))))
   (main-results-slide)
   (void))
 
@@ -175,8 +172,8 @@
     (make-section-header "Model"))
   (embedding:warmup)
   (embedding:H)
-  (embedding:E)
   (embedding:1)
+  (embedding:E)
   (embedding:end)
   (void))
 
@@ -236,47 +233,40 @@
   (make-H-example-slide)
   (void))
 
-(define (embedding:E)
-  (pslide
-    #:alt [(make-embeddings-pict)]
-    #:alt [(make-embeddings-pict H-system*)]
-    (make-embeddings-pict H-system* #:highlight 'E))
-  (make-E-example-slide)
-  (void))
-
 (define (embedding:1)
   (pslide
+    #:alt ((make-embeddings-pict))
     #:alt ((make-embeddings-pict H-system*))
-    #:alt ((make-embeddings-pict H-system* E-system*))
-    (make-embeddings-pict H-system* E-system* #:highlight '1))
+    (make-embeddings-pict H-system* #:highlight '1))
   (make-1-example-slide)
-  ;(pslide
-  ;  ;; TODO illustrate selectors moving over boundary ??? I don't think appropriate for NEPLS
-  ;  (make-example-boundary-pict)
-  ;  #:next
-  ;  #:go (coord 1/2 1/5 'rt)
-  ;  @t{f = λ(x)(first x)})
+  (void))
+
+(define (embedding:E)
+  (pslide
+    #:alt [(make-embeddings-pict H-system*)]
+    #:alt [(make-embeddings-pict H-system* reticulated)]
+    #:alt [(make-embeddings-pict H-system* 1-system*)]
+    (make-embeddings-pict H-system* 1-system* #:highlight 'E))
+  (make-E-example-slide)
   (void))
 
 (define (embedding:end)
   (pslide
-    #:alt [(make-embeddings-pict H-system* E-system*)]
-    #:alt [(make-embeddings-pict H-system* E-system* reticulated)]
-    #:alt [(make-embeddings-pict H-system* E-system* 1-system*)]
+    #:alt [(make-embeddings-pict H-system* 1-system* E-system*)]
     (make-embeddings-pict all-system*))
   (void))
 
 (define (sec:soundness)
   (define-values [model-pict impl-pict] (make-model/impl-pict))
   (define type-pict*
-    (for/list ((p (in-list (list ⊢H ⊢E ⊢1)))
+    (for/list ((p (in-list (list ⊢H ⊢1 ⊢E)))
                (str (in-list '("τ" #f "K(τ)"))))
       (hc-append 0 (scale-for-bullet p) (blank 2 0) (t "e") (if str (t (string-append ":" str)) (blank)))))
   (define model-pict+
     (ppict-do
       model-pict
       #:set (for/fold ((acc ppict-do-state))
-                      ((tag (in-list '(->H ->E ->1)))
+                      ((tag (in-list '(->H ->1 ->E)))
                        (type-pict (in-list type-pict*)))
               (ppict-do
                 acc
@@ -294,7 +284,7 @@
                          (contrib*->pict
                            (add-between
                              (for/list ((type-pict (in-list type-pict*))
-                                        (a (in-list (list ->H ->E ->1))))
+                                        (a (in-list (list ->H ->1 ->E))))
                                (hc-append (t "- ") type-pict (t " sound for ") (scale-for-bullet a)))
                              (blank)))))
   (void))
@@ -310,7 +300,7 @@
     (main-contrib-append model-pict impl-pict))
   ;; implementation
   (define box*
-    (list (make-TR-H-box) (make-TR-E-box) (make-TR-1-box)))
+    (list (make-TR-H-box) (make-TR-1-box) (make-TR-E-box)))
   (define x* '(1/5 1/2 4/5))
   (define stack-y 1/4)
   (pslide
@@ -323,11 +313,11 @@
     (make-TR-H-stack)
     #:next
     #:go (coord (cadr x*) stack-y 'ct)
+    (tag-pict (make-TR-1-stack) 'TR-1)
+    #:go (coord (caddr x*) stack-y 'ct)
     (make-TR-E-stack)
     #:next
-    #:go (coord (caddr x*) stack-y 'ct)
-    (make-TR-1-stack)
-    #:next
+    #:go (at-find-pict 'TR-1 cb-find 'ct #:abs-y 10)
     (vl-append (blank 0 20) (t "Optimize?")))
   (void))
 
@@ -351,12 +341,12 @@
   (pslide
     (make-section-header "Results"))
   (make-overhead-plot-slide '())
-  (make-overhead-plot-slide '(H E 1))
+  (make-overhead-plot-slide '(H 1 E))
   (pslide
     (make-scatterplots-pict))
   ;; TODO table of lo-hi performance, to better support prescriptions at the end
   ;(make-folklore-slide #:q1? #false)
-  ;(make-overhead-plot-slide '(H E 1))
+  ;(make-overhead-plot-slide '(H 1 E))
   (void))
 
 (define (make-scatterplots-pict)
@@ -373,7 +363,7 @@
   (define soundness-pict
     (tag-pict
       (apply vl-append y-sep
-        (for/list ((arr (in-list (list ->H ->E ->1)))
+        (for/list ((arr (in-list (list ->H ->1 ->E)))
                    (what (in-list (list "types" #f "type constructors"))))
           (ht-append (scale-for-bullet arr)
                      (if what
@@ -386,7 +376,7 @@
   (define perf-pict
     (tag-pict
       (apply vl-append y-sep
-        (for/list ((arr (in-list (list ->H ->E ->1)))
+        (for/list ((arr (in-list (list ->H ->1 ->E)))
                    (where (in-list (list "to 'packages'" "anywhere" "sparingly"))))
           (hc-append (scale-for-bullet arr)
                      (t (format " add types ~a" where)))))
@@ -410,7 +400,7 @@
     (main-contrib-append
       perf-pict
       (let ((w (pict-width box-pict)))
-        (scale-to-fit (make-overhead-plot '(H E 1) #:legend? #false) w w))))
+        (scale-to-fit (make-overhead-plot '(H 1 E) #:legend? #false) w w))))
   (void))
 
 (define (sec:folklore-II)
@@ -420,8 +410,8 @@
 (define (sec:extra)
   (make-acks-slide)
   (make-H-example-slide)
-  (make-E-example-slide)
   (make-1-example-slide)
+  (make-E-example-slide)
   (pslide
     (make-embeddings-pict all-system*))
   (pslide
@@ -461,11 +451,11 @@
   (define-values [w h] (two-column-dims))
   (define (smaller p) (scale-to-fit p (- w 80) (- h 80)))
   (define tu-pict (hc-append 10 (make-stat-file (large-tau-icon)) (make-dyn-file (large-lambda-icon))))
-  (define m (smaller (make-1-on-3 tu-pict (make-H-box) (make-E-box) (make-1-box))))
+  (define m (smaller (make-1-on-3 tu-pict (make-H-box) (make-1-box) (make-E-box))))
   (define i
     (let* ((h (pict-height tu-pict))
            (rkt-pict (scale-to-fit (bitmap racket-logo.png) h h)))
-      (smaller (make-1-on-3 rkt-pict (make-TR-H-box) (make-TR-E-box) (make-TR-1-box)))))
+      (smaller (make-1-on-3 rkt-pict (make-TR-H-box) (make-TR-1-box) (make-TR-E-box)))))
   (values m i))
 
 (define (contrib*->pict str*)
@@ -798,14 +788,14 @@
 (define (make-embeddings-pict #:highlight [highlight #f] . gt-system-tree)
   (define gt* (flatten gt-system-tree))
   (define H* (filter/embedding 'H gt*))
-  (define E* (filter/embedding 'E gt*))
   (define 1* (filter/embedding '1 gt*))
+  (define E* (filter/embedding 'E gt*))
   (define HE-system* (filter/embedding '(H E) gt*))
   (define 1E-system* (filter/embedding '(E 1) gt*))
   (define p0 (make-base-embeddings-pict highlight))
   (define H-pos (find-tag p0 '->H))
-  (define E-pos (find-tag p0 '->E))
   (define 1-pos (find-tag p0 '->1))
+  (define E-pos (find-tag p0 '->E))
   (define margin 30)
   (parameterize ((current-font-size (- (current-font-size) 10)))
     (ppict-do
@@ -1022,8 +1012,8 @@
                    (plot-y-ticks no-ticks)
                    (plot-font-size (current-font-size)))
       (plot-pict
-        (for/list ((e (in-list e*))
-                   (c (in-list (list LIGHT-RED GREEN BLUE))))
+        (for/list ((e (in-list e*)))
+          (define c (symbol->color e))
           (function (make-embedding-function e x-min x-max)
                     #:width (* 15 (line-width))
                     #:alpha PLOT-FN-ALPHA
@@ -1040,6 +1030,17 @@
   (if legend?
     (ht-append 20 (make-overhead-legend e*) pp+axis)
     pp+axis))
+
+(define (symbol->color e)
+  (case e
+    ((H)
+     LIGHT-RED)
+    ((E)
+     GREEN)
+    ((1)
+     BLUE)
+    (else
+      (raise-argument-error 'symbol->color "(or/c 'H 'E '1)" e))))
 
 (define (make-overhead-legend e*)
   (define w (* 22/100 client-w))
