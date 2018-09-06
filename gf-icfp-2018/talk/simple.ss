@@ -37,6 +37,7 @@
     (void)
     (sec:title)
     (sec:folklore-I)
+    (sec:migratory-typing)
     (sec:gt-landscape)
     (sec:kafka) ;; shout out for NEPLS
     (sec:main-result)
@@ -78,19 +79,41 @@
   (make-folklore-slide)
   (void))
 
-(define (sec:gt-landscape)
+(define (sec:migratory-typing)
   (define lambda-pict (large-lambda-icon))
   (define tau (large-tau-icon))
   (define dyn-file (make-dyn-file lambda-pict))
   (pslide
     (make-section-header "Migratory Typing"))
   (pslide
+    #:go (coord SLIDE-LEFT 1/4 'lt)
+    @t{Step 0: un(i)typed language}
     #:go (coord 1/2 1/2)
-    #:alt [dyn-file
-           #:next
-           #:go (at-find-pict 'dyn-file lc-find 'rc #:abs-x -10)
-           tau]
-    (hc-append 40 (make-stat-file tau) dyn-file))
+    dyn-file)
+  (pslide
+    #:go (coord SLIDE-LEFT 1/4 'lt)
+    @t{Step 1: idiomatic type system}
+    #:go (coord 1/2 1/2)
+    dyn-file
+    #:go (at-find-pict 'dyn-file lc-find 'rc #:abs-x -10)
+    tau)
+  (pslide
+    #:go (coord SLIDE-LEFT 1/4 'lt)
+    @t{Step 2: mixed-typed language}
+    #:go (coord 1/2 1/2)
+    (for/fold ((acc (hc-append 140 (make-stat-file tau) dyn-file)))
+              ((xxx (in-list '((stat-file dyn-file)))))
+      (pin-arrows-line
+        #:line-width ARROW-LINE-WIDTH
+        ARROW-HEAD-SIZE
+        acc
+        (find-tag acc (car xxx))
+        rc-find
+        (find-tag acc (cadr xxx))
+        lc-find)))
+  (void))
+
+(define (sec:gt-landscape)
   (make-gtspace-slide)
   (make-gtspace-slide
     all-system*)
@@ -484,7 +507,7 @@
       impl-pict))
   (pslide
     #:go (coord 1/2 1/2)
-    (text "First apples-to-apples soundness and performance comparisons"))
+    @t{First apples-to-apples soundness and performance comparisons"})
   (void))
 
 (define (make-sig-pict p)

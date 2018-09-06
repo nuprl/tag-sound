@@ -114,3 +114,6 @@
 
 (define-runtime-path cache-scatterplots.png "cache-scatterplots.png")
 (define-runtime-path kafka.png "kafka.png")
+
+(define ARROW-LINE-WIDTH 8)
+(define ARROW-HEAD-SIZE 28)
