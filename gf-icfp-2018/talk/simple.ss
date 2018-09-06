@@ -6,7 +6,6 @@
 ;; - be clearer about contribution, we did the semantics
 ;; - add micro/macro dyn/not knobs for ICFP
 ;; - what does confined or Siek/Wadler do to compare?
-;; - thank-you slide
 
 (require
   gf-icfp-2018/talk/src/gt-system gf-icfp-2018/talk/src/constant
@@ -32,16 +31,16 @@
     ;(sec:folklore-I)
     ;(sec:migratory-typing)
     ;(sec:gt-landscape)
-    ;(sec:kafka)
+    (sec:kafka)
     ;(sec:main-result)
     ;(sec:embeddings)
     ;(sec:soundness)
     ;(sec:implementation)
     ;(sec:experiment)
-    (sec:graph)
+    ;(sec:graph)
     ;(sec:conclusion)
-    (pslide)
-    ;(sec:extra)
+    ;(pslide)
+    (sec:extra)
     (void)))
 
 ;; -----------------------------------------------------------------------------
@@ -136,12 +135,7 @@
   (define ecoop-pict (string->title "ECOOP 2018" #:size 30 #:color WHITE))
   (define title-pict (string->title "KafKa: Gradual Typing for Objects" #:size 36))
   (define authors-pict
-    (parameterize ([current-font-size 26])
-      (let ([x-sep 40]
-            [y-sep 10])
-        (ht-append x-sep
-          (vl-append y-sep (author->pict (kafka-author 0)) (author->pict (kafka-author 1)))
-          (vl-append y-sep (author->pict (kafka-author 2)) (author->pict (kafka-author 3)))))))
+    (arrange-authors author->pict kafka-author*))
   (define box-w (+ 60 (max (pict-width title-pict) (pict-width authors-pict))))
   (define box-h (+ 60 (pict-height title-pict) (pict-height authors-pict)))
   (define bw 2)
@@ -424,6 +418,7 @@
   (void))
 
 (define (sec:extra)
+  (make-acks-slide)
   (make-H-example-slide)
   (make-E-example-slide)
   (make-1-example-slide)
@@ -431,10 +426,6 @@
     (make-embeddings-pict all-system*))
   (pslide
     (make-scatterplots-pict))
-  ;; TODO
-  #;(QA:kafka)
-  #;(QA:...)
-  #;(actual scatter plots)
   (void))
 
 ;; -----------------------------------------------------------------------------
@@ -1303,6 +1294,28 @@
   (hc-append 6
              (cc-superimpose (filled-rectangle (+ margin (pict-width img)) (+ margin (pict-height img)) #:color ECOOP-RED) img)
              (t name)))
+
+(define (arrange-authors a->pict x* [x-sep 40] [y-sep 10] [flip? #false])
+  (define-values [a* b*] (split-at x* (quotient (length x*) 2)))
+  (define col (if flip? hc-append vl-append))
+  (define row (if flip? vl-append ht-append))
+  (parameterize ([current-font-size 26])
+    (row
+      x-sep
+      (apply col y-sep (map a->pict a*))
+      (apply col y-sep (map a->pict b*)))))
+
+(define (padded-bitmap pad)
+  (define bg (blank pad pad))
+  (lambda (p)
+    (cc-superimpose bg (bitmap p))))
+
+(define (make-acks-slide)
+  (pslide
+    #:go (coord SLIDE-LEFT SLIDE-TOP 'lb)
+    (heading-text "Special Thanks")
+    #:go (coord 1/2 1/4 'ct)
+    (arrange-authors (padded-bitmap 140) ack* 100 20 #true)))
 
 ;; =============================================================================
 

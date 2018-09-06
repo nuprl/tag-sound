@@ -131,11 +131,34 @@
 
 (define ECOOP-RED (hex-triplet->color% #x7b0d0f))
 
-(define kafka-author
-  (let ([kafka* (vector-immutable
-                  (cons "Benjamin Chung" ben-chung.png)
-                  (cons "Paley Li" paley-li.png)
-                  (cons "Francesco Zappa Nardelli" francesco-zappa-nardelli.png)
-                  (cons "Jan Vitek" jan-vitek.png))])
-    (lambda (n)
-      (vector-ref kafka* n))))
+(define kafka-author*
+  (list
+    (cons "Benjamin Chung" ben-chung.png)
+    (cons "Paley Li" paley-li.png)
+    (cons "Francesco Zappa Nardelli" francesco-zappa-nardelli.png)
+    (cons "Jan Vitek" jan-vitek.png)))
+
+(define-runtime-path erik-ernst.png "erik-ernst.png")
+(define-runtime-path ron-garcia.png "ron-garcia.png")
+(define-runtime-path ben-lerner.png "ben-lerner.png")
+(define-runtime-path fabian-m.png "fabian-m.png")
+(define-runtime-path max-new.png "max-new.png")
+(define-runtime-path eric-tanter.png "eric-tanter.png")
+(define-runtime-path ross-tate.png "ross2.png")
+(define-runtime-path artem-p.png "artem-p.png")
+; We thank Erik Ernst, Ron Garcia, Benjamin S. Lerner, Fabian Muehlboeck,
+; Max S. New, Eric Tanter, and Ross Tate for insightful conversations, and
+; thank Artem Pelenitsyn, Jan Vitek, and the anonymous ICFP reviewers for
+; feedback on early drafts.
+
+(define ack*
+  (list
+    erik-ernst.png
+    ron-garcia.png
+    ben-lerner.png
+    fabian-m.png
+    max-new.png
+    eric-tanter.png
+    ross-tate.png
+    artem-p.png
+    #;jan-vitek.png))
