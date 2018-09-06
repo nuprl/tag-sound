@@ -808,7 +808,9 @@
       (if (null? 1*)
         (blank)
         (let-values (((a* b*) (split/2 (cons reticulated (filter-not/name "Reticulated" 1*)))))
-          (ht-append 10 (gt*->pict b*) (gt*->pict a*))))
+          (let ([b-pict (gt*->pict b*)]
+                [a-pict (gt*->pict a*)])
+            (if (null? a*) b-pict (if (null? b*) a-pict (ht-append 10 b-pict a-pict))))))
       #:set (let ((p ppict-do-state)
                   (HE-pict (gt*->pict HE-system*))
                   (1E-pict (gt*->pict 1E-system*)))
@@ -1297,7 +1299,7 @@
              (t name)))
 
 (define (arrange-authors a->pict x* [x-sep 40] [y-sep 10] [flip? #false])
-  (define-values [a* b*] (split-at x* (quotient (length x*) 2)))
+  (define-values [a* b*] (split/2 x*))
   (define col (if flip? hc-append vl-append))
   (define row (if flip? vl-append ht-append))
   (parameterize ([current-font-size 26])

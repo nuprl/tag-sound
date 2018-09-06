@@ -144,7 +144,7 @@
 (define-runtime-path fabian-m.png "fabian-m.png")
 (define-runtime-path max-new.png "max-new.png")
 (define-runtime-path eric-tanter.png "eric-tanter.png")
-(define-runtime-path ross-tate.png "ross2.png")
+(define-runtime-path ross-tate.png "ross-tate.png")
 (define-runtime-path artem-p.png "artem-p.png")
 ; We thank Erik Ernst, Ron Garcia, Benjamin S. Lerner, Fabian Muehlboeck,
 ; Max S. New, Eric Tanter, and Ross Tate for insightful conversations, and
