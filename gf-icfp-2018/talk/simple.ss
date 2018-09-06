@@ -126,11 +126,11 @@
     #:layout creator-gt-layout)
   (make-gtspace-slide
     all-system*
-    #:title '("by Theory" "Sound" "Unsound")
+    #:title '("by Claim" "Sound?" "Unsound")
     #:layout theory-gt-layout)
   (make-gtspace-slide
     all-system*
-    #:title '("by Performance" "Not Dead" "Dead")
+    #:title '("by Performance" "Alive?" "Dead")
     #:layout performance-gt-layout
     #:disclaimer (make-disclaimer-pict "(the word 'dead' is used here in a technical sense)"))
   (pslide
