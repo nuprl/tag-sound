@@ -236,6 +236,26 @@
                   #:url "https://github.com/plum-umd/rtc"
                   #:mt? #true))
 
+(define maclisp
+  (make-gt-system #:name "MACLISP"
+                  #:year 1990
+                  #:host "MACLISP"
+                  #:from 'I
+                  #:embedding 'E
+                  #:perf 1
+                  #:url "http://maclisp.info"
+                  #:mt? #true))
+
+(define common-lisp
+  (make-gt-system #:name "Common Lisp"
+                  #:year 1990
+                  #:host "Common Lisp"
+                  #:from 'I
+                  #:embedding 'E
+                  #:perf 1
+                  #:url "https://common-lisp.net"
+                  #:mt? #true))
+
 (define strongtalk
   (make-gt-system #:name "Strongtalk"
                   #:year 1993
@@ -388,8 +408,8 @@
 
 (define all-system*
   (list gradualtalk typed-racket tpd strongscript #;actionscript mypy pallene
-        grace flow hack pyre pytype rtc safets strongtalk typescript
-        typed-clojure typed-lua pyret thorn dart1 dart2 nom pycket
+        grace flow hack pyre pytype rtc safets maclisp common-lisp strongtalk
+        typescript typed-clojure typed-lua pyret thorn dart1 dart2 nom pycket
         reticulated))
 
 (define tr-e

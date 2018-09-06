@@ -6,7 +6,6 @@
 ;; - everything on the checklist
 ;;  - where does Cython fit in the space
 ;;  - pool, but background on the groups
-;;  - t vs. tau
 ;;  - KafKa came out of nowhere
 ;;  - step function instead of sine
 ;;  - be clearer about contribution, we did the semantics
@@ -558,15 +557,19 @@
   (maybe-superimpose (tag-pict (make-component-file DYN-COLOR) 'dyn-file) super))
 
 (define (gt->pict gt)
+  (define mt? (gt-system-mt? gt))
   (define str
-    (let ([n (gt-system-name gt)]
-          [m (gt-system-mt? gt)])
-      (string-append n (if m "" "*"))))
-  (define txt-p (text str (current-main-font) 22))
+    (gt-system-name gt))
+  (define-values [fg-color bg-color]
+    (if mt?
+      (values "black" "Gainsboro")
+      (values "white" "Dim Gray")))
+  (define txt-p
+    (colorize (text str (current-main-font) 22) fg-color))
   (define w (+ 10 (pict-width txt-p)))
   (define h (+ 10 (pict-height txt-p)))
   (cc-superimpose
-    (filled-rectangle w h #:color "Gainsboro" #;"Light Steel Blue" #;"Orange")
+    (filled-rectangle w h #:color bg-color)
     txt-p))
 
 (define (add-gt-system* base gt* [pre-f-layout #f])
@@ -596,11 +599,10 @@
 
 (define (year-gt-layout base gt*)
   (define gt** (group-gt-systems-by gt* gt-system-year <=))
-  (define x-base (/ POOL-X-BASE (pict-width base)))
-  (define y-base (/ POOL-X-BASE (pict-height base)))
+  (define-values [x-base y-base] (get-pool-margins base))
   (define x-offset (/ 1 (add1 (length gt**))))
   (define (get-y i)
-    (vector-ref '#(0 8/30 19/30) (modulo i 3)))
+    (vector-ref '#(0 30/100 59/100) (modulo i 3)))
   (ppict-do
     base
     #:set (for/fold ((acc ppict-do-state))
@@ -611,8 +613,18 @@
               #:go (coord (+ x-base (* i x-offset)) (+ y-base (get-y i)) 'lt)
               (gt*->pict g*)))))
 
-(define (gt*->pict g*)
-  (apply vc-append 8 (map gt->pict g*)))
+(define (gt*->pict g* #:bg-color [bg-color #f])
+  (define gt-pict (apply vc-append 8 (map gt->pict g*)))
+  (define margin 8)
+  (if bg-color
+    (cc-superimpose
+      (filled-rounded-rectangle (+ margin (pict-width gt-pict))
+                                (+ margin (pict-height gt-pict))
+                                -0.05
+                                #:draw-border? #false
+                                #:color bg-color)
+      gt-pict)
+    gt-pict))
 
 (define (creator-gt-layout base gt*)
   (histogram-gt-layout base (group-gt-systems-by gt* gt-system-source gt-system-source<)))
@@ -623,14 +635,24 @@
 (define (performance-gt-layout base gt*)
   (histogram-gt-layout base (group-gt-systems-by gt* gt-system-name%TR (lambda (x y) (string=? y "Typed Racket")))))
 
+(define (get-pool-margins base)
+  (define x-base (/ (+ 10 POOL-X-BASE) (pict-width base)))
+  (define y-base (/ POOL-X-BASE (pict-height base) 2))
+  (values x-base y-base))
+
 (define (histogram-gt-layout base gt**)
+  (define x-sep -2)
   (define num-groups (length gt**))
-  (define x-base (/ POOL-X-BASE (pict-width base)))
-  (define y-base (/ POOL-X-BASE (pict-height base)))
+  (define-values [x-base y-base] (get-pool-margins base))
+  (define max-in-column
+    (let ((h-1 (* 1.2 (pict-height (gt->pict typed-racket))))
+          (max-h (- (pict-height base) (* 2 y-base))))
+      (- (exact-floor (/ max-h h-1)) 1)))
   (define align*
     (if (< num-groups 2)
       '(lt)
       (append '(lt) (make-list (- num-groups 2) 'ct) '(rt))))
+  (define ISLAND-COLOR "LightSteelBlue")
   (ppict-do
     base
     #:set (for/fold ((acc ppict-do-state))
@@ -642,11 +664,10 @@
               acc
               #:go (coord x y-base align)
               (let loop ([g* g*])
-                ;; TODO 10 is magic number
-                (if (< (length g*) 10)
-                  (gt*->pict g*)
-                  (let-values ([(a* b*) (split-at g* 10)])
-                    (h?-append 4 (gt*->pict a*) (loop b*)))))))))
+                (if (< (length g*) max-in-column)
+                  (gt*->pict g* #:bg-color ISLAND-COLOR)
+                  (let-values ([(a* b*) (split-at g* max-in-column)])
+                    (h?-append x-sep (gt*->pict a* #:bg-color ISLAND-COLOR) (loop b*)))))))))
 
 (define (label-text str)
   (define b (blank 10 0))
