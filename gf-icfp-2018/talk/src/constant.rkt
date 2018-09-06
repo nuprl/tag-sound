@@ -35,7 +35,7 @@
 (define DARK-BLUE syntax-icon-color)
 (define WHITE (string->color "Snow"))
 (define RAY-COLOR RED)
-(define BOX-COLOR (string->color "bisque"))
+(define BOX-COLOR (string->color "SeaShell" #;"AntiqueWhite" #;"LightGoldenrodYellow" #;"Beige" #;"bisque"))
 (define FF-COLOR (string->color "forestgreen"))
 (define BLACK (string->color "black"))
 (define GREY (string->color "gray"))
@@ -114,6 +114,28 @@
 
 (define-runtime-path cache-scatterplots.png "cache-scatterplots.png")
 (define-runtime-path kafka.png "kafka.png")
+(define-runtime-path ben-chung.png "ben-chung.png")
+(define-runtime-path paley-li.png "paley-li.png")
+(define-runtime-path francesco-zappa-nardelli.png "francesco-zappa-nardelli.png")
+(define-runtime-path jan-vitek.png "jan-vitek.png")
 
 (define ARROW-LINE-WIDTH 8)
 (define ARROW-HEAD-SIZE 28)
+
+(define (hex-triplet->color% x)
+  (define-values [r g b]
+    (values (arithmetic-shift x -16)
+            (bitwise-and #x0000ff (arithmetic-shift x -8))
+            (bitwise-and #x0000ff x)))
+  (make-color r g b))
+
+(define ECOOP-RED (hex-triplet->color% #x7b0d0f))
+
+(define kafka-author
+  (let ([kafka* (vector-immutable
+                  (cons "Benjamin Chung" ben-chung.png)
+                  (cons "Paley Li" paley-li.png)
+                  (cons "Francesco Zappa Nardelli" francesco-zappa-nardelli.png)
+                  (cons "Jan Vitek" jan-vitek.png))])
+    (lambda (n)
+      (vector-ref kafka* n))))

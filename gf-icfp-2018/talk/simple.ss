@@ -3,13 +3,7 @@
 ;; Slides for ICFP 2018
 
 ;; TODO
-;; - everything on the checklist
-;;  - where does Cython fit in the space
-;;  - pool, but background on the groups
-;;  - KafKa came out of nowhere
-;;  - step function instead of sine
-;;  - be clearer about contribution, we did the semantics
-;;  - pull requests
+;; - be clearer about contribution, we did the semantics
 ;; - add micro/macro dyn/not knobs for ICFP
 ;; - what does confined or Siek/Wadler do to compare?
 ;; - thank-you slide
@@ -34,18 +28,18 @@
                  [current-font-size 32]
                  [current-titlet string->title])
     (void)
-    (sec:title)
-    (sec:folklore-I)
-    (sec:migratory-typing)
-    (sec:gt-landscape)
-    (sec:kafka) ;; shout out for NEPLS
-    (sec:main-result)
-    (sec:embeddings)
-    (sec:soundness)
-    (sec:implementation)
-    (sec:experiment)
+    ;(sec:title)
+    ;(sec:folklore-I)
+    ;(sec:migratory-typing)
+    ;(sec:gt-landscape)
+    ;(sec:kafka)
+    ;(sec:main-result)
+    ;(sec:embeddings)
+    ;(sec:soundness)
+    ;(sec:implementation)
+    ;(sec:experiment)
     (sec:graph)
-    (sec:conclusion)
+    ;(sec:conclusion)
     (pslide)
     ;(sec:extra)
     (void)))
@@ -56,8 +50,8 @@
   (define w (* 4/5 client-w))
   (scale-to-fit (cellophane (bitmap racket-logo.png) WATERMARK-ALPHA) w w))
 
-(define (string->title str)
-  (colorize (text str TITLE-FONT 55) BLACK))
+(define (string->title str #:size [size 55] #:color [color BLACK])
+  (colorize (text str TITLE-FONT size) color))
 
 (define (sec:title)
   (pslide
@@ -138,12 +132,34 @@
   (void))
 
 (define (sec:kafka)
+  (define x-base 15/100)
+  (define ecoop-pict (string->title "ECOOP 2018" #:size 30 #:color WHITE))
+  (define title-pict (string->title "KafKa: Gradual Typing for Objects" #:size 36))
+  (define authors-pict
+    (parameterize ([current-font-size 26])
+      (let ([x-sep 40]
+            [y-sep 10])
+        (ht-append x-sep
+          (vl-append y-sep (author->pict (kafka-author 0)) (author->pict (kafka-author 1)))
+          (vl-append y-sep (author->pict (kafka-author 2)) (author->pict (kafka-author 3)))))))
+  (define box-w (+ 60 (max (pict-width title-pict) (pict-width authors-pict))))
+  (define box-h (+ 60 (pict-height title-pict) (pict-height authors-pict)))
+  (define bw 2)
+  (define the-box (filled-rectangle box-w box-h #:color BOX-COLOR #:border-width bw))
+  (define lbl-h (* 3 (pict-height ecoop-pict)))
   (pslide
-    #:go (coord 1/2 1/4 'ct)
-    (bitmap kafka.png))
-;    @t{KafKa: Gradual Typing for Objects}
-;    @t{Chung, Li, Zappa Nardelli, Vitek}
-;    @t{ECOOP 2018}
+    #:go (coord 1/2 1/2 'cc)
+    (tag-pict the-box 'the-box)
+    #:go (at-find-pict 'the-box ct-find 'cc)
+    (tag-pict (filled-rounded-rectangle box-w lbl-h #:color ECOOP-RED #:border-width bw) 'lbl-pict)
+    #:go (at-find-pict 'lbl-pict rc-find 'rc #:abs-x -40 #:abs-y -20)
+    ecoop-pict
+    #:go (coord 1/2 1/2 'cc)
+    the-box
+    #:go (at-find-pict 'the-box lt-find 'lt #:abs-x 20 #:abs-y 20)
+    (tag-pict title-pict 'title-pict)
+    #:go (at-find-pict 'title-pict lb-find 'lt #:abs-x 6 #:abs-y 20)
+    authors-pict)
   (void))
 
 (define (sec:main-result)
@@ -1049,9 +1065,16 @@
 (define (make-embedding-function e x-min x-max)
   (case e
     ((H)
-     (lambda (n) (max (if (< n 2) 1 0.4)
-                      0
-                      (+ 0.5 (* 10 (sin n))))))
+     (define pi/4 (/ 3.14 4))
+     (define 3pi/4 (* 3.5 pi/4))
+     (lambda (n)
+       (cond
+         [(< n pi/4)
+          (max 1 (+ 0.5 (sin n)))]
+         [(< n 3pi/4)
+          10]
+         [else
+          0.4])))
     ((E)
      (lambda (n) 1))
     ((1)
@@ -1094,6 +1117,33 @@
              (1 ,(make-object color% color-2)))))
         (send dc set-brush
           (new brush% [gradient gradient]))
+        (send dc set-pen
+          (new pen% [width border-width]
+                    [color border-color]))
+        (send dc draw-rectangle dx dy width height)
+        (send dc set-brush old-brush)
+        (send dc set-pen old-pen))
+      width height))
+
+(define (rectangle/label width height
+                         #:border-width [border-width 1]
+                         #:border-color [border-color BLACK]
+                         #:color-1 [color-1 WHITE]
+                         #:color-2 [color-2 BLACK])
+  (dc (λ (dc dx dy)
+        (define old-brush
+          (send dc get-brush))
+        (define old-pen
+          (send dc get-pen))
+        ;(define gradient
+        ;  (make-object
+        ;   linear-gradient%
+        ;   dx dy
+        ;   dx (+ dy height)
+        ;   `((0 ,(make-object color% color-1))
+        ;     (1 ,(make-object color% color-2)))))
+        ;(send dc set-brush
+        ;  (new brush% [gradient gradient]))
         (send dc set-pen
           (new pen% [width border-width]
                     [color border-color]))
@@ -1245,6 +1295,14 @@
 
 (define (make-disclaimer-pict str)
   (text str (current-main-font) (- (current-font-size) 4)))
+
+(define (author->pict name+img)
+  (define name (car name+img))
+  (define img (bitmap (cdr name+img)))
+  (define margin 2)
+  (hc-append 6
+             (cc-superimpose (filled-rectangle (+ margin (pict-width img)) (+ margin (pict-height img)) #:color ECOOP-RED) img)
+             (t name)))
 
 ;; =============================================================================
 
