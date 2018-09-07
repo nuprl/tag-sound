@@ -26,20 +26,20 @@
                  [current-font-size 32]
                  [current-titlet string->title])
     (void)
-    ;(sec:title)
-    ;(sec:folklore-I)
-    ;(sec:migratory-typing)
-    ;(sec:gt-landscape)
-    ;(sec:kafka)
+    (sec:title)
+    (sec:folklore-I)
+    (sec:migratory-typing)
+    (sec:gt-landscape)
+    (sec:kafka)
     (sec:main-result)
-    ;(sec:embeddings)
-    ;(sec:soundness)
-    ;(sec:implementation)
-    ;(sec:experiment)
-    ;(sec:graph)
-    ;(sec:conclusion)
-    ;(pslide)
-    ;(sec:extra)
+    (sec:embeddings)
+    (sec:soundness)
+    (sec:implementation)
+    (sec:experiment)
+    (sec:graph)
+    (sec:conclusion)
+    (pslide)
+    (sec:extra)
     (void)))
 
 ;; -----------------------------------------------------------------------------
@@ -92,16 +92,7 @@
     #:go (coord SLIDE-LEFT 1/4 'lt)
     @t{Step 2: mixed-typed language}
     #:go (coord 1/2 1/2)
-    (for/fold ((acc (hc-append 140 (make-stat-file tau) dyn-file)))
-              ((xxx (in-list '((stat-file dyn-file)))))
-      (pin-arrows-line
-        #:line-width ARROW-LINE-WIDTH
-        ARROW-HEAD-SIZE
-        acc
-        (find-tag acc (car xxx))
-        rc-find
-        (find-tag acc (cadr xxx))
-        lc-find)))
+    (add-stat-dyn-arrow (hc-append 140 (make-stat-file tau) dyn-file)))
   (void))
 
 (define (sec:gt-landscape)
@@ -449,8 +440,8 @@
 
 (define (make-model/impl-pict)
   (define-values [w h] (two-column-dims))
+  (define tu-pict (add-stat-dyn-arrow (hc-append 70 (make-stat-file (large-tau-icon)) (make-dyn-file (large-lambda-icon)))))
   (define (smaller p) (scale-to-fit p (- w 80) (- h 80)))
-  (define tu-pict (hc-append 10 (make-stat-file (large-tau-icon)) (make-dyn-file (large-lambda-icon))))
   (define m (smaller (make-1-on-3 tu-pict (make-H-box) (make-1-box) (make-E-box))))
   (define i
     (let* ((h (pict-height tu-pict))
@@ -747,7 +738,7 @@
 
 (define (make-1-on-3 pre-base-pict pre-a pre-b pre-c)
   (define m 4)
-  (define anchor (blank 40 0))
+  (define anchor (blank 11 0))
   (define base-pict (cb-superimpose anchor (add-top-margin m pre-base-pict)))
   (define a (add-bottom-margin m pre-a))
   (define b (add-bottom-margin m pre-b))
@@ -1333,6 +1324,18 @@
     (heading-text "Special Thanks")
     #:go (coord 1/2 1/4 'ct)
     (arrange-authors (padded-bitmap 140) ack* 100 20 #true)))
+
+(define (add-stat-dyn-arrow p)
+  (for/fold ((acc p))
+            ((xxx (in-list '((stat-file dyn-file)))))
+    (pin-arrows-line
+      #:line-width ARROW-LINE-WIDTH
+      ARROW-HEAD-SIZE
+      acc
+      (find-tag acc (car xxx))
+      rc-find
+      (find-tag acc (cadr xxx))
+      lc-find)))
 
 ;; =============================================================================
 
