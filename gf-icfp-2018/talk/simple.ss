@@ -92,7 +92,7 @@
     #:go (coord SLIDE-LEFT 1/4 'lt)
     @t{Step 2: mixed-typed language}
     #:go (coord 1/2 1/2)
-    (add-stat-dyn-arrow (hc-append 140 (make-stat-file tau) dyn-file)))
+    (stat-dyn/arrow))
   (void))
 
 (define (sec:gt-landscape)
@@ -147,6 +147,37 @@
   (void))
 
 (define (sec:main-result)
+  (define-values [model-pict0 impl-pict0] (make-model/impl-pict))
+  (define x-base MAIN-CONTRIB-X)
+  (define fig-coord (coord x-base 1/4 'lt))
+  (define contrib-0-pict
+    (contrib*->pict
+      '("Model:"
+        "- one mixed-typed language"
+        "- one surface type system"
+        "- three semantics")))
+  (define contrib-1-pict
+    (contrib*->pict
+      '("Implementation:"
+        "- Racket syntax/types"
+        "- three compilers"
+        "- the first controlled"
+        "  performance experiment")))
+  (define model-pict
+    (cc-superimpose
+      (blank (pict-width contrib-1-pict) 0)
+      (scale-for-column model-pict0)))
+  (define impl-pict (scale-for-column impl-pict0))
+  (pslide
+    #:go (coord 1/2 1/4 'ct)
+    model-pict
+    #:go (at-find-pict 'stat-file rb-find 'lc #:abs-x 2)
+    (filled-rectangle 60 10 #:color "white" #:draw-border? #false)
+    #:go (at-find-pict 'stat-file rb-find 'ct)
+    (filled-rectangle 500 300 #:color "white" #:draw-border? #false))
+  (pslide
+    #:go (coord 1/2 1/4 'ct)
+    model-pict)
   (pslide
     #:go (coord 1/5 25/100 'lt)
     (let ([box+text (lambda (b t) (hc-append 20 b t))])
@@ -155,7 +186,29 @@
         (box+text (make-H-box) @t{higher-order semantics})
         (box+text (make-1-box) @t{first-order semantics})
         (box+text (make-E-box) @t{erasure semantics}))))
-  (main-results-slide)
+  (pslide
+    #:go (coord SLIDE-LEFT SLIDE-TOP 'lt)
+    @titlet{Contributions (1/2)}
+    #:go fig-coord
+    (main-contrib-append
+      model-pict
+      contrib-0-pict))
+  (pslide
+    #:go (coord SLIDE-LEFT SLIDE-TOP 'lt)
+    @titlet{Contributions (2/2)}
+    #:go fig-coord
+    #:alt [(main-contrib-append model-pict (blank (pict-width impl-pict) 0))
+           #:go (coord 1/2 1/2 'cb)
+           (large-right-arrow)]
+    #:alt [(main-contrib-append model-pict impl-pict)
+           #:go (coord 1/2 1/2 'cb)
+           (large-right-arrow)]
+    (main-contrib-append
+      contrib-1-pict
+      impl-pict))
+  (pslide
+    #:go (coord 1/2 1/2)
+    @t{First apples-to-apples soundness and performance comparisons"})
   (void))
 
 (define (sec:embeddings)
@@ -440,8 +493,9 @@
 
 (define (make-model/impl-pict)
   (define-values [w h] (two-column-dims))
-  (define tu-pict (add-stat-dyn-arrow (hc-append 70 (make-stat-file (large-tau-icon)) (make-dyn-file (large-lambda-icon)))))
-  (define (smaller p) (scale-to-fit p (- w 80) (- h 80)))
+  (define (smaller p)
+    (scale-to-fit p (- w 80) (- h 80)))
+  (define tu-pict (stat-dyn/arrow))
   (define m (smaller (make-1-on-3 tu-pict (make-H-box) (make-1-box) (make-E-box))))
   (define i
     (let* ((h (pict-height tu-pict))
@@ -458,53 +512,6 @@
 
 (define (main-contrib-append a b #:x-shift [x 0])
   (ht-append (+ x 10) a b))
-
-(define (main-results-slide)
-  (define-values [model-pict0 impl-pict0] (make-model/impl-pict))
-  (define x-base MAIN-CONTRIB-X)
-  (define fig-coord (coord x-base 1/4 'lt))
-  (define contrib-0-pict
-    (contrib*->pict
-      '("Model:"
-        "- one mixed-typed language"
-        "- one surface type system"
-        "- three semantics")))
-  (define contrib-1-pict
-    (contrib*->pict
-      '("Implementation:"
-        "- Racket syntax/types"
-        "- three compilers"
-        "- the first controlled"
-        "  performance experiment")))
-  (define model-pict
-    (cc-superimpose
-      (blank (pict-width contrib-1-pict) 0)
-      (scale-for-column model-pict0)))
-  (define impl-pict (scale-for-column impl-pict0))
-  (pslide
-    #:go (coord SLIDE-LEFT SLIDE-TOP 'lt)
-    @titlet{Contributions (1/2)}
-    #:go fig-coord
-    (main-contrib-append
-      model-pict
-      contrib-0-pict))
-  (pslide
-    #:go (coord SLIDE-LEFT SLIDE-TOP 'lt)
-    @titlet{Contributions (2/2)}
-    #:go fig-coord
-    #:alt [(main-contrib-append model-pict (blank (pict-width impl-pict) 0))
-           #:go (coord 1/2 1/2 'cb)
-           (large-right-arrow)]
-    #:alt [(main-contrib-append model-pict impl-pict)
-           #:go (coord 1/2 1/2 'cb)
-           (large-right-arrow)]
-    (main-contrib-append
-      contrib-1-pict
-      impl-pict))
-  (pslide
-    #:go (coord 1/2 1/2)
-    @t{First apples-to-apples soundness and performance comparisons"})
-  (void))
 
 (define (make-sig-pict p)
   (define sig-scale 2/10)
@@ -1324,6 +1331,9 @@
     (heading-text "Special Thanks")
     #:go (coord 1/2 1/4 'ct)
     (arrange-authors (padded-bitmap 140) ack* 100 20 #true)))
+
+(define (stat-dyn/arrow)
+  (add-stat-dyn-arrow (hc-append 70 (make-stat-file (large-tau-icon)) (make-dyn-file (large-lambda-icon)))))
 
 (define (add-stat-dyn-arrow p)
   (for/fold ((acc p))
