@@ -227,7 +227,7 @@
     #:go (coord SLIDE-LEFT SLIDE-TOP 'lt)
     ;;@t{Types}
     (vl-append 10
-               @t{τ = Nat | Int | τ × τ | τ → τ}
+               @t{τ = Nat | Int | τ × τ | τ ⇒ τ}
                @t{Nat <: Int})
     #:next
     #:go (coord SLIDE-LEFT 25/100 'lt)
@@ -251,9 +251,9 @@
     (apply vl-append 10 x*))
   (define types-pict
     (vl-append 10
-      @t{fib : Nat → Nat}
-      @t{norm : Nat × Nat → Nat}
-      @t{map : (Nat → Nat) → Nat × Nat → Nat × Nat}))
+      @t{fib : Nat ⇒ Nat}
+      @t{norm : Nat × Nat ⇒ Nat}
+      @t{map : (Nat ⇒ Nat) ⇒ Nat × Nat ⇒ Nat × Nat}))
   (pslide
     #:go (coord 1/2 SLIDE-TOP 'ct)
     (vc-append
@@ -265,7 +265,7 @@
       (vl-append 25
         @t{Γ ⊢ fib (dyn Nat -1) : Nat}
         @t{Γ ⊢ norm (dyn Nat × Nat ⟨-1,-2⟩) : Nat}
-        @t{Γ ⊢ map (dyn (Nat → Nat) (λ(x)e)) y : Nat × Nat})))
+        @t{Γ ⊢ map (dyn (Nat ⇒ Nat) (λ(x)e)) y : Nat × Nat})))
   (pslide
     (make-example-boundary-pict))
   (void))
@@ -844,7 +844,7 @@
         @t{dyn Nat n} ->1 @t{n}
         @t{dyn Int i} ->1 @t{i}
         @t{dyn (t0 × t1) ⟨v0, v1⟩} ->1 @t{⟨v0, v1⟩}
-        @t{dyn (td → tc) λ(x)e} ->1 @t{λ(x)e}
+        @t{dyn (td ⇒ tc) λ(x)e} ->1 @t{λ(x)e}
         @t{dyn t v} ->1 (little-x-icon)))))
 
 (define (comment . stuff*)
@@ -949,7 +949,7 @@
           30
           (make-boundary-pict #:left l0 #:right r0 #:arrow (tag-pict @t{Nat} 'lbl-0))
           (make-boundary-pict #:left l1 #:right r1 #:arrow (tag-pict @t{Nat × Nat} 'lbl-1))
-          (make-boundary-pict #:left l2 #:right r2 #:arrow (tag-pict @t{Nat → Nat} 'lbl-2)))
+          (make-boundary-pict #:left l2 #:right r2 #:arrow (tag-pict @t{Nat ⇒ Nat} 'lbl-2)))
         #:go (afp 'lbl-0)
         a0
         #:go (afp 'lbl-1)
