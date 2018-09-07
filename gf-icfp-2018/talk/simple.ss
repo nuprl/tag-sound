@@ -265,7 +265,7 @@
       (vl-append 25
         @t{Γ ⊢ fib (dyn Nat -1) : Nat}
         @t{Γ ⊢ norm (dyn Nat × Nat ⟨-1,-2⟩) : Nat}
-        @t{Γ ⊢ map (dyn (Nat ⇒ Nat) (λ(x)e)) y : Nat × Nat})))
+        @t{Γ ⊢ map (dyn (Nat ⇒ Nat) (λ(x)-x)) y : Nat × Nat})))
   (pslide
     (make-example-boundary-pict))
   (void))
@@ -834,19 +834,6 @@
 (define (make-name-stack gt*)
   (make-stack #:v 10 #:bg (blank) (map gt-system-name gt*)))
 
-(define (transient-dyn-slide)
-  (pslide
-    #:go (coord 1/15 1/5 'lt)
-    (make-sig-pict (make-step @t{dyn t v} ->1 @t{v}))
-    #:go (coord 2/15 3/10 'lt)
-    (make-embedding-table
-      (list
-        @t{dyn Nat n} ->1 @t{n}
-        @t{dyn Int i} ->1 @t{i}
-        @t{dyn (t0 × t1) ⟨v0, v1⟩} ->1 @t{⟨v0, v1⟩}
-        @t{dyn (td ⇒ tc) λ(x)e} ->1 @t{λ(x)e}
-        @t{dyn t v} ->1 (little-x-icon)))))
-
 (define (comment . stuff*)
   (blank 0 0))
 
@@ -942,7 +929,7 @@
           [l1 (hole-append @t{norm} (make-hole))]
           [r1 @dyn-text{⟨-1,-2⟩}]
           [l2 (hole-append @t{map} (make-hole) @t{y})]
-          [r2 @dyn-text{λ(x)e}]
+          [r2 @dyn-text{λ(x)-x}]
           [afp (lambda (t) (at-find-pict t cb-find 'ct #:abs-y 6))])
       (ppict-do
         (vc-append
