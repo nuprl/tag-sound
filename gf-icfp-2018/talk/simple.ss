@@ -32,7 +32,12 @@
     (sec:gt-landscape)
     (sec:kafka)
     (sec:main-result)
-    (sec:embeddings)
+    (pslide (make-section-header "Model"))
+    (sec:embedding:warmup)
+    (sec:embedding:H)
+    (sec:embedding:1)
+    (sec:embedding:E)
+    (sec:embedding:end)
     (sec:soundness)
     (sec:implementation)
     (sec:experiment)
@@ -211,17 +216,7 @@
     @t{First apples-to-apples soundness and performance comparisons"})
   (void))
 
-(define (sec:embeddings)
-  (pslide
-    (make-section-header "Model"))
-  (embedding:warmup)
-  (embedding:H)
-  (embedding:1)
-  (embedding:E)
-  (embedding:end)
-  (void))
-
-(define (embedding:warmup)
+(define (sec:embedding:warmup)
   (define x-offset 1/20)
   (pslide
     #:go (coord SLIDE-LEFT SLIDE-TOP 'lt)
@@ -270,14 +265,14 @@
     (make-example-boundary-pict))
   (void))
 
-(define (embedding:H)
+(define (sec:embedding:H)
   (pslide
     #:alt [(make-embeddings-pict)]
     (make-embeddings-pict #:highlight 'H))
   (make-H-example-slide)
   (void))
 
-(define (embedding:1)
+(define (sec:embedding:1)
   (pslide
     #:alt ((make-embeddings-pict))
     #:alt ((make-embeddings-pict H-system*))
@@ -285,7 +280,7 @@
   (make-1-example-slide)
   (void))
 
-(define (embedding:E)
+(define (sec:embedding:E)
   (pslide
     #:alt [(make-embeddings-pict H-system*)]
     #:alt [(make-embeddings-pict H-system* reticulated)]
@@ -294,7 +289,7 @@
   (make-E-example-slide)
   (void))
 
-(define (embedding:end)
+(define (sec:embedding:end)
   (pslide
     #:alt [(make-embeddings-pict H-system* 1-system* E-system*)]
     (make-embeddings-pict all-system*))
@@ -465,7 +460,7 @@
 ;; -----------------------------------------------------------------------------
 
 (define (make-H-example-slide)
-  (make-?-example-slide "higher-order" (make-H-box) (big-x-icon) (big-x-icon) (big-lock-icon)))
+  (make-?-example-slide "higher-order" (make-H-box) (big-x-icon) (big-x-icon) (monitor-icon)))
 
 (define (make-E-example-slide)
   (make-?-example-slide "erasure" (make-E-box) (big-check-icon) (big-check-icon) (big-check-icon)))
@@ -474,11 +469,13 @@
   (make-?-example-slide "first-order" (make-1-box) (big-x-icon) (big-check-icon) (big-check-icon)))
 
 (define (make-?-example-slide name lbl r0 r1 r2)
+  (define y-sep 6)
   (pslide
+    #:go (coord 1/2 SLIDE-TOP 'ct #:abs-y y-sep)
     (make-example-boundary-pict r0 r1 r2)
-    #:go (coord SLIDE-TOP SLIDE-LEFT 'lt)
+    #:go (coord SLIDE-LEFT SLIDE-TOP 'lb)
     (t name)
-    (blank 0 10)
+    #:go (coord SLIDE-LEFT SLIDE-TOP 'lt #:abs-y y-sep)
     lbl))
 
 (define (neu)
@@ -851,6 +848,16 @@
          [w (pict-width x)])
     (lambda ()
       (filled-rectangle w w #:color GREY))))
+
+(define (monitor-icon)
+  (big-pause-icon))
+
+(define big-pause-icon
+  (let* ([pause-color "DarkOrange"] ;; Orange Gold
+         [pause-icon (lambda (#:height h #:material m)
+                       (record-icon #:color "DarkOrange" #:material m #:height h))])
+    (lambda ()
+      (make-icon pause-icon #:height 80))))
 
 (define (big-lock-icon)
   (make-icon lock-icon #:height 80))
