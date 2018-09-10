@@ -125,6 +125,7 @@
 
 (define ARROW-LINE-WIDTH 8)
 (define ARROW-HEAD-SIZE 28)
+(define EVAL-ARROW-SIZE 24)
 
 (define (hex-triplet->color% x)
   (define-values [r g b]

@@ -35,8 +35,8 @@
 ;    (sec:kafka)
 ;    (sec:main-result)
 ;    (pslide (make-section-header "Model"))
-;    (sec:embedding:warmup)
-;    (sec:embedding:H)
+    (sec:embedding:warmup)
+    (sec:embedding:H)
     (sec:embedding:1)
     (sec:embedding:E)
     (sec:embedding:end)
@@ -268,41 +268,26 @@
   (void))
 
 (define (sec:embedding:H)
-  (define y-sep 6)
+  (define arrow-target 'arrow-target)
   (pslide
     #:alt [(make-embeddings-pict)]
     (make-embeddings-pict #:highlight 'H))
   (make-H-example-slide)
-  (pslide
-    #:go (coord SLIDE-LEFT SLIDE-TOP 'lb)
-    (t "higher-order")
-    #:go (coord SLIDE-LEFT SLIDE-TOP 'lt #:abs-y y-sep)
-    (make-H-box)
-    #:go (coord 1/2 SLIDE-TOP 'ct #:abs-y y-sep)
-    (tag-pict
+  (make-example-detail-slide
+    'H
     (make-boundary-pict #:left (hole-append @t{map} (small-monitor-icon) @t{y})
                         #:right @dyn-text{λ(x)-x}
-                        #:arrow @t{Nat ⇒ Nat}) 'b1)
-    #:next
-    #:go (at-find-pict 'b1 lb-find 'lt #:abs-y 20)
-    (hc-append
-      20
-      (arrow 24 0)
-      (tag-pict
-      (parameterize ((current-component-ratio 3/4))
-        (make-boundary-pict #:left (hole-append (small-monitor-icon) @t{1})
+                        #:arrow @t{Nat ⇒ Nat})
+    (parameterize ((current-component-ratio 3/4))
+      (make-boundary-pict #:left (hole-append (small-monitor-icon) @t{1})
                           #:right (hc-append 2 (parameterize ((current-font-size 24)) @dyn-text{(λ(x)-x)}) (make-hole))
-                          #:arrow (tag-pict @t{Nat} 'lbl-1)
-                          #:reverse? #true)) 'b2))
-    #:next
-    #:go (at-find-pict 'b2 cb-find 'ct #:abs-y 30)
-    (vr-append (hc-append (arrow 24 (* 3/2 pi)) (blank))
+                          #:arrow @t{Nat}
+                          #:reverse? #true))
     (parameterize ((current-component-ratio 3/4))
       (make-boundary-pict #:left (make-hole)
                           #:right @dyn-text{-1}
-                          #:arrow (tag-pict @t{Nat} 'lbl-2))))
-    #:go (at-find-pict/below 'lbl-2)
-    (big-x-icon))
+                          #:arrow (tag-pict @t{Nat} arrow-target)))
+    #:arrow-label (cons arrow-target (big-x-icon)))
   (void))
 
 (define (sec:embedding:1)
@@ -312,58 +297,30 @@
     #:alt ((make-embeddings-pict H-system*))
     (make-embeddings-pict H-system* #:highlight '1))
   (make-1-example-slide)
-  (pslide
-    #:go (coord SLIDE-LEFT SLIDE-TOP 'lb)
-    (t "first-order")
-    #:go (coord SLIDE-LEFT SLIDE-TOP 'lt #:abs-y y-sep)
-    (make-1-box)
-    #:go (coord 1/2 SLIDE-TOP 'ct #:abs-y y-sep)
-    (tag-pict
+  (make-example-detail-slide
+    '1
     (make-boundary-pict #:left (hole-append @t{norm} (small-check-icon))
                         #:right @dyn-text{⟨-1,-2⟩}
                         #:arrow @t{Nat × Nat})
-                         'b1)
-    #:next
-    #:go (at-find-pict 'b1 lb-find 'lt #:abs-y 20)
-    (hc-append
-      20
-      (arrow 24 0)
-      (tag-pict
-      (parameterize ((current-component-ratio 3/4))
-        (make-boundary-pict #:left (hole-append @t{snd} (small-check-icon))
-                          #:right @dyn-text{⟨-1,-2⟩}
-                          #:arrow (blank)
-                          #:reverse? #true)) 'b2))
-    #:next
-    #:go (at-find-pict 'b2 cb-find 'ct #:abs-y 15)
-    (vr-append 15 (hc-append (arrow 24 (* 3/2 pi)) (blank 55 0))
+    (parameterize ((current-component-ratio 3/4))
+      (make-boundary-pict #:left (hole-append @t{snd} (small-check-icon))
+                        #:right @dyn-text{⟨-1,-2⟩}
+                        #:arrow (blank)
+                        #:reverse? #true))
     (parameterize ((current-component-ratio 3/4))
       (make-boundary-pict #:left (make-hole)
                           #:right @dyn-text{-2}
-                          #:arrow (tag-pict @t{?} 'lbl-2)))))
-  (pslide
-    #:go (coord SLIDE-LEFT SLIDE-TOP 'lb)
-    (t "first-order")
-    #:go (coord SLIDE-LEFT SLIDE-TOP 'lt #:abs-y y-sep)
-    (make-1-box)
-    #:go (coord 1/2 SLIDE-TOP 'ct #:abs-y y-sep)
-    (tag-pict
+                          #:arrow @t{?})))
+  (make-example-detail-slide
+    '1
     (make-boundary-pict #:left (hole-append @t{map} (small-check-icon) @t{y})
                         #:right @dyn-text{λ(x)-x}
-                        #:arrow @t{Nat ⇒ Nat}) 'b1)
-    #:next
-    #:go (at-find-pict 'b1 lb-find 'lt #:abs-y 20)
-    (hc-append
-      20
-      (arrow 24 0)
-      (tag-pict
-      (parameterize ((current-component-ratio 3/4))
-        (make-boundary-pict #:left (hole-append  (small-check-icon) @t{1})
-                          #:right (hc-append 2 (parameterize ((current-font-size 24)) @dyn-text{(λ(x)-x)}) (make-hole))
-                          #:arrow (tag-pict @t{?} 'lbl-1)
-                          #:reverse? #true)) 'b2))
-    #:next
-    #:go (at-find-pict 'b2 cb-find 'ct #:abs-y 30)
+                        #:arrow @t{Nat ⇒ Nat})
+    (parameterize ((current-component-ratio 3/4))
+      (make-boundary-pict #:left (hole-append (small-check-icon) @t{1})
+                        #:right (hc-append 2 (parameterize ((current-font-size 24)) @dyn-text{(λ(x)-x)}) (make-hole))
+                        #:arrow (blank)
+                        #:reverse? #true))
     (parameterize ((current-component-ratio 3/4))
       (make-boundary-pict #:left (make-hole)
                           #:right @dyn-text{-1}
@@ -371,33 +328,57 @@
   (void))
 
 (define (sec:embedding:E)
-  (define y-sep 6)
+  (define (add-arrow str)
+    (hc-append 20 (arrow EVAL-ARROW-SIZE 0) (t str)))
   (pslide
     #:alt [(make-embeddings-pict H-system*)]
     #:alt [(make-embeddings-pict H-system* reticulated)]
     #:alt [(make-embeddings-pict H-system* 1-system*)]
     (make-embeddings-pict H-system* 1-system* #:highlight 'E))
   (make-E-example-slide)
-  (pslide
-    #:go (coord SLIDE-LEFT SLIDE-TOP 'lb)
-    (t "erasure")
-    #:go (coord SLIDE-LEFT SLIDE-TOP 'lt #:abs-y y-sep)
-    (make-E-box)
-    #:go (coord 1/2 SLIDE-TOP 'ct #:abs-y y-sep)
-    (tag-pict
+  (make-example-detail-slide
+    'E
     (make-boundary-pict #:left (hole-append @t{fib} (small-bomb-icon))
                         #:right @dyn-text{-1}
                         #:arrow @t{Nat})
-                         'b1)
-    #:next
-    #:go (at-find-pict 'b1 lb-find 'lt #:abs-y 20)
     (vl-append 20
-      (hc-append 20 (arrow 24 0) (t "error?"))
-      (hc-append 20 (arrow 24 0) (t "diverges?"))
-      (hc-append 20 (arrow 24 0) (t "0"))
-      (hc-append 20 (arrow 24 0) (t "undefined?")))
-    )
+               (add-arrow "error?")
+               (add-arrow "diverges?")
+               (add-arrow "0")
+               (add-arrow "undefined?")))
   (void))
+
+(define (make-example-detail-slide e-sym pict-1 [pict-2 #f] [pict-3 #f] #:arrow-label [arrow-label #false])
+  (define name-coord (coord SLIDE-LEFT SLIDE-TOP 'lb))
+  (define box-coord (coord SLIDE-LEFT SLIDE-TOP 'lt #:abs-y 6))
+  (define examples-coord (coord 1/2 SLIDE-TOP 'ct #:abs-y 6))
+  (define-values [e-name e-box] (symbol->name+box e-sym))
+  (if (and pict-2 pict-3)
+    (pslide
+      #:go name-coord
+      (t e-name)
+      #:go box-coord
+      e-box
+      #:go examples-coord
+      (tag-pict pict-1 'pict-1)
+      #:next
+      #:go (at-find-pict 'pict-1 lb-find 'lt #:abs-y 20)
+      (hc-append 20 (arrow EVAL-ARROW-SIZE 0) (tag-pict pict-2 'pict-2))
+      #:next
+      #:go (at-find-pict 'pict-2 cb-find 'ct #:abs-y 15)
+      (vr-append 15 (hc-append (arrow EVAL-ARROW-SIZE (* 3/2 pi)) (blank 55 0)) pict-3)
+      #:go (if arrow-label (at-find-pict/below (car arrow-label)) (coord 0 0))
+      (if arrow-label (cdr arrow-label) (blank)))
+    (pslide
+      #:go name-coord
+      (t e-name)
+      #:go box-coord
+      e-box
+      #:go examples-coord
+      (tag-pict pict-1 'pict-1)
+      #:next
+      #:go (at-find-pict 'pict-1 lb-find 'lt #:abs-y 20)
+      pict-2)))
 
 (define (sec:embedding:end)
   (pslide
@@ -1487,6 +1468,17 @@
 
 (define (examples-append . p*)
   (apply vl-append 30 p*))
+
+(define (symbol->name+box sym)
+  (case sym
+    ((H)
+     (values "higher-order" (make-H-box)))
+    ((1)
+     (values "first-order" (make-1-box)))
+    ((E)
+     (values "erasure" (make-E-box)))
+    (else
+      (raise-argument-error 'symbol->name+box "(or/c 'H '1 'E)" sym))))
 
 ;; =============================================================================
 
