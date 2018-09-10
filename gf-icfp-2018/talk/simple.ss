@@ -20,31 +20,33 @@
 
 ;; =============================================================================
 
+(define current-component-ratio (make-parameter 1))
+
 (define (do-show)
   (set-page-numbers-visible! #false)
   (parameterize ([current-main-font MONO-FONT]
                  [current-font-size 32]
                  [current-titlet string->title])
     (void)
-    (sec:title)
-    (sec:folklore-I)
-    (sec:migratory-typing)
-    (sec:gt-landscape)
-    (sec:kafka)
-    (sec:main-result)
-    (pslide (make-section-header "Model"))
-    (sec:embedding:warmup)
+;    (sec:title)
+;    (sec:folklore-I)
+;    (sec:migratory-typing)
+;    (sec:gt-landscape)
+;    (sec:kafka)
+;    (sec:main-result)
+;    (pslide (make-section-header "Model"))
+;    (sec:embedding:warmup)
     (sec:embedding:H)
     (sec:embedding:1)
     (sec:embedding:E)
     (sec:embedding:end)
-    (sec:soundness)
-    (sec:implementation)
-    (sec:experiment)
-    (sec:graph)
-    (sec:conclusion)
-    (pslide)
-    (sec:extra)
+;    (sec:soundness)
+;    (sec:implementation)
+;    (sec:experiment)
+;    (sec:graph)
+;    (sec:conclusion)
+;    (pslide)
+;    (sec:extra)
     (void)))
 
 ;; -----------------------------------------------------------------------------
@@ -266,10 +268,41 @@
   (void))
 
 (define (sec:embedding:H)
+  (define y-sep 6)
   (pslide
     #:alt [(make-embeddings-pict)]
     (make-embeddings-pict #:highlight 'H))
   (make-H-example-slide)
+  (pslide
+    #:go (coord SLIDE-LEFT SLIDE-TOP 'lb)
+    (t "higher-order")
+    #:go (coord SLIDE-LEFT SLIDE-TOP 'lt #:abs-y y-sep)
+    (make-H-box)
+    #:go (coord 1/2 SLIDE-TOP 'ct #:abs-y y-sep)
+    (tag-pict
+    (make-boundary-pict #:left (hole-append @t{map} (small-monitor-icon) @t{y})
+                        #:right @dyn-text{λ(x)-x}
+                        #:arrow @t{Nat ⇒ Nat}
+                        #:reverse? #true) 'b1)
+    #:next
+    #:go (at-find-pict 'b1 lb-find 'lt #:abs-y 20)
+    (hc-append
+      20
+      (arrow 24 0)
+      (tag-pict
+      (parameterize ((current-component-ratio 3/4))
+        (make-boundary-pict #:left (hole-append (small-monitor-icon) @t{1})
+                          #:right (hc-append 2 (parameterize ((current-font-size 24)) @dyn-text{(λ(x)-x)}) (make-hole))
+                          #:arrow (tag-pict @t{Nat} 'lbl-1)
+                          #:reverse? #true)) 'b2))
+    #:next
+    #:go (at-find-pict 'b2 cb-find 'ct #:abs-y 30)
+    (parameterize ((current-component-ratio 3/4))
+      (make-boundary-pict #:left (make-hole)
+                          #:right @dyn-text{-1}
+                          #:arrow (tag-pict @t{Nat} 'lbl-2)))
+    #:go (at-find-pict/below 'lbl-2)
+    (big-x-icon))
   (void))
 
 (define (sec:embedding:1)
@@ -459,20 +492,23 @@
 
 ;; -----------------------------------------------------------------------------
 
-(define (make-H-example-slide)
-  (make-?-example-slide "higher-order" (make-H-box) (big-x-icon) (big-x-icon) (monitor-icon)))
+(define (make-H-example-slide [bp #f])
+  (define b-pict (or bp (make-example-boundary-pict (big-x-icon) (big-x-icon) (big-monitor-icon))))
+  (make-?-example-slide "higher-order" (make-H-box) b-pict))
 
-(define (make-E-example-slide)
-  (make-?-example-slide "erasure" (make-E-box) (big-check-icon) (big-check-icon) (big-check-icon)))
+(define (make-E-example-slide [bp #f])
+  (define b-pict (or bp (make-example-boundary-pict (big-check-icon) (big-check-icon) (big-check-icon))))
+  (make-?-example-slide "erasure" (make-E-box) b-pict))
 
-(define (make-1-example-slide)
-  (make-?-example-slide "first-order" (make-1-box) (big-x-icon) (big-check-icon) (big-check-icon)))
+(define (make-1-example-slide [bp #f])
+  (define b-pict (or bp (make-example-boundary-pict (big-x-icon) (big-check-icon) (big-check-icon))))
+  (make-?-example-slide "first-order" (make-1-box) b-pict))
 
-(define (make-?-example-slide name lbl r0 r1 r2)
+(define (make-?-example-slide name lbl b-pict)
   (define y-sep 6)
   (pslide
     #:go (coord 1/2 SLIDE-TOP 'ct #:abs-y y-sep)
-    (make-example-boundary-pict r0 r1 r2)
+    b-pict
     #:go (coord SLIDE-LEFT SLIDE-TOP 'lb)
     (t name)
     #:go (coord SLIDE-LEFT SLIDE-TOP 'lt #:abs-y y-sep)
@@ -525,9 +561,15 @@
 (define (make-boundary-pict #:left [left-pict #f]
                             #:right [right-pict #f]
                             #:h [x-offset 1/7]
-                            #:arrow [arrow-pict (blank)])
+                            #:arrow [arrow-pict (blank)]
+                            #:reverse? [reverse? #false])
   (define sf (make-stat-file left-pict))
   (define df (make-dyn-file right-pict))
+  (define (make-arrow p src-tag src-find dst-tag dst-find)
+    (pin-arrow-line 10 p
+                    (find-tag p src-tag) src-find
+                    (find-tag p dst-tag) dst-find
+                    #:label arrow-pict))
   (ppict-do
     (blank (/ client-w 2) (pict-height sf))
     #:go (coord x-offset 1/2)
@@ -536,10 +578,9 @@
     df
     #:set (let ((p ppict-do-state))
             (if arrow-pict
-              (pin-arrow-line 10 p
-                              (find-tag p 'dyn-file) lc-find
-                              (find-tag p 'stat-file) rc-find
-                              #:label arrow-pict)
+              (if reverse?
+                (make-arrow p 'stat-file rc-find 'dyn-file lc-find)
+                (make-arrow p 'dyn-file lc-find 'stat-file rc-find))
               p))))
 
 (define (maybe-superimpose base new)
@@ -549,7 +590,7 @@
 
 (define (make-component-file c)
   (define h 180)
-  (file-icon (* FILE-RATIO h) h c))
+  (file-icon (* FILE-RATIO h) (* (current-component-ratio) h) c))
 
 (define (make-stat-file [super #f])
   (maybe-superimpose (tag-pict (make-component-file STAT-COLOR) 'stat-file) super))
@@ -841,7 +882,7 @@
              bot))
 
 (define (hole-append . p*)
-  (apply hc-append 20 p*))
+  (apply hc-append 10 p*))
 
 (define make-hole
   (let* ([x @t{X}]
@@ -849,15 +890,21 @@
     (lambda ()
       (filled-rectangle w w #:color GREY))))
 
-(define (monitor-icon)
+(define (big-monitor-icon)
   (big-pause-icon))
 
-(define big-pause-icon
+(define (small-monitor-icon)
+  (small-pause-icon))
+
+(define-values [small-pause-icon big-pause-icon]
   (let* ([pause-color "DarkOrange"] ;; Orange Gold
          [pause-icon (lambda (#:height h #:material m)
                        (record-icon #:color "DarkOrange" #:material m #:height h))])
-    (lambda ()
-      (make-icon pause-icon #:height 80))))
+    (values
+      (lambda ()
+        (make-icon pause-icon #:height 30))
+      (lambda ()
+        (make-icon pause-icon #:height 80)))))
 
 (define (big-lock-icon)
   (make-icon lock-icon #:height 80))
@@ -929,27 +976,36 @@
                    (t txt))
                  blank-bg-pict))))
 
-(define make-example-boundary-pict
-  (lambda ([a0 (blank)] [a1 (blank)] [a2 (blank)])
-    (let ([l0 (hole-append @t{fib} (make-hole))]
-          [r0 @dyn-text{-1}]
-          [l1 (hole-append @t{norm} (make-hole))]
-          [r1 @dyn-text{⟨-1,-2⟩}]
-          [l2 (hole-append @t{map} (make-hole) @t{y})]
-          [r2 @dyn-text{λ(x)-x}]
-          [afp (lambda (t) (at-find-pict t cb-find 'ct #:abs-y 6))])
-      (ppict-do
-        (vc-append
-          30
-          (make-boundary-pict #:left l0 #:right r0 #:arrow (tag-pict @t{Nat} 'lbl-0))
-          (make-boundary-pict #:left l1 #:right r1 #:arrow (tag-pict @t{Nat × Nat} 'lbl-1))
-          (make-boundary-pict #:left l2 #:right r2 #:arrow (tag-pict @t{Nat ⇒ Nat} 'lbl-2)))
-        #:go (afp 'lbl-0)
-        a0
-        #:go (afp 'lbl-1)
-        a1
-        #:go (afp 'lbl-2)
-        a2))))
+(define (at-find-pict/below t)
+  (at-find-pict t cb-find 'ct #:abs-y 6))
+
+(define (make-example-boundary-pict [a0 (blank)] [a1 (blank)] [a2 (blank)])
+  (ppict-do
+    (examples-append
+      (make-base-example 'lbl-0)
+      (make-inductive-example 'lbl-1)
+      (make-coinductive-example 'lbl-2))
+    #:go (at-find-pict/below 'lbl-0)
+    a0
+    #:go (at-find-pict/below 'lbl-1)
+    a1
+    #:go (at-find-pict/below 'lbl-2)
+    a2))
+
+(define (make-base-example lbl)
+  (define l0 (hole-append @t{fib} (make-hole)))
+  (define r0 @dyn-text{-1})
+  (make-boundary-pict #:left l0 #:right r0 #:arrow (tag-pict @t{Nat} lbl)))
+
+(define (make-inductive-example lbl)
+  (define l1 (hole-append @t{norm} (make-hole)))
+  (define r1 @dyn-text{⟨-1,-2⟩})
+  (make-boundary-pict #:left l1 #:right r1 #:arrow (tag-pict @t{Nat × Nat} lbl)))
+
+(define (make-coinductive-example lbl)
+  (define l2 (hole-append @t{map} (make-hole) @t{y}))
+  (define r2 @dyn-text{λ(x)-x})
+  (make-boundary-pict #:left l2 #:right r2 #:arrow (tag-pict @t{Nat ⇒ Nat} lbl)))
 
 (define (make-typed-racket-stack title)
   (make-labeled-stack title
@@ -1340,6 +1396,9 @@
       rc-find
       (find-tag acc (cadr xxx))
       lc-find)))
+
+(define (examples-append . p*)
+  (apply vl-append 30 p*))
 
 ;; =============================================================================
 
