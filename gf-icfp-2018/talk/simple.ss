@@ -36,7 +36,7 @@
 ;    (sec:main-result)
 ;    (pslide (make-section-header "Model"))
 ;    (sec:embedding:warmup)
-    (sec:embedding:H)
+;    (sec:embedding:H)
     (sec:embedding:1)
     (sec:embedding:E)
     (sec:embedding:end)
@@ -282,8 +282,7 @@
     (tag-pict
     (make-boundary-pict #:left (hole-append @t{map} (small-monitor-icon) @t{y})
                         #:right @dyn-text{λ(x)-x}
-                        #:arrow @t{Nat ⇒ Nat}
-                        #:reverse? #true) 'b1)
+                        #:arrow @t{Nat ⇒ Nat}) 'b1)
     #:next
     #:go (at-find-pict 'b1 lb-find 'lt #:abs-y 20)
     (hc-append
@@ -297,29 +296,107 @@
                           #:reverse? #true)) 'b2))
     #:next
     #:go (at-find-pict 'b2 cb-find 'ct #:abs-y 30)
+    (vr-append (hc-append (arrow 24 (* 3/2 pi)) (blank))
     (parameterize ((current-component-ratio 3/4))
       (make-boundary-pict #:left (make-hole)
                           #:right @dyn-text{-1}
-                          #:arrow (tag-pict @t{Nat} 'lbl-2)))
+                          #:arrow (tag-pict @t{Nat} 'lbl-2))))
     #:go (at-find-pict/below 'lbl-2)
     (big-x-icon))
   (void))
 
 (define (sec:embedding:1)
+  (define y-sep 6)
   (pslide
     #:alt ((make-embeddings-pict))
     #:alt ((make-embeddings-pict H-system*))
     (make-embeddings-pict H-system* #:highlight '1))
   (make-1-example-slide)
+  (pslide
+    #:go (coord SLIDE-LEFT SLIDE-TOP 'lb)
+    (t "first-order")
+    #:go (coord SLIDE-LEFT SLIDE-TOP 'lt #:abs-y y-sep)
+    (make-1-box)
+    #:go (coord 1/2 SLIDE-TOP 'ct #:abs-y y-sep)
+    (tag-pict
+    (make-boundary-pict #:left (hole-append @t{norm} (small-check-icon))
+                        #:right @dyn-text{⟨-1,-2⟩}
+                        #:arrow @t{Nat × Nat})
+                         'b1)
+    #:next
+    #:go (at-find-pict 'b1 lb-find 'lt #:abs-y 20)
+    (hc-append
+      20
+      (arrow 24 0)
+      (tag-pict
+      (parameterize ((current-component-ratio 3/4))
+        (make-boundary-pict #:left (hole-append @t{snd} (small-check-icon))
+                          #:right @dyn-text{⟨-1,-2⟩}
+                          #:arrow (blank)
+                          #:reverse? #true)) 'b2))
+    #:next
+    #:go (at-find-pict 'b2 cb-find 'ct #:abs-y 15)
+    (vr-append 15 (hc-append (arrow 24 (* 3/2 pi)) (blank 55 0))
+    (parameterize ((current-component-ratio 3/4))
+      (make-boundary-pict #:left (make-hole)
+                          #:right @dyn-text{-2}
+                          #:arrow (tag-pict @t{?} 'lbl-2)))))
+  (pslide
+    #:go (coord SLIDE-LEFT SLIDE-TOP 'lb)
+    (t "first-order")
+    #:go (coord SLIDE-LEFT SLIDE-TOP 'lt #:abs-y y-sep)
+    (make-1-box)
+    #:go (coord 1/2 SLIDE-TOP 'ct #:abs-y y-sep)
+    (tag-pict
+    (make-boundary-pict #:left (hole-append @t{map} (small-check-icon) @t{y})
+                        #:right @dyn-text{λ(x)-x}
+                        #:arrow @t{Nat ⇒ Nat}) 'b1)
+    #:next
+    #:go (at-find-pict 'b1 lb-find 'lt #:abs-y 20)
+    (hc-append
+      20
+      (arrow 24 0)
+      (tag-pict
+      (parameterize ((current-component-ratio 3/4))
+        (make-boundary-pict #:left (hole-append  (small-check-icon) @t{1})
+                          #:right (hc-append 2 (parameterize ((current-font-size 24)) @dyn-text{(λ(x)-x)}) (make-hole))
+                          #:arrow (tag-pict @t{?} 'lbl-1)
+                          #:reverse? #true)) 'b2))
+    #:next
+    #:go (at-find-pict 'b2 cb-find 'ct #:abs-y 30)
+    (parameterize ((current-component-ratio 3/4))
+      (make-boundary-pict #:left (make-hole)
+                          #:right @dyn-text{-1}
+                          #:arrow (tag-pict @t{?} 'lbl-2))))
   (void))
 
 (define (sec:embedding:E)
+  (define y-sep 6)
   (pslide
     #:alt [(make-embeddings-pict H-system*)]
     #:alt [(make-embeddings-pict H-system* reticulated)]
     #:alt [(make-embeddings-pict H-system* 1-system*)]
     (make-embeddings-pict H-system* 1-system* #:highlight 'E))
   (make-E-example-slide)
+  (pslide
+    #:go (coord SLIDE-LEFT SLIDE-TOP 'lb)
+    (t "erasure")
+    #:go (coord SLIDE-LEFT SLIDE-TOP 'lt #:abs-y y-sep)
+    (make-E-box)
+    #:go (coord 1/2 SLIDE-TOP 'ct #:abs-y y-sep)
+    (tag-pict
+    (make-boundary-pict #:left (hole-append @t{fib} (small-bomb-icon))
+                        #:right @dyn-text{-1}
+                        #:arrow @t{Nat})
+                         'b1)
+    #:next
+    #:go (at-find-pict 'b1 lb-find 'lt #:abs-y 20)
+    (vl-append 20
+      (hc-append 20 (arrow 24 0) (t "error?"))
+      (hc-append 20 (arrow 24 0) (t "diverges?"))
+      (hc-append 20 (arrow 24 0) (t "0"))
+      (hc-append 20 (arrow 24 0) (t "undefined?")))
+    )
   (void))
 
 (define (sec:embedding:end)
@@ -912,11 +989,22 @@
 (define (big-x-icon)
   (make-icon x-icon #:height 80))
 
+(define (big-?-icon)
+  (define (make-? #:height h #:material m)
+    (text-icon "?" #:height h #:material m #:color "black"))
+  (make-icon make-? #:height 80))
+
 (define (little-x-icon)
   (make-icon x-icon #:height 30))
 
 (define (big-check-icon)
   (make-icon check-icon #:height 80))
+
+(define (small-check-icon)
+  (make-icon check-icon #:height 30))
+
+(define (small-bomb-icon)
+  (make-icon bomb-icon #:height 40))
 
 (define large-right-arrow
   (let ([right-arrow-icon2
