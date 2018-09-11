@@ -28,24 +28,24 @@
                  [current-font-size 32]
                  [current-titlet string->title])
     (void)
-    (sec:title)
-    (sec:folklore-I)
-    (sec:migratory-typing)
-    (sec:gt-landscape)
-    (sec:kafka)
-    (sec:main-result)
-    (pslide (make-section-header "Model"))
-    (sec:embedding:warmup)
-    (sec:embedding:H)
-    (sec:embedding:1)
-    (sec:embedding:E)
-    (sec:embedding:end)
-    (sec:soundness)
-    (sec:implementation)
-    (sec:performance)
+    ;(sec:title)
+    ;(sec:folklore-I)
+    ;(sec:migratory-typing)
+    ;(sec:gt-landscape)
+    ;(sec:kafka)
+    ;(sec:main-result)
+    ;(pslide (make-section-header "Model"))
+    ;(sec:embedding:warmup)
+    ;(sec:embedding:H)
+    ;(sec:embedding:1)
+    ;(sec:embedding:E)
+    ;(sec:embedding:end)
+    ;(sec:soundness)
+    ;(sec:implementation)
+    ;(sec:performance)
     (sec:conclusion)
     (pslide)
-    (sec:extra)
+    ;(sec:extra)
     (void)))
 
 ;; -----------------------------------------------------------------------------
@@ -444,6 +444,7 @@
 (define (sec:performance)
   (pslide
     (make-section-header "Performance"))
+  (make-folklore-slide #:q1? #false #:answers? #false)
   (pslide
     #:go (coord SLIDE-LEFT 1/4 'lt)
     @t{- 10 benchmark programs}
@@ -459,9 +460,7 @@
   (make-overhead-plot-slide '(H 1 E))
   (pslide
     (make-scatterplots-pict))
-  ;; TODO table of lo-hi performance, to better support prescriptions at the end
-  ;(make-folklore-slide #:q1? #false)
-  ;(make-overhead-plot-slide '(H 1 E))
+  (make-folklore-slide #:q1? #false #:answers? #true)
   (void))
 
 (define (make-scatterplots-pict)
@@ -1289,11 +1288,10 @@
 (define make-folklore-slide
   (let ([q1 "Is type soundness all-or-nothing?"]
         [q1-h 2/10]
-        [a1 '("No! (in a mixed-typed language)")]
-        ;;
+        [a1 "No! (in a mixed-typed language)"]
         [q2 "How does type soundness affect performance?"]
         [q2-h 5/10]
-        [a2 '("Yes, through interaction with" "untyped code (or data)")])
+        [a2 "See graphs"])
     (lambda (#:q1? [q1? #true] #:q2? [q2? #true] #:answers? [answers? #false])
       (pslide
         #:go (coord SLIDE-LEFT q1-h 'lt)
@@ -1327,7 +1325,7 @@
   (define balloon-h (+ str-h 40))
   (ppict-do
     (balloon-pict (balloon balloon-w balloon-h balloon-tail-param spike (+- balloon-tail-param) balloon-tail-param c))
-    #:go (coord 1/20 1/2 'lc)
+    #:go (coord 1/2 1/2 'cc)
     str-pict))
 
 (define (group-gt-systems-by gt* sel <)
