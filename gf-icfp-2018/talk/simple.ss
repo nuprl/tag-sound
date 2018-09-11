@@ -28,25 +28,24 @@
                  [current-font-size 32]
                  [current-titlet string->title])
     (void)
-;    (sec:title)
-;    (sec:folklore-I)
-;    (sec:migratory-typing)
-;    (sec:gt-landscape)
-;    (sec:kafka)
-;    (sec:main-result)
-;    (pslide (make-section-header "Model"))
-;    (sec:embedding:warmup)
-;    (sec:embedding:H)
-;    (sec:embedding:1)
-;    (sec:embedding:E)
-;    (sec:embedding:end)
+    (sec:title)
+    (sec:folklore-I)
+    (sec:migratory-typing)
+    (sec:gt-landscape)
+    (sec:kafka)
+    (sec:main-result)
+    (pslide (make-section-header "Model"))
+    (sec:embedding:warmup)
+    (sec:embedding:H)
+    (sec:embedding:1)
+    (sec:embedding:E)
+    (sec:embedding:end)
     (sec:soundness)
     (sec:implementation)
-;    (sec:experiment)
-;    (sec:graph)
-;    (sec:conclusion)
-;    (pslide)
-;    (sec:extra)
+    (sec:performance)
+    (sec:conclusion)
+    (pslide)
+    (sec:extra)
     (void)))
 
 ;; -----------------------------------------------------------------------------
@@ -393,6 +392,8 @@
                 type-pict))))
   (define x-base MAIN-CONTRIB-X)
   (define fig-coord (coord x-base 1/4 'lt))
+  (pslide
+    (make-section-header "Soundness"))
   (make-folklore-slide #:q2? #false #:answers? #false)
   (make-folklore-slide #:q2? #false #:answers? #true)
   (pslide
@@ -440,9 +441,9 @@
     (vl-append (blank 0 20) (t "Optimize?")))
   (void))
 
-(define (sec:experiment)
+(define (sec:performance)
   (pslide
-    (make-section-header "Experiment"))
+    (make-section-header "Performance"))
   (pslide
     #:go (coord SLIDE-LEFT 1/4 'lt)
     @t{- 10 benchmark programs}
@@ -454,11 +455,6 @@
     @t{- compare overhead to untyped}
     #:go (coord 1/2 (+ 1/4 4/10) 'ct)
     @url{docs.racket-lang.org/gtp-benchmarks})
-  (void))
-
-(define (sec:graph)
-  (pslide
-    (make-section-header "Results"))
   (make-overhead-plot-slide '())
   (make-overhead-plot-slide '(H 1 E))
   (pslide
