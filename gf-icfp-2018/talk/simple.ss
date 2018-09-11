@@ -22,6 +22,8 @@
 
 (define current-component-ratio (make-parameter 1))
 
+(define MAIN-CONTRIB-COORD (coord MAIN-CONTRIB-X 1/4 'lt))
+
 (define (do-show)
   (set-page-numbers-visible! #false)
   (parameterize ([current-main-font MONO-FONT]
@@ -155,7 +157,6 @@
 (define (sec:main-result)
   (define-values [model-pict0 impl-pict0] (make-model/impl-pict))
   (define x-base MAIN-CONTRIB-X)
-  (define fig-coord (coord x-base 1/4 'lt))
   (define contrib-0-pict
     (contrib*->pict
       '("Uniform Model:"
@@ -203,14 +204,14 @@
   (pslide
     #:go (coord SLIDE-LEFT SLIDE-TOP 'lt)
     @titlet{Contributions (1/3)}
-    #:go fig-coord
+    #:go MAIN-CONTRIB-COORD
     (main-contrib-append
       model-pict
       contrib-0-pict))
   (pslide
     #:go (coord SLIDE-LEFT SLIDE-TOP 'lt)
     @titlet{Contributions (2/3)}
-    #:go fig-coord
+    #:go MAIN-CONTRIB-COORD
     (main-contrib-append
       model-pict
       contrib-1-pict))
@@ -391,13 +392,13 @@
                 #:go (at-find-pict tag cb-find 'ct #:abs-y 40)
                 type-pict))))
   (define x-base MAIN-CONTRIB-X)
-  (define fig-coord (coord x-base 1/4 'lt))
+  (define MAIN-CONTRIB-COORD (coord x-base 1/4 'lt))
   (pslide
     (make-section-header "Soundness"))
   (make-folklore-slide #:q2? #false #:answers? #false)
   (make-folklore-slide #:q2? #false #:answers? #true)
   (pslide
-    #:go fig-coord
+    #:go MAIN-CONTRIB-COORD
     #:alt [model-pict]
     #:alt [model-pict+]
     (main-contrib-append model-pict+
@@ -467,6 +468,9 @@
   (scale-to-fit (bitmap cache-scatterplots.png) client-w client-h))
 
 (define (sec:conclusion)
+  
+
+
   (define-values [box-pict sup-pict]
     (let* ([sup-pict (text "⊃" (current-main-font) 40)]
            [b (blank (pict-width sup-pict) 0)])
@@ -487,19 +491,28 @@
                        (t " progress")))))
 
       'bullets))
-  (define perf-pict
-    (tag-pict
-      (apply vl-append y-sep
-        (for/list ((arr (in-list (list ->H ->1 ->E)))
-                   (where (in-list (list "to 'packages'" "anywhere" "sparingly"))))
-          (hc-append (scale-for-bullet arr)
-                     (t (format " add types ~a" where)))))
-      'perf))
+  (define perf-plot-pict
+    (let ((w (* 45/100 client-w)))
+      (scale-to-fit (make-overhead-plot '(H 1 E) #:legend? #false) w w)))
+  (define perf-text-pict
+    (for/fold ((acc (blank)))
+              ((sym (in-list '(H 1 E)))
+               (descr (in-list '(("add types to remove all"
+                                  "critical boundaries")
+                                 "add types sparingly"
+                                 ("add types anywhere,"
+                                  "doesn't matter")))))
+      (define-values [txt bx] (symbol->name+box sym))
+      (vl-append
+        50
+        acc
+        (ht-append (lb-superimpose (blank 28 26) (scale-for-legend bx))
+                   (string*->text descr)))))
   (pslide
     (make-section-header "Implications"))
-  (pslide
+  #;(pslide
     #:go (coord SLIDE-LEFT SLIDE-TOP 'lt)
-    @titlet{Theory Implications}
+    @titlet{For Theory}
     #:go (coord SLIDE-LEFT 1/4 'lt)
     (main-contrib-append sup-pict soundness-pict)
     #:next
@@ -509,12 +522,10 @@
                (hc-append (t "- ") (scale-for-bullet ->1) (t " refines ") (scale-for-bullet ->E))))
   (pslide
     #:go (coord SLIDE-LEFT SLIDE-TOP 'lt)
-    @titlet{Performance Implications}
-    #:go (coord SLIDE-LEFT 1/4 'lt)
-    (main-contrib-append
-      perf-pict
-      (let ((w (pict-width box-pict)))
-        (scale-to-fit (make-overhead-plot '(H 1 E) #:legend? #false) w w))))
+    @titlet{For Performance}
+    #:go MAIN-CONTRIB-COORD
+    #:alt [perf-plot-pict]
+    (main-contrib-append #:x-shift 10 perf-plot-pict perf-text-pict))
   (void))
 
 (define (sec:folklore-II)
@@ -579,7 +590,6 @@
   (values m i))
 
 (define (contrib*->pict str*)
-  (define-values [w h] (two-column-dims))
   (for/fold ((p (blank)))
             ((str (in-list str*))
              (i (in-naturals)))
@@ -1192,19 +1202,13 @@
       (raise-argument-error 'make-embedding-line "embedding?" e))))
 
 (define (make-embedding-legend e)
-  (define-values [bx txt]
-    (case e
-      ((H)
-       (values (make-H-box) "higher-order"))
-      ((E)
-       (values (make-E-box) "erasure"))
-      ((1)
-       (values (make-1-box) "first-order"))
-      (else
-        (raise-argument-error 'make-embedding-legend "embedding?" e))))
+  (define-values [txt bx] (symbol->name+box e))
   (define txt-pict (t txt))
+  (hc-append 10 (scale-for-legend bx) txt-pict))
+
+(define (scale-for-legend p)
   (define h 20)
-  (hc-append 10 (scale-to-fit (cellophane bx PLOT-FN-ALPHA) h h) txt-pict))
+  (scale-to-fit (cellophane p PLOT-FN-ALPHA) h h))
 
 (define (rectangle/2t width height
                       #:border-width [border-width 1]
