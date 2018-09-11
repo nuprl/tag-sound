@@ -468,58 +468,53 @@
   (scale-to-fit (bitmap cache-scatterplots.png) client-w client-h))
 
 (define (sec:conclusion)
-  
-
-
-  (define-values [box-pict sup-pict]
-    (let* ([sup-pict (text "⊃" (current-main-font) 40)]
-           [b (blank (pict-width sup-pict) 0)])
-      (values
-        (hc-append 10 (make-H-box) b (make-1-box) b (make-E-box))
-        (hc-append 10 (make-H-box) sup-pict (make-1-box) sup-pict (make-E-box)))))
-  (define y-sep 30)
-  (define soundness-pict
-    (tag-pict
-      (apply vl-append y-sep
-        (for/list ((arr (in-list (list ->H ->1 ->E)))
-                   (what (in-list (list "types" #f "type constructors"))))
-          (ht-append (scale-for-bullet arr)
-                     (if what
-                       (vl-append 10
-                                  (t " progress + preserves")
-                                  (t (string-append " " what)))
-                       (t " progress")))))
-
-      'bullets))
   (define perf-plot-pict
     (let ((w (* 45/100 client-w)))
       (scale-to-fit (make-overhead-plot '(H 1 E) #:legend? #false) w w)))
   (define perf-text-pict
-    (for/fold ((acc (blank)))
-              ((sym (in-list '(H 1 E)))
-               (descr (in-list '(("add types to remove all"
-                                  "critical boundaries")
-                                 "add types sparingly"
-                                 ("add types anywhere,"
-                                  "doesn't matter")))))
-      (define-values [txt bx] (symbol->name+box sym))
-      (vl-append
-        50
-        acc
-        (ht-append (lb-superimpose (blank 28 26) (scale-for-legend bx))
+    (apply
+      vl-append
+      60
+      (for/list ((sym (in-list '(H 1 E)))
+                 (descr (in-list '(("add types to remove all"
+                                    "critical boundaries")
+                                   "add types sparingly"
+                                   ("add types anywhere,"
+                                    "doesn't matter")))))
+        (define-values [txt bx] (symbol->name+box sym))
+        (ht-append (lb-superimpose (blank 36 26) (scale-to-fit bx 30 30))
                    (string*->text descr)))))
+  (define (make-spectrum-delimiter)
+    (filled-rectangle 6 20 #:color "black" #:draw-border? #f))
+  (define spectrum-line-width 10)
   (pslide
     (make-section-header "Implications"))
-  #;(pslide
+  (pslide
     #:go (coord SLIDE-LEFT SLIDE-TOP 'lt)
     @titlet{For Theory}
-    #:go (coord SLIDE-LEFT 1/4 'lt)
-    (main-contrib-append sup-pict soundness-pict)
+    #:go (coord SLIDE-LEFT 1/2)
+    (tag-pict (make-spectrum-delimiter) 'all-rect)
+    #:go (coord SLIDE-RIGHT 1/2)
+    (tag-pict (make-spectrum-delimiter) 'none-rect)
+    #:set (let ((p ppict-do-state))
+            (pin-line p (find-tag p 'all-rect) rc-find (find-tag p 'none-rect) lc-find
+                      #:label (tag-pict (blank) 'lbl-tag)
+                      #:line-width spectrum-line-width))
+    #:go (at-find-pict/below 'lbl-tag #:abs-y (* 3.5 spectrum-line-width))
+    (heading-text "Type violations discovered" 38)
+    #:go (at-find-pict 'all-rect rb-find 'lt #:abs-x 4)
+    (label-text "All")
+    #:go (at-find-pict 'none-rect lb-find 'rt #:abs-x -4)
+    (label-text "None")
     #:next
-    #:go (at-find-pict 'bullets lb-find 'lt #:abs-y y-sep)
-    (vl-append y-sep
-               (hc-append (t "- ") (scale-for-bullet ->H) (t " refines ") (scale-for-bullet ->1))
-               (hc-append (t "- ") (scale-for-bullet ->1) (t " refines ") (scale-for-bullet ->E))))
+    #:go (at-find-pict 'all-rect rt-find 'lb #:abs-x 30)
+    (make-H-box)
+    #:next
+    #:go (at-find-pict 'none-rect lt-find 'rb #:abs-x -4)
+    (make-E-box)
+    #:next
+    #:go (at-find-pict 'none-rect lt-find 'rb #:abs-x (- (* 25/100 client-w)))
+    (make-1-box))
   (pslide
     #:go (coord SLIDE-LEFT SLIDE-TOP 'lt)
     @titlet{For Performance}
@@ -774,8 +769,8 @@
     (cellophane (filled-rectangle (+ (* 2 margin) client-w) (+ margin h) #:color "DarkKhaki") 0.4)
     (add-gt-system* (filled-rounded-rectangle w h -1/5 #:color "AliceBlue") gt* gt-layout)))
 
-(define (heading-text str)
-  (text str TITLE-FONT 50))
+(define (heading-text str [size 50])
+  (text str TITLE-FONT size))
 
 (define (make-gtspace-slide [gt* '()] #:title [title #f] #:layout [gt-layout #f] #:disclaimer [extra-pict (blank)])
   (define top-margin -6)
@@ -1039,8 +1034,8 @@
                    (t txt))
                  blank-bg-pict))))
 
-(define (at-find-pict/below t)
-  (at-find-pict t cb-find 'ct #:abs-y 6))
+(define (at-find-pict/below t #:abs-y [abs-y 6])
+  (at-find-pict t cb-find 'ct #:abs-y abs-y))
 
 (define (make-example-boundary-pict [a0 (blank)] [a1 (blank)] [a2 (blank)])
   (ppict-do
