@@ -35,13 +35,13 @@
 ;    (sec:kafka)
 ;    (sec:main-result)
 ;    (pslide (make-section-header "Model"))
-    (sec:embedding:warmup)
-    (sec:embedding:H)
-    (sec:embedding:1)
-    (sec:embedding:E)
-    (sec:embedding:end)
-;    (sec:soundness)
-;    (sec:implementation)
+;    (sec:embedding:warmup)
+;    (sec:embedding:H)
+;    (sec:embedding:1)
+;    (sec:embedding:E)
+;    (sec:embedding:end)
+    (sec:soundness)
+    (sec:implementation)
 ;    (sec:experiment)
 ;    (sec:graph)
 ;    (sec:conclusion)
@@ -159,11 +159,19 @@
   (define fig-coord (coord x-base 1/4 'lt))
   (define contrib-0-pict
     (contrib*->pict
-      '("Model:"
+      '("Uniform Model:"
         "- one mixed-typed language"
         "- one surface type system"
         "- three semantics")))
   (define contrib-1-pict
+    (contrib*->pict
+      '("Soundness:" ;spectrum of?
+        "- three evaluation-level"
+        "  type systems"
+        "- three notions of type"
+        "  soundness")))
+  ;; implications for programmer?
+  (define contrib-2-pict
     (contrib*->pict
       '("Implementation:"
         "- Racket syntax/types"
@@ -195,27 +203,35 @@
         (box+text (make-E-box) @t{erasure semantics}))))
   (pslide
     #:go (coord SLIDE-LEFT SLIDE-TOP 'lt)
-    @titlet{Contributions (1/2)}
+    @titlet{Contributions (1/3)}
     #:go fig-coord
     (main-contrib-append
       model-pict
       contrib-0-pict))
   (pslide
     #:go (coord SLIDE-LEFT SLIDE-TOP 'lt)
-    @titlet{Contributions (2/2)}
+    @titlet{Contributions (2/3)}
     #:go fig-coord
-    #:alt [(main-contrib-append model-pict (blank (pict-width impl-pict) 0))
-           #:go (coord 1/2 1/2 'cb)
-           (large-right-arrow)]
-    #:alt [(main-contrib-append model-pict impl-pict)
-           #:go (coord 1/2 1/2 'cb)
-           (large-right-arrow)]
     (main-contrib-append
-      contrib-1-pict
-      impl-pict))
+      model-pict
+      contrib-1-pict))
+  (define (big-text str)
+    (text str TITLE-FONT 38))
   (pslide
-    #:go (coord 1/2 1/2)
-    @t{First apples-to-apples soundness and performance comparisons"})
+    #:go (coord SLIDE-LEFT SLIDE-TOP 'lt)
+    @titlet{Contributions (3/3)}
+    #:go (coord SLIDE-LEFT 1/4 'lt)
+    (contrib*->pict '(
+      "- Uniform model"
+      ""
+      "- Spectrum of type soundness"
+      ""
+      "- Full-fledged implementation"))
+    #:go (coord 1/2 6/10 'ct)
+    (vc-append
+      10
+      (big-text "First apples-to-apples soundness")
+      (big-text "and performance comparisons")))
   (void))
 
 (define (sec:embedding:warmup)
@@ -348,38 +364,6 @@
                (add-arrow "undefined?")))
   (void))
 
-(define (make-example-detail-slide e-sym pict-1 [pict-2 #f] [pict-3 #f] #:arrow-label [arrow-label #false])
-  (define name-coord (coord SLIDE-LEFT SLIDE-TOP 'lb))
-  (define box-coord (coord SLIDE-LEFT SLIDE-TOP 'lt #:abs-y 6))
-  (define examples-coord (coord 1/2 SLIDE-TOP 'ct #:abs-y 6))
-  (define-values [e-name e-box] (symbol->name+box e-sym))
-  (if (and pict-2 pict-3)
-    (pslide
-      #:go name-coord
-      (t e-name)
-      #:go box-coord
-      e-box
-      #:go examples-coord
-      (tag-pict pict-1 'pict-1)
-      #:next
-      #:go (at-find-pict 'pict-1 lb-find 'lt #:abs-y 20)
-      (hc-append 20 (arrow EVAL-ARROW-SIZE 0) (tag-pict pict-2 'pict-2))
-      #:next
-      #:go (at-find-pict 'pict-2 cb-find 'ct #:abs-y 15)
-      (vr-append 15 (hc-append (arrow EVAL-ARROW-SIZE (* 3/2 pi)) (blank 55 0)) pict-3)
-      #:go (if arrow-label (at-find-pict/below (car arrow-label)) (coord 0 0))
-      (if arrow-label (cdr arrow-label) (blank)))
-    (pslide
-      #:go name-coord
-      (t e-name)
-      #:go box-coord
-      e-box
-      #:go examples-coord
-      (tag-pict pict-1 'pict-1)
-      #:next
-      #:go (at-find-pict 'pict-1 lb-find 'lt #:abs-y 20)
-      pict-2)))
-
 (define (sec:embedding:end)
   (pslide
     #:alt [(make-embeddings-pict H-system* 1-system* E-system*)]
@@ -387,11 +371,16 @@
   (void))
 
 (define (sec:soundness)
+  ;; TODO still droopy, things overall still look shitty
   (define-values [model-pict impl-pict] (make-model/impl-pict))
   (define type-pict*
-    (for/list ((p (in-list (list ⊢H ⊢1 ⊢E)))
-               (str (in-list '("τ" #f "K(τ)"))))
-      (hc-append 0 (scale-for-bullet p) (blank 2 0) (t "e") (if str (t (string-append ":" str)) (blank)))))
+    (let* ([vdash* (map scale-for-bullet (list ⊢H ⊢1 ⊢E))]
+           [t* (map (lambda (str) (if str (t str) #f)) '("τ" #f "K(τ)"))]
+           [mx-p (blank 0 (apply max (map (lambda (p) (if p (pict-height p) 0)) t*)))])
+      (for/list ((vdash (in-list vdash*))
+                 (t-pict (in-list t*)))
+        (define t+ (if t-pict (hc-append (t ":") (cc-superimpose mx-p t-pict)) mx-p))
+        (hc-append 2 vdash (hc-append (t "e") t+)))))
   (define model-pict+
     (ppict-do
       model-pict
@@ -403,13 +392,13 @@
                 #:go (at-find-pict tag cb-find 'ct #:abs-y 40)
                 type-pict))))
   (define x-base MAIN-CONTRIB-X)
-  (define y-base MAIN-CONTRIB-Y)
-  (define my-blank (blank (pict-width impl-pict) 0))
-  (make-folklore-slide #:q2? #false)
+  (define fig-coord (coord x-base 1/4 'lt))
+  (make-folklore-slide #:q2? #false #:answers? #false)
+  (make-folklore-slide #:q2? #false #:answers? #true)
   (pslide
-    #:go (coord x-base 1/2 'lc)
-    #:alt [(main-contrib-append model-pict (contrib*->pict '("Same type soundness?")))]
-    #:alt [(main-contrib-append model-pict (contrib*->pict '("Same type soundness?" "No!")))]
+    #:go fig-coord
+    #:alt [model-pict]
+    #:alt [model-pict+]
     (main-contrib-append model-pict+
                          (contrib*->pict
                            (add-between
@@ -1304,28 +1293,21 @@
 (define make-folklore-slide
   (let ([q1 "Is type soundness all-or-nothing?"]
         [q1-h 2/10]
-        [a1 '("What invariants should the" "language guarantee?")]
+        [a1 '("No! (in a mixed-typed language)")]
         ;;
         [q2 "How does type soundness affect performance?"]
         [q2-h 5/10]
         [a2 '("Yes, through interaction with" "untyped code (or data)")])
     (lambda (#:q1? [q1? #true] #:q2? [q2? #true] #:answers? [answers? #false])
-      (if answers?
-        (raise-user-error 'make-folklore-slide "#:answers? not implemented")
-        #;(pslide
-          #:go (coord SLIDE-LEFT q1-h 'lt)
-          (make-rumor-pict 'left q1)
-          #:go (coord SLIDE-LEFT q2-h 'lt)
-          (make-rumor-pict 'left q2)
-          #:go (coord SLIDE-RIGHT 31/100 'rt)
-          (make-rumor-pict 'right a1)
-          #:go (coord SLIDE-RIGHT 61/100 'rt)
-          (make-rumor-pict 'right a2))
-        (pslide
-          #:go (coord SLIDE-LEFT q1-h 'lt)
-          (if q1? (make-rumor-pict 'left q1) (blank))
-          #:go (coord SLIDE-LEFT q2-h 'lt)
-          (if q2? (make-rumor-pict 'left q2) (blank)))))))
+      (pslide
+        #:go (coord SLIDE-LEFT q1-h 'lt)
+        (if q1? (make-rumor-pict 'left q1) (blank))
+        #:go (coord SLIDE-RIGHT 31/100 'rt)
+        (if (and q1? answers?) (make-rumor-pict 'right a1) (blank))
+        #:go (coord SLIDE-LEFT q2-h 'lt)
+        (if q2? (make-rumor-pict 'left q2) (blank))
+        #:go (coord SLIDE-RIGHT 61/100 'rt)
+        (if (and q2? answers?) (make-rumor-pict 'right a2) (blank))))))
 
 (define (string*->text str*)
   (if (string? str*)
@@ -1479,6 +1461,38 @@
      (values "erasure" (make-E-box)))
     (else
       (raise-argument-error 'symbol->name+box "(or/c 'H '1 'E)" sym))))
+
+(define (make-example-detail-slide e-sym pict-1 [pict-2 #f] [pict-3 #f] #:arrow-label [arrow-label #false])
+  (define name-coord (coord SLIDE-LEFT SLIDE-TOP 'lb))
+  (define box-coord (coord SLIDE-LEFT SLIDE-TOP 'lt #:abs-y 6))
+  (define examples-coord (coord 1/2 SLIDE-TOP 'ct #:abs-y 6))
+  (define-values [e-name e-box] (symbol->name+box e-sym))
+  (if (and pict-2 pict-3)
+    (pslide
+      #:go name-coord
+      (t e-name)
+      #:go box-coord
+      e-box
+      #:go examples-coord
+      (tag-pict pict-1 'pict-1)
+      #:next
+      #:go (at-find-pict 'pict-1 lb-find 'lt #:abs-y 20)
+      (hc-append 20 (arrow EVAL-ARROW-SIZE 0) (tag-pict pict-2 'pict-2))
+      #:next
+      #:go (at-find-pict 'pict-2 cb-find 'ct #:abs-y 15)
+      (vr-append 15 (hc-append (arrow EVAL-ARROW-SIZE (* 3/2 pi)) (blank 55 0)) pict-3)
+      #:go (if arrow-label (at-find-pict/below (car arrow-label)) (coord 0 0))
+      (if arrow-label (cdr arrow-label) (blank)))
+    (pslide
+      #:go name-coord
+      (t e-name)
+      #:go box-coord
+      e-box
+      #:go examples-coord
+      (tag-pict pict-1 'pict-1)
+      #:next
+      #:go (at-find-pict 'pict-1 lb-find 'lt #:abs-y 20)
+      pict-2)))
 
 ;; =============================================================================
 
