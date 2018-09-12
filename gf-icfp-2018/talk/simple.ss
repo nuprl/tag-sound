@@ -46,8 +46,7 @@
     ;(sec:implementation)
     ;(sec:performance)
     (sec:conclusion)
-    (pslide)
-    ;(sec:extra)
+    (sec:extra)
     (void)))
 
 ;; -----------------------------------------------------------------------------
@@ -494,11 +493,14 @@
   (define spectrum-E-offset (- spectrum-x-offset))
   (define spectrum-1-offset (- (* 25/100 client-w)))
   (define gt-pict (vl-append (heading-text ">") (blank 0 20)))
+  (define model-pict
+    (let-values (([model-pict0 impl-pict0] (make-model/impl-pict)))
+      (scale-for-column model-pict0)))
   (pslide
     (make-section-header "Implications"))
   (pslide
     #:go (coord SLIDE-LEFT SLIDE-TOP 'lt)
-    @titlet{For Theory}
+    @heading-text{For Theory}
     #:go (coord SLIDE-LEFT 1/2)
     (tag-pict (make-spectrum-delimiter) 'all-rect)
     #:go (coord SLIDE-RIGHT 1/2)
@@ -530,27 +532,36 @@
                       #:style 'transparent)))
   (pslide
     #:go (coord SLIDE-LEFT SLIDE-TOP 'lt)
-    @titlet{For Performance}
+    @heading-text{For Performance}
     #:go MAIN-CONTRIB-COORD
     #:alt [perf-plot-pict]
     (main-contrib-append #:x-shift 20 perf-plot-pict perf-text-pict))
-  (make-acks-slide)
   (pslide
-    (heading-text "final slide?"))
-  (void))
-
-(define (sec:folklore-II)
-  (make-folklore-slide #:answers? #true)
+    #:go (coord SLIDE-LEFT SLIDE-TOP 'lt)
+    (heading-text "Special Thanks")
+    #:go (coord 1/2 1/4 'ct)
+    (arrange-authors (padded-bitmap 140) ack* 100 20 #true))
+  (pslide
+    (make-section-header "Questions?"))
+  (pslide
+    #:go (coord SLIDE-LEFT SLIDE-TOP 'lt)
+    #:go MAIN-CONTRIB-COORD
+    (main-contrib-append
+      model-pict
+      (contrib*->pict '(
+        "- Uniform model"
+        ""
+        "- Spectrum of type soundness"
+        ""
+        "- Full-fledged implementation"))))
   (void))
 
 (define (sec:extra)
+  (pslide (make-embeddings-pict all-system*))
   (make-H-example-slide)
   (make-1-example-slide)
   (make-E-example-slide)
-  (pslide
-    (make-embeddings-pict all-system*))
-  (pslide
-    (make-scatterplots-pict))
+  (pslide (make-scatterplots-pict))
   (void))
 
 ;; -----------------------------------------------------------------------------
@@ -1433,13 +1444,6 @@
   (define bg (blank pad pad))
   (lambda (p)
     (cc-superimpose bg (bitmap p))))
-
-(define (make-acks-slide)
-  (pslide
-    #:go (coord SLIDE-LEFT SLIDE-TOP 'lb)
-    (heading-text "Special Thanks")
-    #:go (coord 1/2 1/4 'ct)
-    (arrange-authors (padded-bitmap 140) ack* 100 20 #true)))
 
 (define (stat-dyn/arrow)
   (add-stat-dyn-arrow (hc-append 70 (make-stat-file (large-tau-icon)) (make-dyn-file (large-lambda-icon)))))
