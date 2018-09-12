@@ -35,18 +35,18 @@
     ;(sec:migratory-typing)
     ;(sec:gt-landscape)
     ;(sec:kafka)
-    ;(sec:main-result)
+    (sec:main-result)
     ;(pslide (make-section-header "Model"))
     ;(sec:embedding:warmup)
     ;(sec:embedding:H)
     ;(sec:embedding:1)
-    (sec:embedding:E)
-    (sec:embedding:end)
-    (sec:soundness)
-    (sec:implementation)
+    ;(sec:embedding:E)
+    ;(sec:embedding:end)
+    ;(sec:soundness)
+    ;(sec:implementation)
     (sec:performance)
-    (sec:conclusion)
-    (sec:extra)
+    ;(sec:conclusion)
+    ;(sec:extra)
     (void)))
 
 ;; -----------------------------------------------------------------------------
@@ -202,21 +202,21 @@
         (box+text (make-E-box) @t{erasure semantics}))))
   (pslide
     #:go (coord SLIDE-LEFT SLIDE-TOP 'lt)
-    @titlet{Contributions (1/3)}
+    @heading-text{Contributions (1/3)}
     #:go MAIN-CONTRIB-COORD
     (main-contrib-append
       model-pict
       contrib-0-pict))
   (pslide
     #:go (coord SLIDE-LEFT SLIDE-TOP 'lt)
-    @titlet{Contributions (2/3)}
+    @heading-text{Contributions (2/3)}
     #:go MAIN-CONTRIB-COORD
     (main-contrib-append
       model-pict
       contrib-1-pict))
   (pslide
     #:go (coord SLIDE-LEFT SLIDE-TOP 'lt)
-    @titlet{Contributions (3/3)}
+    @heading-text{Contributions (3/3)}
     #:go MAIN-CONTRIB-COORD
     #:alt [model-pict
            #:go (coord 1/2 1/2 'cb)
@@ -231,7 +231,7 @@
     (text str TITLE-FONT 38))
   (pslide
     #:go (coord SLIDE-LEFT SLIDE-TOP 'lt)
-    @titlet{Contributions}
+    @heading-text{Contributions}
     #:go (coord SLIDE-LEFT 1/4 'lt)
     (contrib*->pict '(
       "- Uniform model"
@@ -1172,9 +1172,9 @@
 (define (make-overhead-plot-slide e*)
   (parameterize ([current-font-size 26])
     (pslide
-      #:go (coord SLIDE-LEFT SLIDE-TOP 'lb)
-      @titlet{Typical program}
-      #:go (coord (- SLIDE-LEFT 1/40) 1/5 'lt)
+      #:go (coord SLIDE-LEFT SLIDE-TOP 'lt)
+      @heading-text{Typical program}
+      #:go MAIN-CONTRIB-COORD
       (make-overhead-plot e*))))
 
 (define (make-overhead-plot e* #:legend? [legend? #true])
