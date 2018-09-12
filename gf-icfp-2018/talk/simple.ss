@@ -24,6 +24,8 @@
 (define current-component-ratio (make-parameter 1))
 
 (define MAIN-CONTRIB-COORD (coord MAIN-CONTRIB-X 1/4 'lt))
+(define -MAIN-CONTRIB-COORD (coord SLIDE-RIGHT 1/4 'rt))
+(define ARROW-COORD (coord 1/2 1/2 'cb))
 
 (define (do-show)
   (set-page-numbers-visible! #false)
@@ -36,9 +38,9 @@
     ;(sec:migratory-typing)
     ;(sec:gt-landscape)
     ;(sec:kafka)
-    (sec:main-result)
+    ;(sec:main-result)
     ;(pslide (make-section-header "Model"))
-    ;(sec:embedding:warmup)
+    (sec:embedding:warmup)
     ;(sec:embedding:H)
     ;(sec:embedding:1)
     ;(sec:embedding:E)
@@ -164,29 +166,38 @@
   (define contrib-0-pict
     (contrib*->pict
       '("Uniform Model:"
+        ""
         "- one mixed-typed language"
+        ""
         "- one surface type system"
+        ""
         "- three semantics")))
   (define contrib-1-pict
     (contrib*->pict
       '("Soundness:" ;spectrum of?
+        ""
         "- three evaluation-level"
         "  type systems"
+        ""
         "- three notions of type"
         "  soundness")))
-  ;; implications for programmer?
+  ;; implications for programmer? ... 'soundness' is a little early, no?
   (define contrib-2-pict
     (contrib*->pict
       '("Implementation:"
+        ""
         "- Racket syntax/types"
+        ""
         "- three compilers"
-        "- the first controlled"
-        "  performance experiment")))
+        ""
+        "- controlled performance"
+        "  experiment")))
   (define model-pict
     (cc-superimpose
       (blank (pict-width contrib-1-pict) 0)
       (scale-for-column model-pict0)))
-  (define impl-pict (scale-for-column impl-pict0))
+  (define model-pict- (scale model-pict 9/10))
+  (define impl-pict (scale (cc-superimpose (blank 0 (pict-height model-pict-)) (scale-for-column impl-pict0)) 9/10))
   (pslide
     #:go (coord SLIDE-LEFT 1/4 'lt)
     @t{One mixed-typed language ...}
@@ -214,28 +225,30 @@
     @heading-text{Contributions (1/3)}
     #:go MAIN-CONTRIB-COORD
     (main-contrib-append
-      model-pict
+      model-pict-
       contrib-0-pict))
   (pslide
     #:go (coord SLIDE-LEFT SLIDE-TOP 'lt)
     @heading-text{Contributions (2/3)}
     #:go MAIN-CONTRIB-COORD
     (main-contrib-append
-      model-pict
+      model-pict-
       contrib-1-pict))
   (pslide
     #:go (coord SLIDE-LEFT SLIDE-TOP 'lt)
     @heading-text{Contributions (3/3)}
     #:go MAIN-CONTRIB-COORD
-    #:alt [model-pict
-           #:go (coord 1/2 1/2 'cb)
+    #:alt [model-pict-
+           #:go ARROW-COORD
            (large-right-arrow)]
-    #:alt [(main-contrib-append model-pict impl-pict)
-           #:go (coord 1/2 1/2 'cb)
-           (large-right-arrow)]
-    (main-contrib-append
-      contrib-1-pict
-      impl-pict))
+    #:alt [model-pict-
+           #:go ARROW-COORD
+           (large-right-arrow)
+           #:go -MAIN-CONTRIB-COORD
+           impl-pict]
+    contrib-2-pict
+    #:go -MAIN-CONTRIB-COORD
+    impl-pict)
   (define (big-text str)
     (text str TITLE-FONT 38))
   (pslide
@@ -292,10 +305,7 @@
     #:go (coord 1/2 SLIDE-TOP 'ct)
     (vc-append
       100
-      (hc-append 10
-        @t{Γ =}
-        (text "{" (current-main-font) (+ 40 (current-font-size))) ;}
-        types-pict)
+      (insert-brace @t{Γ =} types-pict)
       (vl-append 25
         @t{Γ ⊢ fib (dyn Nat -1) : Nat}
         @t{Γ ⊢ norm (dyn Nat × Nat ⟨-1,-2⟩) : Nat}
@@ -303,6 +313,10 @@
   (pslide
     (make-example-boundary-pict))
   (void))
+
+(define (insert-brace p0 p1)
+  (define b (text "{" (current-main-font) 70)) ;}
+  (hc-append 20 p0 b p1))
 
 (define (sec:embedding:H)
   (define arrow-target 'arrow-target)
@@ -403,7 +417,9 @@
 
 (define (sec:soundness)
   ;; TODO still droopy, things overall still look shitty
-  (define-values [model-pict impl-pict] (make-model/impl-pict))
+  (define model-pict
+    (let-values (((mp _) (make-model/impl-pict)))
+      (scale (scale-for-column mp) 9/10)))
   (define type-pict*
     (let* ([vdash* (map scale-for-bullet (list ⊢H ⊢1 ⊢E))]
            [t* (map (lambda (str) (if str (t str) #f)) '("τ" #f "K(τ)"))]
@@ -440,14 +456,21 @@
   (void))
 
 (define (sec:implementation)
-  (define-values [model-pict impl-pict] (make-model/impl-pict))
+  (define-values [model-pict impl-pict]
+    (let-values (((mp ip) (make-model/impl-pict)))
+      (values (scale (scale-for-column mp) 9/10)
+              (scale (scale-for-column ip) 9/10))))
   (define x-base MAIN-CONTRIB-X)
   (define y-base MAIN-CONTRIB-Y)
   (pslide
     (make-section-header "Implementation"))
   (pslide
-    #:go (coord x-base 1/2 'lc)
-    (main-contrib-append model-pict impl-pict))
+    #:go MAIN-CONTRIB-COORD
+    model-pict
+    #:go ARROW-COORD
+    (large-right-arrow)
+    #:go -MAIN-CONTRIB-COORD
+    impl-pict)
   ;; implementation
   (define box*
     (list (make-TR-H-box) (make-TR-1-box) (make-TR-E-box)))
@@ -525,7 +548,7 @@
   (define gt-pict (vl-append (heading-text ">") (blank 0 20)))
   (define model-pict
     (let-values (([model-pict0 impl-pict0] (make-model/impl-pict)))
-      (scale-for-column model-pict0)))
+      (scale (scale-for-column model-pict0) 9/10)))
   (pslide
     (make-section-header "Implications"))
   (pslide
