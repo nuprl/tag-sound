@@ -41,9 +41,9 @@
     ;(sec:main-result)
     ;(pslide (make-section-header "Model"))
     (sec:embedding:warmup)
-    ;(sec:embedding:H)
-    ;(sec:embedding:1)
-    ;(sec:embedding:E)
+    (sec:embedding:H)
+    (sec:embedding:1)
+    (sec:embedding:E)
     ;(sec:embedding:end)
     ;(sec:soundness)
     ;(sec:implementation)
@@ -343,6 +343,7 @@
 
 (define (sec:embedding:1)
   (define y-sep 6)
+  (define arrow-style-1 'dot)
   (pslide
     #:alt ((make-embeddings-pict))
     #:alt ((make-embeddings-pict H-system*))
@@ -355,12 +356,14 @@
                         #:arrow @t{Nat × Nat})
     (parameterize ((current-component-ratio 3/4))
       (make-boundary-pict #:left (hole-append @t{snd} (small-check-icon))
-                        #:right @dyn-text{⟨-1,-2⟩}
-                        #:arrow (blank)
-                        #:reverse? #true))
+                          #:right @dyn-text{⟨-1,-2⟩}
+                          #:arrow (blank)
+                          #:arrow-style arrow-style-1
+                          #:reverse? #true))
     (parameterize ((current-component-ratio 3/4))
       (make-boundary-pict #:left (make-hole)
                           #:right @dyn-text{-2}
+                          #:arrow-style arrow-style-1
                           #:arrow @t{?})))
   (make-example-detail-slide
     '1
@@ -369,12 +372,14 @@
                         #:arrow @t{Nat ⇒ Nat})
     (parameterize ((current-component-ratio 3/4))
       (make-boundary-pict #:left (hole-append (small-check-icon) @t{1})
-                        #:right (hc-append 2 (parameterize ((current-font-size 24)) @dyn-text{(λ(x)-x)}) (make-hole))
-                        #:arrow (blank)
-                        #:reverse? #true))
+                          #:right (hc-append 2 (parameterize ((current-font-size 24)) @dyn-text{(λ(x)-x)}) (make-hole))
+                          #:arrow (blank)
+                          #:arrow-style arrow-style-1
+                          #:reverse? #true))
     (parameterize ((current-component-ratio 3/4))
       (make-boundary-pict #:left (make-hole)
                           #:right @dyn-text{-1}
+                          #:arrow-style arrow-style-1
                           #:arrow (tag-pict @t{?} 'lbl-2))))
   (void))
 
@@ -395,7 +400,8 @@
   (make-example-detail-slide
     'E
     (make-fib (cc-superimpose (blank (pict-width the-bomb) (pict-height the-bomb))
-                              (small-check-icon))))
+                              (small-check-icon)))
+    (blank))
   (make-example-detail-slide
     'E
     (make-fib (small-bomb-icon))
@@ -688,13 +694,16 @@
                             #:right [right-pict #f]
                             #:h [x-offset 1/7]
                             #:arrow [arrow-pict (blank)]
+                            #:arrow-style [arrow-style 'solid]
                             #:reverse? [reverse? #false])
   (define sf (make-stat-file left-pict))
   (define df (make-dyn-file right-pict))
   (define (make-arrow p src-tag src-find dst-tag dst-find)
-    (pin-arrow-line 10 p
+    (pin-arrow-line 13 p
                     (find-tag p src-tag) src-find
                     (find-tag p dst-tag) dst-find
+                    #:line-width 4
+                    #:style arrow-style
                     #:label arrow-pict))
   (ppict-do
     (blank (/ client-w 2) (pict-height sf))
