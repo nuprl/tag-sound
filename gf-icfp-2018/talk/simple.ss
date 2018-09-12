@@ -1184,7 +1184,7 @@
      (lambda (n)
        (cond
          [(< n pi/4)
-          (max 1 (+ 0.5 (sin n)))]
+          (max 1 (+ 0.9 (sin n)))]
          [(< n 3pi/4)
           10]
          [else
