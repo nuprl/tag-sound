@@ -469,24 +469,31 @@
 
 (define (sec:conclusion)
   (define perf-plot-pict
-    (let ((w (* 45/100 client-w)))
+    (let ((w (* 40/100 client-w)))
       (scale-to-fit (make-overhead-plot '(H 1 E) #:legend? #false) w w)))
   (define perf-text-pict
-    (apply
-      vl-append
-      60
-      (for/list ((sym (in-list '(H 1 E)))
-                 (descr (in-list '(("add types to remove all"
-                                    "critical boundaries")
-                                   "add types sparingly"
-                                   ("add types anywhere,"
-                                    "doesn't matter")))))
-        (define-values [txt bx] (symbol->name+box sym))
-        (ht-append (lb-superimpose (blank 36 26) (scale-to-fit bx 30 30))
-                   (string*->text descr)))))
+    (vl-append
+      (blank 30)
+      (apply
+        vl-append
+        60
+        (for/list ((sym (in-list '(H 1 E)))
+                   (descr (in-list '(("add types to remove all"
+                                      "critical boundaries")
+                                     "add types sparingly"
+                                     ("add types anywhere,"
+                                      "doesn't matter")))))
+          (define-values [txt bx] (symbol->name+box sym))
+          (ht-append (lb-superimpose (blank 42 26) (scale-to-fit bx 30 30))
+                     (string*->text descr))))))
   (define (make-spectrum-delimiter)
     (filled-rectangle 6 20 #:color "black" #:draw-border? #f))
   (define spectrum-line-width 10)
+  (define spectrum-x-offset 4)
+  (define spectrum-H-offset 30)
+  (define spectrum-E-offset (- spectrum-x-offset))
+  (define spectrum-1-offset (- (* 25/100 client-w)))
+  (define gt-pict (vl-append (heading-text ">") (blank 0 20)))
   (pslide
     (make-section-header "Implications"))
   (pslide
@@ -502,25 +509,34 @@
                       #:line-width spectrum-line-width))
     #:go (at-find-pict/below 'lbl-tag #:abs-y (* 3.5 spectrum-line-width))
     (heading-text "Type violations discovered" 38)
-    #:go (at-find-pict 'all-rect rb-find 'lt #:abs-x 4)
+    #:go (at-find-pict 'all-rect rb-find 'lt #:abs-x spectrum-x-offset)
     (label-text "All")
-    #:go (at-find-pict 'none-rect lb-find 'rt #:abs-x -4)
+    #:go (at-find-pict 'none-rect lb-find 'rt #:abs-x spectrum-E-offset)
     (label-text "None")
     #:next
-    #:go (at-find-pict 'all-rect rt-find 'lb #:abs-x 30)
-    (make-H-box)
-    #:next
-    #:go (at-find-pict 'none-rect lt-find 'rb #:abs-x -4)
-    (make-E-box)
-    #:next
-    #:go (at-find-pict 'none-rect lt-find 'rb #:abs-x (- (* 25/100 client-w)))
-    (make-1-box))
+    #:go (at-find-pict 'all-rect rt-find 'lb #:abs-x spectrum-H-offset)
+    (tag-pict (make-H-box) 'H-box)
+    #:go (at-find-pict 'none-rect lt-find 'rb #:abs-x spectrum-E-offset)
+    (tag-pict (make-E-box) 'E-box)
+    #:go (at-find-pict 'none-rect lt-find 'rb #:abs-x spectrum-1-offset)
+    (tag-pict (make-1-box) '1-box)
+    #:set (let ((p ppict-do-state))
+            (pin-line p (find-tag p 'H-box) rb-find (find-tag p '1-box) lb-find
+                      #:label gt-pict
+                      #:style 'transparent))
+    #:set (let ((p ppict-do-state))
+            (pin-line p (find-tag p '1-box) rb-find (find-tag p 'E-box) lb-find
+                      #:label gt-pict
+                      #:style 'transparent)))
   (pslide
     #:go (coord SLIDE-LEFT SLIDE-TOP 'lt)
     @titlet{For Performance}
     #:go MAIN-CONTRIB-COORD
     #:alt [perf-plot-pict]
-    (main-contrib-append #:x-shift 10 perf-plot-pict perf-text-pict))
+    (main-contrib-append #:x-shift 20 perf-plot-pict perf-text-pict))
+  (make-acks-slide)
+  (pslide
+    (heading-text "final slide?"))
   (void))
 
 (define (sec:folklore-II)
@@ -528,7 +544,6 @@
   (void))
 
 (define (sec:extra)
-  (make-acks-slide)
   (make-H-example-slide)
   (make-1-example-slide)
   (make-E-example-slide)
