@@ -35,8 +35,8 @@
     ;(sec:folklore-I)
     ;(sec:migratory-typing)
     ;(sec:gt-landscape)
-    (sec:kafka)
-    ;(sec:main-result)
+    ;(sec:kafka)
+    (sec:main-result)
     ;(pslide (make-section-header "Model"))
     ;(sec:embedding:warmup)
     ;(sec:embedding:H)
@@ -188,14 +188,18 @@
       (scale-for-column model-pict0)))
   (define impl-pict (scale-for-column impl-pict0))
   (pslide
-    #:go (coord 1/2 1/4 'ct)
+    #:go (coord SLIDE-LEFT 1/4 'lt)
+    @t{One mixed-typed language ...}
+    #:go (coord 1/2 30/100 'ct)
     model-pict
     #:go (at-find-pict 'stat-file rb-find 'lc #:abs-x 2)
     (filled-rectangle 60 10 #:color "white" #:draw-border? #false)
     #:go (at-find-pict 'stat-file rb-find 'ct)
     (filled-rectangle 500 300 #:color "white" #:draw-border? #false))
   (pslide
-    #:go (coord 1/2 1/4 'ct)
+    #:go (coord SLIDE-LEFT 1/4 'lt)
+    @t{One mixed-typed language ... three semantics}
+    #:go (coord 1/2 30/100 'ct)
     model-pict)
   (pslide
     #:go (coord 1/5 25/100 'lt)
