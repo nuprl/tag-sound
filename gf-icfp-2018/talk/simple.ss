@@ -40,11 +40,11 @@
     ;(sec:embedding:warmup)
     ;(sec:embedding:H)
     ;(sec:embedding:1)
-    ;(sec:embedding:E)
-    ;(sec:embedding:end)
-    ;(sec:soundness)
-    ;(sec:implementation)
-    ;(sec:performance)
+    (sec:embedding:E)
+    (sec:embedding:end)
+    (sec:soundness)
+    (sec:implementation)
+    (sec:performance)
     (sec:conclusion)
     (sec:extra)
     (void)))
@@ -214,11 +214,24 @@
     (main-contrib-append
       model-pict
       contrib-1-pict))
+  (pslide
+    #:go (coord SLIDE-LEFT SLIDE-TOP 'lt)
+    @titlet{Contributions (3/3)}
+    #:go MAIN-CONTRIB-COORD
+    #:alt [model-pict
+           #:go (coord 1/2 1/2 'cb)
+           (large-right-arrow)]
+    #:alt [(main-contrib-append model-pict impl-pict)
+           #:go (coord 1/2 1/2 'cb)
+           (large-right-arrow)]
+    (main-contrib-append
+      contrib-1-pict
+      impl-pict))
   (define (big-text str)
     (text str TITLE-FONT 38))
   (pslide
     #:go (coord SLIDE-LEFT SLIDE-TOP 'lt)
-    @titlet{Contributions (3/3)}
+    @titlet{Contributions}
     #:go (coord SLIDE-LEFT 1/4 'lt)
     (contrib*->pict '(
       "- Uniform model"
@@ -351,16 +364,26 @@
     #:alt [(make-embeddings-pict H-system* 1-system*)]
     (make-embeddings-pict H-system* 1-system* #:highlight 'E))
   (make-E-example-slide)
+  (define the-bomb (small-bomb-icon))
+  (define (make-fib in-hole)
+    (make-boundary-pict #:left (hole-append @t{fib} in-hole)
+                        #:right @dyn-text{-1}
+                        #:arrow @t{Nat}))
   (make-example-detail-slide
     'E
-    (make-boundary-pict #:left (hole-append @t{fib} (small-bomb-icon))
-                        #:right @dyn-text{-1}
-                        #:arrow @t{Nat})
+    (make-fib (cc-superimpose (blank (pict-width the-bomb) (pict-height the-bomb))
+                              (small-check-icon))))
+  (make-example-detail-slide
+    'E
+    (make-fib (small-bomb-icon))
     (vl-append 20
                (add-arrow "error?")
                (add-arrow "diverges?")
                (add-arrow "0")
-               (add-arrow "undefined?")))
+               (add-arrow "???")))
+  (let ((bb (lt-superimpose (vl-append (blank 0 30) (hc-append (blank 40 0) (big-bomb-icon)))
+                            (big-check-icon))))
+    (make-E-example-slide (make-example-boundary-pict bb bb bb)))
   (void))
 
 (define (sec:embedding:end)
@@ -999,6 +1022,9 @@
 (define (small-check-icon)
   (make-icon check-icon #:height 30))
 
+(define (big-bomb-icon)
+  (make-icon bomb-icon #:height 60))
+
 (define (small-bomb-icon)
   (make-icon bomb-icon #:height 40))
 
@@ -1479,32 +1505,36 @@
   (define box-coord (coord SLIDE-LEFT SLIDE-TOP 'lt #:abs-y 6))
   (define examples-coord (coord 1/2 SLIDE-TOP 'ct #:abs-y 6))
   (define-values [e-name e-box] (symbol->name+box e-sym))
-  (if (and pict-2 pict-3)
-    (pslide
-      #:go name-coord
-      (t e-name)
-      #:go box-coord
-      e-box
-      #:go examples-coord
-      (tag-pict pict-1 'pict-1)
-      #:next
-      #:go (at-find-pict 'pict-1 lb-find 'lt #:abs-y 20)
-      (hc-append 20 (arrow EVAL-ARROW-SIZE 0) (tag-pict pict-2 'pict-2))
-      #:next
-      #:go (at-find-pict 'pict-2 cb-find 'ct #:abs-y 15)
-      (vr-append 15 (hc-append (arrow EVAL-ARROW-SIZE (* 3/2 pi)) (blank 55 0)) pict-3)
-      #:go (if arrow-label (at-find-pict/below (car arrow-label)) (coord 0 0))
-      (if arrow-label (cdr arrow-label) (blank)))
-    (pslide
-      #:go name-coord
-      (t e-name)
-      #:go box-coord
-      e-box
-      #:go examples-coord
-      (tag-pict pict-1 'pict-1)
-      #:next
-      #:go (at-find-pict 'pict-1 lb-find 'lt #:abs-y 20)
-      pict-2)))
+  (cond
+    [(and pict-2 pict-3)
+     (pslide
+       #:go name-coord
+       (t e-name)
+       #:go box-coord
+       e-box
+       #:go examples-coord
+       (tag-pict pict-1 'pict-1)
+       #:next
+       #:go (at-find-pict 'pict-1 lb-find 'lt #:abs-y 20)
+       (hc-append 20 (arrow EVAL-ARROW-SIZE 0) (tag-pict pict-2 'pict-2))
+       #:next
+       #:go (at-find-pict 'pict-2 cb-find 'ct #:abs-y 15)
+       (vr-append 15 (hc-append (arrow EVAL-ARROW-SIZE (* 3/2 pi)) (blank 55 0)) pict-3)
+       #:go (if arrow-label (at-find-pict/below (car arrow-label)) (coord 0 0))
+       (if arrow-label (cdr arrow-label) (blank)))]
+    [pict-2
+     (pslide
+       #:go name-coord
+       (t e-name)
+       #:go box-coord
+       e-box
+       #:go examples-coord
+       (tag-pict pict-1 'pict-1)
+       #:next
+       #:go (at-find-pict 'pict-1 lb-find 'lt #:abs-y 20)
+       pict-2)]
+    [else
+      (raise-argument-error 'make-example-detail-slide "pict?" 2 e-sym pict-1 pict-2 pict-3)]))
 
 ;; =============================================================================
 
