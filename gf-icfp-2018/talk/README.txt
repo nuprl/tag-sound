@@ -90,6 +90,8 @@ performance evaluation comparing the three semantics extracted from the
 literature on equal source programs. This is the first evaluation of its kind
 and I'm excited to tell you about it.
 
+TODO based on this work we can draw serious implications for language designers
+
 s21
 But first, lets explain the model. We have a small grammar of types, and a
 matching grammar of values. I claim these types are the simplest possible to
@@ -131,13 +133,9 @@ not then higher-order can trace the violation back to this boundary. And that's
 all you need to know to understand the higher-order semantics. It checks types
 eagerly when possible, and lazily when necessary.
 
-And here, I know of 4 existing systems that implement the higher-order semantics.
+TODO: checks all first-order properties immediately and all higher-order properties in a delayed fashion
 
-Next up is E for erasure. As the name suggests, the erasure semantics ignores
-types at runtime, so all three examples go through despite the apparent type
-mismatch. Many systems implement the erasure semantics. To its credit, it adds
-the benefits of static type checking and type-based IDE tools and its very easy
-to add this semantics to an existing language --- just use the existing language!
+And here, I know of 4 existing systems that implement the higher-order semantics.
 
 Now we come to the number 1, for first-order. The goal here is to enforce some
 parts of the types, but avoid the higher-order lock we had before. For our
@@ -148,6 +146,9 @@ third case we expect a function and got a function. Theres more to say about
 what happens when typed code goes to use the pair or function, but this is the
 main idea, to enforce type constructors at the boundary.
 
+TODO: explain defense in typed code ... checks first-order properties at boundary,
+ but has wider notion of boundary
+
 This first-order semantics I've sketched is very similar to what Reticulated
 Python does. In fact Reticualted was the inspriation for this --- first-order
 is me trying to understand the essence of what they did. But other systems also
@@ -157,6 +158,12 @@ little different, and all have stars next to their names because of that.
 The star means these languages put restrictions on the untyped code. In short,
 every value comes with a type, so its possible to check types at a boundary
 with a subtyping test.
+
+Next up is E for erasure. As the name suggests, the erasure semantics ignores
+types at runtime, so all three examples go through despite the apparent type
+mismatch. Many systems implement the erasure semantics. To its credit, it adds
+the benefits of static type checking and type-based IDE tools and its very easy
+to add this semantics to an existing language --- just use the existing language!
 
 With that, we've just about organized the names we started with. There are three
 missing ---- and here they are, StrongScript Pyret and Thorn fall between a
@@ -196,6 +203,8 @@ was to reproduce first-order as its described in the literature, to test the
 informal claims that you see in those papers. Adding an optimizer to first-order
 Racket is future work.
 
+TODO as in the literature
+
 With these implementations in hand, we set out to measure the overhead of
 mixing static and dynamic code. For this we used an existing set of benchmarks.
 We picked 10 programs, that range in size from 2 to 10 modules each, and measured
@@ -230,6 +239,8 @@ symbols indicate, the one on the left detects the most logical errors.
 These are proper containment relations, and the examples we used to demonstrate
 each semantics are proof of that. Bottom line, we have some meta-theory that
 relates these different approaches.
+
+TODO guaranteed same expressiveness of types
 
 Regarding performance, we've seen that adding types can add overhead to a program
 if those types need to be enforced at runtime. These bullet points are recommendations
