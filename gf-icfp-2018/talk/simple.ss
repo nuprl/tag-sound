@@ -8,7 +8,7 @@
 
 (require
   gf-icfp-2018/talk/src/gt-system gf-icfp-2018/talk/src/constant
-  pict pict/convert pict/balloon
+  pict pict/convert pict/balloon pict/shadow
   ppict/2
   scribble-abbrevs/pict
   slideshow/code
@@ -33,9 +33,9 @@
     ;(sec:title)
     ;(sec:folklore-I)
     ;(sec:migratory-typing)
-    ;(sec:gt-landscape)
+    (sec:gt-landscape)
     ;(sec:kafka)
-    (sec:main-result)
+    ;(sec:main-result)
     ;(pslide (make-section-header "Model"))
     ;(sec:embedding:warmup)
     ;(sec:embedding:H)
@@ -44,7 +44,7 @@
     ;(sec:embedding:end)
     ;(sec:soundness)
     ;(sec:implementation)
-    (sec:performance)
+    ;(sec:performance)
     ;(sec:conclusion)
     ;(sec:extra)
     (void)))
@@ -751,33 +751,6 @@
               #:go (coord (+ x-base (* i x-offset)) (+ y-base (get-y i)) 'lt)
               (gt*->pict g*)))))
 
-(define (gt*->pict g* #:bg-color [bg-color #f])
-  (define gt-pict (apply vc-append 8 (map gt->pict g*)))
-  (define margin 8)
-  (if bg-color
-    (cc-superimpose
-      (filled-rounded-rectangle (+ margin (pict-width gt-pict))
-                                (+ margin (pict-height gt-pict))
-                                -0.05
-                                #:draw-border? #false
-                                #:color bg-color)
-      gt-pict)
-    gt-pict))
-
-(define (creator-gt-layout base gt*)
-  (histogram-gt-layout base (group-gt-systems-by gt* gt-system-source gt-system-source<)))
-
-(define (theory-gt-layout base gt*)
-  (histogram-gt-layout base (group-gt-systems-by gt* gt-system-embedding%E (lambda (x y) (eq? y 'E)))))
-
-(define (performance-gt-layout base gt*)
-  (histogram-gt-layout base (group-gt-systems-by gt* gt-system-name%TR (lambda (x y) (string=? y "Typed Racket")))))
-
-(define (get-pool-margins base)
-  (define x-base (/ (+ 10 POOL-X-BASE) (pict-width base)))
-  (define y-base (/ POOL-X-BASE (pict-height base) 2))
-  (values x-base y-base))
-
 (define (histogram-gt-layout base gt**)
   (define x-sep -2)
   (define num-groups (length gt**))
@@ -790,26 +763,66 @@
     (if (< num-groups 2)
       '(lt)
       (append '(lt) (make-list (- num-groups 2) 'ct) '(rt))))
-  (define ISLAND-COLOR "LightSteelBlue")
+  (define color*
+    '("LightSteelBlue" "PaleGreen")) ;; "LightCoral" "Thistle" ... too close in black/white
   (ppict-do
     base
     #:set (for/fold ((acc ppict-do-state))
                     ((x (in-list (linear-seq x-base (- 1 x-base) num-groups)))
                      (align (in-list align*))
-                     (g* (in-list gt**)))
+                     (g* (in-list gt**))
+                     (bg-c (in-cycle (in-list color*))))
             (define h?-append (if (eq? align 'lt) hb-append ht-append))
             (ppict-do
               acc
               #:go (coord x y-base align)
               (let loop ([g* g*])
-                (if (< (length g*) max-in-column)
-                  (gt*->pict g* #:bg-color ISLAND-COLOR)
-                  (let-values ([(a* b*) (split-at g* max-in-column)])
-                    (h?-append x-sep (gt*->pict a* #:bg-color ISLAND-COLOR) (loop b*)))))))))
+                (cond
+                  [(null? g*)
+                   (blank)]
+                  [(< (length g*) max-in-column)
+                   (gt*->pict g* #:bg-color bg-c)]
+                  [else
+                   (let-values ([(a* b*) (split-at g* max-in-column)])
+                     (h?-append x-sep (gt*->pict a* #:bg-color bg-c) (loop b*)))]))))))
+
+(define (creator-gt-layout base gt*)
+  (histogram-gt-layout base (group-gt-systems-by gt* gt-system-source gt-system-source<)))
+
+(define (theory-gt-layout base gt*)
+  (histogram-gt-layout base (group-gt-systems-by gt* gt-system-embedding%E (lambda (x y) (eq? y 'E)))))
+
+(define (performance-gt-layout base gt*)
+  (histogram-gt-layout base (group-gt-systems-by gt* gt-system-name%TR (lambda (x y) (string=? y "Typed Racket")))))
+
+(define (gt*->pict g* #:bg-color [bg-color #f])
+  (define gt-pict (apply vc-append 8 (map gt->pict g*)))
+  (define the-radius -0.09)
+  (define margin 18)
+  (define the-blur-x 10)
+  (if bg-color
+    (cc-superimpose
+      (blur
+        (filled-rounded-rectangle (+ margin (pict-width gt-pict))
+                                  (+ margin (pict-height gt-pict))
+                                  the-radius
+                                  #:draw-border? #false
+                                  #:color bg-color)
+        the-blur-x the-blur-x)
+      gt-pict)
+    gt-pict))
+
+(define (get-pool-margins base)
+  (define x-base (/ (+ 10 POOL-X-BASE) (pict-width base)))
+  (define y-base (/ POOL-X-BASE (pict-height base) 2))
+  (values x-base y-base))
 
 (define (label-text str)
   (define b (blank 10 0))
   (hc-append b (text str TITLE-FONT 26) b))
+
+(define (heading-text str [size 50])
+  (text str TITLE-FONT size))
 
 (define (make-gtspace-bg [gt* '()] [gt-layout #f])
   (define h (- client-h (* 2 1/5 client-h)))
@@ -817,9 +830,6 @@
   (cc-superimpose
     (cellophane (filled-rectangle (+ (* 2 margin) client-w) (+ margin h) #:color "DarkKhaki") 0.4)
     (add-gt-system* (filled-rounded-rectangle w h -1/5 #:color "AliceBlue") gt* gt-layout)))
-
-(define (heading-text str [size 50])
-  (text str TITLE-FONT size))
 
 (define (make-gtspace-slide [gt* '()] #:title [title #f] #:layout [gt-layout #f] #:disclaimer [extra-pict (blank)])
   (define top-margin -6)
