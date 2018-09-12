@@ -17,6 +17,7 @@
   racket/list
   images/icons/arrow images/icons/control images/icons/misc images/icons/symbol images/icons/style
   (only-in scribble/base url))
+(require file/glob)
 
 ;; =============================================================================
 
@@ -34,7 +35,7 @@
     ;(sec:folklore-I)
     ;(sec:migratory-typing)
     (sec:gt-landscape)
-    ;(sec:kafka)
+    (sec:kafka)
     ;(sec:main-result)
     ;(pslide (make-section-header "Model"))
     ;(sec:embedding:warmup)
@@ -124,7 +125,12 @@
     #:layout performance-gt-layout
     #:disclaimer (make-disclaimer-pict "(the word 'dead' is used here in a technical sense)"))
   (pslide
-    @titlet{Chaos!})
+    (make-gtspace-bg all-system*)
+    #:go (coord 1/2 SLIDE-TOP 'ct)
+    @titlet{Chaos!}
+    #:go (coord 1/2 1/2 'cc)
+    (let-values (((w h) (pool-dimensions)))
+      (scale-to-fit (frame (bitmap garden-center.png)) w (+ margin h))))
   (void))
 
 (define (sec:kafka)
@@ -155,7 +161,6 @@
 
 (define (sec:main-result)
   (define-values [model-pict0 impl-pict0] (make-model/impl-pict))
-  (define x-base MAIN-CONTRIB-X)
   (define contrib-0-pict
     (contrib*->pict
       '("Uniform Model:"
@@ -413,8 +418,6 @@
                 acc
                 #:go (at-find-pict tag cb-find 'ct #:abs-y 40)
                 type-pict))))
-  (define x-base MAIN-CONTRIB-X)
-  (define MAIN-CONTRIB-COORD (coord x-base 1/4 'lt))
   (pslide
     (make-section-header "Soundness"))
   (make-folklore-slide #:q2? #false #:answers? #false)
@@ -824,9 +827,13 @@
 (define (heading-text str [size 50])
   (text str TITLE-FONT size))
 
-(define (make-gtspace-bg [gt* '()] [gt-layout #f])
-  (define h (- client-h (* 2 1/5 client-h)))
+(define (pool-dimensions)
   (define w (- client-w (* 2 SLIDE-LEFT client-w)))
+  (define h (- client-h (* 2 1/5 client-h)))
+  (values w h))
+
+(define (make-gtspace-bg [gt* '()] [gt-layout #f])
+  (define-values [w h] (pool-dimensions))
   (cc-superimpose
     (cellophane (filled-rectangle (+ (* 2 margin) client-w) (+ margin h) #:color "DarkKhaki") 0.4)
     (add-gt-system* (filled-rounded-rectangle w h -1/5 #:color "AliceBlue") gt* gt-layout)))

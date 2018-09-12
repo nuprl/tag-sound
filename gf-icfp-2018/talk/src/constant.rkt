@@ -167,3 +167,6 @@
     ross-tate.png
     artem-p.png
     #;jan-vitek.png))
+
+(define-runtime-path garden-center.png "garden-center.png")
+
