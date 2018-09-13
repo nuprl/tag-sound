@@ -41,9 +41,9 @@
     ;(sec:main-result)
     ;(pslide (make-section-header "Model"))
     (sec:embedding:warmup)
-    (sec:embedding:H)
-    (sec:embedding:1)
-    (sec:embedding:E)
+    ;(sec:embedding:H)
+    ;(sec:embedding:1)
+    ;(sec:embedding:E)
     ;(sec:embedding:end)
     ;(sec:soundness)
     ;(sec:implementation)
@@ -277,25 +277,25 @@
                @t{τ = Nat | Int | τ × τ | τ ⇒ τ}
                @t{Nat <: Int})
     #:next
-    #:go (coord SLIDE-LEFT 25/100 'lt)
+    #:go (coord SLIDE-LEFT 27/100 'lt)
     ;;@t{Values}
     (vl-append 10
                @t{v = n | i | ⟨v,v⟩ | λ(x)e | λ(x:τ)e}
                @t{n ⊂ i})
     #:next
-    #:go (coord SLIDE-LEFT 40/100 'lt)
+    #:go (coord SLIDE-LEFT 45/100 'lt)
     @t{e = .... | dyn τ e | stat τ e}
     #:next
-    ;;@hb-append[40 (make-sig-pict @t{⊢ e : τ}) (make-sig-pict @t{⊢ e})]
-    #:go (coord 55/100 50/100 'ct)
-    @hb-append[
-      100
-      @inferrule[@t{⊢ e}
-                 @t{⊢ dyn τ e : τ}]
-      @inferrule[@t{⊢ e : τ}
-                 @t{⊢ stat τ e}]])
-  (define (v-append . x*)
-    (apply vl-append 10 x*))
+    #:go (coord 50/100 60/100 'ct)
+    (let* ((dyn-pict @inferrule[@t{⊢ e} @t{⊢ dyn τ e : τ}])
+           (stat-pict @inferrule[@t{⊢ e : τ} @t{⊢ stat τ e}])
+           (stat-pict (cc-superimpose (blank (pict-width dyn-pict) 0) stat-pict)))
+      ;; TODO add signatures ... I guess using pslide
+      @hb-append[140 (tag-pict dyn-pict 'dyn-rule) (tag-pict stat-pict 'stat-rule)])
+    #:go (at-find-pict 'dyn-rule lt-find 'rc #:abs-x 30)
+    (make-sig-pict "⊢ e : τ")
+    #:go (at-find-pict 'stat-rule lt-find 'rc #:abs-x 30)
+    (make-sig-pict "⊢ e"))
   (define types-pict
     (vl-append 10
       @t{fib : Nat ⇒ Nat}
@@ -677,15 +677,6 @@
 
 (define (main-contrib-append a b #:x-shift [x 0])
   (ht-append (+ x 10) a b))
-
-(define (make-sig-pict p)
-  (define sig-scale 2/10)
-  (define sig-color LIGHT-BLUE)
-  (define w+ (scale-* (pict-width p) sig-scale))
-  (define h+ (scale-* (pict-height p) sig-scale))
-  (cc-superimpose
-    (filled-rounded-rectangle w+ h+ #:color sig-color)
-    p))
 
 (define (scale-* n s)
   (+ n (* n s)))
@@ -1588,6 +1579,12 @@
        pict-2)]
     [else
       (raise-argument-error 'make-example-detail-slide "pict?" 2 e-sym pict-1 pict-2 pict-3)]))
+
+(define (make-sig-pict str)
+  (define p (vl-append 8 (t str) (blank)))
+  (cc-superimpose
+    (rectangle (+ 15 (pict-width p)) (pict-height p))
+    p))
 
 ;; =============================================================================
 
