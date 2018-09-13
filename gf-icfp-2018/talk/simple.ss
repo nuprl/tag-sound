@@ -40,12 +40,12 @@
     ;(sec:kafka)
     ;(sec:main-result)
     ;(pslide (make-section-header "Model"))
-    (sec:embedding:warmup)
+    ;(sec:embedding:warmup)
     ;(sec:embedding:H)
     ;(sec:embedding:1)
     ;(sec:embedding:E)
     ;(sec:embedding:end)
-    ;(sec:soundness)
+    (sec:soundness)
     ;(sec:implementation)
     ;(sec:performance)
     ;(sec:conclusion)
@@ -429,11 +429,10 @@
       (scale (scale-for-column mp) 9/10)))
   (define type-pict*
     (let* ([vdash* (map scale-for-bullet (list ⊢H ⊢1 ⊢E))]
-           [t* (map (lambda (str) (if str (t str) #f)) '("τ" #f "K(τ)"))]
-           [mx-p (blank 0 (apply max (map (lambda (p) (if p (pict-height p) 0)) t*)))])
+           [t* (map (lambda (str) (if str (t str) #f)) '("τ" #f "K(τ)"))])
       (for/list ((vdash (in-list vdash*))
                  (t-pict (in-list t*)))
-        (define t+ (if t-pict (hc-append (t ":") (cc-superimpose mx-p t-pict)) mx-p))
+        (define t+ (if t-pict (vl-append 6 (hc-append (t ":") t-pict) (blank)) (blank)))
         (hc-append 2 vdash (hc-append (t "e") t+)))))
   (define model-pict+
     (ppict-do
@@ -443,23 +442,32 @@
                        (type-pict (in-list type-pict*)))
               (ppict-do
                 acc
-                #:go (at-find-pict tag cb-find 'ct #:abs-y 40)
+                #:go (at-find-pict tag cb-find 'ct #:abs-y 30)
                 type-pict))))
   (pslide
     (make-section-header "Soundness"))
   (make-folklore-slide #:q2? #false #:answers? #false)
   (make-folklore-slide #:q2? #false #:answers? #true)
+  (define sound-text-pict
+    (apply
+      vl-append
+      60
+      (for/list ((sym (in-list '(H 1 E)))
+                 (descr (in-list '(("progress & preservation"
+                                    "for types")
+                                   ("progress & preservation"
+                                    "for type constructors")
+                                   "progress & preservation"))))
+        (define-values [txt bx] (symbol->name+box sym))
+        (ht-append (lb-superimpose (blank 42 26) (scale-to-fit bx 30 30))
+                   (string*->text descr)))))
   (pslide
     #:go MAIN-CONTRIB-COORD
     #:alt [model-pict]
     #:alt [model-pict+]
-    (main-contrib-append model-pict+
-                         (contrib*->pict
-                           (add-between
-                             (for/list ((type-pict (in-list type-pict*))
-                                        (a (in-list (list ->H ->1 ->E))))
-                               (hc-append (t "- ") type-pict (t " sound for ") (scale-for-bullet a)))
-                             (blank)))))
+    model-pict+
+    #:go -MAIN-CONTRIB-COORD
+    sound-text-pict)
   (void))
 
 (define (sec:implementation)
