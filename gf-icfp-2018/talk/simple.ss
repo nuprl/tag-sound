@@ -33,23 +33,23 @@
                  [current-font-size 32]
                  [current-titlet string->title])
     (void)
-    ;(sec:title)
-    ;(sec:folklore-I)
-    ;(sec:migratory-typing)
-    ;(sec:gt-landscape)
-    ;(sec:kafka)
-    ;(sec:main-result)
-    ;(pslide (make-section-header "Model"))
-    ;(sec:embedding:warmup)
-    ;(sec:embedding:H)
-    ;(sec:embedding:1)
-    ;(sec:embedding:E)
-    ;(sec:embedding:end)
+    (sec:title)
+    (sec:folklore-I)
+    (sec:migratory-typing)
+    (sec:gt-landscape)
+    (sec:kafka)
+    (sec:main-result)
+    (pslide (make-section-header "Model"))
+    (sec:embedding:warmup)
+    (sec:embedding:H)
+    (sec:embedding:1)
+    (sec:embedding:E)
+    (sec:embedding:end)
     (sec:soundness)
-    ;(sec:implementation)
-    ;(sec:performance)
-    ;(sec:conclusion)
-    ;(sec:extra)
+    (sec:implementation)
+    (sec:performance)
+    (sec:conclusion)
+    (sec:extra)
     (void)))
 
 ;; -----------------------------------------------------------------------------
@@ -553,7 +553,7 @@
                                      ("add types anywhere,"
                                       "doesn't matter")))))
           (define-values [txt bx] (symbol->name+box sym))
-          (ht-append (lb-superimpose (blank 42 26) (scale-to-fit bx 30 30))
+          (ht-append (lb-superimpose (blank 55 26) (scale-to-fit bx 40 40))
                      (string*->text descr))))))
   (define (make-spectrum-delimiter)
     (filled-rectangle 6 20 #:color "black" #:draw-border? #f))
@@ -605,7 +605,9 @@
     @heading-text{For Performance}
     #:go MAIN-CONTRIB-COORD
     #:alt [perf-plot-pict]
-    (main-contrib-append #:x-shift 20 perf-plot-pict perf-text-pict))
+    perf-plot-pict
+    #:go -MAIN-CONTRIB-COORD
+    perf-text-pict)
   (pslide
     #:go (coord SLIDE-LEFT SLIDE-TOP 'lt)
     (heading-text "Special Thanks")
@@ -616,14 +618,16 @@
   (pslide
     #:go (coord SLIDE-LEFT SLIDE-TOP 'lt)
     #:go MAIN-CONTRIB-COORD
-    (main-contrib-append
-      model-pict
-      (contrib*->pict '(
-        "- Uniform model"
-        ""
-        "- Spectrum of type soundness"
-        ""
-        "- Full-fledged implementation"))))
+    model-pict
+    #:go -MAIN-CONTRIB-COORD
+    (contrib*->pict '(
+      "- one surface language"
+      ""
+      "- three notions of"
+      "  type soundness"
+      ""
+      "- full-fledged"
+      "  implementation")))
   (void))
 
 (define (sec:extra)
