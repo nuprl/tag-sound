@@ -15,6 +15,7 @@
   plot/no-gui plot/utils
   racket/draw
   racket/list
+  (only-in racket/string string-split)
   images/icons/arrow images/icons/control images/icons/misc images/icons/symbol images/icons/style
   (only-in scribble/base url))
 (require file/glob)
@@ -329,7 +330,7 @@
     'H
     (make-boundary-pict #:left (hole-append @t{map} (small-monitor-icon) @t{y})
                         #:right @dyn-text{λ(x)-x}
-                        #:arrow @t{Nat ⇒ Nat})
+                        #:arrow @t/crunch{Nat ⇒ Nat})
     (parameterize ((current-component-ratio 3/4))
       (make-boundary-pict #:left (hole-append (small-monitor-icon) @t{1})
                           #:right (hc-append 2 (parameterize ((current-font-size 24)) @dyn-text{(λ(x)-x)}) (make-hole))
@@ -354,7 +355,7 @@
     '1
     (make-boundary-pict #:left (hole-append @t{norm} (small-check-icon))
                         #:right @dyn-text{⟨-1,-2⟩}
-                        #:arrow @t{Nat × Nat})
+                        #:arrow @t/crunch{Nat × Nat})
     (parameterize ((current-component-ratio 3/4))
       (make-boundary-pict #:left (hole-append @t{snd} (small-check-icon))
                           #:right @dyn-text{⟨-1,-2⟩}
@@ -370,7 +371,7 @@
     '1
     (make-boundary-pict #:left (hole-append @t{map} (small-check-icon) @t{y})
                         #:right @dyn-text{λ(x)-x}
-                        #:arrow @t{Nat ⇒ Nat})
+                        #:arrow @t/crunch{Nat ⇒ Nat})
     (parameterize ((current-component-ratio 3/4))
       (make-boundary-pict #:left (hole-append (small-check-icon) @t{1})
                           #:right (hc-append 2 (parameterize ((current-font-size 24)) @dyn-text{(λ(x)-x)}) (make-hole))
@@ -1171,12 +1172,16 @@
 (define (make-inductive-example lbl)
   (define l1 (hole-append @t{norm} (make-hole)))
   (define r1 @dyn-text{⟨-1,-2⟩})
-  (make-boundary-pict #:left l1 #:right r1 #:arrow (tag-pict @t{Nat × Nat} lbl)))
+  (make-boundary-pict #:left l1 #:right r1 #:arrow (tag-pict (t/crunch "Nat × Nat") lbl)))
 
 (define (make-coinductive-example lbl)
   (define l2 (hole-append @t{map} (make-hole) @t{y}))
   (define r2 @dyn-text{λ(x)-x})
-  (make-boundary-pict #:left l2 #:right r2 #:arrow (tag-pict @t{Nat ⇒ Nat} lbl)))
+  (make-boundary-pict #:left l2 #:right r2 #:arrow (tag-pict (t/crunch "Nat ⇒ Nat") lbl)))
+
+(define (t/crunch str)
+  (define t* (map t (string-split str)))
+  (hc-append 2 (car t*) (vl-append 10 (blank) (clip-ascent (clip-descent (cadr t*)))) (caddr t*)))
 
 (define (make-typed-racket-stack title)
   (make-labeled-stack title
