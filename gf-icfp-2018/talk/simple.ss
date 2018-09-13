@@ -87,21 +87,21 @@
   (pslide
     (make-section-header "Migratory Typing"))
   (pslide
-    #:go (coord SLIDE-LEFT 1/4 'lt)
+    #:go (coord SLIDE-LEFT MAIN-CONTRIB-Y 'lt)
     @t{Step 0: un(i)typed language}
-    #:go (coord 1/2 1/2)
+    #:go (coord 1/2 1/4 'ct)
     dyn-file)
   (pslide
-    #:go (coord SLIDE-LEFT 1/4 'lt)
+    #:go (coord SLIDE-LEFT MAIN-CONTRIB-Y 'lt)
     @t{Step 1: idiomatic type system}
-    #:go (coord 1/2 1/2)
+    #:go (coord 1/2 1/4 'ct)
     dyn-file
     #:go (at-find-pict 'dyn-file lc-find 'rc #:abs-x -10)
     tau)
   (pslide
-    #:go (coord SLIDE-LEFT 1/4 'lt)
+    #:go (coord SLIDE-LEFT MAIN-CONTRIB-Y 'lt)
     @t{Step 2: mixed-typed language}
-    #:go (coord 1/2 1/2)
+    #:go (coord 1/2 1/4 'ct)
     (stat-dyn/arrow))
   (void))
 
@@ -199,7 +199,7 @@
   (define model-pict- (scale model-pict 9/10))
   (define impl-pict (scale (cc-superimpose (blank 0 (pict-height model-pict-)) (scale-for-column impl-pict0)) 9/10))
   (pslide
-    #:go (coord SLIDE-LEFT 1/4 'lt)
+    #:go (coord SLIDE-LEFT MAIN-CONTRIB-Y 'lt)
     @t{One mixed-typed language ...}
     #:go (coord 1/2 30/100 'ct)
     model-pict
@@ -208,7 +208,7 @@
     #:go (at-find-pict 'stat-file rb-find 'ct)
     (filled-rectangle 500 300 #:color "white" #:draw-border? #false))
   (pslide
-    #:go (coord SLIDE-LEFT 1/4 'lt)
+    #:go (coord SLIDE-LEFT MAIN-CONTRIB-Y 'lt)
     @t{One mixed-typed language ... three semantics}
     #:go (coord 1/2 30/100 'ct)
     model-pict)
@@ -477,8 +477,6 @@
     (let-values (((mp ip) (make-model/impl-pict)))
       (values (scale (scale-for-column mp) 9/10)
               (scale (scale-for-column ip) 9/10))))
-  (define x-base MAIN-CONTRIB-X)
-  (define y-base MAIN-CONTRIB-Y)
   (pslide
     (make-section-header "Implementation"))
   (pslide
