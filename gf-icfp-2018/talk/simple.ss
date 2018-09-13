@@ -298,25 +298,26 @@
     (make-sig-pict "⊢ e"))
   (define types-pict
     (vl-append 10
-      @t{fib : Nat ⇒ Nat}
+      @t{fib  : Nat ⇒ Nat}
       @t{norm : Nat × Nat ⇒ Nat}
-      @t{map : (Nat ⇒ Nat) ⇒ Nat × Nat ⇒ Nat × Nat}))
+      @t{map  : (Nat ⇒ Nat) ⇒ Nat × Nat ⇒ Nat × Nat}))
   (pslide
     #:go (coord 1/2 SLIDE-TOP 'ct)
     (vc-append
       100
-      (insert-brace @t{Γ =} types-pict)
-      (vl-append 25
-        @t{Γ ⊢ fib (dyn Nat -1) : Nat}
-        @t{Γ ⊢ norm (dyn Nat × Nat ⟨-1,-2⟩) : Nat}
-        @t{Γ ⊢ map (dyn (Nat ⇒ Nat) (λ(x)-x)) y : Nat × Nat})))
+      (insert-brace @t|{Γ = }| types-pict)
+      (table 2 (list
+        @t{Γ ⊢ fib  (dyn Nat -1)} @t{: Nat}
+        @t{Γ ⊢ norm (dyn Nat × Nat ⟨-1,-2⟩)} @t{: Nat}
+        @t{Γ ⊢ map  (dyn (Nat ⇒ Nat) (λ(x)-x)) y} @t{: Nat × Nat})
+             lb-superimpose cb-superimpose 25 10)))
   (pslide
     (make-example-boundary-pict))
   (void))
 
 (define (insert-brace p0 p1)
-  (define b (text "{" (current-main-font) 70)) ;}
-  (hc-append 20 p0 b p1))
+  ;(define b (text "{" (current-main-font) 70)) ;}
+  (hc-append 25 p0 #;b p1))
 
 (define (sec:embedding:H)
   (define arrow-target 'arrow-target)
