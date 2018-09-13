@@ -431,9 +431,11 @@
     (let* ([vdash* (map scale-for-bullet (list ⊢H ⊢1 ⊢E))]
            [t* (map (lambda (str) (if str (t str) #f)) '("τ" #f "K(τ)"))])
       (for/list ((vdash (in-list vdash*))
-                 (t-pict (in-list t*)))
+                 (t-pict (in-list t*))
+                 (c (in-list (list H-COLOR 1-COLOR E-COLOR))))
         (define t+ (if t-pict (vl-append 6 (hc-append (t ":") t-pict) (blank)) (blank)))
-        (hc-append 2 vdash (hc-append (t "e") t+)))))
+        (define p (hc-append 2 vdash (hc-append (t "e") t+)))
+        (vl-append p (filled-rectangle (pict-width p) 4 #:draw-border? #f #:color c)))))
   (define model-pict+
     (ppict-do
       model-pict
@@ -943,14 +945,18 @@
              (?-find (in-list (list lb-find cb-find rb-find))))
     (pin-line acc anchor ?-find tgt ct-find)))
 
-(define (make-H-box)
-  (make-embedding-box ->H LIGHT-RED))
+(define H-COLOR LIGHT-RED)
+(define 1-COLOR BLUE)
+(define E-COLOR GREEN)
 
-(define (make-E-box)
-  (make-embedding-box ->E GREEN))
+(define (make-H-box)
+  (make-embedding-box ->H H-COLOR))
 
 (define (make-1-box)
-  (make-embedding-box ->1 BLUE))
+  (make-embedding-box ->1 1-COLOR))
+
+(define (make-E-box)
+  (make-embedding-box ->E E-COLOR))
 
 (define (make-TR-H-box)
   (make-embedding-box ->TR-H LIGHT-RED))
