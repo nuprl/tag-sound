@@ -9,96 +9,101 @@ TODO
 - [ ] give presentation
   - [X] torture (2018-08-24 10:00am NEU 366 WVH)
   - [X] nepls   (2018-08-27 10:00am Harvard G115)
-  - [ ] icfp
+  - [ ] icfp 1:30pm Wed Eric Tanter
 - [ ] blog post
 
 - - -
 # SCRIPT
 
-s2
-Hi. To start off, here are two questions. The first asks if type soundness is
-a binary notion --- in other words, a language is either sound or unsound, and
-anything in between is not important. The second asks whether adding type
-information to a program can have a negative effect on its performance. At a
-glance it seems like the answer to that one should be ``no'', because more types
-should give an optimizer more to work with, and nothing else.  But as
-scientists, its our job to investigate questions like this systematically
+Hi everyone. To get started today, I have two OLD questions on the screen.
+The first question asks whether there could be an interesting point between
+type soundness and unsoundness. The second question asks how type soundness
+affects the performance of typed programs.
 
-TODO questions have been considered a solved problem ... migratory typing has
-re-opened them!
+In a normal, fully-typed language these questions are closed. But if we move
+from a typed language to one that mixes typed and untyped code, then we'll see
+that the questions on the slide are the central questions guiding the research.
 
-Thats all I want to say about these for now, and we'll come back to the ideas
-later.
-
-s3
+Before we get to that, lets begin at the beginning.
 I am interested in migratory typing, which is the idea of starting with an
 existing dynamically typed language, designing a static type system to reason
 about programs written in this language and arriving at a pair of languages ---
-one statically typed, one dynamically typed, that can interact
+a statically typed language and the original untyped language.
 
-If you've heard of gradual typing, its very similar, but this constraint of
-starting from a dynamically typed language is an important difference.
+If you are familiar with gradual typing, migratory typing is very similar;
+the main difference is this constraint of starting with a dynamically-typed
+language, which leads to important distinctions.
 
-With that said, related work on gradual typing systems and really any language
-that combines static and dynamic typing is a useful source of inspiration and the
-work I'm here to present today started with me trying to make sense of this space
+With that said, gradual typing migratory typing and optional typing all face
+similar challenges, so its helpful to look at the whole design space for
+organizing principles.
 
-The swimming pool here represents the design space.
-Here are a few of the languages in the space, arranged
-in no particular order. There are a lot of names. Unfortunately, theres not much
-we can do to organize. One idea is to sort them by release date, from oldest on
-the left to newest on the right, where the y-axis doesn't mean anything, but
-this doesn't tell us much except some growth trend. We can try grouping by
-where they came from. On the left is a cluster of research languages and on the
-right are languages that came out of industry. Again the y-axis doesn't mean
-anything, and the second column on the left is only because the first column
-ran out of space. (Lets move on, this isn't a very useful distinction.) The
-next thing I thought to try is grouping the languages by whether they claim to
-be type sound, or whether they erase types at runtime. This is a little more
-interesting, but if you dig deeper the papers that describe these type soundnesses
-often have very different theorems! In the SafeTS paper for example, soundness
-is just for the statically-typed part of the language ... theres no soundness
-for programs that mix typed and untyped code. Another thing we can try is
-grouping by performance, somehow. We need to be careful in comparing across
-languages, but to a first approximation we can say Typed Racket is dead and
-everything else I guess is not dead.
+Here are a few of the languages in this space, arranged in no particular order.
+There are a lot of names.
 
-s13
-You get the point, there's tons of languages and little in the way of organizing
-principles.
+Here are the same names, organized by when the first appeared. On the left we
+have the oldest mixed-typed languages, on the right we have the newest. Again
+its a lot of languages, and they seem to be multiplying into a small tower of
+babel.
 
-s14
-I'm aware of just one other work that attempts a scientific comparison, and
-thats KafKa by Ben Chung and others.  Ben is here today, if you want to learn
-more about that.
+At this point I would like to organize the space based on some principles these
+languages have in common, but unfortunately there is not much be to said.
 
-s15
-Our work presents a way to organize this space by semantics. In the paper we
-have three formal semantics for a common surface language, called the
-higher-order, erasure, and first-order semantics. The names come from the most
-important part of each, which is the strategy they use to enforce types at the
-boundary between statically typed and dynamically typed code.
+We can try grouping by where the languages came from. About half, on the left,
+are academic research projects. The others, on the right, came from industry
+teams.
+
+We can next try grouping the languages that claim to be type-sound, on the left,
+with the ones that use types only for static analysis on the right. At first
+glance this is better, but if you read the actual soundness claims of each
+language on the left they're often very different! For example Gradualtalk
+on the top, preserves types during evaluation, but Grace Pyret and Reticulated
+preserve something more like type constructors than full types. So this grouping
+is also not very informative.
+
+One last idea is to try grouping by performance. We need to be extremely careful
+in making performance claims across languages, but at the very least we can
+agree that Typed Racket is "dead" and the others are more-or-less alive.
+
+Ok you get the point, the design space is chaos --- disorganized.
+
+TODO gradual guarantee?
+
+To my knowledge there has been one effort to characterize existing systems,
+and thats the work on KafKa by Ben Francesco Paley and Jan. KafKa presents
+four translations from a mixed-typed language to a typed cast language, and
+talks about how the translations relate to existing systems.
+
+Today I'm going to show you a different way to organize, which is to start
+with a mixed-typed language and present three different ways of running the
+programs.
+
+The three semantics are called the higher-order semantics, first-order
+semantics, and erasure semantics. The names are meant to evoke the essential
+part of each semantics, which is the strategy they use to enforce types at the
+boundaries between typed and untyped code.
 
 To be clear, one main contribution of our paper is a model for one mixed-typed
 language, one surface-level type system, and three formal semantics. So then we
-can take one program, validated by one surface-level static typing system, and
-compare the results of running the same code three different ways.
+can take one well-typed program and compare its behaviors.
 
-Then using the model as a guide, we took Typed Racket as the surface language
-and added two new compilers. The second main contribution of the paper is a
-performance evaluation comparing the three semantics extracted from the
-literature on equal source programs. This is the first evaluation of its kind
-and I'm excited to tell you about it.
+A second contribution is a meta-theory for these semantics. Each one enforces
+different invariants, and these correspond to the different notions of soundness
+in the literature.
 
-TODO based on this work we can draw serious implications for language designers
+The third and last contribution is that we used the model as a guide to implement
+the three semantics for Typed Racket. Using this implementation we conducted
+the first-of-its-kind controlled experiment to measure the performance of each
+approach.
 
-s21
-But first, lets explain the model. We have a small grammar of types, and a
-matching grammar of values. I claim these types are the simplest possible to
-ask all the interesting questions about type soundness; in particular
-we have a coinductive type for functions, an inductive type for pairs, a base
-type for integers, and a type for natural numbers that is a subtype of the type
-for integers. On the value side, the natural-number literals are a subset of
+We have apples-to-apples soundness, and apples-to-apples performance.
+
+Lets dive in to the model.
+We have a small grammar of types, and a matching grammar of values.
+The types include a coinductive type for functions, an inductive type for
+pairs, a base for integers, and a type for natural numbers that is a subtype
+of the type of integers.
+On the value side, the natural-number literals are a subset of
 the integer literals.
 
 This subset relation is extremely important. It reflects how programmers use
@@ -113,6 +118,7 @@ And finally we have a simple language of expressions. The non-standard part
 of the expression language are these two boundary terms. A dyn expression
 embeds a dynamically typed expression in statically typed code, and a stat
 expression embeds a statically-typed expression in dynamically-typed code.
+The type system reasons about boundaries in a straightforward way.
 
 In this model we can write well-typed programs that mix typed and untyped
 code, like this, or with more readable syntax like this. On the left we have
@@ -127,11 +133,10 @@ expecting a pair of natural numbers and receive a pair of negative numbers,
 then higher order raises an error because the components of the pair don't match
 the type. Finally if we're expecting a function on natural numbers and receive
 an untyped lambda, higher-order conditionally accepts the value. That's what
-the lock is trying to indicate. In the model we monitor the untyped function
-and check that every value it returns, forever more, is a natural number. If
-not then higher-order can trace the violation back to this boundary. And that's
-all you need to know to understand the higher-order semantics. It checks types
-eagerly when possible, and lazily when necessary.
+the lock is trying to indicate.
+
+TODO explain details
+
 
 TODO: checks all first-order properties immediately and all higher-order properties in a delayed fashion
 
