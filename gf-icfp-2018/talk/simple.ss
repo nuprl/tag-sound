@@ -3,8 +3,9 @@
 ;; Slides for ICFP 2018
 
 ;; TODO
-;; - be clearer about contribution, we did the semantics
 ;; - add micro/macro dyn/not knobs for ICFP
+;; - highlight islands in 'by Year' space
+;; - fib stutter-step (erasure, bomb)
 
 (require
   gf-icfp-2018/talk/src/gt-system gf-icfp-2018/talk/src/constant
@@ -185,14 +186,13 @@
   ;; implications for programmer? ... 'soundness' is a little early, no?
   (define contrib-2-pict
     (contrib*->pict
-      '("Implementation:"
+      '("Performance:"
         ""
         "- Racket syntax/types"
         ""
         "- three compilers"
         ""
-        "- controlled performance"
-        "  experiment")))
+        "- systematic experiment")))
   (define model-pict
     (cc-superimpose
       (blank (pict-width contrib-1-pict) 0)
@@ -366,7 +366,7 @@
       (make-boundary-pict #:left (make-hole)
                           #:right @dyn-text{-2}
                           #:arrow-style arrow-style-1
-                          #:arrow @t{?})))
+                          #:arrow @t{Nat/Int})))
   (make-example-detail-slide
     '1
     (make-boundary-pict #:left (hole-append @t{map} (small-check-icon) @t{y})
@@ -382,7 +382,7 @@
       (make-boundary-pict #:left (make-hole)
                           #:right @dyn-text{-1}
                           #:arrow-style arrow-style-1
-                          #:arrow (tag-pict @t{?} 'lbl-2))))
+                          #:arrow (tag-pict @t{Nat/Int} 'lbl-2))))
   (void))
 
 (define (sec:embedding:E)
