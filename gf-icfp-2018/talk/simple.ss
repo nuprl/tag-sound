@@ -4,8 +4,6 @@
 
 ;; TODO
 ;; - add micro/macro dyn/not knobs for ICFP
-;; - highlight islands in 'by Year' space
-;; - fib stutter-step (erasure, bomb)
 
 (require
   gf-icfp-2018/talk/src/gt-system gf-icfp-2018/talk/src/constant
