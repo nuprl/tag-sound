@@ -33,22 +33,22 @@
                  [current-font-size 32]
                  [current-titlet string->title])
     (void)
-    (sec:title)
-    (sec:folklore-I)
-    (sec:migratory-typing)
+    ;(sec:title)
+    ;(sec:folklore-I)
+    ;(sec:migratory-typing)
     (sec:gt-landscape)
-    (sec:main-result)
-    (pslide (make-section-header "Model"))
-    (sec:embedding:warmup)
-    (sec:embedding:H)
-    (sec:embedding:1)
-    (sec:embedding:E)
-    (sec:embedding:end)
-    (sec:soundness)
-    (sec:implementation)
-    (sec:performance)
-    (sec:conclusion)
-    (sec:extra)
+    ;(sec:main-result)
+    ;(pslide (make-section-header "Model"))
+    ;(sec:embedding:warmup)
+    ;(sec:embedding:H)
+    ;(sec:embedding:1)
+    ;(sec:embedding:E)
+    ;(sec:embedding:end)
+    ;(sec:soundness)
+    ;(sec:implementation)
+    ;(sec:performance)
+    ;(sec:conclusion)
+    ;(sec:extra)
     (void)))
 
 ;; -----------------------------------------------------------------------------
@@ -106,32 +106,12 @@
 
 (define (sec:gt-landscape)
   (make-gtspace-slide)
-  (make-gtspace-slide
-    all-system*)
-  (make-gtspace-slide
-    all-system*
-    #:title '("by Date" "Oldest" "Newest")
-    #:layout year-gt-layout)
-  (make-gtspace-slide
-    all-system*
-    #:title '("by Creator" "Academia" "Industry")
-    #:layout creator-gt-layout)
-  (make-gtspace-slide
-    all-system*
-    #:title '("by Claim" "Sound?" "Unsound")
-    #:layout theory-gt-layout)
-  (make-gtspace-slide
-    all-system*
-    #:title '("by Performance" "Alive?" "Dead")
-    #:layout performance-gt-layout
-    #:disclaimer (make-disclaimer-pict "(the word 'dead' is used here in a technical sense)"))
   (pslide
-    (make-gtspace-bg all-system*)
-    #:go (coord 1/2 SLIDE-TOP 'ct)
-    @titlet{Chaos!}
-    #:go (coord 1/2 1/2 'cc)
-    (let-values (((w h) (pool-dimensions)))
-      (scale-to-fit (frame (bitmap garden-center.png)) w (+ margin h))))
+    #:go (coord 1/2 1/2)
+    (tag-pict (make-gtspace-bg all-system* random-gt-layout) POOL-TAG)
+    #:go (coord SLIDE-LEFT SLIDE-TOP 'lb)
+    #:alt [(heading-text "Typed/Untyped Languages")]
+    (t "I am sound"))
   (void))
 
 (define (sec:main-result)
