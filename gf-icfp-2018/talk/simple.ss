@@ -37,7 +37,6 @@
     (sec:folklore-I)
     (sec:migratory-typing)
     (sec:gt-landscape)
-    (sec:kafka)
     (sec:main-result)
     (pslide (make-section-header "Model"))
     (sec:embedding:warmup)
@@ -133,32 +132,6 @@
     #:go (coord 1/2 1/2 'cc)
     (let-values (((w h) (pool-dimensions)))
       (scale-to-fit (frame (bitmap garden-center.png)) w (+ margin h))))
-  (void))
-
-(define (sec:kafka)
-  (define x-base 15/100)
-  (define ecoop-pict (string->title "ECOOP 2018" #:size 30 #:color WHITE))
-  (define title-pict (string->title "KafKa: Gradual Typing for Objects" #:size 36))
-  (define authors-pict (arrange-authors author->pict kafka-author*))
-  (define box-w (exact-ceiling (+ 60 (max (pict-width title-pict) (pict-width authors-pict)))))
-  (define box-h (exact-ceiling (+ 60 (pict-height title-pict) (pict-height authors-pict))))
-  (define bw 2)
-  (define the-box (filled-rectangle box-w box-h #:color BOX-COLOR #:border-width bw))
-  (define lbl-h (exact-ceiling (* 3 (pict-height ecoop-pict))))
-  (define the-label (filled-rounded-rectangle box-w lbl-h #:color ECOOP-RED #:border-width bw))
-  (pslide
-    #:go (coord 1/2 1/2 'cc)
-    (tag-pict the-box 'the-box)
-    #:go (at-find-pict 'the-box ct-find 'cc)
-    (tag-pict the-label 'lbl-pict)
-    #:go (at-find-pict 'lbl-pict rc-find 'rc #:abs-x -40 #:abs-y -20)
-    ecoop-pict
-    #:go (coord 1/2 1/2 'cc)
-    the-box
-    #:go (at-find-pict 'the-box lt-find 'lt #:abs-x 20 #:abs-y 20)
-    (tag-pict title-pict 'title-pict)
-    #:go (at-find-pict 'title-pict lb-find 'lt #:abs-x 6 #:abs-y 20)
-    authors-pict)
   (void))
 
 (define (sec:main-result)
@@ -524,16 +497,8 @@
     #:go (coord 1/2 (+ 1/4 4/10) 'ct)
     @url{docs.racket-lang.org/gtp-benchmarks})
   (make-overhead-plot-slide '())
-  (make-overhead-plot-slide '(H 1 E))
-  (pslide
-    (make-scatterplots-pict))
+  (pslide (make-scatterplots-pict))
   (make-folklore-slide #:q1? #false #:answers? #true)
-  (void))
-
-(define (make-scatterplots-pict)
-  (scale-to-fit (bitmap cache-scatterplots.png) client-w client-h))
-
-(define (sec:conclusion)
   (define perf-plot-pict
     (let ((w (* 40/100 client-w)))
       (scale-to-fit (make-overhead-plot '(H 1 E) #:legend? #false) w w)))
@@ -552,6 +517,21 @@
           (define-values [txt bx] (symbol->name+box sym))
           (ht-append (lb-superimpose (blank 55 26) (scale-to-fit bx 40 40))
                      (string*->text descr))))))
+  (pslide
+    #:go (coord SLIDE-LEFT SLIDE-TOP 'lt)
+    @heading-text{For Performance}
+    #:go MAIN-CONTRIB-COORD
+    #:alt [perf-plot-pict]
+    perf-plot-pict
+    #:next
+    #:go -MAIN-CONTRIB-COORD
+    perf-text-pict)
+  (void))
+
+(define (make-scatterplots-pict)
+  (scale-to-fit (bitmap cache-scatterplots.png) client-w client-h))
+
+(define (sec:conclusion)
   (define (make-spectrum-delimiter)
     (filled-rectangle 6 20 #:color "black" #:draw-border? #f))
   (define spectrum-line-width 10)
@@ -599,19 +579,9 @@
                       #:style 'transparent)))
   (pslide
     #:go (coord SLIDE-LEFT SLIDE-TOP 'lt)
-    @heading-text{For Performance}
-    #:go MAIN-CONTRIB-COORD
-    #:alt [perf-plot-pict]
-    perf-plot-pict
-    #:go -MAIN-CONTRIB-COORD
-    perf-text-pict)
-  (pslide
-    #:go (coord SLIDE-LEFT SLIDE-TOP 'lt)
     (heading-text "Special Thanks")
     #:go (coord 1/2 1/4 'ct)
     (arrange-authors (padded-bitmap 140) ack* 100 20 #true))
-  (pslide
-    (make-section-header "Questions?"))
   (pslide
     #:go (coord SLIDE-LEFT SLIDE-TOP 'lt)
     #:go MAIN-CONTRIB-COORD
@@ -633,6 +603,7 @@
   (make-1-example-slide)
   (make-E-example-slide)
   (pslide (make-scatterplots-pict))
+  (make-kafka-slide)
   (void))
 
 ;; -----------------------------------------------------------------------------
@@ -1237,7 +1208,7 @@
   (parameterize ([current-font-size 26])
     (pslide
       #:go (coord SLIDE-LEFT SLIDE-TOP 'lt)
-      @heading-text{Typical program}
+      @heading-text{How does adding types affect performance?}
       #:go MAIN-CONTRIB-COORD
       (make-overhead-plot e*))))
 
@@ -1264,9 +1235,12 @@
         #:x-max x-max
         #:y-min 0
         #:y-max (* 10 (+ 1 (order-of-magnitude x-max))))))
-  (define pp+axis (add-overhead-axis-labels pp))
+  (define pp+axis (add-overhead-axis-labels (tag-pict pp 'the-plot)))
   (if legend?
-    (ht-append 20 (make-overhead-legend e*) pp+axis)
+    (ppict-do
+      (hc-append 30 (blank) pp+axis)
+      #:go (at-find-pict 'the-plot lb-find 'rb #:abs-x -10)
+      (make-overhead-legend '(H 1 E)))
     pp+axis))
 
 (define (symbol->color e)
@@ -1288,9 +1262,24 @@
 
 (define (add-overhead-axis-labels pp)
   (define margin 20)
-  (define y-label (t "Overhead vs. Untyped"))
+  (define y-label
+    (vr-append (t "Overhead vs.")
+               (t "Untyped")))
   (define x-label (t "Num. Type Annotations"))
-  (vl-append margin y-label (vr-append margin (frame pp) x-label)))
+  (ht-append margin y-label (vr-append margin (frame-plot pp) x-label)))
+
+(define (frame-plot p)
+  (add-axis-arrow (add-axis-arrow p 'x) 'y))
+
+(define (add-axis-arrow p xy)
+  (define find-dest
+    (case xy
+      ((x)
+       rb-find)
+      ((y)
+       lt-find)
+      (else (raise-argument-error 'add-axis-arrow "(or/c 'x 'y)" 1 p xy))))
+  (pin-arrow-line 20 p p lb-find p find-dest #:line-width 6))
 
 (define (make-embedding-function e x-min x-max)
   (case e
@@ -1605,6 +1594,32 @@
   (cc-superimpose
     (rectangle (+ 15 (pict-width p)) (pict-height p))
     p))
+
+(define (make-kafka-slide)
+  (define x-base 15/100)
+  (define ecoop-pict (string->title "ECOOP 2018" #:size 30 #:color WHITE))
+  (define title-pict (string->title "KafKa: Gradual Typing for Objects" #:size 36))
+  (define authors-pict (arrange-authors author->pict kafka-author*))
+  (define box-w (exact-ceiling (+ 60 (max (pict-width title-pict) (pict-width authors-pict)))))
+  (define box-h (exact-ceiling (+ 60 (pict-height title-pict) (pict-height authors-pict))))
+  (define bw 2)
+  (define the-box (filled-rectangle box-w box-h #:color BOX-COLOR #:border-width bw))
+  (define lbl-h (exact-ceiling (* 3 (pict-height ecoop-pict))))
+  (define the-label (filled-rounded-rectangle box-w lbl-h #:color ECOOP-RED #:border-width bw))
+  (pslide
+    #:go (coord 1/2 1/2 'cc)
+    (tag-pict the-box 'the-box)
+    #:go (at-find-pict 'the-box ct-find 'cc)
+    (tag-pict the-label 'lbl-pict)
+    #:go (at-find-pict 'lbl-pict rc-find 'rc #:abs-x -40 #:abs-y -20)
+    ecoop-pict
+    #:go (coord 1/2 1/2 'cc)
+    the-box
+    #:go (at-find-pict 'the-box lt-find 'lt #:abs-x 20 #:abs-y 20)
+    (tag-pict title-pict 'title-pict)
+    #:go (at-find-pict 'title-pict lb-find 'lt #:abs-x 6 #:abs-y 20)
+    authors-pict)
+  (void))
 
 ;; =============================================================================
 
