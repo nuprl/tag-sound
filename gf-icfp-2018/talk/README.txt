@@ -304,6 +304,10 @@ from untyped code and figure out what it is; this is not a challenge in KafKa
 because every higher-order value comes with a type spec. Still maybe useful for
 semantics of a gradual language, but not for working with untyped code
 
+2018-09-17
+interesting question unfortunately so complicated to explain need to look at paper
+no formal connection between source and target languages
+
 - - -
 
 Q. What about Pycket?
