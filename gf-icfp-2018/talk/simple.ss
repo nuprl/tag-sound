@@ -38,7 +38,7 @@
     ;(sec:title)
     ;(sec:folklore-I)
     (sec:migratory-typing)
-    ;(sec:gt-landscape)
+    (sec:gt-landscape)
     ;(sec:main-result)
     ;(pslide (make-section-header "Model"))
     ;(sec:embedding:warmup)
@@ -88,23 +88,29 @@
   (define dyn-file (make-dyn-file lambda-pict))
   (define file-y 1/4)
   (define text-y 55/100)
+  (define file-coord (coord 1/2 file-y 'ct))
+  (define text-coord (coord 1/2 text-y 'ct))
   (pslide
     (make-section-header "Migratory Typing"))
   (pslide
     #:go (coord SLIDE-LEFT SLIDE-TOP 'lt)
     (heading-text "Migratory Typing")
-    #:go (coord 1/2 file-y 'ct)
+    #:go file-coord
     #:alt [dyn-file
-           #:go (coord 1/2 text-y 'ct)
+           #:go text-coord
            (t "Begin with a un(i)typed language")]
     #:alt [dyn-file
            #:go (at-find-pict 'dyn-file lc-find 'rc #:abs-x -10)
            tau
-           #:go (coord 1/2 text-y 'ct)
+           #:go text-coord
            (t "Design an idiomatic type system")]
-    (stat-dyn/arrow)
-    #:go (coord 1/2 text-y 'ct)
-    @t{Result: a mixed-typed language})
+    #:go text-coord
+    @t{Result: a mixed-typed language}
+    #:go file-coord
+    #:alt [(stat-dyn/arrow)]
+    (add-stat-dyn-arrow (stat-dyn-file
+                          (make-stat-file (hole-append (hc-append @t{(} (make-hole)) @t{4)}))
+                          (make-dyn-file @dyn-text{λ(x)-x}))))
   (void))
 
 (define (sec:gt-landscape)
@@ -1003,9 +1009,9 @@
 
 (define make-hole
   (let* ([x @t{X}]
-         [w (pict-width x)])
-    (lambda ()
-      (filled-rectangle w w #:color GREY))))
+         [w (pict-width x)]
+         [p (bitmap (stop-icon #:color "powderblue" #:height w #:material glass-icon-material))])
+    (lambda () p)))
 
 (define (big-monitor-icon)
   (big-pause-icon))
@@ -1578,7 +1584,10 @@
     (cc-superimpose bg (bitmap p))))
 
 (define (stat-dyn/arrow)
-  (add-stat-dyn-arrow (hc-append 70 (make-stat-file (large-tau-icon)) (make-dyn-file (large-lambda-icon)))))
+  (add-stat-dyn-arrow (stat-dyn-file)))
+
+(define (stat-dyn-file [stat-pict (make-stat-file (large-tau-icon))] [dyn-pict (make-dyn-file (large-lambda-icon))])
+  (hc-append 70 stat-pict dyn-pict))
 
 (define (add-stat-dyn-arrow p)
   (for/fold ((acc p))
