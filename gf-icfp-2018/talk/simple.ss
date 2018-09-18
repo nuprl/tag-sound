@@ -4,6 +4,7 @@
 
 ;; TODO
 ;; - add micro/macro dyn/not knobs for ICFP
+;; - change desktop backgroup (and non-mirror background)
 
 (require
   gf-icfp-2018/talk/src/gt-system gf-icfp-2018/talk/src/constant
@@ -34,9 +35,9 @@
                  [current-titlet string->title])
     (void)
     ;(sec:title)
-    ;(sec:folklore-I)
+    (sec:folklore-I)
     ;(sec:migratory-typing)
-    (sec:gt-landscape)
+    ;(sec:gt-landscape)
     ;(sec:main-result)
     ;(pslide (make-section-header "Model"))
     ;(sec:embedding:warmup)
@@ -67,10 +68,11 @@
     #:go (coord 7/8 8/10)
     (scale-to-fit (cellophane (bitmap neu-logo.png) WATERMARK-ALPHA) 300 300)
     #:go (coord SLIDE-LEFT 1/2 'lb)
-    @titlet{A Spectrum of Type Soundness}
-    @titlet{and Performance}
+    (vl-append 20
+               (titlet "A Spectrum of Type Soundness")
+               (titlet "and Performance"))
     #:go (coord SLIDE-RIGHT SLIDE-BOTTOM 'rb)
-    (vl-append 10
+    (vl-append 15
                @t{Ben Greenman & Matthias Felleisen}
                @t{Northeastern University}))
   (void))
@@ -111,7 +113,12 @@
     (tag-pict (make-gtspace-bg all-system* random-gt-layout) POOL-TAG)
     #:go (coord SLIDE-LEFT SLIDE-TOP 'lb)
     #:alt [(heading-text "Typed/Untyped Languages")]
+    ;; TODO add callouts
     (t "I am sound"))
+  (pslide
+    #:go (coord 1/2 1/2)
+    (t "No more unsubstantiated claims")
+    (t "Time to do science"))
   (void))
 
 (define (sec:main-result)
@@ -699,9 +706,11 @@
     (colorize (text str (current-main-font) 22) fg-color))
   (define w (+ 10 (pict-width txt-p)))
   (define h (+ 10 (pict-height txt-p)))
-  (cc-superimpose
-    (filled-rectangle w h #:color bg-color)
-    txt-p))
+  (tag-pict
+    (cc-superimpose
+      (filled-rectangle w h #:color bg-color)
+      txt-p)
+    (string->symbol str)))
 
 (define (add-gt-system* base gt* [pre-f-layout #f])
   (define gt-layout (or pre-f-layout random-gt-layout))
@@ -1295,6 +1304,22 @@
                       #:border-color [border-color BLACK]
                       #:color-1 [color-1 WHITE]
                       #:color-2 [color-2 BLACK])
+  (X-rectangle/2t 'draw-rectangle width height #:border-width border-width #:border-color border-color #:color-1 color-1 #:color-2 color-2))
+
+(define (rounded-rectangle/2t width height
+                              #:radius [radius -0.25]
+                              #:border-width [border-width 1]
+                              #:border-color [border-color BLACK]
+                              #:color-1 [color-1 WHITE]
+                              #:color-2 [color-2 BLACK])
+  (X-rectangle/2t 'draw-rounded-rectangle width height #:border-width border-width #:border-color border-color #:color-1 color-1 #:color-2 color-2))
+
+(define (X-rectangle/2t X-draw width height
+                        #:radius [radius -0.25]
+                        #:border-width [border-width 1]
+                        #:border-color [border-color BLACK]
+                        #:color-1 [color-1 WHITE]
+                        #:color-2 [color-2 BLACK])
   ;; thank you asumu https://www.asumu.xyz/blog/2018/03/31/making-the-most-of-lang-slideshow/
   (dc (λ (dc dx dy)
         (define old-brush
@@ -1313,7 +1338,13 @@
         (send dc set-pen
           (new pen% [width border-width]
                     [color border-color]))
-        (send dc draw-rectangle dx dy width height)
+        (case X-draw
+          ((draw-rectangle)
+           (send dc draw-rectangle dx dy width height))
+          ((draw-rounded-rectangle)
+           (send dc draw-rounded-rectangle dx dy width height radius))
+          (else
+            (raise-argument-error 'X-rectangle "draw method" X-draw)))
         (send dc set-brush old-brush)
         (send dc set-pen old-pen))
       width height))
@@ -1393,24 +1424,65 @@
     (apply vl-append (map string*->text str*))))
 
 (define (make-rumor-pict direction str*)
-  (define balloon-tail-param 8)
-  (define-values [spike +- c]
-    (case direction
-      [(left)
-       (values 'sw - q-color)]
-      [(right)
-       (values 'se + a-color)]
-      [else
-       (raise-argument-error 'make-rumor-pict "direction?" direction)]))
   (define str-pict (string*->text str*))
   (define str-w (pict-width str-pict))
   (define str-h (pict-height str-pict))
   (define balloon-w (+ str-w 70))
-  (define balloon-h (+ str-h 40))
-  (ppict-do
-    (balloon-pict (balloon balloon-w balloon-h balloon-tail-param spike (+- balloon-tail-param) balloon-tail-param c))
-    #:go (coord 1/2 1/2 'cc)
-    str-pict))
+  (define balloon-h (+ str-h 60))
+  (define balloon-body-color "white")
+  (define balloon-line-color "black")
+  (define balloon-line-width 8)
+  (define balloon-tail-param 8)
+  ;(define-values [spike +- c]
+  ;  (case direction
+  ;    [(left)
+  ;     (values 'sw - q-color)]
+  ;    [(right)
+  ;     (values 'se + a-color)]
+  ;    [else
+  ;     (raise-argument-error 'make-rumor-pict "direction?" direction)]))
+  ;(ppict-do
+  ;  (balloon-pict (balloon balloon-w balloon-h balloon-tail-param spike (+- balloon-tail-param) balloon-tail-param c))
+  ;  #:go (coord 1/2 1/2 'cc)
+  ;  str-pict)
+  (define balloon-pict
+    (cc-superimpose
+      (rounded-rectangle/2t balloon-w balloon-h
+                            #:radius -0.2
+                            #:color-1 "whitesmoke"
+                            #:color-2 balloon-body-color
+                            #:border-color balloon-line-color #:border-width balloon-line-width)
+      str-pict))
+  (define triangle-pict
+    (let* ([triangle-width 30]
+           [triangle-height 50]
+           [draw-fun (lambda (dc dx dy)
+                       (define old-brush (send dc get-brush))
+                       (define old-pen (send dc get-pen))
+                       (send dc set-brush (new brush% [style 'solid] [color balloon-body-color]))
+                       (let ((path (new dc-path%)))
+                         (send dc set-pen (new pen% [width balloon-line-width] [color balloon-body-color]))
+                         (send path move-to 0 0)
+                         (send path line-to triangle-width 0)
+                         (send dc draw-path path dx dy))
+                       (let ((path (new dc-path%)))
+                         (send dc set-pen (new pen% [width balloon-line-width] [color balloon-line-color]))
+                         (send path move-to 0 0)
+                         (send path line-to (/ triangle-width 2) triangle-height)
+                         (send path line-to triangle-width 0)
+                         (send dc draw-path path dx dy))
+                       (send dc set-brush old-brush)
+                       (send dc set-pen old-pen))])
+    (dc draw-fun triangle-width triangle-height)))
+  (define tag-v (- (/ balloon-line-width 6)))
+  (define tag-h 20)
+  (case direction
+    ((left)
+     (vl-append tag-v balloon-pict (hc-append tag-h (blank) triangle-pict)))
+    ((right)
+     (vr-append tag-v balloon-pict (hc-append tag-h triangle-pict (blank))))
+    (else
+      (raise-argument-error 'make-rumor-pict "direction?" 1 str* direction))))
 
 (define (group-gt-systems-by gt* sel <)
   (define g** (filter-not null? (group-by sel gt*)))
