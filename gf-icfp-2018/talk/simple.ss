@@ -5,6 +5,7 @@
 ;; TODO
 ;; - add micro/macro dyn/not knobs for ICFP
 ;; - change desktop backgroup (and non-mirror background)
+;; - think about story, really need 'migratory typing' section?
 
 (require
   gf-icfp-2018/talk/src/gt-system gf-icfp-2018/talk/src/constant
@@ -35,8 +36,8 @@
                  [current-titlet string->title])
     (void)
     ;(sec:title)
-    (sec:folklore-I)
-    ;(sec:migratory-typing)
+    ;(sec:folklore-I)
+    (sec:migratory-typing)
     ;(sec:gt-landscape)
     ;(sec:main-result)
     ;(pslide (make-section-header "Model"))
@@ -85,25 +86,25 @@
   (define lambda-pict (large-lambda-icon))
   (define tau (large-tau-icon))
   (define dyn-file (make-dyn-file lambda-pict))
+  (define file-y 1/4)
+  (define text-y 55/100)
   (pslide
     (make-section-header "Migratory Typing"))
   (pslide
-    #:go (coord SLIDE-LEFT MAIN-CONTRIB-Y 'lt)
-    @t{Step 0: un(i)typed language}
-    #:go (coord 1/2 1/4 'ct)
-    dyn-file)
-  (pslide
-    #:go (coord SLIDE-LEFT MAIN-CONTRIB-Y 'lt)
-    @t{Step 1: idiomatic type system}
-    #:go (coord 1/2 1/4 'ct)
-    dyn-file
-    #:go (at-find-pict 'dyn-file lc-find 'rc #:abs-x -10)
-    tau)
-  (pslide
-    #:go (coord SLIDE-LEFT MAIN-CONTRIB-Y 'lt)
-    @t{Step 2: mixed-typed language}
-    #:go (coord 1/2 1/4 'ct)
-    (stat-dyn/arrow))
+    #:go (coord SLIDE-LEFT SLIDE-TOP 'lt)
+    (heading-text "Migratory Typing")
+    #:go (coord 1/2 file-y 'ct)
+    #:alt [dyn-file
+           #:go (coord 1/2 text-y 'ct)
+           (t "Begin with a un(i)typed language")]
+    #:alt [dyn-file
+           #:go (at-find-pict 'dyn-file lc-find 'rc #:abs-x -10)
+           tau
+           #:go (coord 1/2 text-y 'ct)
+           (t "Design an idiomatic type system")]
+    (stat-dyn/arrow)
+    #:go (coord 1/2 text-y 'ct)
+    @t{Result: a mixed-typed language})
   (void))
 
 (define (sec:gt-landscape)
