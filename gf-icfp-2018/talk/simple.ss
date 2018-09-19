@@ -39,8 +39,8 @@
     ;(sec:title)
     ;(sec:folklore-I)
     ;(sec:migratory-typing)
-    (sec:gt-landscape)
-    ;(sec:main-result)
+    ;(sec:gt-landscape)
+    (sec:main-result)
     ;(pslide (make-section-header "Model"))
     ;(sec:embedding:warmup)
     ;(sec:embedding:H)
@@ -148,19 +148,27 @@
     #:next
     #:set (add-performance-callouts ppict-do-state)
     #:next
-    #:go (coord 1/2 48/100 'ct)
+    #:go (coord 1/2 1/2)
     (tag-pict
-      (make-rumor-pict 'right '("Language A programs run faster than"
+      (make-rumor-pict 'right '("Language A programs seem faster than"
                                 "Language B programs"))
       'cross-lang)
-    ;#:go (at-find-pict 'cross-lang rc-find 'rc #:abs-x -4)
-    ;(vl-append 10 (bitmap "src/apple.png") (bitmap "src/orange.png"))
-
-    )
+    #:next
+    #:go (coord 1/2 1/2 #:abs-y -20)
+    (bitmap (stop-sign-icon #:height 100 #:material plastic-icon-material)))
   (pslide
+    #:go HEADING-COORD
+    (heading-text "This Paper ...")
     #:go (coord 1/2 1/2)
-    (t "No more unsubstantiated claims")
-    (t "Time to do science"))
+    (make-gtspace-bg #:bg-only? #true)
+    #:go (coord 1/2 1/2)
+    ;; lets proceed as scientists
+    (let ((p (vl-append 45
+                        (t "No more un-scientific claims")
+                        (t "Let's proceed systematically"))))
+      (cc-superimpose
+        (filled-rounded-rectangle (+ 70 (pict-width p)) (+ 90 (pict-height p)) -0.05 #:color TRAFFIC-YELLOW #:border-width 12)
+        p)))
   (void))
 
 (define (sec:main-result)
