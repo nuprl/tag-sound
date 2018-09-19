@@ -28,6 +28,7 @@
 (define MAIN-CONTRIB-COORD (coord MAIN-CONTRIB-X 1/4 'lt))
 (define -MAIN-CONTRIB-COORD (coord SLIDE-RIGHT 1/4 'rt))
 (define ARROW-COORD (coord 1/2 1/2 'cb))
+(define HEADING-COORD (coord SLIDE-LEFT SLIDE-TOP 'lt))
 
 (define (do-show)
   (set-page-numbers-visible! #false)
@@ -37,7 +38,7 @@
     (void)
     ;(sec:title)
     ;(sec:folklore-I)
-    (sec:migratory-typing)
+    ;(sec:migratory-typing)
     (sec:gt-landscape)
     ;(sec:main-result)
     ;(pslide (make-section-header "Model"))
@@ -93,7 +94,7 @@
   (pslide
     (make-section-header "Migratory Typing"))
   (pslide
-    #:go (coord SLIDE-LEFT SLIDE-TOP 'lt)
+    #:go HEADING-COORD
     (heading-text "Migratory Typing")
     #:go file-coord
     #:alt [dyn-file
@@ -108,18 +109,37 @@
     @t{Result: a mixed-typed language}
     #:go file-coord
     #:alt [(stat-dyn/arrow)]
-    (add-stat-dyn-arrow (stat-dyn-file
-                          (make-stat-file (hole-append (hc-append @t{(} (make-hole)) @t{4)}))
-                          (make-dyn-file @dyn-text{λ(x)-x}))))
+    (add-stat-dyn-arrow
+      #:make-arrow pin-arrow-line
+      (stat-dyn-file
+        (make-stat-file (hole-append (hc-append @t{(} (make-hole)) @t{4)}))
+        (make-dyn-file @dyn-text{λ(x)-x}))))
   (void))
 
 (define (sec:gt-landscape)
-  (make-gtspace-slide)
   (pslide
+    #:go HEADING-COORD
+    (heading-text "Mixing Typed and Untyped Code")
     #:go (coord 1/2 1/2)
+    (make-gtspace-bg #:bg-only? #true)
+    #:go (coord 1/3 1/4 'lt)
+    (contrib*->pict (list
+      (tag-pict (t "migratory typing") 'mt-pict)
+      ""
+      "gradual typing"
+      ""
+      "optional typing"
+      ""
+      "concrete typing" "" "..."))
+    #:go (at-find-pict 'mt-pict lc-find 'rc #:abs-x -15)
+    (disk 12 #:color "black" #:draw-border? #false))
+  (pslide
+    #:go HEADING-COORD
+    (heading-text "Mixed-Typed Languages")
+    #:go (coord 1/2 1/2)
+    #:alt [(make-gtspace-bg)]
     (tag-pict (make-gtspace-bg all-system* random-gt-layout) POOL-TAG)
     #:go (coord SLIDE-LEFT SLIDE-TOP 'lb)
-    #:alt [(heading-text "Typed/Untyped Languages")]
     ;; TODO add callouts
     (t "I am sound"))
   (pslide
@@ -838,11 +858,15 @@
   (define h (- client-h (* 2 1/5 client-h)))
   (values w h))
 
-(define (make-gtspace-bg [gt* '()] [gt-layout #f])
+(define (make-gtspace-bg [gt* '()] [gt-layout #f] #:bg-only? [bg-only? #f])
   (define-values [w h] (pool-dimensions))
-  (cc-superimpose
-    (cellophane (filled-rectangle (+ (* 2 margin) client-w) (+ margin h) #:color "DarkKhaki") 0.4)
-    (add-gt-system* (filled-rounded-rectangle w h -1/5 #:color "AliceBlue") gt* gt-layout)))
+  (define bg
+    (cellophane (filled-rectangle (+ (* 2 margin) client-w) (+ margin h) #:color "DarkKhaki") 0.4))
+  (if bg-only?
+    bg
+    (cc-superimpose
+      bg
+      (add-gt-system* (filled-rounded-rectangle w h -1/5 #:color "AliceBlue") gt* gt-layout))))
 
 (define (make-gtspace-slide [gt* '()] #:title [title #f] #:layout [gt-layout #f] #:disclaimer [extra-pict (blank)])
   (define top-margin -6)
@@ -1589,17 +1613,17 @@
 (define (stat-dyn-file [stat-pict (make-stat-file (large-tau-icon))] [dyn-pict (make-dyn-file (large-lambda-icon))])
   (hc-append 70 stat-pict dyn-pict))
 
-(define (add-stat-dyn-arrow p)
+(define (add-stat-dyn-arrow p #:make-arrow [make-arrow pin-arrows-line])
   (for/fold ((acc p))
-            ((xxx (in-list '((stat-file dyn-file)))))
-    (pin-arrows-line
+            ((xxx (in-list '((dyn-file stat-file)))))
+    (make-arrow
       #:line-width ARROW-LINE-WIDTH
       ARROW-HEAD-SIZE
       acc
       (find-tag acc (car xxx))
-      rc-find
+      lc-find
       (find-tag acc (cadr xxx))
-      lc-find)))
+      rc-find)))
 
 (define (examples-append . p*)
   (apply vl-append 30 p*))
