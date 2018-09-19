@@ -122,6 +122,8 @@
     (heading-text "Mixing Typed and Untyped Code")
     #:go (coord 1/2 1/2)
     (make-gtspace-bg #:bg-only? #true)
+    #:go (coord 9/10 9/10 'rb)
+    (make-disclaimer-pict "(the research landscape)")
     #:go (coord 1/3 1/4 'lt)
     (contrib*->pict (list
       (tag-pict (t "migratory typing") 'mt-pict)
@@ -136,12 +138,25 @@
   (pslide
     #:go HEADING-COORD
     (heading-text "Mixed-Typed Languages")
+    #:go (coord 9/10 9/10 'rb)
+    (make-disclaimer-pict "(the systems landscape)")
     #:go (coord 1/2 1/2)
     #:alt [(make-gtspace-bg)]
     (tag-pict (make-gtspace-bg all-system* random-gt-layout) POOL-TAG)
-    #:go (coord SLIDE-LEFT SLIDE-TOP 'lb)
-    ;; TODO add callouts
-    (t "I am sound"))
+    #:next
+    #:set (add-soundness-callouts ppict-do-state)
+    #:next
+    #:set (add-performance-callouts ppict-do-state)
+    #:next
+    #:go (coord 1/2 48/100 'ct)
+    (tag-pict
+      (make-rumor-pict 'right '("Language A programs run faster than"
+                                "Language B programs"))
+      'cross-lang)
+    ;#:go (at-find-pict 'cross-lang rc-find 'rc #:abs-x -4)
+    ;(vl-append 10 (bitmap "src/apple.png") (bitmap "src/orange.png"))
+
+    )
   (pslide
     #:go (coord 1/2 1/2)
     (t "No more unsubstantiated claims")
@@ -1505,8 +1520,8 @@
                        (send dc set-brush old-brush)
                        (send dc set-pen old-pen))])
     (dc draw-fun triangle-width triangle-height)))
-  (define tag-v (- (/ balloon-line-width 6)))
-  (define tag-h 20)
+  (define tag-v (- (/ balloon-h 50)))
+  (define tag-h (/ balloon-w 30))
   (case direction
     ((left)
      (vl-append tag-v balloon-pict (hc-append tag-h (blank) triangle-pict)))
@@ -1514,6 +1529,32 @@
      (vr-append tag-v balloon-pict (hc-append tag-h triangle-pict (blank))))
     (else
       (raise-argument-error 'make-rumor-pict "direction?" 1 str* direction))))
+
+(define (add-soundness-callouts p)
+  (add-callouts p 'left "I am sound" q-color '(Gradualtalk SafeTS Thorn Nom Reticulated |Typed Racket| TPD StrongScript Pycket Nom |Dart 2|)))
+
+(define (add-performance-callouts p)
+  (define c "PaleGreen")
+  (add-callouts p 'right "I am fast!" c '(Hack |Typed Lua| Reticulated Nom Pycket Flow Grace Pallene Pytype Pyre Strongtalk TypeScript |Dart 2|)))
+
+(define (add-callouts p dir str color tag*)
+  (define-values [finder pin-at spike +-]
+    (case dir ((left) (values lt-find 'lb 'sw +)) ((right) (values rt-find 'rb 'se -)) (else (raise-argument-error 'add-callouts "direction?" dir))))
+  (define b-pict
+    (let* ((str-pict (text str (current-main-font) 20))
+           (balloon-w (+ 30 (pict-width str-pict)))
+           (balloon-h (+ 15 (pict-height str-pict)))
+           (balloon-tail-param 8))
+      (cc-superimpose
+        (balloon-pict
+          (balloon balloon-w balloon-h balloon-tail-param spike (+- balloon-tail-param) balloon-tail-param color))
+        str-pict)))
+  (for/fold ((acc p))
+            ((t (in-list tag*)))
+    (ppict-do
+      acc
+      #:go (at-find-pict t finder pin-at #:abs-y -10)
+      b-pict)))
 
 (define (group-gt-systems-by gt* sel <)
   (define g** (filter-not null? (group-by sel gt*)))
