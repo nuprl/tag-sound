@@ -49,7 +49,7 @@
 
 (define FILE-RATIO 5/6) ;; TODO nonsense
 (define PLOT-RATIO 3/4) ;; TODO nonsense
-(define COL-RATIO 94/100)
+(define COL-RATIO 85/100)
 
 (define (scale-for-column p)
   (scale p COL-RATIO))

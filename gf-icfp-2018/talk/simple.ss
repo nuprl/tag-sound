@@ -39,8 +39,8 @@
     ;(sec:title)
     ;(sec:folklore-I)
     ;(sec:migratory-typing)
-    (sec:gt-landscape)
-    ;(sec:main-result)
+    ;(sec:gt-landscape)
+    (sec:main-result)
     ;(pslide (make-section-header "Model"))
     ;(sec:embedding:warmup)
     ;(sec:embedding:H)
@@ -171,57 +171,25 @@
   (void))
 
 (define (sec:main-result)
-  (define-values [model-pict0 impl-pict0] (make-model/impl-pict))
-  (define contrib-0-pict
-    (contrib*->pict
-      '("Uniform Model:"
-        ""
-        "- one mixed-typed language"
-        ""
-        "- one surface type system"
-        ""
-        "- three semantics")))
-  (define contrib-1-pict
-    (contrib*->pict
-      '("Soundness:" ;spectrum of?
-        ""
-        "- three evaluation-level"
-        "  type systems"
-        ""
-        "- three notions of type"
-        "  soundness")))
-  ;; implications for programmer? ... 'soundness' is a little early, no?
-  (define contrib-2-pict
-    (contrib*->pict
-      '("Performance:"
-        ""
-        "- Racket syntax/types"
-        ""
-        "- three compilers"
-        ""
-        "- systematic experiment")))
-  (define model-pict
-    (cc-superimpose
-      (blank (pict-width contrib-1-pict) 0)
-      (scale-for-column model-pict0)))
-  (define model-pict- (scale model-pict 9/10))
-  (define impl-pict (scale (cc-superimpose (blank 0 (pict-height model-pict-)) (scale-for-column impl-pict0)) 9/10))
+  (define-values [model-pict impl-pict] (make-model/impl-pict))
+  (define-values [model-pict- impl-pict-]
+      (values (scale-for-column model-pict) (scale-for-column impl-pict)))
+  (define (big-text str)
+    (text str TITLE-FONT 38))
+  (define txt-offset 35)
   (pslide
-    #:go (coord SLIDE-LEFT MAIN-CONTRIB-Y 'lt)
-    @t{One mixed-typed language ...}
-    #:go (coord 1/2 30/100 'ct)
+    #:go HEADING-COORD
+    (heading-text "One mixed-typed language")
+    #:go (coord 1/2 1/4 'ct)
     model-pict
-    #:go (at-find-pict 'stat-file rb-find 'lc #:abs-x 2)
-    (filled-rectangle 60 10 #:color "white" #:draw-border? #false)
-    #:go (at-find-pict 'stat-file rb-find 'ct)
-    (filled-rectangle 500 300 #:color "white" #:draw-border? #false))
+    #:alt [#:go (at-find-pict 'stat-file rb-find 'lc #:abs-x 2)
+           (filled-rectangle 60 10 #:color "white" #:draw-border? #false)
+           #:go (at-find-pict 'stat-file rb-find 'ct)
+           (filled-rectangle 500 300 #:color "white" #:draw-border? #false)])
   (pslide
-    #:go (coord SLIDE-LEFT MAIN-CONTRIB-Y 'lt)
-    @t{One mixed-typed language ... three semantics}
-    #:go (coord 1/2 30/100 'ct)
-    model-pict)
-  (pslide
-    #:go (coord 1/5 25/100 'lt)
+    #:go HEADING-COORD
+    (heading-text "Three semantics")
+    #:go (coord 1/5 1/4 'lt)
     (let ([box+text (lambda (b t) (hc-append 20 b t))])
       (vl-append
         20
@@ -229,36 +197,39 @@
         (box+text (make-1-box) @t{first-order semantics})
         (box+text (make-E-box) @t{erasure semantics}))))
   (pslide
-    #:go (coord SLIDE-LEFT SLIDE-TOP 'lt)
-    @heading-text{Contributions (1/3)}
     #:go MAIN-CONTRIB-COORD
-    (main-contrib-append
-      model-pict-
-      contrib-0-pict))
-  (pslide
-    #:go (coord SLIDE-LEFT SLIDE-TOP 'lt)
-    @heading-text{Contributions (2/3)}
-    #:go MAIN-CONTRIB-COORD
-    (main-contrib-append
-      model-pict-
-      contrib-1-pict))
-  (pslide
-    #:go (coord SLIDE-LEFT SLIDE-TOP 'lt)
-    @heading-text{Contributions (3/3)}
-    #:go MAIN-CONTRIB-COORD
-    #:alt [model-pict-
-           #:go ARROW-COORD
-           (large-right-arrow)]
+    #:alt[model-pict-
+          #:go HEADING-COORD
+          @heading-text{Apples-to-Apples Theory}
+          #:go -MAIN-CONTRIB-COORD
+          (contrib*->pict '(
+            "- one syntax + type checker"
+            ""
+            "- three behaviors"
+            ""
+            "- comparative meta-theory"))]
     #:alt [model-pict-
            #:go ARROW-COORD
            (large-right-arrow)
-           #:go -MAIN-CONTRIB-COORD
-           impl-pict]
-    contrib-2-pict
+           #:go (coord 1/2 3/4 'ct)
+           (tag-pict (t "model => implementation") 'txt-arrow)
+           ;#:go (at-find-pict 'txt-arrow lc-find 'rc #:abs-x (- txt-offset))
+           ;(t "model")
+           ;#:go (at-find-pict 'txt-arrow rc-find 'lc #:abs-x txt-offset)
+           ;(t "implementation")
+           #:next
+           #:go -MAIN-CONTRIB-COORD impl-pict-]
+    (contrib*->pict '(
+      "- Racket syntax + types"
+      ""
+      "- three compilers"
+      ""
+      "- controlled performance"
+      "  experiment"))
+    #:go HEADING-COORD
+    @heading-text{Apples-to-Apples Performance}
     #:go -MAIN-CONTRIB-COORD
-    impl-pict)
-  (define (big-text str)
-    (text str TITLE-FONT 38))
+    impl-pict-)
   (pslide
     #:go (coord SLIDE-LEFT SLIDE-TOP 'lt)
     @heading-text{Contributions}
