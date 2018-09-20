@@ -40,9 +40,9 @@
     ;(sec:folklore-I)
     ;(sec:migratory-typing)
     ;(sec:gt-landscape)
-    (sec:main-result)
+    ;(sec:main-result)
     ;(pslide (make-section-header "Model"))
-    ;(sec:embedding:warmup)
+    (sec:embedding:warmup)
     ;(sec:embedding:H)
     ;(sec:embedding:1)
     ;(sec:embedding:E)
@@ -212,11 +212,11 @@
            #:go ARROW-COORD
            (large-right-arrow)
            #:go (coord 1/2 3/4 'ct)
-           (tag-pict (t "model => implementation") 'txt-arrow)
-           ;#:go (at-find-pict 'txt-arrow lc-find 'rc #:abs-x (- txt-offset))
-           ;(t "model")
-           ;#:go (at-find-pict 'txt-arrow rc-find 'lc #:abs-x txt-offset)
-           ;(t "implementation")
+           (tag-pict (t "=>") 'txt-arrow)
+           #:go (at-find-pict 'txt-arrow lc-find 'rc)
+           (t "model ")
+           #:go (at-find-pict 'txt-arrow rc-find 'lc)
+           (t " implementation")
            #:next
            #:go -MAIN-CONTRIB-COORD impl-pict-]
     (contrib*->pict '(
@@ -224,44 +224,55 @@
       ""
       "- three compilers"
       ""
-      "- controlled performance"
-      "  experiment"))
+      "- systematic performance"
+      "  evaluation"))
     #:go HEADING-COORD
     @heading-text{Apples-to-Apples Performance}
     #:go -MAIN-CONTRIB-COORD
     impl-pict-)
-  (pslide
-    #:go (coord SLIDE-LEFT SLIDE-TOP 'lt)
-    @heading-text{Contributions}
-    #:go (coord SLIDE-LEFT 1/4 'lt)
-    (contrib*->pict '(
-      "- Uniform model"
-      ""
-      "- Spectrum of type soundness"
-      ""
-      "- Full-fledged implementation"))
-    #:go (coord 1/2 6/10 'ct)
-    (vc-append
-      10
-      (big-text "First apples-to-apples soundness")
-      (big-text "and performance comparisons")))
+  ;; slide saying: "sound science, perf science, organize space"?
   (void))
 
 (define (sec:embedding:warmup)
   (define x-offset 1/20)
+  (define Nat-pict (tag-pict (t "Nat") 'Nat-pict))
+  (define Int-pict (tag-pict (t "Int") 'Int-pict))
+  (define txt-pict (tag-pict (hb-append 4 @t{τ} @t{×} @t{τ}) 'txt-pict))
+  (define t>t-pict (tag-pict (hb-append 4 @t{τ} @t{⇒} @t{τ}) 't>t-pict))
+  (define N<I-pict (tag-pict @t{Nat <: Int} 'N<I-pict))
+  (define n-pict (tag-pict (t "n") 'n-pict))
+  (define i-pict (tag-pict (t "i") 'i-pict))
+  (define vxv-pict (tag-pict (t "⟨v,v⟩") 'vxv-pict))
+  (define v>v-pict (tag-pict (t "λ(x)e") 'v>v-pict))
+  (define n<i-pict (tag-pict @t{n ⊂ i} 'n<i-pict))
+  (define (at-underline tag)
+    (at-find-pict tag cb-find 'ct #:abs-y 4))
+  (define (make-underline p)
+    (define lw 6)
+    (colorize (linewidth lw (hline (pict-width p) lw)) halt-icon-color))
   (pslide
     #:go (coord SLIDE-LEFT SLIDE-TOP 'lt)
     ;;@t{Types}
-    (vl-append 10
-               @t{τ = Nat | Int | τ × τ | τ ⇒ τ}
-               @t{Nat <: Int})
+    (vl-append 20
+               (hc-append @t{τ = } Nat-pict @t{ | } Int-pict  @t{ | } txt-pict  @t{ | } t>t-pict)
+               N<I-pict)
     #:next
+    #:alt [#:go (at-underline 't>t-pict) (make-underline t>t-pict)]
+    #:alt [#:go (at-underline 'txt-pict) (make-underline txt-pict)]
+    #:alt [#:go (at-underline 'Int-pict) (make-underline Int-pict)]
+    #:alt [#:go (at-underline 'Nat-pict) (make-underline Nat-pict)]
+    #:alt [#:go (at-underline 'N<I-pict) (make-underline N<I-pict)]
     #:go (coord SLIDE-LEFT 27/100 'lt)
     ;;@t{Values}
-    (vl-append 10
-               @t{v = n | i | ⟨v,v⟩ | λ(x)e | λ(x:τ)e}
-               @t{n ⊂ i})
+    (vl-append 20
+               (hc-append @t{v = } n-pict @t{ | } i-pict  @t{ | } vxv-pict  @t{ | } v>v-pict)
+               n<i-pict)
     #:next
+    #:alt [#:go (at-underline 'v>v-pict) (make-underline v>v-pict)]
+    #:alt [#:go (at-underline 'vxv-pict) (make-underline vxv-pict)]
+    #:alt [#:go (at-underline 'i-pict) (make-underline i-pict)]
+    #:alt [#:go (at-underline 'n-pict) (make-underline n-pict)]
+    #:alt [#:go (at-underline 'n<i-pict) (make-underline n<i-pict)]
     #:go (coord SLIDE-LEFT 45/100 'lt)
     @t{e = .... | dyn τ e | stat τ e}
     #:next
@@ -964,7 +975,7 @@
 
 (define (make-embedding-box -> color)
   (ppict-do
-    (filled-rectangle 100 100 #:color color)
+    (filled-rounded-rectangle 100 100 -0.001 #:color color)
     #:go (coord 1/2 1/2)
     (scale -> 2)))
 
