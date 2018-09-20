@@ -39,8 +39,8 @@
     ;(sec:title)
     ;(sec:folklore-I)
     ;(sec:migratory-typing)
-    ;(sec:gt-landscape)
-    (sec:main-result)
+    (sec:gt-landscape)
+    ;(sec:main-result)
     ;(pslide (make-section-header "Model"))
     ;(sec:embedding:warmup)
     ;(sec:embedding:H)
@@ -152,23 +152,22 @@
     (tag-pict
       (make-rumor-pict 'right '("Language A programs seem faster than"
                                 "Language B programs"))
-      'cross-lang)
-    #:next
-    #:go (coord 1/2 1/2 #:abs-y -20)
-    (bitmap (stop-sign-icon #:height 100 #:material plastic-icon-material)))
+      'cross-lang))
   (pslide
     #:go HEADING-COORD
-    (heading-text "This Paper ...")
+    (heading-text "In this paper:")
     #:go (coord 1/2 1/2)
     (make-gtspace-bg #:bg-only? #true)
     #:go (coord 1/2 1/2)
     ;; lets proceed as scientists
-    (let ((p (vl-append 45
-                        (t "No more un-scientific claims")
-                        (t "Let's proceed systematically"))))
-      (cc-superimpose
-        (filled-rounded-rectangle (+ 70 (pict-width p)) (+ 90 (pict-height p)) -0.05 #:color TRAFFIC-YELLOW #:border-width 12)
-        p)))
+    (parameterize ((current-font-size (+ 2 (current-font-size))))
+      (let ((p (vl-append 25
+                          (hc-append @t{Let's put the } @bt{theory} @t{ and } @bt{practice} @t{ on})
+                          (hc-append @t{scientific ground.})))
+            (c (set-alpha TRAFFIC-YELLOW 0.8)))
+        (cc-superimpose
+          (filled-rounded-rectangle (+ 80 (pict-width p)) (+ 90 (pict-height p)) -0.05 #:color c #:border-width 11)
+          p))))
   (void))
 
 (define (sec:main-result)

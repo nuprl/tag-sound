@@ -134,6 +134,8 @@
             (bitwise-and #x0000ff x)))
   (make-color r g b))
 
+(define TRAFFIC-YELLOW (hex-triplet->color% #xFF7221 #;#xffff00 #;#xfad201))
+
 (define ECOOP-RED (hex-triplet->color% #x7b0d0f))
 
 (define kafka-author*
