@@ -245,11 +245,6 @@
   (define vxv-pict (tag-pict (t "⟨v,v⟩") 'vxv-pict))
   (define v>v-pict (tag-pict (t "λ(x)e") 'v>v-pict))
   (define n<i-pict (tag-pict @t{n ⊂ i} 'n<i-pict))
-  (define (at-underline tag)
-    (at-find-pict tag cb-find 'ct #:abs-y 4))
-  (define (make-underline p)
-    (define lw 6)
-    (colorize (linewidth lw (hline (pict-width p) lw)) halt-icon-color))
   (pslide
     #:go (coord SLIDE-LEFT SLIDE-TOP 'lt)
     ;;@t{Types}
@@ -280,27 +275,38 @@
     (let* ((dyn-pict @inferrule[@t{⊢ e} @t{⊢ dyn τ e : τ}])
            (stat-pict @inferrule[@t{⊢ e : τ} @t{⊢ stat τ e}])
            (stat-pict (cc-superimpose (blank (pict-width dyn-pict) 0) stat-pict)))
-      ;; TODO add signatures ... I guess using pslide
       @hb-append[140 (tag-pict dyn-pict 'dyn-rule) (tag-pict stat-pict 'stat-rule)])
     #:go (at-find-pict 'dyn-rule lt-find 'rc #:abs-x 30)
     (make-sig-pict "⊢ e : τ")
     #:go (at-find-pict 'stat-rule lt-find 'rc #:abs-x 30)
     (make-sig-pict "⊢ e"))
+  (define gamma-pict
+    (tag-pict @t|{Γ = }| 'gamma-pict))
   (define types-pict
-    (vl-append 10
-      @t{fib  : Nat ⇒ Nat}
-      @t{norm : Nat × Nat ⇒ Nat}
-      @t{map  : (Nat ⇒ Nat) ⇒ Nat × Nat ⇒ Nat × Nat}))
+    (let ([sigs-pict
+           (vl-append 10
+             @t{fib  : Nat ⇒ Nat}
+             @t{norm : Nat × Nat ⇒ Nat}
+             @t{map  : (Nat ⇒ Nat) ⇒ Nat × Nat ⇒ Nat × Nat})])
+      (insert-brace gamma-pict sigs-pict)))
+  (define dyn-0 (tag-pict @t{(dyn Nat -1)} 'dyn-0))
+  (define dyn-1 (tag-pict @t{(dyn Nat × Nat ⟨-1,-2⟩)} 'dyn-1))
+  (define dyn-2 (tag-pict @t{(dyn (Nat ⇒ Nat) (λ(x)-x))} 'dyn-2))
   (pslide
     #:go (coord 1/2 SLIDE-TOP 'ct)
     (vc-append
       100
-      (insert-brace @t|{Γ = }| types-pict)
+      types-pict
       (table 2 (list
-        @t{Γ ⊢ fib  (dyn Nat -1)} @t{: Nat}
-        @t{Γ ⊢ norm (dyn Nat × Nat ⟨-1,-2⟩)} @t{: Nat}
-        @t{Γ ⊢ map  (dyn (Nat ⇒ Nat) (λ(x)-x)) y} @t{: Nat × Nat})
-             lb-superimpose cb-superimpose 25 10)))
+        (hc-append 0 @t{Γ ⊢ fib  } dyn-0) @t{: Nat}
+        (hc-append 0 @t{Γ ⊢ norm } dyn-1) @t{: Nat}
+        (hc-append 0 @t{Γ ⊢ map  } dyn-2 @t{ y}) @t{: Nat × Nat})
+             lb-superimpose cb-superimpose 25 10))
+    #:next
+    #:alt [#:go (at-underline 'gamma-pict) (make-underline gamma-pict)]
+    #:go (at-underline 'dyn-0) (make-underline dyn-0)
+    #:go (at-underline 'dyn-1) (make-underline dyn-1)
+    #:go (at-underline 'dyn-2) (make-underline dyn-2))
   (pslide
     (make-example-boundary-pict))
   (void))
@@ -1736,6 +1742,13 @@
     #:go (at-find-pict 'title-pict lb-find 'lt #:abs-x 6 #:abs-y 20)
     authors-pict)
   (void))
+
+(define (at-underline tag)
+  (at-find-pict tag cb-find 'ct #:abs-y 4))
+
+(define (make-underline p)
+  (define lw 6)
+  (colorize (linewidth lw (hline (pict-width p) lw)) halt-icon-color))
 
 ;; =============================================================================
 
