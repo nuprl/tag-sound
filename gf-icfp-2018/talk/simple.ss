@@ -50,8 +50,7 @@
     ;(sec:embedding:H)
     ;(sec:embedding:1)
     (sec:embedding:E)
-    ;(sec:embedding:end)
-    ;(sec:soundness)
+    (sec:soundness)
     ;(sec:implementation)
     ;(sec:performance)
     ;(sec:conclusion)
@@ -398,16 +397,8 @@
                (t "???")))
   (void))
 
-(define (sec:embedding:end)
-  (pslide
-    #:go (coord 9/10 9/10 'rb)
-    (make-disclaimer-pict "(the systems landscape)")
-    #:go (coord 1/2 1/2)
-    #:alt [(make-embeddings-pict H-system* 1-system* E-system*)]
-    (make-embeddings-pict all-system*))
-  (void))
-
 (define (sec:soundness)
+  ;; TODO ... start with errors line, b/c just saw example ; transition to q and soundness?
   ;; TODO still droopy, things overall still look shitty
   (define model-pict
     (let-values (((mp _) (make-model/impl-pict)))
@@ -612,9 +603,11 @@
 
 (define (sec:extra)
   (pslide
-    (make-embeddings-pict all-system*)
     #:go (coord 9/10 9/10 'rb)
-    (make-disclaimer-pict "(the systems landscape)"))
+    (make-disclaimer-pict "(the systems landscape)")
+    #:go (coord 1/2 1/2)
+    #:alt [(make-embeddings-pict H-system* 1-system* E-system*)]
+    (make-embeddings-pict all-system*))
   (make-H-example-slide)
   (make-1-example-slide)
   (make-E-example-slide)
@@ -1001,9 +994,11 @@
       (if (null? 1*)
         (blank)
         (let-values (((a* b*) (split/2 (cons reticulated (filter-not/name "Reticulated" 1*)))))
-          (let ([b-pict (gt*->pict b*)]
-                [a-pict (gt*->pict a*)])
-            (if (null? a*) b-pict (if (null? b*) a-pict (ht-append 10 b-pict a-pict))))))
+          (cond
+            [(null? a*) (gt*->pict b*)]
+            [(null? b*) (gt*->pict a*)]
+            [(null? (cdr a*)) (gt*->pict (append a* b*))]
+            [else (ht-append 10 (gt*->pict b*) (gt*->pict a*))])))
       #:set (let ((p ppict-do-state)
                   (HE-pict (gt*->pict HE-system*))
                   (1E-pict (gt*->pict 1E-system*)))
