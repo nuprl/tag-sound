@@ -48,9 +48,9 @@
     ;(pslide (make-section-header "Model"))
     ;(sec:embedding:warmup)
     ;(sec:embedding:H)
-    ;(sec:embedding:1)
-    (sec:embedding:E)
-    (sec:soundness)
+    (sec:embedding:1)
+    ;(sec:embedding:E)
+    ;(sec:soundness)
     ;(sec:implementation)
     ;(sec:performance)
     ;(sec:conclusion)
@@ -358,7 +358,8 @@
   (define dyn-pair (hc-append 2 @t{⟨} @dyn-bg[@dyn-text{-1}] @t{,} @dyn-bg[@dyn-text{-2}] @t{⟩}))
   (make-example-detail-slide
     #:first-order? #true
-    #:arrow-label (hc-append 60 (t "Nat") (big-x-icon))
+    #:arrow-label (cons (hc-append 60 (t "Nat") (big-x-icon))
+                        (hc-append 60 (t "Int") (big-check-icon)))
     '1
     (make-boundary-pict #:left (top/bot @t{norm} dyn-pair)
                         #:right @dyn-text{⟨-1,-2⟩}
@@ -398,6 +399,29 @@
   (void))
 
 (define (sec:soundness)
+  ;; seen 3 ways of running the same programs, 3 different behaviors
+  ;; what does this mean for type soundness?
+  ;; [slide H 1 E at top (1/5), 3 columns with shrunken picts]
+  ;; classic soundness, 3 clauses
+  ;; 3 columns H 1 E soundness
+  ;; folklore : all-or-nothing? NO for a mixed-typed language
+  ;; ... at least three points in the design space [back to 3-columns]
+  ;;     the all-or-nothing view confuses 1 with erasure whether or not you find
+  ;;     the middle soundness useful, its certainly different (meaningful distinction)
+  ;; we can say more about the differences ... let me make this more precise
+  ;;  all know practical benefit of soundness is ruling out runtime behaviors
+  ;; a typed language rules out all such errors
+  ;; higher-order gets some --- in particular ...
+  ;; erasure gets a few (in the typed code)
+  ;; first order gets a few more ... 
+  ;; we've just seen existence proof, via examples
+  ;;   THM: there exists a term e such that e ->H Error and e ->1 v
+  ;;   THM: \exists e . e ->1 Error and e ->E v
+  ;; in paper also have containment proof any program that ends in an error
+  ;;  also ends in an error with a stricter types
+  ;;   THM: if e ->E Error then e ->1 Error
+  ;;   THM: if e ->1 Error then e ->H Error
+
   ;; TODO ... start with errors line, b/c just saw example ; transition to q and soundness?
   ;; TODO still droopy, things overall still look shitty
   (define model-pict
@@ -1552,6 +1576,17 @@
         (balloon-pict (balloon b-w (+ 15 h) 8 (if left? 'nw 'n) 2 (- tail-length) color))
         str-pict))))
 
+(define (hcallout str [tail-length 120] [color "white"])
+  (define str-pict (parameterize ((current-font-size 30)) (t str)))
+  (define w (pict-width str-pict))
+  (define h (pict-height str-pict))
+  (define b-w (+ 30 w))
+  (hb-append
+    (blank tail-length 0)
+    (cc-superimpose
+      (balloon-pict (balloon b-w (+ 15 h) 8 'w (- tail-length) 2 color))
+      str-pict)))
+
 (define (group-gt-systems-by gt* sel <)
   (define g** (filter-not null? (group-by sel gt*)))
   (sort g** < #:key (compose1 sel car)))
@@ -1711,8 +1746,12 @@
        (tag-pict STRIPE-DOWN-ARROW 'arrow-1)
        #:go (at-find-pict 'pict-2 cb-find 'ct #:abs-y (+ (* 2 20) (pict-height DOWN-ARROW)))
        pict-3
+       #:alt[#:go (at-find-pict 'arrow-1 rc-find 'lc)
+             (hcallout "depends on the expected type!" 70)]
+       #:alt[#:go (at-find-pict 'arrow-1 cc-find 'cc #:abs-x 15)
+             (car arrow-label)]
        #:go (at-find-pict 'arrow-1 cc-find 'cc #:abs-x 15)
-       arrow-label)]
+       (cdr arrow-label))]
     [(and pict-2 pict-3)
      (pslide
        #:go name-coord
