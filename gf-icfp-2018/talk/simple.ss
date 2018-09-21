@@ -46,10 +46,10 @@
     ;(sec:gt-landscape)
     ;(sec:main-result)
     ;(pslide (make-section-header "Model"))
-    (sec:embedding:warmup)
-    (sec:embedding:H)
-    (sec:embedding:1)
-    ;(sec:embedding:E)
+    ;(sec:embedding:warmup)
+    ;(sec:embedding:H)
+    ;(sec:embedding:1)
+    (sec:embedding:E)
     ;(sec:embedding:end)
     ;(sec:soundness)
     ;(sec:implementation)
@@ -244,6 +244,8 @@
   (define vxv-pict (tag-pict (t "⟨v,v⟩") 'vxv-pict))
   (define v>v-pict (tag-pict (t "λ(x)e") 'v>v-pict))
   (define n<i-pict (tag-pict @t{n ⊂ i} 'n<i-pict))
+  (define dyn-pict (tag-pict @t{dyn τ e} 'dyn-pict))
+  (define sta-pict (tag-pict @t{sta τ e} 'sta-pict))
   (pslide
     #:go (coord SLIDE-LEFT SLIDE-TOP 'lt)
     ;;@t{Types}
@@ -251,24 +253,26 @@
                (hc-append @t{τ = } Nat-pict @t{ | } Int-pict  @t{ | } txt-pict  @t{ | } t>t-pict)
                N<I-pict)
     #:next
-    #:alt [#:go (at-underline 't>t-pict) (make-underline t>t-pict)]
-    #:alt [#:go (at-underline 'txt-pict) (make-underline txt-pict)]
-    #:alt [#:go (at-underline 'Int-pict) (make-underline Int-pict)]
-    #:alt [#:go (at-underline 'Nat-pict) (make-underline Nat-pict)]
-    #:alt [#:go (at-underline 'N<I-pict) (make-underline N<I-pict)]
+    #:alt [#:go (at-underline 't>t-pict) (make-underline t>t-pict) (callout "coinductive type")]
+    #:alt [#:go (at-underline 'txt-pict) (make-underline txt-pict) (callout "inductive type")]
+    #:alt [#:go (at-underline 'Int-pict) (make-underline Int-pict) (callout "base type")]
+    #:alt [#:go (at-underline 'Nat-pict) (make-underline Nat-pict) (callout "base type")]
+    #:alt [#:go (at-underline 'N<I-pict) (make-underline N<I-pict) (callout "subtype relation" #:left? #true)]
     #:go (coord SLIDE-LEFT 27/100 'lt)
     ;;@t{Values}
     (vl-append 20
                (hc-append @t{v = } n-pict @t{ | } i-pict  @t{ | } vxv-pict  @t{ | } v>v-pict)
                n<i-pict)
     #:next
-    #:alt [#:go (at-underline 'v>v-pict) (make-underline v>v-pict)]
-    #:alt [#:go (at-underline 'vxv-pict) (make-underline vxv-pict)]
-    #:alt [#:go (at-underline 'i-pict) (make-underline i-pict)]
-    #:alt [#:go (at-underline 'n-pict) (make-underline n-pict)]
-    #:alt [#:go (at-underline 'n<i-pict) (make-underline n<i-pict)]
+    #:alt [#:go (at-underline 'v>v-pict) (make-underline v>v-pict) (callout "higher-order value" 80)]
+    #:alt [#:go (at-underline 'vxv-pict) (make-underline vxv-pict) (callout "data structure" 80)]
+    #:alt [#:go (at-underline 'i-pict) (make-underline i-pict) (callout "base value" 80)]
+    #:alt [#:go (at-underline 'n-pict) (make-underline n-pict) (callout "base value" 80)]
+    #:alt [#:go (at-underline 'n<i-pict) (make-underline n<i-pict) (callout "subset relation" 80 #:left? #true)]
     #:go (coord SLIDE-LEFT 45/100 'lt)
-    @t{e = .... | dyn τ e | stat τ e}
+    (hc-append @t{e = .... | } dyn-pict @t{ | } sta-pict)
+    #:alt [#:go (at-underline 'sta-pict) (make-underline sta-pict) (callout "" 40)
+           #:go (at-underline 'dyn-pict) (make-underline dyn-pict) (callout "boundary terms" 40 #:left? #true)]
     #:next
     #:go (coord 50/100 60/100 'ct)
     (let* ((dyn-pict @inferrule[@t{⊢ e} @t{⊢ dyn τ e : τ}])
@@ -355,7 +359,7 @@
   (define dyn-pair (hc-append 2 @t{⟨} @dyn-bg[@dyn-text{-1}] @t{,} @dyn-bg[@dyn-text{-2}] @t{⟩}))
   (make-example-detail-slide
     #:first-order? #true
-    #:arrow-label (t "Nat (or Int)")
+    #:arrow-label (hc-append 60 (t "Nat") (big-x-icon))
     '1
     (make-boundary-pict #:left (top/bot @t{norm} dyn-pair)
                         #:right @dyn-text{⟨-1,-2⟩}
@@ -363,48 +367,21 @@
     (parameterize ((current-component-ratio 3/4))
       (make-stat-file (top/bot @t{snd} dyn-pair)))
     (parameterize ((current-component-ratio 3/4))
-      (make-stat-file @t{-2}))
-
-    #;(parameterize ((current-component-ratio 3/4))
-      (make-boundary-pict #:left (top/bot @t{snd} (values @t{⟨-1,-2⟩}))
-                          #:right @dyn-text{⟨-1,-2⟩}
-                          #:arrow (blank)
-                          #:arrow-style arrow-style-1
-                          #:reverse? #true))
-    #;(parameterize ((current-component-ratio 3/4))
-      (make-boundary-pict #:left (make-hole)
-                          #:right @dyn-text{-2}
-                          #:arrow-style arrow-style-1
-                          #:arrow @t{Nat/Int})))
-  (make-example-detail-slide
-    '1
-    (make-boundary-pict #:left (hole-append @t{map} (small-check-icon) @t{y})
-                        #:right @dyn-text{λ(x)-x}
-                        #:arrow @t/crunch{Nat ⇒ Nat})
-    (parameterize ((current-component-ratio 3/4))
-      (make-boundary-pict #:left (parameterize ((current-font-size 24)) (hole-append @t{(λ(x)-x)} @t{1}))
-                          #:right (hc-append 2 (parameterize ((current-font-size 24)) @dyn-text{(λ(x)-x)}) (make-hole))
-                          #:arrow (blank)
-                          #:arrow-style arrow-style-1
-                          #:reverse? #true))
-    (parameterize ((current-component-ratio 3/4))
-      (make-boundary-pict #:left (make-hole)
-                          #:right @dyn-text{-1}
-                          #:arrow-style arrow-style-1
-                          #:arrow (tag-pict @t{Nat/Int} 'lbl-2))))
+      (make-stat-file (make-hole))))
   (void))
 
 (define (sec:embedding:E)
   (define (add-arrow str)
     (hc-append 20 (arrow EVAL-ARROW-SIZE 0) (t str)))
+  (define mt/1* (filter/mt #t 1-system*))
   (pslide
     #:go (coord 9/10 9/10 'rb)
     (make-disclaimer-pict "(the systems landscape)")
     #:go (coord 1/2 1/2)
     #:alt [(make-embeddings-pict H-system*)]
     #:alt [(make-embeddings-pict H-system* reticulated)]
-    #:alt [(make-embeddings-pict H-system* 1-system*)]
-    (make-embeddings-pict H-system* 1-system* #:highlight 'E))
+    #:alt [(make-embeddings-pict H-system* mt/1*)]
+    (make-embeddings-pict H-system* mt/1* #:highlight 'E))
   (make-E-example-slide)
   (define the-bomb (small-bomb-icon))
   (define (make-fib in-hole)
@@ -413,20 +390,12 @@
                         #:arrow @t{Nat}))
   (make-example-detail-slide
     'E
-    (make-fib (cc-superimpose (blank (pict-width the-bomb) (pict-height the-bomb))
-                              (small-check-icon)))
-    (blank))
-  (make-example-detail-slide
-    'E
-    (make-fib (small-bomb-icon))
+    (make-fib @dyn-bg[@dyn-text{-1}])
     (vl-append 20
-               (add-arrow "error?")
-               (add-arrow "diverges?")
-               (add-arrow "0")
-               (add-arrow "???")))
-  (let ((bb (lt-superimpose (vl-append (blank 0 30) (hc-append (blank 40 0) (big-bomb-icon)))
-                            (big-check-icon))))
-    (make-E-example-slide (make-example-boundary-pict bb bb bb)))
+               (t "error?")
+               (t "diverges?")
+               (t "0")
+               (t "???")))
   (void))
 
 (define (sec:embedding:end)
@@ -658,26 +627,25 @@
 (define (make-H-example-slide [bp #f])
   (define b-pict (or bp (make-example-boundary-pict (big-x-icon) (big-x-icon) (big-monitor-icon))))
   (define-values [n d b] (symbol->name+box 'H))
-  (make-?-example-slide (string-append n " : " d) b b-pict))
+  (make-?-example-slide (string-append n "  (" d ")") b b-pict))
 
 (define (make-E-example-slide [bp #f])
   (define b-pict (or bp (make-example-boundary-pict (big-check-icon) (big-check-icon) (big-check-icon))))
   (define-values [n d b] (symbol->name+box 'E))
-  (make-?-example-slide (string-append n " : " d) b b-pict))
+  (make-?-example-slide (string-append n "  (" d ")") b b-pict))
 
 (define (make-1-example-slide [bp #f])
   (define b-pict (or bp (make-example-boundary-pict (big-x-icon) (big-check-icon) (big-check-icon))))
   (define-values [n d b] (symbol->name+box '1))
-  (make-?-example-slide (string-append n " : " d) b b-pict))
+  (make-?-example-slide (string-append n "  (" d ")") b b-pict))
 
 (define (make-?-example-slide name lbl b-pict)
-  (define y-sep 6)
   (pslide
     #:go boundary-coord
     b-pict
     #:go (coord SLIDE-LEFT SLIDE-TOP 'lb)
     (t name)
-    #:go (coord SLIDE-LEFT SLIDE-TOP 'lt #:abs-y y-sep)
+    #:go (coord SLIDE-LEFT 1/8 'lt)
     lbl))
 
 (define (neu)
@@ -1576,6 +1544,19 @@
       #:go (at-find-pict t finder pin-at #:abs-y -10)
       b-pict)))
 
+(define (callout str [tail-length 120] [color "white"] #:left? [left? #f])
+  (define str-pict (parameterize ((current-font-size 30)) (t str)))
+  (define w (pict-width str-pict))
+  (define h (pict-height str-pict))
+  (define b-w (+ 30 w))
+  (vl-append
+    (blank 0 tail-length)
+    (hb-append
+      (blank (if left? b-w 0) 0)
+      (cc-superimpose
+        (balloon-pict (balloon b-w (+ 15 h) 8 (if left? 'nw 'n) 2 (- tail-length) color))
+        str-pict))))
+
 (define (group-gt-systems-by gt* sel <)
   (define g** (filter-not null? (group-by sel gt*)))
   (sort g** < #:key (compose1 sel car)))
@@ -1711,9 +1692,9 @@
 
 (define (make-example-detail-slide e-sym pict-1 [pict-2 #f] [pict-3 #f] #:arrow-label [arrow-label #false] #:first-order? [first-order? #f])
   (define name-coord (coord SLIDE-LEFT SLIDE-TOP 'lb))
-  (define box-coord (coord SLIDE-LEFT SLIDE-TOP 'lt #:abs-y 6))
+  (define box-coord (coord SLIDE-LEFT 1/8 'lt))
   (define-values [e-prename e-descr e-box] (symbol->name+box e-sym))
-  (define e-name (string-append e-prename " : " e-descr))
+  (define e-name (string-append e-prename "  (" e-descr ")"))
   (cond
     [first-order?
      (unless (and pict-2 pict-3)
@@ -1725,24 +1706,18 @@
        e-box
        #:go boundary-coord
        (tag-pict pict-1 'pict-1)
-       #:go (at-find-pict 'pict-1 lb-find 'lt #:abs-y 20 #:abs-x 70)
+       #:go (at-find-pict 'pict-1 lb-find 'lt #:abs-y 20 #:abs-x 60)
        DOWN-ARROW
        #:next
        #:go (at-find-pict 'pict-1 lb-find 'lt #:abs-y (+ (* 2 20) (pict-height DOWN-ARROW)))
        (tag-pict pict-2 'pict-2)
        #:next
-       #:go (at-find-pict 'pict-2 cb-find 'ct #:abs-y 15)
-       (tag-pict pict-3 'pict-3)
-       #:set (let ((p ppict-do-state))
-               (pin-arrow-line arrow-size p
-                               (find-tag p 'pict-2) rc-find
-                               (find-tag p 'pict-3) rc-find
-                               #:start-angle 0
-                               #:end-angle (* 1 pi)
-                               #:line-width arrow-width
-                               #:label (or arrow-label (blank))
-                               #:x-adjust-label (if arrow-label (+ 2 (pict-width arrow-label))  0)
-                               #:style 'dot)))]
+       #:go (at-find-pict 'pict-2 lb-find 'lt #:abs-y 20 #:abs-x 60)
+       (tag-pict STRIPE-DOWN-ARROW 'arrow-1)
+       #:go (at-find-pict 'pict-2 cb-find 'ct #:abs-y (+ (* 2 20) (pict-height DOWN-ARROW)))
+       pict-3
+       #:go (at-find-pict 'arrow-1 cc-find 'cc #:abs-x 15)
+       arrow-label)]
     [(and pict-2 pict-3)
      (pslide
        #:go name-coord
@@ -1751,7 +1726,7 @@
        e-box
        #:go boundary-coord
        (tag-pict pict-1 'pict-1)
-       #:go (at-find-pict 'pict-1 lb-find 'lt #:abs-y 20 #:abs-x 70)
+       #:go (at-find-pict 'pict-1 lb-find 'lt #:abs-y 20 #:abs-x 60)
        DOWN-ARROW
        #:next
        #:go (at-find-pict 'pict-1 lb-find 'lt #:abs-y (+ (* 2 20) (pict-height DOWN-ARROW)))
@@ -1769,8 +1744,10 @@
        e-box
        #:go boundary-coord
        (tag-pict pict-1 'pict-1)
+       #:go (at-find-pict 'pict-1 lb-find 'lt #:abs-y 20 #:abs-x 60)
+       DOWN-ARROW
        #:next
-       #:go (at-find-pict 'pict-1 lb-find 'lt #:abs-y 20)
+       #:go (at-find-pict 'pict-1 lb-find 'lt #:abs-y (+ (* 2 20) (pict-height DOWN-ARROW)))
        pict-2)]
     [else
       (raise-argument-error 'make-example-detail-slide "pict?" 2 e-sym pict-1 pict-2 pict-3)]))
@@ -1816,7 +1793,7 @@
 
 (define (top/bot t b)
   (define w (- (pict-width b) (pict-width t)))
-  (vr-append 6 (hc-append 20 t (blank w 0)) b))
+  (vr-append 6 (hc-append 14 t (blank w 0)) b))
 
 (define-syntax-rule (with-small-code e)
   (parameterize ((current-font-size 24)) e))

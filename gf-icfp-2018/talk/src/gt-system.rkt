@@ -37,6 +37,8 @@
 
     [embedding?
       (-> any/c boolean?)]
+    [filter/mt
+      (-> boolean? (listof gt-system?) (listof gt-system?))]
     [filter/embedding
       (-> embedding? (listof gt-system?) (listof gt-system?))]
     [filter/source
@@ -123,6 +125,7 @@
 (define filter/perf (make-filter gt-system-perf >=))
 (define filter-not/perf (make-filter gt-system-perf >= #true))
 (define filter-not/name (make-filter gt-system-name string=? #true))
+(define filter/mt (make-filter gt-system-mt? eq?))
 
 ;; -----------------------------------------------------------------------------
 

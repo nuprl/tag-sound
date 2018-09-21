@@ -172,3 +172,57 @@
 
 (define-runtime-path garden-center.png "garden-center.png")
 
+(define pi 3.14)
+(define DOWN-ARROW (arrow EVAL-ARROW-SIZE (* 3/2 pi)))
+
+  (define (generic-arrow stem? solid? size angle pen-thickness brush-style)
+    (values
+     (dc
+      (lambda (dc x y)
+	(define (pt->xform-obj p)
+	  (let* ([x (car p)]
+		 [y (cadr p)]
+		 [d (sqrt (+ (* x x) (* y y)))]
+		 [a (atan y x)])
+	    (make-object point% 
+              (* d size 1/2 (cos (+ a angle)))
+              (* d size 1/2 (- (sin (+ a angle)))))))
+	(let ([b (send dc get-brush)]
+	      [p (send dc get-pen)])
+	  (send dc set-pen (send the-pen-list
+				 find-or-create-pen
+				 (send p get-color)
+				 (if solid? 0 (send p get-width))
+				 'solid))
+	  (send dc set-brush (send the-brush-list
+				   find-or-create-brush
+				   (if solid? (send p get-color) "white")
+				   brush-style))
+	  (send dc draw-polygon 
+		(map pt->xform-obj
+		     (if stem?
+			 `((1 0)
+			   (0 -1)
+			   (0 -1/2)
+			   (-1 -1/2)
+			   (-1 1/2)
+			   (0 1/2)
+			   (0 1))
+			 `((1 0)
+			   (-1 -1)
+			   (-1/2 0)
+			   (-1 1))))
+		(+ x (/ size 2)) (+ y (/ size 2)))
+	  (send dc set-brush b)
+	  (send dc set-pen p)))
+      size size)
+     (- (- 0 (* 1/2 size (cos angle))) (/ size 2))
+     (- (+ (* 1/2 size) (- (* 1/2 size (sin angle)))) size)))
+
+  (define (stripe-arrow/delta size angle)
+    (generic-arrow #t #t size angle 0 'crossdiag-hatch #;bdiagonal-hatch))
+  (define (stripe-arrow size angle)
+    (let-values ([(p dx dy) (stripe-arrow/delta size angle)])
+      p))
+(define STRIPE-DOWN-ARROW (stripe-arrow EVAL-ARROW-SIZE (* 3/2 pi)))
+
