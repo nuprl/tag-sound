@@ -359,7 +359,7 @@
   (make-example-detail-slide
     #:first-order? #true
     #:arrow-label (cons (hc-append 60 (t "Nat") (big-x-icon))
-                        (hc-append 60 (t "Int") (big-check-icon)))
+                        (tag-pict (hc-append 60 (t "Int") (big-check-icon)) 'arrow-label))
     '1
     (make-boundary-pict #:left (top/bot @t{norm} dyn-pair)
                         #:right @dyn-text{⟨-1,-2⟩}
@@ -1576,8 +1576,8 @@
         (balloon-pict (balloon b-w (+ 15 h) 8 (if left? 'nw 'n) 2 (- tail-length) color))
         str-pict))))
 
-(define (hcallout str [tail-length 120] [color "white"])
-  (define str-pict (parameterize ((current-font-size 30)) (t str)))
+(define (hcallout str* [tail-length 120] [color "white"])
+  (define str-pict (parameterize ((current-font-size 30)) (string*->text str*)))
   (define w (pict-width str-pict))
   (define h (pict-height str-pict))
   (define b-w (+ 30 w))
@@ -1747,11 +1747,13 @@
        #:go (at-find-pict 'pict-2 cb-find 'ct #:abs-y (+ (* 2 20) (pict-height DOWN-ARROW)))
        pict-3
        #:alt[#:go (at-find-pict 'arrow-1 rc-find 'lc)
-             (hcallout "depends on the expected type!" 70)]
+             (hcallout '("depends on the" "expected type") 100)]
        #:alt[#:go (at-find-pict 'arrow-1 cc-find 'cc #:abs-x 15)
              (car arrow-label)]
        #:go (at-find-pict 'arrow-1 cc-find 'cc #:abs-x 15)
-       (cdr arrow-label))]
+       (cdr arrow-label)
+       #:go (at-find-pict 'arrow-label rc-find 'lc)
+       (hcallout "silent failure!" 40))]
     [(and pict-2 pict-3)
      (pslide
        #:go name-coord
