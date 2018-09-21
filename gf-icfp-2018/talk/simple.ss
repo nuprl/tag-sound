@@ -5,7 +5,7 @@
 ;; TODO
 ;; - add micro/macro dyn/not knobs for ICFP
 ;; - change desktop backgroup (and non-mirror background)
-;; - think about story, really need 'migratory typing' section?
+;; - add soundness theorems, during swimming pool
 
 (require
   gf-icfp-2018/talk/src/gt-system gf-icfp-2018/talk/src/constant
@@ -29,6 +29,10 @@
 (define -MAIN-CONTRIB-COORD (coord SLIDE-RIGHT 1/4 'rt))
 (define ARROW-COORD (coord 1/2 1/2 'cb))
 (define HEADING-COORD (coord SLIDE-LEFT SLIDE-TOP 'lt))
+(define boundary-coord (coord 1/2 1/8 'ct))
+(define arrow-size 12)
+(define arrow-width 4)
+(define ebox-round -0.08)
 
 (define (do-show)
   (set-page-numbers-visible! #false)
@@ -43,8 +47,8 @@
     ;(sec:main-result)
     ;(pslide (make-section-header "Model"))
     (sec:embedding:warmup)
-    ;(sec:embedding:H)
-    ;(sec:embedding:1)
+    (sec:embedding:H)
+    (sec:embedding:1)
     ;(sec:embedding:E)
     ;(sec:embedding:end)
     ;(sec:soundness)
@@ -159,11 +163,10 @@
     #:go (coord 1/2 1/2)
     (make-gtspace-bg #:bg-only? #true)
     #:go (coord 1/2 1/2)
-    ;; lets proceed as scientists
     (parameterize ((current-font-size (+ 2 (current-font-size))))
       (let ((p (vl-append 25
                           (hc-append @t{Let's put the } @bt{theory} @t{ and } @bt{practice} @t{ on})
-                          (hc-append @t{scientific ground.})))
+                          (hc-append @t{firm scientific ground.})))
             (c (set-alpha TRAFFIC-YELLOW 0.8)))
         (cc-superimpose
           (filled-rounded-rectangle (+ 80 (pict-width p)) (+ 90 (pict-height p)) -0.05 #:color c #:border-width 11)
@@ -179,23 +182,24 @@
   (define txt-offset 35)
   (pslide
     #:go HEADING-COORD
-    (heading-text "One mixed-typed language")
-    #:go (coord 1/2 1/4 'ct)
-    model-pict
-    #:alt [#:go (at-find-pict 'stat-file rb-find 'lc #:abs-x 2)
-           (filled-rectangle 60 10 #:color "white" #:draw-border? #false)
-           #:go (at-find-pict 'stat-file rb-find 'ct)
-           (filled-rectangle 500 300 #:color "white" #:draw-border? #false)])
-  (pslide
-    #:go HEADING-COORD
-    (heading-text "Three semantics")
-    #:go (coord 1/5 1/4 'lt)
-    (let ([box+text (lambda (b t) (hc-append 20 b t))])
-      (vl-append
-        20
-        (box+text (make-H-box) @t{higher-order semantics})
-        (box+text (make-1-box) @t{first-order semantics})
-        (box+text (make-E-box) @t{erasure semantics}))))
+    (heading-text "In this paper:")
+    #:go MAIN-CONTRIB-COORD
+    model-pict-
+    #:go (at-find-pict 'stat-file rb-find 'lc #:abs-x 2)
+    (filled-rectangle 60 10 #:color "white" #:draw-border? #false)
+    #:go (at-find-pict 'stat-file rb-find 'ct)
+    (filled-rectangle 500 280 #:color "white" #:draw-border? #false)
+    #:go (coord SLIDE-LEFT 78/100 'lt)
+    (tag-pict (t "One mixed-typed language ... ") 'h-left)
+    #:next
+    #:go (at-find-pict 'h-left rb-find 'lb)
+    (t "three semantics")
+    #:go -MAIN-CONTRIB-COORD
+    (apply vl-append
+           20
+           (for/list ((s (in-list '(H 1 E))))
+             (let-values (((n _ b) (symbol->name+box s)))
+               (hc-append 20 b (t n) (blank 60 0))))))
   (pslide
     #:go MAIN-CONTRIB-COORD
     #:alt[model-pict-
@@ -203,11 +207,9 @@
           @heading-text{Apples-to-Apples Theory}
           #:go -MAIN-CONTRIB-COORD
           (contrib*->pict '(
-            "- one syntax + type checker"
             ""
-            "- three behaviors"
-            ""
-            "- comparative meta-theory"))]
+            "comparative meta-theory"
+            ))]
     #:alt [model-pict-
            #:go ARROW-COORD
            (large-right-arrow)
@@ -220,17 +222,14 @@
            #:next
            #:go -MAIN-CONTRIB-COORD impl-pict-]
     (contrib*->pict '(
-      "- Racket syntax + types"
       ""
-      "- three compilers"
-      ""
-      "- systematic performance"
-      "  evaluation"))
+      ;; TODO re-word
+      "one systematic performance"
+      "evaluation"))
     #:go HEADING-COORD
     @heading-text{Apples-to-Apples Performance}
     #:go -MAIN-CONTRIB-COORD
     impl-pict-)
-  ;; slide saying: "sound science, perf science, organize space"?
   (void))
 
 (define (sec:embedding:warmup)
@@ -308,6 +307,7 @@
     #:go (at-underline 'dyn-1) (make-underline dyn-1)
     #:go (at-underline 'dyn-2) (make-underline dyn-2))
   (pslide
+    #:go boundary-coord
     (make-example-boundary-pict))
   (void))
 
@@ -318,6 +318,9 @@
 (define (sec:embedding:H)
   (define arrow-target 'arrow-target)
   (pslide
+    #:go (coord 9/10 9/10 'rb)
+    (make-disclaimer-pict "(the systems landscape)")
+    #:go (coord 1/2 1/2)
     #:alt [(make-embeddings-pict)]
     (make-embeddings-pict #:highlight 'H))
   (make-H-example-slide)
@@ -342,22 +345,33 @@
   (define y-sep 6)
   (define arrow-style-1 'dot)
   (pslide
+    #:go (coord 9/10 9/10 'rb)
+    (make-disclaimer-pict "(the systems landscape)")
+    #:go (coord 1/2 1/2)
     #:alt ((make-embeddings-pict))
     #:alt ((make-embeddings-pict H-system*))
     (make-embeddings-pict H-system* #:highlight '1))
   (make-1-example-slide)
+  (define dyn-pair (hc-append 2 @t{⟨} @dyn-bg[@dyn-text{-1}] @t{,} @dyn-bg[@dyn-text{-2}] @t{⟩}))
   (make-example-detail-slide
+    #:first-order? #true
+    #:arrow-label (t "Nat (or Int)")
     '1
-    (make-boundary-pict #:left (hole-append @t{norm} (small-check-icon))
+    (make-boundary-pict #:left (top/bot @t{norm} dyn-pair)
                         #:right @dyn-text{⟨-1,-2⟩}
                         #:arrow @t/crunch{Nat × Nat})
     (parameterize ((current-component-ratio 3/4))
-      (make-boundary-pict #:left (hole-append @t{snd} (small-check-icon))
+      (make-stat-file (top/bot @t{snd} dyn-pair)))
+    (parameterize ((current-component-ratio 3/4))
+      (make-stat-file @t{-2}))
+
+    #;(parameterize ((current-component-ratio 3/4))
+      (make-boundary-pict #:left (top/bot @t{snd} (values @t{⟨-1,-2⟩}))
                           #:right @dyn-text{⟨-1,-2⟩}
                           #:arrow (blank)
                           #:arrow-style arrow-style-1
                           #:reverse? #true))
-    (parameterize ((current-component-ratio 3/4))
+    #;(parameterize ((current-component-ratio 3/4))
       (make-boundary-pict #:left (make-hole)
                           #:right @dyn-text{-2}
                           #:arrow-style arrow-style-1
@@ -368,7 +382,7 @@
                         #:right @dyn-text{λ(x)-x}
                         #:arrow @t/crunch{Nat ⇒ Nat})
     (parameterize ((current-component-ratio 3/4))
-      (make-boundary-pict #:left (hole-append (small-check-icon) @t{1})
+      (make-boundary-pict #:left (parameterize ((current-font-size 24)) (hole-append @t{(λ(x)-x)} @t{1}))
                           #:right (hc-append 2 (parameterize ((current-font-size 24)) @dyn-text{(λ(x)-x)}) (make-hole))
                           #:arrow (blank)
                           #:arrow-style arrow-style-1
@@ -384,6 +398,9 @@
   (define (add-arrow str)
     (hc-append 20 (arrow EVAL-ARROW-SIZE 0) (t str)))
   (pslide
+    #:go (coord 9/10 9/10 'rb)
+    (make-disclaimer-pict "(the systems landscape)")
+    #:go (coord 1/2 1/2)
     #:alt [(make-embeddings-pict H-system*)]
     #:alt [(make-embeddings-pict H-system* reticulated)]
     #:alt [(make-embeddings-pict H-system* 1-system*)]
@@ -414,6 +431,9 @@
 
 (define (sec:embedding:end)
   (pslide
+    #:go (coord 9/10 9/10 'rb)
+    (make-disclaimer-pict "(the systems landscape)")
+    #:go (coord 1/2 1/2)
     #:alt [(make-embeddings-pict H-system* 1-system* E-system*)]
     (make-embeddings-pict all-system*))
   (void))
@@ -456,7 +476,7 @@
                                    ("progress & preservation"
                                     "for type constructors")
                                    "progress & preservation"))))
-        (define-values [txt bx] (symbol->name+box sym))
+        (define-values [_n _d bx] (symbol->name+box sym))
         (ht-append (lb-superimpose (blank 42 26) (scale-to-fit bx 30 30))
                    (string*->text descr)))))
   (pslide
@@ -538,7 +558,7 @@
                                      "add types sparingly"
                                      ("add types anywhere,"
                                       "doesn't matter")))))
-          (define-values [txt bx] (symbol->name+box sym))
+          (define-values [_n _d bx] (symbol->name+box sym))
           (ht-append (lb-superimpose (blank 55 26) (scale-to-fit bx 40 40))
                      (string*->text descr))))))
   (pslide
@@ -622,7 +642,10 @@
   (void))
 
 (define (sec:extra)
-  (pslide (make-embeddings-pict all-system*))
+  (pslide
+    (make-embeddings-pict all-system*)
+    #:go (coord 9/10 9/10 'rb)
+    (make-disclaimer-pict "(the systems landscape)"))
   (make-H-example-slide)
   (make-1-example-slide)
   (make-E-example-slide)
@@ -634,20 +657,23 @@
 
 (define (make-H-example-slide [bp #f])
   (define b-pict (or bp (make-example-boundary-pict (big-x-icon) (big-x-icon) (big-monitor-icon))))
-  (make-?-example-slide "higher-order" (make-H-box) b-pict))
+  (define-values [n d b] (symbol->name+box 'H))
+  (make-?-example-slide (string-append n " : " d) b b-pict))
 
 (define (make-E-example-slide [bp #f])
   (define b-pict (or bp (make-example-boundary-pict (big-check-icon) (big-check-icon) (big-check-icon))))
-  (make-?-example-slide "erasure" (make-E-box) b-pict))
+  (define-values [n d b] (symbol->name+box 'E))
+  (make-?-example-slide (string-append n " : " d) b b-pict))
 
 (define (make-1-example-slide [bp #f])
   (define b-pict (or bp (make-example-boundary-pict (big-x-icon) (big-check-icon) (big-check-icon))))
-  (make-?-example-slide "first-order" (make-1-box) b-pict))
+  (define-values [n d b] (symbol->name+box '1))
+  (make-?-example-slide (string-append n " : " d) b b-pict))
 
 (define (make-?-example-slide name lbl b-pict)
   (define y-sep 6)
   (pslide
-    #:go (coord 1/2 SLIDE-TOP 'ct #:abs-y y-sep)
+    #:go boundary-coord
     b-pict
     #:go (coord SLIDE-LEFT SLIDE-TOP 'lb)
     (t name)
@@ -697,10 +723,10 @@
   (define sf (make-stat-file left-pict))
   (define df (make-dyn-file right-pict))
   (define (make-arrow p src-tag src-find dst-tag dst-find)
-    (pin-arrow-line 13 p
+    (pin-arrow-line arrow-size p
                     (find-tag p src-tag) src-find
                     (find-tag p dst-tag) dst-find
-                    #:line-width 4
+                    #:line-width arrow-width
                     #:style arrow-style
                     #:label arrow-pict))
   (ppict-do
@@ -881,7 +907,6 @@
 (define (make-gtspace-slide [gt* '()] #:title [title #f] #:layout [gt-layout #f] #:disclaimer [extra-pict (blank)])
   (define top-margin -6)
   (define x-margin 40)
-  (define arrow-size 12)
   (pslide
     #:go (coord SLIDE-LEFT SLIDE-TOP 'lb)
     (if title (blank) (heading-text "Typed/Untyped Languages"))
@@ -975,13 +1000,13 @@
           (h (pict-height p))
           (margin 20))
       (cc-superimpose
-        (filled-rectangle (+ w margin) (+ h margin) #:color HIGHLIGHT-COLOR #:draw-border? #false)
+        (filled-rounded-rectangle (+ w margin) (+ h margin) ebox-round #:color HIGHLIGHT-COLOR #:draw-border? #false)
         p))
     p))
 
 (define (make-embedding-box -> color)
   (ppict-do
-    (filled-rounded-rectangle 100 100 -0.001 #:color color)
+    (filled-rounded-rectangle 100 100 ebox-round #:color color)
     #:go (coord 1/2 1/2)
     (scale -> 2)))
 
@@ -1332,7 +1357,7 @@
       (raise-argument-error 'make-embedding-line "embedding?" e))))
 
 (define (make-embedding-legend e)
-  (define-values [txt bx] (symbol->name+box e))
+  (define-values [txt _descr bx] (symbol->name+box e))
   (define txt-pict (t txt))
   (hc-append 10 (scale-for-legend bx) txt-pict))
 
@@ -1667,34 +1692,73 @@
 (define (symbol->name+box sym)
   (case sym
     ((H)
-     (values "higher-order" (make-H-box)))
+     (values "higher-order" "enforce full types" (make-H-box)))
     ((1)
-     (values "first-order" (make-1-box)))
+     (values "first-order" "enforce type constructors" (make-1-box)))
     ((E)
-     (values "erasure" (make-E-box)))
+     (values "erasure" "ignore types" (make-E-box)))
     (else
       (raise-argument-error 'symbol->name+box "(or/c 'H '1 'E)" sym))))
 
-(define (make-example-detail-slide e-sym pict-1 [pict-2 #f] [pict-3 #f] #:arrow-label [arrow-label #false])
+(define (dyn-bg p)
+  (define blur-val 8)
+  (define rounding -0.2)
+  (define the-margin 2)
+  (cc-superimpose
+    (blur (filled-rounded-rectangle (+ the-margin (pict-width p)) (+ (* 2 the-margin) (pict-height p)) rounding #:color DYN-COLOR #:draw-border? #false)
+          blur-val blur-val)
+    p))
+
+(define (make-example-detail-slide e-sym pict-1 [pict-2 #f] [pict-3 #f] #:arrow-label [arrow-label #false] #:first-order? [first-order? #f])
   (define name-coord (coord SLIDE-LEFT SLIDE-TOP 'lb))
   (define box-coord (coord SLIDE-LEFT SLIDE-TOP 'lt #:abs-y 6))
-  (define examples-coord (coord 1/2 SLIDE-TOP 'ct #:abs-y 6))
-  (define-values [e-name e-box] (symbol->name+box e-sym))
+  (define-values [e-prename e-descr e-box] (symbol->name+box e-sym))
+  (define e-name (string-append e-prename " : " e-descr))
   (cond
+    [first-order?
+     (unless (and pict-2 pict-3)
+       (raise-arguments-error 'make-example-details-slide "got #:first-order? but not 3 picts" (if pict-3 2 3) e-sym pict-1 pict-2 pict-3))
+     (pslide
+       #:go name-coord
+       (t e-name)
+       #:go box-coord
+       e-box
+       #:go boundary-coord
+       (tag-pict pict-1 'pict-1)
+       #:go (at-find-pict 'pict-1 lb-find 'lt #:abs-y 20 #:abs-x 70)
+       DOWN-ARROW
+       #:next
+       #:go (at-find-pict 'pict-1 lb-find 'lt #:abs-y (+ (* 2 20) (pict-height DOWN-ARROW)))
+       (tag-pict pict-2 'pict-2)
+       #:next
+       #:go (at-find-pict 'pict-2 cb-find 'ct #:abs-y 15)
+       (tag-pict pict-3 'pict-3)
+       #:set (let ((p ppict-do-state))
+               (pin-arrow-line arrow-size p
+                               (find-tag p 'pict-2) rc-find
+                               (find-tag p 'pict-3) rc-find
+                               #:start-angle 0
+                               #:end-angle (* 1 pi)
+                               #:line-width arrow-width
+                               #:label (or arrow-label (blank))
+                               #:x-adjust-label (if arrow-label (+ 2 (pict-width arrow-label))  0)
+                               #:style 'dot)))]
     [(and pict-2 pict-3)
      (pslide
        #:go name-coord
        (t e-name)
        #:go box-coord
        e-box
-       #:go examples-coord
+       #:go boundary-coord
        (tag-pict pict-1 'pict-1)
+       #:go (at-find-pict 'pict-1 lb-find 'lt #:abs-y 20 #:abs-x 70)
+       DOWN-ARROW
        #:next
-       #:go (at-find-pict 'pict-1 lb-find 'lt #:abs-y 20)
-       (hc-append 20 (arrow EVAL-ARROW-SIZE 0) (tag-pict pict-2 'pict-2))
+       #:go (at-find-pict 'pict-1 lb-find 'lt #:abs-y (+ (* 2 20) (pict-height DOWN-ARROW)))
+       (tag-pict pict-2 'pict-2)
        #:next
        #:go (at-find-pict 'pict-2 cb-find 'ct #:abs-y 15)
-       (vr-append 15 (hc-append (arrow EVAL-ARROW-SIZE (* 3/2 pi)) (blank 55 0)) pict-3)
+       (vr-append 15 (hc-append DOWN-ARROW (blank 55 0)) pict-3)
        #:go (if arrow-label (at-find-pict/below (car arrow-label)) (coord 0 0))
        (if arrow-label (cdr arrow-label) (blank)))]
     [pict-2
@@ -1703,7 +1767,7 @@
        (t e-name)
        #:go box-coord
        e-box
-       #:go examples-coord
+       #:go boundary-coord
        (tag-pict pict-1 'pict-1)
        #:next
        #:go (at-find-pict 'pict-1 lb-find 'lt #:abs-y 20)
@@ -1749,6 +1813,13 @@
 (define (make-underline p)
   (define lw 6)
   (colorize (linewidth lw (hline (pict-width p) lw)) halt-icon-color))
+
+(define (top/bot t b)
+  (define w (- (pict-width b) (pict-width t)))
+  (vr-append 6 (hc-append 20 t (blank w 0)) b))
+
+(define-syntax-rule (with-small-code e)
+  (parameterize ((current-font-size 24)) e))
 
 ;; =============================================================================
 
