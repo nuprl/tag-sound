@@ -48,9 +48,9 @@
     ;(pslide (make-section-header "Model"))
     ;(sec:embedding:warmup)
     ;(sec:embedding:H)
-    (sec:embedding:1)
+    ;(sec:embedding:1)
     ;(sec:embedding:E)
-    ;(sec:soundness)
+    (sec:soundness)
     ;(sec:implementation)
     ;(sec:performance)
     ;(sec:conclusion)
@@ -399,31 +399,117 @@
   (void))
 
 (define (sec:soundness)
-  ;; seen 3 ways of running the same programs, 3 different behaviors
-  ;; what does this mean for type soundness?
-  ;; [slide H 1 E at top (1/5), 3 columns with shrunken picts]
-  ;; classic soundness, 3 clauses
-  ;; 3 columns H 1 E soundness
-  ;; folklore : all-or-nothing? NO for a mixed-typed language
-  ;; ... at least three points in the design space [back to 3-columns]
-  ;;     the all-or-nothing view confuses 1 with erasure whether or not you find
-  ;;     the middle soundness useful, its certainly different (meaningful distinction)
-  ;; we can say more about the differences ... let me make this more precise
-  ;;  all know practical benefit of soundness is ruling out runtime behaviors
-  ;; a typed language rules out all such errors
-  ;; higher-order gets some --- in particular ...
-  ;; erasure gets a few (in the typed code)
-  ;; first order gets a few more ... 
-  ;; we've just seen existence proof, via examples
-  ;;   THM: there exists a term e such that e ->H Error and e ->1 v
-  ;;   THM: \exists e . e ->1 Error and e ->E v
-  ;; in paper also have containment proof any program that ends in an error
-  ;;  also ends in an error with a stricter types
-  ;;   THM: if e ->E Error then e ->1 Error
-  ;;   THM: if e ->1 Error then e ->H Error
+  (define H-box
+    (let-values (((_a _b the-box) (symbol->name+box 'H)))
+      (tag-pict the-box 'H-box)))
+  (define 1-box
+    (let-values (((_a _b the-box) (symbol->name+box '1)))
+      (tag-pict the-box '1-box)))
+  (define E-box
+    (let-values (((_a _b the-box) (symbol->name+box 'E)))
+      (tag-pict the-box 'E-box)))
+  (define (scale-example p)
+    (scale p 6/10))
+  (define H-col (scale-example (symbol->boundary-pict 'H)))
+  (define 1-col (scale-example (symbol->boundary-pict '1)))
+  (define E-col (scale-example (symbol->boundary-pict 'E)))
+  (define y-sep 20)
+  (pslide
+    #:go (coord 50/100 1/2 'cc) (filled-rectangle (+ 20 (pict-width 1-col)) (+ (* 3 margin) client-h) #:color (set-alpha (string->color "black") 0.2) #:draw-border? #f)
+    #:go (coord 18/100 SLIDE-TOP 'ct) H-box
+    #:go (coord 50/100 SLIDE-TOP 'ct) 1-box
+    #:go (coord 82/100 SLIDE-TOP 'ct) E-box
+    #:next
+    #:go (at-find-pict 'H-box cb-find 'ct #:abs-y y-sep)
+    H-col
+    #:go (at-find-pict '1-box cb-find 'ct #:abs-y y-sep)
+    1-col
+    #:go (at-find-pict 'E-box cb-find 'ct #:abs-y y-sep)
+    E-col)
+  (define (make-spectrum-delimiter)
+    (filled-rectangle 6 20 #:color "black" #:draw-border? #f))
+  (define spectrum-line-width 10)
+  (define spectrum-x-offset 4)
+  (define spectrum-H-offset 30)
+  (define spectrum-E-offset (- spectrum-x-offset))
+  (define spectrum-1-offset (- (* 25/100 client-w)))
+  (define gt-pict (vl-append (heading-text "⊃") (blank 0 20)))
+  (define model-pict
+    (let-values (([model-pict0 impl-pict0] (make-model/impl-pict)))
+      (scale (scale-for-column model-pict0) 9/10)))
+  (define y-spectrum 26/100)
+  (pslide
+    #:go (coord SLIDE-LEFT y-spectrum 'cc)
+    (tag-pict (make-spectrum-delimiter) 'all-rect)
+    #:go (coord SLIDE-RIGHT y-spectrum)
+    (tag-pict (make-spectrum-delimiter) 'none-rect)
+    #:set (let ((p ppict-do-state))
+            (pin-line p (find-tag p 'all-rect) rc-find (find-tag p 'none-rect) lc-find
+                      #:label (tag-pict (blank) 'lbl-tag)
+                      #:line-width spectrum-line-width))
+    #:go (at-find-pict/below 'lbl-tag #:abs-y (* 3.5 spectrum-line-width))
+    (heading-text "Type violations discovered" 38)
+    #:go (at-find-pict 'all-rect rb-find 'lt #:abs-x spectrum-x-offset)
+    (label-text "All")
+    #:go (at-find-pict 'none-rect lb-find 'rt #:abs-x spectrum-E-offset)
+    (label-text "None")
+    #:next
+    #:go (at-find-pict 'all-rect rt-find 'lb #:abs-x spectrum-H-offset)
+    (tag-pict (make-H-box) 'H-box)
+    #:go (at-find-pict 'none-rect lt-find 'rb #:abs-x spectrum-E-offset)
+    (tag-pict (make-E-box) 'E-box)
+    #:go (at-find-pict 'none-rect lt-find 'rb #:abs-x spectrum-1-offset)
+    (tag-pict (make-1-box) '1-box)
+    #:set (let ((p ppict-do-state))
+            (pin-line p (find-tag p 'H-box) rb-find (find-tag p '1-box) lb-find
+                      #:label gt-pict
+                      #:style 'transparent))
+    #:set (let ((p ppict-do-state))
+            (pin-line p (find-tag p '1-box) rb-find (find-tag p 'E-box) lb-find
+                      #:label gt-pict
+                      #:style 'transparent))
+    #:next
+    #:go (coord SLIDE-LEFT 40/100 'lt)
+    (vl-append 20
+               (t "Theorem (⊇):")
+               (vl-append 45
+                          (make-superset-theorem 1-box H-box)
+                          (make-superset-theorem E-box 1-box)))
+    #:next
+    #:go (coord SLIDE-RIGHT 40/100 'rt)
+    (vl-append 20
+               (t "Counterexamples (⊋):")
+               (t "- see prev. slide"))
 
-  ;; TODO ... start with errors line, b/c just saw example ; transition to q and soundness?
-  ;; TODO still droopy, things overall still look shitty
+    ;; we've just seen existence proof, via examples
+    ;;   THM: there exists a term e such that e ->H Error and e ->1 v
+    ;;   THM: \exists e . e ->1 Error and e ->E v
+    ;; in paper also have containment proof any program that ends in an error
+    ;;  also ends in an error with a stricter types
+    ;;   THM: if e ->E Error then e ->1 Error
+    ;;   THM: if e ->1 Error then e ->H Error
+
+    ;; 1. theorems
+    ;; 2. folklore, different soundness FOR SURE
+    ;; 3. 3-column, soundness
+
+    ;; conatural + forgetful
+    )
+
+  (make-folklore-slide #:q2? #false #:answers? #false)
+  (make-folklore-slide #:q2? #false #:answers? #true)
+  (pslide
+    (t "todo normal soundness"))
+  (pslide
+    #:go (coord 50/100 1/2 'cc) (filled-rectangle (+ 20 (pict-width 1-col)) (+ (* 3 margin) client-h) #:color (set-alpha (string->color "black") 0.2) #:draw-border? #f)
+    #:go (coord 18/100 SLIDE-TOP 'ct) H-box
+    #:go (coord 50/100 SLIDE-TOP 'ct) 1-box
+    #:go (coord 82/100 SLIDE-TOP 'ct) E-box
+    )
+
+  (void))
+
+#;(define (sec:soundness)
   (define model-pict
     (let-values (((mp _) (make-model/impl-pict)))
       (scale (scale-for-column mp) 9/10)))
@@ -559,18 +645,7 @@
 (define (make-scatterplots-pict)
   (scale-to-fit (bitmap cache-scatterplots.png) client-w client-h))
 
-(define (sec:conclusion)
-  (define (make-spectrum-delimiter)
-    (filled-rectangle 6 20 #:color "black" #:draw-border? #f))
-  (define spectrum-line-width 10)
-  (define spectrum-x-offset 4)
-  (define spectrum-H-offset 30)
-  (define spectrum-E-offset (- spectrum-x-offset))
-  (define spectrum-1-offset (- (* 25/100 client-w)))
-  (define gt-pict (vl-append (heading-text ">") (blank 0 20)))
-  (define model-pict
-    (let-values (([model-pict0 impl-pict0] (make-model/impl-pict)))
-      (scale (scale-for-column model-pict0) 9/10)))
+#;(define (sec:conclusion)
   (pslide
     (make-section-header "Implications"))
   (pslide
@@ -641,19 +716,30 @@
 
 ;; -----------------------------------------------------------------------------
 
+(define (symbol->boundary-pict sym)
+  (case sym
+    ((H)
+     (make-example-boundary-pict (big-x-icon) (big-x-icon) (big-monitor-icon)))
+    ((1)
+     (make-example-boundary-pict (big-x-icon) (big-check-icon) (big-check-icon)))
+    ((E)
+     (make-example-boundary-pict (big-check-icon) (big-check-icon) (big-check-icon)))
+    (else
+     (raise-argument-error 'symbol->boundary-pict "(or/c 'H '1 'E)" sym))))
+
 (define (make-H-example-slide [bp #f])
-  (define b-pict (or bp (make-example-boundary-pict (big-x-icon) (big-x-icon) (big-monitor-icon))))
+  (define b-pict (or bp (symbol->boundary-pict 'H)))
   (define-values [n d b] (symbol->name+box 'H))
   (make-?-example-slide (string-append n "  (" d ")") b b-pict))
 
-(define (make-E-example-slide [bp #f])
-  (define b-pict (or bp (make-example-boundary-pict (big-check-icon) (big-check-icon) (big-check-icon))))
-  (define-values [n d b] (symbol->name+box 'E))
+(define (make-1-example-slide [bp #f])
+  (define b-pict (or bp (symbol->boundary-pict '1)))
+  (define-values [n d b] (symbol->name+box '1))
   (make-?-example-slide (string-append n "  (" d ")") b b-pict))
 
-(define (make-1-example-slide [bp #f])
-  (define b-pict (or bp (make-example-boundary-pict (big-x-icon) (big-check-icon) (big-check-icon))))
-  (define-values [n d b] (symbol->name+box '1))
+(define (make-E-example-slide [bp #f])
+  (define b-pict (or bp (symbol->boundary-pict 'E)))
+  (define-values [n d b] (symbol->name+box 'E))
   (make-?-example-slide (string-append n "  (" d ")") b b-pict))
 
 (define (make-?-example-slide name lbl b-pict)
@@ -1351,6 +1437,15 @@
 (define (scale-for-legend p)
   (define h 20)
   (scale-to-fit (cellophane p PLOT-FN-ALPHA) h h))
+
+(define (scale-for-theorem p)
+  (define h (current-font-size))
+  (scale-to-fit p h h))
+
+(define (make-superset-theorem p0 p1)
+  (vl-append 15
+             (hc-append 0 (t "  - if e ") (scale-for-theorem p0) (t " Error"))
+             (hc-append 0 (t "    then e ") (scale-for-theorem p1) (t " Error"))))
 
 (define (rectangle/2t width height
                       #:border-width [border-width 1]
