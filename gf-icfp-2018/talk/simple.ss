@@ -415,7 +415,7 @@
   (define E-col (scale-example (symbol->boundary-pict 'E)))
   (define y-sep 20)
   (pslide
-    #:go (coord 50/100 1/2 'cc) (filled-rectangle (+ 20 (pict-width 1-col)) (+ (* 3 margin) client-h) #:color (set-alpha (string->color "black") 0.2) #:draw-border? #f)
+    #:go (coord 50/100 1/2 'cc) (filled-rectangle (+ 26 (pict-width 1-col)) (+ (* 3 margin) client-h) #:color (set-alpha (string->color "black") 0.2) #:draw-border? #f)
     #:go (coord 18/100 SLIDE-TOP 'ct) H-box
     #:go (coord 50/100 SLIDE-TOP 'ct) 1-box
     #:go (coord 82/100 SLIDE-TOP 'ct) E-box
@@ -426,23 +426,6 @@
     1-col
     #:go (at-find-pict 'E-box cb-find 'ct #:abs-y y-sep)
     E-col)
-
-  ;(pslide
-  ;  (t "TODO normal soundness"))
-  ;(pslide
-  ;  #:go (coord 50/100 1/2 'cc) (filled-rectangle (+ 20 (pict-width 1-col)) (+ (* 3 margin) client-h) #:color (set-alpha (string->color "black") 0.2) #:draw-border? #f)
-  ;  #:go (coord 18/100 SLIDE-TOP 'ct) H-box
-  ;  #:go (coord 50/100 SLIDE-TOP 'ct) 1-box
-  ;  #:go (coord 82/100 SLIDE-TOP 'ct) E-box
-  ;  )
-  ;(make-folklore-slide #:q2? #false #:answers? #false)
-  ;(make-folklore-slide #:q2? #false #:answers? #true)
-
-    ;; - theorems
-    ;; - 3-column, soundness
-    ;; - folklore, different soundness FOR SURE
-
-
   (define (make-spectrum-delimiter)
     (filled-rectangle 6 20 #:color "black" #:draw-border? #f))
   (define spectrum-line-width 10)
@@ -456,7 +439,7 @@
       (scale (scale-for-column model-pict0) 9/10)))
   (define y-spectrum 26/100)
   (define y-box-sep (* 4 spectrum-line-width))
-  (pslide
+  #;(pslide
     #:go (coord SLIDE-LEFT y-spectrum 'cc)
     (tag-pict (make-spectrum-delimiter) 'all-rect)
     #:go (coord SLIDE-RIGHT y-spectrum)
@@ -505,6 +488,69 @@
                       p))
     #:go (coord SLIDE-LEFT 40/100 'lt)
     (hb-append 0 (t "Appendix: two other semantics") (blank 0 (pict-height (t "⊇")))))
+  (define sound-0 (tag-pict (hb-append 0 (t "e ->* v and ") (well-t "v" "τ")) 'sound-0))
+  (define sound-1 (tag-pict (t "e diverges") 'sound-1))
+  (define sound-2 (tag-pict (t "e ->* Error") 'sound-2))
+  (define H-sound-0 (tag-pict (well-t "v" "τ") 'H-sound-0))
+  (define 1-sound-0 (tag-pict (well-t "v" "C(τ)") '1-sound-0))
+  (define E-sound-0 (tag-pict (well-t "v" #f) 'E-sound-0))
+  (define sound-pict
+    (vl-append 20
+               (t "Type Soundness (simplified):")
+               (vl-append 20
+                          (hb-append 0 (t " if ") (well-t "e" "τ") (t " then either:"))
+                          (hb-append 0 (t " - ") sound-0)
+                          (hb-append 0 (t " - ") sound-1)
+                          (hb-append 0 (t " - ") sound-2))))
+  (pslide
+    #:go (coord 50/100 1/2 'cc) (filled-rectangle (+ 26 (pict-width 1-col)) (+ (* 3 margin) client-h) #:color (set-alpha (string->color "black") 0.2) #:draw-border? #f)
+    #:go (coord 18/100 SLIDE-TOP 'ct) H-box
+    #:go (coord 50/100 SLIDE-TOP 'ct) 1-box
+    #:go (coord 82/100 SLIDE-TOP 'ct) E-box
+    #:next
+    #:alt [#:go (coord 1/2 1/3 'ct)
+           (cc-superimpose
+             (filled-rounded-rectangle (+ 60 (pict-width sound-pict)) (+ 40 (pict-height sound-pict)) -0.05
+                                       #:color "white" #:border-width 8)
+             sound-pict)
+           #:next
+           #:alt [#:go (at-underline 'sound-0) (make-underline sound-0)]
+           #:alt [#:go (at-underline 'sound-1) (make-underline sound-1)]
+           #:go (at-underline 'sound-2) (make-underline sound-2)]
+    #:go (at-find-pict 'H-box cb-find 'ct #:abs-y (* 4 y-sep))
+    (scale-soundness
+      (vl-append 20
+               (hc-append 0 (scale-for-theorem H-box) (t " Soundness:"))
+               (vl-append 20
+                          (hb-append 0 (t " if ") (well-t "e" "τ") (t " then either:"))
+                          (hb-append 0 (t " - ") (hb-append 0 (t "e ->* v and ") H-sound-0))
+                          (hb-append 0 (t " - ") (t "e diverges"))
+                          (hb-append 0 (t " - ") (t "e ->* Error")))))
+    #:go (at-underline 'H-sound-0) (make-underline H-sound-0 -20)
+    #:next
+    #:go (at-find-pict '1-box cb-find 'ct #:abs-y (* 4 y-sep))
+    (scale-soundness
+      (vl-append 20
+                 (hc-append 0 (scale-for-theorem 1-box) (t " Soundness:"))
+                 (vl-append 20
+                            (hb-append 0 (t " if ") (well-t "e" "τ") (t " then either:"))
+                            (hb-append 0 (t " - ") (hb-append 0 (t "e ->* v and ") 1-sound-0))
+                            (hb-append 0 (t " - ") (t "e diverges"))
+                            (hb-append 0 (t " - ") (t "e ->* Error")))))
+    #:go (at-underline '1-sound-0) (make-underline 1-sound-0 -28)
+    #:next
+    #:go (at-find-pict 'E-box cb-find 'ct #:abs-y (* 4 y-sep))
+    (scale-soundness
+      (vl-append 20
+                 (hc-append 0 (scale-for-theorem E-box) (t " Soundness:"))
+                 (vl-append 20
+                            (hb-append 0 (t " if ") (well-t "e" "τ") (t " then either:"))
+                            (hb-append 0 (t " - ") (hb-append 0 (t "e ->* v and ") E-sound-0))
+                            (hb-append 0 (t " - ") (t "e diverges"))
+                            (hb-append 0 (t " - ") (t "e ->* Error")))))
+    #:go (at-underline 'E-sound-0) (make-underline E-sound-0 -20))
+  (make-folklore-slide #:q2? #false #:answers? #false)
+  (make-folklore-slide #:q2? #false #:answers? #true)
   (void))
 
 #;(define (sec:soundness)
@@ -1448,6 +1494,9 @@
   (define h (current-font-size))
   (scale-to-fit p h h))
 
+(define (scale-soundness p)
+  (scale p 0.74))
+
 (define (make-superset-theorem p0 p1)
   (vl-append 15
              (hc-append 0 (t "  - if e ") (scale-for-theorem p0) (t " Error"))
@@ -1924,9 +1973,9 @@
 (define (at-underline tag)
   (at-find-pict tag cb-find 'ct #:abs-y 4))
 
-(define (make-underline p)
+(define (make-underline p [y-offset 0])
   (define lw 6)
-  (colorize (linewidth lw (hline (pict-width p) lw)) halt-icon-color))
+  (colorize (linewidth lw (hline (+ y-offset (pict-width p)) lw)) halt-icon-color))
 
 (define (top/bot t b)
   (define w (- (pict-width b) (pict-width t)))
@@ -1934,6 +1983,16 @@
 
 (define-syntax-rule (with-small-code e)
   (parameterize ((current-font-size 24)) e))
+
+(define (well-t str0 str1)
+  (define p*
+    (if str1 (list @t{:} @string-pict->text[str1]) '()))
+  (apply hb-append 2 @t{⊢} (string-pict->text str0) p*))
+
+(define (string-pict->text str)
+  (if (pict? str)
+    str
+    (t str)))
 
 ;; =============================================================================
 
