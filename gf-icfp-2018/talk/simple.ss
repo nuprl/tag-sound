@@ -50,9 +50,9 @@
     ;(sec:embedding:H)
     ;(sec:embedding:1)
     ;(sec:embedding:E)
-    (sec:soundness)
+    ;(sec:soundness)
     ;(sec:implementation)
-    ;(sec:performance)
+    (sec:performance)
     ;(sec:conclusion)
     ;(sec:extra)
     (void)))
@@ -207,6 +207,7 @@
           #:go -MAIN-CONTRIB-COORD
           (contrib*->pict '(
             ""
+            ;; TODO
             "comparative meta-theory"
             ))]
     #:alt [model-pict-
@@ -439,7 +440,7 @@
       (scale (scale-for-column model-pict0) 9/10)))
   (define y-spectrum 26/100)
   (define y-box-sep (* 4 spectrum-line-width))
-  #;(pslide
+  (pslide
     #:go (coord SLIDE-LEFT y-spectrum 'cc)
     (tag-pict (make-spectrum-delimiter) 'all-rect)
     #:go (coord SLIDE-RIGHT y-spectrum)
@@ -553,55 +554,6 @@
   (make-folklore-slide #:q2? #false #:answers? #true)
   (void))
 
-#;(define (sec:soundness)
-  (define model-pict
-    (let-values (((mp _) (make-model/impl-pict)))
-      (scale (scale-for-column mp) 9/10)))
-  (define type-pict*
-    (let* ([vdash* (map scale-for-bullet (list ⊢H ⊢1 ⊢E))]
-           [t* (map (lambda (str) (if str (t str) #f)) '("τ" #f "K(τ)"))])
-      (for/list ((vdash (in-list vdash*))
-                 (t-pict (in-list t*))
-                 (c (in-list (list H-COLOR 1-COLOR E-COLOR))))
-        (define t+ (if t-pict (vl-append 6 (hc-append (t ":") t-pict) (blank)) (blank)))
-        (define p (hc-append 2 vdash (hc-append (t "e") t+)))
-        (vl-append p (filled-rectangle (pict-width p) 4 #:draw-border? #f #:color c)))))
-  (define model-pict+
-    (ppict-do
-      model-pict
-      #:set (for/fold ((acc ppict-do-state))
-                      ((tag (in-list '(->H ->1 ->E)))
-                       (type-pict (in-list type-pict*)))
-              (ppict-do
-                acc
-                #:go (at-find-pict tag cb-find 'ct #:abs-y 30)
-                type-pict))))
-  (pslide
-    (make-section-header "Soundness"))
-  (make-folklore-slide #:q2? #false #:answers? #false)
-  (make-folklore-slide #:q2? #false #:answers? #true)
-  (define sound-text-pict
-    (apply
-      vl-append
-      60
-      (for/list ((sym (in-list '(H 1 E)))
-                 (descr (in-list '(("progress & preservation"
-                                    "for types")
-                                   ("progress & preservation"
-                                    "for type constructors")
-                                   "progress & preservation"))))
-        (define-values [_n _d bx] (symbol->name+box sym))
-        (ht-append (lb-superimpose (blank 42 26) (scale-to-fit bx 30 30))
-                   (string*->text descr)))))
-  (pslide
-    #:go MAIN-CONTRIB-COORD
-    #:alt [model-pict]
-    #:alt [model-pict+]
-    model-pict+
-    #:go -MAIN-CONTRIB-COORD
-    sound-text-pict)
-  (void))
-
 (define (sec:implementation)
   (define-values [model-pict impl-pict]
     (let-values (((mp ip) (make-model/impl-pict)))
@@ -609,13 +561,19 @@
               (scale (scale-for-column ip) 9/10))))
   (pslide
     (make-section-header "Implementation"))
+  (make-folklore-slide #:q1? #false #:answers? #false)
   (pslide
     #:go MAIN-CONTRIB-COORD
     model-pict
     #:go ARROW-COORD
     (large-right-arrow)
-    #:go -MAIN-CONTRIB-COORD
-    impl-pict)
+    #:go (coord 1/2 3/4 'ct)
+    (tag-pict (t "=>") 'txt-arrow)
+    #:go (at-find-pict 'txt-arrow lc-find 'rc)
+    (t "model ")
+    #:go (at-find-pict 'txt-arrow rc-find 'lc)
+    (t " implementation")
+    #:go -MAIN-CONTRIB-COORD impl-pict)
   ;; implementation
   (define box*
     (list (make-TR-H-box) (make-TR-1-box) (make-TR-E-box)))
@@ -641,22 +599,18 @@
 
 (define (sec:performance)
   (pslide
-    (make-section-header "Performance"))
-  (make-folklore-slide #:q1? #false #:answers? #false)
-  (pslide
+    #:go HEADING-COORD
+    (heading-text "Experiment")
     #:go (coord SLIDE-LEFT 1/4 'lt)
-    @t{- 10 benchmark programs}
-    #:go (coord SLIDE-LEFT (+ 1/4 1/10) 'lt)
-    @t{- 2 to 10 modules each}
-    #:go (coord SLIDE-LEFT (+ 1/4 2/10) 'lt)
-    @t{- 4 to 1024 configurations each}
-    #:go (coord SLIDE-LEFT (+ 1/4 3/10) 'lt)
-    @t{- compare overhead to untyped}
+    (vl-append 30
+               @t{- 10 benchmark programs}
+               @t{- 2 to 10 modules each}
+               @t{- 4 to 1024 configurations each}
+               @t{- compare overhead to untyped})
     #:go (coord 1/2 (+ 1/4 4/10) 'ct)
     @url{docs.racket-lang.org/gtp-benchmarks})
   (make-overhead-plot-slide '())
   (pslide (make-scatterplots-pict))
-  (make-folklore-slide #:q1? #false #:answers? #true)
   (define perf-plot-pict
     (let ((w (* 40/100 client-w)))
       (scale-to-fit (make-overhead-plot '(H 1 E) #:legend? #false) w w)))
@@ -677,9 +631,9 @@
                      (string*->text descr))))))
   (pslide
     #:go (coord SLIDE-LEFT SLIDE-TOP 'lt)
-    @heading-text{For Performance}
+    @heading-text{Guidelines}
     #:go MAIN-CONTRIB-COORD
-    #:alt [perf-plot-pict]
+    (blank 0 60)
     perf-plot-pict
     #:next
     #:go -MAIN-CONTRIB-COORD
@@ -689,59 +643,60 @@
 (define (make-scatterplots-pict)
   (scale-to-fit (bitmap cache-scatterplots.png) client-w client-h))
 
-#;(define (sec:conclusion)
+(define (sec:conclusion)
   (pslide
     (make-section-header "Implications"))
-  (pslide
-    #:go (coord SLIDE-LEFT SLIDE-TOP 'lt)
-    @heading-text{For Theory}
-    #:go (coord SLIDE-LEFT 1/2)
-    (tag-pict (make-spectrum-delimiter) 'all-rect)
-    #:go (coord SLIDE-RIGHT 1/2)
-    (tag-pict (make-spectrum-delimiter) 'none-rect)
-    #:set (let ((p ppict-do-state))
-            (pin-line p (find-tag p 'all-rect) rc-find (find-tag p 'none-rect) lc-find
-                      #:label (tag-pict (blank) 'lbl-tag)
-                      #:line-width spectrum-line-width))
-    #:go (at-find-pict/below 'lbl-tag #:abs-y (* 3.5 spectrum-line-width))
-    (heading-text "Type violations discovered" 38)
-    #:go (at-find-pict 'all-rect rb-find 'lt #:abs-x spectrum-x-offset)
-    (label-text "All")
-    #:go (at-find-pict 'none-rect lb-find 'rt #:abs-x spectrum-E-offset)
-    (label-text "None")
-    #:next
-    #:go (at-find-pict 'all-rect rt-find 'lb #:abs-x spectrum-H-offset)
-    (tag-pict (make-H-box) 'H-box)
-    #:go (at-find-pict 'none-rect lt-find 'rb #:abs-x spectrum-E-offset)
-    (tag-pict (make-E-box) 'E-box)
-    #:go (at-find-pict 'none-rect lt-find 'rb #:abs-x spectrum-1-offset)
-    (tag-pict (make-1-box) '1-box)
-    #:set (let ((p ppict-do-state))
-            (pin-line p (find-tag p 'H-box) rb-find (find-tag p '1-box) lb-find
-                      #:label gt-pict
-                      #:style 'transparent))
-    #:set (let ((p ppict-do-state))
-            (pin-line p (find-tag p '1-box) rb-find (find-tag p 'E-box) lb-find
-                      #:label gt-pict
-                      #:style 'transparent)))
-  (pslide
-    #:go (coord SLIDE-LEFT SLIDE-TOP 'lt)
-    (heading-text "Special Thanks")
-    #:go (coord 1/2 1/4 'ct)
-    (arrange-authors (padded-bitmap 140) ack* 100 20 #true))
-  (pslide
-    #:go (coord SLIDE-LEFT SLIDE-TOP 'lt)
-    #:go MAIN-CONTRIB-COORD
-    model-pict
-    #:go -MAIN-CONTRIB-COORD
-    (contrib*->pict '(
-      "- one surface language"
-      ""
-      "- three notions of"
-      "  type soundness"
-      ""
-      "- full-fledged"
-      "  implementation")))
+  ;; TODO
+  ;(pslide
+  ;  #:go (coord SLIDE-LEFT SLIDE-TOP 'lt)
+  ;  @heading-text{For Theory}
+  ;  #:go (coord SLIDE-LEFT 1/2)
+  ;  (tag-pict (make-spectrum-delimiter) 'all-rect)
+  ;  #:go (coord SLIDE-RIGHT 1/2)
+  ;  (tag-pict (make-spectrum-delimiter) 'none-rect)
+  ;  #:set (let ((p ppict-do-state))
+  ;          (pin-line p (find-tag p 'all-rect) rc-find (find-tag p 'none-rect) lc-find
+  ;                    #:label (tag-pict (blank) 'lbl-tag)
+  ;                    #:line-width spectrum-line-width))
+  ;  #:go (at-find-pict/below 'lbl-tag #:abs-y (* 3.5 spectrum-line-width))
+  ;  (heading-text "Type violations discovered" 38)
+  ;  #:go (at-find-pict 'all-rect rb-find 'lt #:abs-x spectrum-x-offset)
+  ;  (label-text "All")
+  ;  #:go (at-find-pict 'none-rect lb-find 'rt #:abs-x spectrum-E-offset)
+  ;  (label-text "None")
+  ;  #:next
+  ;  #:go (at-find-pict 'all-rect rt-find 'lb #:abs-x spectrum-H-offset)
+  ;  (tag-pict (make-H-box) 'H-box)
+  ;  #:go (at-find-pict 'none-rect lt-find 'rb #:abs-x spectrum-E-offset)
+  ;  (tag-pict (make-E-box) 'E-box)
+  ;  #:go (at-find-pict 'none-rect lt-find 'rb #:abs-x spectrum-1-offset)
+  ;  (tag-pict (make-1-box) '1-box)
+  ;  #:set (let ((p ppict-do-state))
+  ;          (pin-line p (find-tag p 'H-box) rb-find (find-tag p '1-box) lb-find
+  ;                    #:label gt-pict
+  ;                    #:style 'transparent))
+  ;  #:set (let ((p ppict-do-state))
+  ;          (pin-line p (find-tag p '1-box) rb-find (find-tag p 'E-box) lb-find
+  ;                    #:label gt-pict
+  ;                    #:style 'transparent)))
+  ;(pslide
+  ;  #:go (coord SLIDE-LEFT SLIDE-TOP 'lt)
+  ;  (heading-text "Special Thanks")
+  ;  #:go (coord 1/2 1/4 'ct)
+  ;  (arrange-authors (padded-bitmap 140) ack* 100 20 #true))
+  ;(pslide
+  ;  #:go (coord SLIDE-LEFT SLIDE-TOP 'lt)
+  ;  #:go MAIN-CONTRIB-COORD
+  ;  model-pict
+  ;  #:go -MAIN-CONTRIB-COORD
+  ;  (contrib*->pict '(
+  ;    "- one surface language"
+  ;    ""
+  ;    "- three notions of"
+  ;    "  type soundness"
+  ;    ""
+  ;    "- full-fledged"
+  ;    "  implementation")))
   (void))
 
 (define (sec:extra)
@@ -1388,7 +1343,7 @@
   (parameterize ([current-font-size 26])
     (pslide
       #:go (coord SLIDE-LEFT SLIDE-TOP 'lt)
-      @heading-text{How does adding types affect performance?}
+      @heading-text{Soundness vs. Performance}
       #:go MAIN-CONTRIB-COORD
       (make-overhead-plot e*))))
 
@@ -1415,7 +1370,7 @@
         #:x-max x-max
         #:y-min 0
         #:y-max (* 10 (+ 1 (order-of-magnitude x-max))))))
-  (define pp+axis (add-overhead-axis-labels (tag-pict pp 'the-plot)))
+  (define pp+axis (add-overhead-axis-labels (tag-pict pp 'the-plot) legend?))
   (if legend?
     (ppict-do
       (hc-append 30 (blank) pp+axis)
@@ -1440,13 +1395,16 @@
             ([e (in-list e*)])
     (vl-append 20 acc (make-embedding-legend e))))
 
-(define (add-overhead-axis-labels pp)
+(define (add-overhead-axis-labels pp [legend? #t])
   (define margin 20)
   (define y-label
     (vr-append (t "Overhead vs.")
                (t "Untyped")))
   (define x-label (t "Num. Type Annotations"))
-  (ht-append margin y-label (vr-append margin (frame-plot pp) x-label)))
+  (define fp (frame-plot pp))
+  (if legend?
+    (ht-append margin y-label (vr-append margin fp x-label))
+    fp))
 
 (define (frame-plot p)
   (add-axis-arrow (add-axis-arrow p 'x) 'y))
@@ -1462,10 +1420,10 @@
   (pin-arrow-line 20 p p lb-find p find-dest #:line-width 6))
 
 (define (make-embedding-function e x-min x-max)
+  (define pi/4 (/ 3.14 4))
+  (define 3pi/4 (* 3.5 pi/4))
   (case e
     ((H)
-     (define pi/4 (/ 3.14 4))
-     (define 3pi/4 (* 3.5 pi/4))
      (lambda (n)
        (cond
          [(< n pi/4)
@@ -1477,7 +1435,14 @@
     ((E)
      (lambda (n) 1))
     ((1)
-     (lambda (n) (add1 n)))
+     (lambda (n)
+       (cond
+         [(< n 3pi/4)
+          (add1 n)]
+         [else
+           (- (+ 1 3pi/4) (* 2/10 (- n 3pi/4)))
+          ]))
+     #;(lambda (n) (add1 n)))
     (else
       (raise-argument-error 'make-embedding-line "embedding?" e))))
 
