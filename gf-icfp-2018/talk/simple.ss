@@ -426,6 +426,23 @@
     1-col
     #:go (at-find-pict 'E-box cb-find 'ct #:abs-y y-sep)
     E-col)
+
+  ;(pslide
+  ;  (t "TODO normal soundness"))
+  ;(pslide
+  ;  #:go (coord 50/100 1/2 'cc) (filled-rectangle (+ 20 (pict-width 1-col)) (+ (* 3 margin) client-h) #:color (set-alpha (string->color "black") 0.2) #:draw-border? #f)
+  ;  #:go (coord 18/100 SLIDE-TOP 'ct) H-box
+  ;  #:go (coord 50/100 SLIDE-TOP 'ct) 1-box
+  ;  #:go (coord 82/100 SLIDE-TOP 'ct) E-box
+  ;  )
+  ;(make-folklore-slide #:q2? #false #:answers? #false)
+  ;(make-folklore-slide #:q2? #false #:answers? #true)
+
+    ;; - theorems
+    ;; - 3-column, soundness
+    ;; - folklore, different soundness FOR SURE
+
+
   (define (make-spectrum-delimiter)
     (filled-rectangle 6 20 #:color "black" #:draw-border? #f))
   (define spectrum-line-width 10)
@@ -438,6 +455,7 @@
     (let-values (([model-pict0 impl-pict0] (make-model/impl-pict)))
       (scale (scale-for-column model-pict0) 9/10)))
   (define y-spectrum 26/100)
+  (define y-box-sep (* 4 spectrum-line-width))
   (pslide
     #:go (coord SLIDE-LEFT y-spectrum 'cc)
     (tag-pict (make-spectrum-delimiter) 'all-rect)
@@ -462,51 +480,31 @@
     (tag-pict (make-1-box) '1-box)
     #:set (let ((p ppict-do-state))
             (pin-line p (find-tag p 'H-box) rb-find (find-tag p '1-box) lb-find
-                      #:label gt-pict
+                      #:label (tag-pict gt-pict 'gt-pict-left)
                       #:style 'transparent))
     #:set (let ((p ppict-do-state))
             (pin-line p (find-tag p '1-box) rb-find (find-tag p 'E-box) lb-find
                       #:label gt-pict
                       #:style 'transparent))
     #:next
-    #:go (coord SLIDE-LEFT 40/100 'lt)
-    (vl-append 20
-               (t "Theorem (⊇):")
-               (vl-append 45
-                          (make-superset-theorem 1-box H-box)
-                          (make-superset-theorem E-box 1-box)))
+    #:alt[#:go (coord SLIDE-LEFT 40/100 'lt)
+          (vl-append 20
+                     (t "Theorem (⊇):")
+                     (vl-append 45
+                                (make-superset-theorem 1-box H-box)
+                                (make-superset-theorem E-box 1-box)))
+          #:next
+          #:go (coord SLIDE-RIGHT 40/100 'rt)
+          (vl-append 20
+                     (t "Counterexamples (⊋):")
+                     (t "- see prev. slide"))]
     #:next
-    #:go (coord SLIDE-RIGHT 40/100 'rt)
-    (vl-append 20
-               (t "Counterexamples (⊋):")
-               (t "- see prev. slide"))
-
-    ;; we've just seen existence proof, via examples
-    ;;   THM: there exists a term e such that e ->H Error and e ->1 v
-    ;;   THM: \exists e . e ->1 Error and e ->E v
-    ;; in paper also have containment proof any program that ends in an error
-    ;;  also ends in an error with a stricter types
-    ;;   THM: if e ->E Error then e ->1 Error
-    ;;   THM: if e ->1 Error then e ->H Error
-
-    ;; 1. theorems
-    ;; 2. folklore, different soundness FOR SURE
-    ;; 3. 3-column, soundness
-
-    ;; conatural + forgetful
-    )
-
-  (make-folklore-slide #:q2? #false #:answers? #false)
-  (make-folklore-slide #:q2? #false #:answers? #true)
-  (pslide
-    (t "todo normal soundness"))
-  (pslide
-    #:go (coord 50/100 1/2 'cc) (filled-rectangle (+ 20 (pict-width 1-col)) (+ (* 3 margin) client-h) #:color (set-alpha (string->color "black") 0.2) #:draw-border? #f)
-    #:go (coord 18/100 SLIDE-TOP 'ct) H-box
-    #:go (coord 50/100 SLIDE-TOP 'ct) 1-box
-    #:go (coord 82/100 SLIDE-TOP 'ct) E-box
-    )
-
+    #:go (at-find-pict 'gt-pict-left ct-find 'ct #:abs-y (- y-box-sep))
+    (let ((p (hc-append 25 (make-C-box) (make-F-box))))
+      (cc-superimpose (filled-rectangle (pict-width p) (pict-height p) #:color "white" #:draw-border? #false)
+                      p))
+    #:go (coord SLIDE-LEFT 40/100 'lt)
+    (hb-append 0 (t "Appendix: two other semantics") (blank 0 (pict-height (t "⊇")))))
   (void))
 
 #;(define (sec:soundness)
@@ -1046,6 +1044,8 @@
 (define H-COLOR LIGHT-RED)
 (define 1-COLOR BLUE)
 (define E-COLOR GREEN)
+(define C-COLOR "orange")
+(define F-COLOR "orchid")
 
 (define (make-H-box)
   (make-embedding-box ->H H-COLOR))
@@ -1055,6 +1055,12 @@
 
 (define (make-E-box)
   (make-embedding-box ->E E-COLOR))
+
+(define (make-C-box)
+  (make-embedding-box ->C C-COLOR))
+
+(define (make-F-box)
+  (make-embedding-box ->F F-COLOR))
 
 (define (make-TR-H-box)
   (make-embedding-box ->TR-H LIGHT-RED))
