@@ -40,21 +40,21 @@
                  [current-font-size 32]
                  [current-titlet string->title])
     (void)
-    ;(sec:title)
-    ;(sec:folklore-I)
-    ;(sec:migratory-typing)
-    ;(sec:gt-landscape)
-    ;(sec:main-result)
-    ;(pslide (make-section-header "Model"))
-    ;(sec:embedding:warmup)
-    ;(sec:embedding:H)
-    ;(sec:embedding:1)
-    ;(sec:embedding:E)
-    ;(sec:soundness)
-    ;(sec:implementation)
-    ;(sec:performance)
+    (sec:title)
+    (sec:folklore-I)
+    (sec:migratory-typing)
+    (sec:gt-landscape)
+    (sec:main-result)
+    (pslide (make-section-header "Model"))
+    (sec:embedding:warmup)
+    (sec:embedding:H)
+    (sec:embedding:1)
+    (sec:embedding:E)
+    (sec:soundness)
+    (sec:implementation)
+    (sec:performance)
     (sec:conclusion)
-    ;(sec:extra)
+    (sec:extra)
     (void)))
 
 ;; -----------------------------------------------------------------------------
@@ -166,7 +166,7 @@
       (let ((p (vl-append 25
                           (hc-append @t{Let's put the } @bt{theory} @t{ and } @bt{practice} @t{ on})
                           (hc-append @t{firm scientific ground.})))
-            (c (set-alpha TRAFFIC-YELLOW 0.8)))
+            (c (set-alpha TRAFFIC-YELLOW 0.75)))
         (cc-superimpose
           (filled-rounded-rectangle (+ 80 (pict-width p)) (+ 90 (pict-height p)) -0.05 #:color c #:border-width 11)
           p))))
@@ -208,7 +208,8 @@
           (contrib*->pict '(
             ""
             ;; TODO
-            "comparative meta-theory"
+            "supports direct comparisons"
+            "of the meta-theory"
             ))]
     #:alt [model-pict-
            #:go ARROW-COORD
@@ -224,8 +225,8 @@
     (contrib*->pict '(
       ""
       ;; TODO re-word
-      "one systematic performance"
-      "evaluation"))
+      "able to systematically"
+      "compare performance"))
     #:go HEADING-COORD
     @heading-text{Apples-to-Apples Performance}
     #:go -MAIN-CONTRIB-COORD
@@ -271,6 +272,7 @@
     #:alt [#:go (at-underline 'n<i-pict) (make-underline n<i-pict) (callout "subset relation" 80 #:left? #true)]
     #:go (coord SLIDE-LEFT 45/100 'lt)
     (hc-append @t{e = .... | } dyn-pict @t{ | } sta-pict)
+    #:next
     #:alt [#:go (at-underline 'sta-pict) (make-underline sta-pict) (callout "" 40)
            #:go (at-underline 'dyn-pict) (make-underline dyn-pict) (callout "boundary terms" 40 #:left? #true)]
     #:next
@@ -300,10 +302,9 @@
     (vc-append
       100
       types-pict
-      (table 2 (list
-        (hc-append 0 @t{Γ ⊢ fib  } dyn-0) @t{: Nat}
-        (hc-append 0 @t{Γ ⊢ norm } dyn-1) @t{: Nat}
-        (hc-append 0 @t{Γ ⊢ map  } dyn-2 @t{ y}) @t{: Nat × Nat})
+      (table 2 (list (hb-append 0 @t{Γ ⊢ fib  } dyn-0) @t{: Nat}
+                     (hb-append 0 @t{Γ ⊢ norm } dyn-1) @t{: Nat}
+                     (hb-append 0 @t{Γ ⊢ map  } dyn-2 @t{ y}) @t{: Nat × Nat})
              lb-superimpose cb-superimpose 25 10))
     #:next
     #:alt [#:go (at-underline 'gamma-pict) (make-underline gamma-pict)]
@@ -392,11 +393,19 @@
   (make-example-detail-slide
     'E
     (make-fib @dyn-bg[@dyn-text{-1}])
-    (vl-append 20
-               (t "error?")
-               (t "diverges?")
-               (t "0")
-               (t "???")))
+    (hb-append 40
+      (vl-append 20
+                 (t "error?")
+                 (t "diverges?")
+                 (t "0")
+                 (t "???"))
+      (big-bomb-icon)))
+  (pslide
+    #:go (coord 9/10 9/10 'rb)
+    (make-disclaimer-pict "(the systems landscape)")
+    #:go (coord 1/2 1/2)
+    #:alt [(make-embeddings-pict H-system* mt/1*)]
+    (make-embeddings-pict H-system* mt/1* E-system*))
   (void))
 
 (define (sec:soundness)
@@ -487,7 +496,7 @@
     (let ((p (hc-append 25 (make-C-box) (make-F-box))))
       (cc-superimpose (filled-rectangle (pict-width p) (pict-height p) #:color "white" #:draw-border? #false)
                       p))
-    #:go (coord SLIDE-LEFT 40/100 'lt)
+    #:go (coord SLIDE-LEFT 52/100 'lt)
     (hb-append 0 (t "Appendix: two other semantics") (blank 0 (pict-height (t "⊇")))))
   (define sound-0 (tag-pict (hb-append 0 (t "e ->* v and ") (well-t "v" "τ")) 'sound-0))
   (define sound-1 (tag-pict (t "e diverges") 'sound-1))
@@ -578,12 +587,14 @@
   (define box*
     (list (make-TR-H-box) (make-TR-1-box) (make-TR-E-box)))
   (define x* '(1/5 1/2 4/5))
-  (define stack-y 1/4)
+  (define stack-y 35/100)
   (pslide
+    #:go HEADING-COORD
+    (heading-text "3 Compilers")
     #:set (for/fold ((acc ppict-do-state))
                     ((b (in-list box*))
                      (x (in-list x*)))
-            (ppict-do acc #:go (coord x SLIDE-TOP 'ct) b))
+            (ppict-do acc #:go (coord x 20/100 'ct) b))
     #:next
     #:go (coord (car x*) stack-y 'ct)
     (make-TR-H-stack)
@@ -600,9 +611,8 @@
 (define (sec:performance)
   (pslide
     #:go HEADING-COORD
-    (heading-text "Experiment")
+    (heading-text "Experiment (method from POPL'16)")
     #:go (coord SLIDE-LEFT 1/4 'lt)
-    ;; TODO popl evaluation method
     (vl-append 30
                @t{- 10 benchmark programs}
                @t{- 2 to 10 modules each}
@@ -613,21 +623,15 @@
   (make-overhead-plot-slide '())
   (pslide (make-scatterplots-pict))
   (define perf-plot-pict (small-overhead-plot))
-  (define perf-text-pict
-    (vl-append
-      (blank 30)
-      (apply
-        vl-append
-        60
-        (for/list ((sym (in-list '(H 1 E)))
-                   (descr (in-list '(("add types to remove all"
-                                      "critical boundaries")
-                                     "add types sparingly"
-                                     ("add types anywhere,"
-                                      "doesn't matter")))))
-          (define-values [_n _d bx] (symbol->name+box sym))
-          (ht-append (lb-superimpose (blank 55 26) (scale-to-fit bx 40 40))
-                     (string*->text descr))))))
+  (define (make-perf-text sym txt*)
+    (define-values (_n _d bx) (symbol->name+box sym))
+    (ht-append (lb-superimpose (blank 55 26) (scale-to-fit bx 40 40)) (string*->text txt*)))
+  (define-values [H-perf-txt 1-perf-text E-perf-text]
+    (let ((p* (list (make-perf-text 'H '("add types to remove all" "critical boundaries"))
+                    (make-perf-text '1 '("add types sparingly"))
+                    (make-perf-text 'E '("add types anywhere," "doesn't matter")))))
+      (define w (apply max (map pict-width p*)))
+      (apply values (map (lambda (p) (lc-superimpose (blank w 0) p)) p*))))
   (pslide
     #:go (coord SLIDE-LEFT SLIDE-TOP 'lt)
     @heading-text{Performance Implications}
@@ -636,7 +640,14 @@
     perf-plot-pict
     #:next
     #:go -MAIN-CONTRIB-COORD
-    perf-text-pict)
+    (blank 30)
+    H-perf-txt
+    #:next
+    (blank 60)
+    1-perf-text
+    #:next
+    (blank 60)
+    E-perf-text)
   (void))
 
 (define (small-overhead-plot)
@@ -655,7 +666,6 @@
   (define spectrum-H-offset 30)
   (define spectrum-E-offset (- spectrum-x-offset))
   (define spectrum-1-offset (- (* 25/100 client-w)))
-  (define gt-pict (vl-append (heading-text "⊃") (blank 0 20)))
   (define y-spectrum 26/100)
   (define y-box-sep (* 4 spectrum-line-width))
   (ppict-do
@@ -674,17 +684,18 @@
     (tag-pict (make-E-box) 'E-box)
     #:go (at-find-pict 'none-rect lt-find 'rb #:abs-x spectrum-1-offset)
     (tag-pict (make-1-box) '1-box)
-    ;#:go (at-find-pict 'gt-pict-left ct-find 'ct #:abs-y (- y-box-sep))
-    ;(let ((p (hc-append 25 (make-C-box) (make-F-box))))
-    ;  (cc-superimpose (filled-rectangle (pict-width p) (pict-height p) #:color "white" #:draw-border? #false)
-    ;                  p))
-    ;#:go (coord SLIDE-LEFT 40/100 'lt)
-    ;(hb-append 0 (t "Appendix: two other semantics") (blank 0 (pict-height (t "⊇"))))
-    ))
+    #:set (let ((p ppict-do-state))
+            (pin-line p (find-tag p 'H-box) rb-find (find-tag p '1-box) lb-find
+                      #:label (tag-pict (blank) 'gt-pict-left)
+                      #:style 'transparent))
+    #:go (at-find-pict 'gt-pict-left ct-find 'cb #:abs-y (- y-box-sep))
+    (let ((p (hc-append 25 (make-C-box) (make-F-box))))
+      (cc-superimpose (filled-rectangle (pict-width p) (pict-height p) #:color "white" #:draw-border? #false)
+                      (cellophane p 0.5)))))
 
 (define (make-icons-pict)
   (define the-sep 15)
-  (table 2 (list (big-check-icon) (big-x-icon) (big-monitor-icon) (big-bomb-icon))
+  (table 3 (list (big-check-icon) (big-x-icon) (big-monitor-icon) (blank) (big-bomb-icon) (blank))
          cc-superimpose cc-superimpose
          the-sep the-sep)
   #;(vc-append the-sep
@@ -758,7 +769,7 @@
     #:go (coord 9/10 9/10 'rb)
     (make-disclaimer-pict "(the systems landscape)")
     #:go (coord 1/2 1/2)
-    #:alt [(make-embeddings-pict H-system* 1-system* E-system*)]
+    #:alt [(make-gtspace-bg all-system* random-gt-layout)]
     (make-embeddings-pict all-system*))
   (make-H-example-slide)
   (make-1-example-slide)
@@ -1250,6 +1261,9 @@
 
 (define (big-bomb-icon)
   (make-icon bomb-icon #:height 80))
+
+(define (mid-bomb-icon)
+  (make-icon bomb-icon #:height 50))
 
 (define (small-bomb-icon)
   (make-icon bomb-icon #:height 40))
@@ -1903,7 +1917,7 @@
   (cond
     [first-order?
      (unless (and pict-2 pict-3)
-       (raise-arguments-error 'make-example-details-slide "got #:first-order? but not 3 picts" (if pict-3 2 3) e-sym pict-1 pict-2 pict-3))
+       (raise-arguments-error 'make-example-detail-slide "got #:first-order? but not 3 picts" (if pict-3 2 3) e-sym pict-1 pict-2 pict-3))
      (pslide
        #:go name-coord
        (t e-name)
@@ -1928,7 +1942,7 @@
        #:go (at-find-pict 'arrow-1 cc-find 'cc #:abs-x 15)
        (cdr arrow-label)
        #:go (at-find-pict 'arrow-label rc-find 'lc)
-       (hcallout "silent failure!" 40))]
+       (hc-append 20 (hcallout "silent failure!" 40) (mid-bomb-icon)))]
     [(and pict-2 pict-3)
      (pslide
        #:go name-coord
@@ -1942,9 +1956,11 @@
        #:next
        #:go (at-find-pict 'pict-1 lb-find 'lt #:abs-y (+ (* 2 20) (pict-height DOWN-ARROW)))
        (tag-pict pict-2 'pict-2)
+       #:go (at-find-pict 'pict-2 rb-find 'rt #:abs-y 20 #:abs-x -60)
+       DOWN-ARROW
        #:next
-       #:go (at-find-pict 'pict-2 cb-find 'ct #:abs-y 15)
-       (vr-append 15 (hc-append DOWN-ARROW (blank 55 0)) pict-3)
+       #:go (at-find-pict 'pict-2 cb-find 'ct #:abs-y (+ (* 2 20) (pict-height DOWN-ARROW)))
+       pict-3
        #:go (if arrow-label (at-find-pict/below (car arrow-label)) (coord 0 0))
        (if arrow-label (cdr arrow-label) (blank)))]
     [pict-2
@@ -2000,7 +2016,7 @@
 
 (define (make-underline p [y-offset 0])
   (define lw 6)
-  (colorize (linewidth lw (hline (+ y-offset (pict-width p)) lw)) halt-icon-color))
+  (colorize (linewidth lw (hline (+ y-offset (pict-width p)) lw)) HIGHLIGHT-COLOR))
 
 (define (top/bot t b)
   (define w (- (pict-width b) (pict-width t)))
