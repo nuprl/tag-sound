@@ -52,8 +52,8 @@
     ;(sec:embedding:E)
     ;(sec:soundness)
     ;(sec:implementation)
-    (sec:performance)
-    ;(sec:conclusion)
+    ;(sec:performance)
+    (sec:conclusion)
     ;(sec:extra)
     (void)))
 
@@ -602,6 +602,7 @@
     #:go HEADING-COORD
     (heading-text "Experiment")
     #:go (coord SLIDE-LEFT 1/4 'lt)
+    ;; TODO popl evaluation method
     (vl-append 30
                @t{- 10 benchmark programs}
                @t{- 2 to 10 modules each}
@@ -611,9 +612,7 @@
     @url{docs.racket-lang.org/gtp-benchmarks})
   (make-overhead-plot-slide '())
   (pslide (make-scatterplots-pict))
-  (define perf-plot-pict
-    (let ((w (* 40/100 client-w)))
-      (scale-to-fit (make-overhead-plot '(H 1 E) #:legend? #false) w w)))
+  (define perf-plot-pict (small-overhead-plot))
   (define perf-text-pict
     (vl-append
       (blank 30)
@@ -631,7 +630,7 @@
                      (string*->text descr))))))
   (pslide
     #:go (coord SLIDE-LEFT SLIDE-TOP 'lt)
-    @heading-text{Guidelines}
+    @heading-text{Performance Implications}
     #:go MAIN-CONTRIB-COORD
     (blank 0 60)
     perf-plot-pict
@@ -640,50 +639,105 @@
     perf-text-pict)
   (void))
 
+(define (small-overhead-plot)
+  (let ((w (* 40/100 client-w)))
+    (scale-to-fit (make-overhead-plot '(H 1 E) #:legend? #false) w w)))
+
+(define (small-spectrum-pict)
+  (let ((w (* 40/100 client-w)))
+    (scale-to-fit (make-spectrum-pict) w w)))
+
+(define (make-spectrum-pict)
+  (define (make-spectrum-delimiter)
+    (filled-rectangle 6 20 #:color "black" #:draw-border? #f))
+  (define spectrum-line-width 10)
+  (define spectrum-x-offset 4)
+  (define spectrum-H-offset 30)
+  (define spectrum-E-offset (- spectrum-x-offset))
+  (define spectrum-1-offset (- (* 25/100 client-w)))
+  (define gt-pict (vl-append (heading-text "⊃") (blank 0 20)))
+  (define y-spectrum 26/100)
+  (define y-box-sep (* 4 spectrum-line-width))
+  (ppict-do
+    (blank client-w client-h)
+    #:go (coord SLIDE-LEFT y-spectrum 'cc)
+    (tag-pict (make-spectrum-delimiter) 'all-rect)
+    #:go (coord SLIDE-RIGHT y-spectrum)
+    (tag-pict (make-spectrum-delimiter) 'none-rect)
+    #:set (let ((p ppict-do-state))
+            (pin-line p (find-tag p 'all-rect) rc-find (find-tag p 'none-rect) lc-find
+                      #:label (tag-pict (blank) 'lbl-tag)
+                      #:line-width spectrum-line-width))
+    #:go (at-find-pict 'all-rect rt-find 'lb #:abs-x spectrum-H-offset)
+    (tag-pict (make-H-box) 'H-box)
+    #:go (at-find-pict 'none-rect lt-find 'rb #:abs-x spectrum-E-offset)
+    (tag-pict (make-E-box) 'E-box)
+    #:go (at-find-pict 'none-rect lt-find 'rb #:abs-x spectrum-1-offset)
+    (tag-pict (make-1-box) '1-box)
+    ;#:go (at-find-pict 'gt-pict-left ct-find 'ct #:abs-y (- y-box-sep))
+    ;(let ((p (hc-append 25 (make-C-box) (make-F-box))))
+    ;  (cc-superimpose (filled-rectangle (pict-width p) (pict-height p) #:color "white" #:draw-border? #false)
+    ;                  p))
+    ;#:go (coord SLIDE-LEFT 40/100 'lt)
+    ;(hb-append 0 (t "Appendix: two other semantics") (blank 0 (pict-height (t "⊇"))))
+    ))
+
+(define (make-icons-pict)
+  (define the-sep 15)
+  (table 2 (list (big-check-icon) (big-x-icon) (big-monitor-icon) (big-bomb-icon))
+         cc-superimpose cc-superimpose
+         the-sep the-sep)
+  #;(vc-append the-sep
+    (hc-append the-sep (big-check-icon) (big-x-icon) (big-monitor-icon))
+    (hc-append the-sep (big-clock-icon) (big-bomb-icon))))
+
 (define (make-scatterplots-pict)
   (scale-to-fit (bitmap cache-scatterplots.png) client-w client-h))
 
 (define (sec:conclusion)
   (pslide
-    (make-section-header "Implications"))
-  ;; TODO
-  ;(pslide
-  ;  #:go (coord SLIDE-LEFT SLIDE-TOP 'lt)
-  ;  @heading-text{For Theory}
-  ;  #:go (coord SLIDE-LEFT 1/2)
-  ;  (tag-pict (make-spectrum-delimiter) 'all-rect)
-  ;  #:go (coord SLIDE-RIGHT 1/2)
-  ;  (tag-pict (make-spectrum-delimiter) 'none-rect)
-  ;  #:set (let ((p ppict-do-state))
-  ;          (pin-line p (find-tag p 'all-rect) rc-find (find-tag p 'none-rect) lc-find
-  ;                    #:label (tag-pict (blank) 'lbl-tag)
-  ;                    #:line-width spectrum-line-width))
-  ;  #:go (at-find-pict/below 'lbl-tag #:abs-y (* 3.5 spectrum-line-width))
-  ;  (heading-text "Type violations discovered" 38)
-  ;  #:go (at-find-pict 'all-rect rb-find 'lt #:abs-x spectrum-x-offset)
-  ;  (label-text "All")
-  ;  #:go (at-find-pict 'none-rect lb-find 'rt #:abs-x spectrum-E-offset)
-  ;  (label-text "None")
-  ;  #:next
-  ;  #:go (at-find-pict 'all-rect rt-find 'lb #:abs-x spectrum-H-offset)
-  ;  (tag-pict (make-H-box) 'H-box)
-  ;  #:go (at-find-pict 'none-rect lt-find 'rb #:abs-x spectrum-E-offset)
-  ;  (tag-pict (make-E-box) 'E-box)
-  ;  #:go (at-find-pict 'none-rect lt-find 'rb #:abs-x spectrum-1-offset)
-  ;  (tag-pict (make-1-box) '1-box)
-  ;  #:set (let ((p ppict-do-state))
-  ;          (pin-line p (find-tag p 'H-box) rb-find (find-tag p '1-box) lb-find
-  ;                    #:label gt-pict
-  ;                    #:style 'transparent))
-  ;  #:set (let ((p ppict-do-state))
-  ;          (pin-line p (find-tag p '1-box) rb-find (find-tag p 'E-box) lb-find
-  ;                    #:label gt-pict
-  ;                    #:style 'transparent)))
-  ;(pslide
-  ;  #:go (coord SLIDE-LEFT SLIDE-TOP 'lt)
-  ;  (heading-text "Special Thanks")
-  ;  #:go (coord 1/2 1/4 'ct)
-  ;  (arrange-authors (padded-bitmap 140) ack* 100 20 #true))
+    (make-section-header "Takeaways"))
+  (define y* '(25/100 45/100 65/100))
+  (define-values [the-spectrum the-plot the-icons]
+    (let* ((p* (list (small-spectrum-pict)
+                     (scale (small-overhead-plot) 0.6)
+                     (scale (make-icons-pict) 0.75)))
+           (mxw (apply max (map pict-width p*)))
+           (the-blank (blank mxw 0)))
+      (apply values (map (lambda (p) (cc-superimpose the-blank p)) p*))))
+  (pslide
+    #:go HEADING-COORD
+    (heading-text "Takeaways")
+    #:go (coord MAIN-CONTRIB-X (car y*) 'lt)
+    (lbld "Theorists:"
+          '("type soundness is NOT"
+            "all-or-nothing"))
+    #:go (coord SLIDE-RIGHT (car y*) 'rt)
+    the-spectrum
+    #:next
+    #:go (coord MAIN-CONTRIB-X (cadr y*) 'lt)
+    (lbld "Implementors:"
+          '("can we change the"
+            "performance landscape?"))
+    #:go (coord SLIDE-RIGHT (cadr y*) 'rt)
+    the-plot
+    #:next
+    #:go (coord MAIN-CONTRIB-X (caddr y*) 'lt)
+    (lbld "Users:"
+          `(,(hb-append 0 @t{soundness affects } @bt{run} @t{-time})
+            ,(hb-append 0 @t{and } @bt{debug} @t{-time})))
+    #:go (coord SLIDE-RIGHT (caddr y*) 'rt)
+    (vl-append 30 (blank) the-icons)
+    #:next
+    #:alt [#:go (coord 1/2 1/2)
+           (ppict-do (filled-rectangle client-w client-h #:color "white" #:draw-border? #false)
+                     #:go (coord SLIDE-LEFT SLIDE-TOP 'lt)
+                     (heading-text "Special Thanks")
+                     #:go (coord 1/2 1/4 'ct)
+                     (arrange-authors (padded-bitmap 140) ack* 100 20 #true))]
+      )
+
+
   ;(pslide
   ;  #:go (coord SLIDE-LEFT SLIDE-TOP 'lt)
   ;  #:go MAIN-CONTRIB-COORD
@@ -959,6 +1013,9 @@
 (define (heading-text str [size 50])
   (text str TITLE-FONT size))
 
+(define (subhead-text str [size (current-font-size)])
+  (text str TITLE-FONT size))
+
 (define (pool-dimensions)
   (define w (- client-w (* 2 SLIDE-LEFT client-w)))
   (define h (- client-h (* 2 1/5 client-h)))
@@ -1188,8 +1245,11 @@
 (define (small-check-icon)
   (make-icon check-icon #:height 30))
 
+(define (big-clock-icon)
+  (make-icon (lambda (#:height h #:material m) (clock-icon #:height h)) #:height 80))
+
 (define (big-bomb-icon)
-  (make-icon bomb-icon #:height 60))
+  (make-icon bomb-icon #:height 80))
 
 (define (small-bomb-icon)
   (make-icon bomb-icon #:height 40))
@@ -1958,6 +2018,10 @@
   (if (pict? str)
     str
     (t str)))
+
+(define (lbld h t*)
+  (vl-append (subhead-text h)
+             (hc-append 30 (blank) (contrib*->pict t*))))
 
 ;; =============================================================================
 
