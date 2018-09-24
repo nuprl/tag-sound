@@ -393,7 +393,7 @@
   (make-example-detail-slide
     'E
     (make-fib @dyn-bg[@dyn-text{-1}])
-    (hb-append 40
+    (rb-superimpose
       (vl-append 20
                  (t "error?")
                  (t "diverges?")
