@@ -36,6 +36,7 @@
 
 (define (do-show)
   (set-page-numbers-visible! #false)
+  (set-spotlight-style! #:size 60 #:color (set-alpha HIGHLIGHT-COLOR 0.6))
   (parameterize ([current-main-font MONO-FONT]
                  [current-font-size 32]
                  [current-titlet string->title])
@@ -226,7 +227,7 @@
       ""
       ;; TODO re-word
       "able to systematically"
-      "compare performance"))
+      "compare running times"))
     #:go HEADING-COORD
     @heading-text{Apples-to-Apples Performance}
     #:go -MAIN-CONTRIB-COORD
@@ -246,12 +247,12 @@
   (define v>v-pict (tag-pict (t "λ(x)e") 'v>v-pict))
   (define n<i-pict (tag-pict @t{n ⊂ i} 'n<i-pict))
   (define dyn-pict (tag-pict @t{dyn τ e} 'dyn-pict))
-  (define sta-pict (tag-pict @t{sta τ e} 'sta-pict))
+  (define sta-pict (tag-pict @t{stat τ e} 'sta-pict))
   (pslide
     #:go (coord SLIDE-LEFT SLIDE-TOP 'lt)
     ;;@t{Types}
     (vl-append 20
-               (hc-append @t{τ = } Nat-pict @t{ | } Int-pict  @t{ | } txt-pict  @t{ | } t>t-pict)
+               (hb-append @t{τ = } Nat-pict @t{ | } Int-pict  @t{ | } txt-pict  @t{ | } t>t-pict)
                N<I-pict)
     #:next
     #:alt [#:go (at-underline 't>t-pict) (make-underline t>t-pict) (callout "coinductive type")]
@@ -262,7 +263,7 @@
     #:go (coord SLIDE-LEFT 27/100 'lt)
     ;;@t{Values}
     (vl-append 20
-               (hc-append @t{v = } n-pict @t{ | } i-pict  @t{ | } vxv-pict  @t{ | } v>v-pict)
+               (hb-append @t{v = } n-pict @t{ | } i-pict  @t{ | } vxv-pict  @t{ | } v>v-pict)
                n<i-pict)
     #:next
     #:alt [#:go (at-underline 'v>v-pict) (make-underline v>v-pict) (callout "higher-order value" 80)]
