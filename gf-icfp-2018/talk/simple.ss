@@ -113,11 +113,10 @@
     @t{Result: a mixed-typed language}
     #:go file-coord
     #:alt [(stat-dyn/arrow)]
-    (add-stat-dyn-arrow
-      #:make-arrow pin-arrow-line
-      (stat-dyn-file
-        (make-stat-file (hole-append (hc-append @t{(} (make-hole)) @t{4)}))
-        (make-dyn-file @dyn-text{λ(x)-x}))))
+    (make-boundary-pict
+      #:left (hole-append (hc-append @t{(} (make-hole)) @t{4)})
+      #:right @dyn-text{λ(x)-x}
+      #:arrow @t/crunch{Nat ⇒ Nat}))
   (void))
 
 (define (sec:gt-landscape)
@@ -150,7 +149,11 @@
     #:next
     #:set (add-soundness-callouts ppict-do-state)
     #:next
+    #:alt [#:go (coord 1/2 1/2) (make-rumor-pict 'right "* For some value of \"sound\"")]
+    #:next
     #:set (add-performance-callouts ppict-do-state)
+    #:next
+    #:alt [#:go (coord 1/2 1/2) (make-rumor-pict 'right "* For some value of \"fast\"")]
     #:next
     #:go (coord 1/2 1/2)
     (tag-pict
@@ -288,12 +291,15 @@
     (make-sig-pict "⊢ e"))
   (define gamma-pict
     (tag-pict @t|{Γ = }| 'gamma-pict))
+  (define N-pict (tag-pict @t{Nat} 'N-pict))
+  (define NN-pict (tag-pict @t{Nat × Nat} 'NN-pict))
+  (define N>N-pict (tag-pict @t{(Nat ⇒ Nat)} 'N>N-pict))
   (define types-pict
     (let ([sigs-pict
            (vl-append 10
-             @t{fib  : Nat ⇒ Nat}
-             @t{norm : Nat × Nat ⇒ Nat}
-             @t{map  : (Nat ⇒ Nat) ⇒ Nat × Nat ⇒ Nat × Nat})])
+             (hb-append 0 @t{fib  : } N-pict @t{ ⇒ Nat})
+             (hb-append 0 @t{norm : } NN-pict @t{ ⇒ Nat})
+             (hb-append 0 @t{map  : } N>N-pict @t{ ⇒ Nat × Nat ⇒ Nat × Nat}))])
       (insert-brace gamma-pict sigs-pict)))
   (define dyn-0 (tag-pict @t{(dyn Nat -1)} 'dyn-0))
   (define dyn-1 (tag-pict @t{(dyn Nat × Nat ⟨-1,-2⟩)} 'dyn-1))
@@ -308,7 +314,11 @@
                      (hb-append 0 @t{Γ ⊢ map  } dyn-2 @t{ y}) @t{: Nat × Nat})
              lb-superimpose cb-superimpose 25 10))
     #:next
-    #:alt [#:go (at-underline 'gamma-pict) (make-underline gamma-pict)]
+    #:alt [#:go (at-underline 'gamma-pict) (make-underline gamma-pict)
+           #:next
+           #:alt [#:go (at-underline 'N-pict) (make-underline N-pict)]
+           #:alt [#:go (at-underline 'NN-pict) (make-underline NN-pict)]
+           #:alt [#:go (at-underline 'N>N-pict) (make-underline N>N-pict)]]
     #:go (at-underline 'dyn-0) (make-underline dyn-0)
     #:go (at-underline 'dyn-1) (make-underline dyn-1)
     #:go (at-underline 'dyn-2) (make-underline dyn-2))
@@ -561,7 +571,8 @@
                             (hb-append 0 (t " - ") (t "e ->* Error")))))
     #:go (at-underline 'E-sound-0) (make-underline E-sound-0 -20))
   (make-folklore-slide #:q2? #false #:answers? #false)
-  (make-folklore-slide #:q2? #false #:answers? #true)
+  (make-folklore-slide #:q2? #false #:answers? #true
+                       #:extra (cons (coord 1/2 8/10) (scale (make-spectrum-pict) 0.65)))
   (void))
 
 (define (sec:implementation)
@@ -692,7 +703,7 @@
     #:go (at-find-pict 'gt-pict-left ct-find 'cb #:abs-y (- y-box-sep))
     (let ((p (hc-append 25 (make-C-box) (make-F-box))))
       (cc-superimpose (filled-rectangle (pict-width p) (pict-height p) #:color "white" #:draw-border? #false)
-                      (cellophane p 0.5)))))
+                      p))))
 
 (define (make-icons-pict)
   (define the-sep 15)
@@ -717,6 +728,7 @@
            (mxw (apply max (map pict-width p*)))
            (the-blank (blank mxw 0)))
       (apply values (map (lambda (p) (cc-superimpose the-blank p)) p*))))
+  (define the-big-blank (filled-rectangle client-w client-h #:color "white" #:draw-border? #false))
   (pslide
     #:go HEADING-COORD
     (heading-text "Takeaways")
@@ -742,11 +754,13 @@
     (vl-append 30 (blank) the-icons)
     #:next
     #:alt [#:go (coord 1/2 1/2)
-           (ppict-do (filled-rectangle client-w client-h #:color "white" #:draw-border? #false)
+           (ppict-do the-big-blank
                      #:go (coord SLIDE-LEFT SLIDE-TOP 'lt)
                      (heading-text "Special Thanks")
                      #:go (coord 1/2 1/4 'ct)
-                     (arrange-authors (padded-bitmap 140) ack* 100 20 #true))]
+                     (arrange-authors (padded-bitmap 140) ack* 100 20 #true))
+           #:next
+           #:go (coord 1/2 1/2) the-big-blank]
       )
 
 
@@ -1145,7 +1159,7 @@
   (if yes?
     (let ((w (pict-width p))
           (h (pict-height p))
-          (margin 20))
+          (margin 40))
       (cc-superimpose
         (filled-rounded-rectangle (+ w margin) (+ h margin) ebox-round #:color HIGHLIGHT-COLOR #:draw-border? #false)
         p))
@@ -1650,7 +1664,7 @@
         [q2 "How does type soundness affect performance?"]
         [q2-h 5/10]
         [a2 "See graphs"])
-    (lambda (#:q1? [q1? #true] #:q2? [q2? #true] #:answers? [answers? #false])
+    (lambda (#:q1? [q1? #true] #:q2? [q2? #true] #:answers? [answers? #false] #:extra [extra #f])
       (pslide
         #:go (coord SLIDE-LEFT q1-h 'lt)
         (if q1? (make-rumor-pict 'left q1) (blank))
@@ -1659,7 +1673,9 @@
         #:go (coord SLIDE-LEFT q2-h 'lt)
         (if q2? (make-rumor-pict 'left q2) (blank))
         #:go (coord SLIDE-RIGHT 61/100 'rt)
-        (if (and q2? answers?) (make-rumor-pict 'right a2) (blank))))))
+        (if (and q2? answers?) (make-rumor-pict 'right a2) (blank))
+        #:go (if extra (car extra) (coord 0 0))
+        (if extra (cdr extra) (blank))))))
 
 (define (string*->text str*)
   (if (string? str*)
