@@ -13,61 +13,98 @@ TODO
 - [ ] blog post
 
 - - -
+
+- - -
 # SCRIPT
 
-Hi everyone. To get started today, I have two OLD questions on the screen.
-The first question asks whether there could be an interesting point between
-type soundness and unsoundness. The second question asks how type soundness
-affects the performance of typed programs.
+Hello everyone I'm Ben and I'm here to talk about A Spectrum of Type Soundness
+and Performance
 
-In a normal, fully-typed language these questions are closed. But if we move
-from a typed language to one that mixes typed and untyped code, then we'll see
-that the questions on the slide are the central questions guiding the research.
+To start, here are two old questions. One asks wehter type soundness is a binary proposition, or whether there might be a useful property between full type soundness and unsoundness the second question asks about the relation between typ soundness and performance these are old questions in the context of a statically-typed language in the sense that we've had answers to these for decades bu I claim that in the context of gradual typing, these questions are extremely important
 
-Before we get to that, lets begin at the beginning.
-I am interested in migratory typing, which is the idea of starting with an
-existing dynamically typed language, designing a static type system to reason
-about programs written in this language and arriving at a pair of languages ---
-a statically typed language and the original untyped language.
+stepping back I'm interested in mgratory typing. Migratory typing is the idea of starting with an existing, dynamically-typed language and then designing a type system to reason about programs written in the language. The combination of the existing language and the new type system leads to two very similar languages and the goal is for these languages to share values with one another for example a typed context on the left that expects a function must be able to import an untyped function from the righht 
 
-If you are familiar with gradual typing, migratory typing is very similar;
-the main difference is this constraint of starting with a dynamically-typed
-language, which leads to important distinctions.
+so thats a brief overview of migratory typing if youve heard of gradual typing or optional typing or concrete typing, they all fit in the same research langscape of mixing typed and untyped code within this broad landcsape we fortunately have some implementations of the ideas . in fact we have a lot . here are the names of a few languages that allow some combination of static and dynamic typing within this .. swimming pool .. of languages unfortunately its difficult to make meaningful distinctions in this space as a prime example, many mixed-typed languages claim to be type-sound so theres some agreement that type soundness is a useful property but if you look closely many of these guys state different soundness theorem of course the other prime example is performance every language wants to be fast, or at least not-dead, so again we have a zoo of individual claims the state of the art in comparing different approaches takes this form: that one language appears to be better than another, based on an ad-hoc translation of benchmark programs
 
-With that said, gradual typing migratory typing and optional typing all face
-similar challenges, so its helpful to look at the whole design space for
-organizing principles.
+in this paper, we break from tradition and perform a controlled study of these
+diverse implementations heres what we do, we start with one mixed-typed
+language and define three semantics, based on systems from the literature with
+this setup, we can compare the theory of different semantics on common ground
+then, using the model as a guide, we arrived at three implementations for the
+typed racket surface language now we have three ways of running the same program
+well see all of that today
 
-Here are a few of the languages in this space, arranged in no particular order.
-There are a lot of names.
+first, the model we have a simple-as-possible grammar of types featuring a
+coinductive type for functions an inductive type for pairs and two base types,
+for integers and natural numbers finally, and this is very important, the type
+for naturals is a subtype of the type for integers note that this disctinction
+between naturals and integers is typically not enforced by the language runtime
+or the underlying vm its a logical distinction --- something that types should
+be able to do next we have a grammar of values that matches the types what you
+should see here is a higher-order value, a data structure, and two atomic
+values that are in a sub-set relation with one another this subset relation is
+extremely important for migratory typing it reflects the way that
+dynamically-typed programs use predicates to identify ad-hoc subsets of the
+value domain
+next we have a mostly-standard grammar of expressions the interesting part are
+these two boundary terms, that let an expression mix typed and untyped code
+finally there are two typing judgments and he rules here show how they depend on one another
 
-Here are the same names, organized by when the first appeared. On the left we
-have the oldest mixed-typed languages, on the right we have the newest. Again
-its a lot of languages, and they seem to be multiplying into a small tower of
-babel.
+in this model, we can write some curious well-typed expressions
+in a context where fib is afunction expecing a natural number, norm is a function
+expecing a pair of naturals, and map expects afunction on naturals, we can write
+wel typed expressions that apply these functions to dynamically-typed values
 
-At this point I would like to organize the space based on some principles these
-languages have in common, but unfortunately there is not much be to said.
+after moving the untyped vlaues to the right and the typed contexts to the left,
+we arrive at this pictorial representation. clearly, the types that the contexts
+expect do not quite match the incoming values --- so theres a question, what to
+do at runtime
 
-We can try grouping by where the languages came from. About half, on the left,
-are academic research projects. The others, on the right, came from industry
-teams.
+I'm going to explain three approaches to enforcing types at runtime. as we go,
+I'll show how systems from the earlier slide gravitate towards these strategies
 
-We can next try grouping the languages that claim to be type-sound, on the left,
-with the ones that use types only for static analysis on the right. At first
-glance this is better, but if you read the actual soundness claims of each
-language on the left they're often very different! For example Gradualtalk
-on the top, preserves types during evaluation, but Grace Pyret and Reticulated
-preserve something more like type constructors than full types. So this grouping
-is also not very informative.
+first, we have the H for higher-order approach the goal of the higher-order semantics
+is to enforce full types at the boundary betwene typed and untyped code
+for our examples, if typed code epxects a natural number but receives an integer
+the semantics throws a runtime error if typed code expects a pair of naturals
+but recieves a pair of negative numbers, again the untyped value is rejected
+if typed code expects a function on naturals but recives some untyped lambda,
+ten the value is conditionally accepted provided it lives up to the type
+in particular the function is allowed to cross the boundary in monitored form
+if typed code applies this function to an argument, then the argument is rtansported
+back to untyped-land, the untyped function is allowed to compute,
+and the result then crosses back, along a boundary, to typed code. in this case
+the result does not match the type, so the higher order semantics can point to
+the boundary at the top of this slide to say that either the function or the
+type annotation needs to change
 
-One last idea is to try grouping by performance. We need to be extremely careful
-in making performance claims across languages, but at the very least we can
-agree that Typed Racket is "dead" and the others are more-or-less alive.
+that this higher-order approach and again the intuition is to enforce full types I know of four systems that implement this approach
 
-Ok you get the point, the design space is chaos --- disorganized.
+next is 1 for first-order the goal here is to ensure that the evaluation of typed
+code doesn't get stuck by checking type constructors at the boundary
+so if typed code expects a natural and receives a negative number, thats rejected
+as a type-constructor mismatch but if typed code expects a pair and receives a pair,
+its accepted and simiilary if typed code expects a function and receives a function
+in both cases, the outermost shape of the value matches the outermost shape of the type
+
+things get a bit more complicated when typed code interacts with one of these structured values
+for the case of a pair, whats happened at the boundary is that we let two negative integers sneak into typed code in general there could be anything hidden inside that pair, so I've colored the first and second component differently --- typed code cannot trust them
+as the computation proceeds, and this pair hits a selector
+
+
+
+
+
+
+
 
 TODO gradual guarantee?
+
+TODO hard to get fair and insightful comparison across languages
+
+TODO no more unsubstantiated claims we want to do science more than that
+don't want just a classification scheme for cataloguing what exists want
+a predictive model to guide and anticipate future work in the area
 
 To my knowledge there has been one effort to characterize existing systems,
 and thats the work on KafKa by Ben Francesco Paley and Jan. KafKa presents
@@ -187,6 +224,22 @@ and the first-order judgment is about this K-of-t, which pulls out the top-level
 type constructor from a type. Each semantics satisfies progress and preservation
 lemmas for the matching judgment, but none of these are exactly like standard
 type soundness.
+
+  ;; seen 3 ways of running the same programs, 3 different behaviors
+  ;; what does this mean for type soundness?
+  ;; [slide H 1 E at top (1/5), 3 columns with shrunken picts]
+  ;; classic soundness, 3 clauses
+  ;; 3 columns H 1 E soundness
+  ;; folklore : all-or-nothing? NO for a mixed-typed language
+  ;; ... at least three points in the design space [back to 3-columns]
+  ;;     the all-or-nothing view confuses 1 with erasure whether or not you find
+  ;;     the middle soundness useful, its certainly different (meaningful distinction)
+  ;; we can say more about the differences ... let me make this more precise
+  ;;  all know practical benefit of soundness is ruling out runtime behaviors
+  ;; a typed language rules out all such errors
+  ;; higher-order gets some --- in particular ...
+  ;; erasure gets a few (in the typed code)
+  ;; first order gets a few more ... 
 
 ...
 
