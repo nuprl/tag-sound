@@ -6,10 +6,10 @@ TODO
 - [X] outline
 - [X] draft keynote slides
 - [X] draft slideshow slides
-- [ ] give presentation
+- [X] give presentation
   - [X] torture (2018-08-24 10:00am NEU 366 WVH)
   - [X] nepls   (2018-08-27 10:00am Harvard G115)
-  - [ ] icfp 1:30pm Wed Eric Tanter 22.5 min total, speak for 18.5
+  - [X] icfp 1:30pm Wed Eric Tanter 22.5 min total, speak for 18.5
 - [ ] blog post
 
 - - -
@@ -91,7 +91,7 @@ things get a bit more complicated when typed code interacts with one of these st
 for the case of a pair, whats happened at the boundary is that we let two negative integers sneak into typed code in general there could be anything hidden inside that pair, so I've colored the first and second component differently --- typed code cannot trust them
 as the computation proceeds, and this pair hits a selector
 
-
+(revisions end here)
 
 
 
