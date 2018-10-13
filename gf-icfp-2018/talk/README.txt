@@ -10,7 +10,7 @@ TODO
   - [X] torture (2018-08-24 10:00am NEU 366 WVH)
   - [X] nepls   (2018-08-27 10:00am Harvard G115)
   - [X] icfp 1:30pm Wed Eric Tanter 22.5 min total, speak for 18.5
-- [ ] blog post
+- [X] blog post
 
 - - -
 

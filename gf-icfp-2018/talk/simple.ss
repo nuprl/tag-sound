@@ -3,9 +3,7 @@
 ;; Slides for ICFP 2018
 
 ;; TODO
-;; - add micro/macro dyn/not knobs for ICFP
 ;; - change desktop backgroup (and non-mirror background)
-;; - add soundness theorems, during swimming pool
 
 (require
   gf-icfp-2018/talk/src/gt-system gf-icfp-2018/talk/src/constant
