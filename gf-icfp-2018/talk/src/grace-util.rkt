@@ -42,6 +42,8 @@
 
 ;; TODO tweak colors
 
+(define QUESTION-COLOR (string->color% "CadetBlue"))
+(define ANSWER-COLOR (string->color% "LemonChiffon" #;"Khaki"))
 (define HIGHLIGHT-COLOR (string->color% "RoyalBlue"))
 (define HIGHLIGHT-BRUSH-COLOR (color%-update-alpha HIGHLIGHT-COLOR 0.3))
 (define WHITE (string->color% "white"))
@@ -1023,4 +1025,26 @@
 (define (small-overhead-plot)
   (let ((w (* 40/100 client-w)))
     (scale-to-fit (make-overhead-plot '(H 1 E) #:legend? #false) w w)))
+
+(define (make-png-path str)
+  (format "src/~a.png" str))
+
+(define (question-frame fg #:title [title #false] #:border-margin [bm #f] #:page-margin [pm #false])
+  (add-rounded-frame fg #:title title #:fg-color WHITE #:bg-color QUESTION-COLOR #:border-margin bm #:page-margin pm))
+
+(define (answer-frame fg #:title [title #false] #:fg-color [fg-color WHITE] #:border-margin [bm #f] #:page-margin [pm #false])
+  (add-rounded-frame fg #:title title #:fg-color fg-color #:bg-color ANSWER-COLOR #:border-margin bm #:page-margin pm))
+
+(define data-slide-q-x 2/100)
+(define -data-slide-q-x (- 1 data-slide-q-x))
+(define data-slide-q-coord (coord data-slide-q-x data-slide-q-x 'lt))
+(define -data-slide-q-coord (coord -data-slide-q-x (- 1 (* 4 data-slide-q-x)) 'rb))
+
+(define (make-data-slide q-pict r-pict)
+  (pslide
+    #:go data-slide-q-coord
+    q-pict
+    #:next
+    #:go -data-slide-q-coord
+    r-pict))
 

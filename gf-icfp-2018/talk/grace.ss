@@ -69,12 +69,7 @@
     (sec:implementation)
     (sec:lattice)
     (sec:performance)
-
-;    (sec:scale)
-;    (pslide (make-section-break "More in Paper"))
-;    (sec:conclusion)
-;    (sec:thanks)
-;    (sec:title #:star? #true)
+    (sec:people)
     (void)))
 
 ;; -----------------------------------------------------------------------------
@@ -479,6 +474,47 @@
     E-perf-text))
   (void))
 
+(define (sec:people)
+  (define-values [d-pict s-pict e-pict] (apply values (make-DSE-halo-pict*)))
+  (define-values [deep-system-pict shallow-system-pict erasure-system-pict] (make-DSE-system-pict*))
+  (let ((deep-txt @t{types are sound/enforced})
+        (shallow-txt @t{typed code cannot get stuck})
+        (erasure-txt @t{types do not affect behavior}))
+    (pslide
+     #:go HEADING-COORD
+     (subsubtitle-text "three approaches to Migratory Typing")
+     #:go (coord SLIDE-LEFT 1/5 'lt)
+     (make-2table
+       #:row-align lt-superimpose
+       (list
+         (list d-pict (pict->blank deep-system-pict))
+         (list s-pict (pict->blank shallow-system-pict))
+         (list e-pict (pict->blank erasure-system-pict))))
+     #:go (coord 1/2 30/100 'lt)
+     (comment-frame
+       (vl-append (h%->pixels 5/100)
+                  @t{Soundness}
+                  @t{Performance}
+                  @t{... Users?}))))
+  (define q-w (w%->pixels 60/100))
+  (define r-w (w%->pixels 66/100))
+  (define (str->pict str w)
+    (scale-to-fit (bitmap (make-png-path str)) w w))
+  (for ((qq (in-list `(("q1" "q1-data")))))
+    (make-data-slide (question-frame (str->pict (car qq) q-w))
+                     (answer-frame (str->pict (cadr qq) r-w))))
+  (pslide
+    #:go HEADING-COORD
+    (subsubtitle-text "Developer Survey")
+    #:go (coord 1/10 1/5 'lt)
+    (parameterize ((current-para-width (w%->pixels 75/100)))
+      (vl-append (h%->pixels 5/100)
+                 @para{Asked software engineers, students, and MTurk workers to rate potential@bt{different behaviors} for programs}
+                 (hc-append @t{Results show a preference for } deep-pict)
+                 @t{More at DLS Tuesday 10:30am The Loft}))
+    #:go (coord 1/2 SLIDE-BOTTOM 'cc)
+    @make-url{cs.brown.edu/research/plt/dl/dls2018})
+  (void))
 
 ;; -----------------------------------------------------------------------------
 
