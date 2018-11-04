@@ -4,16 +4,24 @@
 
 (require
   images/icons/arrow images/icons/control images/icons/misc images/icons/symbol images/icons/style
+  racket/format
+  (only-in scribble-abbrevs add-commas)
+  racket/math
+  (only-in gtp-util natural->bitstring)
   racket/class
   racket/draw
   racket/match
   racket/list
+  racket/runtime-path
   gf-icfp-2018/talk/src/two-tone
   gf-icfp-2018/talk/src/gt-system
+  gf-icfp-2018/talk/src/speech-bubble
   pict
   pict/balloon pict/shadow
   pict-abbrevs
   ppict/2
+  (except-in plot/utils min* max*)
+  plot/no-gui
   (only-in racket/string string-replace)
   (only-in plot/utils ->pen-color)
   (only-in slideshow bt current-font-size current-main-font margin client-w client-h t para))
@@ -44,17 +52,27 @@
 (define DYN-TEXT-COLOR (string->color% light-metal-icon-color))
 (define STAT-COLOR (string->color% "PaleTurquoise"))
 (define TAU-COLOR "DarkGoldenrod")
-(define DEEP-COLOR (string->color% "DarkMagenta"))
-(define SHALLOW-COLOR (string->color% "MediumSeaGreen"))
-(define ERASURE-COLOR (string->color% "DarkOrange"))
+;(define DEEP-COLOR (string->color% "DarkMagenta"))
+;(define SHALLOW-COLOR (string->color% "MediumSeaGreen"))
+;(define ERASURE-COLOR (string->color% "DarkOrange"))
+(define DEEP-COLOR (string->color% "Tomato"))
+(define SHALLOW-COLOR (string->color% "cornflowerblue"))
+(define ERASURE-COLOR (string->color% "mediumseagreen"))
+
 (define TYPE-BOUNDARY-COLOR (string->color% "Fuchsia"))
 (define LABEL-COLOR (string->color% "Plum"))
 (define SURVEY-COLOR (string->color% "Gainsboro"))
 (define BLANK-COLOR (string->color% "LightGoldenrodYellow"))
+(define LIGHT-RED (string->color% "Tomato"))
+(define GREEN (string->color% "mediumseagreen"))
+(define BLUE (string->color% "cornflowerblue"))
 
 (define DEEP-TAG 'deep)
 (define SHALLOW-TAG 'shallow)
 (define ERASURE-TAG 'erasure)
+
+(define PLOT-FN-ALPHA 0.6)
+(define PLOT-RATIO 3/4) ;; TODO nonsense
 
 (define GT-TAG* (list DEEP-TAG SHALLOW-TAG ERASURE-TAG))
 
@@ -63,7 +81,10 @@
 (define ERASURE-STR "Erasure")
 
 (define (gt-strategy-text str color tag [size SUBSUBTITLE-FONT-SIZE])
-  (define txt (colorize (text str MONO-FONT size) color))
+  (define txt
+    (parameterize ((current-main-font MONO-FONT)
+                   (current-font-size size))
+      (text/bgcolor str color)))
   (tag-pict txt tag))
 
 (define (string->title str #:size [size TITLE-FONT-SIZE] #:color [color BLACK])
@@ -93,6 +114,8 @@
 (define QUESTION-COORD (coord 98/100 1/2 'rc)) 
 (define NOTATION-COORD (coord 1/2 1/4 'ct))
 (define MT-SYSTEM-COORD (coord 1/5 1/5 'lt))
+(define MAIN-CONTRIB-COORD (coord 1/5 1/5 'lt))
+(define -MAIN-CONTRIB-COORD (coord 4/5 4/5 'rt))
 
 (define SMALL-ROUND -0.08)
 (define SUBTITLE-MARGIN 20)
@@ -114,6 +137,9 @@
 (define TYPE-BOUNDARY-TAG 'the-type-boundary)
 (define MIGRATION-ARROW-SIZE 25)
 (define MIGRATION-ARROW-WIDTH 8)
+
+(define-runtime-path racket-logo.png "racket-logo.png")
+(define-runtime-path cache-scatterplots.png "cache-scatterplots.png")
 
 (define STA-TAG 'sta-component)
 (define DYN-TAG 'dyn-component)
@@ -190,15 +216,30 @@
 (define (dynt str)
   (text/color str DYN-TEXT-COLOR))
 
+(define BG-ALPHA 0.6)
+
+(define (text/bgcolor str c)
+  (define the-margin 4)
+  (define the-radius 15)
+  (define tt (text str (current-main-font) (current-font-size)))
+  (define bg (filled-rounded-rectangle (+ (* 2 the-margin) (pict-width tt))
+                                       (+ the-margin (pict-height tt))
+                                       the-radius
+                                       #:color (color%-update-alpha c BG-ALPHA)
+                                       #:draw-border? #false))
+  (cc-superimpose bg tt))
+
 (define (deept str)
-  (text/color str DEEP-COLOR))
+  (text/bgcolor str DEEP-COLOR))
 
 (define (shallowt str)
-  (text/color str SHALLOW-COLOR))
+  (text/bgcolor str SHALLOW-COLOR))
 
 (define (erasuret str)
-  (text/color str ERASURE-COLOR))
+  (text/bgcolor str ERASURE-COLOR))
 
+(define (ss-text str)
+  (text str SS-FONT (current-font-size)))
 
 (define (large-check-icon)
   (make-icon check-icon #:height 80))
@@ -379,6 +420,10 @@
 (define (gt-strategy-tag? x)
   (and (symbol? x) (memq x (list DEEP-TAG SHALLOW-TAG ERASURE-TAG))))
 
+(define (gt-strategy->kafka-text x)
+  (define kt (gt-strategy->kafka x))
+  (t (string-append "(" kt ")")))
+
 (define (gt-strategy->kafka x)
   (cond
     [(eq? x DEEP-TAG)    "behavioral"]
@@ -529,13 +574,19 @@
 (define (add-halo p c)
   (define blur-val 15)
   (define e-margin 40)
-  (define halo
-    (blur (ellipse (+ e-margin (pict-width p))
+  (define laddye
+      (filled-ellipse (+ e-margin (pict-width p))
+                   (+ e-margin (pict-height p))
+                   #:color c
+                   #:draw-border? #false))
+  (define ladye
+      (ellipse (+ e-margin (pict-width p))
                    (+ e-margin (pict-height p))
                    #:border-color c
-                   #:border-width 10)
-          blur-val blur-val))
-  (cc-superimpose halo p))
+                   #:border-width 10))
+  (define halo
+    (blur ladye blur-val blur-val))
+  (cc-superimpose halo laddye p))
 
 (define (wide-rectangle height
                         #:border-width [border-width 1]
@@ -628,8 +679,8 @@
 (define (at-underline pp #:abs-y [abs-y LINE-MARGIN])
   (at-find-pict pp lb-find 'lt #:abs-y abs-y))
 
-(define (make-underline pp [height LINE-MARGIN] #:color [color HIGHLIGHT-COLOR])
-  (rule (pict-width pp) height #:color color))
+(define (make-underline pp [height LINE-MARGIN] #:color [color HIGHLIGHT-COLOR] #:width [width #f])
+  (rule (or width (pict-width pp)) height #:color color))
 
 (define (at-leftline pp #:abs-y [abs-y 0] #:abs-x [abs-x -10])
   (at-find-pict pp lt-find 'lt #:abs-y abs-y #:abs-x abs-x))
@@ -708,7 +759,7 @@
   (pin-balloon b-pict base tgt ct-find))
 
 (define (need-txt str)
-  (hb-append "need " (bt str)))
+  (hb-append (t "need ") (bt str)))
 
 (define (smallt str)
   (parameterize ((current-font-size SMALL-FONT-SIZE)) (t str)))
@@ -741,4 +792,235 @@
 
 (define (pict->blank pp)
   (blank (pict-width pp) (pict-height pp)))
+
+(define (scale-soundness p)
+  (scale p 0.74))
+
+(define (scale-for-theorem p)
+  (define h (current-font-size))
+  (scale-to-fit p h h))
+
+(define make-folklore-slide
+  (let ([q1 "Is type soundness all-or-nothing?"]
+        [q1-h 2/10]
+        [a1 "No! (in a mixed-typed language)"]
+        [q2 "How does type soundness affect performance?"]
+        [q2-h 5/10]
+        [a2 "See graphs"])
+    (lambda (#:q1? [q1? #true] #:q2? [q2? #true] #:answers? [answers? #false] #:extra [extra #f])
+      (pslide
+        #:go (coord SLIDE-LEFT q1-h 'lt)
+        (if q1? (speech-bubble #:direction 'left (ss-text q1)) (blank))
+        #:go (coord SLIDE-RIGHT 31/100 'rt)
+        (if (and q1? answers?) (speech-bubble #:direction 'right (ss-text a1)) (blank))
+        #:go (coord SLIDE-LEFT q2-h 'lt)
+        (if q2? (speech-bubble #:direction 'left (ss-text q2)) (blank))
+        #:go (coord SLIDE-RIGHT 61/100 'rt)
+        (if (and q2? answers?) (speech-bubble #:direction 'right (ss-text a2)) (blank))
+        #:go (if extra (car extra) (coord 0 0))
+        (if extra (cdr extra) (blank))))))
+
+(define (well-t str0 str1)
+  (define p*
+    (if str1 (list (t ":") (string-pict->text str1)) '()))
+  (apply hb-append 2 (t "⊢") (string-pict->text str0) p*))
+
+(define (string-pict->text str)
+  (if (pict? str)
+    str
+    (t str)))
+
+(define (list->program bool* #:margin [margin COMPONENT-MARGIN])
+  (define c* (list->component* bool*))
+  (apply hb-append margin c*))
+
+(define (make-small-node x)
+  (scale (make-node x) 1/10))
+
+(define (bool*->tag b*)
+  (bitstring->tag (bool*->bitstring b*)))
+
+(define (bool*->bitstring b*)
+  (list->string
+    (for/list ((b (in-list b*)))
+      (if b #\1 #\0))))
+
+(define (bitstring->tag str)
+  (string->symbol (string-append "cfg-" str)))
+
+(define (make-node b*)
+  (define pp (list->program b* #:margin COMPONENT-LATTICE-MARGIN))
+  (define pp/bg
+    (add-rectangle-background pp
+                              #:radius 4
+                              #:color SURVEY-COLOR
+                              #:draw-border? #true
+                              #:x-margin 1/16
+                              #:y-margin 1/7))
+  (tag-pict pp/bg (bool*->tag b*)))
+
+(define (make-lattice total-bits make-node
+                      #:x-margin [x-margin LATTICE-NODE-X-MARGIN]
+                      #:y-margin [y-margin LATTICE-NODE-Y-MARGIN])
+  (define posn* (build-list total-bits values))
+  (define level-picts
+    (for/list ([on-bits (in-range total-bits -1 -1)])
+      (apply hc-append x-margin
+       (for/list ([combo (in-combinations posn* on-bits)])
+         (define bv (for/list ((b (in-list posn*))) (and (member b combo) #true)))
+         (make-node bv)))))
+  (apply vc-append y-margin level-picts))
+
+(define (runtime->pict n)
+  (t (string-append (add-commas (exact-floor n)) " ms")))
+
+(define (overhead->pict n)
+  (define n-str
+    (if (< n 1)
+      (~r n #:precision '(= 2))
+      (add-commas (exact-floor n))))
+  (bt (string-append n-str "x")))
+
+(define (make-lattice-icon)
+  (define y-max (h%->pixels 1/6))
+  (define x-max (* 3 y-max))
+  (scale-to-fit (make-lattice 4 make-node #:x-margin 4 #:y-margin 2) x-max y-max))
+
+(define (make-fraction t-pict b-pict)
+  (vc-append t-pict (rule (pict-width t-pict) 8) b-pict))
+
+(define (make-check-x-fraction)
+  (apply make-fraction
+         (pict-bbox-sup (small-check-icon)
+                        (hc-append 6 (small-check-icon) (subtitle-text "+") (small-x-icon)))))
+
+(define (make-url str)
+  (hyperlinkize (text str MONO-FONT (current-font-size))))
+
+(define (make-overhead-plot e* #:legend? [legend? #true])
+  (define w 500)
+  (define x-min 0)
+  (define x-max (+ (/ pi 10) pi))
+  (define pp
+    (parameterize ((plot-x-ticks no-ticks)
+                   (plot-y-ticks no-ticks)
+                   (plot-font-size (current-font-size)))
+      (plot-pict
+        (for/list ((e (in-list e*)))
+          (define c (symbol->color e))
+          (function (make-embedding-function e x-min x-max)
+                    #:width (* 15 (line-width))
+                    #:alpha PLOT-FN-ALPHA
+                    #:color c))
+        #:y-label #f ;;"Overhead vs. Untyped"
+        #:x-label #f ;;"Num. Type Ann."
+        #:width 700
+        #:height (* PLOT-RATIO w)
+        #:x-min x-min
+        #:x-max x-max
+        #:y-min 0
+        #:y-max (* 10 (+ 1 (order-of-magnitude x-max))))))
+  (define pp+axis (add-overhead-axis-labels (tag-pict pp 'the-plot) legend?))
+  (if legend?
+    (ppict-do
+      (hc-append 30 (blank) pp+axis)
+      #:go (at-find-pict 'the-plot lb-find 'rb #:abs-x -10)
+      (make-overhead-legend '(H 1 E)))
+    pp+axis))
+
+(define (symbol->color e)
+  (case e
+    ((H)
+     LIGHT-RED)
+    ((E)
+     GREEN)
+    ((1)
+     BLUE)
+    (else
+      (raise-argument-error 'symbol->color "(or/c 'H 'E '1)" e))))
+
+(define (make-overhead-legend e*)
+  (define w (* 22/100 client-w))
+  (for/fold ([acc (blank w 50)])
+            ([e (in-list e*)])
+    (vl-append 20 acc (make-embedding-legend e))))
+
+(define (add-overhead-axis-labels pp [legend? #t])
+  (define margin 20)
+  (define y-label
+    (vr-append (t "Overhead vs.")
+               (t "Untyped")))
+  (define x-label (t "Num. Type Annotations"))
+  (define fp (frame-plot pp))
+  (if legend?
+    (ht-append margin y-label (vr-append margin fp x-label))
+    fp))
+
+(define (frame-plot p)
+  (add-axis-arrow (add-axis-arrow p 'x) 'y))
+
+(define (add-axis-arrow p xy)
+  (define find-dest
+    (case xy
+      ((x)
+       rb-find)
+      ((y)
+       lt-find)
+      (else (raise-argument-error 'add-axis-arrow "(or/c 'x 'y)" 1 p xy))))
+  (pin-arrow-line 20 p p lb-find p find-dest #:line-width 6))
+
+(define (make-embedding-function e x-min x-max)
+  (define pi/4 (/ 3.14 4))
+  (define 3pi/4 (* 3.5 pi/4))
+  (case e
+    ((H)
+     (lambda (n)
+       (cond
+         [(< n pi/4)
+          (max 1 (+ 0.9 (sin n)))]
+         [(< n 3pi/4)
+          10]
+         [else
+          0.4])))
+    ((E)
+     (lambda (n) 1))
+    ((1)
+     (lambda (n)
+       (cond
+         [(< n 3pi/4)
+          (add1 n)]
+         [else
+           (- (+ 1 3pi/4) (* 2/10 (- n 3pi/4)))
+          ]))
+     #;(lambda (n) (add1 n)))
+    (else
+      (raise-argument-error 'make-embedding-line "embedding?" e))))
+
+(define (make-embedding-legend e)
+  (define-values [txt _descr bx] (symbol->name+box e))
+  (define txt-pict (t txt))
+  (hc-append 10 bx txt-pict))
+
+(define (scale-for-legend p)
+  (define h 20)
+  (scale-to-fit (cellophane p PLOT-FN-ALPHA) h h))
+
+(define (make-DSE-rule c)
+  (rule 40 20 #:color c))
+
+(define (symbol->name+box sym)
+  (define dse* (map make-DSE-rule (list DEEP-COLOR SHALLOW-COLOR ERASURE-COLOR)))
+  (case sym
+    ((H)
+     (values "deep" "enforce full types" (car dse*)))
+    ((1)
+     (values "shallow" "enforce type constructors" (cadr dse*)))
+    ((E)
+     (values "erasure" "ignore types" (caddr dse*)))
+    (else
+      (raise-argument-error 'symbol->name+box "(or/c 'H '1 'E)" sym))))
+
+(define (small-overhead-plot)
+  (let ((w (* 40/100 client-w)))
+    (scale-to-fit (make-overhead-plot '(H 1 E) #:legend? #false) w w)))
 

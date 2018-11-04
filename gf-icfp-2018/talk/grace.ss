@@ -19,6 +19,7 @@
 ;; Outline ... mostly performance? Boundaries, then performance. Maybe fish?
 
 (require
+  (only-in gtp-util natural->bitstring)
   gf-icfp-2018/talk/src/gt-system
   gf-icfp-2018/talk/src/grace-util
   pict pict/convert pict/balloon pict/shadow
@@ -28,12 +29,18 @@
   plot/no-gui
   racket/draw
   racket/list
+  gtp-plot/configuration-info
+  gtp-plot/performance-info
+  gtp-plot/plot
+  gtp-plot/typed-racket-info
   (only-in racket/string string-split)
   images/icons/arrow images/icons/control images/icons/misc images/icons/symbol images/icons/style)
 
 (module+ test (require rackunit))
 
 ;; -----------------------------------------------------------------------------
+
+(define FSM-DATA (make-typed-racket-info "./src/fsm-6.4.rktd"))
 
 (define ((add-bg-assembler default-assembler #:color color) s v-sep c)
   (define fg (default-assembler s v-sep c))
@@ -54,18 +61,15 @@
                                                             #:color (color%-update-alpha (string->color% "Moccasin") 0.4))]
                  [current-titlet string->title])
     (void)
-;    (sec:title)
-;    (sec:background)
+    (sec:title)
+    (sec:background)
     (sec:three)
+    ;(sec:boundary)
+    (sec:soundness) ;; ends with bubble, folklore
+    (sec:implementation)
+    (sec:lattice)
+    (sec:performance)
 
-;    (sec:gt-cost)
-;    ;(sec:anecdotes)
-;    (pslide (make-section-break "The Method"))
-;    (sec:lattice)
-;    (sec:exhaustive-method)
-;    (pslide (make-section-break "A Method for Presenting the Data"))
-;    (sec:dead-plot)
-;    (pslide (make-section-break "Scaling the Method"))
 ;    (sec:scale)
 ;    (pslide (make-section-break "More in Paper"))
 ;    (sec:conclusion)
@@ -148,7 +152,7 @@
    (subsubtitle-text "One kind of gradual typing:")
    #:go (coord 1/10 SLIDE-TOP 'lt)
    (hc-append (subtitle-text "Migratory Typing") @t{ (SNAPL'17)})
-   #:go (coord 1/4 25/100 'lt)
+   #:go (coord 1/5 25/100 'lt)
    (parameterize ((current-para-width (w%->pixels 55/100)))
      (make-2table
        #:row-sep (h%->pixels 1/15)
@@ -193,9 +197,9 @@
      #:col-sep 20
      #:row-align lt-superimpose
      (list
-       (list d-pict (cl-superimpose (blank (pict-height d-pict) 0) (t (gt-strategy->kafka DEEP-TAG))))
-       (list s-pict (cl-superimpose (blank (pict-height s-pict) 0) (t (gt-strategy->kafka SHALLOW-TAG))))
-       (list e-pict (cl-superimpose (blank (pict-height e-pict) 0) (t (gt-strategy->kafka ERASURE-TAG))))))
+       (list d-pict (lc-superimpose (blank (pict-height d-pict) 0) (gt-strategy->kafka-text DEEP-TAG)))
+       (list s-pict (lc-superimpose (blank (pict-height s-pict) 0) (gt-strategy->kafka-text SHALLOW-TAG)))
+       (list e-pict (lc-superimpose (blank (pict-height e-pict) 0) (gt-strategy->kafka-text ERASURE-TAG)))))
    #:next
    #:go (coord 50/100 20/100 'lt)
    (parameterize ((current-para-width (w%->pixels 1/2))
@@ -204,6 +208,37 @@
        (let-values (((a b c) (make-boundary-pict*)))
                    (scale a 0.8))
        @para{Three strategies for enforcing types at a boundary})))
+  (let ((deep-txt @t{types are sound/enforced})
+        (shallow-txt @t{typed code cannot get stuck})
+        (erasure-txt @t{types do not affect behavior}))
+    (pslide
+     #:go HEADING-COORD
+     (subsubtitle-text "three approaches to Migratory Typing")
+     #:go (coord SLIDE-LEFT 1/5 'lt)
+     #:alt [(make-2table
+              #:row-align lt-superimpose
+              (list
+                (list d-pict (pict->blank deep-system-pict))
+                (list s-pict (pict->blank shallow-system-pict))
+                (list e-pict (pict->blank erasure-system-pict))))]
+     #:alt [(make-2table
+              #:row-align lt-superimpose
+              (list
+                (list d-pict (lt-superimpose (pict->blank deep-system-pict) deep-txt))
+                (list s-pict (pict->blank shallow-system-pict))
+                (list e-pict (pict->blank erasure-system-pict))))]
+     #:alt [(make-2table
+              #:row-align lt-superimpose
+              (list
+                (list d-pict (lt-superimpose (pict->blank deep-system-pict) deep-txt))
+                (list s-pict (lt-superimpose (pict->blank shallow-system-pict) shallow-txt))
+                (list e-pict (pict->blank erasure-system-pict))))]
+     (make-2table
+       #:row-align lt-superimpose
+       (list
+         (list d-pict (lt-superimpose (pict->blank deep-system-pict) deep-txt))
+         (list s-pict (lt-superimpose (pict->blank shallow-system-pict) shallow-txt))
+         (list e-pict (lt-superimpose (pict->blank erasure-system-pict) erasure-txt))))))
   (void))
 
 (define (sec:boundary)
@@ -242,6 +277,209 @@
         @smallt{ of type boundaries is not an issue.)})))
   (void))
 
+(define (sec:soundness)
+  (define-values [H-box 1-box E-box]
+    (let ((pp* (make-DSE-halo-pict*)))
+      (values (tag-pict (car pp*) 'H-box)
+              (tag-pict (cadr pp*) '1-box)
+              (tag-pict (caddr pp*) 'E-box))))
+  (define y-sep 20)
+  (define y-spectrum 26/100)
+  (define sound-0 (tag-pict (hb-append 0 (t "e ->* v and ") (well-t "v" "t")) 'sound-0))
+  (define sound-1 (tag-pict (t "e diverges") 'sound-1))
+  (define sound-2 (tag-pict (t "e ->* Error") 'sound-2))
+  (define H-sound-0 (tag-pict (well-t "v" "t") 'H-sound-0))
+  (define 1-sound-0 (tag-pict (well-t "v" "C(t)") '1-sound-0))
+  (define E-sound-0 (tag-pict (well-t "v" #f) 'E-sound-0))
+  (define sound-pict
+    (vl-append 20
+               (t "Type Soundness (simplified):")
+               (vl-append 20
+                          (hb-append 0 (t " if ") (well-t "e" "t") (t " then either:"))
+                          (hb-append 0 (t " - ") sound-0)
+                          (hb-append 0 (t " - ") sound-1)
+                          (hb-append 0 (t " - ") sound-2))))
+  (pslide
+    #:go (coord 50/100 1/2 'cc)
+    (let ((pp (rule (w%->pixels 34/100)
+                    (+ (* 3 margin) client-h)
+                    #:color (color%-update-alpha (string->color% "black") 0.1))))
+      (cc-superimpose (rule (pict-width pp) (pict-height pp) #:color WHITE) pp))
+    #:go (coord 18/100 SLIDE-TOP 'ct) H-box
+    #:go (coord 50/100 SLIDE-TOP 'ct) 1-box
+    #:go (coord 82/100 SLIDE-TOP 'ct) E-box
+    #:next
+    #:alt [#:go (coord 1/2 1/3 'ct)
+           (cc-superimpose
+             (filled-rounded-rectangle (+ 60 (pict-width sound-pict)) (+ 40 (pict-height sound-pict)) -0.05
+                                       #:color "white" #:border-width 8)
+             sound-pict)
+           #:next
+           #:alt [#:go (at-underline 'sound-0) (make-underline sound-0)]
+           #:alt [#:go (at-underline 'sound-1) (make-underline sound-1)]
+           #:go (at-underline 'sound-2) (make-underline sound-2)]
+    #:go (at-find-pict 'H-box cb-find 'ct #:abs-y (* 4 y-sep))
+    (scale-soundness
+      (vl-append 20
+               (hc-append 0 (t "Deep"))
+               (vl-append 20
+                          (hb-append 0 (t " if ") (well-t "e" "t") (t " then either:"))
+                          (hb-append 0 (t " - ") (hb-append 0 (t "e ->* v and ") H-sound-0))
+                          (hb-append 0 (t " - ") (t "e diverges"))
+                          (hb-append 0 (t " - ") (t "e ->* Error")))))
+    #:go (at-underline 'H-sound-0) (make-underline H-sound-0 #:width 50)
+    #:next
+    #:go (at-find-pict '1-box cb-find 'ct #:abs-y (* 4 y-sep))
+    (scale-soundness
+      (vl-append 20
+                 (t "Shallow")
+                 (vl-append 20
+                            (hb-append 0 (t " if ") (well-t "e" "t") (t " then either:"))
+                            (hb-append 0 (t " - ") (hb-append 0 (t "e ->* v and ") 1-sound-0))
+                            (hb-append 0 (t " - ") (t "e diverges"))
+                            (hb-append 0 (t " - ") (t "e ->* Error")))))
+    #:go (at-underline '1-sound-0) (make-underline 1-sound-0 #:width 70)
+    #:next
+    #:go (at-find-pict 'E-box cb-find 'ct #:abs-y (* 4 y-sep))
+    (scale-soundness
+      (vl-append 20
+                 (t "Erasure")
+                 (vl-append 20
+                            (hb-append 0 (t " if ") (well-t "e" "t") (t " then either:"))
+                            (hb-append 0 (t " - ") (hb-append 0 (t "e ->* v and ") E-sound-0))
+                            (hb-append 0 (t " - ") (t "e diverges"))
+                            (hb-append 0 (t " - ") (t "e ->* Error")))))
+    #:go (at-underline 'E-sound-0) (make-underline E-sound-0))
+  (make-folklore-slide #:q2? #false #:answers? #false)
+  (make-folklore-slide #:q2? #false #:answers? #true
+                      ;; #:extra (cons (coord 1/2 8/10) (scale (make-spectrum-pict) 0.65))
+                       )
+  (void))
+
+(define (sec:implementation)
+   (pslide
+    #:go HEADING-COORD
+    (subsubtitle-text "Implementation")
+    #:go (coord SLIDE-LEFT 1/5 'lt)
+    (make-impl-pict)
+    #:go (coord 1/2 1/5 'lt)
+    (parameterize ((current-para-width (w%->pixels 50/100)))
+      (vl-append (h%->pixels 15/100)
+        @para{Three compilers for the Typed Racket surface language}
+        @para{i.e. three ways of running@bt{the same code}})))
+  (void))
+
+(define (sec:lattice)
+  (let* ((p0 (bigger-program (list->program '(#f #t #t #f))))
+         (the-lattice-coord (coord 1/2 SLIDE-TOP 'ct))
+         (the-step-coord (coord SLIDE-LEFT SLIDE-TOP 'lb #:abs-y -4))
+         (-the-step-coord (coord SLIDE-RIGHT SLIDE-TOP 'rb #:abs-y -4))
+         (p-typed (make-node '(#t #t #t #t)))
+         (time-y-sep -2)
+         (total-bits 4)
+         (make-overhead (lambda (cfg) (overhead FSM-DATA (configuration-info->mean-runtime cfg))))
+         (cfg->o-coord (lambda (tag) (at-find-pict tag rt-find 'rb #:abs-y time-y-sep)))
+        )
+    (pslide
+      #:go the-lattice-coord
+      #:alt [p-typed #:go CENTER-COORD (subsubtitle-text "How to measure performance?")]
+      (make-lattice 4 make-node
+                    #:x-margin (w%->pixels 1/70)
+                    #:y-margin (h%->pixels 1/9))
+      #:next
+      #:alt [#:set (for/fold ((acc ppict-do-state))
+                             ((cfg (in-configurations FSM-DATA))
+                              (i (in-naturals)))
+                     (define tag (bitstring->tag (natural->bitstring i #:bits total-bits)))
+                     (ppict-do
+                       acc
+                       #:go (at-find-pict tag lt-find 'lb #:abs-y time-y-sep)
+                       (runtime->pict (configuration-info->mean-runtime cfg))))]
+      #:alt [#:set (ppict-do
+                     ppict-do-state
+                     #:go (cfg->o-coord 'cfg-0000)
+                     (tag-pict (overhead->pict 1) 'the-tgt)
+                     #:go (at-find-pict 'the-tgt rc-find 'lc #:abs-x 10)
+                     (left-arrow #:color HIGHLIGHT-COLOR))]
+      #:set (for/fold ((acc ppict-do-state))
+                      ((cfg (in-configurations FSM-DATA))
+                       (i (in-naturals)))
+              (define tag (bitstring->tag (natural->bitstring i #:bits total-bits)))
+              (ppict-do
+                acc
+                #:go (cfg->o-coord tag)
+                (overhead->pict (make-overhead cfg))))
+      ;#:next
+      ;#:set (for/fold ((acc (cellophane ppict-do-state 0.4)))
+      ;                ((cfg (in-configurations FSM-DATA))
+      ;                 (i (in-naturals)))
+      ;        (define tag (bitstring->tag (natural->bitstring i #:bits total-bits)))
+      ;        (ppict-do
+      ;          acc
+      ;          #:go (at-find-pict tag cc-find 'cc)
+      ;          (if (< (make-overhead cfg) 2)
+      ;            (large-check-icon)
+      ;            (large-x-icon))))
+  ))
+  ;(let* ((x-sep 50)
+  ;       (ra (right-arrow #:color HIGHLIGHT-COLOR))
+  ;       (lhs-pict
+  ;         (hc-append 12 (make-lattice-icon) @subtitle-text{+} @bt{D}))
+  ;       (rhs-pict
+  ;         (make-check-x-fraction)))
+  ;  (pslide
+  ;    #:go HEADING-COORD
+  ;    (subtitle-text "D-deliverable")
+  ;    #:go (coord 1/10 20/100 'lt)
+  ;    (lines-append
+  ;      (hb-append @t{A configuration is } @bt{D}@it{-deliverable} @t{ if its})
+  ;      (hb-append @t{performance is no worse than a factor })
+  ;      (hb-append @t{of } @bt{D} @t{ slowdown compared to the baseline}))
+  ;    #:go (coord 1/10 50/100 'lt)
+  ;    (hc-append x-sep lhs-pict ra rhs-pict)))
+  (void))
+
+(define (sec:performance)
+   (pslide
+    #:go HEADING-COORD
+    (subsubtitle-text "Experiment")
+    #:go (coord SLIDE-LEFT 1/5 'lt)
+    (make-impl-pict)
+    #:go (coord 1/2 1/5 'lt)
+    (parameterize ((current-para-width (w%->pixels 50/100)))
+      (vl-append (h%->pixels 10/100)
+        @para{10 benchmark programs}
+        @para{2 to 10 modules each}
+        @para{4 to 1024 configurations each}))
+    #:go (coord 1/2 SLIDE-BOTTOM 'cc)
+    @make-url{docs.racket-lang.org/gtp-benchmarks})
+  (make-overhead-plot-slide '())
+  (pslide (make-scatterplots-pict))
+  (define perf-plot-pict (small-overhead-plot))
+  (define (make-perf-text sym pp)
+    (define-values (_n _d bx) (symbol->name+box sym))
+    (ht-append (lb-superimpose (blank 55 26) (scale-to-fit bx 40 40))
+               pp))
+  (define-values [H-perf-txt 1-perf-text E-perf-text]
+                 (parameterize ((current-para-width (w%->pixels 45/100)))
+    (let ((p* (list (make-perf-text 'H @para{add types to remove all critical boundaries})
+                    (make-perf-text '1 @para{add types sparingly})
+                    (make-perf-text 'E @para{add types anywhere, doesn't matter}))))
+      (apply values (pict-bbox-sup* p*)))))
+  (pslide
+    #:go (coord SLIDE-LEFT SLIDE-TOP 'lt)
+    @subsubtitle-text{Performance Implications}
+    #:go (coord SLIDE-LEFT 1/5 'lt)
+    perf-plot-pict
+    #:next
+    #:go (coord 1/2 1/5 'lt)
+    (vl-append (h%->pixels 1/9)
+    H-perf-txt
+    1-perf-text
+    E-perf-text))
+  (void))
+
+
 ;; -----------------------------------------------------------------------------
 
 (define (make-DSE-system-pict*)
@@ -251,6 +489,33 @@
       (gt*->pict #:direction 'H (filter/embedding 'H MT-system*))
       (gt*->pict #:direction 'H (filter/embedding '1 MT-system*))
       (gt*->pict #:direction 'H (filter/embedding 'E MT-system*)))))
+
+(define (make-racket-logo)
+  (comment-frame (scale-to-fit (bitmap racket-logo.png) 150 150)))
+
+(define (make-impl-pict)
+  (define bb (make-racket-logo))
+  (define dse* (map (lambda (p) (vc-append 4 (blank) p)) (make-DSE-halo-pict*)))
+  (define dse-base
+    (vc-append -10 (hc-append 70 (car dse*) (caddr dse*)) (cadr dse*)))
+  (define no-arrows (vc-append 40 bb dse-base))
+  (for/fold ((acc no-arrows))
+            ((pp (in-list dse*))
+             (t-find (in-list (list lb-find cb-find rb-find))))
+    (pin-arrow-line 16 acc bb t-find pp ct-find #:line-width 4 #:color BLACK #:alpha 0.8)))
+
+(define (make-overhead-plot-slide e*)
+  (parameterize ([current-font-size 26])
+    (pslide
+      #:go (coord SLIDE-LEFT SLIDE-TOP 'lt)
+      (subsubtitle-text "Performance")
+      #:go (coord SLIDE-LEFT 1/5 'lt)
+      (make-overhead-plot e*))))
+
+(define (make-scatterplots-pict)
+  (cc-superimpose
+    (rule client-w client-h #:color WHITE)
+    (scale-to-fit (bitmap cache-scatterplots.png) client-w client-h)))
 
 ;; -----------------------------------------------------------------------------
 
@@ -264,10 +529,8 @@
 
    (;pslide
     ppict-do bb
-    #:go (coord SLIDE-LEFT 1/5 'lt)
-    (make-DSE-halo-pict)
-    ;#:next
-)
+    #:go CENTER-COORD
+    (make-overhead-plot '(H 1 E)))
 
   )))
   (define (add-bg p)
