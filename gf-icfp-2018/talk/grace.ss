@@ -127,6 +127,21 @@
      (make-leftline sta-desc h-width #:color h-color) ]
      #:go (at-leftline mixed-desc)
      (make-leftline mixed-desc h-width #:color h-color))))
+  (pslide
+    #:go HEADING-COORD
+    (subsubtitle-text "Gradual Typing is growing ...")
+    #:go (coord 1/10 20/100 'lt)
+    (vl-append (h%->pixels 1/15)
+               @para{Over 80 publications}
+               @para{Over 20 implementations})
+    #:next
+    #:go (coord 1/2 1/2 'ct)
+    (parameterize ((current-para-width (w%->pixels 60/100)))
+      (alert-frame @para[#:align 'center]{But NO common definition of gradual typing --- due to@bt{different} goals and priorities}))
+    #:next
+    #:go (coord 1/2 SLIDE-BOTTOM 'cc)
+    @para[#:align 'center]{Little acknowledgment (or analysis!) of the differences}
+    )
   (void))
 
 ;; -----------------------------------------------------------------------------
