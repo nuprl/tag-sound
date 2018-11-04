@@ -18,6 +18,8 @@
             #:omit-constructor]
     [all-system*
       (listof gt-system?)]
+    [MT-system*
+      (listof gt-system?)]
     [new-system*
       (listof gt-system?)]
     [H-system*
@@ -414,6 +416,11 @@
         grace flow hack pyre pytype rtc safets maclisp common-lisp strongtalk
         typescript typed-clojure typed-lua pyret thorn dart1 dart2 nom pycket
         reticulated))
+
+(define MT-system*
+  (list gradualtalk typed-racket tpd strongscript mypy pallene
+        grace flow hack pyre pytype rtc safets maclisp common-lisp strongtalk
+        typescript typed-clojure typed-lua pyret pycket reticulated))
 
 (define tr-e
   (make-gt-system #:name "TR-E"

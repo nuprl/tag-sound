@@ -9,8 +9,9 @@
   racket/match
   racket/list
   gf-icfp-2018/talk/src/two-tone
+  gf-icfp-2018/talk/src/gt-system
   pict
-  pict/shadow
+  pict/balloon pict/shadow
   pict-abbrevs
   ppict/2
   (only-in racket/string string-replace)
@@ -27,7 +28,6 @@
 ;; comment-font
 ;; add-halo
 
-;; tag->kafka-term
 ;;   behavioral transient optional
 
 ;; -----------------------------------------------------------------------------
@@ -71,7 +71,8 @@
 
 (define ALL-CAPS-FONT "Triplicate C3" #;"Bebas Neue")
 (define MONO-FONT "Triplicate T4")
-(define TITLE-FONT "Triplicate C4" #;"Fira Sans, Heavy")
+(define TITLE-FONT "Triplicate C4")
+(define SS-FONT "Fira Sans")
 
 (define NORMAL-FONT-SIZE 32)
 (define SMALL-FONT-SIZE 28)
@@ -91,6 +92,8 @@
 (define CENTER-COORD (coord 1/2 1/2 'cc))
 (define QUESTION-COORD (coord 98/100 1/2 'rc)) 
 (define NOTATION-COORD (coord 1/2 1/4 'ct))
+(define MT-SYSTEM-COORD (coord 1/5 1/5 'lt))
+
 (define SMALL-ROUND -0.08)
 (define SUBTITLE-MARGIN 20)
 (define SUBSUBTITLE-MARGIN 10)
@@ -376,6 +379,13 @@
 (define (gt-strategy-tag? x)
   (and (symbol? x) (memq x (list DEEP-TAG SHALLOW-TAG ERASURE-TAG))))
 
+(define (gt-strategy->kafka x)
+  (cond
+    [(eq? x DEEP-TAG)    "behavioral"]
+    [(eq? x SHALLOW-TAG) "transient"]
+    [(eq? x ERASURE-TAG) "optional"]
+    [else (raise-argument-error 'gt-strategy->kafka "gt-strategy-tag?" x)]))
+
 (define (gt-strategy->t x)
   (cond
     [(eq? x DEEP-TAG)    deept]
@@ -505,6 +515,17 @@
                   #:color TYPE-BOUNDARY-COLOR
                   #:line-width TYPE-BOUNDARY-ARROW-WIDTH))
 
+(define (make-DSE-halo-pict)
+  (apply vc-append 90 (make-DSE-halo-pict*)))
+
+(define (make-DSE-halo-pict*)
+  (let* ((p* (pict-bbox-sup deep-pict shallow-pict erasure-pict)))
+    (map gt-strategy->halo p* GT-TAG*)))
+
+(define (gt-strategy->halo p p-tag)
+  (define c (gt-strategy->color p-tag))
+  (tag-pict (add-halo p c) p-tag))
+
 (define (add-halo p c)
   (define blur-val 15)
   (define e-margin 40)
@@ -537,6 +558,16 @@
                      #:bg-color BLACK
                      #:radius 14
                      #:border-margin 1
+                     #:page-margin 28))
+
+(define (alert-frame pp)
+  (add-rounded-frame pp
+                     #:title #false
+                     #:align 'center
+                     #:fg-color WHITE
+                     #:bg-color "Crimson"
+                     #:radius 14
+                     #:border-margin 12
                      #:page-margin 28))
 
 (define (make-component-pict/sta #:body [body (blank)]
@@ -625,4 +656,89 @@
   (define-values [x-lo y-lo] (lt-find pp tgt))
   (define-values [x-hi y-hi] (rb-find pp tgt))
   (cons (- x-hi x-lo) (- y-hi y-lo)))
+
+(define (make-boundary-pict*)
+  (let* ((sd* (list->component* '(#true #false)))
+         (sta-pict (car sd*))
+         (dyn-pict (cadr sd*))
+         (acc (apply hb-append (* 2 COLUMN-MARGIN) sd*))
+         (edge-spec `((,sta-pict ,rc-find) (,dyn-pict ,lc-find) 0))
+         (sd (scale (add-boundary-arrows acc edge-spec #:color TYPE-BOUNDARY-COLOR) 2))
+         (sd (vc-append (blank (pict-width sd) (pict-height sd)) sd)))
+    (values sd sta-pict dyn-pict)))
+
+(define (add-boundary-arrows acc edge-spec #:color [boundary-color BLACK])
+  (add-boundary-X pin-arrows-line acc edge-spec #:color boundary-color))
+
+(define (add-boundary-arrow acc edge-spec #:color [boundary-color BLACK])
+  (add-boundary-X pin-arrow-line acc edge-spec #:color boundary-color))
+
+(define (add-boundary-X arrow-fn acc edge-spec #:color [boundary-color BLACK])
+  (define dom-spec (car edge-spec))
+  (define cod-spec (second edge-spec))
+  (define dom-pict (car dom-spec))
+  (define cod-pict (car cod-spec))
+  (define the-angle (caddr edge-spec))
+  (arrow-fn
+    COMPONENT-ARROW-SIZE
+    acc
+    dom-pict (second dom-spec)
+    cod-pict (second cod-spec)
+    #:start-angle (- the-angle)
+    #:end-angle the-angle
+    #:line-width COMPONENT-ARROW-WIDTH
+    #:color boundary-color))
+
+(define (add-thought/sta base tgt txt
+                         #:adjust-x [adjust-x values]
+                         #:adjust-y [adjust-y #f])
+  (add-thought base tgt txt WHITE #:adjust-x adjust-x #:adjust-y (or adjust-y (lambda (n) (* 2 n)))))
+
+(define (add-thought/dyn base tgt txt
+                         #:adjust-x [adjust-x #f]
+                         #:adjust-y [adjust-y values])
+  (add-thought base tgt txt WHITE #:adjust-x (or adjust-x -) #:adjust-y adjust-y))
+
+(define (add-thought base tgt txt color
+                     #:adjust-x [adjust-x values]
+                     #:adjust-y [adjust-y values])
+  (define b-x (adjust-x (* 1/10 (pict-width txt))))
+  (define b-y (adjust-y (pict-height txt)))
+  (define b-pict (wrap-balloon txt 's b-x b-y color BALLOON-RADIUS))
+  (pin-balloon b-pict base tgt ct-find))
+
+(define (need-txt str)
+  (hb-append "need " (bt str)))
+
+(define (smallt str)
+  (parameterize ((current-font-size SMALL-FONT-SIZE)) (t str)))
+
+(define (gt->pict gt)
+  (define mt? (gt-system-mt? gt))
+  (define str
+    (gt-system-name gt))
+  (define-values [fg-color bg-color]
+    (if mt?
+      (values "black" "Gainsboro")
+      (values "white" "Dim Gray")))
+  (define txt-p
+    (colorize (text str (current-main-font) 22) fg-color))
+  (define w (+ 10 (pict-width txt-p)))
+  (define h (+ 10 (pict-height txt-p)))
+  (define bg-radius 6)
+  (tag-pict
+    (cc-superimpose
+      (filled-rounded-rectangle w h bg-radius #:color bg-color)
+      txt-p)
+    (string->symbol str)))
+
+(define (gt*->pict gt* #:direction [dir 'H])
+  (case dir
+    ((H)
+     (apply para (map gt->pict gt*)))
+    (else
+      (raise-argument-error 'gt*->pict "undefined for #:direction" dir))))
+
+(define (pict->blank pp)
+  (blank (pict-width pp) (pict-height pp)))
 

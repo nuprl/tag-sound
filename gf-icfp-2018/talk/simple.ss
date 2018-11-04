@@ -2,9 +2,6 @@
 
 ;; Slides for ICFP 2018
 
-;; TODO
-;; - change desktop backgroup (and non-mirror background)
-
 (require
   gf-icfp-2018/talk/src/gt-system gf-icfp-2018/talk/src/constant
   pict pict/convert pict/balloon pict/shadow
