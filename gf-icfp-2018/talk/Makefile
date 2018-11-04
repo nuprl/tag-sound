@@ -1,4 +1,5 @@
 TALK=simple.ss
+GRACE=grace.ss
 RACO=raco
 
 all: preview
@@ -17,4 +18,20 @@ show: compile
 
 pdf: compile
 	@${RACO} slideshow --condense --pdf ${TALK}
+
+
+gcompile:
+	@${RACO} make -v ${GRACE}
+
+gpreview: gcompile
+	@${RACO} slideshow --right-half-screen ${GRACE}
+
+gpict: gcompile
+	@${RACO} pict ${GRACE}
+
+gshow: gcompile
+	@${RACO} slideshow ${GRACE}
+
+gpdf: gcompile
+	@${RACO} slideshow --condense --pdf ${GRACE}
 
