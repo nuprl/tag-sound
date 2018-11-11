@@ -9,6 +9,7 @@
   "images-lib"
   "math-lib"
   "mf-apply"
+  "pict-abbrevs"
   "pict-lib"
   "plot-lib"
   "ppict"
