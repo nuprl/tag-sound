@@ -25,58 +25,12 @@
 ;   (with-handlers ((exn:fail:contract? (lambda (ex) .... something with input)))
 ;     (id x)))
 
-; "grace.ss":
-;   making #<path:/Users/ben/code/racket/gtp/shallow/gf-icfp-2018/talk/grace.ss>
-;  [output to "compiled/grace_ss.zo"]
-; result arity mismatch;
-;  expected number of values not received
-;   expected: 2
-;   received: 1
-;   in: local-binding form
-;   values...:
-;    24/25
-;   context...:
-;    /Users/ben/code/racket/fork/extra-pkgs/slideshow/slideshow-lib/slideshow/viewer.rkt:263:10: display-changed method in auto-resize-frame%
-;    /Users/ben/code/racket/fork/extra-pkgs/gui/gui-lib/mred/private/wx/common/queue.rkt:428:6
-;    /Users/ben/code/racket/fork/extra-pkgs/gui/gui-lib/mred/private/wx/common/queue.rkt:479:32
-;    /Users/ben/code/racket/fork/extra-pkgs/gui/gui-lib/mred/private/wx/common/queue.rkt:627:3
-;    "/Users/ben/code/racket/fork/racket/collects/raco/raco.rkt": [running body]
-;    temp37_0
-;    for-loop
-;    run-module-instance!125
-;    "/Users/ben/code/racket/fork/racket/collects/raco/main.rkt": [running body]
-;    temp37_0
-;    for-loop
-;    run-module-instance!125
-;    perform-require!78
-; result arity mismatch;
-;  expected number of values not received
-;   expected: 2
-;   received: 1
-;   in: local-binding form
-;   values...:
-;    24/25
-;   context...:
-;    /Users/ben/code/racket/fork/extra-pkgs/slideshow/slideshow-lib/slideshow/viewer.rkt:263:10: display-changed method in auto-resize-frame%
-;    /Users/ben/code/racket/fork/extra-pkgs/gui/gui-lib/mred/private/wx/common/queue.rkt:428:6
-;    /Users/ben/code/racket/fork/extra-pkgs/gui/gui-lib/mred/private/wx/common/queue.rkt:479:32
-;    /Users/ben/code/racket/fork/extra-pkgs/gui/gui-lib/mred/private/wx/common/queue.rkt:627:3
-;    "/Users/ben/code/racket/fork/racket/collects/raco/raco.rkt": [running body]
-;    temp37_0
-;    for-loop
-;    run-module-instance!125
-;    "/Users/ben/code/racket/fork/racket/collects/raco/main.rkt": [running body]
-;    temp37_0
-;    for-loop
-;    run-module-instance!125
-;    perform-require!78
-
 (require
   (only-in gtp-util natural->bitstring)
   gf-icfp-2018/talk/src/gt-system
   gf-icfp-2018/talk/src/grace-util
   pict pict/convert pict/balloon pict/shadow
-  pict-abbrevs
+  (only-in pict-abbrevs rule color%-update-alpha string->color% pict-bbox-sup pict-bbox-sup*)
   ppict/2
   scribble-abbrevs/pict
   plot/no-gui
