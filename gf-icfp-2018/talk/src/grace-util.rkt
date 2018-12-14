@@ -18,7 +18,7 @@
   gf-icfp-2018/talk/src/speech-bubble
   pict
   pict/balloon pict/shadow
-  pict-abbrevs
+  (only-in pict-abbrevs string->color% color%-update-alpha revolution rule pict-bbox-sup pict-bbox-sup*)
   ppict/2
   (except-in plot/utils min* max*)
   plot/no-gui
