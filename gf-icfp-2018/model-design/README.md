@@ -17,7 +17,7 @@ Series of simple PLT Redex models.
    Note the performance problem, and where the overhead comes from.
 4. (trade for performance)
    Systematically increase performance by making run-time type checks "lazy",
-    "flat", and finally tagged
+    "flat", and finally proxy-free (locally-defensive)
 
 
 ### Outline
@@ -31,7 +31,7 @@ Most `*.rkt` files contains a PLT Redex model.
 5. `natural.rkt` natural (type-directed) embedding
 6. `conatural.rkt` co-natural embedding
 7. `forgetful.rkt` forgetful final embedding
-8. `tagged.rkt` monitor-free lazy-forgetful natural embedding
+8. `locally-defensive.rkt` monitor-free lazy-forgetful natural embedding
 
 Other files:
 
@@ -58,5 +58,5 @@ HOW TO READ, assuming `A` and `B` are module names:
          | |
          | forgetful
          |
-         tagged
+         locally-defensive
 ```
