@@ -42,13 +42,12 @@ Other files:
 
 HOW TO READ, assuming `A` and `B` are module names:
 
-- a line from `A` **down to** `B` means that `B` imports things from `A`
 - if `A` is above `B`, then `A` comes "conceptually before" `B` in the outline
+- a line from `A` **down to** `B` means that `B` imports things from `A`
 
 ```
      dyn   sta
-      \     /
-       \   /
+
        mixed
      /   | | \
  natural | |  erased
