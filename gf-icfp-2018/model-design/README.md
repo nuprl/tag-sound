@@ -43,8 +43,7 @@ Other files:
 HOW TO READ, assuming `A` and `B` are module names:
 
 - a line from `A` **down to** `B` means that `B` imports things from `A`
-- if `A` is above `B`, then `A` comes "conceptually before" `B` in the outline,
-  at least for my conception of things
+- if `A` is above `B`, then `A` comes "conceptually before" `B` in the outline
 
 ```
      dyn   sta
