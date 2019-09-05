@@ -255,8 +255,8 @@ For other cases, the relations are identical.
 @include-figure*["fig:natural-preservation.tex" @elem{Property judgments for the @|holong| embedding}]
 
 @Figure-ref{fig:natural-preservation} presents two properties for the @|holong|
- embedding: one for dynamically-typed expressions and one
- for statically-typed expressions.
+ embedding: one for untyped expressions and one
+ for typed expressions.
 Each property extends the corresponding judgment from @figure-ref{fig:multi-preservation}
  with a rule for monitors.
 The property for dynamic expressions (in the left column) states that a
