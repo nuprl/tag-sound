@@ -313,7 +313,7 @@ For example, @tt{mean} can raise a boundary error, raise a tag error, or
   @warning|{
     \wellM \texttt{(moment lst 2)} \rrKDstar
       \left\{\begin{array}{l l}
-         \boundaryerror & \mbox{if \texttt{mean}, \texttt{-}, or \texttt{map} use the @tt{Float} type}
+         \boundaryerror & \mbox{if \texttt{mean}, \texttt{-}, or \texttt{map} use the \texttt{Float} type}
       \\ \tagerror & \mbox{if \texttt{mean} or \texttt{-} check for strings}
       \\ -42       & \mbox{if the primitives are unchecked}
       \end{array}\right.
