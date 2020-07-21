@@ -276,7 +276,7 @@
                  [*GRID-Y-SKIP* OVERHEADS-VSPACE]
                  [*GRID-NUM-COLUMNS* (NUM-COLUMNS)]
                  [*LEGEND?* #false]
-                 [*LEGEND-VSPACE* 4]
+                 [*LEGEND-Y-SKIP* 4]
                  [*FONT-SIZE* (FONT-SIZE)]
                  [*BRUSH-COLOR-CONVERTER* (my-color-converter 'brush)]
                  [*PEN-COLOR-CONVERTER* (my-color-converter 'pen)]
